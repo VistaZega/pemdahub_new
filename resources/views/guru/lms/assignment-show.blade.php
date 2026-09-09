@@ -266,9 +266,17 @@
 {{-- ============================== GROUP MANAGEMENT (IF GROUP ASSIGNMENT) ============================== --}}
 @if($assignment->isGroupAssignment())
 @php
-    $groupedStudentIds = $assignment->groups->flatMap(function($grp) {
+    $enrolledStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+
+    // Saring kelompok tugas untuk tampilan: hanya kelompok yang memiliki siswa sah tugas ini
+    $assignmentGroups = $assignment->groups->filter(function($grp) use ($enrolledStudentIds) {
+        return in_array($grp->leader_id, $enrolledStudentIds) ||
+               $grp->members->pluck('id')->intersect($enrolledStudentIds)->isNotEmpty();
+    });
+
+    $groupedStudentIds = $assignmentGroups->flatMap(function($grp) use ($enrolledStudentIds) {
         return $grp->members->pluck('id')->push($grp->leader_id);
-    })->unique()->filter()->toArray();
+    })->filter(fn($id) => in_array($id, $enrolledStudentIds))->unique()->filter()->toArray();
 
     $availableStudents = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIds))->values();
 @endphp
@@ -414,18 +422,22 @@
 
     {{-- Daftar Kelompok Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @forelse($assignment->groups as $grp)
+        @forelse($assignmentGroups as $grp)
         @php
             $grpSub = $grp->submission;
             $grpClassroomName = $grp->classroom_name ?? ($selectedClassroom->class_name ?? 'Rombel');
-            $grpLeaderName = $grp->leader->user->name ?? $grp->leader->full_name ?? 'Belum Ditunjuk';
-            $grpMembersList = $grp->members->map(function($m) use ($grp) {
+            $validMembers = $grp->members->filter(fn($m) => in_array($m->id, $enrolledStudentIds));
+            $isValidLeader = in_array($grp->leader_id, $enrolledStudentIds);
+            $displayLeader = $isValidLeader ? $grp->leader : $validMembers->first();
+            $grpLeaderName = $displayLeader->user->name ?? $displayLeader->full_name ?? 'Belum Ditunjuk';
+
+            $grpMembersList = $validMembers->map(function($m) use ($displayLeader) {
                 return [
                     'id' => $m->id,
                     'name' => $m->user->name ?? $m->full_name ?? '-',
                     'nisn' => $m->nisn ?? '-',
                     'nis' => $m->nis ?? '-',
-                    'is_leader' => (int)$m->id === (int)$grp->leader_id,
+                    'is_leader' => (int)$m->id === (int)($displayLeader->id ?? 0),
                 ];
             })->values()->all();
 
@@ -435,8 +447,8 @@
                 'classroom' => $grpClassroomName,
                 'leader' => [
                     'name' => $grpLeaderName,
-                    'nisn' => $grp->leader->nisn ?? '-',
-                    'nis' => $grp->leader->nis ?? '-',
+                    'nisn' => $displayLeader->nisn ?? '-',
+                    'nis' => $displayLeader->nis ?? '-',
                 ],
                 'members' => $grpMembersList,
                 'submission' => $grpSub ? [
@@ -481,9 +493,9 @@
                         <span class="truncate">{{ $grpLeaderName }}</span>
                     </div>
                     <div class="text-gray-500 text-[11px] leading-snug">
-                        <span class="font-bold text-gray-700">Anggota ({{ $grp->members->count() }}):</span>
+                        <span class="font-bold text-gray-700">Anggota ({{ $validMembers->count() }}):</span>
                         <p class="text-gray-600 mt-0.5 line-clamp-2">
-                            {{ $grp->members->pluck('user.name')->filter()->implode(', ') ?: ($grp->members->pluck('full_name')->filter()->implode(', ') ?: '—') }}
+                            {{ $validMembers->pluck('user.name')->filter()->implode(', ') ?: ($validMembers->pluck('full_name')->filter()->implode(', ') ?: '—') }}
                         </p>
                     </div>
 
@@ -491,7 +503,7 @@
                     <button type="button"
                             @click='activeGroupDetail = @json($grpDataJson)'
                             class="mt-2 w-full text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 border border-purple-200 rounded-xl py-1.5 px-2.5 flex items-center justify-between transition shadow-2xs cursor-pointer">
-                        <span class="flex items-center gap-1.5"><i class="fas fa-users-viewfinder text-purple-600"></i> Detail Anggota ({{ $grp->members->count() }})</span>
+                        <span class="flex items-center gap-1.5"><i class="fas fa-users-viewfinder text-purple-600"></i> Detail Anggota ({{ $validMembers->count() }})</span>
                         <span class="text-[10px] font-black text-purple-900 bg-purple-200 px-1.5 py-0.2 rounded-md">Buka &rarr;</span>
                     </button>
                 </div>

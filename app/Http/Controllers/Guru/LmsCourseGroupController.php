@@ -107,23 +107,6 @@ class LmsCourseGroupController extends Controller
     }
 
     /**
-     * Reset / Delete all course master groups
-     */
-    public function resetAll(LmsCourse $course)
-    {
-        $teacher = $this->getTeacher();
-        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
-            abort(403);
-        }
-
-        $count = $course->courseGroups()->count();
-        $course->courseGroups()->delete();
-
-        return redirect()->route('guru.lms.show', ['course' => $course->id, 'tab' => 'groups'])
-            ->with('success', "Seluruh ({$count}) kelompok kursus berhasil di-reset / dihapus.");
-    }
-
-    /**
      * Auto generate course master groups
      */
     public function autoGenerate(Request $request, LmsCourse $course)

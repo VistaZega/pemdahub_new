@@ -1021,8 +1021,15 @@ if (!function_exists('balanceHtmlTags')) {
         {{-- TAB: COURSE MASTER GROUPS (KELOMPOK BELAJAR) --}}
         {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         @php
-            $courseMasterGroups = $course->courseGroups()->with(['leader.major', 'members.major'])->get();
+            $rawCourseMasterGroups = $course->courseGroups()->with(['leader.major', 'members.major'])->get();
             $enrolledStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+
+            // Saring kelompok untuk tampilan: hanya tampilkan kelompok yang memuat siswa sah kursus ini
+            $courseMasterGroups = $rawCourseMasterGroups->filter(function($grp) use ($enrolledStudentIds) {
+                return in_array($grp->leader_id, $enrolledStudentIds) ||
+                       $grp->members->pluck('id')->intersect($enrolledStudentIds)->isNotEmpty();
+            });
+
             $groupedStudentIdsInCourse = $courseMasterGroups->flatMap(function($grp) use ($enrolledStudentIds) {
                 return $grp->members->pluck('id')->push($grp->leader_id);
             })->filter(fn($id) => in_array($id, $enrolledStudentIds))->unique()->values()->toArray();
@@ -1043,14 +1050,6 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        @if($courseMasterGroups->isNotEmpty())
-                        <form action="{{ route('guru.lms.groups.reset-all', $course->id) }}" method="POST" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin mereset/menghapus seluruh {{ $courseMasterGroups->count() }} kelompok di kursus ini?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black bg-rose-50 text-rose-700 hover:bg-rose-100 border-2 border-rose-300 transition shadow-sm" title="Hapus semua kelompok">
-                                <i class="fas fa-trash-alt"></i> <span>Reset Kelompok</span>
-                            </button>
-                        </form>
-                        @endif
                         @if($availableStudentsInCourse->isNotEmpty())
                         <button type="button" @click="showAddGroup = !showAddGroup; showAutoGroup = false; showImportExcel = false"
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 border-2 border-black transition shadow-sm">

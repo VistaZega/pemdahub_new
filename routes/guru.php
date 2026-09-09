@@ -173,7 +173,6 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
 
         // Course Master Groups (Kelompok Belajar Tingkat Kursus)
         Route::post('/{course}/groups', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'store'])->name('groups.store');
-        Route::delete('/{course}/groups/reset-all', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'resetAll'])->name('groups.reset-all');
         Route::delete('/{course}/groups/{group}', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'destroy'])->name('groups.destroy');
         Route::post('/{course}/groups/auto-generate', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'autoGenerate'])->name('groups.autoGenerate');
         Route::get('/{course}/groups/download-template', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'downloadTemplate'])->name('groups.download-template');
