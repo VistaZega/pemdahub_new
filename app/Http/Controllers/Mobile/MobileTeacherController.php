@@ -323,12 +323,14 @@ class MobileTeacherController extends Controller
                 $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
                 $allClassroomIds = [$selectedClassroomId];
 
+                $isHomeroom = $classroom && ((int) $classroom->homeroom_teacher_id === (int) $teacher->id);
+
                 if ($assignment) {
                     $students = $filterService->getStudentsForAssignment($assignment, $date);
-                    $assignmentRuleInfo = $assignment->subject->name ?? 'Mata Pelajaran';
+                    $assignmentRuleInfo = ($isHomeroom ? '[Wali Kelas] ' : '') . ($assignment->subject->name ?? 'Mata Pelajaran');
                 } else {
-                    $students = $classroom->students()->orderBy('full_name')->get();
-                    $assignmentRuleInfo = 'Reguler';
+                    $students = $classroom->students()->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])->orderBy('full_name')->get();
+                    $assignmentRuleInfo = $isHomeroom ? 'Wali Kelas (Semua Siswa)' : 'Reguler';
                 }
 
                 $attendances = Attendance::whereIn('classroom_id', $allClassroomIds)

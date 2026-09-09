@@ -476,7 +476,7 @@ class DashboardController extends Controller
                 ->where('classroom_id', $classroom->id)
                 ->where('is_active', true)
                 ->exists()
-            || $classroom->homeroom_teacher_id === $teacher->id;
+            || (int) $classroom->homeroom_teacher_id === (int) $teacher->id;
 
         if (!$hasAccess) {
             abort(403, 'Anda tidak mengajar di kelas ini.');
@@ -719,10 +719,10 @@ class DashboardController extends Controller
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', (int) $selectedClassroomId) ?? \App\Models\Classroom::find($selectedClassroomId);
             if ($selectedClassroom) {
-                $isHomeroom = ($selectedClassroom->homeroom_teacher_id === $teacher->id);
+                $isHomeroom = ((int) $selectedClassroom->homeroom_teacher_id === (int) $teacher->id);
 
                 // Fetch active students in class for the daily matrix (applies to all students)
-                $studentsQuery = $selectedClassroom->students()->wherePivot('status', 'aktif');
+                $studentsQuery = $selectedClassroom->students()->whereIn('student_classes.status', ['aktif', 'enrolled', 'active']);
                 if ($activeYear) {
                     $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                 }
@@ -968,7 +968,7 @@ class DashboardController extends Controller
                     'percentage' => $totalActiveStudents > 0 ? round(($dailyPresentCount / $totalActiveStudents) * 100, 1) : 0,
                 ];
 
-                $isHomeroom = $selectedClassroom && ($selectedClassroom->homeroom_teacher_id === $teacher->id);
+                $isHomeroom = $selectedClassroom && ((int) $selectedClassroom->homeroom_teacher_id === (int) $teacher->id);
 
                 // Rekap Bulanan Kehadiran Harian Sekolah
                 $monthlySummary = [

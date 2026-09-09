@@ -153,7 +153,7 @@ class AttendanceController extends Controller
                             ->toArray();
                     }
                 } else {
-                    $studentsQuery = $selectedClassroom->students()->wherePivot('status', 'aktif');
+                    $studentsQuery = $selectedClassroom->students()->whereIn('student_classes.status', ['aktif', 'enrolled', 'active']);
                     if ($activeYear) {
                         $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                     }
@@ -312,7 +312,7 @@ class AttendanceController extends Controller
         }
 
         // Strict Check: Hanya Wali Kelas yang berhak menyimpan/mengubah presensi harian sekolah
-        if ($classroom->homeroom_teacher_id !== $teacher->id) {
+        if ((int) $classroom->homeroom_teacher_id !== (int) $teacher->id) {
             $homeroomName = $classroom->homeroomTeacher?->full_name ?? 'Wali Kelas';
             return back()->withErrors([
                 'attendance' => "Akses Ditolak: Anda bukan Wali Kelas dari kelas {$classroom->class_name}. Presensi harian sekolah hanya dapat diisi dan diubah oleh Wali Kelas ({$homeroomName}) atau Admin Sekolah."

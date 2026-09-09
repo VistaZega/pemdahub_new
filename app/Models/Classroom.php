@@ -37,6 +37,9 @@ class Classroom extends Model
     protected $casts = [
         'grade_level' => 'integer',
         'capacity' => 'integer',
+        'homeroom_teacher_id' => 'integer',
+        'school_id' => 'integer',
+        'academic_year_id' => 'integer',
         'is_combined' => 'boolean',
         'is_active' => 'boolean',
     ];
