@@ -33,12 +33,12 @@
     <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-                <div class="flex items-center gap-3.5 mb-3">
+                <div class="flex items-center gap-5 md:gap-6 mb-3" style="gap: 1.25rem;">
                     <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #090d16 !important; color: #ffffff !important;">
                         <i class="fas fa-chalkboard-teacher text-2xl text-amber-400"></i>
                     </div>
-                    <div>
-                        <p class="text-black text-xs font-black uppercase tracking-[0.2em]">Learning Management System Guru</p>
+                    <div class="min-w-0">
+                        <p class="text-black text-xs font-black uppercase tracking-[0.2em] mb-1">Learning Management System Guru</p>
                         <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight">Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}! 👋</h1>
                     </div>
                 </div>

@@ -522,7 +522,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     </div>
 
                                     <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4" style="background-color: #fee2e2 !important;">
-                                        <div class="flex items-center gap-3.5">
+                                        <div class="flex items-center gap-4">
                                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #dc2626 !important; color: #ffffff !important;">
                                                 <i class="fas fa-file-pdf text-2xl text-white"></i>
                                             </div>
@@ -542,7 +542,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     </div>
                                 @elseif($material->material_type === 'link')
                                     <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4" style="background-color: #f3e8ff !important;">
-                                        <div class="flex items-center gap-3.5">
+                                        <div class="flex items-center gap-4">
                                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #9333ea !important; color: #ffffff !important;">
                                                 <i class="fas fa-link text-2xl text-white"></i>
                                             </div>
@@ -594,7 +594,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     </div>
                                 @elseif($material->file_path)
                                     <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4 mb-4" style="background-color: #e0f2fe !important;">
-                                        <div class="flex items-center gap-3.5">
+                                        <div class="flex items-center gap-4">
                                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #0284c7 !important; color: #ffffff !important;">
                                                 <i class="fas fa-file-alt text-2xl text-white"></i>
                                             </div>
@@ -1462,7 +1462,7 @@ if (!function_exists('balanceHtmlTags')) {
             @endphp
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md">
-                    <div class="flex items-center gap-3.5">
+                    <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black shadow-sm" style="background-color: #fef08a !important;">
                             <i class="fas fa-users text-black text-xl"></i>
                         </div>
@@ -1473,7 +1473,7 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
                 </div>
                 <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md" style="background-color: #d1fae5 !important;">
-                    <div class="flex items-center gap-3.5">
+                    <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-sm">
                             <i class="fas fa-chart-line text-black text-xl"></i>
                         </div>
@@ -1484,7 +1484,7 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
                 </div>
                 <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md" style="background-color: #e0f2fe !important;">
-                    <div class="flex items-center gap-3.5">
+                    <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-sm">
                             <i class="fas fa-paper-plane text-black text-xl"></i>
                         </div>
@@ -1495,7 +1495,7 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
                 </div>
                 <div class="bg-white rounded-3xl border-2 border-black p-5 shadow-md" style="background-color: #f3e8ff !important;">
-                    <div class="flex items-center gap-3.5">
+                    <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-sm">
                             <i class="fas fa-vial text-black text-xl"></i>
                         </div>
