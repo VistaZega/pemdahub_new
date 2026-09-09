@@ -1326,10 +1326,29 @@ Route::get('/run-migrations', function () {
         echo \Illuminate\Support\Facades\Artisan::output();
         echo "\nMonday Inspiration Seeder Exit Code: " . $miSeederExitCode . "\n\n";
 
-        echo "<h1>=== RUNNING MIKROKONTROLER COURSE SEEDER ===</h1>\n";
-        $mikroSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'MikrokontrolerCourseSeeder', '--force' => true]);
-        echo \Illuminate\Support\Facades\Artisan::output();
-        echo "\nMikrokontroler Course Seeder Exit Code: " . $mikroSeederExitCode . "\n\n";
+        echo "<h1>=== CLEANING UP DUMMY MIKROKONTROLER & X TAV LMS COURSE ===</h1>\n";
+        $dummyCourses = \App\Models\LmsCourse::withTrashed()
+            ->where(function ($q) {
+                $q->where('code', 'LIKE', 'LMS-MIKRO-XTAV%')
+                  ->orWhere('course_name', 'Bahasa Pemrograman Mikrokontroler');
+            })
+            ->get();
+
+        foreach ($dummyCourses as $dc) {
+            \App\Models\LmsClass::where('course_id', $dc->id)->delete();
+            \App\Models\LmsModule::where('course_id', $dc->id)->forceDelete();
+            \App\Models\LmsAssignment::where('course_id', $dc->id)->forceDelete();
+            \App\Models\LmsQuiz::where('course_id', $dc->id)->forceDelete();
+            $dc->forceDelete();
+            echo "Deleted dummy course: {$dc->id} ({$dc->course_name})\n";
+        }
+
+        $xtavClass = \App\Models\Classroom::where('class_name', 'X TAV')->first();
+        if ($xtavClass) {
+            \App\Models\LmsClass::where('classroom_id', $xtavClass->id)->delete();
+            echo "Cleared lingering lms_classes for X TAV\n";
+        }
+        echo "Dummy course and X TAV cleanup completed.\n\n";
 
         echo "<h1>=== SPP TARIFF SEEDER ===</h1>\n";
         $sppSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'SppTariffSeeder', '--force' => true]);
