@@ -346,4 +346,52 @@ class LmsMobileQuizConsistencyTest extends TestCase
         $this->assertEquals(80.0, (float)$attempt->score);
         $this->assertTrue($attempt->is_passed);
     }
+
+    /**
+     * Test that mobile quiz page hides global bottom navigation and renders both inline & sticky submit buttons
+     */
+    public function test_mobile_quiz_hides_bottom_navigation_and_shows_submit_buttons(): void
+    {
+        $quiz = LmsQuiz::create([
+            'course_id' => $this->course->id,
+            'title' => 'Kuis UI Mobile Test',
+            'time_limit' => 15,
+            'passing_score' => 75,
+            'max_attempts' => 2,
+            'is_published' => true,
+        ]);
+
+        for ($i = 1; $i <= 5; $i++) {
+            LmsQuizQuestion::create([
+                'quiz_id' => $quiz->id,
+                'question' => "Pertanyaan ke-{$i}",
+                'question_type' => 'multiple_choice',
+                'options' => [
+                    ['key' => 'A', 'text' => 'Pilihan A'],
+                    ['key' => 'B', 'text' => 'Pilihan B'],
+                ],
+                'correct_answer' => 'A',
+                'order_number' => $i,
+                'score' => 20,
+            ]);
+        }
+
+        $this->actingAs($this->siswaUser);
+        session(['active_role' => 'siswa']);
+
+        $response = $this->get(route('mobile.lms.quiz.start', $quiz->id));
+        $response->assertStatus(200);
+
+        // 1. Bottom navigation bar must NOT be present on the quiz page
+        $response->assertDontSee('<nav class="clay-nav', false);
+
+        // 2. Both inline submit card & sticky submit bar must be present
+        $response->assertSee('Akhir Lembar Soal Kuis');
+        $response->assertSee('Kirim & Selesaikan Kuis', false);
+        $response->assertSee('Kirim Jawaban');
+        $response->assertSee('z-50');
+
+        // 3. Meta notranslate must be present to prevent Google Translate overlay
+        $response->assertSee('name="google" content="notranslate"', false);
+    }
 }

@@ -1,6 +1,7 @@
 @extends('mobile.layouts.app')
 
 @section('title', 'Pengerjaan Kuis: ' . $quiz->title . ' - PembdaHUB Mobile')
+@section('hide_bottom_nav', true)
 
 @section('content')
 @php
@@ -224,15 +225,61 @@
             </div>
         @endforelse
 
+        {{-- ===== INLINE BOTTOM SUBMIT & RECAP CARD ===== --}}
+        <div class="clay-card p-5 space-y-4 border-2 border-purple-200 bg-gradient-to-b from-white to-purple-50/40">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-lg font-black shadow-md shrink-0">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-sm font-black text-slate-900 leading-tight">Akhir Lembar Soal Kuis</h3>
+                    <p class="text-xs text-slate-600 font-bold mt-0.5">
+                        <span class="text-purple-700 font-extrabold text-sm" x-text="answeredCount"></span> dari {{ count($questions) }} soal telah Anda jawab
+                    </p>
+                </div>
+            </div>
+
+            {{-- Mini Question Navigator / Status Grid --}}
+            <div class="p-3 bg-white rounded-2xl border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between text-[11px] font-black text-slate-600">
+                    <span>Rekap Lembar Jawaban:</span>
+                    <span class="text-purple-700 font-extrabold" x-text="answeredCount === {{ count($questions) }} ? 'Semua Terjawab ✅' : ({{ count($questions) }} - answeredCount) + ' Soal Belum Diisi ⚠️'"></span>
+                </div>
+                <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 pt-1">
+                    @foreach($questions as $idx => $q)
+                        <a href="#q-card-{{ $q->id }}"
+                           class="h-8 rounded-xl flex items-center justify-center text-xs font-black transition border-2"
+                           :class="answers['{{ $q->id }}'] ? 'bg-purple-600 text-white border-purple-700 shadow-sm' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-purple-50'">
+                            {{ $idx + 1 }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Warning if some questions are unanswered --}}
+            <div x-show="answeredCount < {{ count($questions) }}" class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm shrink-0"></i>
+                <span>Perhatian: Masih ada butir soal yang belum dijawab. Anda tetap bisa mengirimkan kuis sekarang jika sudah yakin.</span>
+            </div>
+
+            {{-- Big Prominent Inline Submit Button --}}
+            <button type="submit" 
+                    onclick="return confirm('Apakah Anda yakin ingin menyelesaikan dan mengirimkan seluruh jawaban kuis ini?')"
+                    class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white font-black text-sm uppercase tracking-wider shadow-lg hover:shadow-xl active:scale-[0.98] transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-paper-plane text-base"></i>
+                <span>Kirim & Selesaikan Kuis</span>
+            </button>
+        </div>
+
         {{-- ===== STICKY BOTTOM SUBMIT BAR ===== --}}
-        <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t-2 border-slate-200 p-3 shadow-2xl">
-            <div class="max-w-md mx-auto flex items-center gap-3">
+        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-slate-200 px-4 py-3 shadow-2xl">
+            <div class="max-w-md mx-auto flex items-center justify-between gap-3">
                 <div class="text-[11px] font-black text-slate-700 min-w-0 flex-1">
-                    <span class="text-purple-700 font-extrabold text-sm" x-text="answeredCount"></span>/{{ count($questions) }}
-                    <span>Soal Selesai</span>
+                    <span class="text-purple-700 font-black text-base" x-text="answeredCount"></span>/{{ count($questions) }}
+                    <span>Soal Dijawab</span>
                 </div>
                 <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menyelesaikan dan mengirimkan seluruh jawaban kuis ini?')"
-                        class="clay-btn py-3.5 px-6 text-white font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-1.5 flex-shrink-0">
+                        class="clay-purple py-3 px-5 text-white font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 flex-shrink-0 active:scale-95 transition">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Kirim Jawaban</span>
                 </button>

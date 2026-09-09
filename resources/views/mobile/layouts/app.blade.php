@@ -7,6 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="google" content="notranslate">
 
     <title>@yield('title', 'PembdaHUB Playful Mobile')</title>
 
@@ -296,6 +297,7 @@
 
     <!-- Floating 3D Clay Navigation Bar -->
     @auth
+    @unless(View::hasSection('hide_bottom_nav'))
     <div class="fixed bottom-4 left-5 right-5 z-40">
         <nav class="clay-nav px-3 py-2.5 flex items-center justify-around">
             <!-- Tab 1: Dashboard -->
@@ -334,6 +336,7 @@
             </a>
         </nav>
     </div>
+    @endunless
 
     <!-- Role & Jabatan Switcher Modal (Bottom Sheet on Mobile, Centered on Tablet/Desktop) -->
     @if($showSwitcher)
