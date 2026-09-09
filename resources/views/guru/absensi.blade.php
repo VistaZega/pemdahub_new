@@ -334,9 +334,13 @@
                                                     <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
                                                     <div class="truncate max-w-[200px]" title="{{ $st->full_name }}">
                                                         <div class="text-xs font-bold text-gray-900 truncate">{{ $st->full_name }}</div>
-                                                        <div class="text-[10px] text-gray-400 font-medium">NISN: {{ $st->nisn ?? '-' }}</div>
                                                         @if($stGroup)
-                                                            <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                            @php $isStSched = in_array($st->id, $scheduledStudentIds ?? []); @endphp
+                                                            @if($isStSched)
+                                                                <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs" title="Grup {{ $stGroup }} (Hadir Fisik)"><i class="fas fa-check-circle text-[8px] mr-0.5"></i> Grup {{ $stGroup }}</span>
+                                                            @else
+                                                                <span class="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs" title="Grup {{ $stGroup }} (Tidak Hadir Fisik)"><i class="fas fa-times-circle text-[8px] mr-0.5"></i> Grup {{ $stGroup }}</span>
+                                                            @endif
                                                         @endif
                                                     </div>
                                                 </div>
@@ -521,9 +525,13 @@
                                                     <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
                                                     <div class="truncate max-w-[220px]" title="{{ $st->full_name }}">
                                                         <div class="text-xs font-bold text-gray-900 truncate">{{ $st->full_name }}</div>
-                                                        <div class="text-[10px] text-gray-400 font-medium">NISN: {{ $st->nisn ?? '-' }}</div>
                                                         @if($stGroup)
-                                                            <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                            @php $isStSched = in_array($st->id, $scheduledStudentIds ?? []); @endphp
+                                                            @if($isStSched)
+                                                                <span class="inline-block mt-0.5 text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs" title="Grup {{ $stGroup }} (Hadir Fisik)"><i class="fas fa-check-circle text-[8px] mr-0.5"></i> Grup {{ $stGroup }}</span>
+                                                            @else
+                                                                <span class="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs" title="Grup {{ $stGroup }} (Tidak Hadir Fisik)"><i class="fas fa-times-circle text-[8px] mr-0.5"></i> Grup {{ $stGroup }}</span>
+                                                            @endif
                                                         @endif
                                                     </div>
                                                 </div>
@@ -704,6 +712,16 @@
                                 {{ $assignmentInfo }}
                             </div>
                             @endif
+                            @if(isset($targetGroup))
+                            <div class="flex items-center justify-end gap-1.5 mt-1 flex-wrap">
+                                <span class="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                                    <i class="fas fa-check-circle text-emerald-600"></i> Hadir Fisik: Grup {{ $targetGroup }}
+                                </span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs">
+                                    <i class="fas fa-times-circle text-rose-600"></i> Tidak Hadir Fisik: Grup {{ $targetGroup === 'A' ? 'B' : 'A' }}
+                                </span>
+                            </div>
+                            @endif
                         </div>
                     </div>
 
@@ -774,7 +792,7 @@
                                         <td class="px-3 py-2.5 text-center font-bold {{ !$isScheduled ? 'text-slate-500' : 'text-gray-500' }} border-r border-gray-100">{{ $idx + 1 }}</td>
                                         <td class="px-3 py-2.5 font-bold border-r border-gray-100 min-w-[240px]">
                                             <div class="flex items-center gap-2.5">
-                                                <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-8 h-8 rounded-full object-cover shrink-0 border-2 {{ !$isScheduled ? 'border-slate-300 shadow-sm' : 'border-purple-200 shadow-sm' }}" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
+                                                <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-8 h-8 rounded-full object-cover shrink-0 border-2 {{ !$isScheduled ? 'border-rose-300 shadow-xs' : 'border-emerald-400 shadow-xs' }}" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
                                                 <div class="truncate max-w-[190px]" title="{{ $st->full_name }}">
                                                     <div class="flex items-center gap-1.5 flex-wrap">
                                                         <span class="{{ !$isScheduled ? 'text-slate-700 font-semibold' : 'text-gray-900 font-bold' }}">
@@ -782,9 +800,9 @@
                                                         </span>
                                                         @if($stGroup)
                                                             @if($isScheduled)
-                                                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">Grup {{ $stGroup }}</span>
+                                                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs" title="Grup {{ $stGroup }} (Hadir Fisik di Ruangan)"><i class="fas fa-check-circle text-[8px] mr-0.5"></i> Grup {{ $stGroup }}</span>
                                                             @else
-                                                                <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200" title="Grup {{ $stGroup }} (Grup Rotasi Lain)">Grup {{ $stGroup }}</span>
+                                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs" title="Grup {{ $stGroup }} (Tidak Hadir Fisik di Ruangan)"><i class="fas fa-times-circle text-[8px] mr-0.5"></i> Grup {{ $stGroup }}</span>
                                                             @endif
                                                         @endif
                                                     </div>
