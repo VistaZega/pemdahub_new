@@ -581,11 +581,11 @@
                                                         
                                                         if($bc->teachingAssignment) {
                                                             if($bc->teachingAssignment->block_type == 'all') {
-                                                                $blockBadge = $isNormal ? 'GROUP A' : 'GROUP B';
+                                                                $blockBadge = $isNormal ? 'GROUP B' : 'GROUP A';
                                                                 $blockTitle = 'Siswa yang belajar (Ruang Kelas / Teori)';
                                                                 $blockColor = 'bg-blue-100 border-blue-300 text-blue-700';
                                                             } elseif($bc->teachingAssignment->block_type == 'split') {
-                                                                $blockBadge = $isNormal ? 'GROUP B' : 'GROUP A';
+                                                                $blockBadge = $isNormal ? 'GROUP A' : 'GROUP B';
                                                                 $blockTitle = 'Siswa yang belajar (Ruang Lab / Praktik)';
                                                                 $blockColor = 'bg-orange-100 border-orange-300 text-orange-700';
                                                             } elseif($bc->teachingAssignment->block_type == 'parallel') {

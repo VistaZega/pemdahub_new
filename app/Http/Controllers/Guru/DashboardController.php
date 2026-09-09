@@ -861,9 +861,9 @@ class DashboardController extends Controller
                 }
 
                 // Hitung Rotasi Sistem Blok SMK pada Tanggal Terpilih:
-                // Konvensi SMK Swasta Pembda:
-                // Normal (Periode 1, 3, 5): Grup A = Ruang Kelas (Teori), Grup B = Ruang Lab (Praktik)
-                // Ditukar (Swapped / Periode 2, 4, 6): Grup A = Ruang Lab (Praktik), Grup B = Ruang Kelas (Teori)
+                // Konvensi Resmi SMK Swasta Pembda:
+                // Urutan Pertama / Normal (Periode 1, 3, 5): Grup A = Ruang Lab (Praktik), Grup B = Ruang Kelas (Teori)
+                // Ditukar / Swapped (Periode 2, 4, 6): Grup A = Ruang Kelas (Teori), Grup B = Ruang Lab (Praktik)
                 $studentBlockGroups = \App\Models\BlockStudentGroup::where('classroom_id', $selectedClassroomId)
                     ->pluck('group', 'student_id')
                     ->toArray();
@@ -884,11 +884,11 @@ class DashboardController extends Controller
                 $primaryAssignment = $assignments->first();
                 if ($primaryAssignment && in_array($primaryAssignment->block_type, ['all', 'split'])) {
                     if ($primaryAssignment->block_type === 'split') {
-                        // Mapel Praktik / Lab
-                        $targetGroup = ($rotation === 'normal') ? 'B' : 'A';
-                    } else {
-                        // Mapel Teori / Kelas ('all')
+                        // Mapel Praktik / Lab (Urutan pertama di Lab adalah Grup A)
                         $targetGroup = ($rotation === 'normal') ? 'A' : 'B';
+                    } else {
+                        // Mapel Teori / Kelas ('all') (Urutan pertama di Ruang Kelas adalah Grup B)
+                        $targetGroup = ($rotation === 'normal') ? 'B' : 'A';
                     }
                 }
 

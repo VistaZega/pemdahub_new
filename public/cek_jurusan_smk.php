@@ -45,37 +45,7 @@ $tkrId  = $majorsByCode['TKR'] ?? 7;   // Jurusan Kendaraan Ringan: TKR
 $tkjId  = $majorsByCode['TKJ'] ?? 10;  // Jurusan Komputer & Jaringan: TKJ
 $acpId  = $majorsByCode['ACP'] ?? 14;  // Jurusan Axioo Industri: ACP
 
-// Fitur 1: Setel Penugasan Guru Yulianus & Joy Wise Harefa ke Grup A (Ruang Kelas)
-$doFixGroupA = isset($_GET["fix_group_a"]) && $_GET["fix_group_a"] === "1";
-$groupAFixed = false;
-
-if ($doFixGroupA) {
-    $yuliTeacher = Teacher::whereHas('user', fn($q) => $q->where('name', 'like', '%Yulianus%'))->first();
-    if ($yuliTeacher) {
-        TeachingAssignment::where('teacher_id', $yuliTeacher->id)
-            ->where('classroom_id', 370)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-            ->update(['block_type' => 'all']);
-    }
-
-    $joyStudent = Student::where('full_name', 'like', '%Joy Wise%')->first();
-    if ($joyStudent) {
-        $blockSchedule = BlockSchedule::where('academic_year_id', $activeYear?->id)->first();
-        BlockStudentGroup::updateOrCreate(
-            [
-                'student_id' => $joyStudent->id,
-                'classroom_id' => 370,
-            ],
-            [
-                'block_schedule_id' => $blockSchedule?->id ?? 1,
-                'group' => 'A',
-            ]
-        );
-    }
-    $groupAFixed = true;
-}
-
-// Fitur 2: Kalibrasi Ulang Presisi 6 Jurusan jika diminta
+// Fitur 1: Kalibrasi Ulang Presisi 6 Jurusan jika diminta
 $doRecalc = isset($_GET["recalc"]) && $_GET["recalc"] === "1";
 $recalcUpdated = 0;
 
@@ -253,17 +223,9 @@ $unassignedCount = $studentCountsByMajor[null] ?? 0;
     <div class="card" style="background:#1e293b;border-color:#38bdf8;">
         <h3 style="color:#38bdf8;margin-top:0">⚡ Tindakan Cepat (1-Klik)</h3>
         
-        <div style="margin-bottom:16px;">
+        <div>
             <p style="font-size:13px;color:#cbd5e1;margin-bottom:8px;">
-                <strong>1. Hilangkan Warna Merah di Absensi Guru (Kelas XI Teknik Rekayasa):</strong><br>
-                Ubah penugasan Pak Yulianus Zega ke <strong>Grup A (Ruang Kelas)</strong> dan masukkan <strong>Joy Wise Harefa ke Grup A</strong>:
-            </p>
-            <a href="?secret=pembda99&fix_group_a=1" class="btn btn-purple">⚡ Setel Guru Yulianus & Joy Wise Harefa ke Grup A (Hilangkan Merah)</a>
-        </div>
-
-        <div style="border-top:1px solid #334155;padding-top:14px;">
-            <p style="font-size:13px;color:#cbd5e1;margin-bottom:8px;">
-                <strong>2. Kalibrasi Ulang Seluruh 674 Siswa SMK:</strong><br>
+                <strong>Kalibrasi Ulang Seluruh 674 Siswa SMK:</strong><br>
                 Menyesuaikan seluruh siswa SMK ke 6 Jurusan (Konsentrasi Keahlian) resmi: <strong>TAV, DPIB, TKR, TSM, TKJ, ACP</strong>:
             </p>
             <a href="?secret=pembda99&recalc=1" class="btn btn-green">⚡ Kalibrasi Ulang Jurusan Sekarang (Set TAV, DPIB, TKR, TSM, TKJ, ACP)</a>

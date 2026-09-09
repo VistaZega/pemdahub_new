@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $secret = $_GET["secret"] ?? "";
 if ($secret !== "pembda99") { die("Unauthorized"); }
 
@@ -159,13 +159,12 @@ if ($yuliTA) {
     
     // Logic from DashboardController:
     if ($yuliTA->block_type === 'split') {
-        $tg = ($rotation === 'normal') ? 'B' : 'A';
-    } else {
         $tg = ($rotation === 'normal') ? 'A' : 'B';
+    } else {
+        $tg = ($rotation === 'normal') ? 'B' : 'A';
     }
     echo "Calculated targetGroup in DashboardController: '{$tg}'\n";
     echo "Meaning: System expects Group '{$tg}' to be in this class!\n";
-    echo "If physical students are Group A, and targetGroup is 'B', Group A will be marked RED!\n";
 }
 
 echo "</pre>";

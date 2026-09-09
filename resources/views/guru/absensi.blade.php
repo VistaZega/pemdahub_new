@@ -770,25 +770,25 @@
                                         $stGroup = $studentBlockGroups[$st->id] ?? null;
                                         $isScheduled = in_array($st->id, $scheduledStudentIds ?? []);
                                     @endphp
-                                    <tr class="transition {{ !$isScheduled ? 'bg-rose-50/50 hover:bg-rose-100/50' : 'hover:bg-purple-50/30' }}">
-                                        <td class="px-3 py-2.5 text-center font-bold {{ !$isScheduled ? 'text-rose-900 font-black' : 'text-gray-500' }} border-r border-gray-100">{{ $idx + 1 }}</td>
+                                    <tr class="transition {{ !$isScheduled ? 'bg-slate-50/70 hover:bg-slate-100/70' : 'hover:bg-purple-50/30' }}">
+                                        <td class="px-3 py-2.5 text-center font-bold {{ !$isScheduled ? 'text-slate-500' : 'text-gray-500' }} border-r border-gray-100">{{ $idx + 1 }}</td>
                                         <td class="px-3 py-2.5 font-bold border-r border-gray-100 min-w-[240px]">
                                             <div class="flex items-center gap-2.5">
-                                                <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-8 h-8 rounded-full object-cover shrink-0 border-2 {{ !$isScheduled ? 'border-rose-400 shadow-sm' : 'border-purple-200 shadow-sm' }}" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
+                                                <img src="{{ $st->photo_url }}" alt="{{ $st->full_name }}" class="w-8 h-8 rounded-full object-cover shrink-0 border-2 {{ !$isScheduled ? 'border-slate-300 shadow-sm' : 'border-purple-200 shadow-sm' }}" onerror="this.src='{{ asset('images/default-student.jpg') }}'">
                                                 <div class="truncate max-w-[190px]" title="{{ $st->full_name }}">
                                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                                        <span class="{{ !$isScheduled ? 'text-rose-900 font-extrabold' : 'text-gray-900 font-bold' }}">
+                                                        <span class="{{ !$isScheduled ? 'text-slate-700 font-semibold' : 'text-gray-900 font-bold' }}">
                                                              {{ $st->full_name }}
                                                         </span>
                                                         @if($stGroup)
                                                             @if($isScheduled)
                                                                 <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">Grup {{ $stGroup }}</span>
                                                             @else
-                                                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">Grup {{ $stGroup }}</span>
+                                                                <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200" title="Grup {{ $stGroup }} (Grup Rotasi Lain)">Grup {{ $stGroup }}</span>
                                                             @endif
                                                         @endif
                                                     </div>
-                                                    <div class="text-[9px] {{ !$isScheduled ? 'text-rose-800 font-semibold' : 'text-gray-400 font-normal' }}">
+                                                    <div class="text-[9px] {{ !$isScheduled ? 'text-slate-400 font-normal' : 'text-gray-400 font-normal' }}">
                                                         NISN: {{ $st->nisn ?? '-' }} 
                                                     </div>
                                                 </div>
@@ -822,7 +822,7 @@
                                                     <div x-show="editModeLesson" x-transition x-data="{ status: '{{ $currVal }}' }" 
                                                         @mark-scheduled-hadir.window="if ({{ $isScheduled ? 'true' : 'false' }}) status = 'hadir'" 
                                                         @mark-all-hadir.window="status = 'hadir'" 
-                                                        class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border {{ $isScheduled ? 'border-purple-200 shadow-sm' : 'border-rose-300 bg-rose-50/40' }} print-hide">
+                                                        class="inline-flex items-center gap-0.5 bg-white p-0.5 rounded-lg border {{ $isScheduled ? 'border-purple-200 shadow-sm' : 'border-slate-300 bg-slate-50/40' }} print-hide">
                                                         <input type="hidden" name="statuses[{{ $st->id }}]" :value="status">
                                                         <button type="button" @click="status = 'hadir'" :class="status === 'hadir' ? 'bg-green-500 text-white font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition cursor-pointer" title="Hadir">H</button>
                                                         <button type="button" @click="status = 'sakit'" :class="status === 'sakit' ? 'bg-yellow-400 text-black font-black shadow-sm' : 'text-gray-400 hover:bg-gray-100 font-semibold'" class="w-5 h-5 flex items-center justify-center rounded text-[10px] transition cursor-pointer" title="Sakit">S</button>
