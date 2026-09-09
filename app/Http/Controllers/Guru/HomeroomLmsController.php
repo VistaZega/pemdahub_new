@@ -13,6 +13,7 @@ use App\Models\Student;
 use App\Models\StudentCounselingRecord;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use App\Models\Semester;
 use Illuminate\Support\Facades\Auth;
 
 class HomeroomLmsController extends Controller
@@ -432,6 +433,7 @@ class HomeroomLmsController extends Controller
         $teacher = $this->getTeacher();
         $student = Student::with(['school', 'currentClassroom', 'parents'])->findOrFail($request->student_id);
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
+        $activeSemester = Semester::where('is_active', true)->first() ?? Semester::latest()->first();
 
         $titles = [
             'motivasi' => 'Pesan Semangat & Motivasi Belajar LMS',
@@ -445,6 +447,7 @@ class HomeroomLmsController extends Controller
             'student_id' => $student->id,
             'school_id' => $student->school_id,
             'academic_year_id' => $activeYear?->id,
+            'semester_id' => $activeSemester?->id ?? 1,
             'record_type' => $request->message_type === 'apresiasi' ? 'penghargaan' : 'bimbingan',
             'category' => 'akademik',
             'title' => $titles[$request->message_type] ?? 'Catatan Wali Kelas',
