@@ -224,6 +224,8 @@ class LmsEnrollmentService
         $subjName = $course->subject?->name ?? $course->subject?->subject_name;
         $vocKeywords = VocationalMajorFilterService::getSubjectMajorKeywords($subjName, $course->subject?->code, $course->course_name);
 
+        $allValidCourseStudentIds = [];
+
         foreach ($lmsClasses as $lmsClass) {
             $classroom = $lmsClass->classroom;
             if (!$classroom) continue;
@@ -246,6 +248,7 @@ class LmsEnrollmentService
                 }
 
                 $validStudentIds[] = $student->id;
+                $allValidCourseStudentIds[] = $student->id;
 
                 $enrollment = LmsEnrollment::firstOrCreate([
                     'lms_class_id' => $lmsClass->id,
@@ -265,6 +268,59 @@ class LmsEnrollmentService
                 LmsEnrollment::where('lms_class_id', $lmsClass->id)
                     ->whereNotIn('student_id', $validStudentIds)
                     ->delete();
+            }
+        }
+
+        // 3. Bersihkan kelompok kursus (LmsCourseGroup & LmsCourseGroupMember)
+        // dari siswa yang bukan anggota sah kursus ini (misal siswa jurusan lain di kelas gabungan)
+        $allValidCourseStudentIds = array_values(array_unique(array_filter($allValidCourseStudentIds)));
+        if (!empty($allValidCourseStudentIds)) {
+            $courseGroups = \App\Models\LmsCourseGroup::where('course_id', $course->id)->with('members')->get();
+            foreach ($courseGroups as $group) {
+                // Detach hanya siswa yang tidak sah
+                $invalidMemberIds = $group->members->pluck('id')->diff($allValidCourseStudentIds)->values()->toArray();
+                if (!empty($invalidMemberIds)) {
+                    $group->members()->detach($invalidMemberIds);
+                }
+
+                // Refresh anggota
+                $group->load('members');
+                $remainingMemberIds = $group->members->pluck('id')->toArray();
+
+                // Periksa ketua: jika bukan siswa sah atau tidak ada di anggota tersisa, ganti ke anggota yang sah
+                if (!in_array($group->leader_id, $allValidCourseStudentIds) || (!empty($remainingMemberIds) && !in_array($group->leader_id, $remainingMemberIds))) {
+                    $newLeaderId = !empty($remainingMemberIds) ? $remainingMemberIds[0] : null;
+                    $group->update(['leader_id' => $newLeaderId]);
+                }
+
+                // Jika kelompok menjadi benar-benar kosong (0 anggota), hapus kelompok
+                if ($group->members->isEmpty() && empty($group->leader_id)) {
+                    $group->delete();
+                }
+            }
+
+            // Bersihkan juga kelompok tugas (LmsAssignmentGroup) di bawah kursus ini
+            $assignmentGroups = \App\Models\LmsAssignmentGroup::whereHas('assignment', function($q) use ($course) {
+                $q->where('course_id', $course->id);
+            })->with('members')->get();
+
+            foreach ($assignmentGroups as $ag) {
+                $invalidAgMemberIds = $ag->members->pluck('id')->diff($allValidCourseStudentIds)->values()->toArray();
+                if (!empty($invalidAgMemberIds)) {
+                    $ag->members()->detach($invalidAgMemberIds);
+                }
+
+                $ag->load('members');
+                $remainingAgMemberIds = $ag->members->pluck('id')->toArray();
+
+                if (!in_array($ag->leader_id, $allValidCourseStudentIds) || (!empty($remainingAgMemberIds) && !in_array($ag->leader_id, $remainingAgMemberIds))) {
+                    $newLeaderId = !empty($remainingAgMemberIds) ? $remainingAgMemberIds[0] : null;
+                    $ag->update(['leader_id' => $newLeaderId]);
+                }
+
+                if ($ag->members->isEmpty() && empty($ag->leader_id)) {
+                    $ag->delete();
+                }
             }
         }
 

@@ -434,12 +434,25 @@ class LmsAssignmentController extends Controller
 
         $selectedClassroomId = $request->classroom_id;
 
+        $allEnrolledStudents = $this->getEnrolledStudentsForCourse($course, $selectedClassroomId ? (int)$selectedClassroomId : null);
+        $validStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+
+        // Validasi ketua dan anggota harus merupakan siswa sah kursus ini
+        if (!in_array((int)$request->leader_id, $validStudentIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ketua kelompok yang dipilih bukan siswa sah yang terdaftar di tugas ini.');
+        }
+
+        $allRequestedIds = collect($request->member_ids ?? [])->push((int)$request->leader_id)->unique()->toArray();
+        $invalidIds = array_diff($allRequestedIds, $validStudentIds);
+        if (!empty($invalidIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ada siswa yang dipilih bukan merupakan siswa terdaftar di tugas ini.');
+        }
+
         // Cek apakah ada siswa yang sudah terdaftar di kelompok lain pada tugas ini
         $alreadyGroupedStudentIds = $assignment->groups->flatMap(function ($grp) {
             return $grp->members->pluck('id')->push($grp->leader_id);
         })->unique()->filter()->toArray();
 
-        $allRequestedIds = collect($request->member_ids ?? [])->push((int)$request->leader_id)->unique()->toArray();
         $conflicts = array_values(array_intersect($allRequestedIds, $alreadyGroupedStudentIds));
 
         if (!empty($conflicts)) {
@@ -502,6 +515,7 @@ class LmsAssignmentController extends Controller
         $request->validate([
             'group_count' => 'required|integer|min:1|max:30',
             'classroom_id' => 'nullable|exists:classrooms,id',
+            'replace_existing' => 'nullable|boolean',
         ]);
 
         $classroomId = $request->classroom_id;
@@ -509,6 +523,21 @@ class LmsAssignmentController extends Controller
 
         $allStudents = $this->getEnrolledStudentsForCourse($course, $classroomId ? (int)$classroomId : null);
         $enrolledIds = $allStudents->pluck('id')->toArray();
+
+        // Jika opsi replace_existing dicentang, hapus kelompok tugas yang ada terlebih dahulu
+        if ($request->boolean('replace_existing')) {
+            if ($selectedClassroom) {
+                $groupsToDelete = $assignment->groups->filter(function ($g) use ($enrolledIds) {
+                    return in_array($g->leader_id, $enrolledIds) || $g->members->pluck('id')->intersect($enrolledIds)->isNotEmpty();
+                });
+                foreach ($groupsToDelete as $g) {
+                    $g->delete();
+                }
+            } else {
+                $assignment->groups()->delete();
+            }
+            $assignment->load('groups');
+        }
 
         // Hanya bagi siswa yang belum memiliki kelompok
         $alreadyGroupedStudentIds = $assignment->groups->flatMap(function ($grp) {
@@ -519,7 +548,7 @@ class LmsAssignmentController extends Controller
 
         if ($availableStudents->isEmpty()) {
             $classMsg = $selectedClassroom ? " pada kelas {$selectedClassroom->class_name}" : "";
-            return redirect()->back()->with('error', "Semua siswa{$classMsg} yang terdaftar sudah memiliki kelompok.");
+            return redirect()->back()->with('error', "Semua siswa{$classMsg} yang terdaftar sudah memiliki kelompok. Gunakan opsi 'Hapus kelompok lama & bagi ulang' jika ingin membagi ulang dari awal.");
         }
 
         $numGroups = min((int)$request->group_count, $availableStudents->count());

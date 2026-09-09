@@ -48,12 +48,28 @@ class LmsCourseGroupController extends Controller
             'member_ids.*' => 'exists:students,id',
         ]);
 
+        $assignmentCtrl = app(LmsAssignmentController::class);
+        $refMethod = new \ReflectionMethod($assignmentCtrl, 'getEnrolledStudentsForCourse');
+        $refMethod->setAccessible(true);
+        $allEnrolledStudents = $refMethod->invoke($assignmentCtrl, $course);
+        $validStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+
+        // Validasi ketua dan anggota harus merupakan siswa sah kursus ini
+        if (!in_array((int)$request->leader_id, $validStudentIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ketua kelompok yang dipilih bukan siswa sah yang terdaftar di kursus ini.');
+        }
+
+        $allRequestedIds = collect($request->member_ids ?? [])->push((int)$request->leader_id)->unique()->toArray();
+        $invalidIds = array_diff($allRequestedIds, $validStudentIds);
+        if (!empty($invalidIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ada siswa yang dipilih bukan merupakan siswa terdaftar di kursus ini.');
+        }
+
         // Cek konflik siswa yang sudah masuk kelompok kursus lain
         $alreadyGroupedStudentIds = $course->courseGroups->flatMap(function ($grp) {
             return $grp->members->pluck('id')->push($grp->leader_id);
         })->unique()->filter()->toArray();
 
-        $allRequestedIds = collect($request->member_ids ?? [])->push((int)$request->leader_id)->unique()->toArray();
         $conflicts = array_values(array_intersect($allRequestedIds, $alreadyGroupedStudentIds));
 
         if (!empty($conflicts)) {
@@ -91,6 +107,23 @@ class LmsCourseGroupController extends Controller
     }
 
     /**
+     * Reset / Delete all course master groups
+     */
+    public function resetAll(LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        $count = $course->courseGroups()->count();
+        $course->courseGroups()->delete();
+
+        return redirect()->route('guru.lms.show', ['course' => $course->id, 'tab' => 'groups'])
+            ->with('success', "Seluruh ({$count}) kelompok kursus berhasil di-reset / dihapus.");
+    }
+
+    /**
      * Auto generate course master groups
      */
     public function autoGenerate(Request $request, LmsCourse $course)
@@ -103,6 +136,7 @@ class LmsCourseGroupController extends Controller
         $request->validate([
             'group_count' => 'required|integer|min:1|max:30',
             'classroom_id' => 'nullable|exists:classrooms,id',
+            'replace_existing' => 'nullable|boolean',
         ]);
 
         $selectedClassroom = $request->classroom_id ? Classroom::find($request->classroom_id) : null;
@@ -111,6 +145,26 @@ class LmsCourseGroupController extends Controller
         $refMethod = new \ReflectionMethod($assignmentCtrl, 'getEnrolledStudentsForCourse');
         $refMethod->setAccessible(true);
         $allStudents = $refMethod->invoke($assignmentCtrl, $course, $request->classroom_id ? (int)$request->classroom_id : null);
+
+        // Jika opsi replace_existing dicentang, hapus kelompok yang ada terlebih dahulu
+        if ($request->boolean('replace_existing')) {
+            if ($selectedClassroom) {
+                $targetIds = $allStudents->pluck('id')->toArray();
+                $groupsToDelete = $course->courseGroups->filter(function ($g) use ($targetIds) {
+                    return in_array($g->leader_id, $targetIds) || $g->members->pluck('id')->intersect($targetIds)->isNotEmpty();
+                });
+                foreach ($groupsToDelete as $g) {
+                    $g->delete();
+                }
+            } else {
+                $course->courseGroups()->delete();
+            }
+            $course->load('courseGroups');
+        } else {
+            // Jalankan sinkronisasi pembersihan anggota ilegal terlebih dahulu
+            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
+            $course->load('courseGroups');
+        }
 
         // Hanya bagi siswa yang belum memiliki kelompok kursus
         $alreadyGroupedStudentIds = $course->courseGroups->flatMap(function ($grp) {
@@ -121,7 +175,7 @@ class LmsCourseGroupController extends Controller
 
         if ($availableStudents->isEmpty()) {
             $classMsg = $selectedClassroom ? " pada kelas {$selectedClassroom->name}" : "";
-            return redirect()->back()->with('error', "Semua siswa{$classMsg} pada kursus ini sudah memiliki kelompok.");
+            return redirect()->back()->with('error', "Semua siswa{$classMsg} pada kursus ini sudah memiliki kelompok. Gunakan opsi 'Hapus kelompok lama & bagi ulang' jika ingin membagi ulang dari awal.");
         }
 
         $numGroups = min((int)$request->group_count, $availableStudents->count());
@@ -301,6 +355,9 @@ class LmsCourseGroupController extends Controller
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
             abort(403);
         }
+
+        // Pastikan kelompok kursus sudah tersinkronisasi dan bersih dari siswa silang jurusan
+        app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
 
         $courseGroups = $course->courseGroups()->with('members')->get();
 

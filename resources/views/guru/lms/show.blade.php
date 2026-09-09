@@ -1021,10 +1021,11 @@ if (!function_exists('balanceHtmlTags')) {
         {{-- TAB: COURSE MASTER GROUPS (KELOMPOK BELAJAR) --}}
         {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
         @php
-            $courseMasterGroups = $course->courseGroups ?? collect();
-            $groupedStudentIdsInCourse = $courseMasterGroups->flatMap(function($grp) {
+            $courseMasterGroups = $course->courseGroups()->with(['leader.major', 'members.major'])->get();
+            $enrolledStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+            $groupedStudentIdsInCourse = $courseMasterGroups->flatMap(function($grp) use ($enrolledStudentIds) {
                 return $grp->members->pluck('id')->push($grp->leader_id);
-            })->unique()->filter()->toArray();
+            })->filter(fn($id) => in_array($id, $enrolledStudentIds))->unique()->values()->toArray();
 
             $availableStudentsInCourse = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIdsInCourse))->values();
         @endphp
@@ -1042,6 +1043,14 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
+                        @if($courseMasterGroups->isNotEmpty())
+                        <form action="{{ route('guru.lms.groups.reset-all', $course->id) }}" method="POST" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin mereset/menghapus seluruh {{ $courseMasterGroups->count() }} kelompok di kursus ini?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black bg-rose-50 text-rose-700 hover:bg-rose-100 border-2 border-rose-300 transition shadow-sm" title="Hapus semua kelompok">
+                                <i class="fas fa-trash-alt"></i> <span>Reset Kelompok</span>
+                            </button>
+                        </form>
+                        @endif
                         @if($availableStudentsInCourse->isNotEmpty())
                         <button type="button" @click="showAddGroup = !showAddGroup; showAutoGroup = false; showImportExcel = false"
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 border-2 border-black transition shadow-sm">
@@ -1214,6 +1223,12 @@ if (!function_exists('balanceHtmlTags')) {
                                     <i class="fas fa-random mr-1"></i> Acak & Bentuk Kelompok
                                 </button>
                             </div>
+                            <div class="col-span-full pt-1">
+                                <label class="flex items-center gap-2 text-xs font-bold text-amber-950 cursor-pointer">
+                                    <input type="checkbox" name="replace_existing" value="1" class="rounded text-amber-600 focus:ring-0">
+                                    <span>Hapus & bagi ulang seluruh {{ $allEnrolledStudents->count() }} siswa dari awal (reset kelompok lama)</span>
+                                </label>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -1263,6 +1278,10 @@ if (!function_exists('balanceHtmlTags')) {
             {{-- Cards Daftar Kelompok Kursus --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @forelse($courseMasterGroups as $grp)
+                @php
+                    $validMembers = $grp->members->filter(fn($m) => in_array($m->id, $enrolledStudentIds));
+                    $isValidLeader = in_array($grp->leader_id, $enrolledStudentIds);
+                @endphp
                 <div class="p-5 rounded-2xl border-2 border-black bg-white hover:border-purple-600 transition-all shadow-md flex flex-col justify-between space-y-3">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-3">
@@ -1279,19 +1298,25 @@ if (!function_exists('balanceHtmlTags')) {
 
                         <div class="space-y-2 text-xs">
                             <div class="flex items-center gap-1.5 font-black text-gray-900">
-                                <span class="text-amber-500">ðŸ‘‘ Ketua:</span>
-                                @php
-                                    $leaderClassroom = $grp->leader?->major?->code ?? $grp->leader?->currentClassroom()->first()?->class_name ?? $grp->leader?->classroom_name ?? null;
-                                @endphp
-                                @if($leaderClassroom)
-                                <span class="bg-purple-100 text-purple-800 text-[10px] px-1.5 py-0.5 rounded font-black border border-purple-200 shrink-0">{{ $leaderClassroom }}</span>
+                                <span class="text-amber-500">👑 Ketua:</span>
+                                @if($isValidLeader && $grp->leader)
+                                    @php
+                                        $leaderClassroom = $grp->leader->major?->code ?? $grp->leader->currentClassroom()->first()?->class_name ?? $grp->leader->classroom_name ?? null;
+                                    @endphp
+                                    @if($leaderClassroom)
+                                    <span class="bg-purple-100 text-purple-800 text-[10px] px-1.5 py-0.5 rounded font-black border border-purple-200 shrink-0">{{ $leaderClassroom }}</span>
+                                    @endif
+                                    <span class="truncate">{{ $grp->leader->user?->name ?? $grp->leader->full_name }}</span>
+                                @elseif($validMembers->isNotEmpty())
+                                    <span class="text-amber-600 italic font-medium truncate">{{ $validMembers->first()->user?->name ?? $validMembers->first()->full_name }} (Diusulkan)</span>
+                                @else
+                                    <span class="text-gray-400 italic">Belum ditentukan</span>
                                 @endif
-                                <span class="truncate">{{ $grp->leader?->user?->name ?? $grp->leader?->full_name ?? '-' }}</span>
                             </div>
                             <div class="text-gray-600 font-bold text-[11px] pt-1">
-                                <span class="block mb-1">Anggota ({{ $grp->members->count() }} orang):</span>
+                                <span class="block mb-1">Anggota ({{ $validMembers->count() }} orang):</span>
                                 <div class="flex flex-wrap gap-1">
-                                    @foreach($grp->members as $mem)
+                                    @forelse($validMembers as $mem)
                                     @php
                                         $memClassroom = $mem->major?->code ?? $mem->currentClassroom()->first()?->class_name ?? $mem->classroom_name ?? null;
                                     @endphp
@@ -1301,7 +1326,9 @@ if (!function_exists('balanceHtmlTags')) {
                                         @endif
                                         <span>{{ $mem->user->name ?? $mem->full_name }}</span>
                                     </span>
-                                    @endforeach
+                                    @empty
+                                    <span class="text-gray-400 italic text-[10px]">Tidak ada siswa sah di kelompok ini</span>
+                                    @endforelse
                                 </div>
                             </div>
                         </div>

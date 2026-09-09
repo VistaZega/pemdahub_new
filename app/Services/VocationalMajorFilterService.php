@@ -93,7 +93,28 @@ class VocationalMajorFilterService
             return false;
         }
 
-        // 4. Jika $classroom parameter adalah kelas reguler non-gabungan
+        // 4. PRIORITAS KEEMPAT: Cari kelas reguler non-gabungan siswa dari riwayat kelasnya (misal: X TE, X DPIB)
+        $regularClass = $student->classrooms()
+            ->where(function ($q) {
+                $q->whereNull('is_combined')->orWhere('is_combined', false)->orWhere('is_combined', 0);
+            })
+            ->where(function ($q) {
+                $q->whereNull('class_type')->orWhere('class_type', '!=', 'gabungan');
+            })
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($regularClass) {
+            $regClassName = strtoupper($regularClass->name ?? $regularClass->class_name ?? '');
+            foreach ($subjectKeywords as $kw) {
+                if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $regClassName)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 5. Jika $classroom parameter adalah kelas reguler non-gabungan
         if ($classroom && !$classroom->is_combined && $classroom->class_type !== 'gabungan') {
             $className = strtoupper($classroom->class_name);
             foreach ($subjectKeywords as $kw) {

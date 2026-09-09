@@ -402,6 +402,12 @@
                         <i class="fas fa-random mr-1"></i> Acak & Bentuk Kelompok
                     </button>
                 </div>
+                <div class="col-span-full pt-1">
+                    <label class="flex items-center gap-2 text-xs font-bold text-amber-950 cursor-pointer">
+                        <input type="checkbox" name="replace_existing" value="1" class="rounded text-amber-600 focus:ring-0">
+                        <span>Hapus & bagi ulang seluruh siswa dari awal (reset kelompok tugas lama)</span>
+                    </label>
+                </div>
             </div>
         </form>
     </div>
