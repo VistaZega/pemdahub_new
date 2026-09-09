@@ -164,8 +164,15 @@ class LmsCourseGroupController extends Controller
         $numGroups = min((int)$request->group_count, $availableStudents->count());
         $chunks = $availableStudents->split($numGroups);
 
-        $startIdx = $course->courseGroups()->count();
         $classPrefix = $selectedClassroom ? $selectedClassroom->name . ' - ' : '';
+        if ($selectedClassroom) {
+            $existingClassGroupsCount = $course->courseGroups->filter(function ($g) use ($classPrefix) {
+                return str_contains($g->name, $classPrefix);
+            })->count();
+            $startIdx = $existingClassGroupsCount;
+        } else {
+            $startIdx = $course->courseGroups()->count();
+        }
 
         foreach ($chunks as $idx => $chunk) {
             $groupNum = $startIdx + $idx + 1;

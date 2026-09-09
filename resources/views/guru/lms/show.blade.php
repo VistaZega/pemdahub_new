@@ -1023,6 +1023,7 @@ if (!function_exists('balanceHtmlTags')) {
         @php
             $rawCourseMasterGroups = $course->courseGroups()->with(['leader.major', 'members.major'])->get();
             $enrolledStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+            $studentClassMap = $allEnrolledStudents->keyBy('id');
 
             // Saring kelompok untuk tampilan: hanya tampilkan kelompok yang memuat siswa sah kursus ini
             $courseMasterGroups = $rawCourseMasterGroups->filter(function($grp) use ($enrolledStudentIds) {
@@ -1035,8 +1036,65 @@ if (!function_exists('balanceHtmlTags')) {
             })->filter(fn($id) => in_array($id, $enrolledStudentIds))->unique()->values()->toArray();
 
             $availableStudentsInCourse = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIdsInCourse))->values();
+
+            // Data kelompok dan rombel untuk filter interaktif Alpine.js
+            $groupsJsData = $courseMasterGroups->map(function($grp) use ($enrolledStudentIds, $studentClassMap) {
+                $validM = $grp->members->filter(fn($m) => in_array($m->id, $enrolledStudentIds));
+                $cIds = $validM->map(fn($m) => (int)($studentClassMap[$m->id]->classroom_id ?? $m->studentClasses->first()?->classroom_id ?? 0))
+                    ->when(in_array($grp->leader_id, $enrolledStudentIds), fn($col) => $col->push((int)($studentClassMap[$grp->leader_id]->classroom_id ?? $grp->leader?->studentClasses->first()?->classroom_id ?? 0)))
+                    ->filter(fn($id) => $id > 0)
+                    ->unique()
+                    ->values()
+                    ->toArray();
+                return [
+                    'id' => $grp->id,
+                    'classroom_ids' => $cIds,
+                ];
+            })->values()->toArray();
+
+            // Rekapitulasi statistik siswa per rombel
+            $classStats = [
+                'all' => [
+                    'total' => $allEnrolledStudents->count(),
+                    'grouped' => count($groupedStudentIdsInCourse),
+                    'available' => $availableStudentsInCourse->count(),
+                ]
+            ];
+            if (isset($classrooms)) {
+                foreach ($classrooms as $c) {
+                    $studentsInC = $allEnrolledStudents->filter(fn($s) => $s->classroom_id == $c->id || strtolower($s->classroom_name ?? '') === strtolower($c->name));
+                    $sIdsInC = $studentsInC->pluck('id')->toArray();
+                    $groupedInC = array_intersect($sIdsInC, $groupedStudentIdsInCourse);
+                    $classStats[(string)$c->id] = [
+                        'total' => count($sIdsInC),
+                        'grouped' => count($groupedInC),
+                        'available' => count($sIdsInC) - count($groupedInC),
+                    ];
+                }
+            }
         @endphp
-        <div x-show="tab === 'groups'" class="mt-6 space-y-6 tab-content" x-data="{ showAddGroup: false, showAutoGroup: false, showImportExcel: false, selectedClassFilter: '', manualClassFilter: '' }">
+        <div x-show="tab === 'groups'" class="mt-6 space-y-6 tab-content" 
+             x-data="{ 
+                 showAddGroup: false, 
+                 showAutoGroup: false, 
+                 showImportExcel: false, 
+                 selectedClassFilter: '', 
+                 manualClassFilter: '',
+                 autoClassFilter: '',
+                 groupsData: {{ json_encode($groupsJsData) }},
+                 statsData: {{ json_encode($classStats) }},
+                 getCurrentStats() {
+                     if (this.selectedClassFilter && this.statsData[this.selectedClassFilter]) {
+                         return this.statsData[this.selectedClassFilter];
+                     }
+                     return this.statsData['all'] || { total: 0, grouped: 0, available: 0 };
+                 },
+                 hasVisibleGroups() {
+                     if (!this.selectedClassFilter) return this.groupsData.length > 0;
+                     const cid = parseInt(this.selectedClassFilter);
+                     return this.groupsData.some(g => g.classroom_ids.includes(cid));
+                 }
+             }">
             {{-- Header Card --}}
             <div class="bg-white rounded-3xl shadow-md border-2 border-black p-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-gray-100 pb-5">
@@ -1055,7 +1113,7 @@ if (!function_exists('balanceHtmlTags')) {
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 border-2 border-black transition shadow-sm">
                             <i class="fas fa-plus"></i> <span x-text="showAddGroup ? 'Batal' : 'Tambah Kelompok Manual'"></span>
                         </button>
-                        <button type="button" @click="showAutoGroup = !showAutoGroup; showAddGroup = false; showImportExcel = false"
+                        <button type="button" @click="showAutoGroup = !showAutoGroup; showAddGroup = false; showImportExcel = false; if(selectedClassFilter) autoClassFilter = selectedClassFilter"
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black transition shadow-sm">
                             <i class="fas fa-magic"></i> <span x-text="showAutoGroup ? 'Batal' : 'Bagi Otomatis'"></span>
                         </button>
@@ -1074,7 +1132,7 @@ if (!function_exists('balanceHtmlTags')) {
                         <i class="fas fa-filter text-purple-600"></i> Filter Rombel / Kelas:
                     </div>
                     <div class="flex flex-wrap items-center gap-1.5">
-                        <button type="button" @click="selectedClassFilter = ''; manualClassFilter = ''"
+                        <button type="button" @click="selectedClassFilter = ''; manualClassFilter = ''; autoClassFilter = ''"
                                 :class="selectedClassFilter === '' ? 'bg-purple-600 text-white border-black shadow-sm' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'"
                                 class="px-3 py-1.5 rounded-xl text-xs font-bold border transition">
                             Semua Kelas ({{ $allEnrolledStudents->count() }})
@@ -1083,7 +1141,7 @@ if (!function_exists('balanceHtmlTags')) {
                         @php
                             $countInClass = $allEnrolledStudents->filter(fn($s) => $s->classroom_id == $c->id || strtolower($s->classroom_name ?? '') === strtolower($c->name))->count();
                         @endphp
-                        <button type="button" @click="selectedClassFilter = '{{ $c->id }}'; manualClassFilter = '{{ $c->id }}'"
+                        <button type="button" @click="selectedClassFilter = '{{ $c->id }}'; manualClassFilter = '{{ $c->id }}'; autoClassFilter = '{{ $c->id }}'"
                                 :class="selectedClassFilter == '{{ $c->id }}' ? 'bg-purple-600 text-white border-black shadow-sm' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'"
                                 class="px-3 py-1.5 rounded-xl text-xs font-bold border transition">
                             {{ $c->name }} ({{ $countInClass }})
@@ -1093,7 +1151,7 @@ if (!function_exists('balanceHtmlTags')) {
                 </div>
                 @endif
 
-                {{-- Status Stats Bar --}}
+                {{-- Status Stats Bar (Dinamis Sesuai Filter Rombel) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
                     <div class="bg-slate-50 border-2 border-black rounded-2xl p-3.5 flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 border border-black flex items-center justify-center font-black">
@@ -1101,7 +1159,7 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                         <div>
                             <div class="text-xs font-bold text-gray-500">Total Siswa Terdaftar</div>
-                            <div class="text-lg font-black text-black">{{ $allEnrolledStudents->count() }} Orang</div>
+                            <div class="text-lg font-black text-black" x-text="getCurrentStats().total + ' Orang'">{{ $allEnrolledStudents->count() }} Orang</div>
                         </div>
                     </div>
                     <div class="bg-emerald-50 border-2 border-black rounded-2xl p-3.5 flex items-center gap-3">
@@ -1110,7 +1168,7 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                         <div>
                             <div class="text-xs font-bold text-gray-500">Sudah Masuk Kelompok</div>
-                            <div class="text-lg font-black text-emerald-800">{{ count($groupedStudentIdsInCourse) }} Orang</div>
+                            <div class="text-lg font-black text-emerald-800" x-text="getCurrentStats().grouped + ' Orang'">{{ count($groupedStudentIdsInCourse) }} Orang</div>
                         </div>
                     </div>
                     <div class="bg-amber-50 border-2 border-black rounded-2xl p-3.5 flex items-center gap-3">
@@ -1119,7 +1177,7 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                         <div>
                             <div class="text-xs font-bold text-gray-500">Belum Punya Kelompok</div>
-                            <div class="text-lg font-black text-amber-900">{{ $availableStudentsInCourse->count() }} Orang</div>
+                            <div class="text-lg font-black text-amber-900" x-text="getCurrentStats().available + ' Orang'">{{ $availableStudentsInCourse->count() }} Orang</div>
                         </div>
                     </div>
                 </div>
@@ -1204,7 +1262,7 @@ if (!function_exists('balanceHtmlTags')) {
                             @if(isset($classrooms) && $classrooms->count() > 1)
                             <div>
                                 <label class="block text-xs font-black text-gray-800 mb-1">Target Rombel / Kelas</label>
-                                <select name="classroom_id" class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                                <select name="classroom_id" x-model="autoClassFilter" class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none bg-white">
                                     <option value="">— Semua Kelas (Seluruh Siswa) —</option>
                                     @foreach($classrooms as $c)
                                     <option value="{{ $c->id }}">Spesifik Kelas: {{ $c->name }}</option>
@@ -1280,13 +1338,31 @@ if (!function_exists('balanceHtmlTags')) {
                 @php
                     $validMembers = $grp->members->filter(fn($m) => in_array($m->id, $enrolledStudentIds));
                     $isValidLeader = in_array($grp->leader_id, $enrolledStudentIds);
+                    $grpClassroomIds = $validMembers->map(fn($m) => (int)($studentClassMap[$m->id]->classroom_id ?? $m->studentClasses->first()?->classroom_id ?? 0))
+                        ->when($isValidLeader && $grp->leader_id, fn($col) => $col->push((int)($studentClassMap[$grp->leader_id]->classroom_id ?? $grp->leader?->studentClasses->first()?->classroom_id ?? 0)))
+                        ->filter(fn($id) => $id > 0)
+                        ->unique()
+                        ->values()
+                        ->toArray();
+
+                    $primaryClassroomId = $grpClassroomIds[0] ?? null;
+                    $primaryClassroom = $primaryClassroomId && isset($classrooms) ? $classrooms->firstWhere('id', $primaryClassroomId) : null;
+                    $primaryClassName = $primaryClassroom?->name ?? null;
                 @endphp
-                <div class="p-5 rounded-2xl border-2 border-black bg-white hover:border-purple-600 transition-all shadow-md flex flex-col justify-between space-y-3">
+                <div x-show="!selectedClassFilter || {{ json_encode($grpClassroomIds) }}.includes(parseInt(selectedClassFilter))"
+                     class="p-5 rounded-2xl border-2 border-black bg-white hover:border-purple-600 transition-all shadow-md flex flex-col justify-between space-y-3">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-3">
-                            <span class="text-xs font-black text-purple-900 uppercase tracking-wider bg-purple-100 px-3 py-1 rounded-xl border border-purple-300">
-                                {{ $grp->name }}
-                            </span>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs font-black text-purple-900 uppercase tracking-wider bg-purple-100 px-3 py-1 rounded-xl border border-purple-300">
+                                    {{ $grp->name }}
+                                </span>
+                                @if($primaryClassName)
+                                <span class="text-[10px] font-black text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg shrink-0">
+                                    <i class="fas fa-chalkboard text-blue-600 mr-1"></i>{{ $primaryClassName }}
+                                </span>
+                                @endif
+                            </div>
                             <form action="{{ route('guru.lms.groups.destroy', [$course->id, $grp->id]) }}" method="POST" onsubmit="return confirm('Hapus kelompok {{ $grp->name }} dari kursus?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-gray-400 hover:text-rose-600 text-xs p-1" title="Hapus Kelompok">
@@ -1333,6 +1409,21 @@ if (!function_exists('balanceHtmlTags')) {
                         </div>
                     </div>
                 </div>
+                @if(isset($classrooms) && $classrooms->count() > 1)
+                <div x-show="selectedClassFilter && !hasVisibleGroups()" class="col-span-full py-10 text-center bg-purple-50/50 rounded-3xl border-2 border-dashed border-purple-300 p-6">
+                    <div class="w-14 h-14 bg-purple-100 text-purple-700 border-2 border-purple-300 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-users-slash text-xl"></i>
+                    </div>
+                    <h4 class="text-sm font-black text-purple-950">Belum Ada Kelompok untuk Rombel Terpilih</h4>
+                    <p class="text-xs font-bold text-purple-700 max-w-md mx-auto mt-1 mb-4">
+                        Rombel yang dipilih belum memiliki master kelompok. Klik "Bagi Otomatis" atau "Tambah Kelompok Manual" untuk membentuk kelompok khusus kelas ini.
+                    </p>
+                    <button type="button" @click="showAutoGroup = true; autoClassFilter = selectedClassFilter; showAddGroup = false; showImportExcel = false"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-amber-400 text-black hover:bg-amber-500 border-2 border-black transition shadow-sm">
+                        <i class="fas fa-magic"></i> Bagi Otomatis untuk Rombel Ini
+                    </button>
+                </div>
+                @endif
                 @empty
                 <div class="col-span-full py-12 text-center bg-white rounded-3xl border-2 border-black shadow-md p-8">
                     <div class="w-16 h-16 bg-purple-100 text-purple-700 border-2 border-black rounded-2xl flex items-center justify-center mx-auto mb-4">
