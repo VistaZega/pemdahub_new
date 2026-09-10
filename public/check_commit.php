@@ -41,6 +41,18 @@ $checks = [
     ['file' => 'resources/views/admin/assignments/teaching/create.blade.php',
      'marker' => 'Informasi Pilihan Mata Pelajaran',
      'label' => 'create.blade.php (info banner kompetensi)'],
+    ['file' => 'app/Http/Controllers/Siswa/CbtController.php',
+     'marker' => 'getActiveClassroomIds',
+     'label' => 'Siswa CbtController (getActiveClassroomIds multi-class & TP aktif fix)'],
+    ['file' => 'app/Services/CbtService.php',
+     'marker' => "unique('student_id')",
+     'label' => 'CbtService (getEligibleStudents unique fix)'],
+    ['file' => 'resources/views/admin/cbt/index.blade.php',
+     'marker' => 'Peserta Kelas',
+     'label' => 'admin cbt index.blade.php (Peserta Kelas header & count fix)'],
+    ['file' => 'resources/views/guru/cbt/exams/index.blade.php',
+     'marker' => 'Peserta Kelas',
+     'label' => 'guru cbt index.blade.php (Peserta Kelas header & count fix)'],
 ];
 
 foreach ($checks as $c) {
@@ -54,4 +66,41 @@ foreach ($checks as $c) {
     $invert = $c['invert'] ?? false;
     $ok = $invert ? !$found : $found;
     echo ($ok ? '✅' : '❌') . " {$c['label']}\n";
+}
+
+echo "\n--- Live CBT Data Verification ---\n";
+try {
+    require_once "{$root}/vendor/autoload.php";
+    $app = require_once "{$root}/bootstrap/app.php";
+    $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+    $student = \App\Models\Student::where('name', 'like', '%Jefrison%')->first();
+    $activeAy = \App\Models\AcademicYear::where('is_active', true)->first();
+
+    if ($student && $activeAy) {
+        $cbtController = app(\App\Http\Controllers\Siswa\CbtController::class);
+        $method = new \ReflectionMethod($cbtController, 'getActiveClassroomIds');
+        $method->setAccessible(true);
+        $clsIds = $method->invoke($cbtController, $student);
+
+        echo "Siswa: {$student->name} (ID: {$student->id})\n";
+        echo "Active AY: {$activeAy->name}\n";
+        echo "Active Classroom IDs: " . json_encode($clsIds) . "\n";
+
+        $exams = \App\Models\CbtExam::whereIn('status', ['published', 'active'])
+            ->whereHas('participants', fn($q) => $q->whereIn('classroom_id', $clsIds))
+            ->get();
+
+        echo "Available Exams count for Jefrison: {$exams->count()}\n";
+        foreach ($exams as $e) {
+            echo "  -> [ID: {$e->id}] {$e->exam_title} (Status: {$e->status})\n";
+        }
+        if ($exams->isNotEmpty()) {
+            echo "✅ VERIFIED: Ujian sekarang BERHASIL MUNCUL di akun siswa!\n";
+        } else {
+            echo "❌ NOT FOUND: Belum ada ujian yang cocok.\n";
+        }
+    }
+} catch (\Exception $e) {
+    echo "⚠️ Error verifying live data: " . $e->getMessage() . "\n";
 }
