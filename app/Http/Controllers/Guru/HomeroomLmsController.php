@@ -545,7 +545,7 @@ class HomeroomLmsController extends Controller
 
         $quizAttempts = LmsQuizAttempt::whereIn('student_id', $studentIds)
             ->whereIn('quiz_id', $allQuizIds)
-            ->where('status', 'completed')
+            ->whereNotNull('finished_at')
             ->get()
             ->groupBy('student_id');
 
