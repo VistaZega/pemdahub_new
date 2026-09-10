@@ -782,7 +782,7 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
     }
 
     /**
-     * Teacher Learning Analytics Dashboard
+     * Teacher Learning Analytics Dashboard with Class Grouping & WhatsApp Sharing
      */
     public function analytics(LmsCourse $course)
     {
@@ -791,54 +791,190 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
             abort(403);
         }
 
+        // Sinkronisasi enrollment sah kursus (membersihkan ghost enrollments secara aman)
+        try {
+            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($course);
+        } catch (\Throwable $e) {
+            \Log::warning('LMS syncCourseEnrollments warning: ' . $e->getMessage());
+        }
+
         $course->load([
-            'subject', 'lmsClasses.classroom',
+            'subject',
+            'lmsClasses.classroom.homeroomTeacher.user',
             'modules' => fn($q) => $q->where('is_active', true)->withCount('materials'),
             'materials' => fn($q) => $q->where('is_published', true),
             'assignments' => fn($q) => $q->where('is_published', true)->withCount('submissions'),
             'quizzes' => fn($q) => $q->where('is_published', true)->withCount('attempts'),
         ]);
 
-        // Get enrolled students
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $courseYearId = $course->academic_year_id ?? $activeYear?->id;
+
+        // Ambil data enrollment beserta siswa, kelas reguler, dan wali kelas
         $enrollments = LmsEnrollment::whereIn('lms_class_id', $course->lmsClasses->pluck('id'))
-            ->with(['student.user'])
+            ->with([
+                'student.user',
+                'student.parents',
+                'student.classrooms' => function ($q) use ($courseYearId) {
+                    if ($courseYearId) {
+                        $q->where('academic_year_id', $courseYearId);
+                    }
+                },
+                'student.classrooms.homeroomTeacher.user',
+                'lmsClass.classroom.homeroomTeacher.user'
+            ])
             ->get();
 
-        $students = $enrollments->pluck('student')->filter();
+        $materialIds = $course->materials->pluck('id')->toArray();
+        $assignmentIds = $course->assignments->pluck('id')->toArray();
+        $quizIds = $course->quizzes->pluck('id')->toArray();
 
-        // Calculate progress & stats per student
+        $totalMaterials = count($materialIds);
+        $totalAssignments = count($assignmentIds);
+        $totalQuizzes = count($quizIds);
+
+        // Ambil enrollment unik per siswa
+        $uniqueEnrollments = $enrollments->unique('student_id');
+        $studentIds = $uniqueEnrollments->pluck('student_id')->filter()->values()->toArray();
+
+        // Bulk fetch progresses (menghilangkan bottleneck N+1 query)
+        $materialProgresses = \App\Models\LmsMaterialProgress::whereIn('student_id', $studentIds)
+            ->whereIn('material_id', $materialIds)
+            ->get()
+            ->groupBy('student_id');
+
+        $submissions = \App\Models\LmsSubmission::whereIn('student_id', $studentIds)
+            ->whereIn('assignment_id', $assignmentIds)
+            ->get()
+            ->groupBy('student_id');
+
         $studentStats = [];
         $atRiskStudents = [];
+        $classesMap = [];
 
-        foreach ($students as $student) {
-            $progress = LmsMaterialProgress::getProgressForCourse($course->id, $student->id);
-            $completedMaterials = LmsMaterialProgress::where('student_id', $student->id)
-                ->whereIn('material_id', $course->materials->pluck('id'))
-                ->where('status', 'completed')
-                ->count();
+        foreach ($uniqueEnrollments as $enr) {
+            $student = $enr->student;
+            if (!$student) continue;
 
-            $submissionsCount = LmsSubmission::where('student_id', $student->id)
-                ->whereIn('assignment_id', $course->assignments->pluck('id'))
-                ->count();
+            $lmsClassroom = $enr->lmsClass?->classroom;
+
+            // Resolusi kelas asli siswa (utamakan kelas reguler jika lmsClass adalah kelas gabungan)
+            $resolvedClassroom = null;
+            if ($lmsClassroom && !$lmsClassroom->isCombinedClass()) {
+                $resolvedClassroom = $lmsClassroom;
+            } else {
+                $resolvedClassroom = $student->classrooms
+                    ->filter(fn($c) => !$c->isCombinedClass())
+                    ->first() ?? $lmsClassroom;
+            }
+
+            $classId = $resolvedClassroom?->id ?? ($lmsClassroom?->id ?? 0);
+            $className = $resolvedClassroom?->class_name ?? ($lmsClassroom?->class_name ?? 'Tanpa Kelas');
+
+            // Data Wali Kelas untuk share WhatsApp
+            $wali = $resolvedClassroom?->homeroomTeacher ?? $lmsClassroom?->homeroomTeacher;
+            $waliName = $wali?->full_name ?? ($wali?->user?->name ?? null);
+            $waliPhone = $wali?->phone ?? ($wali?->user?->phone ?? null);
+            if ($waliPhone) {
+                $waliPhone = preg_replace('/[^0-9]/', '', $waliPhone);
+                if (str_starts_with($waliPhone, '0')) {
+                    $waliPhone = '62' . substr($waliPhone, 1);
+                }
+            }
+
+            // Hitung statistik progres
+            $stMat = $materialProgresses->get($student->id, collect());
+            $stSub = $submissions->get($student->id, collect());
+
+            $completedMaterials = $stMat->where('status', 'completed')->count();
+            $submissionsCount = $stSub->whereIn('status', ['submitted', 'graded'])->count();
+            if ($submissionsCount === 0 && $totalAssignments > 0) {
+                $submissionsCount = $stSub->count();
+            }
+
+            $progress = $totalMaterials > 0 ? round(($completedMaterials / $totalMaterials) * 100) : 0;
+            $isAtRisk = ($progress < 40 || ($totalAssignments > 0 && $submissionsCount === 0));
+
+            // Kontak WhatsApp siswa atau orang tua
+            $parent = $student->parents?->first();
+            $studentPhone = $student->phone ?? $student->whatsapp ?? $parent?->phone ?? $parent?->whatsapp ?? null;
+            if ($studentPhone) {
+                $studentPhone = preg_replace('/[^0-9]/', '', $studentPhone);
+                if (str_starts_with($studentPhone, '0')) {
+                    $studentPhone = '62' . substr($studentPhone, 1);
+                }
+            }
 
             $stat = [
                 'student' => $student,
+                'classroom_id' => $classId,
+                'class_name' => $className,
+                'wali_name' => $waliName,
+                'wali_phone' => $waliPhone,
                 'progress' => $progress,
                 'completed_materials' => $completedMaterials,
                 'submissions_count' => $submissionsCount,
+                'is_at_risk' => $isAtRisk,
+                'phone' => $studentPhone,
             ];
 
             $studentStats[] = $stat;
 
-            if ($progress < 40 || ($course->assignments->count() > 0 && $submissionsCount === 0)) {
+            if ($isAtRisk) {
                 $atRiskStudents[] = $stat;
+            }
+
+            // Kelompokkan per kelas
+            if (!isset($classesMap[$className])) {
+                $classesMap[$className] = [
+                    'id' => $classId,
+                    'name' => $className,
+                    'wali_name' => $waliName,
+                    'wali_phone' => $waliPhone,
+                    'students' => [],
+                    'at_risk_students' => [],
+                    'total_students' => 0,
+                    'at_risk_count' => 0,
+                    'total_progress' => 0,
+                    'avg_progress' => 0,
+                ];
+            }
+
+            $classesMap[$className]['students'][] = $stat;
+            $classesMap[$className]['total_students']++;
+            $classesMap[$className]['total_progress'] += $progress;
+
+            if ($isAtRisk) {
+                $classesMap[$className]['at_risk_students'][] = $stat;
+                $classesMap[$className]['at_risk_count']++;
             }
         }
 
+        // Hitung rata-rata progres kelas dan sortir data
+        ksort($classesMap);
+        foreach ($classesMap as $k => &$cData) {
+            $cData['avg_progress'] = $cData['total_students'] > 0
+                ? round($cData['total_progress'] / $cData['total_students'])
+                : 0;
+            usort($cData['students'], fn($a, $b) => strcasecmp($a['student']->user->name ?? '', $b['student']->user->name ?? ''));
+            usort($cData['at_risk_students'], fn($a, $b) => strcasecmp($a['student']->user->name ?? '', $b['student']->user->name ?? ''));
+        }
+        unset($cData);
+
+        usort($studentStats, function($a, $b) {
+            $cmp = strcasecmp($a['class_name'], $b['class_name']);
+            return $cmp !== 0 ? $cmp : strcasecmp($a['student']->user->name ?? '', $b['student']->user->name ?? '');
+        });
+        usort($atRiskStudents, function($a, $b) {
+            $cmp = strcasecmp($a['class_name'], $b['class_name']);
+            return $cmp !== 0 ? $cmp : strcasecmp($a['student']->user->name ?? '', $b['student']->user->name ?? '');
+        });
+
         $avgCourseProgress = count($studentStats) > 0 ? round(collect($studentStats)->avg('progress')) : 0;
+        $students = collect($studentStats)->pluck('student');
 
         return view('guru.lms.analytics', compact(
-            'teacher', 'course', 'students', 'studentStats', 'atRiskStudents', 'avgCourseProgress'
+            'teacher', 'course', 'students', 'studentStats', 'atRiskStudents', 'avgCourseProgress', 'classesMap'
         ));
     }
 
@@ -854,23 +990,86 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
 
         $course->load([
             'subject', 'lmsClasses.classroom',
+            'materials' => fn($q) => $q->where('is_published', true),
             'assignments' => fn($q) => $q->where('is_published', true),
             'quizzes' => fn($q) => $q->where('is_published', true),
         ]);
 
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $courseYearId = $course->academic_year_id ?? $activeYear?->id;
+
         $enrollments = LmsEnrollment::whereIn('lms_class_id', $course->lmsClasses->pluck('id'))
-            ->with(['student.user'])
+            ->with([
+                'student.user',
+                'student.classrooms' => function ($q) use ($courseYearId) {
+                    if ($courseYearId) {
+                        $q->where('academic_year_id', $courseYearId);
+                    }
+                },
+                'lmsClass.classroom'
+            ])
             ->get();
 
-        $students = $enrollments->pluck('student')->filter();
+        $uniqueEnrollments = $enrollments->unique('student_id');
+        $studentIds = $uniqueEnrollments->pluck('student_id')->filter()->values()->toArray();
+
+        $materialIds = $course->materials->pluck('id')->toArray();
+        $assignmentIds = $course->assignments->pluck('id')->toArray();
+        $quizIds = $course->quizzes->pluck('id')->toArray();
+
+        $totalMaterials = count($materialIds);
+
+        $materialProgresses = \App\Models\LmsMaterialProgress::whereIn('student_id', $studentIds)
+            ->whereIn('material_id', $materialIds)
+            ->get()
+            ->groupBy('student_id');
+
+        $submissions = \App\Models\LmsSubmission::whereIn('student_id', $studentIds)
+            ->whereIn('assignment_id', $assignmentIds)
+            ->get()
+            ->groupBy('student_id');
+
+        $quizAttempts = \App\Models\LmsQuizAttempt::whereIn('student_id', $studentIds)
+            ->whereIn('quiz_id', $quizIds)
+            ->whereNotNull('finished_at')
+            ->get()
+            ->groupBy('student_id');
+
+        $rowsData = [];
+        foreach ($uniqueEnrollments as $enr) {
+            $student = $enr->student;
+            if (!$student) continue;
+
+            $lmsClassroom = $enr->lmsClass?->classroom;
+            $resolvedClassroom = null;
+            if ($lmsClassroom && !$lmsClassroom->isCombinedClass()) {
+                $resolvedClassroom = $lmsClassroom;
+            } else {
+                $resolvedClassroom = $student->classrooms
+                    ->filter(fn($c) => !$c->isCombinedClass())
+                    ->first() ?? $lmsClassroom;
+            }
+            $className = $resolvedClassroom?->class_name ?? ($lmsClassroom?->class_name ?? '-');
+
+            $rowsData[] = [
+                'student' => $student,
+                'class_name' => $className,
+            ];
+        }
+
+        // Urutkan berdasarkan kelas lalu nama
+        usort($rowsData, function($a, $b) {
+            $cmp = strcasecmp($a['class_name'], $b['class_name']);
+            return $cmp !== 0 ? $cmp : strcasecmp($a['student']->user->name ?? '', $b['student']->user->name ?? '');
+        });
 
         $filename = 'Rekap_Nilai_LMS_' . Str::slug($course->course_name ?? $course->name) . '_' . date('Y-m-d') . '.csv';
 
-        return response()->streamDownload(function () use ($students, $course) {
+        return response()->streamDownload(function () use ($rowsData, $course, $materialProgresses, $submissions, $quizAttempts, $totalMaterials) {
             $file = fopen('php://output', 'w');
             fputs($file, "\xEF\xBB\xBF");
 
-            $headerRow = ['No', 'NISN', 'Nama Siswa'];
+            $headerRow = ['No', 'NISN', 'Nama Siswa', 'Kelas'];
             foreach ($course->assignments as $asgn) {
                 $headerRow[] = 'Tugas: ' . $asgn->title;
             }
@@ -882,29 +1081,31 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
             fputcsv($file, $headerRow);
 
             $no = 1;
-            foreach ($students as $student) {
+            foreach ($rowsData as $item) {
+                $student = $item['student'];
                 $row = [
                     $no++,
                     $student->nisn ?? '-',
                     $student->user->name ?? '-',
+                    $item['class_name'],
                 ];
 
+                $stSub = $submissions->get($student->id, collect());
                 foreach ($course->assignments as $asgn) {
-                    $sub = LmsSubmission::where('assignment_id', $asgn->id)
-                        ->where('student_id', $student->id)
-                        ->first();
+                    $sub = $stSub->firstWhere('assignment_id', $asgn->id);
                     $row[] = $sub ? ($sub->score !== null ? $sub->score : 'Dikumpul') : '-';
                 }
 
+                $stQuiz = $quizAttempts->get($student->id, collect());
                 foreach ($course->quizzes as $qz) {
-                    $att = LmsQuizAttempt::where('quiz_id', $qz->id)
-                        ->where('student_id', $student->id)
-                        ->orderByDesc('score')
-                        ->first();
+                    $att = $stQuiz->where('quiz_id', $qz->id)->sortByDesc('score')->first();
                     $row[] = $att ? ($att->score !== null ? $att->score : '-') : '-';
                 }
 
-                $row[] = LmsMaterialProgress::getProgressForCourse($course->id, $student->id) . '%';
+                $stMat = $materialProgresses->get($student->id, collect());
+                $completedMats = $stMat->where('status', 'completed')->count();
+                $progress = $totalMaterials > 0 ? round(($completedMats / $totalMaterials) * 100) : 0;
+                $row[] = $progress . '%';
 
                 fputcsv($file, $row);
             }
