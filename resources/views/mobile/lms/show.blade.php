@@ -66,13 +66,18 @@
 
         <!-- Teacher Action Bar for Modules & Materials -->
         @if($isTeacher)
-            <div class="grid grid-cols-2 gap-2">
-                <button @click="showAddModule = !showAddModule" class="py-2.5 px-3 rounded-2xl bg-purple-600 text-white font-black text-xs text-center shadow-sm hover:bg-purple-700 transition flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-folder-plus"></i> <span x-text="showAddModule ? 'Batal' : '+ Tambah Modul'"></span>
-                </button>
-                <button @click="showAddMaterial = !showAddMaterial" class="py-2.5 px-3 rounded-2xl bg-emerald-600 text-white font-black text-xs text-center shadow-sm hover:bg-emerald-700 transition flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-file-circle-plus"></i> <span x-text="showAddMaterial ? 'Batal' : '+ Unggah Materi'"></span>
-                </button>
+            <div class="space-y-2">
+                <a href="{{ route('guru.lms.analytics', $course->id) }}" class="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-900 text-white font-black text-xs text-center shadow-sm hover:from-slate-800 hover:to-indigo-800 transition flex items-center justify-center gap-2 border border-slate-700">
+                    <i class="fa-solid fa-chart-pie text-cyan-400"></i> Buka Analitik &amp; Rekap WA Per Kelas
+                </a>
+                <div class="grid grid-cols-2 gap-2">
+                    <button @click="showAddModule = !showAddModule" class="py-2.5 px-3 rounded-2xl bg-purple-600 text-white font-black text-xs text-center shadow-sm hover:bg-purple-700 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-folder-plus"></i> <span x-text="showAddModule ? 'Batal' : '+ Tambah Modul'"></span>
+                    </button>
+                    <button @click="showAddMaterial = !showAddMaterial" class="py-2.5 px-3 rounded-2xl bg-emerald-600 text-white font-black text-xs text-center shadow-sm hover:bg-emerald-700 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-file-circle-plus"></i> <span x-text="showAddMaterial ? 'Batal' : '+ Unggah Materi'"></span>
+                    </button>
+                </div>
             </div>
 
             <!-- Form Tambah Modul -->

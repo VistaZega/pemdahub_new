@@ -7,13 +7,13 @@
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- TOAST NOTIFICATION --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div id="copyToast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 pointer-events-none">
-        <div class="bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+    <div id="copyToast" class="fixed top-4 left-4 right-4 sm:left-auto sm:right-5 sm:w-auto z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 pointer-events-none">
+        <div class="bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 max-w-sm sm:max-w-md mx-auto">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">
                 <i class="fas fa-check-circle text-lg"></i>
             </div>
-            <div>
-                <p class="text-xs font-bold text-white" id="toastTitle">Berhasil Disalin!</p>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-white truncate" id="toastTitle">Berhasil Disalin!</p>
                 <p class="text-[11px] text-slate-300" id="toastMessage">Teks pesan WhatsApp siap dibagikan.</p>
             </div>
         </div>
@@ -246,24 +246,24 @@
                 </div>
 
                 {{-- Aksi WhatsApp Per Kelas --}}
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
                     {{-- Hidden text area for JS copying --}}
                     <textarea id="waText-{{ $classSlug }}" class="hidden">{{ $waMessage }}</textarea>
 
                     {{-- Tombol Salin Teks WA --}}
-                    <button type="button" onclick="copyWaText('{{ $classSlug }}', '{{ $className }}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition transform hover:-translate-y-0.5">
+                    <button type="button" onclick="copyWaText('{{ $classSlug }}', '{{ $className }}')" class="flex-1 sm:flex-none justify-center px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition transform hover:-translate-y-0.5">
                         <i class="fas fa-copy text-amber-400"></i> Salin Teks WA
                     </button>
 
                     {{-- Tombol Chat ke Wali Kelas (jika nomor HP ada) --}}
                     @if($waliPhone)
-                    <a href="https://wa.me/{{ $waliPhone }}?text={{ $encodedWa }}" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition transform hover:-translate-y-0.5" title="Kirim langsung pesan ke WhatsApp Wali Kelas ({{ $waliPhone }})">
+                    <a href="https://wa.me/{{ $waliPhone }}?text={{ $encodedWa }}" target="_blank" class="flex-1 sm:flex-none justify-center px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition transform hover:-translate-y-0.5" title="Kirim langsung pesan ke WhatsApp Wali Kelas ({{ $waliPhone }})">
                         <i class="fab fa-whatsapp text-sm text-emerald-200"></i> Chat Wali Kelas
                     </a>
                     @endif
 
                     {{-- Tombol Share ke Grup WhatsApp --}}
-                    <a href="https://api.whatsapp.com/send?text={{ $encodedWa }}" target="_blank" class="px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition transform hover:-translate-y-0.5" title="Buka WhatsApp untuk membagikan ke Grup Kelas">
+                    <a href="https://api.whatsapp.com/send?text={{ $encodedWa }}" target="_blank" class="flex-1 sm:flex-none justify-center px-3 py-2 bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition transform hover:-translate-y-0.5" title="Buka WhatsApp untuk membagikan ke Grup Kelas">
                         <i class="fab fa-whatsapp text-emerald-600"></i> Share ke Grup
                     </a>
                 </div>
@@ -337,13 +337,13 @@
                 <p class="text-xs text-gray-500 mt-0.5">Daftar lengkap seluruh siswa terdaftar beserta capaian materi &amp; tugas</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
                 {{-- Search Box --}}
-                <div class="relative">
-                    <input type="text" id="studentSearchInput" onkeyup="filterTable()" placeholder="Cari nama atau NISN siswa..." class="w-64 pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                <div class="relative w-full sm:w-auto">
+                    <input type="text" id="studentSearchInput" onkeyup="filterTable()" placeholder="Cari nama atau NISN siswa..." class="w-full sm:w-64 pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
                 </div>
-                <span class="text-xs font-bold text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200" id="tableFilteredCount">
+                <span class="text-xs font-bold text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 text-center" id="tableFilteredCount">
                     {{ count($studentStats) }} Siswa Terdaftar
                 </span>
             </div>
