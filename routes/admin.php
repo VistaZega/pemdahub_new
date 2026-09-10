@@ -433,7 +433,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::post('/exams', [App\Http\Controllers\Admin\CbtManagementController::class, 'examStore'])->name('exams.store');
         Route::post('/exams/{exam}/publish', [App\Http\Controllers\Admin\CbtManagementController::class, 'examPublish'])->name('exams.publish');
         Route::post('/exams/{exam}/activate', [App\Http\Controllers\Admin\CbtManagementController::class, 'examActivate'])->name('exams.activate');
-        Route::post('/exams/{exam}/batch-start', [App\Http\Controllers\Admin\CbtManagementController::class, 'batchStart'])->name('exams.batch-start');
+        Route::post('/exams/{exam}/batch-start', [App\Http\Controllers\Admin\CbtManagementController::class, 'examBatchStart'])->name('exams.batch-start');
         Route::post('/exams/{exam}/pause', [App\Http\Controllers\Admin\CbtManagementController::class, 'examPause'])->name('exams.pause');
         Route::post('/exams/{exam}/resume', [App\Http\Controllers\Admin\CbtManagementController::class, 'examResume'])->name('exams.resume');
 

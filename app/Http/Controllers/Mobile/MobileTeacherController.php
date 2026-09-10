@@ -471,7 +471,7 @@ class MobileTeacherController extends Controller
                 'submissions' => function($sq) use ($selectedClassroomId) {
                     $sq->with('student.classroom')->latest();
                     if ($selectedClassroomId) {
-                        $sq->whereHas('student', fn($stq) => $stq->where('classroom_id', $selectedClassroomId));
+                        $sq->whereHas('student.studentClasses', fn($stq) => $stq->where('classroom_id', $selectedClassroomId));
                     }
                 }
             ])
