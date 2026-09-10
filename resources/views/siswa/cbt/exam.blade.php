@@ -606,11 +606,11 @@ function examApp() {
         },
 
         syncLocalBackup() {
-            if (!this.isOnline) return;
+            if (!this.isOnline) return Promise.resolve();
             let key = 'cbt_pending_' + this.sessionId;
             let pending = JSON.parse(localStorage.getItem(key) || '{}');
             let keys = Object.keys(pending);
-            if (keys.length === 0) return;
+            if (keys.length === 0) return Promise.resolve();
 
             let pChain = Promise.resolve();
             keys.forEach(qid => {
@@ -632,13 +632,19 @@ function examApp() {
                     .catch(err => console.error('Sync failed for question ' + qid, err));
                 });
             });
+            return pChain;
         },
 
-        confirmSubmit() {
+        async confirmSubmit() {
+            // Menunggu SEMUA jawaban lokal tersinkronisasi SEBELUM mengumpulkan
             if (Object.keys(this.unsyncedAnswers).length > 0) {
                 if (this.isOnline) {
-                    alert('Menyinkronkan sisa jawaban lokal ke server...');
-                    this.syncLocalBackup();
+                    await this.syncLocalBackup();
+                    // Cek ulang: kalau masih ada yang gagal sync, jangan submit dulu
+                    if (Object.keys(this.unsyncedAnswers).length > 0) {
+                        alert('Sebagian jawaban belum berhasil tersinkronisasi ke server. Periksa koneksi lalu coba kumpulkan lagi. (Jangan tutup halaman ini)');
+                        return;
+                    }
                 } else {
                     alert('Tidak dapat mengumpulkan ujian. Ada jawaban yang belum tersinkronisasi ke server dan Anda sedang offline. Silakan periksa koneksi internet Anda.');
                     return;
@@ -649,13 +655,19 @@ function examApp() {
                 ? `Masih ada ${unanswered} soal belum dijawab.\nYakin ingin mengumpulkan ujian?`
                 : 'Yakin ingin mengumpulkan ujian?';
             if (confirm(msg)) {
-                // Clear backup key upon successful explicit submit
+                // Hapus backup HANYA setelah semua jawaban sukses tersinkronisasi
                 localStorage.removeItem('cbt_pending_' + this.sessionId);
                 document.getElementById('submitForm').submit();
             }
         },
 
-        autoSubmit() {
+        async autoSubmit() {
+            // Sinkronisasi jawaban yang belum terkirim SEBELUM auto-submit
+            if (Object.keys(this.unsyncedAnswers).length > 0) {
+                if (this.isOnline) {
+                    await this.syncLocalBackup();
+                }
+            }
             localStorage.removeItem('cbt_pending_' + this.sessionId);
             alert('Waktu ujian telah habis! Jawaban dikumpulkan otomatis.');
             document.getElementById('submitForm').submit();
