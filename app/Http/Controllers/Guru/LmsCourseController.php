@@ -817,7 +817,7 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
                 'student.parents',
                 'student.classrooms' => function ($q) use ($courseYearId) {
                     if ($courseYearId) {
-                        $q->where('academic_year_id', $courseYearId);
+                        $q->where('student_classes.academic_year_id', $courseYearId);
                     }
                 },
                 'student.classrooms.homeroomTeacher.user',
@@ -1003,7 +1003,7 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
                 'student.user',
                 'student.classrooms' => function ($q) use ($courseYearId) {
                     if ($courseYearId) {
-                        $q->where('academic_year_id', $courseYearId);
+                        $q->where('student_classes.academic_year_id', $courseYearId);
                     }
                 },
                 'lmsClass.classroom'
