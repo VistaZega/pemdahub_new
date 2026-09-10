@@ -498,5 +498,21 @@ class Teacher extends Model
         if (!$schoolId) return false;
         return $this->allSchools()->contains('id', (int) $schoolId);
     }
+
+    /**
+     * Accessor for name -> alias for full_name
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->full_name ?? '';
+    }
+
+    /**
+     * Accessor for nip -> alias for teacher_code
+     */
+    public function getNipAttribute(): ?string
+    {
+        return $this->teacher_code ?? null;
+    }
 }
 

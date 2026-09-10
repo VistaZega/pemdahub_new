@@ -3467,8 +3467,19 @@ if (!function_exists('balanceHtmlTags')) {
         document.getElementById('share-error-banner').classList.add('hidden');
 
         try {
-            const res = await fetch('{{ route("guru.lms.share-candidates", $course->id) }}');
-            const data = await res.json();
+            const res = await fetch('{{ route("guru.lms.share-candidates", $course->id) }}', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (jsonErr) {
+                throw new Error('Gagal menghubungi server (Status: ' + res.status + '). Pastikan cache telah dibersihkan di server.');
+            }
+
             if (!res.ok) throw new Error(data.error || 'Gagal memuat data guru.');
 
             shareCandidatesData = data;

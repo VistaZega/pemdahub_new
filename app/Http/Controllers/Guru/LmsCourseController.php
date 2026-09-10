@@ -475,77 +475,95 @@ class LmsCourseController extends Controller
             return response()->json(['error' => 'Akses tidak diizinkan.'], 403);
         }
 
-        $activeYear = AcademicYear::where('is_active', true)->first();
-        $schoolId = $this->getEffectiveSchoolId($teacher) ?: $course->school_id;
+        try {
+            $activeYear = AcademicYear::where('is_active', true)->first();
+            $schoolId = $course->school_id ?: ($this->getEffectiveSchoolId($teacher) ?: $teacher->school_id);
 
-        // Ambil semua guru aktif di sekolah yang sama
-        $teachers = Teacher::with('user')
-            ->where('school_id', $schoolId)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
+            // Ambil semua guru aktif di sekolah yang sama
+            $teachers = Teacher::with('user')
+                ->where(function($q) use ($schoolId, $teacher) {
+                    if ($schoolId) {
+                        $q->where('school_id', $schoolId);
+                    } elseif ($teacher->school_id) {
+                        $q->where('school_id', $teacher->school_id);
+                    }
+                })
+                ->where('is_active', true)
+                ->orderBy('full_name')
+                ->get();
 
-        // Cari guru yang mengampu mapel yang sama
-        $sameSubjectTeacherIds = TeachingAssignment::where('subject_id', $course->subject_id)
-            ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-            ->pluck('teacher_id')
-            ->unique()
-            ->toArray();
+            // Cari guru yang mengampu mapel yang sama
+            $sameSubjectTeacherIds = TeachingAssignment::where('subject_id', $course->subject_id)
+                ->where('is_active', true)
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->pluck('teacher_id')
+                ->unique()
+                ->toArray();
 
-        // Cari penugasan kelas per guru
-        $assignments = TeachingAssignment::with('classroom')
-            ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-            ->whereNotNull('classroom_id')
-            ->get();
+            // Cari penugasan kelas per guru
+            $assignments = TeachingAssignment::with('classroom')
+                ->where('is_active', true)
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->whereNotNull('classroom_id')
+                ->get();
 
-        $teacherClassrooms = [];
-        foreach ($assignments as $ta) {
-            if ($ta->classroom) {
-                $isMapelMatch = ($ta->subject_id == $course->subject_id);
-                $teacherClassrooms[$ta->teacher_id][] = [
-                    'id' => $ta->classroom->id,
-                    'class_name' => $ta->classroom->class_name,
-                    'is_subject_class' => $isMapelMatch,
-                ];
+            $teacherClassrooms = [];
+            foreach ($assignments as $ta) {
+                if ($ta->classroom) {
+                    $isMapelMatch = ($ta->subject_id == $course->subject_id);
+                    $teacherClassrooms[$ta->teacher_id][] = [
+                        'id' => $ta->classroom->id,
+                        'class_name' => $ta->classroom->class_name,
+                        'is_subject_class' => $isMapelMatch,
+                    ];
+                }
             }
+
+            // Semua rombel aktif di sekolah
+            $allSchoolClassrooms = Classroom::where(function($q) use ($schoolId, $teacher) {
+                    if ($schoolId) {
+                        $q->where('school_id', $schoolId);
+                    } elseif ($teacher->school_id) {
+                        $q->where('school_id', $teacher->school_id);
+                    }
+                })
+                ->where('is_active', true)
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->orderBy('class_name')
+                ->get(['id', 'class_name']);
+
+            $teacherList = $teachers->map(function ($t) use ($sameSubjectTeacherIds, $teacher, $teacherClassrooms) {
+                $isSelf = ($t->id === $teacher->id);
+                $classes = collect($teacherClassrooms[$t->id] ?? [])->unique('id')->values();
+                $name = $t->full_name ?: ($t->name ?? 'Guru');
+                return [
+                    'id' => $t->id,
+                    'name' => $name . ($isSelf ? ' (Saya Sendiri - Kelas Lain)' : ''),
+                    'nip' => $t->teacher_code ?: ($t->nip ?? '-'),
+                    'is_same_subject' => in_array($t->id, $sameSubjectTeacherIds),
+                    'is_self' => $isSelf,
+                    'assigned_classes' => $classes,
+                ];
+            })->sortByDesc('is_same_subject')->values();
+
+            return response()->json([
+                'course' => [
+                    'id' => $course->id,
+                    'name' => $course->course_name,
+                    'subject_name' => $course->subject->subject_name ?? '-',
+                    'materials_count' => $course->materials()->count(),
+                    'assignments_count' => $course->assignments()->count(),
+                    'quizzes_count' => $course->quizzes()->count(),
+                    'modules_count' => $course->modules()->count(),
+                    'is_shared_copy' => !is_null($course->shared_from_course_id),
+                ],
+                'teachers' => $teacherList,
+                'all_classrooms' => $allSchoolClassrooms,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('getShareCandidates error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Gagal memuat daftar guru: ' . $e->getMessage()], 500);
         }
-
-        // Semua rombel aktif di sekolah
-        $allSchoolClassrooms = Classroom::where('school_id', $schoolId)
-            ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-            ->orderBy('class_name')
-            ->get(['id', 'class_name']);
-
-        $teacherList = $teachers->map(function ($t) use ($sameSubjectTeacherIds, $teacher, $teacherClassrooms) {
-            $isSelf = ($t->id === $teacher->id);
-            $classes = collect($teacherClassrooms[$t->id] ?? [])->unique('id')->values();
-            return [
-                'id' => $t->id,
-                'name' => $t->name . ($isSelf ? ' (Saya Sendiri - Kelas Lain)' : ''),
-                'nip' => $t->nip ?? '-',
-                'is_same_subject' => in_array($t->id, $sameSubjectTeacherIds),
-                'is_self' => $isSelf,
-                'assigned_classes' => $classes,
-            ];
-        })->sortByDesc('is_same_subject')->values();
-
-        return response()->json([
-            'course' => [
-                'id' => $course->id,
-                'name' => $course->course_name,
-                'subject_name' => $course->subject->subject_name ?? '-',
-                'materials_count' => $course->materials()->count(),
-                'assignments_count' => $course->assignments()->count(),
-                'quizzes_count' => $course->quizzes()->count(),
-                'modules_count' => $course->modules()->count(),
-                'is_shared_copy' => !is_null($course->shared_from_course_id),
-            ],
-            'teachers' => $teacherList,
-            'all_classrooms' => $allSchoolClassrooms,
-        ]);
     }
 
     /**
@@ -594,7 +612,7 @@ class LmsCourseController extends Controller
                 'classroom_id' => $request->classroom_ids[0] ?? null,
                 'code' => $newCode,
                 'course_name' => $newCourseName,
-                'description' => ($course->description ? $course->description . "\n\n" : '') . "(Course ini dishare dari Guru: " . $teacher->name . ")",
+                'description' => ($course->description ? $course->description . "\n\n" : '') . "(Course ini dishare dari Guru: " . ($teacher->full_name ?: ($teacher->name ?? 'Guru')) . ")",
                 'cover_image' => $course->cover_image,
                 'status' => $status,
                 'is_published' => ($status === 'active'),
@@ -722,12 +740,15 @@ class LmsCourseController extends Controller
             app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($newCourse);
 
             // Send notification to target teacher if not self
+            $senderName = $teacher->full_name ?: ($teacher->name ?? 'Guru');
+            $recipientName = $targetTeacher->full_name ?: ($targetTeacher->name ?? 'Guru');
+
             if ($targetTeacher->user_id && $targetTeacher->id !== $teacher->id) {
                 Notification::create([
                     'user_id' => $targetTeacher->user_id,
                     'school_id' => $targetTeacher->school_id ?: $course->school_id,
                     'title' => 'Sharing Course Diterima 📚',
-                    'message' => "Guru {$teacher->name} telah membagikan kursus '{$newCourse->course_name}' ke akun Anda beserta modul, materi, dan tugasnya.",
+                    'message' => "Guru {$senderName} telah membagikan kursus '{$newCourse->course_name}' ke akun Anda beserta modul, materi, dan tugasnya.",
                     'type' => 'info',
                     'related_model' => LmsCourse::class,
                     'related_id' => $newCourse->id,
@@ -739,9 +760,9 @@ class LmsCourseController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Kursus berhasil dibagikan ke {$targetTeacher->name}!",
+                'message' => "Kursus berhasil dibagikan ke {$recipientName}!",
                 'new_course_id' => $newCourse->id,
-                'target_teacher_name' => $targetTeacher->name,
+                'target_teacher_name' => $recipientName,
             ]);
 
         } catch (\Throwable $e) {
