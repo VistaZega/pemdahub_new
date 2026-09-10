@@ -35,6 +35,7 @@ class LmsCourse extends Model
         'reviewed_by',
         'reviewed_at',
         'review_note',
+        'shared_from_course_id', // ID course asal saat fitur Sharing Course digunakan
     ];
 
     protected $casts = [
@@ -380,6 +381,22 @@ class LmsCourse extends Model
     public function lmsClasses()
     {
         return $this->hasMany(LmsClass::class, 'course_id');
+    }
+
+    /**
+     * Relationship: Course asal dari mana course ini dishare (jika hasil sharing)
+     */
+    public function sharedFromCourse()
+    {
+        return $this->belongsTo(LmsCourse::class, 'shared_from_course_id');
+    }
+
+    /**
+     * Relationship: Salinan course ini yang pernah dibagikan ke guru lain
+     */
+    public function sharedCopies()
+    {
+        return $this->hasMany(LmsCourse::class, 'shared_from_course_id');
     }
 
     /**

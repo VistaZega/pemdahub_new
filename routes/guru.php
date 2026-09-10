@@ -131,6 +131,8 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::get('/{course}/edit', [App\Http\Controllers\Guru\LmsCourseController::class, 'edit'])->name('edit');
         Route::put('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'update'])->name('update');
         Route::delete('/{course}', [App\Http\Controllers\Guru\LmsCourseController::class, 'destroy'])->name('destroy');
+        Route::get('/{course}/share-candidates', [App\Http\Controllers\Guru\LmsCourseController::class, 'getShareCandidates'])->name('share-candidates');
+        Route::post('/{course}/share', [App\Http\Controllers\Guru\LmsCourseController::class, 'shareCourse'])->name('share');
 
         // Meeting / Video Conference
         Route::post('/{course}/meeting/start', [App\Http\Controllers\Guru\LmsCourseController::class, 'startMeeting'])->name('meeting.start');

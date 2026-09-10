@@ -226,6 +226,15 @@ if (!function_exists('balanceHtmlTags')) {
                     <a href="{{ route('guru.lms.export-gradebook', $course->id) }}" class="px-3 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md border-2 border-black transition-all" style="background-color: #059669 !important;">
                         <i class="fas fa-file-excel text-xs text-white"></i> Ekspor Excel
                     </a>
+                    @if(!$course->shared_from_course_id)
+                    <button type="button" onclick="openShareCourseModal()" class="px-3 py-2 text-white border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all hover:bg-indigo-700" style="background-color: #4f46e5 !important;" title="Bagikan salinan kursus ini ke rekan guru lain">
+                        <i class="fas fa-share-nodes text-xs text-amber-300"></i> Sharing Course
+                    </button>
+                    @else
+                    <span class="px-3 py-2 bg-indigo-50 text-indigo-700 border-2 border-dashed border-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1" title="Course ini merupakan hasil sharing dari guru lain">
+                        <i class="fas fa-link text-xs"></i> Hasil Sharing
+                    </span>
+                    @endif
                     <a href="{{ route('guru.lms.edit', $course->id) }}" class="px-3 py-2 bg-amber-300 hover:bg-amber-400 text-black border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all" title="Edit Course">
                         <i class="fas fa-edit text-xs"></i> Edit
                     </a>
@@ -254,6 +263,11 @@ if (!function_exists('balanceHtmlTags')) {
                         <span class="text-black font-black text-xs flex items-center gap-1"><i class="fas fa-clock text-xs text-black"></i> {{ $course->semester->semester_name ?? '-' }}</span>
                         @if($classNames)
                         <span class="text-black font-black text-xs flex items-center gap-1"><i class="fas fa-users text-xs text-black"></i> Kelas: {{ $classNames }}</span>
+                        @endif
+                        @if($course->shared_from_course_id && $course->sharedFromCourse)
+                        <span class="border-2 border-black px-3 py-1 rounded-xl text-xs font-black bg-indigo-100 text-indigo-900 flex items-center gap-1">
+                            <i class="fas fa-share-nodes text-indigo-600"></i> Sharing dari: {{ $course->sharedFromCourse->teacher->name ?? 'Guru Lain' }}
+                        </span>
                         @endif
                     </div>
                 </div>
@@ -2658,6 +2672,154 @@ if (!function_exists('balanceHtmlTags')) {
 </div>
 @endif
 @include('components.lms-game-player')
+
+{{-- ================================================================ --}}
+{{-- MODAL SHARING COURSE (SOLID UI / NEO-BRUTALISM) --}}
+{{-- ================================================================ --}}
+<div id="share-course-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onclick="closeShareCourseModal()"></div>
+
+        <!-- Dialog Card -->
+        <div class="relative inline-block w-full max-w-2xl bg-white border-2 border-black rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all my-8 z-10">
+            <!-- Header -->
+            <div class="p-6 border-b-2 border-black text-white flex items-center justify-between" style="background-color: #4f46e5 !important;">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-black text-xl shadow-md">
+                        <i class="fas fa-share-nodes"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white leading-tight">Sharing Course LMS</h3>
+                        <p class="text-xs text-indigo-200 font-bold mt-0.5">Bagikan salinan modul, materi, tugas & kuis ke rekan guru</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeShareCourseModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/30 text-white flex items-center justify-center transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Body Form -->
+            <form id="form-share-course" onsubmit="submitShareCourse(event)" class="p-6 space-y-5 bg-white">
+                <!-- Course Source Info Banner -->
+                <div class="p-4 bg-indigo-50 border-2 border-black rounded-2xl flex items-center justify-between gap-4">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 block">Course Sumber:</span>
+                        <span class="text-sm font-black text-black">{{ $course->course_name }}</span>
+                        <div class="flex items-center gap-2 mt-1 text-xs text-slate-600 font-bold">
+                            <span><i class="fas fa-book text-emerald-600 mr-1"></i>{{ $course->materials_count }} Materi</span>
+                            <span>•</span>
+                            <span><i class="fas fa-tasks text-sky-600 mr-1"></i>{{ $course->assignments_count }} Tugas</span>
+                            <span>•</span>
+                            <span><i class="fas fa-question-circle text-purple-600 mr-1"></i>{{ $course->quizzes_count }} Kuis</span>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1.5 bg-amber-300 border-2 border-black rounded-xl text-xs font-black text-black shrink-0">
+                        {{ $course->subject->subject_name ?? '-' }}
+                    </span>
+                </div>
+
+                <!-- Loading State for Candidates -->
+                <div id="share-loading" class="py-8 text-center">
+                    <i class="fas fa-circle-notch fa-spin text-3xl text-indigo-600 mb-2"></i>
+                    <p class="text-xs font-black text-slate-600">Memuat daftar guru rekan & rombel sasaran...</p>
+                </div>
+
+                <!-- Step 1: Select Target Teacher -->
+                <div id="share-form-content" class="hidden space-y-5">
+                    <div>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
+                            1. Pilih Guru Penerima <span class="text-rose-600">*</span>
+                        </label>
+                        <select id="share-target-teacher" required onchange="handleTeacherSelection()" class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-bold focus:ring-4 focus:ring-black/20 outline-none bg-white">
+                            <option value="">-- Pilih Guru Penerima --</option>
+                        </select>
+                        <p class="text-[11px] text-slate-600 font-semibold mt-1">
+                            💡 Guru yang memiliki SK mapel yang sama ditandai dengan label khusus.
+                        </p>
+                    </div>
+
+                    <!-- Step 2: Target Classroom -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider">
+                                2. Pilih Kelas Sasaran Penerima <span class="text-rose-600">*</span>
+                            </label>
+                            <span id="class-source-hint" class="text-[11px] font-bold text-indigo-600"></span>
+                        </div>
+                        <div id="share-classrooms-container" class="border-2 border-black rounded-2xl p-4 max-h-44 overflow-y-auto space-y-2 bg-slate-50">
+                            <p class="text-xs text-slate-500 font-bold italic">Silakan pilih guru penerima terlebih dahulu.</p>
+                        </div>
+                        <p class="text-[11px] text-slate-600 font-semibold mt-1">
+                            Siswa di kelas yang dipilih akan otomatis terdaftar (auto-enrolled) ke kursus baru.
+                        </p>
+                    </div>
+
+                    <!-- Step 3: New Course Name -->
+                    <div>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
+                            3. Nama Course Baru
+                        </label>
+                        <input type="text" id="share-new-course-name" class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-bold focus:ring-4 focus:ring-black/20 outline-none" placeholder="Nama kursus untuk guru penerima">
+                    </div>
+
+                    <!-- Step 4: Content Options -->
+                    <div>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">
+                            4. Konten Yang Ingin Disalin
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <label class="flex items-center gap-2.5 p-3 rounded-xl border-2 border-black bg-white cursor-pointer hover:bg-slate-50 transition">
+                                <input type="checkbox" id="share-copy-materials" checked class="w-4 h-4 rounded border-2 border-black text-indigo-600">
+                                <span class="text-xs font-black text-black">Materi Ajar ({{ $course->materials_count }})</span>
+                            </label>
+                            <label class="flex items-center gap-2.5 p-3 rounded-xl border-2 border-black bg-white cursor-pointer hover:bg-slate-50 transition">
+                                <input type="checkbox" id="share-copy-assignments" checked class="w-4 h-4 rounded border-2 border-black text-indigo-600">
+                                <span class="text-xs font-black text-black">Tugas ({{ $course->assignments_count }})</span>
+                            </label>
+                            <label class="flex items-center gap-2.5 p-3 rounded-xl border-2 border-black bg-white cursor-pointer hover:bg-slate-50 transition">
+                                <input type="checkbox" id="share-copy-quizzes" checked class="w-4 h-4 rounded border-2 border-black text-indigo-600">
+                                <span class="text-xs font-black text-black">Kuis ({{ $course->quizzes_count }})</span>
+                            </label>
+                        </div>
+                        <div class="mt-2 p-3 bg-amber-50 border-2 border-black rounded-xl text-[11px] font-bold text-amber-900 flex items-start gap-2">
+                            <i class="fas fa-circle-info text-amber-600 text-sm mt-0.5 shrink-0"></i>
+                            <span>Tenggat waktu tugas & jadwal kuis akan direset agar guru penerima dapat mengatur jadwal belajarnya sendiri. Jawaban/nilai siswa lama <strong>tidak</strong> disalin.</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Initial Status -->
+                    <div>
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
+                            Status Publikasi Kursus Baru
+                        </label>
+                        <select id="share-status" class="w-full border-2 border-black rounded-2xl px-4 py-2.5 text-xs text-black font-bold focus:ring-4 focus:ring-black/20 outline-none bg-white">
+                            <option value="active">Aktif (Langsung Terbit untuk Siswa Kelas Sasaran)</option>
+                            <option value="draft">Draft (Disimpan Dahulu, Belum Terbit untuk Siswa)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Error Banner -->
+                <div id="share-error-banner" class="hidden p-3 bg-rose-100 border-2 border-black rounded-2xl text-xs font-black text-rose-800 flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle text-rose-600 text-sm"></i>
+                    <span id="share-error-text"></span>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="pt-4 border-t-2 border-black flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeShareCourseModal()" class="px-5 py-3 rounded-2xl border-2 border-black bg-slate-200 hover:bg-slate-300 font-black text-xs uppercase tracking-wider text-black transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="btn-submit-share" class="px-6 py-3 rounded-2xl border-2 border-black text-white font-black text-xs uppercase tracking-wider shadow-md hover:bg-indigo-700 transition flex items-center gap-2" style="background-color: #4f46e5 !important;">
+                        <i class="fas fa-paper-plane text-amber-300"></i>
+                        <span>Kirim & Bagikan Kursus</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -3287,6 +3449,203 @@ if (!function_exists('balanceHtmlTags')) {
                 this.open = true;
             }
         };
+    }
+
+    // ================================================================
+    // SHARING COURSE LMS JAVASCRIPT
+    // ================================================================
+    let shareCandidatesData = null;
+
+    async function openShareCourseModal() {
+        const modal = document.getElementById('share-course-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        document.getElementById('share-loading').classList.remove('hidden');
+        document.getElementById('share-form-content').classList.add('hidden');
+        document.getElementById('share-error-banner').classList.add('hidden');
+
+        try {
+            const res = await fetch('{{ route("guru.lms.share-candidates", $course->id) }}');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Gagal memuat data guru.');
+
+            shareCandidatesData = data;
+            populateTeacherDropdown(data.teachers);
+            document.getElementById('share-new-course-name').value = data.course.name;
+
+            document.getElementById('share-loading').classList.add('hidden');
+            document.getElementById('share-form-content').classList.remove('hidden');
+        } catch (err) {
+            document.getElementById('share-loading').classList.add('hidden');
+            document.getElementById('share-error-banner').classList.remove('hidden');
+            document.getElementById('share-error-text').textContent = err.message;
+        }
+    }
+
+    function closeShareCourseModal() {
+        const modal = document.getElementById('share-course-modal');
+        if (modal) modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function populateTeacherDropdown(teachers) {
+        const select = document.getElementById('share-target-teacher');
+        select.innerHTML = '<option value="">-- Pilih Guru Penerima --</option>';
+
+        const sameSubject = teachers.filter(t => t.is_same_subject && !t.is_self);
+        const selfTeacher = teachers.find(t => t.is_self);
+        const otherTeachers = teachers.filter(t => !t.is_same_subject && !t.is_self);
+
+        if (sameSubject.length > 0) {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = '⭐ Rekan Pengampu Mapel yang Sama';
+            sameSubject.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = `${t.name} (NIP: ${t.nip})`;
+                optgroup.appendChild(opt);
+            });
+            select.appendChild(optgroup);
+        }
+
+        if (otherTeachers.length > 0) {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = 'Guru Lain di Sekolah';
+            otherTeachers.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = `${t.name} (NIP: ${t.nip})`;
+                optgroup.appendChild(opt);
+            });
+            select.appendChild(optgroup);
+        }
+
+        if (selfTeacher) {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = 'Salin ke Diri Sendiri';
+            const opt = document.createElement('option');
+            opt.value = selfTeacher.id;
+            opt.textContent = selfTeacher.name;
+            optgroup.appendChild(opt);
+            select.appendChild(optgroup);
+        }
+    }
+
+    function handleTeacherSelection() {
+        const teacherId = parseInt(document.getElementById('share-target-teacher').value);
+        const container = document.getElementById('share-classrooms-container');
+        const hint = document.getElementById('class-source-hint');
+
+        if (!teacherId || !shareCandidatesData) {
+            container.innerHTML = '<p class="text-xs text-slate-500 font-bold italic">Silakan pilih guru penerima terlebih dahulu.</p>';
+            hint.textContent = '';
+            return;
+        }
+
+        const teacher = shareCandidatesData.teachers.find(t => t.id === teacherId);
+        let classesToDisplay = [];
+
+        if (teacher && teacher.assigned_classes && teacher.assigned_classes.length > 0) {
+            classesToDisplay = teacher.assigned_classes;
+            hint.textContent = 'Menampilkan kelas yang diampu guru terpilih';
+        } else {
+            classesToDisplay = shareCandidatesData.all_classrooms || [];
+            hint.textContent = 'Menampilkan seluruh rombel di sekolah';
+        }
+
+        if (classesToDisplay.length === 0) {
+            container.innerHTML = '<p class="text-xs text-rose-600 font-bold">Tidak ada rombel aktif ditemukan.</p>';
+            return;
+        }
+
+        let html = '';
+        classesToDisplay.forEach((cls, idx) => {
+            const checkedAttr = (idx === 0) ? 'checked' : '';
+            const badge = cls.is_subject_class ? '<span class="ml-auto text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-400 px-2 py-0.5 rounded-lg">Kelas Mapel</span>' : '';
+            html += `
+                <label class="flex items-center gap-3 p-2.5 rounded-xl border-2 border-black bg-white cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" name="classroom_ids[]" value="${cls.id}" ${checkedAttr} class="w-4 h-4 rounded border-2 border-black text-indigo-600 share-class-checkbox">
+                    <span class="text-xs font-black text-black">${cls.class_name}</span>
+                    ${badge}
+                </label>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    async function submitShareCourse(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit-share');
+        const teacherSelect = document.getElementById('share-target-teacher');
+        const teacherId = teacherSelect.value;
+        const teacherName = teacherSelect.options[teacherSelect.selectedIndex]?.text || 'Guru';
+        const courseName = document.getElementById('share-new-course-name').value;
+        const copyMaterials = document.getElementById('share-copy-materials').checked;
+        const copyAssignments = document.getElementById('share-copy-assignments').checked;
+        const copyQuizzes = document.getElementById('share-copy-quizzes').checked;
+        const status = document.getElementById('share-status').value;
+
+        const checkedClasses = Array.from(document.querySelectorAll('.share-class-checkbox:checked')).map(cb => cb.value);
+
+        if (!teacherId) {
+            alert('Silakan pilih guru penerima terlebih dahulu.');
+            return;
+        }
+
+        if (checkedClasses.length === 0) {
+            alert('Silakan centang minimal satu kelas sasaran penerima.');
+            return;
+        }
+
+        if (!confirm(`Apakah Anda yakin ingin membagikan salinan kursus ini ke:\n\n${teacherName}?\n\nKonten modul, materi, dan tugas akan disalin ke akun guru penerima.`)) {
+            return;
+        }
+
+        const originalBtnHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Sedang Membagikan...';
+        document.getElementById('share-error-banner').classList.add('hidden');
+
+        try {
+            const payload = {
+                target_teacher_id: teacherId,
+                classroom_ids: checkedClasses,
+                course_name: courseName,
+                copy_materials: copyMaterials,
+                copy_assignments: copyAssignments,
+                copy_quizzes: copyQuizzes,
+                status: status
+            };
+
+            const res = await fetch('{{ route("guru.lms.share", $course->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || data.message || 'Gagal membagikan kursus.');
+            }
+
+            alert('✅ Berhasil!\n\n' + data.message);
+            closeShareCourseModal();
+            window.location.reload();
+        } catch (err) {
+            document.getElementById('share-error-banner').classList.remove('hidden');
+            document.getElementById('share-error-text').textContent = err.message;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+        }
     }
 </script>
 @endpush

@@ -22,8 +22,14 @@ use App\Models\Notification;
 use App\Models\Teacher;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use App\Models\LmsAssignment;
+use App\Models\LmsQuiz;
+use App\Models\LmsQuizQuestion;
+use App\Models\Classroom;
+use App\Models\TeachingAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -457,6 +463,294 @@ class LmsCourseController extends Controller
 
         return redirect()->route('guru.lms.index')
             ->with('success', 'Course berhasil dihapus.');
+    }
+
+    /**
+     * Get candidate teachers & classrooms for Sharing Course
+     */
+    public function getShareCandidates(LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            return response()->json(['error' => 'Akses tidak diizinkan.'], 403);
+        }
+
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $schoolId = $this->getEffectiveSchoolId($teacher) ?: $course->school_id;
+
+        // Ambil semua guru aktif di sekolah yang sama
+        $teachers = Teacher::with('user')
+            ->where('school_id', $schoolId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        // Cari guru yang mengampu mapel yang sama
+        $sameSubjectTeacherIds = TeachingAssignment::where('subject_id', $course->subject_id)
+            ->where('is_active', true)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->pluck('teacher_id')
+            ->unique()
+            ->toArray();
+
+        // Cari penugasan kelas per guru
+        $assignments = TeachingAssignment::with('classroom')
+            ->where('is_active', true)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->whereNotNull('classroom_id')
+            ->get();
+
+        $teacherClassrooms = [];
+        foreach ($assignments as $ta) {
+            if ($ta->classroom) {
+                $isMapelMatch = ($ta->subject_id == $course->subject_id);
+                $teacherClassrooms[$ta->teacher_id][] = [
+                    'id' => $ta->classroom->id,
+                    'class_name' => $ta->classroom->class_name,
+                    'is_subject_class' => $isMapelMatch,
+                ];
+            }
+        }
+
+        // Semua rombel aktif di sekolah
+        $allSchoolClassrooms = Classroom::where('school_id', $schoolId)
+            ->where('is_active', true)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->orderBy('class_name')
+            ->get(['id', 'class_name']);
+
+        $teacherList = $teachers->map(function ($t) use ($sameSubjectTeacherIds, $teacher, $teacherClassrooms) {
+            $isSelf = ($t->id === $teacher->id);
+            $classes = collect($teacherClassrooms[$t->id] ?? [])->unique('id')->values();
+            return [
+                'id' => $t->id,
+                'name' => $t->name . ($isSelf ? ' (Saya Sendiri - Kelas Lain)' : ''),
+                'nip' => $t->nip ?? '-',
+                'is_same_subject' => in_array($t->id, $sameSubjectTeacherIds),
+                'is_self' => $isSelf,
+                'assigned_classes' => $classes,
+            ];
+        })->sortByDesc('is_same_subject')->values();
+
+        return response()->json([
+            'course' => [
+                'id' => $course->id,
+                'name' => $course->course_name,
+                'subject_name' => $course->subject->subject_name ?? '-',
+                'materials_count' => $course->materials()->count(),
+                'assignments_count' => $course->assignments()->count(),
+                'quizzes_count' => $course->quizzes()->count(),
+                'modules_count' => $course->modules()->count(),
+                'is_shared_copy' => !is_null($course->shared_from_course_id),
+            ],
+            'teachers' => $teacherList,
+            'all_classrooms' => $allSchoolClassrooms,
+        ]);
+    }
+
+    /**
+     * Process Sharing Course to another teacher / classroom
+     */
+    public function shareCourse(Request $request, LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            return response()->json(['error' => 'Akses tidak diizinkan.'], 403);
+        }
+
+        if ($course->shared_from_course_id) {
+            return response()->json([
+                'error' => 'Course ini merupakan hasil sharing. Hanya course sumber/asli yang dapat dibagikan ulang.'
+            ], 422);
+        }
+
+        $request->validate([
+            'target_teacher_id' => 'required|exists:teachers,id',
+            'classroom_ids' => 'required|array|min:1',
+            'classroom_ids.*' => 'exists:classrooms,id',
+            'course_name' => 'nullable|string|max:200',
+            'copy_materials' => 'nullable|boolean',
+            'copy_assignments' => 'nullable|boolean',
+            'copy_quizzes' => 'nullable|boolean',
+            'status' => 'nullable|in:draft,active',
+        ]);
+
+        $targetTeacher = Teacher::findOrFail($request->target_teacher_id);
+        $newCourseName = $request->filled('course_name') ? trim($request->course_name) : $course->course_name;
+        $status = $request->input('status', 'active');
+        $copyMaterials = $request->boolean('copy_materials', true);
+        $copyAssignments = $request->boolean('copy_assignments', true);
+        $copyQuizzes = $request->boolean('copy_quizzes', true);
+
+        DB::beginTransaction();
+        try {
+            $newCode = 'LMS-' . strtoupper(Str::random(8));
+
+            $newCourse = LmsCourse::create([
+                'school_id' => $targetTeacher->school_id ?: $course->school_id,
+                'teacher_id' => $targetTeacher->id,
+                'subject_id' => $course->subject_id,
+                'semester_id' => $course->semester_id,
+                'classroom_id' => $request->classroom_ids[0] ?? null,
+                'code' => $newCode,
+                'course_name' => $newCourseName,
+                'description' => ($course->description ? $course->description . "\n\n" : '') . "(Course ini dishare dari Guru: " . $teacher->name . ")",
+                'cover_image' => $course->cover_image,
+                'status' => $status,
+                'is_published' => ($status === 'active'),
+                'is_active' => true,
+                'is_sequential' => (bool)$course->is_sequential,
+                'color' => $course->color,
+                'review_status' => 'approved',
+                'shared_from_course_id' => $course->id,
+            ]);
+
+            // Assign classrooms
+            foreach ($request->classroom_ids as $classroomId) {
+                LmsClass::create([
+                    'course_id' => $newCourse->id,
+                    'classroom_id' => $classroomId,
+                    'school_id' => $newCourse->school_id,
+                    'status' => 'active',
+                ]);
+            }
+
+            // Copy modules
+            $moduleMap = [];
+            $sourceModules = $course->modules()->orderBy('sequence')->get();
+            foreach ($sourceModules as $oldMod) {
+                $newMod = LmsModule::create([
+                    'course_id' => $newCourse->id,
+                    'title' => $oldMod->title,
+                    'description' => $oldMod->description,
+                    'sequence' => $oldMod->sequence,
+                    'is_published' => $oldMod->is_published,
+                ]);
+                $moduleMap[$oldMod->id] = $newMod->id;
+            }
+
+            // Copy materials
+            if ($copyMaterials) {
+                $sourceMaterials = $course->materials()->orderBy('order_number')->get();
+                $materialMap = [];
+                foreach ($sourceMaterials as $oldMat) {
+                    $newMat = LmsMaterial::create([
+                        'course_id' => $newCourse->id,
+                        'module_id' => $oldMat->module_id ? ($moduleMap[$oldMat->module_id] ?? null) : null,
+                        'title' => $oldMat->title,
+                        'content' => $oldMat->content,
+                        'material_type' => $oldMat->material_type,
+                        'file_path' => $oldMat->file_path,
+                        'file_url' => $oldMat->file_url,
+                        'file_size' => $oldMat->file_size,
+                        'order_number' => $oldMat->order_number,
+                        'is_published' => $oldMat->is_published,
+                    ]);
+                    $materialMap[$oldMat->id] = $newMat->id;
+                }
+
+                foreach ($sourceMaterials as $oldMat) {
+                    if ($oldMat->prerequisite_material_id && isset($materialMap[$oldMat->prerequisite_material_id]) && isset($materialMap[$oldMat->id])) {
+                        LmsMaterial::where('id', $materialMap[$oldMat->id])->update([
+                            'prerequisite_material_id' => $materialMap[$oldMat->prerequisite_material_id]
+                        ]);
+                    }
+                }
+            }
+
+            // Copy assignments
+            if ($copyAssignments) {
+                $sourceAssignments = $course->assignments()->get();
+                foreach ($sourceAssignments as $oldAss) {
+                    LmsAssignment::create([
+                        'course_id' => $newCourse->id,
+                        'module_id' => $oldAss->module_id ? ($moduleMap[$oldAss->module_id] ?? null) : null,
+                        'title' => $oldAss->title,
+                        'description' => $oldAss->description,
+                        'assignment_type' => $oldAss->assignment_type,
+                        'is_group_assignment' => (bool)$oldAss->is_group_assignment,
+                        'file_path' => $oldAss->file_path,
+                        'deadline' => null, // clear deadline so recipient teacher can set their own
+                        'max_score' => $oldAss->max_score,
+                        'is_published' => $oldAss->is_published,
+                        'allow_resubmit' => (bool)$oldAss->allow_resubmit,
+                        'max_resubmissions' => $oldAss->max_resubmissions,
+                    ]);
+                }
+            }
+
+            // Copy quizzes & questions
+            if ($copyQuizzes) {
+                $sourceQuizzes = $course->quizzes()->with('questions')->get();
+                foreach ($sourceQuizzes as $oldQuiz) {
+                    $newQuiz = LmsQuiz::create([
+                        'course_id' => $newCourse->id,
+                        'module_id' => $oldQuiz->module_id ? ($moduleMap[$oldQuiz->module_id] ?? null) : null,
+                        'question_package_id' => $oldQuiz->question_package_id,
+                        'question_sample_count' => $oldQuiz->question_sample_count,
+                        'points_per_question' => $oldQuiz->points_per_question,
+                        'title' => $oldQuiz->title,
+                        'description' => $oldQuiz->description,
+                        'start_time' => null,
+                        'end_time' => null,
+                        'time_limit' => $oldQuiz->time_limit,
+                        'total_score' => $oldQuiz->total_score,
+                        'passing_score' => $oldQuiz->passing_score,
+                        'max_attempts' => $oldQuiz->max_attempts,
+                        'shuffle_questions' => (bool)$oldQuiz->shuffle_questions,
+                        'show_result' => (bool)$oldQuiz->show_result,
+                        'is_published' => $oldQuiz->is_published,
+                    ]);
+
+                    foreach ($oldQuiz->questions as $oldQ) {
+                        LmsQuizQuestion::create([
+                            'quiz_id' => $newQuiz->id,
+                            'question' => $oldQ->question,
+                            'question_type' => $oldQ->question_type,
+                            'options' => $oldQ->options,
+                            'correct_answer' => $oldQ->correct_answer,
+                            'order_number' => $oldQ->order_number,
+                            'score' => $oldQ->score,
+                            'image_path' => $oldQ->image_path,
+                            'video_url' => $oldQ->video_url,
+                        ]);
+                    }
+                }
+            }
+
+            // Auto-enroll students for the new course
+            app(\App\Services\LmsEnrollmentService::class)->syncCourseEnrollments($newCourse);
+
+            // Send notification to target teacher if not self
+            if ($targetTeacher->user_id && $targetTeacher->id !== $teacher->id) {
+                Notification::create([
+                    'user_id' => $targetTeacher->user_id,
+                    'school_id' => $targetTeacher->school_id ?: $course->school_id,
+                    'title' => 'Sharing Course Diterima 📚',
+                    'message' => "Guru {$teacher->name} telah membagikan kursus '{$newCourse->course_name}' ke akun Anda beserta modul, materi, dan tugasnya.",
+                    'type' => 'info',
+                    'related_model' => LmsCourse::class,
+                    'related_id' => $newCourse->id,
+                    'is_read' => false,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Kursus berhasil dibagikan ke {$targetTeacher->name}!",
+                'new_course_id' => $newCourse->id,
+                'target_teacher_name' => $targetTeacher->name,
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('Sharing course failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'error' => 'Gagal membagikan kursus: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // ================================================================
