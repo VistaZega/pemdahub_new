@@ -2727,6 +2727,21 @@ if (!function_exists('balanceHtmlTags')) {
 
                 <!-- Step 1: Select Target Teacher -->
                 <div id="share-form-content" class="hidden space-y-5">
+                    <!-- Unit Sekolah Sasaran (Khusus Akun Multi-Unit / Yayasan) -->
+                    <div id="unit-selector-wrapper" class="hidden p-3.5 bg-amber-50 border-2 border-black rounded-2xl shadow-xs">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider">
+                                🏫 Unit Sekolah Sasaran:
+                            </label>
+                            <span id="active-school-badge" class="px-2 py-0.5 bg-amber-300 border border-black rounded-lg text-[10px] font-black text-black"></span>
+                        </div>
+                        <select id="share-school-selector" onchange="changeShareSchool()" class="w-full border-2 border-black rounded-xl px-3 py-2 text-xs text-black font-black bg-white focus:ring-2 focus:ring-black/20 outline-none">
+                        </select>
+                        <p class="text-[10px] text-amber-900 font-bold mt-1">
+                            ℹ️ Daftar guru & rombel di bawah disesuaikan dengan unit sekolah yang dipilih.
+                        </p>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
                             1. Pilih Guru Penerima <span class="text-rose-600">*</span>
@@ -3483,8 +3498,69 @@ if (!function_exists('balanceHtmlTags')) {
             if (!res.ok) throw new Error(data.error || 'Gagal memuat data guru.');
 
             shareCandidatesData = data;
+            renderSchoolSelector(data.available_schools, data.current_school_id, data.current_school_name);
             populateTeacherDropdown(data.teachers);
             document.getElementById('share-new-course-name').value = data.course.name;
+
+            document.getElementById('share-loading').classList.add('hidden');
+            document.getElementById('share-form-content').classList.remove('hidden');
+        } catch (err) {
+            document.getElementById('share-loading').classList.add('hidden');
+            document.getElementById('share-error-banner').classList.remove('hidden');
+            document.getElementById('share-error-text').textContent = err.message;
+        }
+    }
+
+    function renderSchoolSelector(availableSchools, currentSchoolId, currentSchoolName) {
+        const wrapper = document.getElementById('unit-selector-wrapper');
+        const select = document.getElementById('share-school-selector');
+        const badge = document.getElementById('active-school-badge');
+
+        if (!availableSchools || availableSchools.length <= 1) {
+            if (wrapper) wrapper.classList.add('hidden');
+            return;
+        }
+
+        wrapper.classList.remove('hidden');
+        badge.textContent = currentSchoolName || 'Unit Terpilih';
+
+        select.innerHTML = '';
+        availableSchools.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name;
+            if (s.id == currentSchoolId) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    async function changeShareSchool() {
+        const schoolId = document.getElementById('share-school-selector').value;
+        if (!schoolId) return;
+
+        document.getElementById('share-loading').classList.remove('hidden');
+        document.getElementById('share-form-content').classList.add('hidden');
+        document.getElementById('share-error-banner').classList.add('hidden');
+
+        try {
+            const res = await fetch(`{{ route("guru.lms.share-candidates", $course->id) }}?school_id=${schoolId}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error('Gagal menghubungi server.');
+            }
+
+            if (!res.ok) throw new Error(data.error || 'Gagal memuat data guru.');
+
+            shareCandidatesData = data;
+            renderSchoolSelector(data.available_schools, data.current_school_id, data.current_school_name);
+            populateTeacherDropdown(data.teachers);
+            document.getElementById('share-classrooms-container').innerHTML = '<p class="text-xs text-slate-500 font-bold italic">Silakan pilih guru penerima terlebih dahulu.</p>';
+            document.getElementById('class-source-hint').textContent = '';
 
             document.getElementById('share-loading').classList.add('hidden');
             document.getElementById('share-form-content').classList.remove('hidden');

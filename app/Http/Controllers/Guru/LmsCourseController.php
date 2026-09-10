@@ -26,6 +26,7 @@ use App\Models\LmsAssignment;
 use App\Models\LmsQuiz;
 use App\Models\LmsQuizQuestion;
 use App\Models\Classroom;
+use App\Models\School;
 use App\Models\TeachingAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -466,9 +467,62 @@ class LmsCourseController extends Controller
     }
 
     /**
+     * Resolve academic unit school ID for a course (Strictly excludes Yayasan)
+     */
+    protected function resolveCourseAcademicSchoolId(LmsCourse $course, Teacher $teacher): int
+    {
+        // 1. Cek dari rombel yang terhubung (lmsClasses)
+        $firstLmsClass = $course->lmsClasses()->with('classroom.school')->first();
+        if ($firstLmsClass?->classroom?->school && !$firstLmsClass->classroom->school->isYayasan()) {
+            return (int) $firstLmsClass->classroom->school_id;
+        }
+
+        // 2. Cek dari classroom langsung di course
+        if ($course->classroom && $course->classroom->school && !$course->classroom->school->isYayasan()) {
+            return (int) $course->classroom->school_id;
+        }
+
+        // 3. Cek dari subject (mata pelajaran)
+        if ($course->subject && $course->subject->school && !$course->subject->school->isYayasan()) {
+            return (int) $course->subject->school_id;
+        }
+
+        // 4. Cek dari course->school_id jika bukan yayasan
+        if ($course->school_id) {
+            $s = School::find($course->school_id);
+            if ($s && !$s->isYayasan()) {
+                return (int) $s->id;
+            }
+        }
+
+        // 5. Cek dari teaching assignments guru untuk mapel ini
+        $ta = TeachingAssignment::with('classroom.school')
+            ->where('teacher_id', $teacher->id)
+            ->where('subject_id', $course->subject_id)
+            ->where('is_active', true)
+            ->first();
+        if ($ta?->classroom?->school && !$ta->classroom->school->isYayasan()) {
+            return (int) $ta->classroom->school_id;
+        }
+
+        // 6. Cek dari session active_school_id jika bukan yayasan
+        $sessionSchoolId = session('active_school_id');
+        if ($sessionSchoolId) {
+            $s = School::find($sessionSchoolId);
+            if ($s && !$s->isYayasan()) {
+                return (int) $s->id;
+            }
+        }
+
+        // 7. Fallback ke unit sekolah aktif pertama (SMK/SMA/SMP)
+        $fallback = School::schoolsOnly()->first();
+        return $fallback ? (int) $fallback->id : 1;
+    }
+
+    /**
      * Get candidate teachers & classrooms for Sharing Course
      */
-    public function getShareCandidates(LmsCourse $course)
+    public function getShareCandidates(LmsCourse $course, Request $request)
     {
         $teacher = $this->getTeacher();
         if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
@@ -476,23 +530,32 @@ class LmsCourseController extends Controller
         }
 
         try {
+            $user = Auth::user();
             $activeYear = AcademicYear::where('is_active', true)->first();
-            $schoolId = $course->school_id ?: ($this->getEffectiveSchoolId($teacher) ?: $teacher->school_id);
 
-            // Ambil semua guru aktif di sekolah yang sama
+            // Tentukan Unit Sekolah Akademik yang sebenarnya (BUKAN Yayasan)
+            $defaultSchoolId = $this->resolveCourseAcademicSchoolId($course, $teacher);
+            $requestedSchoolId = $request->input('school_id');
+
+            if ($requestedSchoolId && School::where('id', $requestedSchoolId)->where('type', '!=', 'yayasan')->exists()) {
+                $schoolId = (int) $requestedSchoolId;
+            } else {
+                $schoolId = $defaultSchoolId;
+            }
+
+            // Jika course asli tersimpan dengan school_id yayasan, sinkronkan ke unit akademik riil
+            if ($course->school_id && School::find($course->school_id)?->isYayasan()) {
+                $course->update(['school_id' => $schoolId]);
+            }
+
+            // Ambil semua guru aktif di unit sekolah tersebut (EXCLUDE yayasan)
             $teachers = Teacher::with('user')
-                ->where(function($q) use ($schoolId, $teacher) {
-                    if ($schoolId) {
-                        $q->where('school_id', $schoolId);
-                    } elseif ($teacher->school_id) {
-                        $q->where('school_id', $teacher->school_id);
-                    }
-                })
+                ->where('school_id', $schoolId)
                 ->where('is_active', true)
                 ->orderBy('full_name')
                 ->get();
 
-            // Cari guru yang mengampu mapel yang sama
+            // Cari guru yang mengampu mapel yang sama pada unit sekolah ini
             $sameSubjectTeacherIds = TeachingAssignment::where('subject_id', $course->subject_id)
                 ->where('is_active', true)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
@@ -500,9 +563,10 @@ class LmsCourseController extends Controller
                 ->unique()
                 ->toArray();
 
-            // Cari penugasan kelas per guru
+            // Cari penugasan kelas per guru di unit sekolah ini
             $assignments = TeachingAssignment::with('classroom')
                 ->where('is_active', true)
+                ->whereHas('classroom', fn($q) => $q->where('school_id', $schoolId))
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                 ->whereNotNull('classroom_id')
                 ->get();
@@ -519,14 +583,8 @@ class LmsCourseController extends Controller
                 }
             }
 
-            // Semua rombel aktif di sekolah
-            $allSchoolClassrooms = Classroom::where(function($q) use ($schoolId, $teacher) {
-                    if ($schoolId) {
-                        $q->where('school_id', $schoolId);
-                    } elseif ($teacher->school_id) {
-                        $q->where('school_id', $teacher->school_id);
-                    }
-                })
+            // Semua rombel aktif di unit sekolah ini
+            $allSchoolClassrooms = Classroom::where('school_id', $schoolId)
                 ->where('is_active', true)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                 ->orderBy('class_name')
@@ -546,6 +604,13 @@ class LmsCourseController extends Controller
                 ];
             })->sortByDesc('is_same_subject')->values();
 
+            $hasMultiSchool = $user->hasMultiSchoolAccess() || $user->isKetuaYayasan() || $user->isSuperAdmin() || ($teacher->allSchools()->count() > 1);
+            $availableSchools = $hasMultiSchool
+                ? School::schoolsOnly()->orderBy('name')->get(['id', 'name'])
+                : [];
+
+            $currentSchool = School::find($schoolId);
+
             return response()->json([
                 'course' => [
                     'id' => $course->id,
@@ -557,6 +622,9 @@ class LmsCourseController extends Controller
                     'modules_count' => $course->modules()->count(),
                     'is_shared_copy' => !is_null($course->shared_from_course_id),
                 ],
+                'current_school_id' => $schoolId,
+                'current_school_name' => $currentSchool?->name ?? 'Unit Sekolah',
+                'available_schools' => $availableSchools,
                 'teachers' => $teacherList,
                 'all_classrooms' => $allSchoolClassrooms,
             ]);
@@ -600,12 +668,19 @@ class LmsCourseController extends Controller
         $copyAssignments = $request->boolean('copy_assignments', true);
         $copyQuizzes = $request->boolean('copy_quizzes', true);
 
+        // Pastikan targetSchoolId adalah unit sekolah akademik (bukan yayasan)
+        $firstTargetClassroom = Classroom::find($request->classroom_ids[0]);
+        $targetSchoolId = $firstTargetClassroom?->school_id
+            ?: ($targetTeacher->school_id && !School::find($targetTeacher->school_id)?->isYayasan() 
+                ? $targetTeacher->school_id 
+                : $this->resolveCourseAcademicSchoolId($course, $teacher));
+
         DB::beginTransaction();
         try {
             $newCode = 'LMS-' . strtoupper(Str::random(8));
 
             $newCourse = LmsCourse::create([
-                'school_id' => $targetTeacher->school_id ?: $course->school_id,
+                'school_id' => $targetSchoolId,
                 'teacher_id' => $targetTeacher->id,
                 'subject_id' => $course->subject_id,
                 'semester_id' => $course->semester_id,
@@ -628,7 +703,7 @@ class LmsCourseController extends Controller
                 LmsClass::create([
                     'course_id' => $newCourse->id,
                     'classroom_id' => $classroomId,
-                    'school_id' => $newCourse->school_id,
+                    'school_id' => $targetSchoolId,
                     'status' => 'active',
                 ]);
             }
