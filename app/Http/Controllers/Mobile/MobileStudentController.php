@@ -17,6 +17,7 @@ use App\Models\FinalProjectLog;
 use App\Models\FinalProjectFormat;
 use App\Models\FinalProjectMember;
 use App\Models\StudentAchievement;
+use App\Models\StudentClass;
 use App\Models\StudentCounselingRecord;
 use App\Models\StudentDevelopmentNote;
 use App\Models\StudentRecommendation;
@@ -459,18 +460,41 @@ class MobileStudentController extends Controller
     public function cbt()
     {
         $student = $this->getStudent();
-        $classroom = $student ? $student->currentClassroom()->first() : null;
+        if (!$student) {
+            return view('mobile.student.cbt', ['student' => null, 'classroom' => null, 'exams' => collect()]);
+        }
+
+        $activeAy = AcademicYear::where('is_active', true)->first();
+        $classQuery = StudentClass::where('student_id', $student->id)->where('status', 'aktif');
+
+        if ($activeAy) {
+            $classroomIds = (clone $classQuery)->where('academic_year_id', $activeAy->id)
+                ->pluck('classroom_id')
+                ->filter()
+                ->toArray();
+            if (empty($classroomIds)) {
+                $classroomIds = $classQuery->latest('id')->pluck('classroom_id')->filter()->toArray();
+            }
+        } else {
+            $classroomIds = $classQuery->latest('id')->pluck('classroom_id')->filter()->toArray();
+        }
+
+        if ($student->classroom_id && !in_array($student->classroom_id, $classroomIds)) {
+            $classroomIds[] = $student->classroom_id;
+        }
+        $classroomIds = array_values(array_unique(array_map('intval', $classroomIds)));
+
+        $classroom = $student->currentClassroom()->first() ?? $student->classroom;
         $exams = collect();
 
-        if ($classroom) {
-            $exams = CbtExam::where(function ($query) use ($classroom) {
-                $query->whereHas('classrooms', function ($q) use ($classroom) {
-                    $q->where('classroom_id', $classroom->id);
-                })->orWhere('exam_scope', 'school');
-            })->whereIn('status', ['published', 'active'])
-              ->with('subject')
-              ->latest()
-              ->get();
+        if (!empty($classroomIds)) {
+            $exams = CbtExam::whereHas('participants', function ($q) use ($classroomIds) {
+                    $q->whereIn('classroom_id', $classroomIds);
+                })
+                ->whereIn('status', ['published', 'active'])
+                ->with('subject')
+                ->latest()
+                ->get();
         }
 
         return view('mobile.student.cbt', compact('student', 'classroom', 'exams'));

@@ -481,8 +481,10 @@ class CbtService
 
         return StudentClass::whereIn('classroom_id', $classroomIds)
             ->where('status', 'aktif')
+            ->when($exam->academic_year_id, fn($q) => $q->where('academic_year_id', $exam->academic_year_id))
             ->with('student')
-            ->get();
+            ->get()
+            ->unique('student_id');
     }
 
     /**

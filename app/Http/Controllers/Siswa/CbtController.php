@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use App\Models\CbtAnswer;
 use App\Models\CbtExam;
 use App\Models\CbtExamResult;
@@ -26,13 +27,54 @@ class CbtController extends Controller
     }
 
     /**
-     * Get active classroom_id for a student
+     * Get active classroom IDs for a student.
+     * Prioritizes the active academic year, supports multiple classes (e.g. combined + regular in SMK),
+     * and falls back to student's direct classroom_id or latest active class.
+     *
+     * @return int[]
+     */
+    private function getActiveClassroomIds(Student $student): array
+    {
+        $activeAy = AcademicYear::where('is_active', true)->first();
+
+        $classQuery = StudentClass::where('student_id', $student->id)
+            ->where('status', 'aktif');
+
+        // 1. Prioritaskan kelas aktif di Tahun Pelajaran aktif
+        if ($activeAy) {
+            $ids = (clone $classQuery)->where('academic_year_id', $activeAy->id)
+                ->pluck('classroom_id')
+                ->filter()
+                ->toArray();
+
+            if (!empty($ids)) {
+                if ($student->classroom_id && !in_array($student->classroom_id, $ids)) {
+                    $ids[] = $student->classroom_id;
+                }
+                return array_values(array_unique(array_map('intval', $ids)));
+            }
+        }
+
+        // 2. Fallback: ambil riwayat kelas aktif terbaru
+        $ids = $classQuery->latest('id')
+            ->pluck('classroom_id')
+            ->filter()
+            ->toArray();
+
+        if ($student->classroom_id && !in_array($student->classroom_id, $ids)) {
+            $ids[] = $student->classroom_id;
+        }
+
+        return array_values(array_unique(array_map('intval', $ids)));
+    }
+
+    /**
+     * Get active classroom_id for a student (backwards compatibility)
      */
     private function getActiveClassroomId(Student $student): ?int
     {
-        return StudentClass::where('student_id', $student->id)
-            ->where('status', 'aktif')
-            ->value('classroom_id');
+        $ids = $this->getActiveClassroomIds($student);
+        return !empty($ids) ? $ids[0] : null;
     }
 
     /**
@@ -41,14 +83,14 @@ class CbtController extends Controller
     public function index()
     {
         $student = $this->resolveStudent();
-        $classroomId = $this->getActiveClassroomId($student);
+        $classroomIds = $this->getActiveClassroomIds($student);
 
-        if (!$classroomId) {
+        if (empty($classroomIds)) {
             return view('siswa.cbt.index', ['availableExams' => collect()]);
         }
 
         $availableExams = CbtExam::whereIn('status', ['published', 'active'])
-            ->whereHas('participants', fn($q) => $q->where('classroom_id', $classroomId))
+            ->whereHas('participants', fn($q) => $q->whereIn('classroom_id', $classroomIds))
             ->with(['subject', 'teacher'])
             ->orderBy('start_time')
             ->get();
@@ -94,13 +136,13 @@ class CbtController extends Controller
     public function show(CbtExam $exam)
     {
         $student = $this->resolveStudent();
-        $classroomId = $this->getActiveClassroomId($student);
+        $classroomIds = $this->getActiveClassroomIds($student);
 
-        abort_unless($classroomId, 422, 'Anda belum terdaftar di kelas aktif.');
+        abort_if(empty($classroomIds), 422, 'Anda belum terdaftar di kelas aktif.');
 
-        // Cek apakah siswa eligible
+        // Cek apakah siswa eligible (salah satu kelas aktifnya ada di participants ujian)
         $isEligible = $exam->participants()
-            ->where('classroom_id', $classroomId)
+            ->whereIn('classroom_id', $classroomIds)
             ->exists();
 
         if (!$isEligible) {
@@ -144,15 +186,16 @@ class CbtController extends Controller
     public function start(Request $request, CbtExam $exam)
     {
         $student = $this->resolveStudent();
-        $classroomId = $this->getActiveClassroomId($student);
+        $classroomIds = $this->getActiveClassroomIds($student);
 
-        abort_unless($classroomId, 422, 'Anda belum terdaftar di kelas aktif.');
+        abort_if(empty($classroomIds), 422, 'Anda belum terdaftar di kelas aktif.');
 
         // Verify eligibility: student's classroom must be in exam participants
-        $isEligible = $exam->participants()
-            ->where('classroom_id', $classroomId)
-            ->exists();
-        abort_unless($isEligible, 403, 'Anda tidak terdaftar untuk ujian ini.');
+        $matchingParticipant = $exam->participants()
+            ->whereIn('classroom_id', $classroomIds)
+            ->first();
+
+        abort_unless($matchingParticipant, 403, 'Anda tidak terdaftar untuk ujian ini.');
 
         // Verify exam is accessible (active + within time window)
         if (!$exam->isAccessible()) {
@@ -167,8 +210,8 @@ class CbtController extends Controller
             ->first();
 
         if (!$session) {
-            // Mulai session baru
-            $session = $this->cbtService->startExamSession($exam, $student, $classroomId);
+            // Mulai session baru dengan classroom_id peserta yang cocok
+            $session = $this->cbtService->startExamSession($exam, $student, $matchingParticipant->classroom_id);
         }
 
         // Cek apakah sudah melewati deadline

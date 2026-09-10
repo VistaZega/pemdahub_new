@@ -37,7 +37,7 @@
                         <th class="px-5 py-4 text-center text-base font-semibold text-gray-700 uppercase tracking-wider">Tipe</th>
                         <th class="px-5 py-4 text-center text-base font-semibold text-gray-700 uppercase tracking-wider">Soal</th>
                         <th class="px-5 py-4 text-center text-base font-semibold text-gray-700 uppercase tracking-wider">Durasi</th>
-                        <th class="px-5 py-4 text-center text-base font-semibold text-gray-700 uppercase tracking-wider">Kelas</th>
+                        <th class="px-5 py-4 text-center text-base font-semibold text-gray-700 uppercase tracking-wider">Peserta Kelas</th>
                         <th class="px-5 py-4 text-center text-base font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                         <th class="px-5 py-4 text-center text-base font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -62,7 +62,20 @@
                         <td class="px-5 py-4 text-center"><span class="font-bold text-gray-700">{{ $exam->total_questions_shown }}</span></td>
                         <td class="px-5 py-4 text-center text-gray-800">{{ $exam->duration_minutes }}′</td>
                         <td class="px-5 py-4 text-center">
-                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-700 text-base font-bold">{{ $exam->participants->count() }}</span>
+                            @php
+                                $classNames = $exam->participants->map(fn($p) => $p->classroom?->class_name ?? $p->classroom?->name)->filter()->values();
+                            @endphp
+                            @if($classNames->count() === 1)
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100" title="{{ $classNames[0] }}">
+                                    <i class="fas fa-chalkboard mr-1 text-emerald-400"></i>{{ Str::limit($classNames[0], 14) }}
+                                </span>
+                            @elseif($classNames->count() > 1)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 cursor-help" title="{{ $classNames->implode(', ') }}">
+                                    <i class="fas fa-users text-emerald-600"></i>{{ $classNames->count() }} Kelas
+                                </span>
+                            @else
+                                <span class="text-xs text-gray-400">-</span>
+                            @endif
                         </td>
                         <td class="px-5 py-4 text-center">
                             @php $sc = match($exam->status) {
