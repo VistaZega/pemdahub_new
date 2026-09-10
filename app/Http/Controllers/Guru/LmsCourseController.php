@@ -892,8 +892,24 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
                 $submissionsCount = $stSub->count();
             }
 
-            $progress = $totalMaterials > 0 ? round(($completedMaterials / $totalMaterials) * 100) : 0;
-            $isAtRisk = ($progress < 40 || ($totalAssignments > 0 && $submissionsCount === 0));
+            // Progres gabungan: 50% materi + 50% tugas (jika ada tugas), atau 100% materi saja
+            $matPct    = $totalMaterials    > 0 ? ($completedMaterials / $totalMaterials)    * 100 : 100;
+            $assignPct = $totalAssignments  > 0 ? ($submissionsCount   / $totalAssignments)  * 100 : 100;
+            if ($totalAssignments > 0 && $totalMaterials > 0) {
+                $progress = (int) round(($matPct * 0.5) + ($assignPct * 0.5));
+            } elseif ($totalMaterials > 0) {
+                $progress = (int) round($matPct);
+            } else {
+                $progress = (int) round($assignPct);
+            }
+
+            // At-risk: progres gabungan < 40%, atau belum kumpul sama sekali,
+            // atau tugas yang dikumpulkan belum lengkap (< total tugas)
+            $isAtRisk = (
+                $progress < 40 ||
+                ($totalAssignments > 0 && $submissionsCount === 0) ||
+                ($totalAssignments > 1 && $submissionsCount < $totalAssignments)
+            );
 
             // Kontak WhatsApp siswa atau orang tua
             $parent = $student->parents?->first();

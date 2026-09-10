@@ -396,17 +396,17 @@
                             </div>
                         </td>
                         <td class="px-4 py-4 text-center">
-                            @if($st['progress'] >= 75)
+                            @if($st['is_at_risk'])
+                            <span class="px-2.5 py-1 bg-red-100 text-red-800 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                                <i class="fas fa-exclamation-circle text-red-600"></i> Perlu Dorongan
+                            </span>
+                            @elseif($st['progress'] >= 75)
                             <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                                 <i class="fas fa-star text-amber-500"></i> Sangat Aktif
                             </span>
-                            @elseif($st['progress'] >= 40)
+                            @else
                             <span class="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                                 <i class="fas fa-book-reader"></i> Aktif
-                            </span>
-                            @else
-                            <span class="px-2.5 py-1 bg-red-100 text-red-800 rounded-lg text-xs font-bold inline-flex items-center gap-1">
-                                <i class="fas fa-exclamation-circle text-red-600"></i> Perlu Dorongan
                             </span>
                             @endif
                         </td>
