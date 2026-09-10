@@ -834,11 +834,16 @@ class CbtController extends Controller
         $this->authorizeExam($exam);
         $answers = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
             ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
-            ->whereNull('manual_score')
             ->with(['session.student', 'question'])
+            ->orderByRaw('CASE WHEN manual_score IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('id')
             ->get();
 
-        return view('guru.cbt.exams.grade-essays', compact('exam', 'answers'));
+        $examQuestions = \App\Models\CbtExamQuestion::where('exam_id', $exam->id)
+            ->get()
+            ->keyBy('question_id');
+
+        return view('guru.cbt.exams.grade-essays', compact('exam', 'answers', 'examQuestions'));
     }
 
     public function gradeEssayStore(GradeEssayRequest $request, CbtAnswer $answer)

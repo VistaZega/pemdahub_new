@@ -18,11 +18,19 @@
                     </p>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <a href="{{ route('admin.cbt.results', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-white text-violet-700 rounded-xl font-semibold hover:bg-violet-50 transition shadow-lg shadow-violet-900/20">
+            <div class="flex flex-wrap items-center gap-3">
+                @if($hasEssayQuestions ?? false)
+                <a href="{{ route('admin.cbt.grade-essays', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition shadow-lg shadow-amber-900/20 text-sm">
+                    <i class="fas fa-pen-nib mr-2"></i>Koreksi Esai
+                    @if(($pendingEssaysCount ?? 0) > 0)
+                    <span class="ml-2 px-2 py-0.5 text-xs bg-white text-amber-700 font-bold rounded-full">{{ $pendingEssaysCount }}</span>
+                    @endif
+                </a>
+                @endif
+                <a href="{{ route('admin.cbt.results', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-white text-violet-700 rounded-xl font-semibold hover:bg-violet-50 transition shadow-lg shadow-violet-900/20 text-sm">
                     <i class="fas fa-chart-bar mr-2"></i>Lihat Hasil
                 </a>
-                <a href="{{ route('admin.cbt.index') }}" class="inline-flex items-center px-5 py-2.5 bg-white/15 text-white rounded-xl hover:bg-white/25 transition border border-gray-200">
+                <a href="{{ route('admin.cbt.index') }}" class="inline-flex items-center px-5 py-2.5 bg-white/15 text-white rounded-xl hover:bg-white/25 transition border border-gray-200 text-sm">
                     <i class="fas fa-list mr-2"></i>Semua Ujian
                 </a>
             </div>

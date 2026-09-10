@@ -380,7 +380,15 @@ class CbtController extends Controller
 
         $latestResult = $results->first();
 
-        return view('siswa.cbt.result', compact('exam', 'results', 'latestResult'));
+        $pendingEssaysCount = 0;
+        if ($latestResult && $latestResult->session_id) {
+            $pendingEssaysCount = CbtAnswer::where('session_id', $latestResult->session_id)
+                ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
+                ->whereNull('manual_score')
+                ->count();
+        }
+
+        return view('siswa.cbt.result', compact('exam', 'results', 'latestResult', 'pendingEssaysCount'));
     }
 
     /**

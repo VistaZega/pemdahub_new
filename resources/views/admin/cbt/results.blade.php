@@ -16,6 +16,19 @@
                     <p class="text-emerald-50 mt-1 text-base">{{ $exam->exam_title }} — {{ $exam->subject->subject_name ?? $exam->subject->name ?? '-' }}</p>
                 </div>
             </div>
+            <div class="flex items-center gap-3">
+                @if($hasEssayQuestions ?? false)
+                <a href="{{ route('admin.cbt.grade-essays', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition shadow-lg shadow-amber-900/20 text-sm">
+                    <i class="fas fa-pen-nib mr-2"></i>Koreksi Esai
+                    @if(($pendingEssaysCount ?? 0) > 0)
+                    <span class="ml-2 px-2 py-0.5 text-xs bg-white text-amber-700 font-bold rounded-full">{{ $pendingEssaysCount }}</span>
+                    @endif
+                </a>
+                @endif
+                <a href="{{ route('admin.cbt.show', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-white/15 text-white rounded-xl hover:bg-white/25 transition border border-gray-200 text-sm">
+                    <i class="fas fa-eye mr-2"></i>Detail Ujian
+                </a>
+            </div>
         </div>
     </div>
 
@@ -126,7 +139,14 @@
                             </span>
                         </td>
                         <td class="px-5 py-4 text-center">
-                            @if($result->is_passed)
+                            @php
+                                $studentPendingEssays = $result->session ? $result->session->answers->filter(fn($a) => $a->needsManualGrading())->count() : 0;
+                            @endphp
+                            @if($studentPendingEssays > 0)
+                            <a href="{{ route('admin.cbt.grade-essays', $exam) }}" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200 transition" title="Klik untuk koreksi esai">
+                                <i class="fas fa-clock text-xs"></i>Koreksi Esai ({{ $studentPendingEssays }})
+                            </a>
+                            @elseif($result->is_passed)
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 text-base font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">
                                 <i class="fas fa-check text-base"></i>LULUS
                             </span>

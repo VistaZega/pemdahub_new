@@ -439,6 +439,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
 
         Route::get('/{exam}', [App\Http\Controllers\Admin\CbtManagementController::class, 'show'])->name('show');
         Route::get('/{exam}/results', [App\Http\Controllers\Admin\CbtManagementController::class, 'results'])->name('results');
+        Route::get('/{exam}/grade-essays', [App\Http\Controllers\Admin\CbtManagementController::class, 'gradeEssays'])->name('grade-essays');
+        Route::post('/answers/{answer}/grade', [App\Http\Controllers\Admin\CbtManagementController::class, 'gradeEssayStore'])->name('answers.grade');
         Route::post('/{exam}/force-complete', [App\Http\Controllers\Admin\CbtManagementController::class, 'forceComplete'])->name('force-complete');
         Route::post('/{exam}/sync-grades', [App\Http\Controllers\Admin\CbtManagementController::class, 'syncGrades'])->name('sync-grades');
     });

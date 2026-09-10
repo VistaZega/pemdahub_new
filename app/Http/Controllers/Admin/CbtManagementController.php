@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CbtExam;
+use App\Models\CbtExamQuestion;
 use App\Models\CbtExamResult;
+use App\Models\CbtAnswer;
 use App\Models\CbtQuestion;
 use App\Models\CbtQuestionBank;
 use App\Models\CbtQuestionOption;
@@ -93,7 +95,14 @@ class CbtManagementController extends Controller
 
         $statistics = $this->cbtService->getExamStatistics($exam);
 
-        return view('admin.cbt.show', compact('exam', 'statistics'));
+        $pendingEssaysCount = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
+            ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
+            ->whereNull('manual_score')
+            ->count();
+
+        $hasEssayQuestions = $exam->examQuestions->whereNotNull('question')->filter(fn($eq) => in_array($eq->question?->question_type, ['essay', 'fill_blank']))->isNotEmpty();
+
+        return view('admin.cbt.show', compact('exam', 'statistics', 'pendingEssaysCount', 'hasEssayQuestions'));
     }
 
     /**
@@ -107,13 +116,72 @@ class CbtManagementController extends Controller
         }
 
         $results = CbtExamResult::where('exam_id', $exam->id)
-            ->with(['student.classroom', 'session'])
+            ->with(['student.classroom', 'session.answers.question'])
             ->orderBy('rank')
             ->paginate(50)->withQueryString();
 
         $statistics = $this->cbtService->getExamStatistics($exam);
 
-        return view('admin.cbt.results', compact('exam', 'results', 'statistics'));
+        $pendingEssaysCount = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
+            ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
+            ->whereNull('manual_score')
+            ->count();
+
+        $hasEssayQuestions = $exam->examQuestions->whereNotNull('question')->filter(fn($eq) => in_array($eq->question?->question_type, ['essay', 'fill_blank']))->isNotEmpty();
+
+        return view('admin.cbt.results', compact('exam', 'results', 'statistics', 'pendingEssaysCount', 'hasEssayQuestions'));
+    }
+
+    /**
+     * Koreksi jawaban esai (Admin)
+     */
+    public function gradeEssays(CbtExam $exam)
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $exam->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $answers = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
+            ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
+            ->with(['session.student.classroom', 'question'])
+            ->orderByRaw('CASE WHEN manual_score IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('id')
+            ->get();
+
+        $examQuestions = CbtExamQuestion::where('exam_id', $exam->id)
+            ->get()
+            ->keyBy('question_id');
+
+        return view('admin.cbt.grade-essays', compact('exam', 'answers', 'examQuestions'));
+    }
+
+    /**
+     * Simpan nilai esai (Admin)
+     */
+    public function gradeEssayStore(Request $request, CbtAnswer $answer)
+    {
+        $user = Auth::user();
+        $answer->load('session.exam');
+        $exam = $answer->session->exam;
+
+        if (!$user->isSuperAdmin() && $exam->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'manual_score' => 'required|numeric|min:0',
+            'teacher_feedback' => 'nullable|string|max:1000',
+        ]);
+
+        $this->cbtService->gradeEssayAnswer(
+            $answer,
+            (float)$request->manual_score,
+            $request->teacher_feedback,
+            $user->id
+        );
+
+        return back()->with('success', 'Jawaban berhasil dinilai.');
     }
 
     /**

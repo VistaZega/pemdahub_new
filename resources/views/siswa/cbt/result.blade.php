@@ -24,37 +24,66 @@
     </div>
     @endif
 
+    @if(($pendingEssaysCount ?? 0) > 0)
+    <div class="flex items-start gap-3.5 p-5 bg-amber-50 border border-amber-200 rounded-2xl">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-600">
+            <i class="fas fa-hourglass-half text-lg"></i>
+        </div>
+        <div>
+            <h3 class="font-bold text-amber-900 text-sm">Menunggu Penilaian Esai ({{ $pendingEssaysCount }} Soal)</h3>
+            <p class="text-amber-700 text-xs mt-1">
+                Ujian ini memiliki <strong>{{ $pendingEssaysCount }} soal esai</strong> yang telah Anda isi dan sedang menunggu koreksi manual oleh Guru/Admin. Skor dan status kelulusan di bawah ini masih bersifat sementara dan akan diperbarui otomatis setelah penilaian selesai.
+            </p>
+        </div>
+    </div>
+    @endif
+
     @if($latestResult)
     {{-- Main Score Card --}}
+    @php
+        $isPassed = $latestResult->final_score >= $exam->passing_score;
+        $hasPending = ($pendingEssaysCount ?? 0) > 0;
+    @endphp
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-        <div class="w-32 h-32 rounded-2xl mx-auto flex items-center justify-center mb-4 {{ $latestResult->final_score >= $exam->passing_score ? 'bg-gradient-to-br from-emerald-100 to-green-50' : 'bg-gradient-to-br from-red-100 to-rose-50' }}">
-            <span class="text-5xl font-bold {{ $latestResult->final_score >= $exam->passing_score ? 'text-emerald-600' : 'text-red-600' }}">{{ number_format($latestResult->final_score, 1) }}</span>
+        <div class="w-32 h-32 rounded-2xl mx-auto flex items-center justify-center mb-4 {{ $isPassed ? 'bg-gradient-to-br from-emerald-100 to-green-50' : ($hasPending ? 'bg-gradient-to-br from-amber-100 to-orange-50' : 'bg-gradient-to-br from-red-100 to-rose-50') }}">
+            <span class="text-5xl font-bold {{ $isPassed ? 'text-emerald-600' : ($hasPending ? 'text-amber-600' : 'text-red-600') }}">{{ number_format($latestResult->final_score, 1) }}</span>
         </div>
         <div class="flex items-center justify-center gap-2 mb-3">
-            <span class="px-4 py-1.5 rounded-xl text-sm font-bold border {{ $latestResult->final_score >= $exam->passing_score ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200' }}">
-                {{ $latestResult->final_score >= $exam->passing_score ? 'LULUS' : 'TIDAK LULUS' }}
+            @if($hasPending)
+            <span class="px-4 py-1.5 rounded-xl text-sm font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
+                <i class="fas fa-clock"></i>MENUNGGU PENILAIAN ESAI
             </span>
+            @else
+            <span class="px-4 py-1.5 rounded-xl text-sm font-bold border {{ $isPassed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200' }}">
+                {{ $isPassed ? 'LULUS' : 'TIDAK LULUS' }}
+            </span>
+            @endif
             @if($latestResult->predicate)
-            <span class="px-3 py-1.5 rounded-xl text-sm font-bold bg-blue-50 text-blue-700 border border-blue-200">Predikat: {{ $latestResult->predicate }}</span>
+            <span class="px-3 py-1.5 rounded-xl text-sm font-bold bg-blue-50 text-blue-700 border border-blue-200">{{ $hasPending ? 'Predikat Sementara' : 'Predikat' }}: {{ $latestResult->predicate }}</span>
             @endif
         </div>
         <p class="text-gray-500 text-sm">KKM: {{ $exam->passing_score }} &bull; {{ $exam->subject->subject_name ?? $exam->subject->name ?? '' }}</p>
     </div>
 
     {{-- Stats Cards --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-        @php $sCards = [
+    @php
+        $sCards = [
             ['Jawaban Benar', $latestResult->correct_answers, 'fa-check-circle', 'emerald'],
             ['Jawaban Salah', $latestResult->wrong_answers, 'fa-times-circle', 'red'],
             ['Tidak Dijawab', $latestResult->unanswered, 'fa-minus-circle', 'gray'],
-            ['Peringkat', $latestResult->rank ?? '-', 'fa-trophy', 'amber'],
-        ]; @endphp
+        ];
+        if ($hasPending) {
+            $sCards[] = ['Menunggu Koreksi', $pendingEssaysCount, 'fa-clock', 'amber'];
+        }
+        $sCards[] = ['Peringkat', $latestResult->rank ?? '-', 'fa-trophy', 'purple'];
+    @endphp
+    <div class="grid grid-cols-2 {{ $hasPending ? 'md:grid-cols-5' : 'md:grid-cols-4' }} gap-4">
         @foreach($sCards as [$label, $val, $icon, $color])
-        <div class="group bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-lg transition-all duration-300">
-            <div class="w-11 h-11 rounded-xl bg-{{ $color }}-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                <i class="fas {{ $icon }} text-{{ $color }}-600"></i>
+        <div class="group bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-lg transition-all duration-300">
+            <div class="w-10 h-10 rounded-xl bg-{{ $color }}-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                <i class="fas {{ $icon }} text-{{ $color }}-600 text-sm"></i>
             </div>
-            <div class="text-3xl font-bold text-gray-900">{{ $val }}</div>
+            <div class="text-2xl font-bold text-gray-900">{{ $val }}</div>
             <div class="text-xs text-gray-500 mt-1">{{ $label }}</div>
         </div>
         @endforeach
@@ -74,9 +103,9 @@
                 </div>
             </div>
             <div>
-                <div class="flex justify-between text-sm mb-1.5"><span class="text-gray-600 font-medium">Skor Akhir</span><span class="font-bold text-gray-900">{{ number_format($latestResult->final_score, 1) }}</span></div>
+                <div class="flex justify-between text-sm mb-1.5"><span class="text-gray-600 font-medium">Skor Akhir {{ $hasPending ? '(Sementara)' : '' }}</span><span class="font-bold text-gray-900">{{ number_format($latestResult->final_score, 1) }}</span></div>
                 <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full {{ $latestResult->final_score >= $exam->passing_score ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-red-400 to-rose-500' }}" style="width: {{ min(100, $latestResult->final_score) }}%"></div>
+                    <div class="h-full rounded-full {{ $isPassed ? 'bg-gradient-to-r from-emerald-400 to-green-500' : ($hasPending ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-gradient-to-r from-red-400 to-rose-500') }}" style="width: {{ min(100, $latestResult->final_score) }}%"></div>
                 </div>
             </div>
         </div>

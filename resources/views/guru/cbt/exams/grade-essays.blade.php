@@ -73,7 +73,7 @@
                         <i class="fas fa-pen text-blue-500"></i>
                         <span class="text-base font-bold text-blue-600 uppercase tracking-wider">Jawaban Siswa</span>
                     </div>
-                    <div class="text-base text-gray-800 whitespace-pre-wrap">{{ $answer->answer_text ?? '-' }}</div>
+                    <div class="text-base text-gray-800 whitespace-pre-wrap">{{ $answer->text_answer ?? '-' }}</div>
                 </div>
 
                 {{-- Answer Key --}}
@@ -87,6 +87,10 @@
                 </div>
                 @endif
 
+                @php
+                    $maxScore = isset($examQuestions) ? ($examQuestions->get($answer->question_id)?->getEffectivePoints() ?? $answer->question->points ?? 10) : ($answer->question->points ?? 10);
+                @endphp
+
                 {{-- Grading Form --}}
                 <form action="{{ route('guru.cbt.answers.grade', ['answer' => $answer]) }}" method="POST" class="p-5 bg-gray-50 rounded-xl border border-gray-200">
                     @csrf
@@ -96,8 +100,8 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Skor (maks. {{ $answer->question->examQuestion?->getEffectivePoints() ?? $answer->question->points ?? 100 }})</label>
-                            <input type="number" name="manual_score" min="0" max="{{ $answer->question->examQuestion?->getEffectivePoints() ?? $answer->question->points ?? 100 }}" step="0.5" value="{{ $answer->manual_score }}"
+                            <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Skor (maks. {{ $maxScore }})</label>
+                            <input type="number" name="manual_score" min="0" max="{{ $maxScore }}" step="0.5" value="{{ $answer->manual_score }}"
                                 class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-lg font-bold" required>
                         </div>
                         <div>

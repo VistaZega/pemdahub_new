@@ -17,27 +17,71 @@
         </div>
     </div>
 
+    @php
+        $pendingReviewCount = $answers->filter(function($a) {
+            return in_array($a->question?->question_type, ['essay', 'fill_blank'])
+                && !empty(trim($a->text_answer ?? ''))
+                && $a->manual_score === null;
+        })->count();
+    @endphp
+
+    @if($pendingReviewCount > 0)
+    <div class="flex items-start gap-3.5 p-5 bg-amber-50 border border-amber-200 rounded-2xl">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-600">
+            <i class="fas fa-hourglass-half text-lg"></i>
+        </div>
+        <div>
+            <h3 class="font-bold text-amber-900 text-sm">Terdapat {{ $pendingReviewCount }} Soal Esai Menunggu Koreksi</h3>
+            <p class="text-amber-700 text-xs mt-1">
+                Jawaban esai yang telah Anda isi di bawah ini berstatus <strong>Menunggu Koreksi</strong> dan akan dinilai secara manual oleh Guru/Admin.
+            </p>
+        </div>
+    </div>
+    @endif
+
     {{-- Questions Review --}}
     @foreach($questions as $idx => $question)
     @php
         $answer = $answers->get($question->id);
-        $isCorrect = $answer && $answer->is_correct;
-        $isWrong = $answer && !$answer->is_correct && $answer->selected_option;
-        $isUnanswered = !$answer || (!$answer->selected_option && !$answer->text_answer);
-        $borderColor = $isCorrect ? 'border-l-emerald-500' : ($isWrong ? 'border-l-red-500' : 'border-l-gray-300');
+        $isEssayType = in_array($question->question_type, ['essay', 'fill_blank']);
+        $hasTextAnswer = $answer && !empty(trim($answer->text_answer ?? ''));
+        $isGraded = $answer && $answer->manual_score !== null;
+
+        if ($isEssayType) {
+            $isUnanswered = !$hasTextAnswer;
+            $isPending = $hasTextAnswer && !$isGraded;
+            $isCorrect = $hasTextAnswer && $isGraded && $answer->score_obtained > 0;
+            $isWrong = $hasTextAnswer && $isGraded && $answer->score_obtained <= 0;
+
+            $borderColor = $isCorrect ? 'border-l-emerald-500' : ($isWrong ? 'border-l-red-500' : ($isPending ? 'border-l-amber-500' : 'border-l-gray-300'));
+            $badgeBg = $isCorrect ? 'bg-gradient-to-br from-emerald-400 to-green-500' : ($isWrong ? 'bg-gradient-to-br from-red-400 to-rose-500' : ($isPending ? 'bg-gradient-to-br from-amber-400 to-orange-500' : 'bg-gray-400'));
+            $statusLabel = $isCorrect ? 'Dinilai (' . $answer->score_obtained . ' Poin)' : ($isWrong ? '0 Poin' : ($isPending ? 'Menunggu Koreksi' : 'Tidak Dijawab'));
+            $statusBadgeClass = $isCorrect ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isWrong ? 'bg-red-50 text-red-700 border-red-200' : ($isPending ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-500 border-gray-200'));
+            $statusIcon = $isCorrect ? 'fa-check' : ($isWrong ? 'fa-times' : ($isPending ? 'fa-clock' : 'fa-minus'));
+        } else {
+            $isCorrect = $answer && (bool)$answer->is_correct;
+            $isWrong = $answer && !$answer->is_correct && !empty($answer->selected_option);
+            $isUnanswered = !$answer || empty($answer->selected_option);
+
+            $borderColor = $isCorrect ? 'border-l-emerald-500' : ($isWrong ? 'border-l-red-500' : 'border-l-gray-300');
+            $badgeBg = $isCorrect ? 'bg-gradient-to-br from-emerald-400 to-green-500' : ($isWrong ? 'bg-gradient-to-br from-red-400 to-rose-500' : 'bg-gray-400');
+            $statusLabel = $isCorrect ? 'Benar' : ($isWrong ? 'Salah' : 'Tidak Dijawab');
+            $statusBadgeClass = $isCorrect ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isWrong ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-500 border-gray-200');
+            $statusIcon = $isCorrect ? 'fa-check' : ($isWrong ? 'fa-times' : 'fa-minus');
+        }
     @endphp
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 {{ $borderColor }} overflow-hidden">
         {{-- Question Header --}}
         <div class="p-5 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm {{ $isCorrect ? 'bg-gradient-to-br from-emerald-400 to-green-500' : ($isWrong ? 'bg-gradient-to-br from-red-400 to-rose-500' : 'bg-gray-400') }}">{{ $idx + 1 }}</div>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm {{ $badgeBg }}">{{ $idx + 1 }}</div>
                 <div class="flex items-center gap-2">
                     <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">{{ strtoupper(str_replace('_', ' ', $question->question_type)) }}</span>
                     <span class="text-xs text-gray-400">{{ $question->points }} poin</span>
                 </div>
             </div>
-            <span class="px-3 py-1 rounded-xl text-xs font-bold border {{ $isCorrect ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isWrong ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-500 border-gray-200') }}">
-                {{ $isCorrect ? 'Benar' : ($isWrong ? 'Salah' : 'Tidak Dijawab') }}
+            <span class="px-3 py-1 rounded-xl text-xs font-bold border flex items-center gap-1.5 {{ $statusBadgeClass }}">
+                <i class="fas {{ $statusIcon }} text-xs"></i>{{ $statusLabel }}
             </span>
         </div>
 
