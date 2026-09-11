@@ -28,7 +28,6 @@ class LmsCourse extends Model
         'is_published',
         'is_active',
         'is_sequential',
-        'color',
         'meeting_active',
         'meeting_started_at',
         'review_status',
@@ -697,6 +696,19 @@ class LmsCourse extends Model
         ];
 
         return $map[$color] ?? $map['blue'];
+    }
+
+    /**
+     * Get dynamic color name based on first module (fallback to indigo).
+     * Used by views and components accessing $course->color.
+     */
+    public function getColorAttribute(): string
+    {
+        $firstModule = $this->relationLoaded('modules')
+            ? $this->modules->first()
+            : $this->modules()->orderBy('sequence')->first();
+
+        return $firstModule?->color ?: 'indigo';
     }
 
     /**

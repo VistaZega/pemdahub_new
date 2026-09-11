@@ -693,7 +693,6 @@ class LmsCourseController extends Controller
                 'is_published' => ($status === 'active'),
                 'is_active' => true,
                 'is_sequential' => (bool)$course->is_sequential,
-                'color' => $course->color,
                 'review_status' => 'approved',
                 'shared_from_course_id' => $course->id,
             ]);
@@ -717,7 +716,9 @@ class LmsCourseController extends Controller
                     'title' => $oldMod->title,
                     'description' => $oldMod->description,
                     'sequence' => $oldMod->sequence,
-                    'is_published' => $oldMod->is_published,
+                    'color' => $oldMod->color,
+                    'is_active' => $oldMod->is_active ?? true,
+                    'is_sequential' => (bool)($oldMod->is_sequential ?? false),
                 ]);
                 $moduleMap[$oldMod->id] = $newMod->id;
             }
