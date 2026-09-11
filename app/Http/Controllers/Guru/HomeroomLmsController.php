@@ -274,7 +274,7 @@ class HomeroomLmsController extends Controller
         // Ambil riwayat motivasi / pembinaan terbaru di rombel ini
         $recentMotivations = StudentCounselingRecord::whereIn('student_id', $studentIds)
             ->where('category', 'akademik')
-            ->where('counselor_id', $teacher->id)
+            ->where('counselor_id', $teacher->user_id)
             ->with('student')
             ->latest('incident_date')
             ->take(5)
@@ -455,7 +455,7 @@ class HomeroomLmsController extends Controller
             'action_taken' => 'Pemberian bimbingan & dorongan motivasi LMS oleh Wali Kelas (' . ($teacher?->full_name ?? Auth::user()->name) . ')',
             'incident_date' => now(),
             'status' => 'selesai',
-            'counselor_id' => $teacher?->id,
+            'counselor_id' => $teacher?->user_id ?? Auth::id(),
             'parent_notified' => !empty($request->target_phone),
             'parent_notified_date' => !empty($request->target_phone) ? now() : null,
         ]);
