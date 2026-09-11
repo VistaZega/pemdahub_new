@@ -984,13 +984,13 @@ if (!function_exists('balanceHtmlTags')) {
                         <i class="fas fa-info-circle text-base text-amber-400"></i>
                         <span>Ketentuan Pengumpulan: 
                             @if($aType === 'file')
-                                <strong class="underline decoration-rose-400">Wajib Unggah File</strong>
+                                <strong class="underline decoration-rose-400 text-rose-600 font-black">Wajib Unggah Dokumen PDF (.pdf)</strong>
                             @elseif($aType === 'text')
                                 <strong class="underline decoration-rose-400">Wajib Mengisi Teks Jawaban</strong>
                             @elseif($aType === 'link')
                                 <strong class="underline decoration-rose-400">Wajib Memasukkan Link URL / Teks</strong>
                             @else
-                                <strong class="underline decoration-rose-400">Wajib Upload File DAN Mengisi Teks Jawaban</strong>
+                                <strong class="underline decoration-rose-400 text-rose-600 font-black">Wajib Unggah Dokumen PDF (.pdf) DAN Mengisi Teks Jawaban</strong>
                             @endif
                         </span>
                     </div>
@@ -1006,12 +1006,22 @@ if (!function_exists('balanceHtmlTags')) {
 
                     @if(in_array($aType, ['file', 'file_text']))
                     <div>
-                        <label class="block text-xs font-bold mb-1 {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
-                            Berkas File @if(in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) <span class="text-rose-500 font-extrabold">* (Wajib)</span> @endif
-                        </label>
-                        <div class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors">
-                            <input type="file" name="file" onchange="validateLmsFileSize(this)" class="w-full text-sm cursor-pointer {{ $hasModule ? 'text-white/80 file:bg-white/20 file:text-white hover:file:bg-white/30' : 'text-gray-600 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:px-4 file:py-2 file:border-none file:rounded-lg file:font-bold file:mr-4' }}" {{ (in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) ? 'required' : '' }}>
-                            <p class="text-[10px] text-gray-400 mt-2 font-medium">Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Maksimal 10MB.</p>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
+                                Berkas Dokumen PDF @if(in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) <span class="text-rose-500 font-extrabold">* (Wajib .PDF)</span> @endif
+                            </label>
+                            <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-700 border border-rose-200">
+                                <i class="fas fa-file-pdf"></i> Format Wajib .PDF
+                            </span>
+                        </div>
+                        <div class="bg-white border-2 border-dashed border-rose-300 rounded-xl p-4 text-center hover:bg-rose-50/40 transition-colors">
+                            <input type="file" name="file" accept=".pdf,application/pdf" onchange="validateLmsPdfFile(this)" class="w-full text-sm cursor-pointer {{ $hasModule ? 'text-white/80 file:bg-white/20 file:text-white hover:file:bg-white/30' : 'text-gray-600 file:bg-rose-100 file:text-rose-700 hover:file:bg-rose-200 file:px-4 file:py-2 file:border-none file:rounded-lg file:font-bold file:mr-4' }}" {{ (in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) ? 'required' : '' }}>
+                            <div class="mt-2.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-left flex items-start gap-2.5 shadow-2xs">
+                                <i class="fas fa-exclamation-triangle text-rose-600 mt-0.5 text-xs flex-shrink-0"></i>
+                                <div class="text-[11px] text-rose-900 leading-relaxed font-medium">
+                                    <strong class="font-extrabold">Ketentuan Format:</strong> Berkas yang diunggah <strong>wajib berekstensi .PDF</strong> (Maksimal 10 MB). Sistem akan menolak berkas .bin, .txt, dokumen Word mentah, atau gambar. Pastikan tugas sudah disimpan/diekspor sebagai PDF sebelum dikirim.
+                                </div>
+                            </div>
                         </div>
                     </div>
                     @endif
@@ -1289,23 +1299,46 @@ function reactMaterial(materialId, type, event) {
     });
 }
 
-function validateLmsFileSize(input) {
+function validateLmsPdfFile(input) {
     if (input && input.files && input.files[0]) {
         const file = input.files[0];
+        const fileName = (file.name || '').trim();
+        const isPdf = fileName.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+
+        if (!isPdf) {
+            alert('⚠️ FORMAT BERKAS TIDAK SESUAI!\n\nBerkas yang Anda pilih: "' + fileName + '"\n\nPengumpulan tugas ini DIKUNCI dan WAJIB menggunakan format dokumen .PDF.\nSistem menolak berkas dengan format lain (seperti .bin, .txt, dokumen Word, atau gambar mentah).\n\nSilakan simpan atau konversi tugas Anda ke format .PDF terlebih dahulu sebelum diunggah.');
+            input.value = '';
+            return false;
+        }
+
         const maxBytes = 10 * 1024 * 1024; // 10MB
         if (file.size > maxBytes) {
             const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-            alert('⚠️ PERHATIAN: Ukuran berkas "' + file.name + '" (' + sizeMB + ' MB) melebihi batas maksimal 10 MB.\n\nSilakan pilih berkas lain atau kompres berkas Anda terlebih dahulu agar pengiriman berhasil.');
+            alert('⚠️ PERHATIAN: Ukuran berkas "' + fileName + '" (' + sizeMB + ' MB) melebihi batas maksimal 10 MB.\n\nSilakan kompres berkas PDF Anda terlebih dahulu agar pengiriman berhasil.');
             input.value = '';
             return false;
         }
     }
+    return true;
+}
+
+// Alias untuk kompatibilitas jika dipanggil dengan nama fungsi lama
+function validateLmsFileSize(input) {
+    return validateLmsPdfFile(input);
 }
 
 function handleLmsAssignmentSubmit(form) {
     const fileInput = form.querySelector('input[type="file"][name="file"]');
     if (fileInput && fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
+        const fileName = (file.name || '').trim();
+        const isPdf = fileName.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+
+        if (!isPdf) {
+            alert('⚠️ PENGUMPULAN TUGAS DITOLAK!\n\nBerkas "' + fileName + '" bukan berformat .PDF.\nPengumpulan tugas ini wajib menyertakan dokumen .PDF.\nSilakan pilih berkas berekstensi .pdf.');
+            return false;
+        }
+
         const maxBytes = 10 * 1024 * 1024;
         if (file.size > maxBytes) {
             alert('⚠️ Berkas terlalu besar (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB). Batas maksimal pengungahan adalah 10 MB.');

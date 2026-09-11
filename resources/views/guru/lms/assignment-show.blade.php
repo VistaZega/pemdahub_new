@@ -151,6 +151,31 @@
             <i class="fas fa-star text-xs" style="color: #000000 !important;"></i>
             <span style="color: #000000 !important;">Skor Maks: {{ $assignment->max_score }}</span>
         </span>
+
+        @php
+            $aType = $assignment->assignment_type ?? 'file_text';
+        @endphp
+        @if($aType === 'file')
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="background-color: #f43f5e !important; color: #ffffff !important; border: 2px solid #fda4af !important;">
+            <i class="fas fa-file-pdf text-xs"></i> <span>UNGGAH BERKAS (WAJIB .PDF)</span>
+        </span>
+        @elseif($aType === 'file_text')
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="background-color: #ec4899 !important; color: #ffffff !important; border: 2px solid #fbcfe8 !important;">
+            <i class="fas fa-file-pdf text-xs"></i> <span>BERKAS .PDF + TEKS</span>
+        </span>
+        @elseif($aType === 'text')
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="background-color: #0284c7 !important; color: #ffffff !important; border: 2px solid #7dd3fc !important;">
+            <i class="fas fa-align-left text-xs"></i> <span>TEKS JAWABAN</span>
+        </span>
+        @elseif($aType === 'link')
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-wide shadow-sm"
+              style="background-color: #0d9488 !important; color: #ffffff !important; border: 2px solid #5eead4 !important;">
+            <i class="fas fa-link text-xs"></i> <span>LINK URL</span>
+        </span>
+        @endif
     </div>
 
     {{-- Instruction / Description Card --}}

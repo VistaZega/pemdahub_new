@@ -157,11 +157,15 @@
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Tipe Pengumpulan <span class="text-rose-600">*</span></label>
                         <select name="assignment_type" required class="w-full border-2 border-black rounded-2xl px-5 py-3.5 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none bg-white">
-                            <option value="file" {{ old('assignment_type') === 'file' ? 'selected' : '' }}>Upload File</option>
-                            <option value="text" {{ old('assignment_type') === 'text' ? 'selected' : '' }}>Teks</option>
-                            <option value="file_text" {{ old('assignment_type') === 'file_text' ? 'selected' : '' }}>File + Teks</option>
+                            <option value="file" {{ old('assignment_type') === 'file' ? 'selected' : '' }}>Upload File (Wajib PDF)</option>
+                            <option value="text" {{ old('assignment_type') === 'text' ? 'selected' : '' }}>Teks Jawaban</option>
+                            <option value="file_text" {{ old('assignment_type') === 'file_text' ? 'selected' : '' }}>File (PDF) + Teks</option>
                             <option value="link" {{ old('assignment_type') === 'link' ? 'selected' : '' }}>Link URL</option>
                         </select>
+                        <p class="text-[11px] text-gray-600 font-bold mt-2 flex items-start gap-1.5 leading-tight">
+                            <i class="fas fa-lock text-rose-600 mt-0.5 flex-shrink-0"></i>
+                            <span>Khusus opsi <strong>Upload File</strong>, sistem otomatis mengunci berkas siswa <strong>wajib .PDF</strong> (maks. 10 MB) untuk mencegah salah kirim (.bin/.txt).</span>
+                        </p>
                     </div>
                     <div>
                         <label class="block text-xs font-black text-black uppercase tracking-wider mb-2">Deadline</label>

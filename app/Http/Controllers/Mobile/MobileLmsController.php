@@ -393,11 +393,22 @@ class MobileLmsController extends Controller
         try {
             $request->validate([
                 'submission_text' => 'nullable|string',
-                'file' => 'nullable|file|max:10240',
+                'file' => 'nullable|file|mimes:pdf|max:10240',
+            ], [
+                'file.mimes' => 'Berkas tugas yang diunggah wajib berformat .PDF. Format berkas yang Anda pilih tidak diizinkan (misalnya: .bin, .txt, Word, atau gambar). Mohon simpan atau konversi berkas jawaban Anda ke format .PDF.',
+                'file.max' => 'Ukuran berkas PDF tidak boleh melebihi 10 MB.',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = implode(' ', \Illuminate\Support\Arr::flatten($e->errors()));
             return back()->with('error', 'Gagal mengumpulkan tugas: ' . $errors)->withInput();
+        }
+
+        // Validasi ekstra: pastikan ekstensi asli berkas adalah PDF
+        if ($request->hasFile('file')) {
+            $clientExt = strtolower($request->file('file')->getClientOriginalExtension());
+            if ($clientExt !== 'pdf') {
+                return back()->with('error', 'Gagal mengumpulkan tugas: Berkas wajib berformat .PDF. Berkas yang Anda pilih berekstensi .' . ($clientExt ?: 'tidak diketahui') . '. Silakan pilih berkas .PDF asli.')->withInput();
+            }
         }
 
         // Cek group assignment: jika terdaftar dalam kelompok, kaitkan pengumpulan ke kelompok
