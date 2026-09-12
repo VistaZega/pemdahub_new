@@ -98,16 +98,20 @@
 // ============================================================
 
 // WiFi Utama
-const char* WIFI_SSID          = "VistaHotLine";
-const char* WIFI_PASSWORD      = "pelita31";
+const char* WIFI_SSID          = "PembdaLINK";
+const char* WIFI_PASSWORD      = "PEMBDA2026";
 
-// WiFi Alternatif (otomatis fallback jika utama gagal)
+// WiFi Alternatif 1 (otomatis fallback jika utama gagal)
 const char* WIFI_ALT_SSID      = "Xspace";
 const char* WIFI_ALT_PASSWORD  = "12345678starlink";
 
 // WiFi Alternatif 2
-const char* WIFI_ALT2_SSID     = "VISTAFAMILY";
-const char* WIFI_ALT2_PASSWORD = "pelita31";
+const char* WIFI_ALT2_SSID     = "TEFA";
+const char* WIFI_ALT2_PASSWORD = "PEMBDA2026";
+
+// WiFi Alternatif 3
+const char* WIFI_ALT3_SSID     = "VISTAFAMILY";
+const char* WIFI_ALT3_PASSWORD = "pelita31";
 
 // Server API - JANGAN DIUBAH kecuali domain berubah
 const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
@@ -619,9 +623,10 @@ void connectWiFi() {
   WifiEntry wifiList[] = {
     { WIFI_SSID,       WIFI_PASSWORD       },
     { WIFI_ALT_SSID,   WIFI_ALT_PASSWORD   },
-    { WIFI_ALT2_SSID,  WIFI_ALT2_PASSWORD  }
+    { WIFI_ALT2_SSID,  WIFI_ALT2_PASSWORD  },
+    { WIFI_ALT3_SSID,  WIFI_ALT3_PASSWORD  }
   };
-  const int wifiCount = 3;
+  const int wifiCount = 4;
 
   for (int w = 0; w < wifiCount; w++) {
     Serial.print(F("Mencoba WiFi: "));

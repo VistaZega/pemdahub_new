@@ -74,16 +74,20 @@
 // ============================================================
 
 // WiFi Utama
-const char* WIFI_SSID         = "Xspace";
-const char* WIFI_PASSWORD     = "12345678starlink";
+const char* WIFI_SSID         = "PembdaLINK";
+const char* WIFI_PASSWORD     = "PEMBDA2026";
 
-// WiFi Alternatif (otomatis fallback jika utama gagal)
-const char* WIFI_ALT_SSID     = "TEFA";
-const char* WIFI_ALT_PASSWORD = "PEMBDA2026";
+// WiFi Alternatif 1 (otomatis fallback jika utama gagal)
+const char* WIFI_ALT_SSID     = "Xspace";
+const char* WIFI_ALT_PASSWORD = "12345678starlink";
 
 // WiFi Alternatif 2
-const char* WIFI_ALT2_SSID    = "VistaHotLine";
-const char* WIFI_ALT2_PASSWORD= "pelita31";
+const char* WIFI_ALT2_SSID    = "TEFA";
+const char* WIFI_ALT2_PASSWORD= "PEMBDA2026";
+
+// WiFi Alternatif 3
+const char* WIFI_ALT3_SSID    = "VISTAFAMILY";
+const char* WIFI_ALT3_PASSWORD= "pelita31";
 
 // Server API - JANGAN DIUBAH kecuali domain berubah
 const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
@@ -188,6 +192,7 @@ void setup() {
   wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
   wifiMulti.addAP(WIFI_ALT_SSID, WIFI_ALT_PASSWORD);
   wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
+  wifiMulti.addAP(WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD);
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
   showReady();

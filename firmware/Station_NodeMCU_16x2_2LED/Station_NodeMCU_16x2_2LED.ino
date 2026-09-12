@@ -38,14 +38,14 @@
 // ============================================================
 
 // WiFi Utama & Alternatif
-const char* WIFI_SSID         = "Xspace";
-const char* WIFI_PASSWORD     = "12345678starlink";
+const char* WIFI_SSID         = "PembdaLINK";
+const char* WIFI_PASSWORD     = "PEMBDA2026";
 
-const char* WIFI_ALT_SSID     = "TEFA";
-const char* WIFI_ALT_PASSWORD = "PEMBDA2026";
+const char* WIFI_ALT_SSID     = "Xspace";
+const char* WIFI_ALT_PASSWORD = "12345678starlink";
 
-const char* WIFI_ALT2_SSID    = "VistaHotLine";
-const char* WIFI_ALT2_PASSWORD= "pelita31";
+const char* WIFI_ALT2_SSID    = "TEFA";
+const char* WIFI_ALT2_PASSWORD= "PEMBDA2026";
 
 const char* WIFI_ALT3_SSID    = "VISTAFAMILY";
 const char* WIFI_ALT3_PASSWORD= "pelita31";

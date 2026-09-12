@@ -16,14 +16,17 @@
 // ============================================================
 //  KONFIGURASI WIFI & SERVER
 // ============================================================
-const char* WIFI_SSID         = "Xspace";
-const char* WIFI_PASSWORD     = "12345678starlink";
+const char* WIFI_SSID         = "PembdaLINK";
+const char* WIFI_PASSWORD     = "PEMBDA2026";
 
-const char* WIFI_ALT_SSID     = "TEFA";
-const char* WIFI_ALT_PASSWORD = "PEMBDA2026";
+const char* WIFI_ALT_SSID     = "Xspace";
+const char* WIFI_ALT_PASSWORD = "12345678starlink";
 
-const char* WIFI_ALT2_SSID    = "VisatHotLine";
-const char* WIFI_ALT2_PASSWORD= "pelita31";
+const char* WIFI_ALT2_SSID    = "TEFA";
+const char* WIFI_ALT2_PASSWORD= "PEMBDA2026";
+
+const char* WIFI_ALT3_SSID    = "VISTAFAMILY";
+const char* WIFI_ALT3_PASSWORD= "pelita31";
 
 const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
 const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
@@ -174,10 +177,10 @@ void connectWiFi() {
   WiFi.setSleep(false); 
   WiFi.setTxPower(WIFI_POWER_17dBm);
   
-  const char* ssids[] = { WIFI_SSID, WIFI_ALT_SSID, WIFI_ALT2_SSID };
-  const char* passes[] = { WIFI_PASSWORD, WIFI_ALT_PASSWORD, WIFI_ALT2_PASSWORD };
+  const char* ssids[] = { WIFI_SSID, WIFI_ALT_SSID, WIFI_ALT2_SSID, WIFI_ALT3_SSID };
+  const char* passes[] = { WIFI_PASSWORD, WIFI_ALT_PASSWORD, WIFI_ALT2_PASSWORD, WIFI_ALT3_PASSWORD };
   
-  for(int net = 0; net < 3; net++) {
+  for(int net = 0; net < 4; net++) {
     lcd.clear();
     lcd.setCursor(0, 0); lcd.print(F("MENCARI WIFI... "));
     lcd.setCursor(0, 1); lcd.print("-> "); lcd.print(ssids[net]);

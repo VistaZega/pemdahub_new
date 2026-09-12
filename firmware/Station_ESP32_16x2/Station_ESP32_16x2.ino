@@ -1,72 +1,66 @@
 // ============================================================
-//  FIRMWARE ESP32 - PEMBDAHUB ATTENDANCE STATION
-//  ESP32 + RC522 (RFID) + LCD 16x2 I2C + Buzzer + LED + MP3
-//  Tanpa QR Scanner, Tanpa Tombol Mode
+//  FIRMWARE ESP32 - PEMBDAHUB ATTENDANCE STATION (LCD 16x2)
+//  ESP32 Dev Module + RC522 (RFID) + LCD 16x2 I2C + Buzzer + 2 LED + MP3
+//  Fitur Spesial: Multi-AP WiFi Auto-Failover & Smart Screensaver Marquee
 //
 //  LOGIKA KERJA:
-//  - Satu mode saja: ABSENSI
-//  - Kartu TERDAFTAR → absensi normal (CHECK_IN / CHECK_OUT)
-//  - Kartu BELUM TERDAFTAR → server kirim action_code "NEW_CARD"
+//  - Mode Presensi Mandiri Terpadu (Siswa & Guru/Staf)
+//  - Kartu TERDAFTAR → Absensi berhasil (CHECK_IN / CHECK_OUT / COOLDOWN)
+//  - Kartu BELUM TERDAFTAR → Server kirim action_code "NEW_CARD"
 //    → LCD tampilkan "Daftarkan di Admin"
-//    → Admin buka halaman web → klik "Daftarkan RFID" 
-//    → Modal muncul dengan UID sudah terisi (via scan-buffer)
+//    → UID otomatis dikirim ke scan-buffer server
+//    → Admin buka web presensi → klik Daftarkan RFID → UID langsung terisi
 //
-//  WIRING ESP32:
-//  ┌────────────┬──────────┬──────────────────────────────┐
-//  │ Komponen   │ GPIO     │ Catatan                      │
-//  ├────────────┼──────────┼──────────────────────────────┤
-//  │ RFID SDA   │ GPIO 5   │ SPI CS                       │
-//  │ RFID SCK   │ GPIO 18  │ SPI CLK (VSPI default)       │
-//  │ RFID MOSI  │ GPIO 23  │ SPI MOSI (VSPI default)      │
-//  │ RFID MISO  │ GPIO 19  │ SPI MISO (VSPI default)      │
-//  │ RFID RST   │ GPIO 4   │ RFID Reset                   │
-//  │ LCD SDA    │ GPIO 21  │ I2C SDA default ESP32        │
-//  │ LCD SCL    │ GPIO 22  │ I2C SCL default ESP32        │
-//  │ Buzzer (+) │ GPIO 2   │ Buzzer aktif HIGH            │
-//  │ LED Green  │ GPIO 15  │ LED Hijau (berhasil)         │
-//  │ LED Red    │ GPIO 13  │ LED Merah (gagal)            │
-//  │ MP3 RX     │ GPIO 17  │ TX2 ESP32 → RX DFPlayer      │
-//  │ MP3 TX     │ GPIO 16  │ RX2 ESP32 → TX DFPlayer (opt)│
-//  │ VCC        │ 3.3V     │ RFID & LCD = 3.3V!           │
-//  │ MP3 VCC    │ 5V       │ DFPlayer Mini pakai 5V!      │
-//  │ GND        │ GND      │ Common ground semua          │
-//  └────────────┴──────────┴──────────────────────────────┘
+//  ============================================================
+//  TABEL LENGKAP KONEKSI KABEL & PIN HARDWARE (WIRING ESP32)
+//  ============================================================
+//  ┌──────────────┬──────────┬────────────────────────────────────────┐
+//  │ Komponen     │ GPIO     │ Catatan Penting                        │
+//  ├──────────────┼──────────┼────────────────────────────────────────┤
+//  │ RFID SDA/SS  │ GPIO 5   │ SPI Chip Select (CS)                   │
+//  │ RFID SCK     │ GPIO 18  │ SPI Clock (VSPI default)               │
+//  │ RFID MOSI    │ GPIO 23  │ SPI MOSI (VSPI default)                │
+//  │ RFID MISO    │ GPIO 19  │ SPI MISO (VSPI default)                │
+//  │ RFID RST     │ GPIO 4   │ RFID Hardware Reset                    │
+//  │ RFID 3.3V    │ 3V3      │ WAJIB 3.3V! (JANGAN 5V - MERUSAK CHIP) │
+//  │ RFID GND     │ GND      │ Ground bersama                         │
+//  ├──────────────┼──────────┼────────────────────────────────────────┤
+//  │ LCD SDA      │ GPIO 21  │ I2C SDA default ESP32                  │
+//  │ LCD SCL      │ GPIO 22  │ I2C SCL default ESP32                  │
+//  │ LCD VCC      │ 5V (VIN) │ Modul I2C LCD butuh 5V (kontras tajam) │
+//  │ LCD GND      │ GND      │ Ground bersama                         │
+//  ├──────────────┼──────────┼────────────────────────────────────────┤
+//  │ MP3 TX       │ GPIO 17  │ TX2 ESP32 ──[1KΩ Resistor]──→ RX DFPlr │
+//  │ MP3 RX       │ GPIO 16  │ RX2 ESP32 ←── TX DFPlayer (Opsional)   │
+//  │ MP3 VCC      │ 5V (VIN) │ DFPlayer Mini butuh 5V stabil          │
+//  │ MP3 GND      │ GND      │ Ground bersama                         │
+//  │ MP3 SPK_1    │ Spk (+)  │ Speaker 3 Watt / 8 Ohm                 │
+//  │ MP3 SPK_2    │ Spk (-)  │ Speaker 3 Watt / 8 Ohm                 │
+//  ├──────────────┼──────────┼────────────────────────────────────────┤
+//  │ Buzzer (+)   │ GPIO 2   │ Buzzer aktif (HIGH = bunyi)            │
+//  │ Buzzer (-)   │ GND      │ Ground bersama                         │
+//  ├──────────────┼──────────┼────────────────────────────────────────┤
+//  │ LED Hijau(+) │ GPIO 15  │ Melalui resistor 220Ω - 330Ω           │
+//  │ LED Merah(+) │ GPIO 13  │ Melalui resistor 220Ω - 330Ω           │
+//  │ LED GND (-)  │ GND      │ Katoda kedua LED ke Ground bersama     │
+//  └──────────────┴──────────┴────────────────────────────────────────┘
 //
-//  WIRING MP3 PLAYER (DFPlayer Mini):
-//  ┌──────────────────────────────────────────────────────┐
-//  │  ESP32 GPIO17 (TX2) ──[1KΩ]──→ DFPlayer RX          │
-//  │  ESP32 GPIO16 (RX2) ←──────── DFPlayer TX (opsional)│
-//  │  ESP32 5V ────────────────────→ DFPlayer VCC         │
-//  │  ESP32 GND ───────────────────→ DFPlayer GND         │
-//  │  DFPlayer SPK_1 ──────────────→ Speaker (+)          │
-//  │  DFPlayer SPK_2 ──────────────→ Speaker (-)          │
-//  └──────────────────────────────────────────────────────┘
-//  CATATAN: Resistor 1KΩ antara TX2 dan DFPlayer RX
-//           untuk proteksi level (3.3V → 5V tolerant).
-//
-//  FILE MP3 DI SD CARD:
+//  FILE MP3 DI MICRO SD CARD (Folder 01):
 //  SD Card/
-//  └── 01/              ← Folder 01
-//      ├── 001.mp3      → "Selamat Pagi Silahkan Absen"
-//      ├── 002.mp3      → "Akses Diterima Selamat Belajar"
-//      ├── 003.mp3      → "Absen Pulang Sampai Jumpa Besok Pagi"
-//      ├── 004.mp3      → "Absen Sudah Tercatat Terima Kasih"
-//      ├── 005.mp3      → "Kartu Tidak Dikenali Hubungi Admin"
-//      └── 006.mp3      → "Sistem Ada Gangguan Hubungi Admin"
+//  └── 01/
+//      ├── 001.mp3  → "Selamat Pagi Silahkan Absen"        (Booting Ready)
+//      ├── 002.mp3  → "Akses Diterima Selamat Belajar"     (CHECK_IN Siswa)
+//      ├── 003.mp3  → "Absen Pulang Sampai Jumpa"          (CHECK_OUT)
+//      ├── 004.mp3  → "Absen Sudah Tercatat Terima Kasih"  (COOLDOWN)
+//      ├── 005.mp3  → "Selamat Pagi Selamat Bekerja"       (CHECK_IN Guru/Staf)
+//      ├── 006.mp3  → "Kartu Tidak Dikenali Hubungi Admin" (NEW_CARD)
+//      └── 007.mp3  → "Sistem Ada Gangguan Hubungi Admin"  (ERROR / Server Down)
 //
 //  BOARD SETTING DI ARDUINO IDE:
 //  - Board         : "ESP32 Dev Module"
-//  - Flash Size    : "4MB (Sketch 1.2MB / OTA ~1.5MB)"
+//  - Flash Size    : "4MB"
 //  - CPU Frequency : "240MHz"
-//  - Upload Speed  : 115200
-//  - Board Manager URL:
-//    https://raw.githubusercontent.com/espressif/arduino-esp32/
-//    gh-pages/package_esp32_index.json
-//
-//  LIBRARY YANG DIBUTUHKAN (Install via Library Manager):
-//  - MFRC522 by GithubCommunity
-//  - LiquidCrystal I2C by Frank de Brabander
-//  - ArduinoJson by Benoit Blanchon (v6.x)
+//  - Upload Speed  : 115200 atau 921600
 // ============================================================
 
 #include <SPI.h>
@@ -74,88 +68,151 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <WiFiClientSecure.h>
 #include <HardwareSerial.h>
 
 // ============================================================
-//  KONFIGURASI - Sesuaikan untuk setiap station!
+//  KONFIGURASI MULTI-WIFI & SERVER
 // ============================================================
 
-// WiFi Utama
-const char* WIFI_SSID          = "Xspace";
-const char* WIFI_PASSWORD      = "12345678starlink";
+// WiFi Utama (Sekolah / Kantor)
+const char* WIFI_SSID          = "PembdaLINK";
+const char* WIFI_PASSWORD      = "PEMBDA2026";
 
-// WiFi Alternatif (otomatis fallback jika utama gagal)
-const char* WIFI_ALT_SSID      = "TEFA";
-const char* WIFI_ALT_PASSWORD  = "PEMBDA2026";
+// WiFi Alternatif 1 (Starlink / Ruang Lab)
+const char* WIFI_ALT_SSID      = "Xspace";
+const char* WIFI_ALT_PASSWORD  = "12345678starlink";
 
-// WiFi Alternatif 2
-const char* WIFI_ALT2_SSID     = "VISTAFAMILY";
-const char* WIFI_ALT2_PASSWORD = "pelita31";
+// WiFi Alternatif 2 (Teaching Factory / Kejuruan)
+const char* WIFI_ALT2_SSID     = "TEFA";
+const char* WIFI_ALT2_PASSWORD = "PEMBDA2026";
 
-// Server API - JANGAN DIUBAH kecuali domain berubah
-const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
-const char* SCAN_BUFFER_URL   = "https://perguruanpembda.com/api/rfid/scan-buffer";
-const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
+// WiFi Alternatif 3 (Backup Hotspot / Pengelola)
+const char* WIFI_ALT3_SSID     = "VISTAFAMILY";
+const char* WIFI_ALT3_PASSWORD = "pelita31";
 
-// ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-// Contoh: "KIOSK-ESP32-01", "KIOSK-ESP32-02", dst.
-const char* DEVICE_ID         = "STATION-SMA-03";
+// Server API PembdaHUB
+const char* SERVER_URL         = "https://perguruanpembda.com/api/attendance/rfid-scan";
+const char* SCAN_BUFFER_URL    = "https://perguruanpembda.com/api/rfid/scan-buffer";
+const char* KIOSK_API_KEY      = "RAHASIA-PEMBDAHUB-12345";
+
+// ── DEVICE IDENTIFIER ──
+// Ganti ID unik untuk setiap station, misal: STATION-SMA-01, STATION-SMK-01
+const char* DEVICE_ID          = "STATION-ESP32-16X2";
 
 // ============================================================
 //  PIN DEFINITIONS - ESP32 Dev Module
 // ============================================================
+#define RFID_SS_PIN    5    // GPIO 5  - SPI CS (VSPI)
+#define RFID_RST_PIN   4    // GPIO 4  - RFID Hardware Reset
+#define BUZZER_PIN     2    // GPIO 2  - Buzzer Aktif
+#define LED_GREEN      15   // GPIO 15 - LED Hijau (Berhasil)
+#define LED_RED        13   // GPIO 13 - LED Merah (Gagal/Peringatan)
 
-// SPI Pins untuk RFID RC522 (menggunakan VSPI default ESP32)
-// SCK  = GPIO 18 - otomatis
-// MISO = GPIO 19 - otomatis
-// MOSI = GPIO 23 - otomatis
-#define RFID_SS_PIN    5    // GPIO 5  - SPI CS
-#define RFID_RST_PIN   4    // GPIO 4  - RFID Reset
-
-// Indikator
-#define BUZZER_PIN     2    // GPIO 2  - Buzzer
-#define LED_GREEN      15   // GPIO 15 - LED Hijau
-#define LED_RED        13   // GPIO 13 - LED Merah
-
-// I2C LCD 16x2 (menggunakan pin I2C default ESP32)
-// SDA = GPIO 21 - otomatis
-// SCL = GPIO 22 - otomatis
-#define LCD_ADDRESS    0x27
+#define LCD_ADDRESS    0x27 // Alamat I2C LCD (0x27 / 0x3F)
 #define LCD_COLS       16
 #define LCD_ROWS       2
 
-// MP3 Player (DFPlayer Mini) via Hardware Serial2
-// ESP32 punya 3 UART hardware: Serial(0), Serial1, Serial2
-// Serial2 default: RX2=GPIO16, TX2=GPIO17
-#define MP3_TX_PIN     17   // GPIO 17 - TX2 → hubungkan ke RX DFPlayer via R 1KΩ
-#define MP3_RX_PIN     16   // GPIO 16 - RX2 ← hubungkan ke TX DFPlayer (opsional)
-#define MP3_VOLUME     30   // Tingkat volume MP3 (0 s.d 30)
+// Serial2 ESP32 untuk DFPlayer Mini
+#define MP3_TX_PIN     17   // GPIO 17 - TX2 ESP32 → RX DFPlayer (via 1KΩ)
+#define MP3_RX_PIN     16   // GPIO 16 - RX2 ESP32 ← TX DFPlayer
+#define MP3_VOLUME     30   // Volume Speaker (0 s.d 30)
 
 // ============================================================
-//  TIMEOUTS & COOLDOWNS
+//  TIMING & COOLDOWNS
 // ============================================================
-#define HTTP_TIMEOUT        8000   // 8 detik timeout HTTP
-#define DISPLAY_RESULT_MS   3000   // Durasi tampil hasil di LCD
-#define SCAN_COOLDOWN_MS    3000   // Anti double-tap (3 detik)
+#define HTTP_TIMEOUT        8000   // 8 detik timeout HTTPS
+#define DISPLAY_RESULT_MS   3500   // Durasi tampil hasil di LCD
+#define SCAN_COOLDOWN_MS    3000   // Anti double-tap kartu sama
+#define IDLE_TIMEOUT_MS     20000  // 20 detik tanpa scan -> Aktifkan Screensaver
 
 // ============================================================
-//  GLOBAL STATE
+//  CUSTOM PIXEL CHARACTERS UNTUK LCD (5x8 Dots)
 // ============================================================
-String        lastUID       = "";
-unsigned long lastTapTime   = 0;
-unsigned long lastWiFiCheck = 0;
-bool          isOnline      = false;
-int           currentWifi   = 0;  // 0 = utama, 1 = alternatif
+byte iconWifi[8] = {
+  B00000,
+  B01110,
+  B10001,
+  B00100,
+  B01010,
+  B00000,
+  B00100,
+  B00000
+};
+
+byte iconCard[8] = {
+  B11111,
+  B10001,
+  B10101,
+  B10001,
+  B11111,
+  B00000,
+  B00000,
+  B00000
+};
+
+byte iconHeart[8] = {
+  B00000,
+  B01010,
+  B11111,
+  B11111,
+  B01110,
+  B00100,
+  B00000,
+  B00000
+};
 
 // ============================================================
-//  OBJEK HARDWARE
+//  GLOBAL STATE & OBJEK
 // ============================================================
+String        lastUID          = "";
+unsigned long lastTapTime      = 0;
+unsigned long lastWiFiCheck    = 0;
+unsigned long lastActivityTime = 0;
+unsigned long lastAnimTime     = 0;
+unsigned long lastMarqueeTime  = 0;
+
+bool          isOnline         = false;
+bool          isShowingResult  = false;
+bool          isScreensaver    = false;
+
+int           animFrame        = 0;
+int           marqueePos       = 0;
+
+// Slogan Resmi Perguruan Pembda Nias untuk Running Text
+const String  marqueeText      = "Maju Terus Pantang Mundur - Keep Moving Forward - Perguruan Pembda Nias       ";
+
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
-HardwareSerial    mp3Serial(2);  // UART2 ESP32 untuk MP3 Player
+HardwareSerial    mp3Serial(2);  // Hardware UART2 ESP32
+WiFiMulti         wifiMulti;
+
+// ============================================================
+//  PROTOTYPE FUNGSI
+// ============================================================
+void connectWiFi();
+void handleRfidScan();
+void sendToServer(String uid, String type);
+void sendScanBuffer(String uid);
+void parseAndDisplay(String json, String uid);
+void showReady();
+void showScreensaverBase();
+void updateLcdAnimation();
+void updateMarquee();
+void showError(String msg);
+void indicatorCheckIn();
+void indicatorCheckOut();
+void indicatorCooldown();
+void indicatorNewCard();
+void indicatorFail();
+void beep(int count, int duration);
+void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2);
+void playAudio(uint8_t folder, uint8_t track);
+void setMp3Volume(uint8_t vol);
+String getRfidUID();
 
 // ============================================================
 //  SETUP
@@ -163,12 +220,14 @@ HardwareSerial    mp3Serial(2);  // UART2 ESP32 untuk MP3 Player
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println(F("\n=== ESP32 STATION BOOTING ==="));
-  Serial.println(F("Board: ESP32 Dev Module"));
-  Serial.print(F("Device ID: ")); Serial.println(DEVICE_ID);
-  Serial.print(F("Free Heap: ")); Serial.println(ESP.getFreeHeap());
 
-  // Inisialisasi Pin Indikator
+  Serial.println(F("\n=============================================="));
+  Serial.println(F("   PEMBDAHUB ATTENDANCE STATION (ESP32 16x2)  "));
+  Serial.println(F("=============================================="));
+  Serial.print(F("Device ID : ")); Serial.println(DEVICE_ID);
+  Serial.print(F("Free Heap : ")); Serial.print(ESP.getFreeHeap() / 1024); Serial.println(F(" KB"));
+
+  // 1. Inisialisasi Pin Indikator
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_GREEN,  OUTPUT);
   pinMode(LED_RED,    OUTPUT);
@@ -176,16 +235,20 @@ void setup() {
   digitalWrite(LED_GREEN,  LOW);
   digitalWrite(LED_RED,    LOW);
 
-  // Inisialisasi I2C LCD 16x2 (SDA=GPIO21, SCL=GPIO22)
+  // 2. Inisialisasi I2C LCD 16x2 (SDA=GPIO21, SCL=GPIO22)
   Wire.begin(21, 22);
   lcd.init();
   lcd.backlight();
-  lcd.setCursor(0, 0); lcd.print(F("   PEMBDA HUB   "));
-  lcd.setCursor(0, 1); lcd.print(F("  Silakan Scan  "));
-  Serial.println(F("LCD 16x2 OK."));
-  delay(2000);
+  lcd.createChar(0, iconWifi);
+  lcd.createChar(1, iconCard);
+  lcd.createChar(2, iconHeart);
 
-  // Inisialisasi SPI & RFID RC522
+  lcd.setCursor(0, 0); lcd.print(F("* PERGURUAN    *"));
+  lcd.setCursor(0, 1); lcd.print(F("* PEMBDA NIAS  *"));
+  beep(1, 100);
+  delay(1500);
+
+  // 3. Inisialisasi SPI & RFID RC522 (VSPI ESP32)
   SPI.begin();
   rfid.PCD_Init();
   delay(100);
@@ -193,54 +256,54 @@ void setup() {
   Serial.println(F("Mengecek modul RFID RC522..."));
   rfid.PCD_DumpVersionToSerial();
 
-  // Cek apakah RFID terbaca
   byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
   if (version == 0x00 || version == 0xFF) {
-    Serial.println(F("WARNING: RFID tidak terdeteksi! Cek wiring SPI."));
-    Serial.println(F("  SS=GPIO5, SCK=GPIO18, MOSI=GPIO23, MISO=GPIO19, RST=GPIO4"));
+    Serial.println(F("WARNING: RFID tidak terdeteksi! Cek kabel SPI."));
     lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("!! RFID ERROR !!"));
-    lcd.setCursor(0, 1); lcd.print(F("Cek kabel SPI   "));
-    beep(5, 100);
-    delay(3000);
+    lcd.setCursor(0, 0); lcd.print(F("! RFID RC522 ER !"));
+    lcd.setCursor(0, 1); lcd.print(F("Cek Jalur SPI   "));
+    digitalWrite(LED_RED, HIGH);
+    beep(4, 150);
+    digitalWrite(LED_RED, LOW);
+    delay(2000);
   } else {
-    Serial.print(F("RFID Firmware Version: 0x"));
+    Serial.print(F("RFID Chip Version: 0x"));
     Serial.print(version, HEX);
-    if (version == 0x91 || version == 0x92) Serial.println(F(" (MFRC522 original)"));
-    else if (version == 0x88)               Serial.println(F(" (FM17522 clone)"));
-    else if (version == 0xB2)               Serial.println(F(" (MFRC522 clone - OK)"));
-    else                                    Serial.println(F(" (compatible)"));
+    if (version == 0x91 || version == 0x92) Serial.println(F(" (MFRC522 Original)"));
+    else if (version == 0x88)               Serial.println(F(" (FM17522 Clone)"));
+    else if (version == 0xB2)               Serial.println(F(" (MFRC522 Clone - OK)"));
+    else                                    Serial.println(F(" (Compatible)"));
 
-    // Naikkan antenna gain ke MAXIMUM untuk clone chip
     rfid.PCD_SetAntennaGain(rfid.RxGain_max);
     delay(10);
     rfid.PCD_AntennaOn();
     Serial.println(F("RFID Antenna Gain: MAX 48dB"));
   }
 
-  // Koneksi WiFi
+  // 4. Registrasi 4 Profil Jaringan WiFi ke Multi-AP Failover
+  wifiMulti.addAP(WIFI_SSID,      WIFI_PASSWORD);
+  wifiMulti.addAP(WIFI_ALT_SSID,  WIFI_ALT_PASSWORD);
+  wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
+  wifiMulti.addAP(WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD);
+
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
 
-  // ── INISIALISASI MP3 PLAYER (DFPlayer Mini) ──
-  // ESP32 Serial2: RX2=GPIO16, TX2=GPIO17
+  // 5. Inisialisasi MP3 Player (DFPlayer Mini via UART2)
   mp3Serial.begin(9600, SERIAL_8N1, MP3_RX_PIN, MP3_TX_PIN);
-  delay(500);  // DFPlayer butuh ~300ms untuk boot
-  // Buang noise awal
+  delay(500);
   while (mp3Serial.available()) mp3Serial.read();
 
-  // Set volume MP3
   setMp3Volume(MP3_VOLUME);
   delay(100);
 
-  // Putar lagu pembuka 001.mp3 ("Selamat Pagi Silahkan Absen")
+  // Putar Audio Pembuka 001.mp3 ("Selamat Pagi Silahkan Absen")
   playAudio(1, 1);
-  Serial.println(F("MP3 Player OK. Volume: 22/30"));
+  Serial.println(F("DFPlayer Mini MP3 Siap."));
 
-  Serial.print(F("Free Heap setelah init: ")); Serial.println(ESP.getFreeHeap());
-  Serial.println(F("System Ready. Silakan scan kartu RFID."));
-
+  lastActivityTime = millis();
   showReady();
+  Serial.println(F("System Ready. Silakan scan kartu RFID."));
 }
 
 // ============================================================
@@ -249,23 +312,46 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // Periksa status WiFi setiap 15 detik secara non-blocking
+  // 1. Cek Koneksi WiFi Multi-AP setiap 15 detik secara non-blocking
   if (now - lastWiFiCheck >= 15000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
-    bool connected = (WiFi.status() == WL_CONNECTED);
-    if (connected && !isOnline) {
-      isOnline = true;
-      Serial.println(F("WiFi Terhubung Kembali."));
-      showReady();
-    } else if (!connected && isOnline) {
-      isOnline = false;
-      Serial.println(F("WiFi Terputus! Mencoba reconnect..."));
-      WiFi.reconnect();
-      showReady();
+    if (wifiMulti.run() == WL_CONNECTED) {
+      if (!isOnline) {
+        isOnline = true;
+        Serial.println(F("WiFi Terhubung Kembali."));
+        if (!isShowingResult) {
+          if (isScreensaver) showScreensaverBase();
+          else showReady();
+        }
+      }
+    } else {
+      if (isOnline) {
+        isOnline = false;
+        Serial.println(F("WiFi Terputus! Auto-reconnecting..."));
+        if (!isShowingResult) {
+          if (isScreensaver) showScreensaverBase();
+          else showReady();
+        }
+      }
     }
   }
 
-  // Cek RFID
+  // 2. Cek Transisi Screensaver Hemat Layar & Teks Berjalan
+  if (!isShowingResult) {
+    if (!isScreensaver && (now - lastActivityTime >= IDLE_TIMEOUT_MS)) {
+      isScreensaver = true;
+      marqueePos    = 0;
+      showScreensaverBase();
+    }
+
+    if (isScreensaver) {
+      updateMarquee();
+    } else {
+      updateLcdAnimation();
+    }
+  }
+
+  // 3. Deteksi Kartu RFID
   handleRfidScan();
 
   delay(20);
@@ -275,20 +361,17 @@ void loop() {
 //  HANDLER RFID SCAN
 // ============================================================
 void handleRfidScan() {
-  // Cek ada kartu baru di field
   if (!rfid.PICC_IsNewCardPresent()) return;
 
-  // Coba baca serial (retry 1x untuk clone chip)
   if (!rfid.PICC_ReadCardSerial()) {
     delay(10);
     if (!rfid.PICC_ReadCardSerial()) return;
   }
 
-  Serial.println(F("Kartu RFID terdeteksi!"));
   String uid = getRfidUID();
-  Serial.println("RFID UID: " + uid);
+  Serial.println("RFID Terdeteksi -> UID: " + uid);
 
-  // Anti double-tap: abaikan UID sama dalam cooldown window
+  // Anti double-tap
   unsigned long now = millis();
   if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
     Serial.println(F("RFID cooldown, abaikan."));
@@ -299,20 +382,22 @@ void handleRfidScan() {
   lastUID     = uid;
   lastTapTime = now;
 
-  // Halt kartu SEBELUM HTTP (cegah re-trigger selama request berlangsung)
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
-  // Tampilkan "Memproses..." di LCD
+  // Bangunkan dari screensaver & tampilkan status proses
+  lastActivityTime = millis();
+  isScreensaver    = false;
+  isShowingResult  = true;
+
   lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("  MEMPROSES...  "));
-  lcd.setCursor(0, 1); lcd.print(uid.substring(0, 16));
+  lcd.setCursor(0, 0); lcd.print(F("* MEMPROSES... *"));
+  lcd.setCursor(0, 1); lcd.print("UID:" + uid.substring(0, 12));
   beep(1, 80);
 
-  // Kirim ke server
+  // Kirim ke server via HTTPS
   sendToServer(uid, "rfid");
 
-  // Reset lastUID agar kartu yang sama bisa scan lagi (check-out)
   lastUID = "";
 }
 
@@ -320,17 +405,16 @@ void handleRfidScan() {
 //  KIRIM DATA KE SERVER (HTTPS)
 // ============================================================
 void sendToServer(String uid, String type) {
-  Serial.println("Mengirim ke server: " + uid + " (" + type + ")");
-  Serial.print(F("Free Heap sebelum HTTPS: ")); Serial.println(ESP.getFreeHeap());
+  Serial.println("Mengirim presensi: " + uid + " (" + type + ")");
 
   if (WiFi.status() != WL_CONNECTED) {
-    playAudio(1, 7); // 007.MP3 : "Sistem Ada Gangguan Hubungi Admin"
-    showError("Tidak ada WiFi!");
+    playAudio(1, 7); // 007.mp3 - Gangguan
+    showError("Tidak Ada WiFi!");
     return;
   }
 
   WiFiClientSecure client;
-  client.setInsecure();  // Skip verifikasi SSL cert
+  client.setInsecure(); // Bypass verifikasi sertifikat SSL
 
   HTTPClient http;
   http.begin(client, SERVER_URL);
@@ -339,7 +423,6 @@ void sendToServer(String uid, String type) {
   http.addHeader("Accept",          "application/json");
   http.setTimeout(HTTP_TIMEOUT);
 
-  // Buat JSON request body
   StaticJsonDocument<128> doc;
   doc["uid"]       = uid;
   doc["type"]      = type;
@@ -347,54 +430,49 @@ void sendToServer(String uid, String type) {
   String body;
   serializeJson(doc, body);
 
-  Serial.println("POST body: " + body);
   int code = http.POST(body);
-  Serial.print("HTTP Response Code: "); Serial.println(code);
-  Serial.print(F("Free Heap setelah POST: ")); Serial.println(ESP.getFreeHeap());
+  Serial.print(F("HTTP Code: ")); Serial.println(code);
 
   if (code == 200 || code == 201) {
     String payload = http.getString();
     Serial.println("Server Response: " + payload);
     parseAndDisplay(payload, uid);
   } else if (code == 401) {
-    playAudio(1, 7); // 007.MP3 : "Sistem Ada Gangguan Hubungi Admin"
+    playAudio(1, 7);
     showError("API Key Salah!");
   } else if (code == 404) {
-    playAudio(1, 6); // 006.MP3 : "Kartu Tidak Dikenali Hubungi Admin"
-    showError("Kartu Tdk Drftrkn");
+    playAudio(1, 6);
+    showError("Kartu Tdk Drftr");
   } else if (code > 0) {
-    playAudio(1, 7); // 007.MP3 : "Sistem Ada Gangguan Hubungi Admin"
-    showError("Server: " + String(code));
+    playAudio(1, 7);
+    showError("Server HTTP " + String(code));
   } else {
     String errMsg = http.errorToString(code);
     Serial.println("HTTP Error: " + errMsg);
-    // Coba baca body meski error code
     String payload = http.getString();
     if (payload.length() > 10 && payload.indexOf("status") > 0) {
-      Serial.println("Response walau error: " + payload);
       parseAndDisplay(payload, uid);
     } else {
-      playAudio(1, 7); // 007.MP3 : "Sistem Ada Gangguan Hubungi Admin"
+      playAudio(1, 7);
       showError("Koneksi Gagal");
     }
   }
 
   http.end();
 
-  Serial.print(F("Free Heap setelah http.end: ")); Serial.println(ESP.getFreeHeap());
   delay(DISPLAY_RESULT_MS);
+  lastActivityTime = millis();
+  isScreensaver    = false;
   showReady();
 }
 
 // ============================================================
-//  KIRIM UID KE SCAN BUFFER (untuk fitur daftar RFID di web)
-//  Dipanggil saat action_code == "NEW_CARD"
-//  Admin buka halaman daftar → UID sudah muncul otomatis di modal
+//  KIRIM KE SCAN BUFFER (Untuk Pendaftaran RFID Baru di Web Admin)
 // ============================================================
 void sendScanBuffer(String uid) {
   if (WiFi.status() != WL_CONNECTED) return;
 
-  Serial.println(F("Mengirim UID ke scan-buffer..."));
+  Serial.println(F("Mengirim UID ke buffer pendaftaran web..."));
 
   WiFiClientSecure client;
   client.setInsecure();
@@ -411,206 +489,219 @@ void sendScanBuffer(String uid) {
   serializeJson(doc, body);
 
   int code = http.POST(body);
-  Serial.print(F("Scan-buffer response: ")); Serial.println(code);
+  Serial.print(F("Buffer response: ")); Serial.println(code);
 
   http.end();
 }
 
 // ============================================================
-//  PARSE RESPONSE JSON & TAMPILKAN DI LCD 16x2
+//  PARSE JSON SERVER & TAMPILAN LCD 16x2
 // ============================================================
 void parseAndDisplay(String json, String uid) {
   StaticJsonDocument<256> doc;
   if (deserializeJson(doc, json)) {
-    showError("Data Rusak");
+    showError("Format Data ER");
     return;
   }
 
   String status      = doc["status"]      | "error";
-  String nama        = doc["nama"]        | "Tidak dikenal";
+  String nama        = doc["nama"]        | "Tidak Dikenal";
   String kelas       = doc["kelas"]       | "";
   String message     = doc["message"]     | "";
   String waktu       = doc["waktu"]       | "";
   String action_code = doc["action_code"] | "";
 
-  // Potong nama agar pas di 16 karakter
+  // Format teks pas di 16 karakter layar
   String namaDisplay  = nama.substring(0, min((int)nama.length(), 16));
   String kelasDisplay = kelas.substring(0, min((int)kelas.length(), 16));
 
   if (status == "success" || status == "info") {
 
     if (action_code == "CHECK_IN") {
-      // ─ Baris 0: Nama
-      // ─ Baris 1: MASUK HH:MM
       lcd.clear();
       lcd.setCursor(0, 0); lcd.print(namaDisplay);
-      lcd.setCursor(0, 1); lcd.print("MASUK: " + waktu.substring(0, 8));
-      // Bedakan audio: Guru/Staf → 005, Siswa → 002
-      if (kelasDisplay.indexOf("Guru") >= 0 || kelasDisplay.indexOf("Staf") >= 0) {
-        playAudio(1, 5); // 005.MP3 : "Selamat Pagi Selamat Bekerja"
+      lcd.setCursor(0, 1); lcd.print("MSK: " + waktu.substring(0, 8));
+
+      // Suara sapaan: Guru/Staf vs Siswa
+      if (kelasDisplay.indexOf("Guru") >= 0 || kelasDisplay.indexOf("Staf") >= 0 || kelasDisplay.indexOf("Staff") >= 0) {
+        playAudio(1, 5); // 005.mp3 : "Selamat Pagi Selamat Bekerja"
       } else {
-        playAudio(1, 2); // 002.MP3 : "Akses Diterima Selamat Belajar"
+        playAudio(1, 2); // 002.mp3 : "Akses Diterima Selamat Belajar"
       }
       indicatorCheckIn();
     }
     else if (action_code == "CHECK_OUT") {
-      // ─ Baris 0: Nama
-      // ─ Baris 1: PULANG HH:MM
       lcd.clear();
       lcd.setCursor(0, 0); lcd.print(namaDisplay);
-      lcd.setCursor(0, 1); lcd.print("PULANG: " + waktu.substring(0, 7));
-      playAudio(1, 3); // 003.MP3 : "Absen Pulang Sampai Jumpa Besok Pagi"
+      lcd.setCursor(0, 1); lcd.print("PLG: " + waktu.substring(0, 8));
+      playAudio(1, 3);   // 003.mp3 : "Absen Pulang Sampai Jumpa Besok Pagi"
       indicatorCheckOut();
     }
     else if (action_code == "COOLDOWN") {
-      // ─ Baris 0: Nama
-      // ─ Baris 1: Sudah absen jam XX
       lcd.clear();
       lcd.setCursor(0, 0); lcd.print(namaDisplay);
       if (waktu != "") {
-        lcd.setCursor(0, 1); lcd.print("Sdh absen " + waktu.substring(0, 5));
+        lcd.setCursor(0, 1); lcd.print("Sdh Absen " + waktu.substring(0, 5));
       } else {
         lcd.setCursor(0, 1); lcd.print(message.substring(0, 16));
       }
-      playAudio(1, 4); // 004.MP3 : "Absen Sudah Tercatat Terima Kasih"
+      playAudio(1, 4);   // 004.mp3 : "Absen Sudah Tercatat Terima Kasih"
       indicatorCooldown();
     }
     else if (action_code == "NEW_CARD") {
-      // Kartu belum terdaftar → kirim UID ke scan-buffer agar
-      // muncul otomatis di modal pendaftaran web admin
       sendScanBuffer(uid);
 
       lcd.clear();
       lcd.setCursor(0, 0); lcd.print(F("** KARTU BARU **"));
-      lcd.setCursor(0, 1); lcd.print(F("Daftar di Admin!"));
-      playAudio(1, 6); // 006.MP3 : "Kartu Tidak Dikenali Hubungi Admin"
+      lcd.setCursor(0, 1); lcd.print(F("Daftar di Admin "));
+      playAudio(1, 6);   // 006.mp3 : "Kartu Tidak Dikenali Hubungi Admin"
       indicatorNewCard();
     }
     else {
-      // Status lain yang tidak dikenal
       lcd.clear();
       lcd.setCursor(0, 0); lcd.print(namaDisplay);
       lcd.setCursor(0, 1); lcd.print(message.substring(0, 16));
-      playAudio(1, 2); // Default = pola check-in
+      playAudio(1, 2);
       indicatorCheckIn();
     }
 
   } else {
-    // Status error dari server
     String errMsg;
     if (action_code == "ALREADY_ATTENDED") {
-      errMsg = "Sudah Absen!";
-      playAudio(1, 4); // 004.MP3 : "Absen Sudah Tercatat Terima Kasih"
+      errMsg = "Sdh Absen Hdr&Plg";
+      playAudio(1, 4);
     } else {
       errMsg = message.substring(0, 16);
-      playAudio(1, 7); // 007.MP3 : "Sistem Ada Gangguan Hubungi Admin"
+      playAudio(1, 7);
     }
     showError(errMsg);
   }
 }
 
 // ============================================================
-//  KONEKSI WIFI (dengan fallback ke SSID alternatif)
+//  KONEKSI WIFI MULTI-AP
 // ============================================================
 void connectWiFi() {
   WiFi.mode(WIFI_STA);
+  int attempt = 0;
 
-  // Daftar semua WiFi yang akan dicoba berurutan
-  struct WifiEntry {
-    const char* ssid;
-    const char* pass;
-  };
-  WifiEntry wifiList[] = {
-    { WIFI_SSID,       WIFI_PASSWORD       },
-    { WIFI_ALT_SSID,   WIFI_ALT_PASSWORD   },
-    { WIFI_ALT2_SSID,  WIFI_ALT2_PASSWORD  }
-  };
-  const int wifiCount = 3;
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("Menghub. WiFi..."));
+  lcd.setCursor(0, 1); lcd.print(F("Mencari AP...   "));
 
-  for (int w = 0; w < wifiCount; w++) {
-    Serial.print(F("Mencoba WiFi: "));
-    Serial.println(wifiList[w].ssid);
-
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("Menghub. WiFi..."));
-    lcd.setCursor(0, 1); lcd.print(String(wifiList[w].ssid).substring(0, 16));
-
-    WiFi.disconnect(true);
-    delay(200);
-    WiFi.begin(wifiList[w].ssid, wifiList[w].pass);
-
-    int attempt = 0;
-    int maxAttempt = (w == 0) ? 20 : 14;  // Utama 10s, alternatif 7s
-    while (WiFi.status() != WL_CONNECTED && attempt < maxAttempt) {
-      delay(500);
-      Serial.print(".");
-      attempt++;
-      String dots = "";
-      for (int i = 0; i < (attempt % 5) + 1; i++) dots += ".";
-      lcd.setCursor(0, 1); lcd.print(String(wifiList[w].ssid).substring(0, 11) + dots + "    ");
-    }
-
-    if (WiFi.status() == WL_CONNECTED) break;  // Berhasil, hentikan loop
-    Serial.println(F(" Gagal."));
+  while (wifiMulti.run() != WL_CONNECTED && attempt < 25) {
+    delay(500);
+    Serial.print(".");
+    attempt++;
+    String dots = "";
+    for (int i = 0; i < (attempt % 5) + 1; i++) dots += ".";
+    lcd.setCursor(0, 1); lcd.print("Koneksi" + dots + "       ");
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nIP: " + WiFi.localIP().toString());
-    Serial.println("SSID: " + WiFi.SSID());
-    Serial.print("RSSI: "); Serial.print(WiFi.RSSI()); Serial.println(" dBm");
+    Serial.println(F("\nWiFi Terhubung!"));
+    Serial.print(F("SSID : ")); Serial.println(WiFi.SSID());
+    Serial.print(F("IP   : ")); Serial.println(WiFi.localIP().toString());
+    Serial.print(F("RSSI : ")); Serial.print(WiFi.RSSI()); Serial.println(F(" dBm"));
 
     lcd.clear();
     lcd.setCursor(0, 0); lcd.print(F("WiFi Terhubung! "));
-    lcd.setCursor(0, 1); lcd.print(WiFi.localIP().toString());
+    String ssid = WiFi.SSID();
+    if (ssid.length() > 16) ssid = ssid.substring(0, 16);
+    lcd.setCursor(0, 1); lcd.print(ssid);
     beep(1, 200);
-    delay(2000);
+    delay(1500);
   } else {
-    Serial.println(F("\nWiFi Gagal! Mode offline."));
+    Serial.println(F("\nWiFi Belum Terhubung. Siaga di mode offline/retry background."));
     lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("!! WiFi GAGAL !!"));
-    lcd.setCursor(0, 1); lcd.print(F("Cek SSID/Sandi  "));
-    beep(3, 200);
-    delay(2000);
+    lcd.setCursor(0, 0); lcd.print(F("! WiFi Offline !"));
+    lcd.setCursor(0, 1); lcd.print(F("Auto-retry bg..."));
+    beep(3, 100);
+    delay(1500);
   }
 }
 
 // ============================================================
-//  FUNGSI DISPLAY LCD 16x2
+//  FUNGSI DISPLAY LCD 16x2 (STANDBY & SCREENSAVER)
 // ============================================================
 
 void showReady() {
+  isShowingResult = false;
   lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("   PEMBDA HUB   "));
+
+  // Baris 0: Header Keren
+  lcd.setCursor(0, 0);
+  lcd.print(F("*PEMBDA PRESENSI"));
+
+  // Baris 1: Petunjuk Scan & Ikon
+  lcd.setCursor(0, 1);
   if (isOnline) {
-    lcd.setCursor(0, 1); lcd.print(F("  Silakan Scan  "));
+    lcd.write(byte(1)); // Ikon Kartu
+    lcd.print(F(" Tempel Kartu  "));
   } else {
-    lcd.setCursor(0, 1); lcd.print(F("  [ OFFLINE ]   "));
+    lcd.print(F("[OFFLINE]Scan..."));
   }
 }
 
-void showError(String msg) {
+void updateLcdAnimation() {
+  if (isShowingResult || isScreensaver) return;
+
+  unsigned long now = millis();
+  if (now - lastAnimTime < 400) return;
+  lastAnimTime = now;
+
+  // Heartbeat berkedip di pojok kanan bawah
+  lcd.setCursor(15, 1);
+  if (animFrame % 2 == 0) {
+    lcd.write(byte(2)); // Ikon Heart
+  } else {
+    lcd.print(F(" "));
+  }
+  animFrame = (animFrame + 1) % 2;
+}
+
+void showScreensaverBase() {
+  isShowingResult = false;
   lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("!! ERROR !!     "));
+
+  // Baris 0: Header Perguruan Pembda
+  lcd.setCursor(0, 0);
+  lcd.print(F("*PERGURUAN PEMBDA*"));
+}
+
+void updateMarquee() {
+  if (isShowingResult || !isScreensaver) return;
+
+  unsigned long now = millis();
+  if (now - lastMarqueeTime < 220) return; // Scroll setiap 220ms
+  lastMarqueeTime = now;
+
+  int textLen = marqueeText.length();
+  String windowText = "";
+  for (int i = 0; i < 16; i++) {
+    int idx = (marqueePos + i) % textLen;
+    windowText += marqueeText[idx];
+  }
+
+  lcd.setCursor(0, 1);
+  lcd.print(windowText);
+
+  marqueePos = (marqueePos + 1) % textLen;
+}
+
+void showError(String msg) {
+  isShowingResult = true;
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("! PERINGATAN !  "));
   lcd.setCursor(0, 1); lcd.print(msg.substring(0, 16));
   indicatorFail();
 }
 
 // ============================================================
-//  INDIKATOR (Buzzer + LED)
-//
-//  Pola Buzzer sama seperti NodeMCU V3:
-//  ┌────────────┬──────────────────────────────────────┐
-//  │ Status     │ Pola Buzzer        │ LED              │
-//  ├────────────┼────────────────────┼──────────────────┤
-//  │ CHECK_IN   │ ♪♪  (2x 100ms)    │ Hijau 200ms      │
-//  │ CHECK_OUT  │ ♪♪♪ (3x 80ms)     │ Hijau 200ms      │
-//  │ COOLDOWN   │ ♪── (1x 300ms)    │ Merah 200ms      │
-//  │ NEW_CARD   │ ♪♪♪♪(4x 60ms)     │ Merah kedip 4x   │
-//  │ ERROR/FAIL │ ♪─── (1x 600ms)   │ Merah 300ms      │
-//  └────────────┴────────────────────┴──────────────────┘
+//  INDIKATOR BUZZER & LED
 // ============================================================
 
-// CHECK_IN: 2 beep pendek "tit-tit" + LED Hijau
+// CHECK_IN: 2x Beep Ringan "tit-tit" + LED Hijau
 void indicatorCheckIn() {
   digitalWrite(LED_GREEN, HIGH);
   for (int i = 0; i < 2; i++) {
@@ -619,11 +710,11 @@ void indicatorCheckIn() {
     digitalWrite(BUZZER_PIN, LOW);
     if (i < 1) delay(100);
   }
-  delay(200);
+  delay(150);
   digitalWrite(LED_GREEN, LOW);
 }
 
-// CHECK_OUT: 3 beep cepat "tit-tit-tit" + LED Hijau
+// CHECK_OUT: 3x Beep Cepat "tit-tit-tit" + LED Hijau
 void indicatorCheckOut() {
   digitalWrite(LED_GREEN, HIGH);
   for (int i = 0; i < 3; i++) {
@@ -632,11 +723,11 @@ void indicatorCheckOut() {
     digitalWrite(BUZZER_PIN, LOW);
     if (i < 2) delay(80);
   }
-  delay(200);
+  delay(150);
   digitalWrite(LED_GREEN, LOW);
 }
 
-// COOLDOWN: 1 beep panjang "tiiiit" + LED Merah
+// COOLDOWN: 1x Beep Panjang "tiiit" + LED Merah
 void indicatorCooldown() {
   digitalWrite(LED_RED, HIGH);
   digitalWrite(BUZZER_PIN, HIGH);
@@ -646,7 +737,7 @@ void indicatorCooldown() {
   digitalWrite(LED_RED, LOW);
 }
 
-// NEW_CARD: 4 beep sangat cepat + LED Merah kedip
+// NEW_CARD: 4x Beep Sangat Cepat + LED Merah Kedip
 void indicatorNewCard() {
   for (int i = 0; i < 4; i++) {
     digitalWrite(LED_RED, HIGH);
@@ -658,7 +749,7 @@ void indicatorNewCard() {
   }
 }
 
-// ERROR/FAIL: 1 beep panjang sekali + LED Merah
+// ERROR/FAIL: 1x Beep Panjang Sekali + LED Merah
 void indicatorFail() {
   digitalWrite(LED_RED, HIGH);
   digitalWrite(BUZZER_PIN, HIGH);
@@ -668,7 +759,7 @@ void indicatorFail() {
   digitalWrite(LED_RED, LOW);
 }
 
-// Beep generik (untuk boot, WiFi, dll.)
+// Beep generik
 void beep(int count, int duration) {
   for (int i = 0; i < count; i++) {
     digitalWrite(BUZZER_PIN, HIGH);
@@ -679,56 +770,37 @@ void beep(int count, int duration) {
 }
 
 // ============================================================
-//  FUNGSI MP3 PLAYER (DFPlayer Mini) via Hardware Serial2
-//
-//  Menggunakan protokol serial DFPlayer Mini:
-//  [0x7E][0xFF][0x06][CMD][0x00][PAR1][PAR2][0xEF]
-//
-//  Daftar Audio:
-//  ┌───────┬──────────────────────────────────────────────┐
-//  │ Track │ Isi Audio                                    │
-//  ├───────┼──────────────────────────────────────────────┤
-//  │ 001   │ "Selamat Pagi Silahkan Absen"                │
-//  │ 002   │ "Akses Diterima Selamat Belajar"             │
-//  │ 003   │ "Absen Pulang Sampai Jumpa Besok Pagi"       │
-//  │ 004   │ "Absen Sudah Tercatat Terima Kasih"          │
-//  │ 005   │ "Kartu Tidak Dikenali Hubungi Admin"         │
-//  │ 006   │ "Sistem Ada Gangguan Hubungi Admin"          │
-//  └───────┴──────────────────────────────────────────────┘
+//  FUNGSI MP3 PLAYER (DFPlayer Mini via Hardware UART2)
 // ============================================================
-
-// Kirim perintah raw byte ke DFPlayer Mini via Serial2
 void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
   uint8_t cmdBuffer[8] = { 0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2, 0xEF };
   mp3Serial.write(cmdBuffer, 8);
-  delay(100); // Jeda aman pemrosesan chip DFPlayer (clone butuh lebih lama)
+  delay(100);
 }
 
-// Putar track tertentu di folder tertentu (1-indexed)
-// Contoh: playAudio(1, 2) = putar folder 01, file 002.mp3
 void playAudio(uint8_t folder, uint8_t track) {
   sendMp3Command(0x0F, folder, track);
 }
 
-// Atur volume (0-30)
 void setMp3Volume(uint8_t vol) {
   if (vol > 30) vol = 30;
   sendMp3Command(0x06, 0x00, vol);
 }
 
 // ============================================================
-//  BACA UID RFID (format HEX uppercase, contoh: "A3B2C1D4")
+//  BACA UID RFID (Format HEX Uppercase, contoh: "8374141B")
 // ============================================================
 String getRfidUID() {
   if (rfid.uid.size < 4) return "";
-  
+
   String hexUID = "";
   for (int i = 3; i >= 0; i--) {
     if (rfid.uid.uidByte[i] < 0x10) hexUID += "0";
     hexUID += String(rfid.uid.uidByte[i], HEX);
   }
-  
+
   hexUID.toUpperCase();
   return hexUID;
 }
+
 
