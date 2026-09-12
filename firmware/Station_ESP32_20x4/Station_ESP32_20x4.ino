@@ -140,13 +140,12 @@ const char* DEVICE_ID         = "STATION-SMP-02";
 #define LCD_COLS       20
 #define LCD_ROWS       4
 
-// QR Scanner via Hardware Serial1 (RX only)
-#define QR_RX_PIN      16   // GPIO 16 (Pin RX2) - Serial1 RX ← TX QR Scanner GM65
-#define QR_TX_PIN      -1   // Tidak dipakai (kita hanya terima data)
-
-// MP3 Player (DFPlayer Mini) via Hardware Serial2
-#define MP3_TX_PIN     17   // GPIO 17 (Pin TX2) - Serial2 TX → RX DFPlayer via R 1KΩ
-#define MP3_RX_PIN     -1   // Tidak dipakai (DFPlayer TX bebas)
+// Serial Hardware:
+// Serial2 (UART2): RX = GPIO 16 (RX2), TX = GPIO 17 (TX2)
+// GM65 QR Scanner TX -> Pin RX2 (GPIO 16)
+// DFPlayer Mini RX   <- Pin TX2 (GPIO 17) via R 1kΩ
+#define QR_RX_PIN      16   // GPIO 16 (Pin RX2) - Jalur Data GM65 Scanner
+#define MP3_TX_PIN     17   // GPIO 17 (Pin TX2) - Jalur Perintah DFPlayer Mini
 #define MP3_VOLUME     22   // Tingkat volume MP3 (0 s.d 30)
 
 // Indikator
@@ -250,22 +249,25 @@ void setup() {
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
 
-  // ── INISIALISASI QR SCANNER (Serial1) ──
-  // ESP32 Serial1 bisa di-remap ke GPIO manapun
-  // Kita hanya butuh RX (menerima data dari scanner)
-  pinMode(QR_RX_PIN, INPUT_PULLUP);
-  qrSerial.begin(9600, SERIAL_8N1, QR_RX_PIN, QR_TX_PIN);
-  pinMode(QR_RX_PIN, INPUT_PULLUP);
-  delay(100);
-  // Buang data noise awal saat QR module boot
-  while (qrSerial.available()) qrSerial.read();
-  qrBuffer = "";
-  Serial.print(F("QR Scanner (Serial1 RX=GPIO")); Serial.print(QR_RX_PIN); Serial.println(F(") OK."));
-
-  // ── INISIALISASI MP3 PLAYER (Serial2) ──
-  mp3Serial.begin(9600, SERIAL_8N1, MP3_RX_PIN, MP3_TX_PIN);
+  // ── INISIALISASI HARDWARE SERIAL (QR SCANNER & MP3 PLAYER) ──
+  // Serial2 (UART2): RX=GPIO16 (Pin RX2 - QR Scanner), TX=GPIO17 (Pin TX2 - DFPlayer)
+  // Berjalan Full-Duplex pada 9600 baud: pin 16 menerima scan, pin 17 mengirim perintah audio
+  pinMode(16, INPUT_PULLUP);
+  mp3Serial.begin(9600, SERIAL_8N1, 16, 17);
+  pinMode(16, INPUT_PULLUP);
   delay(500);  // DFPlayer butuh ~300ms untuk boot
   while (mp3Serial.available()) mp3Serial.read();
+
+  // Serial1 (UART1): Cadangan jika scanner dicolok ke pin GPIO 25
+  pinMode(25, INPUT_PULLUP);
+  qrSerial.begin(9600, SERIAL_8N1, 25, -1);
+  pinMode(25, INPUT_PULLUP);
+  delay(100);
+  while (qrSerial.available()) qrSerial.read();
+  qrBuffer = "";
+
+  Serial.println(F("QR Scanner (Serial2 RX=GPIO16 + Serial1 RX=GPIO25) OK."));
+  Serial.println(F("MP3 Player (Serial2 TX=GPIO17) OK. Volume: 22/30"));
 
   // Set volume MP3
   setMp3Volume(MP3_VOLUME);
@@ -273,7 +275,6 @@ void setup() {
 
   // Putar lagu pembuka 001.mp3 ("Selamat Pagi Silahkan Absen")
   playAudio(1, 1);
-  Serial.println(F("MP3 Player (Serial2 TX=GPIO17) OK. Volume: 22/30"));
 
   Serial.print(F("Free Heap setelah init: ")); Serial.println(ESP.getFreeHeap());
   Serial.println(F("System Ready. Silakan scan kartu RFID atau QR Code."));
@@ -365,8 +366,9 @@ void handleRfidScan() {
 //  Lebih stabil dari SoftwareSerial karena pakai UART hardware.
 // ============================================================
 void handleQrScan() {
-  while (qrSerial.available() > 0) {
-    char c = qrSerial.read();
+  // Membaca dari mp3Serial (Serial2 RX=GPIO16 / RX2) dan qrSerial (Serial1 RX=GPIO25)
+  while (mp3Serial.available() > 0 || qrSerial.available() > 0) {
+    char c = (mp3Serial.available() > 0) ? mp3Serial.read() : qrSerial.read();
     lastQrCharTime = millis();
 
     // Debug raw data ke Serial Monitor agar mudah dipantau
@@ -502,6 +504,7 @@ void sendToServer(String uid, String type) {
 
   // Buang noise QR yang masuk selama proses HTTP
   while (qrSerial.available()) qrSerial.read();
+  while (mp3Serial.available()) mp3Serial.read();
   qrBuffer = "";
 
   Serial.print(F("Free Heap setelah http.end: ")); Serial.println(ESP.getFreeHeap());
