@@ -120,7 +120,7 @@ const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
 // Contoh: "KIOSK-ESP32F-01", "KIOSK-ESP32F-02", dst.
-const char* DEVICE_ID         = "KIOSK-NEW-04";
+const char* DEVICE_ID         = "STATION-SMP-02";
 
 // ============================================================
 //  PIN DEFINITIONS - ESP32 Dev Module
@@ -168,6 +168,7 @@ const char* DEVICE_ID         = "KIOSK-NEW-04";
 String        lastUID          = "";
 unsigned long lastTapTime      = 0;
 String        qrBuffer         = "";
+unsigned long lastQrCharTime   = 0;   // Timeout pelindung jika QR tidak ada CR/LF
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
 
@@ -252,7 +253,9 @@ void setup() {
   // ── INISIALISASI QR SCANNER (Serial1) ──
   // ESP32 Serial1 bisa di-remap ke GPIO manapun
   // Kita hanya butuh RX (menerima data dari scanner)
+  pinMode(QR_RX_PIN, INPUT_PULLUP);
   qrSerial.begin(9600, SERIAL_8N1, QR_RX_PIN, QR_TX_PIN);
+  pinMode(QR_RX_PIN, INPUT_PULLUP);
   delay(100);
   // Buang data noise awal saat QR module boot
   while (qrSerial.available()) qrSerial.read();
@@ -362,46 +365,22 @@ void handleRfidScan() {
 //  Lebih stabil dari SoftwareSerial karena pakai UART hardware.
 // ============================================================
 void handleQrScan() {
-  int maxRead = 10;  // ESP32 lebih cepat, bisa baca lebih banyak per loop
-
-  for (int i = 0; i < maxRead && qrSerial.available() > 0; i++) {
+  while (qrSerial.available() > 0) {
     char c = qrSerial.read();
+    lastQrCharTime = millis();
+
+    // Debug raw data ke Serial Monitor agar mudah dipantau
+    Serial.print(F("[QR RAW] '"));
+    if (c >= 32 && c <= 126) Serial.print(c);
+    else Serial.print(F("."));
+    Serial.print(F("' (0x"));
+    if ((byte)c < 16) Serial.print(F("0"));
+    Serial.print((byte)c, HEX);
+    Serial.println(F(")"));
 
     // Karakter akhir baris = data QR selesai
     if (c == '\r' || c == '\n') {
-      if (qrBuffer.length() >= QR_MIN_LENGTH) {
-        String qrData = qrBuffer;
-        qrData.trim();
-        qrBuffer = "";
-
-        Serial.println(F("================================="));
-        Serial.println("QR Code Terdeteksi: " + qrData);
-        Serial.println(F("================================="));
-
-        // Anti double-scan
-        unsigned long now = millis();
-        if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
-          Serial.println(F("QR Cooldown. Abaikan."));
-          return;
-        }
-        lastUID     = qrData;
-        lastTapTime = now;
-
-        // Tampilkan di LCD
-        lcd.clear();
-        lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
-        lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
-        lcd.setCursor(0, 2); lcd.print("ID: " + qrData.substring(0, min((int)qrData.length(), 16)));
-        lcd.setCursor(0, 3); lcd.print(F("Menghubungi server.."));
-        beep(1, 150);
-
-        sendToServer(qrData, "qr");
-
-        // Reset lastUID setelah selesai
-        lastUID = "";
-        return;
-      }
-      qrBuffer = "";
+      processQrData();
     }
     // Karakter printable valid (spasi sampai tilde)
     else if (c >= 32 && c <= 126) {
@@ -411,7 +390,48 @@ void handleQrScan() {
         qrBuffer = "";  // Buffer overflow, reset
       }
     }
-    // Karakter noise (non-printable) → abaikan saja
+  }
+
+  // TIMEOUT FALLBACK: Amankan data jika GM65 tidak mengirim karakter \r atau \n
+  if (qrBuffer.length() >= QR_MIN_LENGTH && (millis() - lastQrCharTime) > 200) {
+    Serial.println(F("[QR] Mengaktifkan pemrosesan via Timeout Fallback (tanpa CR/LF)..."));
+    processQrData();
+  }
+}
+
+void processQrData() {
+  if (qrBuffer.length() >= QR_MIN_LENGTH) {
+    String qrData = qrBuffer;
+    qrData.trim();
+    qrBuffer = "";
+
+    Serial.println(F("================================="));
+    Serial.println("QR Code Terdeteksi: " + qrData);
+    Serial.println(F("================================="));
+
+    // Anti double-scan
+    unsigned long now = millis();
+    if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
+      Serial.println(F("QR Cooldown. Abaikan."));
+      return;
+    }
+    lastUID     = qrData;
+    lastTapTime = now;
+
+    // Tampilkan di LCD
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
+    lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
+    lcd.setCursor(0, 2); lcd.print("ID: " + qrData.substring(0, min((int)qrData.length(), 16)));
+    lcd.setCursor(0, 3); lcd.print(F("Menghubungi server.."));
+    beep(1, 150);
+
+    sendToServer(qrData, "qr");
+
+    // Reset lastUID setelah selesai
+    lastUID = "";
+  } else {
+    qrBuffer = "";
   }
 }
 
