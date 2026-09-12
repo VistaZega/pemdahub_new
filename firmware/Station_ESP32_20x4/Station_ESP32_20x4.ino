@@ -24,22 +24,22 @@
 //  │ RFID RST    │ GPIO 4   │ RFID Reset                    │
 //  │ LCD SDA     │ GPIO 21  │ I2C SDA default ESP32         │
 //  │ LCD SCL     │ GPIO 22  │ I2C SCL default ESP32         │
-//  │ QR RX       │ GPIO 25  │ Serial1 RX ← TX QR Scanner   │
-//  │ MP3 TX      │ GPIO 17  │ Serial2 TX → RX DFPlayer      │
-//  │ MP3 RX      │ GPIO 16  │ Serial2 RX ← TX DFPlayer (opt)│
-//  │ Buzzer (+)  │ GPIO 2   │ Buzzer aktif HIGH             │
-//  │ LED Green   │ GPIO 15  │ LED Hijau (berhasil)          │
-//  │ LED Red     │ GPIO 13  │ LED Merah (gagal)             │
-//  │ RFID 3.3V   │ 3V3      │ JANGAN pakai 5V untuk RC522! │
-//  │ LCD VCC     │ 5V       │ LCD 20x4 butuh 5V!            │
-//  │ MP3 VCC     │ 5V       │ DFPlayer Mini butuh 5V!       │
-//  │ GND         │ GND      │ Common ground semua komponen  │
-//  └─────────────┴──────────┴───────────────────────────────┘
+//  │ QR RX       │ GPIO 16  │ Serial1 RX ← TX QR Scanner (Pin RX2) │
+//  │ MP3 TX      │ GPIO 17  │ Serial2 TX → RX DFPlayer (Pin TX2)   │
+//  │ MP3 RX      │ -        │ Tidak dipakai (DFPlayer TX bebas)    │
+//  │ Buzzer (+)  │ GPIO 2   │ Buzzer aktif HIGH                    │
+//  │ LED Green   │ GPIO 15  │ LED Hijau (berhasil)                 │
+//  │ LED Red     │ GPIO 13  │ LED Merah (gagal)                    │
+//  │ RFID 3.3V   │ 3V3      │ JANGAN pakai 5V untuk RC522!        │
+//  │ LCD VCC     │ 5V       │ LCD 20x4 butuh 5V!                   │
+//  │ MP3 VCC     │ 5V       │ DFPlayer Mini butuh 5V!              │
+//  │ GND         │ GND      │ Common ground semua komponen         │
+//  └─────────────┴──────────┴──────────────────────────────────────┘
 //
 //  WIRING QR SCANNER (GM65 / GM50):
 //  ┌──────────────────────────────────────────────────────┐
-//  │  QR Scanner TX ───────────────→ ESP32 GPIO25 (RX1)  │
-//  │  QR Scanner VCC ──────────────→ 5V / 3.3V           │
+//  │  QR Scanner TX ───────────────→ ESP32 GPIO16 (RX2)   │
+//  │  QR Scanner VCC ──────────────→ 5V / 3.3V            │
 //  │  QR Scanner GND ──────────────→ GND                  │
 //  └──────────────────────────────────────────────────────┘
 //  CATATAN: Hanya butuh 1 kabel data (TX scanner → RX ESP32).
@@ -141,12 +141,12 @@ const char* DEVICE_ID         = "STATION-SMP-02";
 #define LCD_ROWS       4
 
 // QR Scanner via Hardware Serial1 (RX only)
-#define QR_RX_PIN      25   // GPIO 25 - Serial1 RX ← TX QR Scanner
+#define QR_RX_PIN      16   // GPIO 16 (Pin RX2) - Serial1 RX ← TX QR Scanner GM65
 #define QR_TX_PIN      -1   // Tidak dipakai (kita hanya terima data)
 
 // MP3 Player (DFPlayer Mini) via Hardware Serial2
-#define MP3_TX_PIN     17   // GPIO 17 - Serial2 TX → RX DFPlayer via R 1KΩ
-#define MP3_RX_PIN     16   // GPIO 16 - Serial2 RX ← TX DFPlayer (opsional)
+#define MP3_TX_PIN     17   // GPIO 17 (Pin TX2) - Serial2 TX → RX DFPlayer via R 1KΩ
+#define MP3_RX_PIN     -1   // Tidak dipakai (DFPlayer TX bebas)
 #define MP3_VOLUME     22   // Tingkat volume MP3 (0 s.d 30)
 
 // Indikator
@@ -260,7 +260,7 @@ void setup() {
   // Buang data noise awal saat QR module boot
   while (qrSerial.available()) qrSerial.read();
   qrBuffer = "";
-  Serial.println(F("QR Scanner (Serial1 RX=GPIO25) OK."));
+  Serial.print(F("QR Scanner (Serial1 RX=GPIO")); Serial.print(QR_RX_PIN); Serial.println(F(") OK."));
 
   // ── INISIALISASI MP3 PLAYER (Serial2) ──
   mp3Serial.begin(9600, SERIAL_8N1, MP3_RX_PIN, MP3_TX_PIN);
