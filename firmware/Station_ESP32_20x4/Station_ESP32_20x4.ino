@@ -141,11 +141,12 @@ const char* DEVICE_ID         = "STATION-SMP-02";
 #define LCD_ROWS       4
 
 // Serial Hardware:
-// Serial2 (UART2): RX = GPIO 16 (RX2), TX = GPIO 17 (TX2)
 // GM65 QR Scanner TX -> Pin RX2 (GPIO 16)
 // DFPlayer Mini RX   <- Pin TX2 (GPIO 17) via R 1kΩ
 #define QR_RX_PIN      16   // GPIO 16 (Pin RX2) - Jalur Data GM65 Scanner
+#define QR_TX_PIN      -1   // Tidak dipakai (hanya menerima data)
 #define MP3_TX_PIN     17   // GPIO 17 (Pin TX2) - Jalur Perintah DFPlayer Mini
+#define MP3_RX_PIN     -1   // Tidak dipakai (hanya mengirim perintah audio)
 #define MP3_VOLUME     22   // Tingkat volume MP3 (0 s.d 30)
 
 // Indikator
@@ -167,7 +168,6 @@ const char* DEVICE_ID         = "STATION-SMP-02";
 String        lastUID          = "";
 unsigned long lastTapTime      = 0;
 String        qrBuffer         = "";
-unsigned long lastQrCharTime   = 0;   // Timeout pelindung jika QR tidak ada CR/LF
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
 
@@ -249,25 +249,20 @@ void setup() {
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
 
-  // ── INISIALISASI HARDWARE SERIAL (QR SCANNER & MP3 PLAYER) ──
-  // Serial2 (UART2): RX=GPIO16 (Pin RX2 - QR Scanner), TX=GPIO17 (Pin TX2 - DFPlayer)
-  // Berjalan Full-Duplex pada 9600 baud: pin 16 menerima scan, pin 17 mengirim perintah audio
-  pinMode(16, INPUT_PULLUP);
-  mp3Serial.begin(9600, SERIAL_8N1, 16, 17);
-  pinMode(16, INPUT_PULLUP);
-  delay(500);  // DFPlayer butuh ~300ms untuk boot
-  while (mp3Serial.available()) mp3Serial.read();
-
-  // Serial1 (UART1): Cadangan jika scanner dicolok ke pin GPIO 25
-  pinMode(25, INPUT_PULLUP);
-  qrSerial.begin(9600, SERIAL_8N1, 25, -1);
-  pinMode(25, INPUT_PULLUP);
+  // ── INISIALISASI QR SCANNER (Serial1) ──
+  // ESP32 Serial1 dihubungkan ke Pin RX2 (GPIO 16) untuk menerima data TX Scanner GM65
+  // PENTING: Jangan panggil pinMode() setelah begin() karena akan memutus jalur hardware UART!
+  qrSerial.begin(9600, SERIAL_8N1, QR_RX_PIN, QR_TX_PIN);
   delay(100);
   while (qrSerial.available()) qrSerial.read();
   qrBuffer = "";
+  Serial.print(F("QR Scanner (Serial1 RX=GPIO")); Serial.print(QR_RX_PIN); Serial.println(F(") OK."));
 
-  Serial.println(F("QR Scanner (Serial2 RX=GPIO16 + Serial1 RX=GPIO25) OK."));
-  Serial.println(F("MP3 Player (Serial2 TX=GPIO17) OK. Volume: 22/30"));
+  // ── INISIALISASI MP3 PLAYER (Serial2) ──
+  // ESP32 Serial2 dihubungkan ke Pin TX2 (GPIO 17) untuk mengirim perintah ke DFPlayer Mini
+  mp3Serial.begin(9600, SERIAL_8N1, MP3_RX_PIN, MP3_TX_PIN);
+  delay(500);  // DFPlayer butuh ~300ms untuk boot
+  while (mp3Serial.available()) mp3Serial.read();
 
   // Set volume MP3
   setMp3Volume(MP3_VOLUME);
@@ -275,6 +270,7 @@ void setup() {
 
   // Putar lagu pembuka 001.mp3 ("Selamat Pagi Silahkan Absen")
   playAudio(1, 1);
+  Serial.println(F("MP3 Player (Serial2 TX=GPIO17) OK. Volume: 22/30"));
 
   Serial.print(F("Free Heap setelah init: ")); Serial.println(ESP.getFreeHeap());
   Serial.println(F("System Ready. Silakan scan kartu RFID atau QR Code."));
@@ -366,23 +362,46 @@ void handleRfidScan() {
 //  Lebih stabil dari SoftwareSerial karena pakai UART hardware.
 // ============================================================
 void handleQrScan() {
-  // Membaca dari mp3Serial (Serial2 RX=GPIO16 / RX2) dan qrSerial (Serial1 RX=GPIO25)
-  while (mp3Serial.available() > 0 || qrSerial.available() > 0) {
-    char c = (mp3Serial.available() > 0) ? mp3Serial.read() : qrSerial.read();
-    lastQrCharTime = millis();
+  int maxRead = 10;  // ESP32 lebih cepat, bisa baca lebih banyak per loop
 
-    // Debug raw data ke Serial Monitor agar mudah dipantau
-    Serial.print(F("[QR RAW] '"));
-    if (c >= 32 && c <= 126) Serial.print(c);
-    else Serial.print(F("."));
-    Serial.print(F("' (0x"));
-    if ((byte)c < 16) Serial.print(F("0"));
-    Serial.print((byte)c, HEX);
-    Serial.println(F(")"));
+  for (int i = 0; i < maxRead && qrSerial.available() > 0; i++) {
+    char c = qrSerial.read();
 
     // Karakter akhir baris = data QR selesai
     if (c == '\r' || c == '\n') {
-      processQrData();
+      if (qrBuffer.length() >= QR_MIN_LENGTH) {
+        String qrData = qrBuffer;
+        qrData.trim();
+        qrBuffer = "";
+
+        Serial.println(F("================================="));
+        Serial.println("QR Code Terdeteksi: " + qrData);
+        Serial.println(F("================================="));
+
+        // Anti double-scan
+        unsigned long now = millis();
+        if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
+          Serial.println(F("QR Cooldown. Abaikan."));
+          return;
+        }
+        lastUID     = qrData;
+        lastTapTime = now;
+
+        // Tampilkan di LCD
+        lcd.clear();
+        lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
+        lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
+        lcd.setCursor(0, 2); lcd.print("ID: " + qrData.substring(0, min((int)qrData.length(), 16)));
+        lcd.setCursor(0, 3); lcd.print(F("Menghubungi server.."));
+        beep(1, 150);
+
+        sendToServer(qrData, "qr");
+
+        // Reset lastUID setelah selesai
+        lastUID = "";
+        return;
+      }
+      qrBuffer = "";
     }
     // Karakter printable valid (spasi sampai tilde)
     else if (c >= 32 && c <= 126) {
@@ -392,48 +411,7 @@ void handleQrScan() {
         qrBuffer = "";  // Buffer overflow, reset
       }
     }
-  }
-
-  // TIMEOUT FALLBACK: Amankan data jika GM65 tidak mengirim karakter \r atau \n
-  if (qrBuffer.length() >= QR_MIN_LENGTH && (millis() - lastQrCharTime) > 200) {
-    Serial.println(F("[QR] Mengaktifkan pemrosesan via Timeout Fallback (tanpa CR/LF)..."));
-    processQrData();
-  }
-}
-
-void processQrData() {
-  if (qrBuffer.length() >= QR_MIN_LENGTH) {
-    String qrData = qrBuffer;
-    qrData.trim();
-    qrBuffer = "";
-
-    Serial.println(F("================================="));
-    Serial.println("QR Code Terdeteksi: " + qrData);
-    Serial.println(F("================================="));
-
-    // Anti double-scan
-    unsigned long now = millis();
-    if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
-      Serial.println(F("QR Cooldown. Abaikan."));
-      return;
-    }
-    lastUID     = qrData;
-    lastTapTime = now;
-
-    // Tampilkan di LCD
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
-    lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
-    lcd.setCursor(0, 2); lcd.print("ID: " + qrData.substring(0, min((int)qrData.length(), 16)));
-    lcd.setCursor(0, 3); lcd.print(F("Menghubungi server.."));
-    beep(1, 150);
-
-    sendToServer(qrData, "qr");
-
-    // Reset lastUID setelah selesai
-    lastUID = "";
-  } else {
-    qrBuffer = "";
+    // Karakter noise (non-printable) → abaikan saja
   }
 }
 
@@ -504,7 +482,6 @@ void sendToServer(String uid, String type) {
 
   // Buang noise QR yang masuk selama proses HTTP
   while (qrSerial.available()) qrSerial.read();
-  while (mp3Serial.available()) mp3Serial.read();
   qrBuffer = "";
 
   Serial.print(F("Free Heap setelah http.end: ")); Serial.println(ESP.getFreeHeap());
