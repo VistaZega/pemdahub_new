@@ -54,6 +54,7 @@ const char* WIFI_ALT3_PASSWORD = "pelita31";
 
 // Server API - JANGAN DIUBAH kecuali domain berubah
 const char* SERVER_URL         = "https://perguruanpembda.com/api/attendance/rfid-scan";
+const char* SCAN_BUFFER_URL    = "https://perguruanpembda.com/api/rfid/scan-buffer";
 const char* KIOSK_API_KEY      = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
@@ -88,7 +89,44 @@ const char* DEVICE_ID          = "STATION-SMA-02";
 #define HTTP_TIMEOUT        10000   // 10 detik timeout HTTPS
 #define DISPLAY_RESULT_MS   3500    // Durasi tampil hasil di LCD
 #define SCAN_COOLDOWN_MS    3000    // Anti double-tap (3 detik)
+#define IDLE_TIMEOUT_MS     20000   // 20 detik tanpa scan -> Aktifkan Screensaver
 #define QR_MIN_LENGTH       3       // Minimum panjang QR valid
+
+// ============================================================
+//  CUSTOM PIXEL CHARACTERS UNTUK LCD (5x8 Dots)
+// ============================================================
+byte iconWifi[8] = {
+  B00000,
+  B01110,
+  B10001,
+  B00100,
+  B01010,
+  B00000,
+  B00100,
+  B00000
+};
+
+byte iconCard[8] = {
+  B11111,
+  B10001,
+  B10101,
+  B10001,
+  B11111,
+  B00000,
+  B00000,
+  B00000
+};
+
+byte iconHeart[8] = {
+  B00000,
+  B01010,
+  B11111,
+  B11111,
+  B01110,
+  B00100,
+  B00000,
+  B00000
+};
 
 // ============================================================
 //  GLOBAL STATE
@@ -98,6 +136,18 @@ unsigned long lastTapTime      = 0;
 String        qrBuffer         = "";
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
+
+// Animasi & Smart Screensaver State
+unsigned long lastActivityTime = 0;
+unsigned long lastAnimTime     = 0;
+int           animFrame        = 0;
+bool          isShowingResult  = false;
+bool          isScreensaver    = false;
+
+// Teks Berjalan Slogan Resmi Yayasan Perguruan Pembda Nias
+const String marqueeText = "   *** YAYASAN PERGURUAN PEMBDA NIAS *** Keep Moving Forward - Maju Terus Pantang Mundur! *** SMP - SMA - SMK Swasta Pembda *** Silakan Tempel Kartu RFID / Scan QR Code ***   ";
+int           marqueePos        = 0;
+unsigned long lastMarqueeTime  = 0;
 
 // ============================================================
 //  OBJEK HARDWARE
@@ -112,12 +162,16 @@ void playAudio(uint8_t folder, uint8_t track);
 void setMp3Volume(uint8_t vol);
 void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2);
 void showReady();
+void showScreensaverBase();
+void updateLcdAnimation();
+void updateMarquee();
 void showError(String msg);
 void beep(int count, int duration);
 void handleRfidScan();
 void handleQrScan();
 void sendToServer(String uid, String type);
-void parseAndDisplay(String json);
+void sendScanBuffer(String uid);
+void parseAndDisplay(String json, String uid);
 void connectWiFi();
 void indicatorCheckIn();
 void indicatorCheckOut();
@@ -143,18 +197,26 @@ void setup() {
 
   // Inisialisasi I2C LCD (SDA=GPIO4/D2, SCL=GPIO5/D1)
   Wire.begin(4, 5);
+  Wire.setClock(400000); // 400kHz Fast I2C agar transfer data LCD super cepat tanpa jeda
 #ifdef FDB_LIQUID_CRYSTAL_I2C_H
   lcd.begin();
 #else
   lcd.init();
 #endif
   lcd.backlight();
+
+  // Daftarkan Karakter Khusus Pixel
+  lcd.createChar(0, iconWifi);
+  lcd.createChar(1, iconCard);
+  lcd.createChar(2, iconHeart);
+
+  // Layar Booting Modern
   lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
-  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
+  lcd.setCursor(0, 1); lcd.print(F(" * PEMBDA HUB v2 *  "));
+  lcd.setCursor(0, 2); lcd.print(F(" Memulai Sistem...  "));
   lcd.setCursor(0, 3); lcd.print(F("===================="));
   Serial.println(F("LCD OK."));
-  delay(2000);
+  delay(1500);
 
   // ── INISIALISASI SPI & RFID RC522 ──
   SPI.begin();
@@ -225,6 +287,8 @@ void setup() {
   Serial.print(F("Free Heap setelah init: ")); Serial.println(ESP.getFreeHeap());
   Serial.println(F("System Ready. Silakan scan kartu RFID atau QR Code."));
 
+  lastActivityTime = millis();
+  isScreensaver    = false;
   showReady();
 }
 
@@ -234,31 +298,56 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // Periksa status WiFi setiap 10 detik secara non-blocking
+  // 1. Cek QR Code lebih dulu (prioritas tinggi buffer SoftwareSerial)
+  handleQrScan();
+
+  // 2. Cek RFID
+  handleRfidScan();
+
+  // 3. Periksa status WiFi setiap 10 detik secara non-blocking
   if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
     if (wifiMulti.run() == WL_CONNECTED) {
       if (!isOnline) {
         isOnline = true;
         Serial.println(F("WiFi Terhubung Kembali."));
-        showReady();
+        if (!isShowingResult) {
+          if (isScreensaver) showScreensaverBase();
+          else showReady();
+        }
       }
     } else {
       if (isOnline) {
         isOnline = false;
         Serial.println(F("WiFi Terputus! Mencoba mencari jaringan..."));
-        showReady();
+        if (!isShowingResult) {
+          if (isScreensaver) showScreensaverBase();
+          else showReady();
+        }
       }
     }
   }
 
-  // 1. Cek RFID
-  handleRfidScan();
+  // 4. Jika sedang menampilkan hasil scan atau ada data masuk di serial QR, tunda update LCD
+  if (isShowingResult || kioskSerial.available() > 0) {
+    delay(5);
+    return;
+  }
 
-  // 2. Cek QR Code
-  handleQrScan();
+  // 5. Transisi ke Smart Screensaver jika idle >= 20 detik
+  if (!isScreensaver && (now - lastActivityTime >= IDLE_TIMEOUT_MS)) {
+    isScreensaver = true;
+    showScreensaverBase();
+  }
 
-  delay(20);
+  // 6. Jalankan animasi standby atau running text marquee
+  if (isScreensaver) {
+    updateMarquee();
+  } else {
+    updateLcdAnimation();
+  }
+
+  delay(10);
 }
 
 // ============================================================
@@ -288,6 +377,7 @@ void handleRfidScan() {
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
+  isShowingResult = true;
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
   lcd.setCursor(0, 1); lcd.print(F("Membaca kartu RFID  "));
@@ -303,9 +393,9 @@ void handleRfidScan() {
 //  HANDLER QR CODE (via SoftwareSerial Pin D3)
 // ============================================================
 void handleQrScan() {
-  int maxRead = 15;
+  int maxRead = 32;
 
-  for (int i = 0; i < maxRead && kioskSerial.available() > 0; i++) {
+  while (kioskSerial.available() > 0 && maxRead-- > 0) {
     char c = kioskSerial.read();
 
     if (c == '\r' || c == '\n') {
@@ -326,6 +416,7 @@ void handleQrScan() {
         lastUID     = qrData;
         lastTapTime = now;
 
+        isShowingResult = true;
         lcd.clear();
         lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
         lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
@@ -384,7 +475,7 @@ void sendToServer(String uid, String type) {
   if (code == 200 || code == 201) {
     String payload = http.getString();
     Serial.println("Server Response: " + payload);
-    parseAndDisplay(payload);
+    parseAndDisplay(payload, uid);
   } else if (code == 401) {
     playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
     showError("API Key Tidak Valid!");
@@ -398,7 +489,7 @@ void sendToServer(String uid, String type) {
     String errMsg = http.errorToString(code);
     String payload = http.getString();
     if (payload.length() > 10 && payload.indexOf("status") > 0) {
-      parseAndDisplay(payload);
+      parseAndDisplay(payload, uid);
     } else {
       playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
       showError("Server Error: " + errMsg.substring(0, 14));
@@ -410,13 +501,42 @@ void sendToServer(String uid, String type) {
   qrBuffer = "";
   
   delay(DISPLAY_RESULT_MS);
+  lastActivityTime = millis();
+  isScreensaver    = false;
   showReady();
+}
+
+// ============================================================
+//  KIRIM UID KE SCAN BUFFER (untuk fitur registrasi RFID massal)
+// ============================================================
+void sendScanBuffer(String uid) {
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  Serial.println(F("Mengirim UID ke scan-buffer..."));
+
+  BearSSL::WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+  http.begin(client, SCAN_BUFFER_URL);
+  http.addHeader("Content-Type",    "application/json");
+  http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
+  http.setTimeout(5000);
+
+  StaticJsonDocument<64> doc;
+  doc["uid"] = uid;
+  String body;
+  serializeJson(doc, body);
+
+  int code = http.POST(body);
+  Serial.print("Scan-buffer Response: "); Serial.println(code);
+  http.end();
 }
 
 // ============================================================
 //  PARSE RESPONSE JSON
 // ============================================================
-void parseAndDisplay(String json) {
+void parseAndDisplay(String json, String uid) {
   StaticJsonDocument<256> doc;
   if (deserializeJson(doc, json)) {
     showError("Format Data Rusak");
@@ -457,7 +577,7 @@ void parseAndDisplay(String json) {
     else if (action_code == "CHECK_OUT") {
       lcd.setCursor(0, 2); lcd.print("PULANG PADA: " + waktu);
       lcd.setCursor(0, 3); lcd.print(F("Hati-hati di jalan! "));
-      playAudio(1, 3); // 003.MP3
+      playAudio(1, 3); // 003.MP3 - Absen pulang sampai jumpa
       indicatorCheckOut();
     }
     else if (action_code == "COOLDOWN") {
@@ -467,10 +587,11 @@ void parseAndDisplay(String json) {
       } else {
         lcd.setCursor(0, 3); lcd.print(message.substring(0, min((int)message.length(), 20)));
       }
-      playAudio(1, 4); // 004.MP3
+      playAudio(1, 4); // 004.MP3 - Absen sudah tercatat terima kasih
       indicatorCooldown();
     }
     else if (action_code == "NEW_CARD") {
+      sendScanBuffer(uid);
       lcd.clear();
       lcd.setCursor(0, 0); lcd.print(F("** KARTU BARU **    "));
       lcd.setCursor(0, 1); lcd.print(kelasDisplay);
@@ -539,18 +660,121 @@ void connectWiFi() {
 }
 
 // ============================================================
-//  FUNGSI DISPLAY
+//  FUNGSI DISPLAY STANDBY (MODE SIAGA AKTIF - 20 DETIK AWAL)
 // ============================================================
 void showReady() {
+  isShowingResult = false;
   lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
-  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
+  
+  // Baris 0: Header Elegan
+  lcd.setCursor(0, 0);
+  lcd.print(F("*PEMBDAHUB PRESENSI*"));
+  
+  // Baris 1: Petunjuk Scan
+  lcd.setCursor(0, 1);
+  lcd.write(byte(1)); // Ikon Kartu
+  lcd.print(F(" Tempel Kartu / QR "));
+  
+  // Baris 2: Animasi / Petunjuk
+  lcd.setCursor(0, 2);
+  lcd.print(F("   >> RFID / QR <<  "));
+
+  // Baris 3: Status Bar & SSID WiFi
+  lcd.setCursor(0, 3);
   if (isOnline) {
-    lcd.setCursor(0, 3); lcd.print(F("Status: READY       "));
+    lcd.write(byte(0)); // Ikon WiFi
+    lcd.print(F(" ON:"));
+    String ssid = WiFi.SSID();
+    if (ssid.length() > 10) ssid = ssid.substring(0, 10);
+    lcd.print(ssid);
   } else {
-    lcd.setCursor(0, 3); lcd.print(F("Status: OFFLINE     "));
+    lcd.print(F("[OFFLINE] Cari AP..."));
   }
+}
+
+// Update Animasi Gelombang Siaga (Dipanggil setiap 350ms)
+void updateLcdAnimation() {
+  if (isShowingResult || isScreensaver) return;
+
+  unsigned long now = millis();
+  if (now - lastAnimTime < 350) return;
+  lastAnimTime = now;
+
+  const char* frames[] = {
+    "   >> RFID / QR <<  ",
+    "  >>> RFID / QR <<< ",
+    " >>>> RFID / QR <<<<",
+    "  >>> RFID / QR <<< ",
+    "   >> RFID / QR <<  ",
+    "    > RFID / QR <   "
+  };
+
+  lcd.setCursor(0, 2);
+  lcd.print(frames[animFrame]);
+  animFrame = (animFrame + 1) % 6;
+
+  // Heartbeat indicator di pojok kanan bawah
+  lcd.setCursor(19, 3);
+  if (animFrame % 2 == 0) lcd.write(byte(2));
+  else lcd.print(F(" "));
+}
+
+// ============================================================
+//  FUNGSI SMART SCREENSAVER (RUNNING TEXT SLOGAN YAYASAN)
+// ============================================================
+void showScreensaverBase() {
+  isShowingResult = false;
+  lcd.clear();
+  
+  // Baris 0: Header Yayasan
+  lcd.setCursor(0, 0);
+  lcd.print(F("* PERGURUAN PEMBDA *"));
+  
+  // Baris 1: Subtitle Lembaga
+  lcd.setCursor(0, 1);
+  lcd.print(F("STATION ABSENSI     "));
+  
+  // Baris 3: Status Bar Siaga Scan
+  lcd.setCursor(0, 3);
+  if (isOnline) {
+    lcd.write(byte(0));
+    lcd.print(F(" "));
+    String ssid = WiFi.SSID();
+    if (ssid.length() > 8) ssid = ssid.substring(0, 8);
+    lcd.print(ssid);
+    lcd.setCursor(12, 3);
+    lcd.print(F("SCAN"));
+  } else {
+    lcd.print(F("[OFFLINE]   SCAN"));
+  }
+}
+
+// Update Teks Berjalan Halus (Dipanggil setiap 220ms)
+void updateMarquee() {
+  if (isShowingResult || !isScreensaver) return;
+
+  unsigned long now = millis();
+  if (now - lastMarqueeTime < 220) return;
+  lastMarqueeTime = now;
+
+  // Buat jendela 20 karakter dari teks berjalan
+  String windowText = "";
+  int textLen = marqueeText.length();
+  for (int i = 0; i < 20; i++) {
+    int idx = (marqueePos + i) % textLen;
+    windowText += marqueeText[idx];
+  }
+
+  // Tampilkan di Baris 2
+  lcd.setCursor(0, 2);
+  lcd.print(windowText);
+
+  marqueePos = (marqueePos + 1) % textLen;
+
+  // Heartbeat blink di pojok kanan bawah
+  lcd.setCursor(19, 3);
+  if ((marqueePos / 2) % 2 == 0) lcd.write(byte(2));
+  else lcd.print(F(" "));
 }
 
 void showError(String msg) {
