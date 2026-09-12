@@ -46,7 +46,7 @@
 //  ├──────────────────────┼────────────────┼──────────────────────────┤
 //  │ VCC                  │ VU (5V)        │ Daya 5V                  │
 //  │ GND                  │ GND            │ Ground bersama           │
-//  │ RX                   │ D4 (GPIO2)     │ Melalui Resistor 1K Ohm! │
+//  │ RX                   │ TX (GPIO1)     │ Melalui Resistor 1K Ohm! │
 //  │ SPK_1                │ Speaker (+)    │ Speaker 3W / 8 Ohm       │
 //  │ SPK_2                │ Speaker (-)    │ Speaker 3W / 8 Ohm       │
 //  └──────────────────────┴────────────────┴──────────────────────────┘
@@ -787,11 +787,16 @@ void beep(int count, int duration) {
 }
 
 // ============================================================
-//  FUNGSI MP3 PLAYER RAW COMMANDS
+//  FUNGSI MP3 PLAYER RAW COMMANDS (10-Byte dengan Checksum)
 // ============================================================
 void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
-  uint8_t cmdBuffer[8] = { 0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2, 0xEF };
-  kioskSerial.write(cmdBuffer, 8);
+  uint16_t checksum = 0 - (0xFF + 0x06 + cmd + 0x00 + para1 + para2);
+  uint8_t cmdBuffer[10] = {
+    0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2,
+    (uint8_t)(checksum >> 8), (uint8_t)(checksum & 0xFF),
+    0xEF
+  };
+  kioskSerial.write(cmdBuffer, 10);
   delay(100);
 }
 
