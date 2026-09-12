@@ -104,6 +104,11 @@
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-black bg-purple-100 text-purple-800 border border-purple-200">
                                                 <i class="fas fa-university text-[10px]"></i> UJIAN SEKOLAH
                                             </span>
+                                            @if(isset($teacher) && $exam->teacher_id == $teacher->id)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                    <i class="fas fa-user-check text-[10px]"></i> Ditugaskan ke Anda
+                                                </span>
+                                            @endif
                                         @else
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                                 <i class="fas fa-chalkboard text-[10px]"></i> KELAS

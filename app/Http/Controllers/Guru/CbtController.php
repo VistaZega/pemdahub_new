@@ -746,16 +746,24 @@ class CbtController extends Controller
         // Hitung kuota untuk tab filter
         $countSchoolExams = CbtExam::where('exam_scope', 'school')
             ->where('school_id', $teacher->school_id)
-            ->whereIn('status', ['published', 'active', 'completed', 'archived'])
-            ->when(!empty($teacherSubjectIds), fn($q) => $q->whereIn('subject_id', $teacherSubjectIds))
+            ->where(function ($sq) use ($teacher, $teacherSubjectIds) {
+                $sq->where('teacher_id', $teacher->id);
+                $sq->orWhere(function ($ssq) use ($teacherSubjectIds) {
+                    $ssq->whereIn('status', ['published', 'active', 'completed', 'archived']);
+                    if (!empty($teacherSubjectIds)) {
+                        $ssq->whereIn('subject_id', $teacherSubjectIds);
+                    }
+                });
+            })
             ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
             ->count();
 
-        $countClassExams = CbtExam::where('teacher_id', $teacher->id)
+        $countClassExams = CbtExam::where('exam_scope', 'class')
+            ->where('teacher_id', $teacher->id)
             ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
             ->count();
 
-        return view('guru.cbt.exams.index', compact('exams', 'filterScope', 'totalPendingEssays', 'countSchoolExams', 'countClassExams'));
+        return view('guru.cbt.exams.index', compact('exams', 'teacher', 'filterScope', 'totalPendingEssays', 'countSchoolExams', 'countClassExams'));
     }
 
     public function examCreate()

@@ -102,7 +102,13 @@ class CbtManagementController extends Controller
 
         $hasEssayQuestions = $exam->examQuestions->whereNotNull('question')->filter(fn($eq) => in_array($eq->question?->question_type, ['essay', 'fill_blank']))->isNotEmpty();
 
-        return view('admin.cbt.show', compact('exam', 'statistics', 'pendingEssaysCount', 'hasEssayQuestions'));
+        $teachers = Teacher::with('user')
+            ->where('is_active', true)
+            ->where('school_id', $exam->school_id)
+            ->orderBy('teacher_code')
+            ->get();
+
+        return view('admin.cbt.show', compact('exam', 'statistics', 'pendingEssaysCount', 'hasEssayQuestions', 'teachers'));
     }
 
     /**
@@ -740,10 +746,36 @@ class CbtManagementController extends Controller
         }
         $classrooms = $classroomsQuery->get();
 
+        // Teachers — all active teachers in school with their subject teaching assignments & competencies
+        $teachersQuery = Teacher::with(['user', 'employee', 'teachingAssignments' => function($q) use ($academicYear) {
+            $q->where('is_active', true)->when($academicYear, fn($sq) => $sq->where('academic_year_id', $academicYear->id));
+        }, 'competentSubjects', 'schedules'])
+            ->where('is_active', true)
+            ->orderBy('teacher_code');
+
+        if ($userSchoolId) {
+            $teachersQuery->where('school_id', $userSchoolId);
+        }
+        $teachers = $teachersQuery->get();
+
         $examTypes = CbtExam::getSchoolScopeTypes();
 
         // Pre-map data to JSON-safe arrays for Alpine.js
         $subjectsJson = $subjects->map(fn($s) => ['id' => $s->id, 'name' => $s->subject_name, 'school_id' => $s->school_id])->values();
+        $teachersJson = $teachers->map(function ($t) {
+            $taSubjectIds = $t->teachingAssignments->pluck('subject_id');
+            $schedSubjectIds = $t->schedules->pluck('subject_id');
+            $compSubjectIds = $t->competentSubjects->pluck('id');
+            $subjectIds = $taSubjectIds->merge($schedSubjectIds)->merge($compSubjectIds)->unique()->filter()->values()->toArray();
+
+            return [
+                'id' => $t->id,
+                'name' => $t->full_name ?: ($t->user?->name ?? 'Guru'),
+                'code' => $t->teacher_code ?? '',
+                'school_id' => $t->school_id,
+                'subject_ids' => $subjectIds,
+            ];
+        })->values();
         $banksJson = $banks->map(fn($b) => [
             'id' => $b->id,
             'name' => $b->bank_name,
@@ -762,10 +794,10 @@ class CbtManagementController extends Controller
         ])->values();
 
         return view('admin.cbt.exams.create', compact(
-            'schools', 'subjects', 'banks', 'classrooms',
+            'schools', 'subjects', 'teachers', 'banks', 'classrooms',
             'academicYear', 'semester', 'examTypes',
             'isSuperAdmin', 'userSchoolId',
-            'subjectsJson', 'banksJson', 'classroomsJson'
+            'subjectsJson', 'teachersJson', 'banksJson', 'classroomsJson'
         ));
     }
 
@@ -787,6 +819,7 @@ class CbtManagementController extends Controller
         $validated = $request->validate([
             'school_id' => 'required|exists:schools,id',
             'subject_id' => 'required|exists:subjects,id',
+            'teacher_id' => 'nullable|exists:teachers,id',
             'exam_title' => 'required|string|max:255',
             'exam_description' => 'nullable|string',
             'exam_type' => "required|in:{$allowedTypes}",
@@ -816,7 +849,7 @@ class CbtManagementController extends Controller
 
         $exam = CbtExam::create(array_merge($validated, [
             'exam_scope' => 'school',
-            'teacher_id' => null,
+            'teacher_id' => $request->filled('teacher_id') ? $request->teacher_id : null,
             'academic_year_id' => $academicYear->id,
             'semester_id' => $semester->id,
             'total_questions_shown' => collect($validated['question_banks'])->sum('questions_to_pick'),
@@ -841,6 +874,28 @@ class CbtManagementController extends Controller
 
         return redirect()->route('admin.cbt.show', $exam)
             ->with('success', 'Ujian sekolah berhasil dibuat sebagai draft. Silakan publikasikan jika sudah siap.');
+    }
+
+    /**
+     * Tetapkan / Ganti Guru Pengampu & Penilai Ujian CBT (Admin)
+     */
+    public function assignTeacher(Request $request, CbtExam $exam)
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $exam->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'teacher_id' => 'nullable|exists:teachers,id',
+        ]);
+
+        $exam->update([
+            'teacher_id' => $request->filled('teacher_id') ? $request->teacher_id : null,
+        ]);
+
+        $teacherName = $exam->fresh()->teacher?->full_name ?? 'Tanpa Guru Pengampu';
+        return back()->with('success', "Guru pengampu/penilai ujian berhasil diperbarui: {$teacherName}.");
     }
 
     /**

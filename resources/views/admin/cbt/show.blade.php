@@ -79,6 +79,7 @@
                     @php $infoItems = [
                         ['Tipe', strtoupper($exam->exam_type), 'fa-tag'],
                         ['Scope', $exam->exam_scope === 'school' ? 'Ujian Sekolah' : 'Ujian Kelas', 'fa-globe'],
+                        ['Guru Pengampu', $exam->teacher?->full_name ?? 'Belum Ditugaskan', 'fa-chalkboard-teacher'],
                         ['Durasi', $exam->duration_minutes . ' menit', 'fa-clock'],
                         ['KKM', $exam->passing_score, 'fa-bullseye'],
                         ['Maks Percobaan', $exam->max_attempts . '×', 'fa-redo'],
@@ -210,6 +211,52 @@
                     </form>
                     @endif
                 </div>
+            </div>
+
+            {{-- Guru Pengampu / Penilai --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-gray-700 uppercase tracking-wider">Guru Pengampu</h3>
+                    @if($exam->teacher)
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Ditugaskan</span>
+                    @else
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">Belum Ada</span>
+                    @endif
+                </div>
+
+                <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center font-bold">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-gray-900 truncate">
+                                {{ $exam->teacher?->full_name ?? 'Belum Ditugaskan' }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ $exam->teacher?->teacher_code ?? 'Guru ini berhak mengkoreksi esai ujian' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form action="{{ route('admin.cbt.exams.assign-teacher', $exam) }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih / Ubah Guru</label>
+                        <select name="teacher_id" class="w-full text-sm rounded-xl border-gray-200 bg-gray-50 focus:ring-2 focus:ring-violet-500 p-2.5 font-medium">
+                            <option value="">-- Tanpa Guru Pengampu --</option>
+                            @foreach($teachers as $t)
+                            <option value="{{ $t->id }}" {{ $exam->teacher_id == $t->id ? 'selected' : '' }}>
+                                {{ $t->full_name }} ({{ $t->teacher_code }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                        <i class="fas fa-save mr-1.5"></i> Simpan Penugasan Guru
+                    </button>
+                </form>
             </div>
 
             {{-- Kelas Peserta --}}

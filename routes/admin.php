@@ -438,6 +438,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::post('/exams/{exam}/batch-start', [App\Http\Controllers\Admin\CbtManagementController::class, 'examBatchStart'])->name('exams.batch-start');
         Route::post('/exams/{exam}/pause', [App\Http\Controllers\Admin\CbtManagementController::class, 'examPause'])->name('exams.pause');
         Route::post('/exams/{exam}/resume', [App\Http\Controllers\Admin\CbtManagementController::class, 'examResume'])->name('exams.resume');
+        Route::post('/exams/{exam}/assign-teacher', [App\Http\Controllers\Admin\CbtManagementController::class, 'assignTeacher'])->name('exams.assign-teacher');
 
         Route::get('/{exam}', [App\Http\Controllers\Admin\CbtManagementController::class, 'show'])->name('show');
         Route::get('/{exam}/results', [App\Http\Controllers\Admin\CbtManagementController::class, 'results'])->name('results');

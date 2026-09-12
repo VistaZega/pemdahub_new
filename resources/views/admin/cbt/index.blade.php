@@ -160,7 +160,21 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-5 py-4 text-base text-gray-800">{{ $exam->teacher?->full_name ?? '-' }}</td>
+                        <td class="px-5 py-4 text-base text-gray-800">
+                            @if($exam->teacher)
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <span class="font-bold text-gray-900 truncate" title="{{ $exam->teacher->full_name }}">{{ $exam->teacher->full_name }}</span>
+                                </div>
+                            @else
+                                <a href="{{ route('admin.cbt.show', $exam) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition" title="Klik untuk menetapkan guru pengampu">
+                                    <i class="fas fa-user-plus text-[10px]"></i>
+                                    <span>Atur Guru</span>
+                                </a>
+                            @endif
+                        </td>
                         <td class="px-5 py-4 text-center">
                             <span class="inline-flex items-center px-2.5 py-1 text-base font-bold rounded-lg bg-violet-50 text-violet-700 border border-violet-100">{{ strtoupper($exam->exam_type) }}</span>
                         </td>

@@ -58,7 +58,7 @@ const char* SCAN_BUFFER_URL    = "https://perguruanpembda.com/api/rfid/scan-buff
 const char* KIOSK_API_KEY      = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-const char* DEVICE_ID          = "STATION-SMA-02";
+const char* DEVICE_ID          = "STATION-SMA-01";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)

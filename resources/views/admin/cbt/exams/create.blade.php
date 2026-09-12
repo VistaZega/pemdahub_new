@@ -71,6 +71,27 @@
                 </div>
 
                 <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-base font-semibold text-gray-700 uppercase tracking-wider">
+                            Guru Pengampu / Penilai
+                        </label>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100">
+                            Akses Koreksi
+                        </span>
+                    </div>
+                    <select name="teacher_id" x-model="selectedTeacherId" class="w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 px-5 py-3.5 text-gray-800 font-bold transition-all" :disabled="!selectedSchoolId">
+                        <option value="">-- Pilih Guru Pengampu / Penilai --</option>
+                        <template x-for="teacher in dropdownTeachers" :key="teacher.id">
+                            <option :value="teacher.id" x-text="(teacher.is_subject_teacher ? '⭐ ' : '') + teacher.name + (teacher.is_subject_teacher ? ' (Pengampu Mapel)' : '')"></option>
+                        </template>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                        <i class="fas fa-user-check text-emerald-500"></i>
+                        <span>Guru yang dipilih akan dapat melihat & mengkoreksi hasil ujian ini di menu guru.</span>
+                    </p>
+                </div>
+
+                <div>
                     <label class="block text-base font-semibold text-gray-700 uppercase tracking-wider mb-2">Tipe Ujian <span class="text-red-500">*</span></label>
                     <select name="exam_type" class="w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 px-5 py-3.5 text-gray-800 font-bold transition-all" required>
                         <option value="">Pilih Tipe</option>
@@ -311,6 +332,7 @@
 <script>
 function examForm() {
     const allSubjects = @json($subjectsJson);
+    const allTeachers = @json($teachersJson);
     const allBanks = @json($banksJson);
     const allClassrooms = @json($classroomsJson);
 
@@ -318,17 +340,56 @@ function examForm() {
         selectedBanks: [{ bank_id: '', questions_to_pick: 10 }],
         selectedSchoolId: '{{ old("school_id", $userSchoolId ?? "") }}',
         selectedSubjectId: '{{ old("subject_id", "") }}',
+        selectedTeacherId: '{{ old("teacher_id", "") }}',
 
         init() {
             this.$watch('selectedSchoolId', (val) => {
                 this.selectedSubjectId = '';
+                this.selectedTeacherId = '';
                 this.selectedBanks = [{ bank_id: '', questions_to_pick: 10 }];
+            });
+
+            this.$watch('selectedSubjectId', (val) => {
+                if (val) {
+                    const teachers = this.subjectTeachers;
+                    if (teachers.length === 1) {
+                        this.selectedTeacherId = teachers[0].id.toString();
+                    } else if (this.selectedTeacherId) {
+                        const stillInSchool = this.filteredTeachers.some(t => t.id == this.selectedTeacherId);
+                        if (!stillInSchool) this.selectedTeacherId = '';
+                    }
+                }
             });
         },
 
         get filteredSubjects() {
             if (!this.selectedSchoolId) return [];
             return allSubjects.filter(s => s.school_id == this.selectedSchoolId);
+        },
+
+        get filteredTeachers() {
+            if (!this.selectedSchoolId) return [];
+            return allTeachers.filter(t => t.school_id == this.selectedSchoolId);
+        },
+
+        get subjectTeachers() {
+            if (!this.selectedSubjectId) return [];
+            return this.filteredTeachers.filter(t => Array.isArray(t.subject_ids) && t.subject_ids.includes(Number(this.selectedSubjectId)));
+        },
+
+        get dropdownTeachers() {
+            if (!this.selectedSchoolId) return [];
+            return this.filteredTeachers.map(t => {
+                const isSubject = this.selectedSubjectId && Array.isArray(t.subject_ids) && t.subject_ids.includes(Number(this.selectedSubjectId));
+                return {
+                    ...t,
+                    is_subject_teacher: Boolean(isSubject)
+                };
+            }).sort((a, b) => {
+                if (a.is_subject_teacher && !b.is_subject_teacher) return -1;
+                if (!a.is_subject_teacher && b.is_subject_teacher) return 1;
+                return a.name.localeCompare(b.name);
+            });
         },
 
         get filteredBanks() {
