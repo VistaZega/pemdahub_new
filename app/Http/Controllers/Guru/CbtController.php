@@ -664,7 +664,8 @@ class CbtController extends Controller
             $subjects = Subject::where('school_id', $teacher->school_id)->get();
         }
 
-        $banks = CbtQuestionBank::where('is_active', true)
+        $banks = CbtQuestionBank::with('subject:id,name,subject_name')
+            ->where('is_active', true)
             ->where(function($q) use ($teacher) {
                 $q->where('teacher_id', $teacher->id)
                   ->orWhere(function($sq) use ($teacher) {
@@ -673,7 +674,11 @@ class CbtController extends Controller
                   });
             })
             ->select('id', 'bank_name', 'subject_id', 'grade_level', 'total_questions')
-            ->get();
+            ->get()
+            ->map(function($b) {
+                $b->subject_name = $b->subject?->subject_name ?? $b->subject?->name ?? '';
+                return $b;
+            });
 
         $academicYear = AcademicYear::where('is_active', true)->first();
         $semester = Semester::where('is_active', true)->first();
@@ -889,7 +894,16 @@ class CbtController extends Controller
         $academicYear = AcademicYear::where('is_active', true)->first();
         $semester = Semester::where('is_active', true)->first();
 
-        $banks = CbtQuestionBank::where('teacher_id', $teacher->id)->where('is_active', true)->get();
+        $banks = CbtQuestionBank::with('subject:id,name,subject_name')
+            ->where('is_active', true)
+            ->where(function($q) use ($teacher) {
+                $q->where('teacher_id', $teacher->id)
+                  ->orWhere(function($sq) use ($teacher) {
+                      $sq->where('school_id', $teacher->school_id)
+                         ->where('is_shared', true);
+                  });
+            })
+            ->get();
         // Classrooms filtered by teacher's schedule, teaching assignments, or homeroom
         $classrooms = Classroom::where('is_active', true)
             ->where(function ($q) use ($teacher, $academicYear, $semester) {

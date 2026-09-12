@@ -426,6 +426,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::get('/banks', [App\Http\Controllers\Admin\CbtManagementController::class, 'bankIndex'])->name('banks');
         Route::get('/banks/import-template', [App\Http\Controllers\Admin\CbtManagementController::class, 'downloadImportTemplate'])->name('banks.import-template');
         Route::post('/banks/import', [App\Http\Controllers\Admin\CbtManagementController::class, 'importBank'])->name('banks.import');
+        Route::post('/banks/{bank}/toggle-share', [App\Http\Controllers\Admin\CbtManagementController::class, 'toggleBankShare'])->name('banks.toggle-share');
+        Route::delete('/banks/{bank}', [App\Http\Controllers\Admin\CbtManagementController::class, 'bankDestroy'])->name('banks.destroy');
         Route::get('/report', [App\Http\Controllers\Admin\CbtManagementController::class, 'report'])->name('report');
 
         // Admin Exam CRUD (school-scope exams)

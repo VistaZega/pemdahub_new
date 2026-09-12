@@ -1,7 +1,7 @@
 @extends('layouts.guru')
 @section('title', 'Buat Ujian CBT')
 @section('content')
-<div class="space-y-8" x-data="examForm({{ $banks->toJson() }})">
+<div class="space-y-8" x-data="examForm({{ $banks->toJson() }}, {{ $subjects->map(fn($s) => ['id' => $s->id, 'name' => $s->subject_name ?? $s->name])->toJson() }})">
     {{-- Hero Header --}}
     <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 rounded-2xl p-8 text-white">
         <div class="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
@@ -107,7 +107,7 @@
                                     @foreach($banks as $bank)
                                     <template x-if="isBankVisible({{ $bank->id }})">
                                         <option value="{{ $bank->id }}">
-                                            {{ $bank->bank_name }} (Kls {{ $bank->grade_level }} &bull; {{ $bank->total_questions }} soal)
+                                            {{ $bank->bank_name }} ({{ $bank->subject?->name ?? 'Mapel' }} &bull; Kls {{ $bank->grade_level }} &bull; {{ $bank->total_questions }} soal)
                                         </option>
                                     </template>
                                     @endforeach
@@ -131,6 +131,14 @@
                         </div>
                     </div>
                 </template>
+            </div>
+
+            <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                <span>* Menampilkan bank soal untuk mata pelajaran yang dipilih dan bank soal bersama sekolah.</span>
+                <button type="button" @click="showAllBanks = !showAllBanks" class="text-emerald-600 hover:text-emerald-800 font-semibold underline">
+                    <span x-show="!showAllBanks">Tampilkan Semua Bank Soal Sekolah</span>
+                    <span x-show="showAllBanks">Hanya Tampilkan Mapel Terpilih</span>
+                </button>
             </div>
 
             <button type="button" @click="selectedBanks.push({ bank_id: '', questions_to_pick: 10 })" 
@@ -230,16 +238,28 @@
 @endsection
 @push('scripts')
 <script>
-function examForm(banksData) {
+function examForm(banksData, subjectsData) {
     return {
         allBanks: banksData,
+        allSubjects: subjectsData || [],
         selectedBanks: [{ bank_id: '', questions_to_pick: 10 }],
         selectedSubjectId: '{{ old('subject_id') }}',
+        showAllBanks: false,
         
         isBankVisible(bankId) {
-            if (!this.selectedSubjectId) return true;
+            if (this.showAllBanks || !this.selectedSubjectId) return true;
             const bank = this.allBanks.find(b => b.id == bankId);
-            return bank && bank.subject_id == this.selectedSubjectId;
+            if (!bank) return false;
+            // 1. Direct subject ID match
+            if (bank.subject_id == this.selectedSubjectId) return true;
+            // 2. Name-based match fallback
+            const curSubject = this.allSubjects.find(s => s.id == this.selectedSubjectId);
+            if (curSubject && bank.subject_name && curSubject.name) {
+                const s1 = curSubject.name.toLowerCase().trim();
+                const s2 = bank.subject_name.toLowerCase().trim();
+                if (s1 === s2 || s1.includes(s2) || s2.includes(s1)) return true;
+            }
+            return false;
         },
 
         get selectedGradeLevels() {

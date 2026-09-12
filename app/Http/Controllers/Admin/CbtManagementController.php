@@ -193,10 +193,14 @@ class CbtManagementController extends Controller
         $isSuperAdmin = $user->isSuperAdmin();
         $schoolId = $isSuperAdmin ? null : $user->school_id;
 
-        $query = CbtQuestionBank::with(['teacher.user', 'subject', 'questions']);
+        $schools = School::where('is_active', true)->schoolsOnly()->orderBy('name')->get();
+
+        $query = CbtQuestionBank::with(['teacher.user', 'subject', 'questions', 'school']);
 
         if (!$isSuperAdmin) {
             $query->where('school_id', $schoolId);
+        } elseif ($request->filled('school_id')) {
+            $query->where('school_id', $request->school_id);
         }
 
         if ($request->filled('subject_id')) {
@@ -208,8 +212,8 @@ class CbtManagementController extends Controller
 
         $banks = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
 
-        $subjectsQuery = Subject::orderBy('name');
-        $teachersQuery = Teacher::with('user');
+        $subjectsQuery = Subject::with('school')->orderBy('school_id')->orderBy('name');
+        $teachersQuery = Teacher::with(['user', 'school']);
         if (!$isSuperAdmin) {
             $subjectsQuery->where('school_id', $schoolId);
             $teachersQuery->where('school_id', $schoolId);
@@ -218,7 +222,7 @@ class CbtManagementController extends Controller
         $subjects = $subjectsQuery->get();
         $teachers = $teachersQuery->orderBy('teacher_code')->get();
 
-        return view('admin.cbt.banks', compact('banks', 'subjects', 'teachers'));
+        return view('admin.cbt.banks', compact('banks', 'subjects', 'teachers', 'schools', 'isSuperAdmin', 'schoolId'));
     }
 
     /**
@@ -384,17 +388,36 @@ class CbtManagementController extends Controller
             // 4. Create Question Bank
             // ========================================
             $academicYear = AcademicYear::where('is_active', true)->first();
-            $schoolId = $isSuperAdmin ? ($request->school_id ?? School::where('is_active', true)->schoolsOnly()->first()?->id) : $user->school_id;
+            $subject = Subject::findOrFail($request->subject_id);
+            $schoolId = $subject->school_id; // Always tie to the subject's school
+
+            // Security check for school admin
+            if (!$isSuperAdmin && $user->school_id && $schoolId != $user->school_id) {
+                if ($tempDir) $this->cleanupTempDir($tempDir);
+                return back()->with('error', 'Mata pelajaran tidak sesuai dengan unit sekolah Anda.')->withInput();
+            }
+
+            // Resolve teacher: preferred chosen teacher, or teacher teaching this subject, or first teacher in school
+            $teacherId = $request->filled('teacher_id') ? $request->teacher_id : null;
+            if (!$teacherId) {
+                $teacherId = Teacher::where('school_id', $schoolId)
+                    ->whereHas('subjects', fn($q) => $q->where('subjects.id', $subject->id))
+                    ->first()?->id
+                    ?? Teacher::where('school_id', $schoolId)->first()?->id;
+            }
+
+            $isShared = $request->has('is_shared') ? $request->boolean('is_shared') : true;
 
             $bank = CbtQuestionBank::create([
                 'school_id'        => $schoolId,
-                'subject_id'       => $request->subject_id,
-                'teacher_id'       => $request->teacher_id ?? Teacher::where('school_id', $schoolId)->first()?->id,
+                'subject_id'       => $subject->id,
+                'teacher_id'       => $teacherId,
                 'academic_year_id' => $academicYear?->id,
                 'bank_name'        => $request->bank_name,
                 'description'      => $request->description,
                 'grade_level'      => $request->grade_level,
                 'is_active'        => true,
+                'is_shared'        => $isShared,
             ]);
 
             // ========================================
@@ -505,6 +528,38 @@ class CbtManagementController extends Controller
             if ($tempDir) $this->cleanupTempDir($tempDir);
             return back()->with('error', 'Gagal import: ' . $e->getMessage())->withInput();
         }
+    }
+
+    /**
+     * Toggle status is_shared pada bank soal (Admin)
+     */
+    public function toggleBankShare(CbtQuestionBank $bank)
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $bank->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $bank->update(['is_shared' => !$bank->is_shared]);
+
+        $statusText = $bank->is_shared ? 'dibagikan ke semua guru di unit sekolah ini' : 'diatur sebagai privat';
+        return back()->with('success', "Status pembagian bank soal \"{$bank->bank_name}\" berhasil diubah: {$statusText}.");
+    }
+
+    /**
+     * Hapus bank soal (Admin)
+     */
+    public function bankDestroy(CbtQuestionBank $bank)
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $bank->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $bankName = $bank->bank_name;
+        $bank->delete();
+
+        return back()->with('success', "Bank soal \"{$bankName}\" berhasil dihapus.");
     }
 
     /**
@@ -695,6 +750,7 @@ class CbtManagementController extends Controller
             'total' => $b->total_questions,
             'grade' => $b->grade_level,
             'school_id' => $b->school_id,
+            'subject_id' => $b->subject_id,
             'teacher_name' => $b->teacher?->user?->name ?? 'Tanpa Guru',
             'subject_name' => $b->subject?->subject_name ?? '-',
         ])->values();

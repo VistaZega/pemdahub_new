@@ -34,28 +34,43 @@
     {{-- Filter Bar --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
         <form method="GET" action="{{ route('admin.cbt.banks') }}" class="flex flex-wrap items-end gap-3">
+            @if($isSuperAdmin)
+            <div class="flex-1 min-w-[180px]">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Unit Sekolah</label>
+                <select name="school_id" class="w-full rounded-xl border-gray-200 text-sm py-2 focus:border-violet-500 focus:ring-violet-500 font-semibold">
+                    <option value="">Semua Unit Sekolah</option>
+                    @foreach($schools as $sch)
+                    <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
             <div class="flex-1 min-w-[180px]">
                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mata Pelajaran</label>
-                <select name="subject_id" class="w-full rounded-xl border-gray-200 text-sm py-2 focus:border-violet-500 focus:ring-violet-500">
+                <select name="subject_id" class="w-full rounded-xl border-gray-200 text-sm py-2 focus:border-violet-500 focus:ring-violet-500 font-semibold">
                     <option value="">Semua Mapel</option>
                     @foreach($subjects as $subj)
-                    <option value="{{ $subj->id }}" {{ request('subject_id') == $subj->id ? 'selected' : '' }}>{{ $subj->subject_name ?? $subj->name }}</option>
+                    <option value="{{ $subj->id }}" {{ request('subject_id') == $subj->id ? 'selected' : '' }}>
+                        {{ $subj->subject_name ?? $subj->name }} {{ $isSuperAdmin && $subj->school ? '(' . $subj->school->name . ')' : '' }}
+                    </option>
                     @endforeach
                 </select>
             </div>
             <div class="flex-1 min-w-[180px]">
                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Guru</label>
-                <select name="teacher_id" class="w-full rounded-xl border-gray-200 text-sm py-2 focus:border-violet-500 focus:ring-violet-500">
+                <select name="teacher_id" class="w-full rounded-xl border-gray-200 text-sm py-2 focus:border-violet-500 focus:ring-violet-500 font-semibold">
                     <option value="">Semua Guru</option>
                     @foreach($teachers as $t)
-                    <option value="{{ $t->id }}" {{ request('teacher_id') == $t->id ? 'selected' : '' }}>{{ $t->full_name ?? $t->user->name ?? $t->teacher_code }}</option>
+                    <option value="{{ $t->id }}" {{ request('teacher_id') == $t->id ? 'selected' : '' }}>
+                        {{ $t->full_name ?? $t->user->name ?? $t->teacher_code }} {{ $isSuperAdmin && $t->school ? '(' . $t->school->name . ')' : '' }}
+                    </option>
                     @endforeach
                 </select>
             </div>
             <button type="submit" class="px-4 py-2 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition text-sm font-semibold flex items-center gap-2">
                 <i class="fas fa-filter"></i> Filter
             </button>
-            @if(request('subject_id') || request('teacher_id'))
+            @if(request('school_id') || request('subject_id') || request('teacher_id'))
             <a href="{{ route('admin.cbt.banks') }}" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition text-sm font-medium">
                 <i class="fas fa-times"></i> Reset
             </a>
@@ -92,11 +107,15 @@
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100/80 border-b border-gray-200">
                         <th class="px-5 py-4 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Nama Bank Soal</th>
+                        @if($isSuperAdmin)
+                        <th class="px-5 py-4 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Unit Sekolah</th>
+                        @endif
                         <th class="px-5 py-4 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Mapel</th>
                         <th class="px-5 py-4 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Guru</th>
                         <th class="px-5 py-4 text-center text-base font-bold text-gray-700 uppercase tracking-wider">Kelas</th>
                         <th class="px-5 py-4 text-center text-base font-bold text-gray-700 uppercase tracking-wider">Jumlah Soal</th>
-                        <th class="px-5 py-4 text-center text-base font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-5 py-4 text-center text-base font-bold text-gray-700 uppercase tracking-wider">Status & Akses</th>
+                        <th class="px-5 py-4 text-center text-base font-bold text-gray-700 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -115,7 +134,14 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-5 py-4 text-gray-800">{{ $bank->subject->subject_name ?? $bank->subject->name ?? '-' }}</td>
+                        @if($isSuperAdmin)
+                        <td class="px-5 py-4">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                {{ $bank->school?->name ?? '-' }}
+                            </span>
+                        </td>
+                        @endif
+                        <td class="px-5 py-4 text-gray-800 font-medium">{{ $bank->subject->subject_name ?? $bank->subject->name ?? '-' }}</td>
                         <td class="px-5 py-4 text-gray-800">{{ $bank->teacher?->full_name ?? '-' }}</td>
                         <td class="px-5 py-4 text-center">
                             <span class="inline-flex items-center justify-center px-3 py-1 rounded-lg bg-violet-50 text-violet-700 text-base font-bold border border-violet-100">Kelas {{ $bank->grade_level }}</span>
@@ -124,20 +150,51 @@
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100 text-blue-800 font-bold border border-blue-100">{{ $bank->questions_count ?? $bank->questions->count() }}</span>
                         </td>
                         <td class="px-5 py-4 text-center">
-                            @if($bank->is_active)
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-base font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                <i class="fas fa-check-circle text-base"></i>Aktif
-                            </span>
-                            @else
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-base font-bold rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
-                                <i class="fas fa-pause-circle text-base"></i>Nonaktif
-                            </span>
-                            @endif
+                            <div class="flex flex-col items-center gap-1.5">
+                                @if($bank->is_active)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    <i class="fas fa-check-circle text-xs"></i>Aktif
+                                </span>
+                                @else
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md bg-gray-50 text-gray-700 border border-gray-200">
+                                    <i class="fas fa-pause-circle text-xs"></i>Nonaktif
+                                </span>
+                                @endif
+
+                                @if($bank->is_shared)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-md bg-purple-50 text-purple-700 border border-purple-200" title="Dapat digunakan oleh semua guru di unit sekolah saat membuat CBT/Kuis">
+                                    <i class="fas fa-users text-xs"></i>Dibagikan
+                                </span>
+                                @else
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-md bg-amber-50 text-amber-700 border border-amber-200" title="Hanya pemilik dan admin (tidak muncul di dropdown guru lain)">
+                                    <i class="fas fa-lock text-xs"></i>Privat
+                                </span>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <form action="{{ route('admin.cbt.banks.toggle-share', $bank) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center transition border {{ $bank->is_shared ? 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200' }}"
+                                            title="{{ $bank->is_shared ? 'Ubah menjadi privat (tidak dibagikan)' : 'Bagikan ke semua guru di unit sekolah ini' }}">
+                                        <i class="fas {{ $bank->is_shared ? 'fa-share-alt' : 'fa-lock' }} text-xs"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.cbt.banks.destroy', $bank) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus bank soal ini beserta seluruh butir soalnya?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition border border-red-200"
+                                            title="Hapus Bank Soal">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-16 text-center">
+                        <td colspan="{{ $isSuperAdmin ? 8 : 7 }}" class="px-6 py-16 text-center">
                             <div class="flex flex-col items-center">
                                 <div class="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mb-4"><i class="fas fa-database text-2xl text-violet-300"></i></div>
                                 <p class="text-gray-700 font-medium">Belum ada bank soal</p>
@@ -208,6 +265,19 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @if($isSuperAdmin)
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Unit Sekolah <span class="text-red-500">*</span></label>
+                            <select name="school_id" x-model="selectedSchool" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm font-bold text-gray-800 bg-gray-50">
+                                @foreach($schools as $sch)
+                                <option value="{{ $sch->id }}">{{ $sch->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @else
+                        <input type="hidden" name="school_id" value="{{ $schoolId }}">
+                        @endif
+
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Bank Soal <span class="text-red-500">*</span></label>
                             <input type="text" name="bank_name" required value="{{ old('bank_name') }}"
@@ -216,28 +286,28 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Mata Pelajaran <span class="text-red-500">*</span></label>
-                            <select name="subject_id" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm">
+                            <select name="subject_id" x-model="selectedSubjectId" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm font-semibold">
                                 <option value="">-- Pilih Mapel --</option>
-                                @foreach($subjects as $subj)
-                                <option value="{{ $subj->id }}" {{ old('subject_id') == $subj->id ? 'selected' : '' }}>{{ $subj->subject_name ?? $subj->name }}</option>
-                                @endforeach
+                                <template x-for="subj in filteredSubjects" :key="subj.id">
+                                    <option :value="subj.id" x-text="subj.name"></option>
+                                </template>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Tingkat Kelas <span class="text-red-500">*</span></label>
-                            <select name="grade_level" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm">
+                            <select name="grade_level" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm font-semibold">
                                 @foreach(['7','8','9','10','11','12'] as $gl)
                                 <option value="{{ $gl }}" {{ old('grade_level') == $gl ? 'selected' : '' }}>Kelas {{ $gl }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Guru</label>
-                            <select name="teacher_id" class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm">
-                                <option value="">-- Otomatis --</option>
-                                @foreach($teachers as $t)
-                                <option value="{{ $t->id }}" {{ old('teacher_id') == $t->id ? 'selected' : '' }}>{{ $t->full_name ?? $t->user->name ?? $t->teacher_code }}</option>
-                                @endforeach
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Guru Pengampu</label>
+                            <select name="teacher_id" x-model="selectedTeacherId" class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm font-semibold">
+                                <option value="">-- Otomatis (Bank Soal Sekolah) --</option>
+                                <template x-for="t in filteredTeachers" :key="t.id">
+                                    <option :value="t.id" x-text="t.name"></option>
+                                </template>
                             </select>
                         </div>
                         <div>
@@ -245,6 +315,19 @@
                             <input type="text" name="description" value="{{ old('description') }}"
                                    class="w-full rounded-xl border-gray-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 px-4 py-2.5 text-sm"
                                    placeholder="Deskripsi opsional...">
+                        </div>
+
+                        <div class="md:col-span-2 pt-1">
+                            <label class="flex items-center gap-3 p-3.5 bg-violet-50/70 rounded-xl border border-violet-100 cursor-pointer hover:bg-violet-100/50 transition">
+                                <input type="hidden" name="is_shared" value="0">
+                                <input type="checkbox" name="is_shared" value="1" checked class="w-5 h-5 rounded border-gray-300 text-violet-600 focus:ring-violet-500">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                                        <i class="fas fa-users text-violet-600"></i> Bagikan Bank Soal ke Semua Guru
+                                    </span>
+                                    <p class="text-xs text-gray-600 mt-0.5">Guru mata pelajaran di unit sekolah ini dapat langsung memilih dan menggunakan bank soal ini saat membuat Ujian CBT atau Kuis LMS.</p>
+                                </div>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -360,12 +443,37 @@
 
 <script>
 function importBankModal() {
+    const rawSubjects = @json($subjects->map(fn($s) => ['id' => $s->id, 'name' => ($s->subject_name ?? $s->name), 'school_id' => $s->school_id]));
+    const rawTeachers = @json($teachers->map(fn($t) => ['id' => $t->id, 'name' => ($t->full_name ?? $t->user?->name ?? $t->teacher_code), 'school_id' => $t->school_id]));
+
     return {
         showModal: false,
         isDragging: false,
         fileName: '',
         fileSize: '',
         isSubmitting: false,
+        allSubjects: rawSubjects,
+        allTeachers: rawTeachers,
+        selectedSchool: '{{ old("school_id", $schoolId ?? ($schools->first()?->id ?? "")) }}',
+        selectedSubjectId: '{{ old("subject_id", "") }}',
+        selectedTeacherId: '{{ old("teacher_id", "") }}',
+
+        get filteredSubjects() {
+            if (!this.selectedSchool) return this.allSubjects;
+            return this.allSubjects.filter(s => s.school_id == this.selectedSchool);
+        },
+
+        get filteredTeachers() {
+            if (!this.selectedSchool) return this.allTeachers;
+            return this.allTeachers.filter(t => t.school_id == this.selectedSchool);
+        },
+
+        init() {
+            this.$watch('selectedSchool', (val) => {
+                this.selectedSubjectId = '';
+                this.selectedTeacherId = '';
+            });
+        },
 
         handleFileSelect(e) {
             const file = e.target.files[0];

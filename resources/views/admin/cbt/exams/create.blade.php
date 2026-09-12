@@ -165,7 +165,7 @@
                                         class="w-full rounded-xl border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500 font-bold text-base py-3 px-4">
                                         <option value="">-- Pilih Bank Soal --</option>
                                         <template x-for="bank in filteredBanks" :key="bank.id">
-                                            <option :value="bank.id" x-text="bank.name + ' (Kls ' + bank.grade + ' \u2022 ' + bank.total + ' soal)'"></option>
+                                            <option :value="bank.id" x-text="bank.name + ' (' + bank.subject_name + ' \u2022 Kls ' + bank.grade + ' \u2022 ' + bank.total + ' soal)'"></option>
                                         </template>
                                     </select>
                                 </div>
@@ -333,7 +333,12 @@ function examForm() {
 
         get filteredBanks() {
             if (!this.selectedSchoolId) return [];
-            return allBanks.filter(b => b.school_id == this.selectedSchoolId);
+            const bySchool = allBanks.filter(b => b.school_id == this.selectedSchoolId);
+            if (this.selectedSubjectId) {
+                const bySubject = bySchool.filter(b => b.subject_id == this.selectedSubjectId);
+                if (bySubject.length > 0) return bySubject;
+            }
+            return bySchool;
         },
 
         get filteredClassrooms() {
