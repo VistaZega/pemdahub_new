@@ -22,7 +22,7 @@
 //  │ Pin Modul RC522      │ Pin NodeMCU    │ Catatan Penting          │
 //  ├──────────────────────┼────────────────┼──────────────────────────┤
 //  │ 3.3V (VCC)           │ 3V3 (3.3V)     │ WAJIB 3.3V (JANGAN 5V!)  │
-//  │ RST (Reset)          │ 3V3 (3.3V)     │ Langsung hubungkan 3.3V  │
+//  │ RST (Reset)          │ D4 (GPIO2)     │ Hardware Reset Pulse     │
 //  │ GND                  │ GND            │ Ground bersama           │
 //  │ MISO                 │ D6 (GPIO12)    │ SPI MISO bawaan ESP8266  │
 //  │ MOSI                 │ D7 (GPIO13)    │ SPI MOSI bawaan ESP8266  │
@@ -102,11 +102,11 @@ const char* DEVICE_ID          = "STATION-SMA-01";
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
 // ============================================================
 #define RFID_SS_PIN    16   // D0 (GPIO16) - SPI CS
-#define RFID_RST_PIN  255   // UNUSED - Hubungkan pin RST RFID langsung ke 3.3V NodeMCU
-#define MP3_TX_PIN      2   // D4 (GPIO2) - Hubungkan ke RX MP3 Player via resistor 1K Ohm
-#define MP3_VOLUME     30   // Tingkat volume MP3 (0 s.d 30)
+#define RFID_RST_PIN    2   // D4 (GPIO2)  - Hardware Reset Pulse
 #define BUZZER_PIN     15   // D8 (GPIO15) - Buzzer Aktif
 #define QR_RX_PIN       0   // D3 (GPIO0)  - RX untuk TX GM65 Scanner
+#define MP3_TX_PIN      1   // TX (GPIO1)  - TX untuk MP3 Player
+#define MP3_VOLUME     30   // Tingkat volume MP3 (0 s.d 30)
 #define LCD_ADDRESS    0x27 // Alamat default I2C LCD 20x4
 #define LCD_COLS       20
 #define LCD_ROWS       4
@@ -234,9 +234,19 @@ void setup() {
   Serial.println(F("LCD OK."));
   delay(1500);
 
-  // ── INISIALISASI SPI & RFID RC522 ──
+  // ── INISIALISASI SPI & RFID RC522 DENGAN HARDWARE RESET PULSE ──
+  pinMode(RFID_RST_PIN, OUTPUT);
+  digitalWrite(RFID_RST_PIN, LOW);
+  delay(50);
+  digitalWrite(RFID_RST_PIN, HIGH);
+  delay(100);
+
+  pinMode(RFID_SS_PIN, OUTPUT);
+  digitalWrite(RFID_SS_PIN, HIGH);
+  delay(10);
+
   SPI.begin();
-  SPI.setFrequency(1000000); // 1MHz timing longgar untuk chip clone
+  SPI.setFrequency(1000000); // 1MHz
   delay(50);
   
   rfid.PCD_Init();
@@ -244,15 +254,21 @@ void setup() {
 
   Serial.println(F("Mengecek modul RFID RC522..."));
   byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
+  Serial.print(F("RFID VersionReg: 0x"));
+  Serial.println(version, HEX);
+
   if (version == 0x00 || version == 0xFF) {
     Serial.println(F("WARNING: RFID tidak terdeteksi! Cek wiring SPI."));
+    Serial.print(F("Detail Status: "));
+    if (version == 0x00) Serial.println(F("0x00 (Jalur MISO/MOSI/SCK/SS tidak merespon/terputus)"));
+    else Serial.println(F("0xFF (Chip dalam mode Hard Power-Down / Pin RST belum 3.3V)"));
     lcd.setCursor(0, 2); lcd.print(F("RFID ERROR! Cek SPI "));
     beep(5, 100);
     delay(2000);
   } else {
     rfid.PCD_SetAntennaGain(rfid.RxGain_max); // Gain antenna MAX 48dB
     rfid.PCD_AntennaOn();
-    Serial.println(F("RFID RC522 Siap."));
+    Serial.println(F("RFID RC522 Siap dan Berhasil Terhubung!"));
   }
 
   // Koneksi WiFi dengan multi-AP (4 Profil Jaringan)

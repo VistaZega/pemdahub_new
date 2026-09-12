@@ -9,13 +9,13 @@ Tabel berikut adalah acuan resmi pemetaan pin antara mikrokontroler **NodeMCU V3
 | Pin NodeMCU | Nama GPIO | Terhubung Ke Komponen | Pin Modul | Fungsi Sinyal / Arus | Catatan Khusus |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **VU** | V-USB (5V) | GM65, LCD 20x4, DFPlayer | VCC / 5V | Jalur Catu Daya Utama (+5V) | Bersumber langsung dari Micro-USB |
-| **3V3** | 3.3V Out | RFID RC522 | VCC (3.3V) & RST | Jalur Catu Daya Sensor RFID (+3.3V)| **Wajib 3.3V! Dilarang ke 5V!** |
+| **3V3** | 3.3V Out | RFID RC522 | VCC (3.3V) | Jalur Catu Daya Sensor RFID (+3.3V)| **Wajib 3.3V! Dilarang ke 5V!** |
 | **GND** | Ground | Semua Modul | GND | Common Ground (Jalur Negatif Bersama)| Hubungkan semua ground jadi satu |
 | **D0** | GPIO 16 | RFID RC522 | SDA / SS | SPI Chip Select (CS) | Mengontrol jalur aktif komunikasi RFID |
 | **D1** | GPIO 5 | LCD 20x4 I2C | SCL | I2C Serial Clock | Clock default bus I2C |
 | **D2** | GPIO 4 | LCD 20x4 I2C | SDA | I2C Serial Data | Data default bus I2C |
 | **D3** | GPIO 0 | GM65 Scanner | TX (Kabel Hitam)| SoftwareSerial RX (Menerima data QR)| Idle HIGH, pull-up aman |
-| **D4** | GPIO 2 | DFPlayer Mini MP3 | RX (Serial Data)| SoftwareSerial TX (Kirim instruksi lagu)| **Wajib lewat Resistor 1kΩ** |
+| **D4** | GPIO 2 | RFID RC522 | RST (Reset) | Hardware Reset Pulse (LOW -> HIGH) | **Membangunkan kristal osilator RC522** |
 | **D5** | GPIO 14 | RFID RC522 | SCK | SPI Serial Clock | Clock bus SPI bawaan ESP8266 |
 | **D6** | GPIO 12 | RFID RC522 | MISO | SPI Master In Slave Out | Jalur data dari RFID ke NodeMCU |
 | **D7** | GPIO 13 | RFID RC522 | MOSI | SPI Master Out Slave In | Jalur data dari NodeMCU ke RFID |
