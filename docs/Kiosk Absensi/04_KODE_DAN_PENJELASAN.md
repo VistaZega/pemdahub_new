@@ -88,10 +88,10 @@ const char* DEVICE_ID          = "STATION-SMA-01";
 //  PIN DEFINITIONS & KONFIGURASI PERIFERAL
 // ============================================================
 #define RFID_SS_PIN    16   // D0 (GPIO16) - SPI CS
-#define RFID_RST_PIN    2   // D4 (GPIO2)  - Hardware Reset Pulse
+#define RFID_RST_PIN  255   // UNUSED - Hubungkan pin RST RFID langsung ke 3.3V NodeMCU
 #define BUZZER_PIN     15   // D8 (GPIO15) - Buzzer Aktif 5V
 #define QR_RX_PIN       0   // D3 (GPIO0)  - Menerima Data TX GM65 Scanner
-#define MP3_TX_PIN      1   // TX (GPIO1)  - TX untuk DFPlayer Mini
+#define MP3_TX_PIN      2   // D4 (GPIO2)  - TX untuk DFPlayer Mini (via Resistor 1k)
 #define MP3_VOLUME     30   // Tingkat Volume Audio (0 s.d 30)
 #define LCD_ADDRESS    0x27 // Alamat I2C LCD
 #define LCD_COLS       20
@@ -216,13 +216,7 @@ void setup() {
   lcd.setCursor(0, 3); lcd.print(F("===================="));
   delay(1500);
 
-  // Inisialisasi Bus SPI & RFID RC522 dengan Hardware Reset Pulse
-  pinMode(RFID_RST_PIN, OUTPUT);
-  digitalWrite(RFID_RST_PIN, LOW);
-  delay(50);
-  digitalWrite(RFID_RST_PIN, HIGH);
-  delay(100);
-
+  // Inisialisasi Bus SPI & RFID RC522 (RST langsung ke 3.3V)
   pinMode(RFID_SS_PIN, OUTPUT);
   digitalWrite(RFID_SS_PIN, HIGH);
   delay(10);

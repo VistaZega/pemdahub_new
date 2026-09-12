@@ -1,63 +1,24 @@
 // ============================================================
 //  FIRMWARE NODEMCU V3 (ESP-12F) - PEMBDAHUB ATTENDANCE STATION
 //  Station Absen Terpadu: RFID RC522 + GM65 QR Scanner + LCD 20x4 I2C + DFPlayer MP3 + Buzzer
-//  Fitur Spesial: Smart Screensaver Marquee (Slogan Yayasan Pembda Nias)
 //  
-//  ============================================================
-//  TABEL LENGKAP KONEKSI KABEL & PIN HARDWARE (WIRING DIAGRAM)
-//  ============================================================
-//
-//  1. GM65 BARCODE / QR SCANNER (Konektor 4-Pin):
-//  ┌──────────────────────┬────────────────┬──────────────────────────┐
-//  │ Pin / Tulisan GM65   │ Pin NodeMCU    │ Catatan Penting          │
-//  ├──────────────────────┼────────────────┼──────────────────────────┤
-//  │ 5V   (Kabel Merah)   │ VU (5V)        │ Tegangan 5V dari port USB│
-//  │ GND  (Kabel Hijau)   │ GND            │ Ground bersama           │
-//  │ TX   (Kabel Hitam)   │ D3 (GPIO0)     │ Sinyal Data TX GM65 -> D3│
-//  │ RX   (Kabel Kuning)  │ BEBAS / KOSONG │ TIDAK BOLEH DICOLOK!     │
-//  └──────────────────────┴────────────────┴──────────────────────────┘
-//
-//  2. RFID RC522 13.56 MHz (SPI Interface):
-//  ┌──────────────────────┬────────────────┬──────────────────────────┐
-//  │ Pin Modul RC522      │ Pin NodeMCU    │ Catatan Penting          │
-//  ├──────────────────────┼────────────────┼──────────────────────────┤
-//  │ 3.3V (VCC)           │ 3V3 (3.3V)     │ WAJIB 3.3V (JANGAN 5V!)  │
-//  │ RST (Reset)          │ D4 (GPIO2)     │ Hardware Reset Pulse     │
-//  │ GND                  │ GND            │ Ground bersama           │
-//  │ MISO                 │ D6 (GPIO12)    │ SPI MISO bawaan ESP8266  │
-//  │ MOSI                 │ D7 (GPIO13)    │ SPI MOSI bawaan ESP8266  │
-//  │ SCK                  │ D5 (GPIO14)    │ SPI Clock bawaan ESP8266 │
-//  │ SDA / SS             │ D0 (GPIO16)    │ SPI Chip Select (CS)     │
-//  └──────────────────────┴────────────────┴──────────────────────────┘
-//
-//  3. LCD 20x4 I2C (Alamat Default 0x27 / 0x3F):
-//  ┌──────────────────────┬────────────────┬──────────────────────────┐
-//  │ Pin Modul I2C LCD    │ Pin NodeMCU    │ Catatan Penting          │
-//  ├──────────────────────┼────────────────┼──────────────────────────┤
-//  │ VCC                  │ VU (5V)        │ LCD 20x4 butuh 5V (terang│
-//  │ GND                  │ GND            │ Ground bersama           │
-//  │ SDA                  │ D2 (GPIO4)     │ I2C Data default         │
-//  │ SCL                  │ D1 (GPIO5)     │ I2C Clock default        │
-//  └──────────────────────┴────────────────┴──────────────────────────┘
-//
-//  4. DFPLAYER MINI MP3 PLAYER (Audio Suara Sapaan):
-//  ┌──────────────────────┬────────────────┬──────────────────────────┐
-//  │ Pin DFPlayer Mini    │ Pin NodeMCU    │ Catatan Penting          │
-//  ├──────────────────────┼────────────────┼──────────────────────────┤
-//  │ VCC                  │ VU (5V)        │ Daya 5V                  │
-//  │ GND                  │ GND            │ Ground bersama           │
-//  │ RX                   │ TX (GPIO1)     │ Melalui Resistor 1K Ohm! │
-//  │ SPK_1                │ Speaker (+)    │ Speaker 3W / 8 Ohm       │
-//  │ SPK_2                │ Speaker (-)    │ Speaker 3W / 8 Ohm       │
-//  └──────────────────────┴────────────────┴──────────────────────────┘
-//
-//  5. BUZZER AKTIF 5V:
-//  ┌──────────────────────┬────────────────┬──────────────────────────┐
-//  │ Pin Buzzer           │ Pin NodeMCU    │ Catatan Penting          │
-//  ├──────────────────────┼────────────────┼──────────────────────────┤
-//  │ Positif (+)          │ D8 (GPIO15)    │ Pin pull-down (aman boot)│
-//  │ Negatif (-)          │ GND            │ Ground bersama           │
-//  └──────────────────────┴────────────────┴──────────────────────────┘
+//  WIRING DIAGRAM NODEMCU V3:
+//  ┌─────────────┬──────────┬───────────────────────────────────────┐
+//  │ Komponen    │ Pin MCU  │ Catatan                               │
+//  ├─────────────┼──────────┼───────────────────────────────────────┤
+//  │ RFID SDA/SS │ D0 (16)  │ SPI CS                                │
+//  │ RFID SCK    │ D5 (14)  │ SPI CLK default                       │
+//  │ RFID MOSI   │ D7 (13)  │ SPI MOSI default                      │
+//  │ RFID MISO   │ D6 (12)  │ SPI MISO default                      │
+//  │ RFID RST    │ 3V3      │ DIHUBUNGKAN LANGSUNG KE 3.3V          │
+//  │ LCD SDA     │ D2 (4)   │ I2C SDA default                       │
+//  │ LCD SCL     │ D1 (5)   │ I2C SCL default                       │
+//  │ QR RX       │ D3 (0)   │ SoftwareSerial RX (GM65 TX -> D3)     │
+//  │ MP3 RX      │ D4 (2)   │ SoftwareSerial TX -> resistor 1K -> RX│
+//  │ Buzzer (+)  │ D8 (15)  │ Pull-down = buzzer OFF saat boot      │
+//  │ LCD/MP3 VCC │ VU (5V)  │ Dihubungkan ke pin VU (5V)            │
+//  │ GND         │ GND      │ Common ground semua komponen          │
+//  └─────────────┴──────────┴───────────────────────────────────────┘
 // ============================================================
 
 #include <SPI.h>
@@ -101,57 +62,33 @@ const char* DEVICE_ID          = "STATION-SMA-02";
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
 // ============================================================
+
+// SPI Pins untuk RFID RC522 (menggunakan HSPI default ESP8266)
 #define RFID_SS_PIN    16   // D0 (GPIO16) - SPI CS
-#define RFID_RST_PIN    2   // D4 (GPIO2)  - Hardware Reset Pulse
-#define BUZZER_PIN     15   // D8 (GPIO15) - Buzzer Aktif
-#define QR_RX_PIN       0   // D3 (GPIO0)  - RX untuk TX GM65 Scanner
-#define MP3_TX_PIN      1   // TX (GPIO1)  - TX untuk MP3 Player
+#define RFID_RST_PIN  255   // UNUSED - Hubungkan pin RST RFID langsung ke 3.3V NodeMCU
+
+// MP3 Player TX Pin (menggunakan SoftwareSerial bersama QR Scanner RX)
+#define MP3_TX_PIN      2   // D4 (GPIO2) - Hubungkan ke RX MP3 Player via resistor 1K Ohm
 #define MP3_VOLUME     30   // Tingkat volume MP3 (0 s.d 30)
-#define LCD_ADDRESS    0x27 // Alamat default I2C LCD 20x4
+
+// Buzzer
+#define BUZZER_PIN     15   // D8 (GPIO15) - pull-down bawaan = buzzer OFF saat boot
+
+// QR Scanner GM65/GM50 via SoftwareSerial (RX only)
+#define QR_RX_PIN       0   // D3 (GPIO0) - TX GM65 terhubung ke D3
+
+// I2C LCD 20x4
+#define LCD_ADDRESS    0x27
 #define LCD_COLS       20
 #define LCD_ROWS       4
 
+// ============================================================
+//  TIMEOUTS & COOLDOWNS
+// ============================================================
 #define HTTP_TIMEOUT        10000   // 10 detik timeout HTTPS
 #define DISPLAY_RESULT_MS   3500    // Durasi tampil hasil di LCD
 #define SCAN_COOLDOWN_MS    3000    // Anti double-tap (3 detik)
 #define QR_MIN_LENGTH       3       // Minimum panjang QR valid
-#define IDLE_TIMEOUT_MS     20000   // 20 detik tanpa aktivitas -> Aktifkan Running Text
-
-// ============================================================
-//  CUSTOM PIXEL CHARACTERS UNTUK LCD (5x8 Dots)
-// ============================================================
-byte iconWifi[8] = {
-  B00000,
-  B01110,
-  B10001,
-  B00100,
-  B01010,
-  B00000,
-  B00100,
-  B00000
-};
-
-byte iconCard[8] = {
-  B11111,
-  B10001,
-  B10101,
-  B10001,
-  B11111,
-  B00000,
-  B00000,
-  B00000
-};
-
-byte iconHeart[8] = {
-  B00000,
-  B01010,
-  B11111,
-  B11111,
-  B01110,
-  B00100,
-  B00000,
-  B00000
-};
 
 // ============================================================
 //  GLOBAL STATE
@@ -159,35 +96,22 @@ byte iconHeart[8] = {
 String        lastUID          = "";
 unsigned long lastTapTime      = 0;
 String        qrBuffer         = "";
-unsigned long qrPauseUntil     = 0;
 unsigned long lastWiFiCheck    = 0;
 bool          isOnline         = false;
 
-// Animasi & Smart Screensaver State
-unsigned long lastActivityTime = 0;
-unsigned long lastAnimTime     = 0;
-int           animFrame        = 0;
-bool          isShowingResult  = false;
-bool          isScreensaver    = false;
-
-// Teks Berjalan Slogan Resmi Yayasan Perguruan Pembda Nias
-const String marqueeText = "   *** YAYASAN PERGURUAN PEMBDA NIAS *** Keep Moving Forward - Maju Terus Pantang Mundur! *** SMPS Pembda 2 - SMAS Pembda 1 - SMK PEMBDA Nias *** Silakan Tempel Kartu RFID / Scan QR Code ***   ";
-int          marqueePos        = 0;
-unsigned long lastMarqueeTime  = 0;
-
-// Hardware Objects
+// ============================================================
+//  OBJEK HARDWARE
+// ============================================================
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
 ESP8266WiFiMulti  wifiMulti;
-SoftwareSerial    kioskSerial(QR_RX_PIN, MP3_TX_PIN);
+SoftwareSerial    kioskSerial(QR_RX_PIN, MP3_TX_PIN); // RX D3, TX D4
 
-// Prototipe Fungsi
+// Prototipe Fungsi Audio & Display
 void playAudio(uint8_t folder, uint8_t track);
 void setMp3Volume(uint8_t vol);
+void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2);
 void showReady();
-void showScreensaverBase();
-void updateLcdAnimation();
-void updateMarquee();
 void showError(String msg);
 void beep(int count, int duration);
 void handleRfidScan();
@@ -225,54 +149,43 @@ void setup() {
   lcd.init();
 #endif
   lcd.backlight();
-
-  // Daftarkan Custom Characters ke memori LCD
-  lcd.createChar(0, iconWifi);
-  lcd.createChar(1, iconCard);
-  lcd.createChar(2, iconHeart);
-
   lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("  PEMBDAHUB KIOSK   "));
-  lcd.setCursor(0, 2); lcd.print(F(" Memulai Sistem...  "));
+  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
+  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
   lcd.setCursor(0, 3); lcd.print(F("===================="));
   Serial.println(F("LCD OK."));
-  delay(1500);
+  delay(2000);
 
-  // ── INISIALISASI SPI & RFID RC522 DENGAN HARDWARE RESET PULSE ──
-  pinMode(RFID_RST_PIN, OUTPUT);
-  digitalWrite(RFID_RST_PIN, LOW);
-  delay(50);
-  digitalWrite(RFID_RST_PIN, HIGH);
-  delay(100);
-
-  pinMode(RFID_SS_PIN, OUTPUT);
-  digitalWrite(RFID_SS_PIN, HIGH);
-  delay(10);
-
+  // ── INISIALISASI SPI & RFID RC522 ──
   SPI.begin();
-  SPI.setFrequency(1000000); // 1MHz
+  SPI.setFrequency(1000000); // 1MHz timing stabil
   delay(50);
   
   rfid.PCD_Init();
   delay(150);
 
   Serial.println(F("Mengecek modul RFID RC522..."));
-  byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
-  Serial.print(F("RFID VersionReg: 0x"));
-  Serial.println(version, HEX);
+  rfid.PCD_DumpVersionToSerial();
 
+  byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
   if (version == 0x00 || version == 0xFF) {
     Serial.println(F("WARNING: RFID tidak terdeteksi! Cek wiring SPI."));
-    Serial.print(F("Detail Status: "));
-    if (version == 0x00) Serial.println(F("0x00 (Jalur MISO/MOSI/SCK/SS tidak merespon/terputus)"));
-    else Serial.println(F("0xFF (Chip dalam mode Hard Power-Down / Pin RST belum 3.3V)"));
+    Serial.println(F("  SS  = D0 (GPIO16), SCK = D5, MOSI = D7, MISO = D6, RST = 3.3V"));
     lcd.setCursor(0, 2); lcd.print(F("RFID ERROR! Cek SPI "));
     beep(5, 100);
     delay(2000);
   } else {
-    rfid.PCD_SetAntennaGain(rfid.RxGain_max); // Gain antenna MAX 48dB
+    Serial.print(F("RFID Firmware Version: 0x"));
+    Serial.print(version, HEX);
+    if (version == 0x91 || version == 0x92) Serial.println(F(" (MFRC522 original)"));
+    else if (version == 0x88) Serial.println(F(" (FM17522 clone)"));
+    else if (version == 0xB2) Serial.println(F(" (MFRC522 clone - OK)"));
+    else Serial.println(F(" (compatible)"));
+
+    // Gain antenna MAX 48dB
+    rfid.PCD_SetAntennaGain(rfid.RxGain_max);
+    delay(10);
     rfid.PCD_AntennaOn();
-    Serial.println(F("RFID RC522 Siap dan Berhasil Terhubung!"));
   }
 
   // Koneksi WiFi dengan multi-AP (4 Profil Jaringan)
@@ -282,11 +195,8 @@ void setup() {
   wifiMulti.addAP(WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD);
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
-  
-  lastActivityTime = millis();
-  showReady();
 
-  // Inisialisasi SoftwareSerial untuk Kiosk (RX=QR Scanner, TX=MP3 Player)
+  // Inisialisasi SoftwareSerial untuk Kiosk (RX=D3 Scanner, TX=D4 MP3 Player)
   kioskSerial.begin(9600);
   delay(100);
   while (kioskSerial.available()) kioskSerial.read();
@@ -294,12 +204,15 @@ void setup() {
 
   // Inisialisasi Volume MP3 Player
   setMp3Volume(MP3_VOLUME);
+  delay(100);
 
   // Putar lagu pembuka 001.mp3 ("Selamat Pagi Silahkan Absen")
   playAudio(1, 1);
 
   Serial.print(F("Free Heap setelah init: ")); Serial.println(ESP.getFreeHeap());
   Serial.println(F("System Ready. Silakan scan kartu RFID atau QR Code."));
+
+  showReady();
 }
 
 // ============================================================
@@ -308,49 +221,31 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // 1. Periksa status WiFi setiap 10 detik secara non-blocking
+  // Periksa status WiFi setiap 10 detik secara non-blocking
   if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
     if (wifiMulti.run() == WL_CONNECTED) {
       if (!isOnline) {
         isOnline = true;
         Serial.println(F("WiFi Terhubung Kembali."));
-        if (isScreensaver) showScreensaverBase();
-        else showReady();
+        showReady();
       }
     } else {
       if (isOnline) {
         isOnline = false;
         Serial.println(F("WiFi Terputus! Mencoba mencari jaringan..."));
-        if (isScreensaver) showScreensaverBase();
-        else showReady();
+        showReady();
       }
     }
   }
 
-  // 2. Transisi Otomatis ke Screensaver / Running Text jika tidak ada scan selama 20 detik
-  if (!isShowingResult) {
-    if (!isScreensaver && (now - lastActivityTime >= IDLE_TIMEOUT_MS)) {
-      isScreensaver = true;
-      marqueePos = 0;
-      showScreensaverBase();
-    }
-    
-    // Update Tampilan Animasi
-    if (isScreensaver) {
-      updateMarquee();
-    } else {
-      updateLcdAnimation();
-    }
-  }
-
-  // 3. Cek Scanner RFID
+  // 1. Cek RFID
   handleRfidScan();
 
-  // 4. Cek Scanner Barcode / QR
+  // 2. Cek QR Code
   handleQrScan();
 
-  delay(10);
+  delay(20);
 }
 
 // ============================================================
@@ -363,22 +258,23 @@ void handleRfidScan() {
     if (!rfid.PICC_ReadCardSerial()) return;
   }
 
+  Serial.println(F("Kartu RFID terdeteksi!"));
   String uid = getRfidUID();
+  Serial.println("RFID UID: " + uid);
+
   unsigned long now = millis();
   if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
+    Serial.println(F("RFID cooldown, abaikan."));
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
     return;
   }
-  lastUID          = uid;
-  lastTapTime      = now;
-  lastActivityTime = now;
-  isScreensaver    = false;
+  lastUID     = uid;
+  lastTapTime = now;
 
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
-  isShowingResult = true; // Kunci layar agar animasi/running text tidak menimpa
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
   lcd.setCursor(0, 1); lcd.print(F("Membaca kartu RFID  "));
@@ -391,16 +287,10 @@ void handleRfidScan() {
 }
 
 // ============================================================
-//  HANDLER QR CODE - ANTI NOISE
+//  HANDLER QR CODE (via SoftwareSerial Pin D3)
 // ============================================================
 void handleQrScan() {
-  if (millis() < qrPauseUntil) {
-    while (kioskSerial.available()) kioskSerial.read();
-    return;
-  }
-
-  int noiseCount = 0;
-  int maxRead = 5;
+  int maxRead = 15;
 
   for (int i = 0; i < maxRead && kioskSerial.available() > 0; i++) {
     char c = kioskSerial.read();
@@ -411,16 +301,18 @@ void handleQrScan() {
         qrData.trim();
         qrBuffer = "";
 
+        Serial.println(F("================================="));
+        Serial.println("QR Code Terdeteksi: " + qrData);
+        Serial.println(F("================================="));
+
         unsigned long now = millis();
         if (qrData == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
+          Serial.println(F("QR Cooldown. Abaikan."));
           return;
         }
-        lastUID          = qrData;
-        lastTapTime      = now;
-        lastActivityTime = now;
-        isScreensaver    = false;
+        lastUID     = qrData;
+        lastTapTime = now;
 
-        isShowingResult = true; // Kunci layar
         lcd.clear();
         lcd.setCursor(0, 0); lcd.print(F("=== MEMPROSES ======"));
         lcd.setCursor(0, 1); lcd.print(F("Kode QR Terbaca     "));
@@ -435,30 +327,19 @@ void handleQrScan() {
       qrBuffer = "";
     }
     else if (c >= 32 && c <= 126) {
-      noiseCount = 0;
       if (qrBuffer.length() < 128) {
         qrBuffer += c;
       } else {
         qrBuffer = "";
       }
     }
-    else {
-      noiseCount++;
-      if (noiseCount >= 3) {
-        qrPauseUntil = millis() + 1000;
-        qrBuffer = "";
-        while (kioskSerial.available()) kioskSerial.read();
-        return;
-      }
-    }
   }
 }
 
 // ============================================================
-//  KIRIM DATA KE SERVER
+//  KIRIM DATA KE SERVER (HTTPS)
 // ============================================================
 void sendToServer(String uid, String type) {
-  isShowingResult = true;
   Serial.println("Mengirim ke server: " + uid + " (" + type + ")");
   
   if (WiFi.status() != WL_CONNECTED) {
@@ -492,13 +373,13 @@ void sendToServer(String uid, String type) {
     Serial.println("Server Response: " + payload);
     parseAndDisplay(payload);
   } else if (code == 401) {
-    playAudio(1, 7);
+    playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
     showError("API Key Tidak Valid!");
   } else if (code == 404) {
-    playAudio(1, 6);
+    playAudio(1, 6); // 006.MP3 - Kartu tidak dikenali hubungi admin
     showError("Kartu/QR Tdk Terdaftar");
   } else if (code > 0) {
-    playAudio(1, 7);
+    playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
     showError("Gagal Server: " + String(code));
   } else {
     String errMsg = http.errorToString(code);
@@ -506,7 +387,7 @@ void sendToServer(String uid, String type) {
     if (payload.length() > 10 && payload.indexOf("status") > 0) {
       parseAndDisplay(payload);
     } else {
-      playAudio(1, 7);
+      playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
       showError("Server Error: " + errMsg.substring(0, 14));
     }
   }
@@ -516,8 +397,6 @@ void sendToServer(String uid, String type) {
   qrBuffer = "";
   
   delay(DISPLAY_RESULT_MS);
-  lastActivityTime = millis();
-  isScreensaver    = false;
   showReady();
 }
 
@@ -605,123 +484,63 @@ void parseAndDisplay(String json) {
 }
 
 // ============================================================
-//  FUNGSI DISPLAY STANDBY (MODE SIAGA AKTIF - 20 DETIK AWAL)
+//  KONEKSI WIFI
 // ============================================================
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(false);
+  int attempt = 0;
 
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("=== MENCARI WIFI ==="));
+  lcd.setCursor(0, 1); lcd.print(F("Mencoba koneksi...  "));
+  lcd.setCursor(0, 2); lcd.print(F("Hubungkan WiFi...   "));
+  lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+
+  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
+    delay(500);
+    Serial.print(".");
+    String dots = "";
+    for (int i = 0; i < (attempt % 6); i++) dots += ".";
+    lcd.setCursor(0, 2); lcd.print("Menghubungkan" + dots + "    ");
+    attempt++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("=== WIFI CONNECT ==="));
+    lcd.setCursor(0, 1); lcd.print("SSID: " + WiFi.SSID().substring(0, 14));
+    lcd.setCursor(0, 2); lcd.print("IP: " + WiFi.localIP().toString());
+    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+    beep(1, 200);
+    delay(1500);
+  } else {
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("=== WIFI GAGAL ====="));
+    lcd.setCursor(0, 1); lcd.print(F("Koneksi gagal!      "));
+    lcd.setCursor(0, 2); lcd.print(F("Auto-retry di bg... "));
+    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+    beep(3, 100);
+    delay(2000);
+  }
+}
+
+// ============================================================
+//  FUNGSI DISPLAY
+// ============================================================
 void showReady() {
-  isShowingResult = false;
   lcd.clear();
-  
-  // Baris 0: Header Elegan
-  lcd.setCursor(0, 0);
-  lcd.print(F("*PEMBDAHUB PRESENSI*"));
-  
-  // Baris 1: Petunjuk Scan
-  lcd.setCursor(0, 1);
-  lcd.write(byte(1)); // Ikon Kartu
-  lcd.print(F(" Tempel Kartu / QR "));
-  
-  // Baris 3: Status Bar & SSID WiFi
-  lcd.setCursor(0, 3);
+  lcd.setCursor(0, 0); lcd.print(F("===================="));
+  lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));
+  lcd.setCursor(0, 2); lcd.print(F("  Silakan Scan UID  "));
   if (isOnline) {
-    lcd.write(byte(0)); // Ikon WiFi
-    lcd.print(F(" ON:"));
-    String ssid = WiFi.SSID();
-    if (ssid.length() > 10) ssid = ssid.substring(0, 10);
-    lcd.print(ssid);
+    lcd.setCursor(0, 3); lcd.print(F("Status: READY       "));
   } else {
-    lcd.print(F("[OFFLINE] Cari AP..."));
+    lcd.setCursor(0, 3); lcd.print(F("Status: OFFLINE     "));
   }
-}
-
-// Update Animasi Gelombang Siaga (Dipanggil setiap 350ms)
-void updateLcdAnimation() {
-  if (isShowingResult || isScreensaver) return;
-
-  unsigned long now = millis();
-  if (now - lastAnimTime < 350) return;
-  lastAnimTime = now;
-
-  const char* frames[] = {
-    "   >> RFID / QR <<  ",
-    "  >>> RFID / QR <<< ",
-    " >>>> RFID / QR <<<<",
-    "  >>> RFID / QR <<< ",
-    "   >> RFID / QR <<  ",
-    "    > RFID / QR <   "
-  };
-
-  lcd.setCursor(0, 2);
-  lcd.print(frames[animFrame]);
-  animFrame = (animFrame + 1) % 6;
-
-  // Heartbeat indicator di pojok kanan bawah
-  lcd.setCursor(19, 3);
-  if (animFrame % 2 == 0) lcd.write(byte(2));
-  else lcd.print(F(" "));
-}
-
-// ============================================================
-//  FUNGSI SMART SCREENSAVER (RUNNING TEXT SLOGAN YAYASAN)
-// ============================================================
-
-void showScreensaverBase() {
-  isShowingResult = false;
-  lcd.clear();
-  
-  // Baris 0: Header Yayasan
-  lcd.setCursor(0, 0);
-  lcd.print(F("* PERGURUAN PEMBDA *"));
-  
-  // Baris 1: Subtitle Lembaga
-  lcd.setCursor(0, 1);
-  lcd.print(F("STATION ABSENS SISWA"));
-  
-  // Baris 3: Status Bar Siaga Scan
-  lcd.setCursor(0, 3);
-  if (isOnline) {
-    lcd.write(byte(0));
-    lcd.print(F(" "));
-    String ssid = WiFi.SSID();
-    if (ssid.length() > 8) ssid = ssid.substring(0, 8);
-    lcd.print(ssid);
-    lcd.setCursor(12, 3);
-    lcd.print(F("SCAN"));
-  } else {
-    lcd.print(F("[OFFLINE]   SCAN"));
-  }
-}
-
-// Update Teks Berjalan Halus (Dipanggil setiap 220ms)
-void updateMarquee() {
-  if (isShowingResult || !isScreensaver) return;
-
-  unsigned long now = millis();
-  if (now - lastMarqueeTime < 220) return; // Kecepatan scroll teks 220ms per karakter
-  lastMarqueeTime = now;
-
-  // Buat jendela 20 karakter dari teks berjalan
-  String windowText = "";
-  int textLen = marqueeText.length();
-  for (int i = 0; i < 20; i++) {
-    int idx = (marqueePos + i) % textLen;
-    windowText += marqueeText[idx];
-  }
-
-  // Tampilkan di Baris 2
-  lcd.setCursor(0, 2);
-  lcd.print(windowText);
-
-  marqueePos = (marqueePos + 1) % textLen;
-
-  // Heartbeat blink di pojok kanan bawah
-  lcd.setCursor(19, 3);
-  if ((marqueePos / 2) % 2 == 0) lcd.write(byte(2));
-  else lcd.print(F(" "));
 }
 
 void showError(String msg) {
-  isShowingResult = true;
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== !!! ERROR !!! =="));
   if (msg.length() > 20) {
@@ -787,7 +606,7 @@ void beep(int count, int duration) {
 }
 
 // ============================================================
-//  FUNGSI MP3 PLAYER RAW COMMANDS (10-Byte dengan Checksum)
+//  FUNGSI MP3 PLAYER RAW COMMANDS
 // ============================================================
 void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
   uint16_t checksum = 0 - (0xFF + 0x06 + cmd + 0x00 + para1 + para2);
@@ -823,46 +642,4 @@ String getRfidUID() {
   
   hexUID.toUpperCase();
   return hexUID;
-}
-
-// ============================================================
-//  KONEKSI WIFI
-// ============================================================
-void connectWiFi() {
-  WiFi.mode(WIFI_STA);
-  WiFi.persistent(false);
-  int attempt = 0;
-
-  lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("=== MENCARI WIFI ==="));
-  lcd.setCursor(0, 1); lcd.print(F("Mencoba koneksi...  "));
-  lcd.setCursor(0, 2); lcd.print(F("Hubungkan WiFi...   "));
-  lcd.setCursor(0, 3); lcd.print(F("--------------------"));
-
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
-    delay(500);
-    Serial.print(".");
-    String dots = "";
-    for (int i = 0; i < (attempt % 6); i++) dots += ".";
-    lcd.setCursor(0, 2); lcd.print("Menghubungkan" + dots + "    ");
-    attempt++;
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("=== WIFI CONNECT ==="));
-    lcd.setCursor(0, 1); lcd.print("SSID: " + WiFi.SSID().substring(0, 14));
-    lcd.setCursor(0, 2); lcd.print("IP: " + WiFi.localIP().toString());
-    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
-    beep(1, 200);
-    delay(1500);
-  } else {
-    lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("=== WIFI GAGAL ====="));
-    lcd.setCursor(0, 1); lcd.print(F("Koneksi gagal!      "));
-    lcd.setCursor(0, 2); lcd.print(F("Auto-retry di bg... "));
-    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
-    beep(3, 100);
-    delay(2000);
-  }
 }
