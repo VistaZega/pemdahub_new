@@ -237,7 +237,11 @@ void setup() {
 
   // 2. Inisialisasi I2C LCD 16x2 (SDA=GPIO21, SCL=GPIO22)
   Wire.begin(21, 22);
+#ifdef FDB_LIQUID_CRYSTAL_I2C_H
+  lcd.begin();
+#else
   lcd.init();
+#endif
   lcd.backlight();
   lcd.createChar(0, iconWifi);
   lcd.createChar(1, iconCard);

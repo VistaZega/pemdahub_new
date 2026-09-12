@@ -57,7 +57,11 @@ void setup() {
 
   // 2. INISIALISASI LCD DENGAN ALAMAT TERDETEKSI
   lcd = LiquidCrystal_I2C(i2cAddress, 16, 2);
+#ifdef FDB_LIQUID_CRYSTAL_I2C_H
+  lcd.begin();
+#else
   lcd.init();
+#endif
   lcd.backlight();
 
   lcd.clear();

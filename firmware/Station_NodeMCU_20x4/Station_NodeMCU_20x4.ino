@@ -219,7 +219,11 @@ void setup() {
 
   // Inisialisasi I2C LCD (SDA=GPIO4/D2, SCL=GPIO5/D1)
   Wire.begin(4, 5);
+#ifdef FDB_LIQUID_CRYSTAL_I2C_H
   lcd.begin();
+#else
+  lcd.init();
+#endif
   lcd.backlight();
 
   // Daftarkan Custom Characters ke memori LCD

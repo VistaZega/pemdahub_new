@@ -201,7 +201,11 @@ void setup() {
 
   // Inisialisasi I2C LCD 20x4 (SDA=GPIO21, SCL=GPIO22)
   Wire.begin(21, 22);
+#ifdef FDB_LIQUID_CRYSTAL_I2C_H
+  lcd.begin();
+#else
   lcd.init();
+#endif
   lcd.backlight();
   lcd.setCursor(0, 0); lcd.print(F("===================="));
   lcd.setCursor(0, 1); lcd.print(F("   PEMBDA HUB v2    "));

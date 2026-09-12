@@ -93,7 +93,11 @@ void setup() {
 
   // 1. Inisialisasi I2C & LCD
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+#ifdef FDB_LIQUID_CRYSTAL_I2C_H
+  lcd.begin();
+#else
   lcd.init();
+#endif
   lcd.backlight();
   lcd.setCursor(0, 0); lcd.print(F("   PEMBDA HUB   "));
   lcd.setCursor(0, 1); lcd.print(F(" Memulai Sistem "));
