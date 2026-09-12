@@ -27,9 +27,12 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                @if($exam->examQuestions->whereNotNull('question')->where('question.question_type', 'essay')->count() > 0)
-                <a href="{{ route('guru.cbt.exams.grade-essays', $exam) }}" class="px-5 py-2.5 bg-white/15 rounded-xl font-medium text-base border border-gray-200 hover:bg-white/25 transition flex items-center gap-2">
+                @if($hasEssayQuestions)
+                <a href="{{ route('guru.cbt.exams.grade-essays', $exam) }}" class="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl font-black text-sm shadow-md transition flex items-center gap-2">
                     <i class="fas fa-pen-fancy"></i>Koreksi Esai
+                    @if(($pendingEssaysCount ?? 0) > 0)
+                        <span class="px-2 py-0.5 bg-red-600 text-white text-xs font-black rounded-full shadow-sm">{{ $pendingEssaysCount }} Belum Dinilai</span>
+                    @endif
                 </a>
                 @endif
                 @if($exam->status === 'completed')
@@ -143,11 +146,19 @@
                             @else - @endif
                         </td>
                         <td class="px-6 py-3.5 text-center">
-                            @if($score >= ($exam->passing_score ?? 70))
-                            <span class="px-2.5 py-0.5 rounded-lg text-base font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">LULUS</span>
-                            @else
-                            <span class="px-2.5 py-0.5 rounded-lg text-base font-bold bg-red-50 text-red-700 border border-red-200">TIDAK LULUS</span>
-                            @endif
+                            <div class="flex flex-col items-center gap-1">
+                                @if($score >= ($exam->passing_score ?? 70))
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">LULUS</span>
+                                @else
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-red-50 text-red-700 border border-red-200">TIDAK LULUS</span>
+                                @endif
+
+                                @if($result->session && $result->session->answers()->needsGrading()->exists())
+                                    <a href="{{ route('guru.cbt.exams.grade-essays', $exam) }}" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-black rounded-md bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200 transition" title="Ada esai siswa yang belum dinilai">
+                                        <i class="fas fa-pen-fancy text-amber-600 text-[10px]"></i> Koreksi Esai
+                                    </a>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty

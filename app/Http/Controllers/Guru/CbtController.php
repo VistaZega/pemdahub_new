@@ -62,7 +62,55 @@ class CbtController extends Controller
     }
 
     /**
-     * Verify the teacher owns an exam
+     * Get all subject IDs taught or competent by a teacher
+     */
+    private function getTeacherSubjectIds(Teacher $teacher): array
+    {
+        $taSubjectIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+            ->where('is_active', true)
+            ->pluck('subject_id');
+
+        $scheduleSubjectIds = \App\Models\Schedule::where('teacher_id', $teacher->id)
+            ->pluck('subject_id');
+
+        $competentSubjectIds = $teacher->competentSubjects()
+            ->pluck('subjects.id');
+
+        $legacySubjectIds = $teacher->subjects()
+            ->pluck('subjects.id');
+
+        return $taSubjectIds
+            ->merge($scheduleSubjectIds)
+            ->merge($competentSubjectIds)
+            ->merge($legacySubjectIds)
+            ->unique()
+            ->filter()
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Check if a teacher teaches or is competent in a subject
+     */
+    private function teacherTeachesSubject(Teacher $teacher, ?int $subjectId): bool
+    {
+        if (!$subjectId) {
+            return false;
+        }
+
+        $teacherSubjectIds = $this->getTeacherSubjectIds($teacher);
+
+        // Fallback: Jika guru belum disetting mapel sama sekali di sistem,
+        // berikan akses jika ujian berada di sekolah yang sama
+        if (empty($teacherSubjectIds)) {
+            return true;
+        }
+
+        return in_array($subjectId, $teacherSubjectIds);
+    }
+
+    /**
+     * Verify the teacher has access to an exam (owned class exam OR school exam for their subject)
      */
     private function authorizeExam(CbtExam $exam, ?Teacher $teacher = null): Teacher
     {
@@ -76,8 +124,11 @@ class CbtController extends Controller
 
         $isOwner = $exam->teacher_id === $teacher->id;
         $isSchoolMatch = $exam->school_id && $teacher->school_id && ($exam->school_id == $teacher->school_id);
+        $teachesSubject = $this->teacherTeachesSubject($teacher, $exam->subject_id);
 
-        abort_unless($isOwner || $isSchoolMatch || $isAdmin, 403, 'Anda tidak memiliki akses ke ujian ini.');
+        $canAccess = $isAdmin || $isOwner || ($isSchoolMatch && $teachesSubject);
+
+        abort_unless($canAccess, 403, 'Anda tidak memiliki akses ke ujian mata pelajaran ini.');
         return $teacher;
     }
 
@@ -638,19 +689,73 @@ class CbtController extends Controller
     // EXAMS
     // ==========================================
 
-    public function examIndex()
+    public function examIndex(Request $request)
     {
         $teacher = $this->resolveTeacher();
         $academicYear = AcademicYear::where('is_active', true)->first();
 
-        $exams = CbtExam::where('teacher_id', $teacher->id)
-            ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
-            ->classLevel()
-            ->with(['subject', 'participants.classroom', 'semester'])
-            ->orderByDesc('created_at')
-            ->paginate(20)->withQueryString();
+        $teacherSubjectIds = $this->getTeacherSubjectIds($teacher);
+        $filterScope = $request->query('scope', 'all'); // 'all', 'school', 'class'
 
-        return view('guru.cbt.exams.index', compact('exams'));
+        $examsQuery = CbtExam::query()
+            ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
+            ->where(function ($q) use ($teacher, $teacherSubjectIds) {
+                // 1. Ujian Kelas milik guru
+                $q->where('teacher_id', $teacher->id);
+
+                // 2. Ujian Sekolah untuk mata pelajaran yang diampu guru ini
+                $q->orWhere(function ($sq) use ($teacher, $teacherSubjectIds) {
+                    $sq->where('exam_scope', 'school')
+                       ->where('school_id', $teacher->school_id)
+                       ->whereIn('status', ['published', 'active', 'completed', 'archived']);
+
+                    if (!empty($teacherSubjectIds)) {
+                        $sq->whereIn('subject_id', $teacherSubjectIds);
+                    }
+                });
+            })
+            ->when($filterScope === 'class', fn($q) => $q->where('exam_scope', 'class'))
+            ->when($filterScope === 'school', fn($q) => $q->where('exam_scope', 'school'))
+            ->with(['subject', 'participants.classroom', 'semester', 'teacher'])
+            ->withCount([
+                'answers as pending_essays_count' => function ($query) {
+                    $query->needsGrading();
+                },
+                'results as completed_participants_count',
+            ])
+            ->orderByDesc('created_at');
+
+        $exams = $examsQuery->paginate(20)->withQueryString();
+
+        // Hitung total esai yang menunggu dikoreksi oleh guru ini
+        $totalPendingEssays = CbtAnswer::whereHas('session.exam', function ($q) use ($teacher, $teacherSubjectIds, $academicYear) {
+            $q->when($academicYear, fn($sq) => $sq->where('academic_year_id', $academicYear->id))
+              ->where(function ($subQ) use ($teacher, $teacherSubjectIds) {
+                  $subQ->where('teacher_id', $teacher->id)
+                       ->orWhere(function ($schoolQ) use ($teacher, $teacherSubjectIds) {
+                           $schoolQ->where('exam_scope', 'school')
+                                   ->where('school_id', $teacher->school_id)
+                                   ->whereIn('status', ['published', 'active', 'completed', 'archived']);
+                           if (!empty($teacherSubjectIds)) {
+                               $schoolQ->whereIn('subject_id', $teacherSubjectIds);
+                           }
+                       });
+              });
+        })->needsGrading()->count();
+
+        // Hitung kuota untuk tab filter
+        $countSchoolExams = CbtExam::where('exam_scope', 'school')
+            ->where('school_id', $teacher->school_id)
+            ->whereIn('status', ['published', 'active', 'completed', 'archived'])
+            ->when(!empty($teacherSubjectIds), fn($q) => $q->whereIn('subject_id', $teacherSubjectIds))
+            ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
+            ->count();
+
+        $countClassExams = CbtExam::where('teacher_id', $teacher->id)
+            ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
+            ->count();
+
+        return view('guru.cbt.exams.index', compact('exams', 'filterScope', 'totalPendingEssays', 'countSchoolExams', 'countClassExams'));
     }
 
     public function examCreate()
@@ -752,12 +857,31 @@ class CbtController extends Controller
 
         $statistics = $this->cbtService->getExamStatistics($exam);
 
-        return view('guru.cbt.exams.show', compact('exam', 'statistics'));
+        $pendingEssaysCount = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
+            ->needsGrading()
+            ->count();
+
+        $hasEssayQuestions = $exam->examQuestions->filter(
+            fn($eq) => $eq->question && in_array($eq->question->question_type, ['essay', 'fill_blank'])
+        )->isNotEmpty();
+
+        return view('guru.cbt.exams.show', compact('exam', 'statistics', 'pendingEssaysCount', 'hasEssayQuestions'));
     }
 
     public function examPublish(CbtExam $exam)
     {
         $this->authorizeExam($exam);
+
+        $user = Auth::user();
+        $isAdmin = $user && (
+            (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'kurikulum', 'admin_sekolah'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
+        );
+
+        if ($exam->isSchoolScope() && !$isAdmin) {
+            return back()->with('error', 'Penerbitan ujian sekolah hanya dapat dilakukan oleh administrator.');
+        }
+
         $exam->update(['status' => 'published']);
         return back()->with('success', 'Ujian berhasil diterbitkan.');
     }
@@ -820,15 +944,25 @@ class CbtController extends Controller
     public function examResults(CbtExam $exam)
     {
         $this->authorizeExam($exam);
+        $exam->load(['examQuestions.question']);
+
         $results = CbtExamResult::where('exam_id', $exam->id)
-            ->with(['student', 'session'])
+            ->with(['student.classroom', 'session'])
             ->orderBy('rank')
             ->get();
 
         $statistics = $this->cbtService->getExamStatistics($exam);
         $itemAnalysis = $this->cbtService->getItemAnalysis($exam);
 
-        return view('guru.cbt.exams.results', compact('exam', 'results', 'statistics', 'itemAnalysis'));
+        $pendingEssaysCount = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
+            ->needsGrading()
+            ->count();
+
+        $hasEssayQuestions = $exam->examQuestions->filter(
+            fn($eq) => $eq->question && in_array($eq->question->question_type, ['essay', 'fill_blank'])
+        )->isNotEmpty();
+
+        return view('guru.cbt.exams.results', compact('exam', 'results', 'statistics', 'itemAnalysis', 'pendingEssaysCount', 'hasEssayQuestions'));
     }
 
     /**
@@ -882,6 +1016,16 @@ class CbtController extends Controller
     public function examEdit(CbtExam $exam)
     {
         $teacher = $this->authorizeExam($exam);
+
+        $user = Auth::user();
+        $isAdmin = $user && (
+            (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'kurikulum', 'admin_sekolah'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
+        );
+
+        if ($exam->isSchoolScope() && !$isAdmin) {
+            abort(403, 'Pengaturan ujian sekolah hanya dapat diubah oleh administrator.');
+        }
 
         abort_unless($exam->isDraft(), 403, 'Hanya ujian berstatus draft yang dapat diedit.');
 
@@ -943,6 +1087,16 @@ class CbtController extends Controller
     {
         $teacher = $this->authorizeExam($exam);
 
+        $user = Auth::user();
+        $isAdmin = $user && (
+            (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'kurikulum', 'admin_sekolah'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
+        );
+
+        if ($exam->isSchoolScope() && !$isAdmin) {
+            abort(403, 'Pengaturan ujian sekolah hanya dapat diubah oleh administrator.');
+        }
+
         abort_unless($exam->isDraft(), 403, 'Hanya ujian berstatus draft yang dapat diedit.');
 
         $validated = $request->validated();
@@ -975,6 +1129,16 @@ class CbtController extends Controller
     public function examDestroy(CbtExam $exam)
     {
         $this->authorizeExam($exam);
+
+        $user = Auth::user();
+        $isAdmin = $user && (
+            (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'kurikulum', 'admin_sekolah'])) 
+            || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
+        );
+
+        if ($exam->isSchoolScope() && !$isAdmin) {
+            abort(403, 'Ujian sekolah hanya dapat dihapus oleh administrator.');
+        }
 
         abort_unless($exam->isDraft(), 403, 'Hanya ujian berstatus draft yang dapat dihapus.');
 

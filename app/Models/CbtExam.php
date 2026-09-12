@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class CbtExam extends Model
 {
@@ -117,10 +118,40 @@ class CbtExam extends Model
     public function sessions(): HasMany { return $this->hasMany(CbtExamSession::class, 'exam_id'); }
     public function results(): HasMany { return $this->hasMany(CbtExamResult::class, 'exam_id'); }
 
+    public function answers(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            CbtAnswer::class,
+            CbtExamSession::class,
+            'exam_id',
+            'session_id',
+            'id',
+            'id'
+        );
+    }
+
     // Helpers
     public function isActive(): bool { return $this->status === 'active'; }
     public function isDraft(): bool { return $this->status === 'draft'; }
     public function isCompleted(): bool { return $this->status === 'completed'; }
+
+    public function getPendingEssaysCountAttribute(): int
+    {
+        if (array_key_exists('pending_essays_count', $this->attributes)) {
+            return (int) $this->attributes['pending_essays_count'];
+        }
+
+        return CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $this->id))
+            ->needsGrading()
+            ->count();
+    }
+
+    public function hasEssayQuestions(): bool
+    {
+        return $this->examQuestions()
+            ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
+            ->exists();
+    }
 
     public function isAccessible(): bool
     {

@@ -370,6 +370,21 @@ class CbtService
         if ($result->grade_synced && !$force) return null;
 
         $exam = $result->exam;
+        $teacherId = $exam->teacher_id;
+
+        if (!$teacherId) {
+            $classroomId = $result->session?->classroom_id ?? $result->student?->currentClassroom()?->id;
+            if ($classroomId) {
+                $teacherId = \App\Models\TeachingAssignment::where('classroom_id', $classroomId)
+                    ->where('subject_id', $exam->subject_id)
+                    ->where('academic_year_id', $exam->academic_year_id)
+                    ->where('is_active', true)
+                    ->value('teacher_id')
+                    ?? \App\Models\Schedule::where('classroom_id', $classroomId)
+                        ->where('subject_id', $exam->subject_id)
+                        ->value('teacher_id');
+            }
+        }
 
         $grade = Grade::updateOrCreate(
             [
@@ -381,7 +396,7 @@ class CbtService
                 'lms_source_id' => $result->id,
             ],
             [
-                'teacher_id' => $exam->teacher_id,
+                'teacher_id' => $teacherId,
                 'score' => $result->final_score,
                 'notes' => "CBT: {$exam->exam_title}",
                 'created_by' => $exam->created_by,

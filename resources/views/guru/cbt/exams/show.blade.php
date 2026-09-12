@@ -23,16 +23,26 @@
                 </a>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">{{ $exam->exam_title }}</h1>
-                    <p class="text-emerald-50 mt-1 text-base">{{ $exam->subject->subject_name ?? $exam->subject->name ?? '-' }} &bull; {{ strtoupper($exam->exam_type) }}</p>
+                    <p class="text-emerald-50 mt-1 text-base">{{ $exam->subject->subject_name ?? $exam->subject->name ?? '-' }} &bull; {{ strtoupper($exam->exam_type) }} &bull; {{ $exam->isSchoolScope() ? 'Ujian Sekolah' : 'Ujian Kelas' }}</p>
                 </div>
             </div>
-            @php $stMap = match($exam->status) {
-                'active' => ['Aktif', 'bg-white/20  border border-emerald-300'],
-                'completed' => ['Selesai', 'bg-blue-400/30  border border-blue-300'],
-                'published' => ['Diterbitkan', 'bg-amber-400/30  border border-amber-300'],
-                default => ['Draf', 'bg-white/10  border border-gray-200'],
-            }; @endphp
-            <span class="px-5 py-2 rounded-xl text-base font-bold {{ $stMap[1] }}">{{ strtoupper($stMap[0]) }}</span>
+            <div class="flex items-center gap-3">
+                @if($hasEssayQuestions)
+                <a href="{{ route('guru.cbt.exams.grade-essays', $exam) }}" class="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-xl font-black text-sm shadow-md transition flex items-center gap-2">
+                    <i class="fas fa-pen-fancy"></i>Koreksi Esai
+                    @if(($pendingEssaysCount ?? 0) > 0)
+                        <span class="px-2 py-0.5 bg-red-600 text-white text-xs font-black rounded-full shadow-sm">{{ $pendingEssaysCount }}</span>
+                    @endif
+                </a>
+                @endif
+                @php $stMap = match($exam->status) {
+                    'active' => ['Aktif', 'bg-white/20  border border-emerald-300'],
+                    'completed' => ['Selesai', 'bg-blue-400/30  border border-blue-300'],
+                    'published' => ['Diterbitkan', 'bg-amber-400/30  border border-amber-300'],
+                    default => ['Draf', 'bg-white/10  border border-gray-200'],
+                }; @endphp
+                <span class="px-5 py-2 rounded-xl text-base font-bold {{ $stMap[1] }}">{{ strtoupper($stMap[0]) }}</span>
+            </div>
         </div>
     </div>
 
@@ -152,50 +162,66 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-base font-bold text-gray-700 uppercase tracking-wider mb-4">Aksi</h3>
                 <div class="space-y-2.5">
-                    @if($exam->status === 'draft')
-                    <a href="{{ route('guru.cbt.exams.edit', $exam) }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-emerald-200 text-emerald-600 rounded-xl hover:bg-emerald-50 transition font-medium text-base">
-                        <i class="fas fa-edit"></i>Edit Ujian
+                    {{-- Tombol Koreksi Esai --}}
+                    @if($hasEssayQuestions)
+                    <a href="{{ route('guru.cbt.exams.grade-essays', $exam) }}" class="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-bold text-base shadow-md">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-pen-fancy"></i>Koreksi Esai
+                        </span>
+                        @if(($pendingEssaysCount ?? 0) > 0)
+                            <span class="px-2.5 py-0.5 bg-white text-amber-900 text-xs font-black rounded-full shadow-sm">{{ $pendingEssaysCount }} Belum Dinilai</span>
+                        @else
+                            <span class="px-2.5 py-0.5 bg-amber-400 text-amber-950 text-xs font-bold rounded-full">Selesai Dinilai</span>
+                        @endif
                     </a>
-                    <form action="{{ route('guru.cbt.exams.publish', $exam) }}" method="POST">@csrf
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
-                            <i class="fas fa-paper-plane"></i>Terbitkan Ujian
-                        </button>
-                    </form>
-                    <form action="{{ route('guru.cbt.exams.destroy', $exam) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus ujian ini? Tindakan ini tidak dapat dibatalkan.')">@csrf @method('DELETE')
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition font-medium text-base">
-                            <i class="fas fa-trash"></i>Hapus Ujian
-                        </button>
-                    </form>
-                    @elseif($exam->status === 'published')
-                    <form action="{{ route('guru.cbt.exams.activate', $exam) }}" method="POST">@csrf
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
-                            <i class="fas fa-play"></i>Aktifkan Ujian
-                        </button>
-                    </form>
-                    @elseif($exam->status === 'active')
-                    @if($exam->is_paused)
-                    <form action="{{ route('guru.cbt.exams.resume', $exam) }}" method="POST">@csrf
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
-                            <i class="fas fa-play"></i>Lanjutkan Ujian
-                        </button>
-                    </form>
-                    @else
-                    <form action="{{ route('guru.cbt.exams.pause', $exam) }}" method="POST" onsubmit="return confirm('Jeda ujian untuk seluruh siswa?')">@csrf
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
-                            <i class="fas fa-pause"></i>Jeda Ujian
-                        </button>
-                    </form>
                     @endif
-                    <form action="{{ route('guru.cbt.exams.batch-start', $exam) }}" method="POST" onsubmit="return confirm('Mulai sesi ujian untuk semua siswa sekaligus?')">@csrf
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
-                            <i class="fas fa-users"></i>Mulai Serentak
-                        </button>
-                    </form>
-                    <form action="{{ route('guru.cbt.exams.complete', $exam) }}" method="POST" onsubmit="return confirm('Selesaikan ujian ini?')">@csrf
-                        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition font-medium text-base">
-                            <i class="fas fa-stop"></i>Selesaikan Ujian
-                        </button>
-                    </form>
+
+                    @if($exam->isClassScope())
+                        @if($exam->status === 'draft')
+                        <a href="{{ route('guru.cbt.exams.edit', $exam) }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-emerald-200 text-emerald-600 rounded-xl hover:bg-emerald-50 transition font-medium text-base">
+                            <i class="fas fa-edit"></i>Edit Ujian
+                        </a>
+                        <form action="{{ route('guru.cbt.exams.publish', $exam) }}" method="POST">@csrf
+                            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
+                                <i class="fas fa-paper-plane"></i>Terbitkan Ujian
+                            </button>
+                        </form>
+                        <form action="{{ route('guru.cbt.exams.destroy', $exam) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus ujian ini? Tindakan ini tidak dapat dibatalkan.')">@csrf @method('DELETE')
+                            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition font-medium text-base">
+                                <i class="fas fa-trash"></i>Hapus Ujian
+                            </button>
+                        </form>
+                        @elseif($exam->status === 'published')
+                        <form action="{{ route('guru.cbt.exams.activate', $exam) }}" method="POST">@csrf
+                            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
+                                <i class="fas fa-play"></i>Aktifkan Ujian
+                            </button>
+                        </form>
+                        @elseif($exam->status === 'active')
+                        @if($exam->is_paused)
+                        <form action="{{ route('guru.cbt.exams.resume', $exam) }}" method="POST">@csrf
+                            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
+                                <i class="fas fa-play"></i>Lanjutkan Ujian
+                            </button>
+                        </form>
+                        @else
+                        <form action="{{ route('guru.cbt.exams.pause', $exam) }}" method="POST" onsubmit="return confirm('Jeda ujian untuk seluruh siswa?')">@csrf
+                            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
+                                <i class="fas fa-pause"></i>Jeda Ujian
+                            </button>
+                        </form>
+                        @endif
+                        <form action="{{ route('guru.cbt.exams.batch-start', $exam) }}" method="POST" onsubmit="return confirm('Mulai sesi ujian untuk semua siswa sekaligus?')">@csrf
+                            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
+                                <i class="fas fa-users"></i>Mulai Serentak
+                            </button>
+                        </form>
+                        <form action="{{ route('guru.cbt.exams.complete', $exam) }}" method="POST" onsubmit="return confirm('Selesaikan ujian ini?')">@csrf
+                            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition font-medium text-base">
+                                <i class="fas fa-stop"></i>Selesaikan Ujian
+                            </button>
+                        </form>
+                        @endif
                     @endif
 
                     <a href="{{ route('guru.cbt.exams.results', $exam) }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
