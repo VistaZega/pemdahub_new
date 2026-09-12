@@ -223,11 +223,26 @@ void setup() {
 
   SPI.begin();
   SPI.setFrequency(1000000); // 1MHz timing stabil untuk chip clone
-  delay(50);
-  rfid.PCD_Init();
-  delay(150);
+  // Inisialisasi awal + Software Reset via SPI (solusi stabil untuk pin RST di 3.3V)
+  byte version = 0x00;
+  for (int attempt = 1; attempt <= 3; attempt++) {
+    rfid.PCD_Init();
+    delay(50);
+    rfid.PCD_Reset();   // Kirim instruksi SoftReset ke chip RC522 via SPI
+    delay(50);
+    rfid.PCD_Init();    // Konfigurasi ulang register setelah soft-reset
+    delay(50);
 
-  byte version = rfid.PCD_ReadRegister(rfid.VersionReg);
+    version = rfid.PCD_ReadRegister(rfid.VersionReg);
+    Serial.print(F("Inisialisasi RFID (Percobaan ")); Serial.print(attempt);
+    Serial.print(F("): Versi 0x")); Serial.println(version, HEX);
+
+    if (version != 0x00 && version != 0xFF) {
+      break; // Modul RC522 siap dan aktif!
+    }
+    delay(100);
+  }
+
   if (version == 0x00 || version == 0xFF) {
     Serial.println(F("WARNING: RFID tidak terdeteksi! Cek wiring SPI."));
     lcd.setCursor(0, 2); lcd.print(F("RFID ERROR! Cek SPI "));
