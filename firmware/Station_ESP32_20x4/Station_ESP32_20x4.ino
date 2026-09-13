@@ -39,6 +39,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
+#include <WiFiClient.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -65,9 +66,11 @@ const char* WIFI_ALT2_PASSWORD = "PEMBDA2026";
 const char* WIFI_ALT3_SSID     = "VISTAFAMILY";
 const char* WIFI_ALT3_PASSWORD = "pelita31";
 
-// Server API - JANGAN DIUBAH kecuali domain berubah
-const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
-const char* SCAN_BUFFER_URL   = "https://perguruanpembda.com/api/rfid/scan-buffer";
+// Server API PembdaHUB
+// - Server Lokal Sekolah   : "http://50.35.89.10/api/attendance/rfid-scan"
+// - Server Production Cloud : "https://perguruanpembda.com/api/attendance/rfid-scan"
+const char* SERVER_URL        = "http://50.35.89.10/api/attendance/rfid-scan";
+const char* SCAN_BUFFER_URL   = "http://50.35.89.10/api/rfid/scan-buffer";
 const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
 
 // ── DEVICE ID ──
@@ -233,7 +236,7 @@ void setup() {
   lcd.createChar(2, iconHeart);
 
   lcd.setCursor(0, 0); lcd.print(F("===================="));
-  lcd.setCursor(0, 1); lcd.print(F("  PEMBDAHUB KIOSK   "));
+  lcd.setCursor(0, 1); lcd.print(F(" * PEMBDA HUB v2 *  "));
   lcd.setCursor(0, 2); lcd.print(F(" Memulai Sistem...  "));
   lcd.setCursor(0, 3); lcd.print(F("===================="));
   Serial.println(F("LCD 20x4 OK."));
@@ -451,11 +454,16 @@ void sendToServer(String uid, String type) {
     return;
   }
 
-  WiFiClientSecure client;
-  client.setInsecure();
-
   HTTPClient http;
-  http.begin(client, SERVER_URL);
+  WiFiClient client;
+  WiFiClientSecure secureClient;
+
+  if (String(SERVER_URL).startsWith("https://")) {
+    secureClient.setInsecure(); // Bypass verifikasi sertifikat SSL jika HTTPS
+    http.begin(secureClient, SERVER_URL);
+  } else {
+    http.begin(client, SERVER_URL); // HTTP biasa untuk IP server lokal
+  }
   http.addHeader("Content-Type",    "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
   http.addHeader("Accept",          "application/json");
@@ -514,11 +522,16 @@ void sendScanBuffer(String uid) {
 
   Serial.println(F("Mengirim UID ke scan-buffer..."));
 
-  WiFiClientSecure client;
-  client.setInsecure();
-
   HTTPClient http;
-  http.begin(client, SCAN_BUFFER_URL);
+  WiFiClient client;
+  WiFiClientSecure secureClient;
+
+  if (String(SCAN_BUFFER_URL).startsWith("https://")) {
+    secureClient.setInsecure();
+    http.begin(secureClient, SCAN_BUFFER_URL);
+  } else {
+    http.begin(client, SCAN_BUFFER_URL);
+  }
   http.addHeader("Content-Type",    "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
   http.setTimeout(5000);
@@ -675,6 +688,10 @@ void showReady() {
   lcd.write(byte(1)); // Ikon Kartu
   lcd.print(F(" Tempel Kartu / QR "));
   
+  // Baris 2: Animasi / Petunjuk
+  lcd.setCursor(0, 2);
+  lcd.print(F("   >> RFID / QR <<  "));
+
   // Baris 3: Status Bar & SSID WiFi
   lcd.setCursor(0, 3);
   if (isOnline) {
@@ -859,20 +876,13 @@ void beep(int count, int duration) {
 }
 
 // ============================================================
-//  FUNGSI MP3 PLAYER (DFPlayer Mini via Hardware Serial2)
-//  Standar 10-byte dengan Checksum Resmi DFPlayer:
-//  [0x7E][0xFF][0x06][CMD][0x00][PAR1][PAR2][SUM_H][SUM_L][0xEF]
+//  FUNGSI MP3 PLAYER RAW COMMANDS (Mode Universal 8-Byte)
 // ============================================================
 
 void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
-  uint16_t checksum = 0 - (0xFF + 0x06 + cmd + 0x00 + para1 + para2);
-  uint8_t cmdBuffer[10] = {
-    0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2,
-    (uint8_t)(checksum >> 8), (uint8_t)(checksum & 0xFF),
-    0xEF
-  };
-  mp3Serial.write(cmdBuffer, 10);
-  delay(100); // Jeda pemrosesan modul DFPlayer
+  uint8_t cmdBuffer[8] = { 0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2, 0xEF };
+  mp3Serial.write(cmdBuffer, 8);
+  delay(100);
 }
 
 // Putar track tertentu di folder tertentu (1-indexed)
