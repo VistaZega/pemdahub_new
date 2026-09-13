@@ -1,5 +1,5 @@
 <?php
-@ini_set('memory_limit', '512M');
+@ini_set('memory_limit', '2G');
 
 /**
  * Diagnostic Deployment Script
