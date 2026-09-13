@@ -71,7 +71,7 @@ const char* SERVER_URL        = "http://50.35.89.10/api/attendance/rfid-scan";
 const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
 
 // Device ID Unik Per Station
-const char* DEVICE_ID         = "STATION-SMK-01";
+const char* DEVICE_ID         = "STATION-SMK-03";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
