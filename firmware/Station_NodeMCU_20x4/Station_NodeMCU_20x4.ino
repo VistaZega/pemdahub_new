@@ -843,16 +843,11 @@ void beep(int count, int duration) {
 }
 
 // ============================================================
-//  FUNGSI MP3 PLAYER RAW COMMANDS
+//  FUNGSI MP3 PLAYER RAW COMMANDS (Mode Universal 8-Byte)
 // ============================================================
 void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
-  uint16_t checksum = 0 - (0xFF + 0x06 + cmd + 0x00 + para1 + para2);
-  uint8_t cmdBuffer[10] = {
-    0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2,
-    (uint8_t)(checksum >> 8), (uint8_t)(checksum & 0xFF),
-    0xEF
-  };
-  kioskSerial.write(cmdBuffer, 10);
+  uint8_t cmdBuffer[8] = { 0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2, 0xEF };
+  kioskSerial.write(cmdBuffer, 8);
   delay(100);
 }
 
