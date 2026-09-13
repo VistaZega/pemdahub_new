@@ -38,6 +38,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'treasurer' => \App\Http\Middleware\TreasurerMiddleware::class,
             'yayasan' => \App\Http\Middleware\YayasanMiddleware::class,

@@ -69,13 +69,13 @@ class AppServiceProvider extends ServiceProvider
             try { app('files')->link(storage_path('app/public'), public_path('storage')); } catch (\Exception $e) {}
         }
 
-        // Fix CORS & Mixed Content: Force HTTPS in production
-        if (config('app.env') === 'production' || (request()->hasHeader('X-Forwarded-Proto') && request()->header('X-Forwarded-Proto') == 'https')) {
+        // Fix CORS & Mixed Content: Force HTTPS in production or via perguruanpembda.com
+        $isHttps = config('app.env') === 'production' 
+            || str_contains(request()->getHost(), 'perguruanpembda.com')
+            || (request()->hasHeader('X-Forwarded-Proto') && request()->header('X-Forwarded-Proto') === 'https');
+
+        if ($isHttps) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
-        }
-        
-        // Don't blindly force root url to request()->root() if it's HTTP but we are in production
-        if (config('app.env') === 'production') {
             $rootUrl = str_replace('http://', 'https://', request()->root());
             \Illuminate\Support\Facades\URL::forceRootUrl($rootUrl);
             config(['app.asset_url' => $rootUrl]);
