@@ -1,4 +1,6 @@
 <?php
+@ini_set('memory_limit', '512M');
+
 /**
  * Diagnostic Deployment Script
  * Akses via browser: https://perguruanpembda.com/check_deploy.php?token=pembda2026check
@@ -723,6 +725,41 @@ if (file_exists($migrationPath)) {
     echo "</pre>";
 }
 
+/**
+ * Read last N lines from a file efficiently without loading entire file into memory.
+ */
+function readLastLines(string $path, int $lines = 40): string
+{
+    if (!file_exists($path)) return '';
+    $fp = fopen($path, 'r');
+    if (!$fp) return '';
+    fseek($fp, 0, SEEK_END);
+    $pos = ftell($fp);
+    $output = [];
+    $currentLine = '';
+    $lineCount = 0;
+    // Read from end of file backwards
+    for ($i = $pos - 1; $i >= 0; $i--) {
+        fseek($fp, $i);
+        $char = fgetc($fp);
+        if ($char === "\n" || $char === "\r") {
+            if ($currentLine !== '') {
+                $output[] = $currentLine;
+                $currentLine = '';
+                $lineCount++;
+                if ($lineCount >= $lines) break;
+            }
+        } else {
+            $currentLine = $char . $currentLine;
+        }
+    }
+    if ($currentLine !== '' && $lineCount < $lines) {
+        $output[] = $currentLine;
+    }
+    fclose($fp);
+    return implode("\n", array_reverse($output));
+}
+
 echo "<h2>2. Pengecekan Struktur Kolom di Database</h2>";
 try {
     $results = Illuminate\Support\Facades\DB::select("DESCRIBE applicant_documents");
@@ -877,9 +914,7 @@ try {
                 echo "  - $lf (" . filesize($lfPath) . " bytes) | Modifikasi: " . date("Y-m-d H:i:s", filemtime($lfPath)) . "<br>";
                 if (str_contains($lf, '.log') && filesize($lfPath) > 0) {
                     echo "<pre style='background:#000;color:#fff;padding:10px;font-size:11px;overflow:auto;max-height:200px;text-align:left;'>";
-                    $lines = file($lfPath);
-                    $lastLines = array_slice($lines, -40); // print last 40 lines
-                    echo htmlspecialchars(implode("", $lastLines));
+                    echo htmlspecialchars(readLastLines($lfPath, 40));
                     echo "</pre>";
                 }
             }
