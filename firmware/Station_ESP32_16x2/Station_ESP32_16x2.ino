@@ -68,6 +68,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
+#include <WiFiClient.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -95,13 +96,15 @@ const char* WIFI_ALT3_SSID     = "VISTAFAMILY";
 const char* WIFI_ALT3_PASSWORD = "pelita31";
 
 // Server API PembdaHUB
-const char* SERVER_URL         = "https://perguruanpembda.com/api/attendance/rfid-scan";
-const char* SCAN_BUFFER_URL    = "https://perguruanpembda.com/api/rfid/scan-buffer";
+// - Server Lokal Sekolah   : "http://50.35.89.10/api/attendance/rfid-scan"
+// - Server Production Cloud : "https://perguruanpembda.com/api/attendance/rfid-scan"
+const char* SERVER_URL         = "http://50.35.89.10/api/attendance/rfid-scan";
+const char* SCAN_BUFFER_URL    = "http://50.35.89.10/api/rfid/scan-buffer";
 const char* KIOSK_API_KEY      = "RAHASIA-PEMBDAHUB-12345";
 
 // ── DEVICE IDENTIFIER ──
 // Ganti ID unik untuk setiap station, misal: STATION-SMA-01, STATION-SMK-01
-const char* DEVICE_ID          = "STATION-ESP32-16X2";
+const char* DEVICE_ID          = "STATION-SMK-4";
 
 // ============================================================
 //  PIN DEFINITIONS - ESP32 Dev Module
@@ -417,11 +420,16 @@ void sendToServer(String uid, String type) {
     return;
   }
 
-  WiFiClientSecure client;
-  client.setInsecure(); // Bypass verifikasi sertifikat SSL
-
   HTTPClient http;
-  http.begin(client, SERVER_URL);
+  WiFiClient client;
+  WiFiClientSecure secureClient;
+
+  if (String(SERVER_URL).startsWith("https://")) {
+    secureClient.setInsecure(); // Bypass verifikasi sertifikat SSL jika HTTPS
+    http.begin(secureClient, SERVER_URL);
+  } else {
+    http.begin(client, SERVER_URL); // HTTP biasa untuk IP server lokal
+  }
   http.addHeader("Content-Type",    "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
   http.addHeader("Accept",          "application/json");
@@ -478,11 +486,16 @@ void sendScanBuffer(String uid) {
 
   Serial.println(F("Mengirim UID ke buffer pendaftaran web..."));
 
-  WiFiClientSecure client;
-  client.setInsecure();
-
   HTTPClient http;
-  http.begin(client, SCAN_BUFFER_URL);
+  WiFiClient client;
+  WiFiClientSecure secureClient;
+
+  if (String(SCAN_BUFFER_URL).startsWith("https://")) {
+    secureClient.setInsecure();
+    http.begin(secureClient, SCAN_BUFFER_URL);
+  } else {
+    http.begin(client, SCAN_BUFFER_URL);
+  }
   http.addHeader("Content-Type",    "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
   http.setTimeout(5000);
