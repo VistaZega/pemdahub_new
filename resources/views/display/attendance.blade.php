@@ -204,6 +204,22 @@
         }
 
         /* ============================================================
+           MODE EXPANDED (FULL WIDTH / LAYAR PENUH)
+        ============================================================ */
+        body.is-feed-expanded .body-grid {
+            grid-template-columns: 1fr !important;
+        }
+        body.is-feed-expanded .right-col {
+            display: none !important;
+        }
+        body.is-feed-expanded .left-col {
+            width: 100% !important;
+        }
+        body.is-feed-expanded #feed-count {
+            display: none;
+        }
+
+        /* ============================================================
            KOLOM KIRI: LIVE ABSENSI FEED (FULL HEIGHT)
         ============================================================ */
         .left-col {
@@ -297,6 +313,153 @@
         .feed-zoom-label:hover {
             background: rgba(37,99,235,0.08);
             color: #2563eb;
+        }
+
+        /* ── HEADER ACTIONS & STATS DALAM FEED HEADER ── */
+        .feed-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+        .feed-header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* ── TOTAL YANG ABSEN SAJA (MUNCUL HANYA SAAT DIPERLEBAR) ── */
+        .expanded-stats-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        body.is-feed-expanded .expanded-stats-bar {
+            display: inline-flex;
+        }
+        .exp-stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            white-space: nowrap;
+        }
+        .exp-stat-lbl {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0.85;
+        }
+        .exp-stat-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 800;
+        }
+        .exp-stat-total {
+            background: #0f172a;
+            color: #ffffff;
+            border: 1px solid #1e293b;
+        }
+        .exp-stat-total i {
+            color: #4ade80;
+        }
+        .exp-stat-total .exp-stat-val {
+            color: #4ade80;
+            font-size: 14px;
+        }
+        .exp-stat-siswa {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .exp-stat-siswa i {
+            color: #2563eb;
+        }
+        .exp-stat-pegawai {
+            background: #faf5ff;
+            color: #6b21a8;
+            border: 1px solid #e9d5ff;
+        }
+        .exp-stat-pegawai i {
+            color: #7c3aed;
+        }
+        .exp-stat-units {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .exp-pill-unit {
+            padding: 3px 8px;
+            font-size: 11px;
+        }
+        .exp-unit-code {
+            font-weight: 800;
+        }
+        .unit-pill-smp {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .unit-pill-sma {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .unit-pill-smk {
+            background: #f5f3ff;
+            color: #5b21b6;
+            border: 1px solid #ddd6fe;
+        }
+
+        /* ── TOMBOL MELEBARKAN / MEMPERKECIL TAMPILAN FEED ── */
+        .feed-expand-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid var(--border-bright);
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+        .feed-expand-btn:hover {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+        }
+        .feed-expand-btn:active {
+            transform: scale(0.96);
+        }
+        .feed-expand-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+        }
+        .feed-expand-btn.active:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            box-shadow: 0 2px 6px rgba(220,38,38,0.25);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-3px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ── WRAPPER ZOOM FEED ── */
@@ -1185,19 +1348,47 @@
         <div class="left-col">
             <div class="feed-panel">
                 <div class="feed-header">
-                    <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="feed-header-left">
                         <span class="feed-title">⚡ Live Absensi {{ isset($targetSchool) ? $targetSchool->type : 'Real-Time' }}</span>
                         <span class="feed-count" id="feed-count">–</span>
+
+                        <!-- Total Absen Saat Tampilan Diperlebar (Hanya muncul saat diperlebar) -->
+                        <div class="expanded-stats-bar" id="expanded-stats-bar">
+                            <div class="exp-stat-pill exp-stat-total" title="Total Seluruh Kehadiran Hari Ini">
+                                <i class="fa-solid fa-users"></i>
+                                <span class="exp-stat-lbl">Total Absen:</span>
+                                <span class="exp-stat-val" id="exp-total-all">0</span>
+                            </div>
+                            <div class="exp-stat-pill exp-stat-siswa" title="Total Siswa Hadir">
+                                <i class="fa-solid fa-user-graduate"></i>
+                                <span class="exp-stat-lbl">Siswa:</span>
+                                <span class="exp-stat-val" id="exp-total-siswa">0</span>
+                            </div>
+                            <div class="exp-stat-pill exp-stat-pegawai" title="Total Guru & Pegawai Hadir">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                                <span class="exp-stat-lbl">Guru/Staf:</span>
+                                <span class="exp-stat-val" id="exp-total-pegawai">0</span>
+                            </div>
+                            <div class="exp-stat-units" id="exp-stat-units"></div>
+                        </div>
                     </div>
 
-                    <!-- Kontrol Zoom Khusus Area Tabel Feed -->
-                    <div class="feed-zoom-controls" title="Zoom & Scroll khusus area tabel ini">
-                        <button type="button" class="feed-zoom-btn" onclick="zoomFeed(-0.1)" title="Perkecil Teks / Zoom Out (Ctrl + Scroll Down)">
-                            <i class="fa-solid fa-minus"></i>
-                        </button>
-                        <span class="feed-zoom-label" id="feed-zoom-val" onclick="resetFeedZoom()" title="Klik untuk reset zoom ke 100%">100%</span>
-                        <button type="button" class="feed-zoom-btn" onclick="zoomFeed(0.1)" title="Perbesar Teks / Zoom In (Ctrl + Scroll Up)">
-                            <i class="fa-solid fa-plus"></i>
+                    <div class="feed-header-right">
+                        <!-- Kontrol Zoom Khusus Area Tabel Feed -->
+                        <div class="feed-zoom-controls" title="Zoom & Scroll khusus area tabel ini">
+                            <button type="button" class="feed-zoom-btn" onclick="zoomFeed(-0.1)" title="Perkecil Teks / Zoom Out (Ctrl + Scroll Down)">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <span class="feed-zoom-label" id="feed-zoom-val" onclick="resetFeedZoom()" title="Klik untuk reset zoom ke 100%">100%</span>
+                            <button type="button" class="feed-zoom-btn" onclick="zoomFeed(0.1)" title="Perbesar Teks / Zoom In (Ctrl + Scroll Up)">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Tombol Melebarkan / Memperkecil Tampilan Feed -->
+                        <button type="button" class="feed-expand-btn" id="feed-expand-btn" onclick="toggleExpandFeed()" title="Lebarkan Tampilan Live Absensi ke Layar Penuh">
+                            <i class="fa-solid fa-expand" id="feed-expand-icon"></i>
+                            <span id="feed-expand-label">Lebarkan</span>
                         </button>
                     </div>
                 </div>
@@ -1386,6 +1577,56 @@ function updateDisplay(data) {
     const countEl = document.getElementById('feed-count');
     if (countEl) {
         countEl.textContent = (data.feed ? data.feed.length : 0) + ' aktivitas hari ini';
+    }
+
+    // ─ Update Angka Total Absen untuk Tampilan Diperlebar ─
+    updateExpandedStats(data);
+}
+
+// ============================================================
+//  UPDATE TOTAL ABSEN SAJA SAAT MODE DIPERLEBAR (EXPANDED)
+// ============================================================
+function updateExpandedStats(data) {
+    if (!data) return;
+
+    // Hitung total siswa & guru yang sudah absen hari ini
+    const sHadir = data.statistik?.siswa_hadir || 0;
+    const sTerlambat = data.statistik?.siswa_terlambat || 0;
+    const totalSiswa = data.statistik?.total_siswa_absen ?? (sHadir + sTerlambat);
+
+    const totalPegawai = data.statistik?.total_pegawai_absen ?? (data.statistik?.pegawai_hadir || 0);
+    const totalAll = data.statistik?.total_absen ?? (totalSiswa + totalPegawai);
+
+    const elTotalAll = document.getElementById('exp-total-all');
+    if (elTotalAll) elTotalAll.textContent = totalAll.toLocaleString('id-ID');
+
+    const elTotalSiswa = document.getElementById('exp-total-siswa');
+    if (elTotalSiswa) elTotalSiswa.textContent = totalSiswa.toLocaleString('id-ID');
+
+    const elTotalPegawai = document.getElementById('exp-total-pegawai');
+    if (elTotalPegawai) elTotalPegawai.textContent = totalPegawai.toLocaleString('id-ID');
+
+    // Unit pills jika rekap_unit > 1 (seperti di /display umum dengan SMP, SMA, SMK)
+    const unitsContainer = document.getElementById('exp-stat-units');
+    if (unitsContainer) {
+        if (data.rekap_unit && data.rekap_unit.length > 1) {
+            unitsContainer.innerHTML = data.rekap_unit.map(unit => {
+                const unitType = (unit.type || '').toUpperCase();
+                const sTap = unit.siswa?.tap_hadir ?? ((unit.siswa?.hadir || 0) + (unit.siswa?.terlambat || 0));
+                const gTap = unit.pegawai?.tap_hadir ?? (unit.pegawai?.hadir || 0);
+                const uTotal = sTap + gTap;
+                return `
+                    <div class="exp-stat-pill exp-pill-unit unit-pill-${unitType.toLowerCase()}" title="${escHtml(unit.name)}: ${uTotal} hadir (${sTap} siswa, ${gTap} guru/staf)">
+                        <span class="exp-unit-code">${escHtml(unitType)}:</span>
+                        <span class="exp-stat-val">${uTotal}</span>
+                    </div>
+                `;
+            }).join('');
+            unitsContainer.style.display = 'flex';
+        } else {
+            unitsContainer.innerHTML = '';
+            unitsContainer.style.display = 'none';
+        }
     }
 }
 
@@ -1651,6 +1892,57 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ============================================================
+//  LEBARKAN / PERKECIL TAMPILAN FEED (FULL WIDTH TOGGLE)
+// ============================================================
+function toggleExpandFeed() {
+    const isExpanded = document.body.classList.toggle('is-feed-expanded');
+    localStorage.setItem('pembda_feed_expanded', isExpanded ? '1' : '0');
+    updateExpandButtonState(isExpanded);
+}
+
+function updateExpandButtonState(isExpanded) {
+    const btn   = document.getElementById('feed-expand-btn');
+    const icon  = document.getElementById('feed-expand-icon');
+    const label = document.getElementById('feed-expand-label');
+    if (!btn || !icon || !label) return;
+
+    if (isExpanded) {
+        icon.className = 'fa-solid fa-compress';
+        label.textContent = 'Perkecil';
+        btn.title = 'Kembalikan Tampilan Normal (Tampilkan Rekapitulasi)';
+        btn.classList.add('active');
+    } else {
+        icon.className = 'fa-solid fa-expand';
+        label.textContent = 'Lebarkan';
+        btn.title = 'Lebarkan Tampilan Live Absensi ke Layar Penuh (Sembunyikan Rekapitulasi)';
+        btn.classList.remove('active');
+    }
+}
+
+// Inisialisasi state preferensi tampilan full-width
+(function initFeedExpandState() {
+    const savedExpand = localStorage.getItem('pembda_feed_expanded') === '1';
+    if (savedExpand) {
+        document.body.classList.add('is-feed-expanded');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        updateExpandButtonState(document.body.classList.contains('is-feed-expanded'));
+
+        // Shortcut keyboard: 'f' atau 'F' untuk toggle, 'Escape' untuk keluar mode full-width
+        document.addEventListener('keydown', (e) => {
+            if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                toggleExpandFeed();
+            } else if (e.key === 'Escape' && document.body.classList.contains('is-feed-expanded')) {
+                e.preventDefault();
+                toggleExpandFeed();
+            }
+        });
+    });
+})();
 
 // ============================================================
 //  RENDER FEED
