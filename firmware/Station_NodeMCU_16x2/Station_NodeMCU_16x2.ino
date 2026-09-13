@@ -89,8 +89,10 @@ const char* WIFI_ALT2_PASSWORD= "PEMBDA2026";
 const char* WIFI_ALT3_SSID    = "VISTAFAMILY";
 const char* WIFI_ALT3_PASSWORD= "pelita31";
 
-// Server API - JANGAN DIUBAH kecuali domain berubah
-const char* SERVER_URL        = "https://perguruanpembda.com/api/attendance/rfid-scan";
+// Server API PembdaHUB
+// - Server Lokal Sekolah   : "http://50.35.89.10/api/attendance/rfid-scan"
+// - Server Production Cloud : "https://perguruanpembda.com/api/attendance/rfid-scan"
+const char* SERVER_URL        = "http://50.35.89.10/api/attendance/rfid-scan";
 const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
@@ -297,12 +299,17 @@ void sendToServer(String uid, String type) {
     return;
   }
 
-  // BearSSL WiFiClientSecure - skip validasi sertifikat
-  BearSSL::WiFiClientSecure client;
-  client.setInsecure();
+  // Dual-Mode HTTP & HTTPS
+  WiFiClient client;
+  BearSSL::WiFiClientSecure secureClient;
 
   HTTPClient http;
-  http.begin(client, String(SERVER_URL));
+  if (String(SERVER_URL).startsWith("https://")) {
+    secureClient.setInsecure();
+    http.begin(secureClient, String(SERVER_URL));
+  } else {
+    http.begin(client, String(SERVER_URL));
+  }
   http.addHeader("Content-Type",    "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
   http.addHeader("Accept",          "application/json");
