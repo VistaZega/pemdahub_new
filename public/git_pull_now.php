@@ -31,7 +31,17 @@ echo "</style></head><body>";
 echo "<h1>🚀 PembdaHUB One-Click Git Pull & Deploy</h1>";
 flush();
 
-$root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+// Auto-detect root folder (bisa di Ubuntu /var/www/pembdahub maupun di Hostinger)
+$root = realpath(__DIR__ . '/../');
+if (!$root || !file_exists("{$root}/artisan")) {
+    $root = realpath(__DIR__ . '/pembdahub');
+}
+if (!$root || !file_exists("{$root}/artisan")) {
+    $root = '/var/www/pembdahub';
+}
+if (!$root || !file_exists("{$root}/artisan")) {
+    $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+}
 $envFile = "{$root}/.env";
 
 // 1. Baca token yang tersimpan di server (.env)
