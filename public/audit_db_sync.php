@@ -55,6 +55,45 @@ try {
 $action = $_GET['action'] ?? '';
 $actionMessage = '';
 
+if ($action === 'fix_log_permissions') {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "=== FIXING LOG PERMISSIONS ===\n";
+    $logDir = dirname(__DIR__) . '/storage/logs';
+    $files = is_dir($logDir) ? glob($logDir . '/*') : [];
+    foreach ($files as $f) {
+        if (!is_writable($f)) {
+            echo "File not writable by web server: " . basename($f) . "\n";
+            // Try chmod
+            @chmod($f, 0666);
+            if (!is_writable($f)) {
+                echo "Attempting to rotate/recreate: " . basename($f) . "\n";
+                $backup = $f . '.bak';
+                @copy($f, $backup);
+                if (@unlink($f)) {
+                    @touch($f);
+                    @chmod($f, 0666);
+                    echo "Recreated " . basename($f) . " successfully! Writable: " . (is_writable($f) ? 'YES' : 'NO') . "\n";
+                } else {
+                    echo "Failed to unlink " . basename($f) . "\n";
+                }
+            } else {
+                echo "Chmod 0666 succeeded on " . basename($f) . "\n";
+            }
+        } else {
+            echo "Already writable: " . basename($f) . "\n";
+        }
+    }
+    
+    // Test write to today's log
+    $todayLog = $logDir . '/laravel-' . date('Y-m-d') . '.log';
+    if (!file_exists($todayLog)) {
+        @touch($todayLog);
+        @chmod($todayLog, 0666);
+    }
+    echo "Today log writable: " . (is_writable($todayLog) ? 'YES' : 'NO') . "\n";
+    exit;
+}
+
 if ($action === 'view_log') {
     header('Content-Type: text/plain; charset=utf-8');
     $logDir = dirname(__DIR__) . '/storage/logs';
