@@ -27,7 +27,7 @@
                     @endif
                 </a>
                 @endif
-                @if($exam->status === 'draft')
+                @if(in_array($exam->status, ['draft', 'published', 'active']))
                 <a href="{{ route('admin.cbt.exams.edit', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition shadow-lg shadow-violet-900/20 text-sm border border-gray-200">
                     <i class="fas fa-edit mr-2"></i>Edit Ujian
                 </a>
@@ -166,10 +166,12 @@
                 <h3 class="text-base font-bold text-gray-700 uppercase tracking-wider mb-4">Aksi</h3>
                 <div class="space-y-2.5">
                     @if($exam->isSchoolScope())
-                        @if($exam->status === 'draft')
+                        @if(in_array($exam->status, ['draft', 'published', 'active']))
                         <a href="{{ route('admin.cbt.exams.edit', $exam) }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-indigo-200 text-indigo-700 rounded-xl hover:bg-indigo-50 transition font-medium text-base">
                             <i class="fas fa-edit"></i>Edit Ujian
                         </a>
+                        @endif
+                        @if($exam->status === 'draft')
                         <form action="{{ route('admin.cbt.exams.publish', $exam) }}" method="POST">@csrf
                             <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-medium text-base">
                                 <i class="fas fa-bullhorn"></i>Terbitkan Ujian

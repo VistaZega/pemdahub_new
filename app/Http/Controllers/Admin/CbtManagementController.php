@@ -877,7 +877,7 @@ class CbtManagementController extends Controller
     }
 
     /**
-     * Form edit ujian sekolah (hanya untuk status draft)
+     * Form edit ujian sekolah (status draft, published, atau active)
      */
     public function examEdit(CbtExam $exam)
     {
@@ -886,10 +886,10 @@ class CbtManagementController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        // Hanya ujian draft yang bisa diedit
-        if ($exam->status !== 'draft') {
+        // Ujian yang sudah selesai / arsip tidak dapat diedit
+        if (!in_array($exam->status, ['draft', 'published', 'active'])) {
             return redirect()->route('admin.cbt.show', $exam)
-                ->with('error', 'Ujian yang sudah diterbitkan/aktif tidak dapat diedit. Hanya ujian berstatus Draft yang bisa diubah.');
+                ->with('error', 'Ujian yang sudah selesai tidak dapat diedit.');
         }
 
         $isSuperAdmin = $user->isSuperAdmin();
@@ -953,7 +953,7 @@ class CbtManagementController extends Controller
     }
 
     /**
-     * Update ujian sekolah (hanya untuk status draft)
+     * Update ujian sekolah (status draft, published, atau active)
      */
     public function examUpdate(Request $request, CbtExam $exam)
     {
@@ -962,10 +962,10 @@ class CbtManagementController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        // Hanya ujian draft yang bisa diedit
-        if ($exam->status !== 'draft') {
+        // Ujian yang sudah selesai / arsip tidak dapat diedit
+        if (!in_array($exam->status, ['draft', 'published', 'active'])) {
             return redirect()->route('admin.cbt.show', $exam)
-                ->with('error', 'Ujian yang sudah diterbitkan/aktif tidak dapat diedit.');
+                ->with('error', 'Ujian yang sudah selesai tidak dapat diedit.');
         }
 
         $allowedTypes = implode(',', CbtExam::SCHOOL_SCOPE_TYPES);
@@ -974,6 +974,7 @@ class CbtManagementController extends Controller
             'exam_title'          => 'required|string|max:255',
             'exam_description'    => 'nullable|string',
             'exam_type'           => "required|in:{$allowedTypes}",
+            'status'              => 'nullable|in:draft,published,active',
             'start_time'          => 'nullable|date',
             'end_time'            => 'nullable|date|after:start_time',
             'duration_minutes'    => 'required|integer|min:5',
@@ -997,6 +998,7 @@ class CbtManagementController extends Controller
             'exam_title'          => $validated['exam_title'],
             'exam_description'    => $validated['exam_description'] ?? null,
             'exam_type'           => $validated['exam_type'],
+            'status'              => $validated['status'] ?? $exam->status,
             'start_time'          => $validated['start_time'] ?? null,
             'end_time'            => $validated['end_time'] ?? null,
             'duration_minutes'    => $validated['duration_minutes'],
@@ -1013,9 +1015,15 @@ class CbtManagementController extends Controller
             'access_code'         => $request->filled('access_code') ? $request->access_code : null,
         ]);
 
-        // Sync kelas peserta: hapus lama, tambah baru
-        $exam->participants()->delete();
-        foreach ($validated['classrooms'] as $classroomId) {
+        // Sync kelas peserta secara aman
+        $existingClassIds = $exam->participants()->pluck('classroom_id')->toArray();
+        $toAdd = array_diff($validated['classrooms'], $existingClassIds);
+        $toRemove = array_diff($existingClassIds, $validated['classrooms']);
+
+        if (!empty($toRemove)) {
+            $exam->participants()->whereIn('classroom_id', $toRemove)->delete();
+        }
+        foreach ($toAdd as $classroomId) {
             $exam->participants()->create(['classroom_id' => $classroomId]);
         }
 

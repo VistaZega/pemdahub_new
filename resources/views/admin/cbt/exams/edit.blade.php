@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 @section('title', 'Edit Ujian CBT')
 @section('content')
 <div class="space-y-6" x-data="examEditForm()">
@@ -13,14 +13,21 @@
         </div>
     </div>
 
-    {{-- Peringatan edit hanya draft --}}
-    <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
-        <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <i class="fas fa-exclamation-triangle text-amber-600 text-sm"></i>
+    {{-- Banner Informasi Mode Edit --}}
+    @php
+        $statusInfo = match($exam->status) {
+            'active' => ['bg-emerald-50', 'border-emerald-200', 'bg-emerald-100', 'text-emerald-600', 'text-emerald-800', 'Aktif (Sedang Berlangsung)', 'fa-satellite-dish'],
+            'published' => ['bg-amber-50', 'border-amber-200', 'bg-amber-100', 'text-amber-600', 'text-amber-800', 'Diterbitkan (Published)', 'fa-bullhorn'],
+            default => ['bg-indigo-50', 'border-indigo-200', 'bg-indigo-100', 'text-indigo-600', 'text-indigo-800', 'Draf', 'fa-pencil-alt'],
+        };
+    @endphp
+    <div class="flex items-start gap-3 p-4 {{ $statusInfo[0] }} border {{ $statusInfo[1] }} rounded-2xl">
+        <div class="w-8 h-8 rounded-lg {{ $statusInfo[2] }} flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i class="fas {{ $statusInfo[6] }} {{ $statusInfo[3] }} text-sm"></i>
         </div>
         <div>
-            <p class="text-amber-800 font-semibold text-sm">Mode Edit — Ujian Berstatus Draft</p>
-            <p class="text-amber-700 text-sm mt-1">Bank soal & konten pertanyaan tidak dapat diubah melalui halaman ini. Jika bank soal perlu diganti, silakan buat ujian baru.</p>
+            <p class="{{ $statusInfo[4] }} font-semibold text-sm">Mode Edit &mdash; Status Saat Ini: {{ $statusInfo[5] }}</p>
+            <p class="text-gray-600 text-sm mt-1">Anda dapat memperbarui judul, jadwal, KKM, durasi, kelas peserta, serta pengaturan keamanan &amp; tampilan. Bank soal &amp; butir soal bersifat tetap (read-only).</p>
         </div>
     </div>
 
@@ -83,6 +90,15 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2">Status Ujian <span class="text-red-500">*</span></label>
+                    <select name="status" class="w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 px-5 py-3.5 text-gray-800 font-bold transition-all" required>
+                        <option value="draft" {{ old('status', $exam->status) == 'draft' ? 'selected' : '' }}>Draf (Dalam Persiapan)</option>
+                        <option value="published" {{ old('status', $exam->status) == 'published' ? 'selected' : '' }}>Diterbitkan (Terjadwal)</option>
+                        <option value="active" {{ old('status', $exam->status) == 'active' ? 'selected' : '' }}>Aktif (Sedang Berlangsung)</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2">Durasi (menit) <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <input type="number" name="duration_minutes" value="{{ old('duration_minutes', $exam->duration_minutes) }}"
