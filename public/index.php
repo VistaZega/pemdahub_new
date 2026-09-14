@@ -1,5 +1,8 @@
 <?php
 
+// Fix: Increase PHP memory limit to prevent FatalError on large data rendering
+ini_set("memory_limit", "512M");
+
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
