@@ -1321,7 +1321,8 @@ class LmsController extends Controller
         }
 
         if (!$material->file_path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($material->file_path)) {
-            abort(404, 'File tidak ditemukan.');
+            \Illuminate\Support\Facades\Log::warning("LMS Material file not found on disk: id={$material->id}, title={$material->title}, path=" . ($material->file_path ?? 'NULL'));
+            return redirect()->back()->with('error', 'Berkas materi "' . $material->title . '" belum tersedia di penyimpanan server ini atau sedang disinkronkan. Silakan hubungi guru pengampu atau administrator.');
         }
 
         return \Illuminate\Support\Facades\Storage::disk('public')->download($material->file_path, str_replace(['/', '\\'], '-', $material->title));
@@ -1343,7 +1344,8 @@ class LmsController extends Controller
         }
 
         if (!$material->file_path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($material->file_path)) {
-            abort(404, 'File tidak ditemukan.');
+            \Illuminate\Support\Facades\Log::warning("LMS Material file not found on disk: id={$material->id}, title={$material->title}, path=" . ($material->file_path ?? 'NULL'));
+            return redirect()->back()->with('error', 'Berkas materi "' . $material->title . '" belum tersedia di penyimpanan server ini atau sedang disinkronkan. Silakan hubungi guru pengampu atau administrator.');
         }
 
         $path = \Illuminate\Support\Facades\Storage::disk('public')->path($material->file_path);

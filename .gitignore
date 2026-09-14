@@ -37,6 +37,7 @@ Daftar Akun*
 /sync-db-from-production.php
 /sync-db.bat
 /storage/db-dumps/
+/storage/temp_sync/
 
 # Development/debug scripts & archive folders
 /migration-toolkit/

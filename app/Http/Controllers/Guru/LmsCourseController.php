@@ -1621,7 +1621,8 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
         }
 
         if (!$material->file_path || !Storage::disk('public')->exists($material->file_path)) {
-            abort(404, 'File tidak ditemukan.');
+            \Illuminate\Support\Facades\Log::warning("LMS Material file not found on disk (Guru): id={$material->id}, title={$material->title}, path=" . ($material->file_path ?? 'NULL'));
+            return redirect()->back()->with('error', 'Berkas materi "' . $material->title . '" belum tersedia di penyimpanan server ini atau sedang disinkronkan. Silakan periksa atau unggah ulang materi.');
         }
 
         return Storage::disk("public")->download($material->file_path, str_replace(["/", "\\"], "-", $material->title));
@@ -1638,7 +1639,8 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
         }
 
         if (!$material->file_path || !Storage::disk('public')->exists($material->file_path)) {
-            abort(404, 'File tidak ditemukan.');
+            \Illuminate\Support\Facades\Log::warning("LMS Material file not found on disk (Guru): id={$material->id}, title={$material->title}, path=" . ($material->file_path ?? 'NULL'));
+            return redirect()->back()->with('error', 'Berkas materi "' . $material->title . '" belum tersedia di penyimpanan server ini atau sedang disinkronkan. Silakan periksa atau unggah ulang materi.');
         }
 
         $path = Storage::disk('public')->path($material->file_path);
