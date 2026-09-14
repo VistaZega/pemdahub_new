@@ -55,6 +55,13 @@ try {
 $action = $_GET['action'] ?? '';
 $actionMessage = '';
 
+if ($action === 'cleanup_test') {
+    header('Content-Type: text/plain; charset=utf-8');
+    $pdo->exec("DELETE FROM attendances WHERE student_id = 1787 AND date = '" . date('Y-m-d') . "'");
+    echo "Test attendance record cleaned up.\n";
+    exit;
+}
+
 if ($action === 'fix_log_permissions') {
     header('Content-Type: text/plain; charset=utf-8');
     echo "=== FIXING LOG PERMISSIONS ===\n";
