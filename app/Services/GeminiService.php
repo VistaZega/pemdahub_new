@@ -56,6 +56,12 @@ class GeminiService
      */
     public function generateJson(string $prompt): array
     {
+        // If no API key configured, skip API call and return mock JSON directly
+        if (empty($this->apiKey)) {
+            Log::warning('Gemini API Key not configured. Using mock JSON response.');
+            return $this->getMockJsonResponse($prompt);
+        }
+
         $resultText = $this->generateText($prompt);
         
         // Clean JSON formatting markdown wrapper if present
@@ -84,7 +90,7 @@ class GeminiService
             }
         }
 
-        Log::error('Gemini failed to generate valid JSON: ' . $resultText);
+        Log::warning('Gemini response was not valid JSON, using mock fallback: ' . substr($resultText, 0, 100));
         return $this->getMockJsonResponse($prompt);
     }
 
