@@ -55,6 +55,22 @@ try {
 $action = $_GET['action'] ?? '';
 $actionMessage = '';
 
+if ($action === 'view_log') {
+    header('Content-Type: text/plain; charset=utf-8');
+    $logPath = dirname(__DIR__) . '/storage/logs/laravel.log';
+    if (!file_exists($logPath)) {
+        echo "Log file not found: $logPath\n";
+        exit;
+    }
+    $size = filesize($logPath);
+    $fp = fopen($logPath, 'rb');
+    $readSize = min($size, 300000);
+    fseek($fp, -$readSize, SEEK_END);
+    echo fread($fp, $readSize);
+    fclose($fp);
+    exit;
+}
+
 if ($action === 'fix_bricks') {
     $bricksSql = 'REPLACE INTO `pembda_tower_bricks` (`id`, `user_id`, `school_id`, `message`, `color`, `brick_number`, `likes_count`, `created_at`, `updated_at`) VALUES
 (2144, 3160, 2, \'Keren KING\', \'purple\', 1, 0, \'2026-09-11 14:27:30\', \'2026-09-11 14:27:30\'),
