@@ -74,17 +74,10 @@ if ($action === 'view_log') {
         $latestLog = $files[0];
         echo "\n=== SEARCH FOR RFID / ATTENDANCE / KIOSK / ERROR IN LOG ===\n";
         $lines = file($latestLog);
-        $kioskLines = [];
-        foreach ($lines as $i => $line) {
-            if (str_contains($line, 'Kiosk Scan Attempt') || str_contains($line, 'rfid-scan') || str_contains($line, '2026-09-15')) {
-                if (str_contains($line, 'Kiosk Scan Attempt') || str_contains($line, 'rfid-scan')) {
-                    $kioskLines[] = ($i+1) . ": " . trim($line);
-                }
-            }
-        }
-        echo "Total Kiosk Scan Attempts in log: " . count($kioskLines) . "\n";
-        foreach (array_slice($kioskLines, -20) as $kl) {
-            echo $kl . "\n";
+        $todayLog = dirname(__DIR__) . '/storage/logs/laravel-2026-09-15.log';
+        if (file_exists($todayLog)) {
+            echo "\n=== CONTENT OF laravel-2026-09-15.log ===\n";
+            echo file_get_contents($todayLog);
         }
     }
     
