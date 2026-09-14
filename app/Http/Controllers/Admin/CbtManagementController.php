@@ -877,6 +877,153 @@ class CbtManagementController extends Controller
     }
 
     /**
+     * Form edit ujian sekolah (hanya untuk status draft)
+     */
+    public function examEdit(CbtExam $exam)
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $exam->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // Hanya ujian draft yang bisa diedit
+        if ($exam->status !== 'draft') {
+            return redirect()->route('admin.cbt.show', $exam)
+                ->with('error', 'Ujian yang sudah diterbitkan/aktif tidak dapat diedit. Hanya ujian berstatus Draft yang bisa diubah.');
+        }
+
+        $isSuperAdmin = $user->isSuperAdmin();
+        $userSchoolId = $isSuperAdmin ? null : $user->school_id;
+
+        $schools = School::where('is_active', true)->schoolsOnly()->orderBy('name')->get();
+
+        $subjectsQuery = Subject::orderBy('name');
+        if ($userSchoolId) {
+            $subjectsQuery->where('school_id', $userSchoolId);
+        }
+        $subjects = $subjectsQuery->get();
+
+        $academicYear = AcademicYear::where('is_active', true)->first();
+
+        $classroomsQuery = Classroom::where('is_active', true)
+            ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
+            ->with('school')
+            ->orderBy('school_id')
+            ->orderBy('grade_level')
+            ->orderBy('class_name');
+        if ($userSchoolId) {
+            $classroomsQuery->where('school_id', $userSchoolId);
+        }
+        $classrooms = $classroomsQuery->get();
+
+        $teachersQuery = Teacher::with(['user', 'employee'])->where('is_active', true)->orderBy('teacher_code');
+        if ($userSchoolId) {
+            $teachersQuery->where('school_id', $userSchoolId);
+        }
+        $teachers = $teachersQuery->get();
+
+        $examTypes = CbtExam::getSchoolScopeTypes();
+
+        // Data existing untuk pre-populate
+        $exam->load(['participants.classroom', 'questionBanks']);
+        $selectedClassroomIds = $exam->participants->pluck('classroom_id')->toArray();
+
+        $subjectsJson = $subjects->map(fn($s) => ['id' => $s->id, 'name' => $s->subject_name, 'school_id' => $s->school_id])->values();
+        $teachersJson = $teachers->map(fn($t) => [
+            'id'         => $t->id,
+            'name'       => $t->full_name ?: ($t->user?->name ?? 'Guru'),
+            'code'       => $t->teacher_code ?? '',
+            'school_id'  => $t->school_id,
+            'subject_ids' => [],
+        ])->values();
+        $classroomsJson = $classrooms->map(fn($c) => [
+            'id'        => $c->id,
+            'name'      => $c->class_name,
+            'grade'     => $c->grade_level,
+            'school_id' => $c->school_id,
+        ])->values();
+
+        return view('admin.cbt.exams.edit', compact(
+            'exam', 'schools', 'subjects', 'teachers', 'classrooms',
+            'academicYear', 'examTypes',
+            'isSuperAdmin', 'userSchoolId',
+            'subjectsJson', 'teachersJson', 'classroomsJson',
+            'selectedClassroomIds'
+        ));
+    }
+
+    /**
+     * Update ujian sekolah (hanya untuk status draft)
+     */
+    public function examUpdate(Request $request, CbtExam $exam)
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $exam->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // Hanya ujian draft yang bisa diedit
+        if ($exam->status !== 'draft') {
+            return redirect()->route('admin.cbt.show', $exam)
+                ->with('error', 'Ujian yang sudah diterbitkan/aktif tidak dapat diedit.');
+        }
+
+        $allowedTypes = implode(',', CbtExam::SCHOOL_SCOPE_TYPES);
+
+        $validated = $request->validate([
+            'exam_title'          => 'required|string|max:255',
+            'exam_description'    => 'nullable|string',
+            'exam_type'           => "required|in:{$allowedTypes}",
+            'start_time'          => 'nullable|date',
+            'end_time'            => 'nullable|date|after:start_time',
+            'duration_minutes'    => 'required|integer|min:5',
+            'passing_score'       => 'required|numeric|min:0|max:100',
+            'max_attempts'        => 'required|integer|min:1',
+            'randomize_questions' => 'boolean',
+            'randomize_options'   => 'boolean',
+            'show_result'         => 'boolean',
+            'show_answer_key'     => 'boolean',
+            'allow_review'        => 'boolean',
+            'prevent_tab_switch'  => 'boolean',
+            'prevent_copy_paste'  => 'boolean',
+            'auto_sync_grade'     => 'boolean',
+            'access_code'         => 'nullable|string|max:20',
+            'classrooms'          => 'required|array|min:1',
+            'classrooms.*'        => 'exists:classrooms,id',
+        ]);
+
+        // Update data ujian
+        $exam->update([
+            'exam_title'          => $validated['exam_title'],
+            'exam_description'    => $validated['exam_description'] ?? null,
+            'exam_type'           => $validated['exam_type'],
+            'start_time'          => $validated['start_time'] ?? null,
+            'end_time'            => $validated['end_time'] ?? null,
+            'duration_minutes'    => $validated['duration_minutes'],
+            'passing_score'       => $validated['passing_score'],
+            'max_attempts'        => $validated['max_attempts'],
+            'randomize_questions' => $request->boolean('randomize_questions'),
+            'randomize_options'   => $request->boolean('randomize_options'),
+            'show_result'         => $request->boolean('show_result'),
+            'show_answer_key'     => $request->boolean('show_answer_key'),
+            'allow_review'        => $request->boolean('allow_review'),
+            'prevent_tab_switch'  => $request->boolean('prevent_tab_switch'),
+            'prevent_copy_paste'  => $request->boolean('prevent_copy_paste'),
+            'auto_sync_grade'     => $request->boolean('auto_sync_grade'),
+            'access_code'         => $request->filled('access_code') ? $request->access_code : null,
+        ]);
+
+        // Sync kelas peserta: hapus lama, tambah baru
+        $exam->participants()->delete();
+        foreach ($validated['classrooms'] as $classroomId) {
+            $exam->participants()->create(['classroom_id' => $classroomId]);
+        }
+
+        return redirect()->route('admin.cbt.show', $exam)
+            ->with('success', 'Data ujian berhasil diperbarui.');
+    }
+
+    /**
      * Tetapkan / Ganti Guru Pengampu & Penilai Ujian CBT (Admin)
      */
     public function assignTeacher(Request $request, CbtExam $exam)

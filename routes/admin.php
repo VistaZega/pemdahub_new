@@ -433,6 +433,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         // Admin Exam CRUD (school-scope exams)
         Route::get('/exams/create', [App\Http\Controllers\Admin\CbtManagementController::class, 'examCreate'])->name('exams.create');
         Route::post('/exams', [App\Http\Controllers\Admin\CbtManagementController::class, 'examStore'])->name('exams.store');
+        Route::get('/exams/{exam}/edit', [App\Http\Controllers\Admin\CbtManagementController::class, 'examEdit'])->name('exams.edit');
+        Route::put('/exams/{exam}', [App\Http\Controllers\Admin\CbtManagementController::class, 'examUpdate'])->name('exams.update');
         Route::post('/exams/{exam}/publish', [App\Http\Controllers\Admin\CbtManagementController::class, 'examPublish'])->name('exams.publish');
         Route::post('/exams/{exam}/activate', [App\Http\Controllers\Admin\CbtManagementController::class, 'examActivate'])->name('exams.activate');
         Route::post('/exams/{exam}/batch-start', [App\Http\Controllers\Admin\CbtManagementController::class, 'examBatchStart'])->name('exams.batch-start');
