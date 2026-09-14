@@ -121,6 +121,10 @@ function execCmd($cmd, $label) {
     return $return_value;
 }
 
+// Izinkan safe.directory di level global untuk user PHP (mencegah dubious ownership)
+@shell_exec("git config --global --add safe.directory '*' ");
+@shell_exec("git config --global --add safe.directory " . escapeshellarg($root));
+
 // 1. Cek Remote URL Saat Ini
 execCmd("git -C {$root} remote -v", "1. Memeriksa Remote URL Saat Ini");
 
@@ -130,7 +134,6 @@ if (file_exists("{$root}/.git/gc.log")) {
 }
 @shell_exec("git -C {$root} config gc.auto 0");
 @shell_exec("git -C {$root} config core.sharedRepository all");
-@shell_exec("git -C {$root} config safe.directory '*' ");
 
 // Coba perbaiki permissions folder .git jika PHP memiliki akses
 if (is_dir("{$root}/.git")) {
