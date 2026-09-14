@@ -326,7 +326,7 @@ function cmdPullMissing(array $config): void {
     step("SMART PULL: HANYA UNDUH FILE YANG BELUM ADA DI LOKAL");
     
     // 1. Ambil manifest lengkap dari production
-    $url = $config['remote_url'] . '?secret=' . urlencode($config['remote_secret']) . '&action=manifest&folder=all';
+    $url = $config['remote_url'] . '?secret=' . urlencode($config['remote_secret']) . '&action=manifest';
     info("Mengambil daftar manifest file dari server production...");
     
     $res = callRemoteApi($url);

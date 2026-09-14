@@ -671,7 +671,7 @@ if ($action === 'pull_from_prod') {
     // 1. Ambil manifest
     echo "<h2>▶ 1. Mengambil Manifest Berkas dari Production</h2><pre>";
     flush();
-    $manifestUrl = "{$prodUrl}?secret={$prodSecret}&action=manifest&folder=all";
+    $manifestUrl = "{$prodUrl}?secret={$prodSecret}&action=manifest";
     
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $manifestUrl);
