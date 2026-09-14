@@ -62,6 +62,7 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 
@@ -70,6 +71,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 30),
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 
@@ -79,6 +81,7 @@ return [
             'path' => storage_path('logs/whatsapp.log'),
             'level' => 'info',
             'days' => 30,
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 
@@ -88,6 +91,7 @@ return [
             'path' => storage_path('logs/payments.log'),
             'level' => 'info',
             'days' => 90,
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 
@@ -97,6 +101,7 @@ return [
             'path' => storage_path('logs/security.log'),
             'level' => 'info',
             'days' => 90,
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 
@@ -106,6 +111,7 @@ return [
             'path' => storage_path('logs/performance.log'),
             'level' => 'warning',
             'days' => 14,
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 

@@ -14,14 +14,16 @@ class AttendanceController extends Controller
     public function handleRfidScan(Request $request)
     {
         try {
-            // Debug: Log the attempt
-            \Illuminate\Support\Facades\Log::info('Kiosk Scan Attempt', [
-                'ip' => $request->ip(),
-                'uid' => $request->uid,
-                'type' => $request->type, // 'rfid' atau 'qr' jika dikirim oleh alat
-                'api_key_header' => $request->header('X-Kiosk-API-Key'),
-                'user_agent' => $request->header('User-Agent')
-            ]);
+            // Debug: Log the attempt (safely)
+            try {
+                \Illuminate\Support\Facades\Log::info('Kiosk Scan Attempt', [
+                    'ip' => $request->ip(),
+                    'uid' => $request->uid,
+                    'type' => $request->type, // 'rfid' atau 'qr' jika dikirim oleh alat
+                    'api_key_header' => $request->header('X-Kiosk-API-Key'),
+                    'user_agent' => $request->header('User-Agent')
+                ]);
+            } catch (\Throwable $logEx) {}
 
             // 1. Keamanan Sederhana
             $apiKey = $request->header('X-Kiosk-API-Key') ?? $request->input('api_key');
@@ -39,7 +41,7 @@ class AttendanceController extends Controller
 
             // Tulis UID ke scan-buffer agar browser (modal registrasi RFID) bisa mengambilnya
             $bufferFile = storage_path('app/rfid_scan_buffer.json');
-            file_put_contents($bufferFile, json_encode(['uid' => $rawUid, 'candidates' => $candidates, 'time' => time()]));
+            @file_put_contents($bufferFile, json_encode(['uid' => $rawUid, 'candidates' => $candidates, 'time' => time()]));
             
             $today = now()->format('Y-m-d');
             $currentTime = now()->format('H:i:s');
