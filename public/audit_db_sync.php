@@ -74,17 +74,17 @@ if ($action === 'view_log') {
         $latestLog = $files[0];
         echo "\n=== SEARCH FOR RFID / ATTENDANCE / KIOSK / ERROR IN LOG ===\n";
         $lines = file($latestLog);
-        $matches = [];
+        $kioskLines = [];
         foreach ($lines as $i => $line) {
-            if (stripos($line, 'rfid') !== false || stripos($line, 'kiosk') !== false || stripos($line, 'attendance') !== false || stripos($line, 'ERROR') !== false) {
-                if (stripos($line, 'display/live-data') !== false) continue; // skip noise
-                $matches[] = ($i+1) . ": " . trim($line);
+            if (str_contains($line, 'Kiosk Scan Attempt') || str_contains($line, 'rfid-scan') || str_contains($line, '2026-09-15')) {
+                if (str_contains($line, 'Kiosk Scan Attempt') || str_contains($line, 'rfid-scan')) {
+                    $kioskLines[] = ($i+1) . ": " . trim($line);
+                }
             }
         }
-        echo "Total matching lines: " . count($matches) . "\n";
-        $lastMatches = array_slice($matches, -50);
-        foreach ($lastMatches as $m) {
-            echo $m . "\n";
+        echo "Total Kiosk Scan Attempts in log: " . count($kioskLines) . "\n";
+        foreach (array_slice($kioskLines, -20) as $kl) {
+            echo $kl . "\n";
         }
     }
     
