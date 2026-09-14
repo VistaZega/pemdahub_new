@@ -69,17 +69,23 @@ if ($action === 'view_log') {
         echo " - " . basename($f) . " (" . filesize($f) . " bytes, modified: " . date('Y-m-d H:i:s', filemtime($f)) . ")\n";
     }
     
-    // Pick the most recent log file
+    // Search for RFID or Attendance in log
     if (!empty($files)) {
-        usort($files, function($a, $b) { return filemtime($b) - filemtime($a); });
         $latestLog = $files[0];
-        echo "\n=== LATEST LOG: " . basename($latestLog) . " (Last 100KB) ===\n";
-        $size = filesize($latestLog);
-        $fp = fopen($latestLog, 'rb');
-        $readSize = min($size, 100000);
-        fseek($fp, -$readSize, SEEK_END);
-        echo fread($fp, $readSize);
-        fclose($fp);
+        echo "\n=== SEARCH FOR RFID / ATTENDANCE / KIOSK / ERROR IN LOG ===\n";
+        $lines = file($latestLog);
+        $matches = [];
+        foreach ($lines as $i => $line) {
+            if (stripos($line, 'rfid') !== false || stripos($line, 'kiosk') !== false || stripos($line, 'attendance') !== false || stripos($line, 'ERROR') !== false) {
+                if (stripos($line, 'display/live-data') !== false) continue; // skip noise
+                $matches[] = ($i+1) . ": " . trim($line);
+            }
+        }
+        echo "Total matching lines: " . count($matches) . "\n";
+        $lastMatches = array_slice($matches, -50);
+        foreach ($lastMatches as $m) {
+            echo $m . "\n";
+        }
     }
     
     // Check rfid_scan_buffer.json
