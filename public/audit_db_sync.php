@@ -57,17 +57,37 @@ $actionMessage = '';
 
 if ($action === 'view_log') {
     header('Content-Type: text/plain; charset=utf-8');
-    $logPath = dirname(__DIR__) . '/storage/logs/laravel.log';
-    if (!file_exists($logPath)) {
-        echo "Log file not found: $logPath\n";
-        exit;
+    $logDir = dirname(__DIR__) . '/storage/logs';
+    echo "=== STORAGE/LOGS DIAGNOSTIC ===\n";
+    echo "Directory: $logDir\n";
+    echo "Exists: " . (is_dir($logDir) ? 'YES' : 'NO') . "\n";
+    echo "Writable: " . (is_writable($logDir) ? 'YES' : 'NO') . "\n";
+    
+    $files = is_dir($logDir) ? glob($logDir . '/*') : [];
+    echo "Total log files: " . count($files) . "\n";
+    foreach ($files as $f) {
+        echo " - " . basename($f) . " (" . filesize($f) . " bytes, modified: " . date('Y-m-d H:i:s', filemtime($f)) . ")\n";
     }
-    $size = filesize($logPath);
-    $fp = fopen($logPath, 'rb');
-    $readSize = min($size, 300000);
-    fseek($fp, -$readSize, SEEK_END);
-    echo fread($fp, $readSize);
-    fclose($fp);
+    
+    // Pick the most recent log file
+    if (!empty($files)) {
+        usort($files, function($a, $b) { return filemtime($b) - filemtime($a); });
+        $latestLog = $files[0];
+        echo "\n=== LATEST LOG: " . basename($latestLog) . " (Last 100KB) ===\n";
+        $size = filesize($latestLog);
+        $fp = fopen($latestLog, 'rb');
+        $readSize = min($size, 100000);
+        fseek($fp, -$readSize, SEEK_END);
+        echo fread($fp, $readSize);
+        fclose($fp);
+    }
+    
+    // Check rfid_scan_buffer.json
+    $bufferFile = dirname(__DIR__) . '/storage/app/rfid_scan_buffer.json';
+    echo "\n=== RFID BUFFER FILE ===\n";
+    echo "Buffer path: $bufferFile\n";
+    echo "Buffer exists: " . (file_exists($bufferFile) ? 'YES' : 'NO') . "\n";
+    echo "Storage/app writable: " . (is_writable(dirname(__DIR__) . '/storage/app') ? 'YES' : 'NO') . "\n";
     exit;
 }
 
