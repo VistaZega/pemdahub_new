@@ -4,7 +4,9 @@
 Setiap kali selesai melakukan pengerjaan fitur, perbaikan bug, atau perubahan kode di lokal:
 1. Pastikan semua perubahan sudah stabil dan diverifikasi.
 2. Lakukan stage (`git add .`), commit, dan **push perubahan ke GitHub** (branch `main`).
-3. Beritahukan pengguna bahwa perubahan sudah berada di GitHub dan siap untuk dideploy oleh pengguna ke hosting.
+3. Beritahukan pengguna bahwa perubahan sudah berada di GitHub dan siap untuk dideploy via browser menggunakan URL:
+   `https://perguruanpembda.com/git_pull_now.php?secret=pembda99`
+   *(⚠️ Catatan: Jangan sarankan menu Git di hPanel Hostinger karena sering gagal/tidak stabil. Gunakan selalu `git_pull_now.php`).*
 
 ## Infrastruktur Server Production (Hostinger)
 
@@ -23,9 +25,8 @@ Setiap kali selesai melakukan pengerjaan fitur, perbaikan bug, atau perubahan ko
 
 ### Keterbatasan Server
 - **TIDAK ADA akses SSH** — semua operasi server harus dilakukan via:
-  - File Manager di hPanel Hostinger
-  - File PHP standalone di folder `public/` yang bisa diakses via browser
-  - Git deploy via hPanel
+  - File PHP standalone di folder `public/` yang bisa diakses via browser (`git_pull_now.php`, `clear-cache.php`, `storage-sync.php`)
+  - File Manager di hPanel Hostinger (jika darurat)
 - **Tidak bisa menjalankan `php artisan` langsung** — harus via script PHP standalone atau route khusus
 
 ## Checklist Wajib Saat Menambah Fitur Baru
@@ -44,6 +45,8 @@ Setiap kali selesai melakukan pengerjaan fitur, perbaikan bug, atau perubahan ko
 4. File standalone PHP di `public/` TIDAK terpengaruh route cache karena langsung dihandle web server
 
 ### Tool Darurat yang Tersedia di `public/`:
+- `git_pull_now.php` — **Mekanisme Utama Deploy**: Tarik commit terbaru dari GitHub ke Hostinger, jalankan migrasi, dan bersihkan cache (akses: `perguruanpembda.com/git_pull_now.php?secret=pembda99`)
+- `storage-sync.php` — Tool sinkronisasi dan backup storage media/dokumen/LMS (akses: `perguruanpembda.com/storage-sync.php?secret=pembda2026storage`)
 - `clear-cache.php` — Hapus cache + diagnostik + jalankan migrasi (akses: `perguruanpembda.com/clear-cache.php?secret=pembda99`)
 - `run_cache_clear.php` — Clear cache saja (akses: `perguruanpembda.com/run_cache_clear.php?token=pembda2026clear`)
 - `check_deploy.php` — Cek status deployment (akses: `perguruanpembda.com/check_deploy.php?token=pembda2026check`)
