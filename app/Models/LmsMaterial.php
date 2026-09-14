@@ -136,6 +136,21 @@ class LmsMaterial extends Model
     }
 
     /**
+     * Check if the physical file exists in storage disk
+     */
+    public function fileExists(): bool
+    {
+        if (empty($this->file_path)) {
+            return false;
+        }
+
+        $cleanPath = ltrim(str_replace('storage/', '', $this->file_path), '/');
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)
+            || \Illuminate\Support\Facades\Storage::exists($cleanPath);
+    }
+
+    /**
      * Scope: Get active/published materials
      */
     public function scopeActive($query)

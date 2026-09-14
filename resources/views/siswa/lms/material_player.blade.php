@@ -131,30 +131,47 @@
 
                 {{-- PDF Viewer --}}
                 @if($material->material_type === 'pdf' && $material->file_path)
-                <div class="mb-6">
-                    <div class="w-full h-[680px] rounded-2xl overflow-hidden border-2 border-black shadow-md mb-3 bg-slate-100 relative">
-                        <iframe src="{{ asset('storage/' . $material->file_path) }}" class="w-full h-full" frameborder="0"></iframe>
+                    @if($material->fileExists())
+                    <div class="mb-6">
+                        <div class="w-full h-[680px] rounded-2xl overflow-hidden border-2 border-black shadow-md mb-3 bg-slate-100 relative">
+                            <iframe src="{{ route('siswa.lms.materials.view', $material->id) }}" class="w-full h-full" frameborder="0"></iframe>
+                        </div>
+                        <div class="p-4 rounded-2xl border-2 border-black bg-slate-50 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black border border-black shadow-xs">
+                                    <i class="fas fa-file-pdf text-lg"></i>
+                                </div>
+                                <div>
+                                    <p class="font-black text-black text-xs">Dokumen Materi PDF</p>
+                                    <p class="text-[11px] text-slate-600 font-bold">Jika loading di layar terasa lambat, gunakan opsi di samping</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('siswa.lms.materials.view', $material->id) }}" target="_blank" class="px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-black transition border border-black shadow-xs flex items-center gap-1.5">
+                                    <i class="fas fa-external-link-alt text-xs"></i> Buka Tab Baru
+                                </a>
+                                <a href="{{ route('siswa.lms.materials.download', $material->id) }}" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black transition border border-black shadow-xs flex items-center gap-1.5">
+                                    <i class="fas fa-download text-xs"></i> Unduh PDF
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-4 rounded-2xl border-2 border-black bg-slate-50 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                    @else
+                    <div class="mb-6 p-5 border-2 border-dashed border-amber-300 rounded-2xl bg-amber-50/70 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black border border-black shadow-xs">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black border border-black shadow-xs">
                                 <i class="fas fa-file-pdf text-lg"></i>
                             </div>
                             <div>
-                                <p class="font-black text-black text-xs">Dokumen Materi PDF</p>
-                                <p class="text-[11px] text-slate-600 font-bold">Jika loading di layar terasa lambat, gunakan opsi di samping</p>
+                                <p class="font-black text-amber-900 text-xs">Dokumen PDF Terlampir</p>
+                                <p class="text-[11px] text-amber-700 font-medium">⚠️ Berkas fisik PDF ini belum tersedia di server. Silakan hubungi guru pengampu untuk mengunggah ulang.</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <a href="{{ asset('storage/' . $material->file_path) }}" target="_blank" class="px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-black transition border border-black shadow-xs flex items-center gap-1.5">
-                                <i class="fas fa-external-link-alt text-xs"></i> Buka Tab Baru
-                            </a>
-                            <a href="{{ route('siswa.lms.materials.download', $material->id) }}" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black transition border border-black shadow-xs flex items-center gap-1.5">
-                                <i class="fas fa-download text-xs"></i> Unduh PDF
-                            </a>
-                        </div>
+                        <span class="px-3 py-1.5 rounded-xl bg-amber-200/80 text-amber-800 text-xs font-bold border border-amber-300">
+                            <i class="fas fa-ban mr-1"></i> Belum Tersedia
+                        </span>
                     </div>
-                </div>
+                    @endif
                 @endif
 
                 {{-- Text / Article Body --}}
@@ -164,20 +181,29 @@
 
                 {{-- File Download Attachment --}}
                 @if($material->file_path && !in_array($material->material_type, ['video', 'pdf']))
-                <div class="mt-8 p-5 border-2 border-black rounded-2xl flex items-center justify-between shadow-md" style="background-color: #ffedd5 !important;">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-md border-2 border-black shrink-0" style="background-color: #ea580c !important; color: #ffffff !important;">
-                            <i class="fas fa-paperclip text-xl text-white"></i>
+                    @php $hasPhysicalFile = $material->fileExists(); @endphp
+                    <div class="mt-8 p-5 border-2 border-black rounded-2xl flex items-center justify-between shadow-md" style="background-color: {{ $hasPhysicalFile ? '#ffedd5' : '#fef3c7' }} !important;">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-md border-2 border-black shrink-0" style="background-color: {{ $hasPhysicalFile ? '#ea580c' : '#d97706' }} !important; color: #ffffff !important;">
+                                <i class="fas {{ $hasPhysicalFile ? 'fa-paperclip' : 'fa-exclamation-triangle' }} text-xl text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-black">Dokumen Lampiran Materi</h4>
+                                <p class="text-xs {{ $hasPhysicalFile ? 'text-black font-bold' : 'text-amber-900 font-medium' }}">
+                                    {{ $hasPhysicalFile ? 'Klik tombol untuk mengunduh berkas pendukung' : '⚠️ Berkas fisik belum tersedia di server. Silakan hubungi guru pengampu.' }}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="text-sm font-black text-black">Dokumen Lampiran Materi</h4>
-                            <p class="text-xs text-black font-bold">Klik tombol untuk mengunduh berkas pendukung</p>
-                        </div>
+                        @if($hasPhysicalFile)
+                        <a href="{{ route('siswa.lms.materials.download', $material->id) }}" class="px-5 py-3 text-white rounded-2xl text-xs font-black shadow-md transition border-2 border-black" style="background-color: #ea580c !important;">
+                            <i class="fas fa-download mr-1.5 text-white"></i> Unduh Berkas
+                        </a>
+                        @else
+                        <span class="px-4 py-2.5 bg-amber-200 text-amber-900 rounded-2xl text-xs font-black border border-amber-300">
+                            <i class="fas fa-ban mr-1"></i> Belum Tersedia
+                        </span>
+                        @endif
                     </div>
-                    <a href="{{ route('siswa.lms.materials.download', $material->id) }}" class="px-5 py-3 text-white rounded-2xl text-xs font-black shadow-md transition border-2 border-black" style="background-color: #ea580c !important;">
-                        <i class="fas fa-download mr-1.5 text-white"></i> Unduh Berkas
-                    </a>
-                </div>
                 @endif
             </div>
 

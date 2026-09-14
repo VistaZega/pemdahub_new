@@ -473,6 +473,11 @@ if (!function_exists('balanceHtmlTags')) {
                                     <div class="font-black text-black text-sm flex flex-wrap items-center gap-2">
                                         <span class="text-black font-black text-xs bg-amber-300 px-2.5 py-0.5 rounded-lg border border-black inline-block shadow-2xs">{{ $module->getCode() }}-{{ $loop->iteration }}</span>
                                         <span>{{ preg_replace('/^\d+\.\d+\s*/', '', $material->title) }}</span>
+                                        @if($material->file_path && !$material->fileExists())
+                                        <span class="text-[10px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-lg border border-black inline-flex items-center gap-1 shadow-2xs animate-pulse">
+                                            <i class="fas fa-exclamation-triangle"></i> Berkas Fisik Belum Ada
+                                        </span>
+                                        @endif
                                     </div>
                                     <p class="text-[10px] text-black font-black uppercase tracking-wider">{{ $material->getContentTypeLabel() }}{{ $material->file_size ? ' • ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
                                 </div>
@@ -488,7 +493,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     'file_url' => $material->file_url,
                                     'update_url' => route('guru.lms.materials.update', $material->id)
                                 ]) }})" class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-amber-300 transition-colors border border-black shadow-sm" title="Edit Materi"><i class="fas fa-edit text-xs"></i></button>
-                                @if($material->file_path)
+                                @if($material->file_path && $material->fileExists())
                                 <a href="{{ route('guru.lms.materials.download', $material->id) }}" class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-sky-300 transition-colors border border-black shadow-sm" onclick="event.stopPropagation()" title="Unduh File"><i class="fas fa-download text-xs"></i></a>
                                 @endif
                                 @if($material->file_url)
@@ -501,6 +506,31 @@ if (!function_exists('balanceHtmlTags')) {
                             </div>
                         </div>
                         <div x-show="expanded" x-transition x-cloak class="px-5 pb-5 border-t-2 border-black bg-white">
+                            @if($material->file_path && !$material->fileExists())
+                            <div class="mt-4 p-4 rounded-2xl border-2 border-rose-500 bg-rose-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black border border-black shrink-0">
+                                        <i class="fas fa-exclamation-circle text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-black text-rose-900 text-xs uppercase tracking-wide">Peringatan: Berkas Fisik Tidak Ditemukan di Disk Server</p>
+                                        <p class="text-xs text-rose-700 font-semibold">Berkas lampiran materi ini (ukuran DB: {{ $material->file_size ? number_format($material->file_size / (1024 * 1024), 2) . ' MB' : '-' }}) belum ada di penyimpanan server sehingga siswa tidak dapat mengunduhnya.</p>
+                                    </div>
+                                </div>
+                                <button type="button" @click.stop="$dispatch('open-edit-material-modal', {{ json_encode([
+                                    'id' => $material->id,
+                                    'module_id' => $material->module_id,
+                                    'title' => preg_replace('/^\d+\.\d+\s*/', '', $material->title),
+                                    'material_type' => $material->material_type,
+                                    'content' => $material->content ?? '',
+                                    'file_url' => $material->file_url,
+                                    'update_url' => route('guru.lms.materials.update', $material->id)
+                                ]) }})" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl border border-black shadow-sm flex items-center gap-1.5 shrink-0">
+                                    <i class="fas fa-upload text-amber-300"></i> Unggah Ulang Berkas
+                                </button>
+                            </div>
+                            @endif
+
                             {{-- Media Players --}}
                             <div class="mt-4 mb-3">
                                 @if($material->material_type === 'video')
@@ -509,6 +539,7 @@ if (!function_exists('balanceHtmlTags')) {
                                             <iframe class="w-full h-full" src="{{ $material->getVideoEmbedUrl() }}" title="{{ $material->title }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                                         </div>
                                     @else
+                                        @if($material->fileExists())
                                         <div class="w-full rounded-2xl overflow-hidden shadow-lg border-2 border-black bg-black mb-4" style="height: 560px; width: 100%;">
                                             <video class="w-full h-full object-contain" controls preload="metadata">
                                                 <source src="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" type="video/mp4">
@@ -520,8 +551,15 @@ if (!function_exists('balanceHtmlTags')) {
                                                 <i class="fas fa-download text-amber-400"></i> Unduh Berkas Video
                                             </a>
                                         </div>
+                                        @else
+                                        <div class="p-6 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/70 text-center flex flex-col items-center justify-center mb-4">
+                                            <i class="fas fa-video-slash text-rose-500 text-3xl mb-2"></i>
+                                            <p class="font-black text-rose-900 text-sm">Berkas Video Belum Tersedia di Disk</p>
+                                        </div>
+                                        @endif
                                     @endif
                                 @elseif($material->material_type === 'image')
+                                    @if($material->fileExists())
                                     <div class="w-full rounded-2xl overflow-hidden shadow-md border-2 border-black bg-black flex justify-center p-2">
                                         <img src="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" class="max-h-[450px] object-contain w-auto h-auto rounded-xl" alt="{{ $material->title }}">
                                     </div>
@@ -530,9 +568,16 @@ if (!function_exists('balanceHtmlTags')) {
                                             <i class="fas fa-download text-amber-400"></i> Unduh Berkas Gambar
                                         </a>
                                     </div>
+                                    @else
+                                    <div class="p-6 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/70 text-center flex flex-col items-center justify-center mb-4">
+                                        <i class="fas fa-image text-rose-500 text-3xl mb-2"></i>
+                                        <p class="font-black text-rose-900 text-sm">Berkas Gambar Belum Tersedia di Disk</p>
+                                    </div>
+                                    @endif
                                 @elseif(($material->material_type === 'pdf' || str_ends_with(strtolower($material->file_name ?? $material->file_path ?? ''), '.pdf') || str_contains(strtolower($material->title ?? ''), '[pdf]')) && strtolower(pathinfo($material->file_name ?? $material->file_path ?? '', PATHINFO_EXTENSION)) === 'pdf')
+                                    @if($material->fileExists())
                                     <div class="w-full rounded-2xl overflow-hidden shadow-md border-2 border-black bg-white mb-4" style="height: 650px;">
-                                        <iframe src="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" class="w-full h-full" frameborder="0"></iframe>
+                                        <iframe src="{{ route('guru.lms.materials.view', $material->id) }}" class="w-full h-full" frameborder="0"></iframe>
                                     </div>
 
                                     <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4" style="background-color: #fee2e2 !important;">
@@ -546,14 +591,21 @@ if (!function_exists('balanceHtmlTags')) {
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <a href="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '#') }}" target="_blank" class="px-4 py-2.5 rounded-2xl bg-white border-2 border-black text-black hover:bg-amber-300 font-black text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                            <a href="{{ route('guru.lms.materials.view', $material->id) }}" target="_blank" class="px-4 py-2.5 rounded-2xl bg-white border-2 border-black text-black hover:bg-amber-300 font-black text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
                                                 <i class="fas fa-external-link-alt text-xs"></i> Buka di Tab Baru
                                             </a>
-                                            <a href="{{ $material->file_path ? route('guru.lms.materials.download', $material->id) : ($material->file_url ?? '#') }}" download class="px-4 py-2.5 rounded-2xl text-white font-black text-xs transition-all shadow-md flex items-center gap-1.5 border-2 border-black" style="background-color: #dc2626 !important;" onclick="event.stopPropagation()">
+                                            <a href="{{ route('guru.lms.materials.download', $material->id) }}" download class="px-4 py-2.5 rounded-2xl text-white font-black text-xs transition-all shadow-md flex items-center gap-1.5 border-2 border-black" style="background-color: #dc2626 !important;" onclick="event.stopPropagation()">
                                                 <i class="fas fa-download text-white"></i> Unduh PDF
                                             </a>
                                         </div>
                                     </div>
+                                    @else
+                                    <div class="p-6 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/70 text-center flex flex-col items-center justify-center mb-4">
+                                        <i class="fas fa-file-excel text-rose-500 text-3xl mb-2"></i>
+                                        <p class="font-black text-rose-900 text-sm">Berkas PDF Fisik Belum Tersedia di Server Disk</p>
+                                        <p class="text-xs text-rose-700 mt-1">Ukuran tercatat di database: {{ $material->file_size ? number_format($material->file_size / (1024 * 1024), 2) . ' MB' : '-' }}</p>
+                                    </div>
+                                    @endif
                                 @elseif($material->material_type === 'link')
                                     <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4" style="background-color: #f3e8ff !important;">
                                         <div class="flex items-center gap-4">
@@ -607,24 +659,42 @@ if (!function_exists('balanceHtmlTags')) {
                                         {!! $material->file_url !!}
                                     </div>
                                 @elseif($material->file_path)
-                                    <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4 mb-4" style="background-color: #e0f2fe !important;">
+                                    @php $hasPhysicalFile = $material->fileExists(); @endphp
+                                    <div class="p-4 rounded-2xl border-2 border-black flex items-center justify-between gap-4 mb-4" style="background-color: {{ $hasPhysicalFile ? '#e0f2fe' : '#fee2e2' }} !important;">
                                         <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #0284c7 !important; color: #ffffff !important;">
-                                                <i class="fas fa-file-alt text-2xl text-white"></i>
+                                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: {{ $hasPhysicalFile ? '#0284c7' : '#dc2626' }} !important; color: #ffffff !important;">
+                                                <i class="fas {{ $hasPhysicalFile ? 'fa-file-alt' : 'fa-exclamation-triangle' }} text-2xl text-white"></i>
                                             </div>
                                             <div>
-                                                <p class="font-black text-black text-sm">Dokumen Terlampir: {{ $material->file_name ?: ($material->title ?: 'File Materi') }}</p>
-                                                <p class="text-xs text-black font-bold">Tipe: {{ strtoupper(pathinfo($material->file_name ?? $material->file_path ?? 'DOC', PATHINFO_EXTENSION)) }}{{ $material->file_size ? ' • ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
+                                                <p class="font-black text-black text-sm">Dokumen Terlampir: {{ $material->title ?: 'File Materi' }}</p>
+                                                <p class="text-xs text-black font-bold">
+                                                    Tipe: {{ strtoupper(pathinfo($material->file_path, PATHINFO_EXTENSION)) }}{{ $material->file_size ? ' • ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}
+                                                    @if(!$hasPhysicalFile)
+                                                        • <span class="text-rose-700">⚠️ Berkas fisik belum ada di server</span>
+                                                    @endif
+                                                </p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            @if($material->file_path)
+                                            @if($hasPhysicalFile)
                                             <a href="{{ route('guru.lms.materials.view', $material->id) }}" target="_blank" class="px-4 py-2.5 rounded-2xl bg-white border-2 border-black text-black hover:bg-amber-300 font-black text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
                                                 <i class="fas fa-external-link-alt text-xs"></i> Buka / Preview
                                             </a>
                                             <a href="{{ route('guru.lms.materials.download', $material->id) }}" download class="px-4 py-2.5 rounded-2xl text-white font-black text-xs transition-all shadow-md flex items-center gap-1.5 border-2 border-black" style="background-color: #0284c7 !important;" onclick="event.stopPropagation()">
                                                 <i class="fas fa-download text-white"></i> Unduh File
                                             </a>
+                                            @else
+                                            <button type="button" @click.stop="$dispatch('open-edit-material-modal', {{ json_encode([
+                                                'id' => $material->id,
+                                                'module_id' => $material->module_id,
+                                                'title' => preg_replace('/^\d+\.\d+\s*/', '', $material->title),
+                                                'material_type' => $material->material_type,
+                                                'content' => $material->content ?? '',
+                                                'file_url' => $material->file_url,
+                                                'update_url' => route('guru.lms.materials.update', $material->id)
+                                            ]) }})" class="px-4 py-2.5 rounded-2xl text-white font-black text-xs transition-all shadow-md flex items-center gap-1.5 border-2 border-black bg-rose-600 hover:bg-rose-700">
+                                                <i class="fas fa-upload text-white"></i> Unggah Ulang Berkas
+                                            </button>
                                             @endif
                                         </div>
                                     </div>

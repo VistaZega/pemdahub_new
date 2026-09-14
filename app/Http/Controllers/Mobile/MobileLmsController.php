@@ -1127,7 +1127,7 @@ class MobileLmsController extends Controller
             return redirect($material->file_url ?: '#');
         }
 
-        $cleanPath = str_replace('storage/', '', $filePath);
+        $cleanPath = ltrim(str_replace('storage/', '', $filePath), '/');
 
         if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
             $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($cleanPath);
@@ -1149,7 +1149,8 @@ class MobileLmsController extends Controller
             ]);
         }
 
-        return back()->with('error', 'Berkas materi PDF/Dokumen tidak ditemukan di server.');
+        $escapedTitle = htmlspecialchars($material->title, ENT_QUOTES, 'UTF-8');
+        return response('<div style="font-family:sans-serif;padding:24px;text-align:center;color:#64748b;background:#f8fafc;border-radius:16px;margin:16px;border:2px dashed #cbd5e1;"><div style="font-size:32px;margin-bottom:8px;">📁</div><h4 style="margin:0 0 6px 0;color:#0f172a;font-size:15px;">Berkas Belum Tersedia</h4><p style="font-size:12px;margin:0;line-height:1.4;">Berkas untuk materi <strong>' . $escapedTitle . '</strong> belum tersedia di server ini atau sedang disinkronkan.</p></div>', 200, ['Content-Type' => 'text/html; charset=utf-8']);
     }
 
     /**
@@ -1179,16 +1180,18 @@ class MobileLmsController extends Controller
             return redirect($material->file_url ?: '#');
         }
 
-        $cleanPath = str_replace('storage/', '', $filePath);
+        $cleanPath = ltrim(str_replace('storage/', '', $filePath), '/');
+        $ext = pathinfo($cleanPath, PATHINFO_EXTENSION);
+        $downloadName = str_replace(['/', '\\'], '-', $material->title) . ($ext ? '.' . $ext : '');
 
         if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->download($cleanPath, $material->title . '.' . pathinfo($cleanPath, PATHINFO_EXTENSION));
+            return \Illuminate\Support\Facades\Storage::disk('public')->download($cleanPath, $downloadName);
         }
 
         if (\Illuminate\Support\Facades\Storage::exists($cleanPath)) {
-            return \Illuminate\Support\Facades\Storage::download($cleanPath, $material->title . '.' . pathinfo($cleanPath, PATHINFO_EXTENSION));
+            return \Illuminate\Support\Facades\Storage::download($cleanPath, $downloadName);
         }
 
-        return back()->with('error', 'Berkas materi PDF/Dokumen tidak ditemukan di server.');
+        return back()->with('error', 'Berkas materi "' . $material->title . '" belum tersedia di penyimpanan server ini atau sedang disinkronkan.');
     }
 }

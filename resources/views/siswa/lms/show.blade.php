@@ -449,6 +449,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         <iframe class="w-full h-full" src="{{ $material->getVideoEmbedUrl() }}" title="{{ $material->title }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                                     </div>
                                 @else
+                                    @if($material->fileExists())
                                     <div class="w-full rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-black mb-4" style="height: 560px; width: 100%;">
                                         <video class="w-full h-full object-contain" controls preload="metadata">
                                             <source src="{{ $material->file_path ? route('siswa.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" type="video/mp4">
@@ -460,8 +461,16 @@ if (!function_exists('balanceHtmlTags')) {
                                             <i class="fas fa-download"></i> Unduh Video
                                         </a>
                                     </div>
+                                    @else
+                                    <div class="w-full rounded-xl p-8 border border-amber-200 bg-amber-50/60 mb-4 flex flex-col items-center justify-center text-center">
+                                        <i class="fas fa-video-slash text-amber-500 text-4xl mb-2"></i>
+                                        <p class="font-bold text-gray-800 text-sm">Berkas Video Belum Tersedia</p>
+                                        <p class="text-xs text-amber-700 mt-1">Berkas video materi ini belum tersedia di penyimpanan server. Silakan hubungi guru pengampu.</p>
+                                    </div>
+                                    @endif
                                 @endif
                             @elseif($material->material_type === 'image')
+                                @if($material->fileExists())
                                 <div class="w-full rounded-xl overflow-hidden shadow-md border border-gray-100 bg-gray-900 flex justify-center">
                                     <img src="{{ $material->file_path ? route('siswa.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" class="max-h-[400px] object-contain w-auto h-auto" alt="{{ $material->title }}">
                                 </div>
@@ -470,7 +479,15 @@ if (!function_exists('balanceHtmlTags')) {
                                         <i class="fas fa-download"></i> Unduh Gambar
                                     </a>
                                 </div>
+                                @else
+                                <div class="w-full rounded-xl p-8 border border-amber-200 bg-amber-50/60 mb-4 flex flex-col items-center justify-center text-center">
+                                    <i class="fas fa-image text-amber-500 text-4xl mb-2"></i>
+                                    <p class="font-bold text-gray-800 text-sm">Berkas Gambar Belum Tersedia</p>
+                                    <p class="text-xs text-amber-700 mt-1">Berkas gambar materi ini belum tersedia di penyimpanan server.</p>
+                                </div>
+                                @endif
                             @elseif(($material->material_type === 'pdf' || str_ends_with(strtolower($material->file_name ?? $material->file_path ?? ''), '.pdf') || str_contains(strtolower($material->title ?? ''), '[pdf]')) && strtolower(pathinfo($material->file_name ?? $material->file_path ?? '', PATHINFO_EXTENSION)) === 'pdf')
+                                @if($material->fileExists())
                                 <!-- Embed PDF Viewer -->
                                 <div class="w-full rounded-xl overflow-hidden shadow-md border border-gray-200 bg-white mb-4" style="height: 600px;">
                                     <iframe src="{{ $material->file_path ? route('siswa.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" class="w-full h-full" frameborder="0"></iframe>
@@ -495,6 +512,24 @@ if (!function_exists('balanceHtmlTags')) {
                                         </a>
                                     </div>
                                 </div>
+                                @else
+                                <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/60 flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md">
+                                            <i class="fas fa-file-pdf text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-800 text-sm">Dokumen PDF Terlampir</p>
+                                            <p class="text-[11px] text-amber-800 font-medium">⚠️ Berkas fisik belum tersedia di server{{ $material->file_size ? ' (Ukuran tercatat: ' . number_format($material->file_size / (1024 * 1024), 2) . ' MB)' : '' }}. Silakan hubungi guru pengampu untuk mengunggah ulang.</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="px-3 py-1.5 rounded-xl bg-gray-200 text-gray-400 font-bold text-xs flex items-center gap-1.5 cursor-not-allowed">
+                                            <i class="fas fa-ban"></i> Berkas Belum Ada
+                                        </span>
+                                    </div>
+                                </div>
+                                @endif
                             @elseif($material->material_type === 'link')
                                 <div class="p-4 rounded-xl border border-purple-100 bg-purple-50/30 flex items-center justify-between gap-4">
                                     <div class="flex items-center gap-3">
@@ -522,24 +557,34 @@ if (!function_exists('balanceHtmlTags')) {
                                     </a>
                                 </div>
                             @elseif($material->file_path)
-                                <div class="p-4 rounded-xl border border-blue-100 bg-blue-50/30 flex items-center justify-between gap-4 mb-4">
+                                @php $hasPhysicalFile = $material->fileExists(); @endphp
+                                <div class="p-4 rounded-xl border {{ $hasPhysicalFile ? 'border-blue-100 bg-blue-50/30' : 'border-amber-200 bg-amber-50/60' }} flex items-center justify-between gap-4 mb-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-md">
-                                            <i class="fas fa-file-alt text-xl"></i>
+                                        <div class="w-12 h-12 rounded-xl {{ $hasPhysicalFile ? 'bg-blue-500' : 'bg-amber-500' }} text-white flex items-center justify-center shadow-md">
+                                            <i class="fas {{ $hasPhysicalFile ? 'fa-file-alt' : 'fa-exclamation-triangle' }} text-xl"></i>
                                         </div>
                                         <div>
                                             <p class="font-bold text-gray-800 text-sm">Dokumen Terlampir: {{ $material->file_name ?: ($material->title ?: 'File Materi') }}</p>
-                                            <p class="text-[10px] text-gray-400 font-medium">Tipe: {{ strtoupper(pathinfo($material->file_name ?? $material->file_path ?? 'DOC', PATHINFO_EXTENSION)) }}{{ $material->file_size ? ' · ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
+                                            <p class="text-[10px] {{ $hasPhysicalFile ? 'text-gray-400 font-medium' : 'text-amber-800 font-semibold' }}">
+                                                Tipe: {{ strtoupper(pathinfo($material->file_name ?? $material->file_path ?? 'DOC', PATHINFO_EXTENSION)) }}{{ $material->file_size ? ' · ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}
+                                                @if(!$hasPhysicalFile)
+                                                    · <span class="text-amber-800">⚠️ Berkas belum tersedia di server (hubungi guru pengampu)</span>
+                                                @endif
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        @if($material->file_path)
+                                        @if($hasPhysicalFile)
                                         <a href="{{ route('siswa.lms.materials.view', $material->id) }}" target="_blank" class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/10 font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
                                             <i class="fas fa-external-link-alt"></i> Buka / Preview
                                         </a>
                                         <a href="{{ route('siswa.lms.materials.download', $material->id) }}" download class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
                                             <i class="fas fa-download"></i> Unduh File
                                         </a>
+                                        @else
+                                        <span class="px-3 py-1.5 rounded-xl bg-gray-200 text-gray-400 font-bold text-xs flex items-center gap-1.5 cursor-not-allowed">
+                                            <i class="fas fa-ban"></i> Berkas Belum Ada
+                                        </span>
                                         @endif
                                     </div>
                                 </div>

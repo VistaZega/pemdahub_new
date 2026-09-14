@@ -1320,12 +1320,20 @@ class LmsController extends Controller
             abort(403, 'Anda tidak terdaftar di course ini.');
         }
 
-        if (!$material->file_path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($material->file_path)) {
+        if (!$material->fileExists()) {
             \Illuminate\Support\Facades\Log::warning("LMS Material file not found on disk: id={$material->id}, title={$material->title}, path=" . ($material->file_path ?? 'NULL'));
             return redirect()->back()->with('error', 'Berkas materi "' . $material->title . '" belum tersedia di penyimpanan server ini atau sedang disinkronkan. Silakan hubungi guru pengampu atau administrator.');
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->download($material->file_path, str_replace(['/', '\\'], '-', $material->title));
+        $cleanPath = ltrim(str_replace('storage/', '', $material->file_path), '/');
+        $ext = pathinfo($cleanPath, PATHINFO_EXTENSION);
+        $downloadName = str_replace(['/', '\\'], '-', $material->title) . ($ext ? '.' . $ext : '');
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->download($cleanPath, $downloadName);
+        }
+
+        return \Illuminate\Support\Facades\Storage::download($cleanPath, $downloadName);
     }
 
     /**
@@ -1343,13 +1351,45 @@ class LmsController extends Controller
             abort(403, 'Anda tidak terdaftar di course ini.');
         }
 
-        if (!$material->file_path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($material->file_path)) {
-            \Illuminate\Support\Facades\Log::warning("LMS Material file not found on disk: id={$material->id}, title={$material->title}, path=" . ($material->file_path ?? 'NULL'));
-            return redirect()->back()->with('error', 'Berkas materi "' . $material->title . '" belum tersedia di penyimpanan server ini atau sedang disinkronkan. Silakan hubungi guru pengampu atau administrator.');
+        if (!$material->fileExists()) {
+            \Illuminate\Support\Facades\Log::warning("LMS Material file not found on disk (iframe view): id={$material->id}, title={$material->title}, path=" . ($material->file_path ?? 'NULL'));
+            
+            $escapedTitle = htmlspecialchars($material->title, ENT_QUOTES, 'UTF-8');
+            $html = <<<HTML
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berkas Belum Tersedia - {$escapedTitle}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #334155; margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 75vh; }
+        .card { background: #ffffff; border: 2px dashed #cbd5e1; border-radius: 20px; padding: 36px 24px; text-align: center; max-width: 460px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .icon { font-size: 44px; margin-bottom: 12px; }
+        h3 { margin: 0 0 8px 0; color: #0f172a; font-size: 17px; font-weight: 800; }
+        p { margin: 0; font-size: 13px; line-height: 1.5; color: #64748b; }
+        .badge { display: inline-block; margin-top: 14px; padding: 6px 14px; background: #fef3c7; color: #92400e; border-radius: 9999px; font-size: 11px; font-weight: 700; border: 1px solid #fde68a; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">📁</div>
+        <h3>Berkas Lampiran Belum Tersedia</h3>
+        <p>Berkas untuk materi <strong>"{$escapedTitle}"</strong> belum tersedia di direktori penyimpanan server ini atau sedang dalam proses sinkronisasi.</p>
+        <div class="badge">Silakan hubungi guru mata pelajaran untuk mengunggah ulang berkas ini</div>
+    </div>
+</body>
+</html>
+HTML;
+            return response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);
         }
 
-        $path = \Illuminate\Support\Facades\Storage::disk('public')->path($material->file_path);
-        $mimeType = \Illuminate\Support\Facades\File::mimeType($path);
+        $cleanPath = ltrim(str_replace('storage/', '', $material->file_path), '/');
+        $path = \Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)
+            ? \Illuminate\Support\Facades\Storage::disk('public')->path($cleanPath)
+            : \Illuminate\Support\Facades\Storage::path($cleanPath);
+
+        $mimeType = \Illuminate\Support\Facades\File::mimeType($path) ?: 'application/pdf';
 
         return response()->file($path, [
             'Content-Type' => $mimeType,
