@@ -74,7 +74,11 @@ putenv('GIT_TERMINAL_PROMPT=0');
 putenv('GIT_ASKPASS=/bin/echo');
 putenv('GIT_SSH_COMMAND=ssh -o BatchMode=yes -o StrictHostKeyChecking=no');
 
+$lastCmdOutput = '';
+$lastCmdError = '';
+
 function execCmd($cmd, $label) {
+    global $lastCmdOutput, $lastCmdError;
     echo "<h2>▶ {$label}</h2><pre>";
     flush();
     $descriptors = [
@@ -94,6 +98,9 @@ function execCmd($cmd, $label) {
         fclose($pipes[1]);
         fclose($pipes[2]);
         $return_value = proc_close($process);
+
+        $lastCmdOutput = $output;
+        $lastCmdError = $errors;
 
         if (!empty($output)) {
             echo "<span class='ok'>" . htmlspecialchars($output) . "</span>";
@@ -122,6 +129,14 @@ if (file_exists("{$root}/.git/gc.log")) {
     @unlink("{$root}/.git/gc.log");
 }
 @shell_exec("git -C {$root} config gc.auto 0");
+@shell_exec("git -C {$root} config core.sharedRepository all");
+@shell_exec("git -C {$root} config safe.directory '*' ");
+
+// Coba perbaiki permissions folder .git jika PHP memiliki akses
+if (is_dir("{$root}/.git")) {
+    @chmod("{$root}/.git", 0777);
+    @chmod("{$root}/.git/objects", 0777);
+}
 
 if (!empty($githubToken)) {
     $maskedToken = substr($githubToken, 0, 7) . '...' . substr($githubToken, -4);
@@ -135,9 +150,20 @@ $fetchStatus = execCmd("git -C {$root} -c gc.auto=0 fetch origin main --prune", 
 
 if ($fetchStatus !== 0) {
     echo "<div class='notice-box' style='border-color:#f85149;'>";
-    echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal (Memerlukan Token)</h3>";
-    echo "<p>Karena repositori GitHub ini bersifat privat, silakan jalankan dengan menyertakan token sekali saja:</p>";
-    echo "<p><code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=ghp_TOKEN_ANDA</code></p>";
+    if (strpos($lastCmdError, 'insufficient permission') !== false || strpos($lastCmdOutput, 'insufficient permission') !== false) {
+        echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Izin Tulis Folder Git Terkunci (Permission Denied)</h3>";
+        echo "<p>Token GitHub sudah <b>VALID & DITERIMA</b>, namun Git di server gagal menulis file objek ke folder <code>.git/objects</code> karena folder tersebut dimiliki oleh user lain (seperti <code>root</code>).</p>";
+        echo "<p><b>Solusi:</b> Buka Terminal / SSH server Anda, lalu jalankan perintah perbaikan izin berikut:</p>";
+        echo "<pre style='background:#0d1117;color:#38bdf8;padding:12px;border-radius:6px;font-size:13px;border:1px solid #388bfd;'>sudo chown -R www-data:www-data {$root}/.git\nsudo chmod -R 775 {$root}/.git</pre>";
+        echo "<p style='color:#7ee787;'>Setelah menjalankan perintah di atas, cukup refresh halaman ini!</p>";
+    } elseif (empty($githubToken) || strpos($lastCmdError, 'Permission denied (publickey)') !== false) {
+        echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal (Memerlukan Token)</h3>";
+        echo "<p>Karena repositori GitHub ini bersifat privat, silakan jalankan dengan menyertakan token sekali saja:</p>";
+        echo "<p><code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=ghp_TOKEN_ANDA</code></p>";
+    } else {
+        echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal</h3>";
+        echo "<p>Periksa detail pesan kesalahan pada langkah 3 di atas.</p>";
+    }
     echo "</div>";
     flush();
 }
