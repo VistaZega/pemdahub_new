@@ -55,6 +55,16 @@ try {
 $action = $_GET['action'] ?? '';
 $actionMessage = '';
 
+if ($action === 'cleanup_student') {
+    header('Content-Type: text/plain; charset=utf-8');
+    $sId = (int)($_GET['student_id'] ?? 0);
+    if ($sId > 0) {
+        $pdo->exec("DELETE FROM attendances WHERE student_id = {$sId} AND date = '" . date('Y-m-d') . "'");
+        echo "Cleaned up attendance for student ID: {$sId}\n";
+    }
+    exit;
+}
+
 if ($action === 'cleanup_test') {
     header('Content-Type: text/plain; charset=utf-8');
     $pdo->exec("DELETE FROM attendances WHERE student_id = 1787 AND date = '" . date('Y-m-d') . "'");
