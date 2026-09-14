@@ -301,6 +301,13 @@ class CbtService
             ? $session->started_at->diffInSeconds($session->finished_at)
             : 0;
 
+        // Lock row to prevent race condition (duplicate insert under concurrency)
+        CbtExamResult::where('exam_id', $exam->id)
+            ->where('session_id', $session->id)
+            ->where('student_id', $session->student_id)
+            ->lockForUpdate()
+            ->first();
+
         $result = CbtExamResult::updateOrCreate(
             [
                 'exam_id' => $exam->id,
