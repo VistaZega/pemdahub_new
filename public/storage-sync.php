@@ -176,6 +176,8 @@ if ($action === 'preview' || $action === 'status') {
         exit;
     }
     
+    $isProduction = in_array(strtolower($_SERVER['HTTP_HOST'] ?? ''), ['perguruanpembda.com', 'www.perguruanpembda.com'], true);
+    
     // Render Modern HTML GUI
     ?>
     <!DOCTYPE html>
@@ -197,8 +199,10 @@ if ($action === 'preview' || $action === 'status') {
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-xs font-semibold tracking-wider text-emerald-400 uppercase">Production Storage Sync</span>
+                            <span class="inline-block w-3 h-3 rounded-full <?= $isProduction ? 'bg-emerald-500 animate-pulse' : 'bg-blue-500 animate-pulse' ?>"></span>
+                            <span class="text-xs font-semibold tracking-wider <?= $isProduction ? 'text-emerald-400' : 'text-blue-400' ?> uppercase">
+                                <?= $isProduction ? 'Production Storage Server' : 'Local / School Server (Ubuntu / Laragon)' ?>
+                            </span>
                         </div>
                         <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Penyimpanan Media & Dokumen PembdaHUB</h1>
                         <p class="text-sm text-slate-400 mt-1">
@@ -232,18 +236,42 @@ if ($action === 'preview' || $action === 'status') {
                 </div>
             </div>
 
+            <?php if (!$isProduction): ?>
+            <!-- Tombol One-Click Pull di Server Lokal -->
+            <div class="bg-gradient-to-r from-emerald-950/80 to-teal-950/80 border border-emerald-500/50 rounded-2xl p-6 mb-8 text-sm shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Sinkronisasi Otomatis Server Lokal</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-white">Tarik Berkas dari Production (Hostinger) ke Server Ini</h2>
+                        <p class="text-emerald-200/90 text-xs sm:text-sm mt-1">
+                            Klik tombol di samping untuk mengunduh otomatis berkas materi LMS, foto, dan dokumen dari <code class="text-emerald-300 font-mono">perguruanpembda.com</code> langsung ke server ini via browser.
+                        </p>
+                    </div>
+                    <a href="?secret=<?= urlencode($secret) ?>&action=pull_from_prod" 
+                       onclick="return confirm('Mulai sinkronisasi berkas dari Production ke server ini? Proses akan mengunduh dan mengekstrak berkas yang belum ada.');"
+                       class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl text-sm shadow-lg shadow-emerald-500/30 transition-all shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Tarik Berkas dari Production Sekarang
+                    </a>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Petunjuk CLI -->
             <div class="bg-blue-950/40 border border-blue-800/50 rounded-2xl p-5 mb-8 text-sm text-blue-200">
                 <div class="flex items-start gap-3">
                     <svg class="w-5 h-5 text-blue-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <div>
-                        <strong class="text-blue-300 font-semibold block mb-1">Sinkronisasi Otomatis dari Terminal / CMD Server Lokal:</strong>
+                        <strong class="text-blue-300 font-semibold block mb-1">Perintah Terminal / SSH Server Ubuntu:</strong>
                         <p class="text-blue-200/90 text-xs sm:text-sm">
-                            Anda bisa menyinkronkan file secara otomatis ke server lokal tanpa download manual satu per satu. Jalankan di folder project lokal:
+                            Di Server Ubuntu sekolah, Anda juga bisa menjalankan sinkronisasi langsung via terminal:
                         </p>
-                        <div class="mt-2 flex items-center gap-2 font-mono text-xs bg-slate-950/80 px-3 py-2 rounded-lg text-emerald-400 border border-blue-900/50">
-                            <code>sync-storage.bat</code>
-                            <span class="text-slate-500">atau</span>
+                        <div class="mt-2 flex flex-wrap items-center gap-2 font-mono text-xs bg-slate-950/80 px-3 py-2 rounded-lg text-emerald-400 border border-blue-900/50">
+                            <code>cd /var/www/pembdahub</code>
+                            <span class="text-slate-500">&amp;&amp;</span>
                             <code>php sync-storage.php --pull --missing-only</code>
                         </div>
                     </div>
@@ -609,6 +637,186 @@ if ($action === 'upload_zip' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'extracted_count' => $extracted,
         'skipped_errors'  => $errors,
     ], JSON_PRETTY_PRINT);
+    exit;
+}
+
+// ──────────────────────────────────────────────────────
+// ACTION: PULL_FROM_PROD (ONE-CLICK TARIK DARI HOSTINGER KE SERVER INI)
+// ──────────────────────────────────────────────────────
+if ($action === 'pull_from_prod') {
+    @ini_set('max_execution_time', '600');
+    @set_time_limit(600);
+    @ini_set('output_buffering', 'off');
+    @ini_set('zlib.output_compression', false);
+    @ini_set('implicit_flush', true);
+    while (@ob_end_flush());
+    ob_implicit_flush(true);
+    
+    header('Content-Type: text/html; charset=utf-8');
+    header('X-Accel-Buffering: no');
+    
+    echo "<!DOCTYPE html><html><head><title>Sinkronisasi Storage dari Production</title>";
+    echo "<style>body{font-family:monospace;background:#0d1117;color:#c9d1d9;padding:24px;line-height:1.6;font-size:14px;}";
+    echo ".ok{color:#3fb950;font-weight:bold;} .warn{color:#d29922;} .err{color:#f85149;font-weight:bold;} .info{color:#58a6ff;}";
+    echo "pre{background:#161b22;border:1px solid #30363d;padding:16px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;}";
+    echo "h1{color:#58a6ff;border-bottom:1px solid #30363d;padding-bottom:10px;} h2{color:#79c0ff;margin-top:24px;}";
+    echo "</style></head><body>";
+    echo "<h1>📥 PembdaHUB — Sinkronisasi Storage dari Production</h1>";
+    echo "<p>Menghubungi production (perguruanpembda.com) untuk menarik berkas materi dan media...</p>";
+    flush();
+    
+    $prodUrl = $_GET['prod_url'] ?? 'https://perguruanpembda.com/storage-sync.php';
+    $prodSecret = $_GET['prod_secret'] ?? 'pembda2026storage';
+    
+    // 1. Ambil manifest
+    echo "<h2>▶ 1. Mengambil Manifest Berkas dari Production</h2><pre>";
+    flush();
+    $manifestUrl = "{$prodUrl}?secret={$prodSecret}&action=manifest&folder=all";
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $manifestUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    $rawRes = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode !== 200 || empty($rawRes)) {
+        echo "<span class='err'>✖ Gagal mengambil manifest dari production (HTTP {$httpCode}). Pastikan perguruanpembda.com/storage-sync.php sudah aktif.</span></pre>";
+        echo "<p><a href='?secret=" . htmlspecialchars($secret) . "' style='color:#58a6ff;'>&laquo; Kembali</a></p></body></html>";
+        exit;
+    }
+    
+    $manifest = json_decode($rawRes, true);
+    if (!isset($manifest['files']) || !is_array($manifest['files'])) {
+        echo "<span class='err'>✖ Respon manifest tidak valid dari production.</span></pre>";
+        echo "<p><a href='?secret=" . htmlspecialchars($secret) . "' style='color:#58a6ff;'>&laquo; Kembali</a></p></body></html>";
+        exit;
+    }
+    
+    echo "<span class='ok'>✔ Berhasil membaca manifest: total " . count($manifest['files']) . " berkas di production.</span></pre>";
+    flush();
+    
+    // 2. Cek berkas yang belum ada di server ini
+    echo "<h2>▶ 2. Memeriksa Berkas Fisik Lokal di Server Ini</h2><pre>";
+    flush();
+    
+    $missingFiles = [];
+    $missingBytes = 0;
+    foreach ($manifest['files'] as $rf) {
+        $relPath = $rf['path'];
+        $localPath = $storagePath . '/' . $relPath;
+        if (!file_exists($localPath) || filesize($localPath) !== $rf['size']) {
+            $missingFiles[] = $relPath;
+            $missingBytes += $rf['size'];
+        }
+    }
+    
+    if (empty($missingFiles)) {
+        echo "<span class='ok'>✔ Seluruh berkas di server ini sudah 100% lengkap dan sesuai dengan production!</span></pre>";
+        echo "<p><a href='?secret=" . htmlspecialchars($secret) . "' style='color:#58a6ff;'>&laquo; Kembali ke Dashboard</a></p></body></html>";
+        exit;
+    }
+    
+    echo "<span class='warn'>Ditemukan " . count($missingFiles) . " berkas yang belum ada atau berbeda ukuran (" . formatBytes($missingBytes) . ").</span></pre>";
+    flush();
+    
+    // 3. Unduh dan Ekstrak
+    echo "<h2>▶ 3. Mengunduh dan Mengekstrak Berkas yang Hilang</h2><pre>";
+    flush();
+    
+    $batchSize = 200;
+    $batches = array_chunk($missingFiles, $batchSize);
+    $totalBatches = count($batches);
+    $totalExtracted = 0;
+    
+    foreach ($batches as $idx => $batch) {
+        $batchNum = $idx + 1;
+        echo "<span class='info'>Memproses Batch {$batchNum}/{$totalBatches} (" . count($batch) . " berkas)...</span>\n";
+        flush();
+        
+        $tempZip = sys_get_temp_dir() . '/pembda_pull_' . time() . '_' . $batchNum . '.zip';
+        $packUrl = "{$prodUrl}?secret={$prodSecret}&action=pack_missing";
+        
+        $ch = curl_init();
+        $fh = fopen($tempZip, 'w+');
+        curl_setopt($ch, CURLOPT_URL, $packUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['files' => $batch]));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_FILE, $fh);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+        curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        fclose($fh);
+        
+        if ($code === 200 && file_exists($tempZip) && filesize($tempZip) > 0) {
+            $zip = new ZipArchive();
+            if ($zip->open($tempZip) === true) {
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $entry = $zip->getNameIndex($i);
+                    $clean = str_replace('\\', '/', $entry);
+                    if (str_contains($clean, '../') || str_starts_with($clean, '/')) continue;
+                    
+                    $dest = $storagePath . '/' . $clean;
+                    if (str_ends_with($clean, '/')) {
+                        if (!is_dir($dest)) @mkdir($dest, 0755, true);
+                        continue;
+                    }
+                    $p = dirname($dest);
+                    if (!is_dir($p)) @mkdir($p, 0755, true);
+                    
+                    $content = $zip->getFromIndex($i);
+                    if ($content !== false) {
+                        file_put_contents($dest, $content);
+                        $totalExtracted++;
+                    }
+                }
+                $zip->close();
+                echo "<span class='ok'>✔ Batch {$batchNum} berhasil diekstrak.</span>\n";
+            } else {
+                echo "<span class='err'>✖ Gagal membuka file ZIP batch {$batchNum}.</span>\n";
+            }
+            @unlink($tempZip);
+        } else {
+            echo "<span class='warn'>⚠ Batch {$batchNum} gagal dikemas otomatis, mencoba unduh file individu...</span>\n";
+            @unlink($tempZip);
+            // Fallback unduh satu per satu
+            foreach ($batch as $f) {
+                $fileUrl = "{$prodUrl}?secret={$prodSecret}&action=download_file&file=" . urlencode($f);
+                $singleDest = $storagePath . '/' . $f;
+                $p = dirname($singleDest);
+                if (!is_dir($p)) @mkdir($p, 0755, true);
+                
+                $ch = curl_init();
+                $fh = fopen($singleDest, 'w+');
+                curl_setopt($ch, CURLOPT_URL, $fileUrl);
+                curl_setopt($ch, CURLOPT_FILE, $fh);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+                curl_exec($ch);
+                $sCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                fclose($fh);
+                if ($sCode === 200 && file_exists($singleDest) && filesize($singleDest) > 0) {
+                    $totalExtracted++;
+                }
+            }
+            echo "<span class='ok'>✔ Batch {$batchNum} berhasil diunduh individu.</span>\n";
+        }
+        flush();
+    }
+    
+    echo "\n<span class='ok'>🎉 SINKRONISASI SELESAI! Total {$totalExtracted} berkas baru berhasil diunduh dan disimpan ke server ini.</span>";
+    echo "</pre>";
+    echo "<p><a href='?secret=" . htmlspecialchars($secret) . "' style='display:inline-block;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;'>&laquo; Kembali ke Dashboard Storage</a></p>";
+    echo "</body></html>";
     exit;
 }
 
