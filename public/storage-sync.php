@@ -374,7 +374,7 @@ if ($action === 'manifest') {
     $folder = $_GET['folder'] ?? '';
     $folder = trim(str_replace(['..', '\\'], ['', '/'], $folder), '/');
     
-    $targetDir = empty($folder) ? $storagePath : $storagePath . '/' . $folder;
+    $targetDir = ($folder === 'all' || empty($folder)) ? $storagePath : $storagePath . '/' . $folder;
     
     if (!is_dir($targetDir) || !isPathWithinStorage($targetDir, $storagePath)) {
         http_response_code(404);
