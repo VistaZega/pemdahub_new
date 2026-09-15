@@ -135,6 +135,10 @@ class EmployeeAttendanceController extends Controller
                 }
             }
 
+            $isQrScan = ($request->input('type') === 'qr')
+                || ($employee && $employee->school && strtoupper($employee->school->type) === 'SMP')
+                || ($employee && ($rawUid === $employee->employee_code || $rawUid === $employee->nip));
+
             // First scan: create with time_in
             $attendance = EmployeeAttendance::create([
                 'employee_id' => $employee->id,
@@ -143,7 +147,7 @@ class EmployeeAttendanceController extends Controller
                 'time_in' => $currentTime,
                 'status' => 'hadir',
                 'notes' => $notes,
-                'recorded_via' => 'rfid',
+                'recorded_via' => $isQrScan ? 'qr' : 'rfid',
                 'device_id' => $request->input('device_id'),
             ]);
 

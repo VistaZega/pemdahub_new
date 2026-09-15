@@ -245,7 +245,9 @@ class AttendanceController extends Controller
                 $entryTime = $classroom->entry_time ?? '07:30';
                 $tolerance = $classroom->late_tolerance ?? 15;
                 $lateLimit = date('H:i:s', strtotime("$entryTime +$tolerance minutes"));
-                $status = ($currentTime > $lateLimit) ? 'terlambat' : 'hadir';
+                $isQrScan = ($type === 'qr') 
+                    || ($student && $student->school && strtoupper($student->school->type) === 'SMP')
+                    || ($student && ($rawUid === $student->nis || $rawUid === $student->nisn));
 
                 $attendance = \App\Models\Attendance::create([
                     'student_id'   => $student->id,
@@ -253,7 +255,7 @@ class AttendanceController extends Controller
                     'date'         => $today,
                     'time_in'      => $currentTime,
                     'status'       => $status,
-                    'recorded_via' => $type === 'qr' ? 'qr_gps' : 'rfid',
+                    'recorded_via' => $isQrScan ? 'qr' : 'rfid',
                     'device_id'    => $request->input('device_id', 'KIOSK-' . substr($rawUid, -4)), 
                 ]);
 
@@ -336,6 +338,11 @@ class AttendanceController extends Controller
                     }
                 }
 
+                $isQrScan = ($type === 'qr')
+                    || ($employee && $employee->school && strtoupper($employee->school->type) === 'SMP')
+                    || ($employee && ($rawUid === $employee->employee_code || $rawUid === $employee->nip))
+                    || ($teacher && $rawUid === $teacher->teacher_code);
+
                 $attendance = \App\Models\EmployeeAttendance::create([
                     'employee_id' => $employee->id,
                     'school_id' => $employee->school_id,
@@ -343,7 +350,7 @@ class AttendanceController extends Controller
                     'time_in' => $currentTime,
                     'status' => 'hadir',
                     'notes' => $notes,
-                    'recorded_via' => 'rfid', // Tetap 'rfid' mengikuti batasan enum database
+                    'recorded_via' => $isQrScan ? 'qr' : 'rfid',
                     'device_id' => $request->input('device_id', 'KIOSK-EMP'),
                 ]);
 

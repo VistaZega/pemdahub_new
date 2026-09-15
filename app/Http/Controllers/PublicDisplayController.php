@@ -382,7 +382,7 @@ class PublicDisplayController extends Controller
             $unitName  = $att->student->school->type ?? '';
 
             // Tentukan Cara Absen
-            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id);
+            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id, $unitName);
             $caraAbsen = $metode['label'];
             $caraAbsenTipe = $metode['tipe'];
             $caraAbsenIcon = $metode['icon'];
@@ -420,7 +420,7 @@ class PublicDisplayController extends Controller
             $unitName  = $att->employee->school->type ?? '';
 
             // Tentukan Cara Absen
-            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id ?? null);
+            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id ?? null, $unitName);
             $caraAbsen = $metode['label'];
             $caraAbsenTipe = $metode['tipe'];
             $caraAbsenIcon = $metode['icon'];
@@ -474,11 +474,53 @@ class PublicDisplayController extends Controller
 
     /**
      * Resolusi metadata metode/cara absensi (RFID, QR Code, Mobile Phone, Manual)
+     * Mempertimbangkan unit sekolah: SMPS Pembda 2 (SMP) 100% menggunakan Scan QR Code (tanpa RFID).
      */
-    private function resolveAttendanceMethod($recordedVia, $deviceId = null): array
+    private function resolveAttendanceMethod($recordedVia, $deviceId = null, $schoolType = null): array
     {
         $via = strtolower(trim((string)($recordedVia ?? 'manual')));
+        $schoolType = strtoupper(trim((string)($schoolType ?? '')));
 
+        // KHUSUS UNIT SMP (SMPS PEMBDA 2):
+        // Di SMPS Pembda 2 seluruh siswa dan guru menggunakan kartu identitas ber-QR Code (tidak memakai RFID).
+        // Oleh karena itu, absensi mesin Kiosk/Scanner di unit SMP otomatis dipetakan ke "Scan QR Code".
+        if ($schoolType === 'SMP') {
+            if ($via === 'rfid' || in_array($via, ['qr', 'qr_code', 'qrcode', 'barcode', 'scan_qr'])) {
+                return [
+                    'label' => 'Scan QR Code',
+                    'tipe'  => 'qr',
+                    'icon'  => 'fa-solid fa-qrcode',
+                ];
+            }
+            if ($via === 'qr_gps') {
+                if (!empty($deviceId) && str_starts_with(strtoupper($deviceId), 'KIOSK')) {
+                    return [
+                        'label' => 'Scan QR Code',
+                        'tipe'  => 'qr',
+                        'icon'  => 'fa-solid fa-qrcode',
+                    ];
+                }
+                return [
+                    'label' => 'Mobile Phone',
+                    'tipe'  => 'mobile',
+                    'icon'  => 'fa-solid fa-mobile-screen-button',
+                ];
+            }
+            if (in_array($via, ['gps', 'mobile', 'gps_pkl'])) {
+                return [
+                    'label' => 'Mobile Phone',
+                    'tipe'  => 'mobile',
+                    'icon'  => 'fa-solid fa-mobile-screen-button',
+                ];
+            }
+            return [
+                'label' => 'Manual',
+                'tipe'  => 'manual',
+                'icon'  => 'fa-solid fa-clipboard-user',
+            ];
+        }
+
+        // UNTUK UNIT LAINNYA (SMA / SMK):
         if ($via === 'rfid') {
             return [
                 'label' => 'Scan Kartu RFID',
