@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1920, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{{ isset($targetSchool) ? 'Live Monitoring Kehadiran ' . $targetSchool->name . ' – Perguruan PEMBDA' : 'Live Monitoring Kehadiran – Perguruan PEMBDA' }}</title>
     <meta name="description" content="Papan informasi kehadiran siswa dan guru Perguruan PEMBDA secara real-time.">
@@ -1311,9 +1311,681 @@
             font-weight: 700;
             letter-spacing: 0.05em;
         }
+
+        /* ============================================================
+           UNIT SWITCHER NAVIGATION BAR (SEMUA, SMP, SMA, SMK)
+        ============================================================ */
+        .unit-switcher-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 2px 2px 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            flex-shrink: 0;
+        }
+        .unit-switcher-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .unit-switch-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 24px;
+            background: #ffffff;
+            border: 1.5px solid var(--border-bright);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+        .unit-switch-pill i {
+            font-size: 13px;
+        }
+        .unit-switch-pill:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(37,99,235,0.12);
+        }
+        .unit-switch-pill.active {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+            border-color: #1d4ed8;
+            color: #ffffff;
+            box-shadow: 0 3px 10px rgba(37,99,235,0.3);
+        }
+        .unit-switch-pill.active i {
+            color: #93c5fd;
+        }
+
+        /* ============================================================
+           MOBILE VIEW TABS (LIVE ABSENSI vs REKAPITULASI)
+        ============================================================ */
+        .mobile-view-tabs {
+            display: none; /* Desktop default: disembunyikan */
+            align-items: center;
+            background: #e2e8f0;
+            padding: 3px;
+            border-radius: 12px;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .view-tab-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 14px;
+            border-radius: 9px;
+            border: none;
+            background: transparent;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        .view-tab-btn.active {
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .view-tab-btn.active i {
+            color: #2563eb;
+        }
+
+        /* ============================================================
+           MOBILE STATS STRIP (TOTAL HADIR, SISWA, GURU, TERLAMBAT)
+        ============================================================ */
+        .mobile-stats-strip {
+            display: none; /* Desktop default: disembunyikan */
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .m-stat-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 8px 6px 7px;
+            text-align: center;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .m-stat-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .m-stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .m-stat-total { border-color: #cbd5e1; }
+        .m-stat-total .m-stat-value { color: #0f172a; }
+        .m-stat-siswa { border-color: #bfdbfe; background: #f0fdf4; }
+        .m-stat-siswa .m-stat-value { color: #16a34a; }
+        .m-stat-guru { border-color: #e9d5ff; background: #faf5ff; }
+        .m-stat-guru .m-stat-value { color: #7c3aed; }
+        .m-stat-lambat { border-color: #fed7aa; background: #fffbeb; }
+        .m-stat-lambat .m-stat-value { color: #ea580c; }
+
+        /* ============================================================
+           MOBILE CONTROLS CONTAINER (SEARCH + FILTER CHIPS + ACTIONS)
+        ============================================================ */
+        .mobile-controls-container {
+            display: none; /* Desktop default: disembunyikan */
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .mobile-controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mobile-search-wrap {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .mobile-search-wrap .search-icon {
+            position: absolute;
+            left: 11px;
+            color: #94a3b8;
+            font-size: 13px;
+            pointer-events: none;
+        }
+        .mobile-search-wrap input {
+            width: 100%;
+            padding: 8px 30px 8px 32px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border-bright);
+            background: #ffffff;
+            font-family: inherit;
+            font-size: 13px;
+            color: #0f172a;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .mobile-search-wrap input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+        .mobile-search-wrap .search-clear-btn {
+            position: absolute;
+            right: 8px;
+            background: #e2e8f0;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        .mobile-action-btns {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .mobile-ctrl-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border-bright);
+            background: #ffffff;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.15s ease;
+        }
+        .mobile-ctrl-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .mobile-ctrl-btn:active {
+            transform: scale(0.92);
+        }
+        .mobile-ctrl-btn.muted {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #dc2626;
+        }
+
+        .mobile-filter-chips-scroll {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: 2px;
+        }
+        .mobile-filter-chips-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .filter-chip {
+            padding: 5px 12px;
+            border-radius: 16px;
+            border: 1px solid var(--border-bright);
+            background: #ffffff;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+        .filter-chip:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .filter-chip.active {
+            background: #0f172a;
+            border-color: #0f172a;
+            color: #ffffff;
+        }
+
+        /* ============================================================
+           MOBILE FEED CARD STYLING (.mobile-feed-card)
+        ============================================================ */
+        .mobile-feed-card {
+            background: #ffffff;
+            border: 1px solid var(--border-bright);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slide-in 0.3s ease forwards;
+        }
+        .mobile-feed-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .mobile-feed-card.feed-item-newest {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+            border: 2px solid #22c55e !important;
+            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.25) !important;
+        }
+
+        .mfc-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .mfc-avatar-container {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+        }
+        .mfc-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #cbd5e1;
+            display: block;
+        }
+        .mfc-seq {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            background: #0f172a;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 1px 5px;
+            border-radius: 6px;
+            line-height: 1.1;
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .feed-item-newest .mfc-seq {
+            background: #15803d;
+        }
+
+        .mfc-info-group {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .mfc-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+        .mfc-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            margin: 0;
+        }
+        .mfc-tags-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .mfc-unit-tag {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            color: #ffffff;
+            line-height: 1.1;
+            white-space: nowrap;
+            background: #475569;
+        }
+        .mfc-class-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mfc-status-group {
+            flex-shrink: 0;
+        }
+        .mfc-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .mfc-status-pill.status-masuk {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+        .mfc-status-pill.status-terlambat {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        .mfc-status-pill.status-pulang {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .mfc-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #e2e8f0;
+            flex-wrap: wrap;
+        }
+        .mfc-times {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mfc-time-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .mfc-time-badge.time-in {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        .mfc-time-badge.time-out {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        .mfc-method {
+            margin-left: auto;
+        }
+        .mfc-method-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        /* Warna tag unit khusus mobile cards */
+        .siswa-smp .mfc-unit-tag { background: #1d4ed8 !important; }
+        .siswa-sma .mfc-unit-tag { background: #16a34a !important; }
+        .siswa-smk .mfc-unit-tag { background: #ea580c !important; }
+        .pegawai-smp .mfc-unit-tag { background: #7c3aed !important; }
+        .pegawai-sma .mfc-unit-tag { background: #0284c7 !important; }
+        .pegawai-smk .mfc-unit-tag { background: #0d9488 !important; }
+        .pegawai-yayasan .mfc-unit-tag { background: #e11d48 !important; }
+
+        /* ============================================================
+           MEDIA QUERIES: LAYAR MOBILE (< 900px) ATAU .is-mobile-device
+        ============================================================ */
+        @media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
+            html, body {
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+
+            .display-wrapper {
+                height: auto !important;
+                min-height: 100vh !important;
+                grid-template-rows: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                padding: 8px 8px 24px !important;
+                gap: 8px !important;
+            }
+
+            /* Header Mobile */
+            .header {
+                padding: 10px 12px !important;
+                gap: 8px !important;
+                flex-wrap: wrap !important;
+                height: auto !important;
+                min-height: auto !important;
+            }
+            .header-left {
+                gap: 8px !important;
+                min-width: 0 !important;
+                flex: 1 !important;
+            }
+            .school-logo {
+                width: 36px !important;
+                height: 36px !important;
+            }
+            .school-info h1 {
+                font-size: 13px !important;
+                line-height: 1.2 !important;
+            }
+            .school-info p {
+                font-size: 9.5px !important;
+            }
+            .header-center {
+                order: 3 !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                border-top: 1px solid var(--border) !important;
+                padding-top: 6px !important;
+                margin-top: 2px !important;
+            }
+            .header-date {
+                font-size: 11px !important;
+            }
+            .header-right {
+                flex-shrink: 0 !important;
+            }
+            .clock {
+                font-size: 20px !important;
+            }
+            .clock-label {
+                display: none !important;
+            }
+
+            /* Tampilkan elemen mobile */
+            .mobile-view-tabs {
+                display: flex !important;
+            }
+            .mobile-stats-strip {
+                display: grid !important;
+            }
+            .mobile-controls-container {
+                display: flex !important;
+            }
+
+            /* Sembunyikan kontrol desktop */
+            .feed-zoom-controls {
+                display: none !important;
+            }
+            .feed-expand-btn {
+                display: none !important;
+            }
+            .feed-table-header {
+                display: none !important;
+            }
+
+            /* Feed Panel Mobile */
+            .body-grid {
+                display: flex !important;
+                flex-direction: column !important;
+                grid-template-columns: 1fr !important;
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+                gap: 8px !important;
+            }
+            .left-col {
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+                width: 100% !important;
+            }
+            .feed-panel {
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+            }
+            .feed-header {
+                padding: 10px 12px 8px !important;
+            }
+            .feed-title {
+                font-size: 12px !important;
+            }
+            .feed-count {
+                font-size: 10px !important;
+            }
+            .feed-zoom-wrapper {
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+                zoom: 1 !important;
+            }
+            .feed-list {
+                height: auto !important;
+                min-height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 8px !important;
+                gap: 8px !important;
+            }
+
+            /* LOGIKA REKAPITULASI PADA MOBILE:
+               Secara default DIHILANGKAN sesuai permintaan pengguna.
+               Hanya muncul jika tab [Rekapitulasi] diaktifkan (.show-rekap-view). */
+            body:not(.show-rekap-view) .right-col {
+                display: none !important;
+            }
+            body.show-rekap-view .left-col {
+                display: none !important;
+            }
+            body.show-rekap-view .right-col {
+                display: flex !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+            }
+            .unit-panels-container {
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+            }
+            .unit-card {
+                padding: 10px !important;
+            }
+            .unit-body-grid {
+                grid-template-columns: 1fr !important;
+                gap: 8px !important;
+            }
+            .rombel-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Notifikasi Pop-up Toast di Layar HP */
+            .notif-wrapper {
+                top: 10px !important;
+                width: 94% !important;
+                max-width: 420px !important;
+            }
+            .notif {
+                padding: 10px 12px !important;
+                gap: 10px !important;
+                border-radius: 12px !important;
+                box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25) !important;
+            }
+            .notif-icon-circle {
+                width: 38px !important;
+                height: 38px !important;
+                font-size: 18px !important;
+            }
+            .notif-nama {
+                font-size: 15px !important;
+                max-width: 180px !important;
+            }
+            .notif-detail {
+                font-size: 11px !important;
+            }
+            .notif-status-badge {
+                font-size: 10.5px !important;
+                padding: 4px 8px !important;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="{{ (!empty($isMobile)) ? 'is-mobile-device' : '' }}">
 
 <div class="display-wrapper">
 
@@ -1341,10 +2013,56 @@
         </div>
     </header>
 
+    <!-- ── UNIT SWITCHER BAR (SEMUA, SMP, SMA, SMK) ── -->
+    <nav class="unit-switcher-nav" aria-label="Pilih Unit Sekolah">
+        <a href="{{ route('display.index') }}" class="unit-switch-pill {{ empty($unitNumber) ? 'active' : '' }}">
+            <i class="fa-solid fa-layer-group"></i> <span>SEMUA</span>
+        </a>
+        <a href="{{ route('display.unit1') }}" class="unit-switch-pill {{ ($unitNumber == 1) ? 'active' : '' }}">
+            <i class="fa-solid fa-school"></i> <span>SMP</span>
+        </a>
+        <a href="{{ route('display.unit2') }}" class="unit-switch-pill {{ ($unitNumber == 2) ? 'active' : '' }}">
+            <i class="fa-solid fa-building-columns"></i> <span>SMA</span>
+        </a>
+        <a href="{{ route('display.unit3') }}" class="unit-switch-pill {{ ($unitNumber == 3) ? 'active' : '' }}">
+            <i class="fa-solid fa-graduation-cap"></i> <span>SMK</span>
+        </a>
+    </nav>
+
+    <!-- ── MOBILE VIEW TABS (TOGGLE LIVE ABSENSI vs REKAPITULASI) ── -->
+    <div class="mobile-view-tabs" id="mobile-view-tabs">
+        <button type="button" class="view-tab-btn active" id="tab-btn-feed" onclick="switchMobileView('feed')">
+            <i class="fa-solid fa-bolt"></i> Live Absensi
+        </button>
+        <button type="button" class="view-tab-btn" id="tab-btn-rekap" onclick="switchMobileView('rekap')">
+            <i class="fa-solid fa-chart-pie"></i> Rekapitulasi
+        </button>
+    </div>
+
+    <!-- ── MOBILE SUMMARY STATS STRIP ── -->
+    <div class="mobile-stats-strip" id="mobile-stats-strip">
+        <div class="m-stat-card m-stat-total" title="Total Siswa & Pegawai Hadir Hari Ini">
+            <div class="m-stat-label"><i class="fa-solid fa-users"></i> Hadir</div>
+            <div class="m-stat-value" id="m-stat-total">0</div>
+        </div>
+        <div class="m-stat-card m-stat-siswa" title="Siswa Hadir Hari Ini">
+            <div class="m-stat-label"><i class="fa-solid fa-user-graduate"></i> Siswa</div>
+            <div class="m-stat-value" id="m-stat-siswa">0</div>
+        </div>
+        <div class="m-stat-card m-stat-guru" title="Guru & Pegawai Hadir Hari Ini">
+            <div class="m-stat-label"><i class="fa-solid fa-chalkboard-user"></i> Guru/Staf</div>
+            <div class="m-stat-value" id="m-stat-guru">0</div>
+        </div>
+        <div class="m-stat-card m-stat-lambat" title="Total Hadir Terlambat Hari Ini">
+            <div class="m-stat-label"><i class="fa-solid fa-clock"></i> Lambat</div>
+            <div class="m-stat-value" id="m-stat-lambat">0</div>
+        </div>
+    </div>
+
     <!-- ── BODY: 2 KOLOM (Kiri: Live Absensi, Kanan: Live Rekapitulasi) ── -->
     <div class="body-grid">
 
-        <!-- KOLOM KIRI: LIVE FEED ABSENSI (FULL HEIGHT) -->
+        <!-- KOLOM KIRI: LIVE FEED ABSENSI (FULL HEIGHT / FULL WIDTH DI HP) -->
         <div class="left-col">
             <div class="feed-panel">
                 <div class="feed-header">
@@ -1390,6 +2108,35 @@
                             <i class="fa-solid fa-expand" id="feed-expand-icon"></i>
                             <span id="feed-expand-label">Lebarkan</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- MOBILE CONTROLS & FILTER BAR -->
+                <div class="mobile-controls-container" id="mobile-controls-container">
+                    <div class="mobile-controls-bar">
+                        <div class="mobile-search-wrap">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="mobile-search-input" placeholder="Cari nama siswa, guru, kelas..." oninput="handleSearchInput(this.value)" autocomplete="off">
+                            <button type="button" class="search-clear-btn" id="search-clear-btn" onclick="clearSearch()" style="display:none;" title="Hapus pencarian">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="mobile-action-btns">
+                            <button type="button" class="mobile-ctrl-btn" id="btn-sound-toggle" onclick="toggleMuteSound()" title="Aktifkan/Bisukan Suara Notifikasi">
+                                <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+                            </button>
+                            <button type="button" class="mobile-ctrl-btn" id="btn-refresh-manual" onclick="manualRefresh()" title="Refresh Data Sekarang">
+                                <i class="fa-solid fa-rotate" id="refresh-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mobile-filter-chips-scroll" id="mobile-filter-chips">
+                        <button type="button" class="filter-chip active" data-filter="all" onclick="setStatusFilter('all', this)">Semua</button>
+                        <button type="button" class="filter-chip" data-filter="masuk" onclick="setStatusFilter('masuk', this)">Hadir Tepat</button>
+                        <button type="button" class="filter-chip" data-filter="terlambat" onclick="setStatusFilter('terlambat', this)">Terlambat</button>
+                        <button type="button" class="filter-chip" data-filter="pulang" onclick="setStatusFilter('pulang', this)">Pulang</button>
+                        <button type="button" class="filter-chip" data-filter="siswa" onclick="setStatusFilter('siswa', this)">Siswa</button>
+                        <button type="button" class="filter-chip" data-filter="pegawai" onclick="setStatusFilter('pegawai', this)">Guru/Staf</button>
                     </div>
                 </div>
 
@@ -1476,9 +2223,26 @@ const NOTIF_DURATION= 5000;  // Notifikasi hilang setelah 5 detik
 // ============================================================
 //  STATE
 // ============================================================
-let lastFeedHash   = '';
-let failCount      = 0;
-let prevStats      = {};
+let lastFeedHash       = '';
+let failCount          = 0;
+let prevStats          = {};
+let currentFeedData    = [];
+let currentSearchQuery = '';
+let currentStatusFilter= 'all';
+let soundMuted         = localStorage.getItem('pembda_display_muted') === '1';
+let mobileViewMode     = 'feed'; // 'feed' (default) or 'rekap'
+
+// ============================================================
+//  DETEKSI PERANGKAT (MOBILE vs DESKTOP)
+// ============================================================
+function checkDevice() {
+    const isMobile = window.innerWidth <= 900 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    document.body.classList.toggle('is-mobile-device', isMobile);
+    return isMobile;
+}
+function isMobileView() {
+    return window.innerWidth <= 900 || document.body.classList.contains('is-mobile-device');
+}
 
 // ============================================================
 //  JAM LOKAL (diperbarui setiap detik via setInterval)
@@ -1560,27 +2324,30 @@ function updateDisplay(data) {
     // ─ Rekapitulasi Per Unit Sekolah & Rombel ─
     renderUnitPanels(data.rekap_unit, data.rombel_stats);
 
+    // ─ Update Angka Total Absen untuk Tampilan Diperlebar & Mobile Stats Strip ─
+    updateExpandedStats(data);
+    updateMobileStats(data);
+
     // ─ Feed Aktivitas ─
-    const feedHash = JSON.stringify((data.feed || []).slice(0, 3));
+    currentFeedData = data.feed || [];
+    const feedHash = JSON.stringify(currentFeedData.slice(0, 3));
     let isNewScan = false;
     if (feedHash !== lastFeedHash) {
         // Ada data baru – tampilkan notifikasi
-        if (lastFeedHash !== '' && data.feed && data.feed.length > 0) {
-            const newest = data.feed[0];
+        if (lastFeedHash !== '' && currentFeedData.length > 0) {
+            const newest = currentFeedData[0];
             showNotif(newest);
             isNewScan = true;
         }
         lastFeedHash = feedHash;
-        renderFeed(data.feed || [], isNewScan);
     }
+
+    applyFeedFilters(isNewScan);
 
     const countEl = document.getElementById('feed-count');
     if (countEl) {
-        countEl.textContent = (data.feed ? data.feed.length : 0) + ' aktivitas hari ini';
+        countEl.textContent = currentFeedData.length + ' aktivitas hari ini';
     }
-
-    // ─ Update Angka Total Absen untuk Tampilan Diperlebar ─
-    updateExpandedStats(data);
 }
 
 // ============================================================
@@ -1628,6 +2395,146 @@ function updateExpandedStats(data) {
             unitsContainer.style.display = 'none';
         }
     }
+}
+
+// ============================================================
+//  UPDATE RINGKASAN STATISTIK KHUSUS MOBILE
+// ============================================================
+function updateMobileStats(data) {
+    if (!data) return;
+
+    const sHadir     = data.statistik?.siswa_hadir || 0;
+    const sTerlambat = data.statistik?.siswa_terlambat || 0;
+    const totalSiswa = data.statistik?.total_siswa_absen ?? (sHadir + sTerlambat);
+
+    const totalPegawai = data.statistik?.total_pegawai_absen ?? (data.statistik?.pegawai_hadir || 0);
+    const totalAll     = data.statistik?.total_absen ?? (totalSiswa + totalPegawai);
+
+    const elTotal  = document.getElementById('m-stat-total');
+    if (elTotal) elTotal.textContent = totalAll.toLocaleString('id-ID');
+
+    const elSiswa  = document.getElementById('m-stat-siswa');
+    if (elSiswa) elSiswa.textContent = totalSiswa.toLocaleString('id-ID');
+
+    const elGuru   = document.getElementById('m-stat-guru');
+    if (elGuru) elGuru.textContent = totalPegawai.toLocaleString('id-ID');
+
+    const elLambat = document.getElementById('m-stat-lambat');
+    if (elLambat) elLambat.textContent = sTerlambat.toLocaleString('id-ID');
+}
+
+// ============================================================
+//  PENGATURAN SUARA NOTIFIKASI (MUTE / UNMUTE)
+// ============================================================
+function updateSoundButton() {
+    const icon = document.getElementById('sound-icon');
+    const btn  = document.getElementById('btn-sound-toggle');
+    if (!icon || !btn) return;
+    if (soundMuted) {
+        icon.className = 'fa-solid fa-volume-xmark';
+        btn.classList.add('muted');
+        btn.title = 'Suara Notifikasi: Nonaktif (Klik untuk bunyikan)';
+    } else {
+        icon.className = 'fa-solid fa-volume-high';
+        btn.classList.remove('muted');
+        btn.title = 'Suara Notifikasi: Aktif (Klik untuk bisukan)';
+    }
+}
+
+function toggleMuteSound() {
+    soundMuted = !soundMuted;
+    localStorage.setItem('pembda_display_muted', soundMuted ? '1' : '0');
+    updateSoundButton();
+}
+
+// ============================================================
+//  TOGGLE TAMPILAN MOBILE (LIVE ABSENSI vs REKAPITULASI)
+// ============================================================
+function switchMobileView(mode) {
+    mobileViewMode = mode;
+    const btnFeed  = document.getElementById('tab-btn-feed');
+    const btnRekap = document.getElementById('tab-btn-rekap');
+
+    if (mode === 'rekap') {
+        if (btnFeed)  btnFeed.classList.remove('active');
+        if (btnRekap) btnRekap.classList.add('active');
+        document.body.classList.add('show-rekap-view');
+    } else {
+        if (btnFeed)  btnFeed.classList.add('active');
+        if (btnRekap) btnRekap.classList.remove('active');
+        document.body.classList.remove('show-rekap-view');
+    }
+}
+
+// ============================================================
+//  KONTROL FILTER & PENCARIAN FEED
+// ============================================================
+function handleSearchInput(val) {
+    currentSearchQuery = (val || '').trim().toLowerCase();
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) {
+        clearBtn.style.display = currentSearchQuery ? 'inline-flex' : 'none';
+    }
+    applyFeedFilters(false);
+}
+
+function clearSearch() {
+    const inp = document.getElementById('mobile-search-input');
+    if (inp) inp.value = '';
+    currentSearchQuery = '';
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) clearBtn.style.display = 'none';
+    applyFeedFilters(false);
+}
+
+function setStatusFilter(filter, el) {
+    currentStatusFilter = filter;
+    document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+    if (el) el.classList.add('active');
+    applyFeedFilters(false);
+}
+
+function applyFeedFilters(isNewScan = false) {
+    let filtered = currentFeedData;
+
+    if (currentSearchQuery) {
+        filtered = filtered.filter(item => {
+            const nama   = (item.nama || '').toLowerCase();
+            const info   = (item.info || '').toLowerCase();
+            const school = (item.school_name || '').toLowerCase();
+            const unit   = (item.unit || '').toLowerCase();
+            return nama.includes(currentSearchQuery) || 
+                   info.includes(currentSearchQuery) || 
+                   school.includes(currentSearchQuery) || 
+                   unit.includes(currentSearchQuery);
+        });
+    }
+
+    if (currentStatusFilter !== 'all') {
+        if (currentStatusFilter === 'masuk') {
+            filtered = filtered.filter(item => item.tipe === 'masuk');
+        } else if (currentStatusFilter === 'terlambat') {
+            filtered = filtered.filter(item => item.tipe === 'terlambat');
+        } else if (currentStatusFilter === 'pulang') {
+            filtered = filtered.filter(item => item.tipe === 'pulang');
+        } else if (currentStatusFilter === 'siswa') {
+            filtered = filtered.filter(item => item.kategori === 'siswa');
+        } else if (currentStatusFilter === 'pegawai') {
+            filtered = filtered.filter(item => item.kategori === 'pegawai');
+        }
+    }
+
+    renderFeed(filtered, isNewScan);
+}
+
+function manualRefresh() {
+    const icon = document.getElementById('refresh-icon');
+    if (icon) icon.classList.add('fa-spin');
+    fetchData().finally(() => {
+        setTimeout(() => {
+            if (icon) icon.classList.remove('fa-spin');
+        }, 600);
+    });
 }
 
 // ============================================================
@@ -1778,6 +2685,8 @@ function renderUnitPanels(rekapUnit, rombelStats) {
 //  CHIME GENERATOR (Web Audio API)
 // ============================================================
 function playChime(type) {
+    if (soundMuted) return;
+
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
@@ -1829,7 +2738,7 @@ function applyFeedZoom(val) {
     localStorage.setItem('pembda_feed_zoom', feedZoomLevel.toFixed(2));
 
     const container = document.getElementById('feed-zoom-container');
-    if (container) {
+    if (container && !isMobileView()) {
         container.style.zoom = feedZoomLevel;
     }
     const lbl = document.getElementById('feed-zoom-val');
@@ -1924,7 +2833,7 @@ function updateExpandButtonState(isExpanded) {
 // Inisialisasi state preferensi tampilan full-width
 (function initFeedExpandState() {
     const savedExpand = localStorage.getItem('pembda_feed_expanded') === '1';
-    if (savedExpand) {
+    if (savedExpand && !isMobileView()) {
         document.body.classList.add('is-feed-expanded');
     }
     document.addEventListener('DOMContentLoaded', () => {
@@ -1945,28 +2854,43 @@ function updateExpandButtonState(isExpanded) {
 })();
 
 // ============================================================
-//  RENDER FEED
+//  RENDER FEED (DUAL MODE: MOBILE CARDS vs DESKTOP TABLE)
 // ============================================================
 function renderFeed(feed, isNewScan) {
     const list = document.getElementById('feed-list');
+    if (!list) return;
 
-    // Tampilkan seluruh data feed (bisa di-scroll bebas & di-zoom)
     const items = feed;
+
+    if (!items || items.length === 0) {
+        const msg = (currentSearchQuery || currentStatusFilter !== 'all') 
+            ? 'Tidak ada data kehadiran yang sesuai filter pencarian.'
+            : 'Belum ada aktivitas absensi tercatat hari ini.';
+        list.innerHTML = `
+            <div style="padding:36px 20px;text-align:center;color:var(--text-dim);font-size:14px;background:#ffffff;border-radius:12px;">
+                <i class="fa-solid fa-clipboard-user" style="font-size:36px;opacity:0.3;margin-bottom:12px;display:block;"></i>
+                ${escHtml(msg)}
+            </div>
+        `;
+        return;
+    }
+
     const DEFAULT_PHOTO = "{{ asset('images/default-student.jpg') }}";
+    const useMobileCards = isMobileView();
 
     list.innerHTML = items.map((item, idx) => {
         const icon        = item.tipe === 'terlambat' ? '🕐'
                           : item.tipe === 'pulang'    ? '🚪'
                           : item.kategori === 'pegawai'? '👔'
                           : '✅';
-        const delay = idx * 40;
+        const delay = Math.min(idx * 30, 400);
 
         // Tentukan Unit Sekolah & kelas CSS
-        const roleName = item.kategori === 'pegawai' ? 'GURU/STAF' : 'SISWA';
+        const roleName   = item.kategori === 'pegawai' ? 'GURU/STAF' : 'SISWA';
         const schoolName = item.school_name ? item.school_name.toUpperCase() : '';
-        const badgeText = schoolName ? `${roleName} · ${schoolName}` : roleName;
+        const badgeText  = schoolName ? `${roleName} · ${schoolName}` : roleName;
 
-        const unitClass = `${item.kategori}-${item.unit ? item.unit.toLowerCase() : 'default'}`;
+        const unitClass  = `${item.kategori}-${item.unit ? item.unit.toLowerCase() : 'default'}`;
 
         // Glow class jika item pertama dan ini scan baru
         let glowClass = '';
@@ -1978,8 +2902,8 @@ function renderFeed(feed, isNewScan) {
 
         // Kelas khusus untuk item paling baru
         const newestClass = idx === 0 ? 'feed-item-newest' : '';
-        const fotoUrl = item.foto || DEFAULT_PHOTO;
-        const nomor = feed.length - idx;
+        const fotoUrl     = item.foto || DEFAULT_PHOTO;
+        const nomor       = items.length - idx;
 
         // Indicator "TERBARU" berkedip untuk item teratas
         let newLabelHtml = '';
@@ -1988,56 +2912,103 @@ function renderFeed(feed, isNewScan) {
         }
 
         // Tentukan IN & OUT times
-        const inTime = item.jam_masuk || '--:--';
+        const inTime  = item.jam_masuk || '--:--';
         const outTime = item.jam_keluar || '--:--';
 
         // Tentukan Cara Absen
-        const caraAbsen = item.cara_absen || 'Manual';
+        const caraAbsen     = item.cara_absen || 'Manual';
         const caraAbsenTipe = item.cara_absen_tipe || 'manual';
         const caraAbsenIcon = item.cara_absen_icon || 'fa-solid fa-clipboard-user';
 
-        return `<div class="feed-item ${unitClass} ${glowClass} ${newestClass}" style="animation-delay:${delay}ms">
-            <!-- 1. Kolom Nomor -->
-            <span class="feed-num">${nomor}</span>
-            
-            <!-- 2. Kolom Avatar -->
-            <div class="feed-avatar-container">
-                <img src="${escHtml(fotoUrl)}" alt="Foto" class="feed-avatar" onerror="this.onerror=null; this.src='${DEFAULT_PHOTO}'">
-            </div>
-            
-            <!-- 3. Kolom Nama & Unit Sekolah (Vertikal Stack) -->
-            <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
-                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <span class="feed-nama">${escHtml(item.nama)}</span>
-                    ${newLabelHtml}
+        // ── FORMAT KHUSUS MOBILE PHONE: TAMPILAN KARTU MODERN ──
+        if (useMobileCards) {
+            return `
+                <div class="mobile-feed-card ${unitClass} ${glowClass} ${newestClass}" style="animation-delay:${delay}ms">
+                    <div class="mfc-top">
+                        <div class="mfc-avatar-container">
+                            <img src="${escHtml(fotoUrl)}" alt="Foto" class="mfc-avatar" onerror="this.onerror=null; this.src='${DEFAULT_PHOTO}'">
+                            <span class="mfc-seq">#${nomor}</span>
+                        </div>
+                        <div class="mfc-info-group">
+                            <div class="mfc-name-row">
+                                <h3 class="mfc-name">${escHtml(item.nama)}</h3>
+                                ${newLabelHtml}
+                            </div>
+                            <div class="mfc-tags-row">
+                                <span class="mfc-unit-tag">${escHtml(badgeText)}</span>
+                                <span class="mfc-class-tag">${escHtml(item.info)}</span>
+                            </div>
+                        </div>
+                        <div class="mfc-status-group">
+                            <span class="mfc-status-pill status-${escHtml(item.tipe)}">${icon} ${escHtml(item.aksi)}</span>
+                        </div>
+                    </div>
+                    <div class="mfc-bottom">
+                        <div class="mfc-times">
+                            <span class="mfc-time-badge time-in" title="Jam Masuk">
+                                <i class="fa-solid fa-arrow-right-to-bracket"></i> IN ${escHtml(inTime)}
+                            </span>
+                            ${outTime !== '--:--' ? `
+                                <span class="mfc-time-badge time-out" title="Jam Keluar">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i> OUT ${escHtml(outTime)}
+                                </span>
+                            ` : ''}
+                        </div>
+                        <div class="mfc-method">
+                            <span class="mfc-method-badge method-${escHtml(caraAbsenTipe)}">
+                                <i class="${escHtml(caraAbsenIcon)}"></i> ${escHtml(caraAbsen)}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center;">
-                    <span class="unit-tag" style="margin: 0; font-size: 10px; padding: 2px 6px;">${escHtml(badgeText)}</span>
-                </div>
-            </div>
-            
-            <!-- 4. Kolom Kelas -->
-            <span class="feed-info">${escHtml(item.info)}</span>
-            
-            <!-- 5. Kolom Jam Masuk / Keluar (IN/OUT Stack) -->
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 900; color: #16a34a !important;">IN: ${escHtml(inTime)}</span>
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 900; color: #dc2626 !important;">OUT: ${escHtml(outTime)}</span>
-            </div>
+            `;
+        }
 
-            <!-- 6. Kolom Cara Absen -->
-            <div>
-                <span class="feed-method-badge method-${escHtml(caraAbsenTipe)}">
-                    <i class="${escHtml(caraAbsenIcon)}"></i>
-                    <span>${escHtml(caraAbsen)}</span>
-                </span>
+        // ── FORMAT KHUSUS DESKTOP / MONITOR KIOSK TV: TABEL 7 KOLOM ──
+        return `
+            <div class="feed-item ${unitClass} ${glowClass} ${newestClass}" style="animation-delay:${delay}ms">
+                <!-- 1. Kolom Nomor -->
+                <span class="feed-num">${nomor}</span>
+                
+                <!-- 2. Kolom Avatar -->
+                <div class="feed-avatar-container">
+                    <img src="${escHtml(fotoUrl)}" alt="Foto" class="feed-avatar" onerror="this.onerror=null; this.src='${DEFAULT_PHOTO}'">
+                </div>
+                
+                <!-- 3. Kolom Nama & Unit Sekolah (Vertikal Stack) -->
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                        <span class="feed-nama">${escHtml(item.nama)}</span>
+                        ${newLabelHtml}
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="unit-tag" style="margin: 0; font-size: 10px; padding: 2px 6px;">${escHtml(badgeText)}</span>
+                    </div>
+                </div>
+                
+                <!-- 4. Kolom Kelas -->
+                <span class="feed-info">${escHtml(item.info)}</span>
+                
+                <!-- 5. Kolom Jam Masuk / Keluar (IN/OUT Stack) -->
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 900; color: #16a34a !important;">IN: ${escHtml(inTime)}</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 900; color: #dc2626 !important;">OUT: ${escHtml(outTime)}</span>
+                </div>
+
+                <!-- 6. Kolom Cara Absen -->
+                <div>
+                    <span class="feed-method-badge method-${escHtml(caraAbsenTipe)}">
+                        <i class="${escHtml(caraAbsenIcon)}"></i>
+                        <span>${escHtml(caraAbsen)}</span>
+                    </span>
+                </div>
+                
+                <!-- 7. Kolom Status Badge -->
+                <div>
+                    <span class="feed-badge">${icon} ${escHtml(item.aksi)}</span>
+                </div>
             </div>
-            
-            <!-- 7. Kolom Status Badge -->
-            <div>
-                <span class="feed-badge">${icon} ${escHtml(item.aksi)}</span>
-            </div>
-        </div>`;
+        `;
     }).join('');
 }
 
@@ -2046,14 +3017,16 @@ function renderFeed(feed, isNewScan) {
 // ============================================================
 function showNotif(item) {
     const wrapper = document.getElementById('notif-wrapper');
+    if (!wrapper) return;
+
     const el = document.createElement('div');
     
-    const roleName = item.kategori === 'pegawai' ? 'GURU/STAF' : 'SISWA';
+    const roleName   = item.kategori === 'pegawai' ? 'GURU/STAF' : 'SISWA';
     const schoolName = item.school_name ? item.school_name.toUpperCase() : '';
-    const badgeText = schoolName ? `${roleName} - ${schoolName}` : roleName;
+    const badgeText  = schoolName ? `${roleName} - ${schoolName}` : roleName;
 
-    const unitClass = `${item.kategori}-${item.unit ? item.unit.toLowerCase() : 'default'}`;
-    const statusClass = item.tipe || 'masuk';
+    const unitClass  = `${item.kategori}-${item.unit ? item.unit.toLowerCase() : 'default'}`;
+    const statusClass= item.tipe || 'masuk';
     
     const icon = item.tipe === 'terlambat' ? '🕐'
                : item.tipe === 'pulang'    ? '🚪'
@@ -2078,7 +3051,7 @@ function showNotif(item) {
         </div>
     `;
     
-    // Mainkan sound chime
+    // Mainkan sound chime (jika tidak dimute)
     playChime(item.tipe);
     
     wrapper.appendChild(el);
@@ -2095,6 +3068,21 @@ function showNotif(item) {
 function escHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+// ============================================================
+//  INISIALISASI PERANGKAT & SUARA
+// ============================================================
+checkDevice();
+updateSoundButton();
+
+let resizeDebounceTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeDebounceTimer);
+    resizeDebounceTimer = setTimeout(() => {
+        checkDevice();
+        applyFeedFilters(false);
+    }, 150);
+});
 
 // ============================================================
 //  MULAI POLLING

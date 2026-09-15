@@ -89,10 +89,19 @@ class PublicDisplayController extends Controller
             $targetSchool = \App\Models\School::where('is_active', true)->where('type', $type)->first();
         }
 
+        $userAgent = request()->userAgent() ?? '';
+        $isMobile = (bool) preg_match('/(android|iphone|ipad|ipod|blackberry|opera mini|mobile|windows phone)/i', $userAgent);
+        if (request('mode') === 'mobile') {
+            $isMobile = true;
+        } elseif (request('mode') === 'desktop') {
+            $isMobile = false;
+        }
+
         return view('display.attendance', [
             'targetSchool' => $targetSchool,
             'unitNumber'   => $unitNumber,
             'targetType'   => $type,
+            'isMobile'     => $isMobile,
         ]);
     }
 
