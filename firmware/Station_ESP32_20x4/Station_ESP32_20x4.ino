@@ -47,34 +47,35 @@
 #include <HardwareSerial.h>
 
 // ============================================================
-//  KONFIGURASI - Sesuaikan untuk setiap station!
+// ============================================================
+//  KONFIGURASI JARINGAN & SERVER PEMBDAHUB
 // ============================================================
 
-// WiFi Utama
-const char* WIFI_SSID          = "PembdaLINK";
-const char* WIFI_PASSWORD      = "PEMBDA2026";
+// 1. Jaringan Utama (Satu-satunya LAN Lokal Sekolah -> Server Ubuntu)
+const char* WIFI_LOCAL_SSID     = "PembdaLINK";
+const char* WIFI_LOCAL_PASS     = "PEMBDA2026";
+const char* SERVER_LOCAL_URL    = "http://50.35.89.10/api/attendance/rfid-scan";
+const char* SCAN_BUFFER_LOCAL   = "http://50.35.89.10/api/rfid/scan-buffer";
 
-// WiFi Alternatif 1 (otomatis fallback jika utama gagal)
-const char* WIFI_ALT_SSID      = "Xspace";
-const char* WIFI_ALT_PASSWORD  = "12345678starlink";
+// 2. Jaringan Alternatif (Internet Failover -> Server Production Cloud)
+// Digunakan secara otomatis apabila LAN PembdaLINK tidak ditemukan / padam
+const char* WIFI_ALT_SSID       = "TEFA";
+const char* WIFI_ALT_PASSWORD   = "PEMBDA2026";
 
-// WiFi Alternatif 2
-const char* WIFI_ALT2_SSID     = "TEFA";
-const char* WIFI_ALT2_PASSWORD = "PEMBDA2026";
+const char* WIFI_ALT1_SSID      = "PembdaNET";
+const char* WIFI_ALT1_PASSWORD  = "pelita31";
 
-// WiFi Alternatif 3
-const char* WIFI_ALT3_SSID     = "VISTAFAMILY";
-const char* WIFI_ALT3_PASSWORD = "pelita31";
+const char* WIFI_ALT2_SSID      = "Xspace";
+const char* WIFI_ALT2_PASSWORD  = "12345678starlink";
 
-// Server API PembdaHUB
-// - Server Lokal Sekolah   : "http://50.35.89.10/api/attendance/rfid-scan"
-// - Server Production Cloud : "https://perguruanpembda.com/api/attendance/rfid-scan"
-const char* SERVER_URL        = "http://50.35.89.10/api/attendance/rfid-scan";
-const char* SCAN_BUFFER_URL   = "http://50.35.89.10/api/rfid/scan-buffer";
-const char* KIOSK_API_KEY     = "RAHASIA-PEMBDAHUB-12345";
+const char* SERVER_CLOUD_URL    = "https://perguruanpembda.com/api/attendance/rfid-scan";
+const char* SCAN_BUFFER_CLOUD   = "https://perguruanpembda.com/api/rfid/scan-buffer";
+
+// API Kiosk Key & Device ID
+const char* KIOSK_API_KEY       = "RAHASIA-PEMBDAHUB-12345";
 
 // ── DEVICE ID ──
-const char* DEVICE_ID         = "STATION-SMP-02";
+const char* DEVICE_ID           = "STATION-SMP-02";
 
 // ============================================================
 //  PIN DEFINITIONS - ESP32 Dev Module
@@ -151,18 +152,22 @@ byte iconHeart[8] = {
 // ============================================================
 //  GLOBAL STATE
 // ============================================================
-String        lastUID          = "";
-unsigned long lastTapTime      = 0;
-String        qrBuffer         = "";
-unsigned long lastWiFiCheck    = 0;
-bool          isOnline         = false;
+String        lastUID           = "";
+unsigned long lastTapTime       = 0;
+String        qrBuffer          = "";
+unsigned long lastWiFiCheck     = 0;
+bool          isOnline          = false;
+
+// Manajemen Failover Jaringan (LAN vs Internet Cloud)
+unsigned long lastLanProbeTime  = 0;
+bool          isScanningLan     = false;
 
 // Animasi & Smart Screensaver State
-unsigned long lastActivityTime = 0;
-unsigned long lastAnimTime     = 0;
-int           animFrame        = 0;
-bool          isShowingResult  = false;
-bool          isScreensaver    = false;
+unsigned long lastActivityTime  = 0;
+unsigned long lastAnimTime      = 0;
+int           animFrame         = 0;
+bool          isShowingResult   = false;
+bool          isScreensaver     = false;
 
 // Teks Berjalan Slogan Resmi Yayasan Perguruan Pembda Nias
 const String marqueeText = "   *** YAYASAN PERGURUAN PEMBDA NIAS *** Keep Moving Forward - Maju Terus Pantang Mundur! *** SMPS Pembda 2 - SMAS Pembda 1 - SMK PEMBDA Nias *** Silakan Tempel Kartu RFID / Scan QR Code ***   ";
@@ -194,6 +199,10 @@ void sendToServer(String uid, String type);
 void sendScanBuffer(String uid);
 void parseAndDisplay(String json, String uid);
 void connectWiFi();
+bool isLanMode();
+String getActiveServerUrl();
+String getActiveScanBufferUrl();
+void checkLanAvailability(unsigned long now);
 void indicatorCheckIn();
 void indicatorCheckOut();
 void indicatorCooldown();
@@ -270,11 +279,10 @@ void setup() {
     Serial.println(F("RFID Antenna Gain: MAX 48dB"));
   }
 
-  // ── KONEKSI WIFI DENGAN MULTI-AP (4 PROFIL JARINGAN) ──
-  wifiMulti.addAP(WIFI_SSID,      WIFI_PASSWORD);
+  // ── KONEKSI WIFI MULTI-AP (PROFIL ALTERNATIF INTERNET) ──
   wifiMulti.addAP(WIFI_ALT_SSID,  WIFI_ALT_PASSWORD);
+  wifiMulti.addAP(WIFI_ALT1_SSID, WIFI_ALT1_PASSWORD);
   wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD);
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
 
@@ -311,24 +319,42 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // 1. Periksa status WiFi setiap 10 detik secara non-blocking
-  if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
-    lastWiFiCheck = now;
-    if (wifiMulti.run() == WL_CONNECTED) {
-      if (!isOnline) {
-        isOnline = true;
-        Serial.println(F("WiFi Terhubung Kembali."));
+  // 1. Periksa status WiFi & Smart Failover secara non-blocking
+  if (WiFi.status() != WL_CONNECTED) {
+    if (now - lastWiFiCheck >= 5000 || lastWiFiCheck == 0) {
+      lastWiFiCheck = now;
+      if (isOnline) {
+        isOnline = false;
+        Serial.println(F("[NET] WiFi Terputus! Memulai auto-reconnect..."));
         if (isScreensaver) showScreensaverBase();
         else showReady();
       }
-    } else {
-      if (isOnline) {
-        isOnline = false;
-        Serial.println(F("WiFi Terputus! Mencoba mencari jaringan..."));
+      // Prioritaskan koneksi kembali ke LAN Utama (PembdaLINK)
+      WiFi.begin(WIFI_LOCAL_SSID, WIFI_LOCAL_PASS);
+      delay(200);
+      if (WiFi.status() != WL_CONNECTED) {
+        // Jika LAN belum aktif, cari jaringan alternatif internet via wifiMulti
+        wifiMulti.run();
+      }
+      if (WiFi.status() == WL_CONNECTED) {
+        isOnline = true;
+        Serial.println("[NET] WiFi Terhubung ke: " + WiFi.SSID() + (isLanMode() ? " [LAN Ubuntu Lokal]" : " [Internet Cloud]"));
         if (isScreensaver) showScreensaverBase();
         else showReady();
       }
     }
+  } else {
+    // WiFi status saat ini terhubung (WL_CONNECTED)
+    if (!isOnline) {
+      isOnline = true;
+      Serial.println("[NET] Status Pulih Online: " + WiFi.SSID() + (isLanMode() ? " [LAN Ubuntu]" : " [Internet Cloud]"));
+      if (isScreensaver) showScreensaverBase();
+      else showReady();
+    }
+
+    // Jika sedang terhubung ke Internet Alternatif (Bukan LAN PembdaLINK):
+    // Cek berkala di background apakah LAN PembdaLINK sudah aktif kembali
+    checkLanAvailability(now);
   }
 
   // 2. Transisi Otomatis ke Screensaver / Running Text jika tidak ada scan selama 20 detik
@@ -442,15 +468,84 @@ void handleQrScan() {
 }
 
 // ============================================================
-//  KIRIM DATA KE SERVER (HTTPS)
+//  SMART ROUTING & HELPER JARINGAN
+// ============================================================
+bool isLanMode() {
+  return (WiFi.status() == WL_CONNECTED && WiFi.SSID() == WIFI_LOCAL_SSID);
+}
+
+String getActiveServerUrl() {
+  return isLanMode() ? String(SERVER_LOCAL_URL) : String(SERVER_CLOUD_URL);
+}
+
+String getActiveScanBufferUrl() {
+  return isLanMode() ? String(SCAN_BUFFER_LOCAL) : String(SCAN_BUFFER_CLOUD);
+}
+
+// ============================================================
+//  PROBE BACKGROUND KETERSEDIAAN LAN PEMBDA-LINK
+// ============================================================
+void checkLanAvailability(unsigned long now) {
+  // Hanya jalankan jika sedang tidak di LAN, tidak sedang memproses hasil scan, dan buffer serial kosong
+  if (WiFi.SSID() == WIFI_LOCAL_SSID || isShowingResult || qrSerial.available() > 0) {
+    if (isScanningLan) {
+      WiFi.scanDelete();
+      isScanningLan = false;
+    }
+    return;
+  }
+
+  // Mulai scan background setiap 45 detik
+  if (!isScanningLan && (now - lastLanProbeTime >= 45000 || lastLanProbeTime == 0)) {
+    lastLanProbeTime = now;
+    isScanningLan = true;
+    WiFi.scanNetworks(true); // Non-blocking async scan di ESP32
+    Serial.println(F("[PROBE] Mengecek sinyal LAN PembdaLINK di background..."));
+  }
+
+  // Cek apakah hasil scan async sudah selesai
+  if (isScanningLan) {
+    int scanResult = WiFi.scanComplete();
+    if (scanResult >= 0) {
+      bool lanFound = false;
+      for (int i = 0; i < scanResult; i++) {
+        if (WiFi.SSID(i) == WIFI_LOCAL_SSID) {
+          lanFound = true;
+          break;
+        }
+      }
+      WiFi.scanDelete();
+      isScanningLan = false;
+
+      if (lanFound) {
+        Serial.println(F("[FAILOVER] LAN PembdaLINK terdeteksi aktif! Beralih dari Internet ke LAN Lokal..."));
+        WiFi.disconnect();
+        WiFi.begin(WIFI_LOCAL_SSID, WIFI_LOCAL_PASS);
+        delay(200);
+      }
+    } else if (scanResult == -2) {
+      isScanningLan = false;
+    }
+  }
+}
+
+// ============================================================
+//  KIRIM DATA KE SERVER (SMART HYBRID: HTTP LAN / HTTPS CLOUD)
 // ============================================================
 void sendToServer(String uid, String type) {
   isShowingResult = true;
-  Serial.println("Mengirim ke server: " + uid + " (" + type + ")");
+  String targetUrl = getActiveServerUrl();
+  bool lan = isLanMode();
+
+  Serial.println(F("================================="));
+  Serial.println("Mengirim Scan ke Server : " + uid + " (" + type + ")");
+  Serial.println("Jalur Jaringan          : " + String(lan ? "[LAN LOKAL UBUNTU]" : "[INTERNET CLOUD]"));
+  Serial.println("URL Target              : " + targetUrl);
+  Serial.println(F("================================="));
 
   if (WiFi.status() != WL_CONNECTED) {
     playAudio(1, 7); // 007.MP3 - Sistem ada gangguan hubungi admin
-    showError("Koneksi Internet Off");
+    showError("Koneksi WiFi Off");
     return;
   }
 
@@ -458,16 +553,16 @@ void sendToServer(String uid, String type) {
   WiFiClient client;
   WiFiClientSecure secureClient;
 
-  if (String(SERVER_URL).startsWith("https://")) {
+  if (targetUrl.startsWith("https://")) {
     secureClient.setInsecure(); // Bypass verifikasi sertifikat SSL jika HTTPS
-    http.begin(secureClient, SERVER_URL);
+    http.begin(secureClient, targetUrl);
   } else {
-    http.begin(client, SERVER_URL); // HTTP biasa untuk IP server lokal
+    http.begin(client, targetUrl); // HTTP biasa untuk IP server lokal
   }
   http.addHeader("Content-Type",    "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
   http.addHeader("Accept",          "application/json");
-  http.setTimeout(HTTP_TIMEOUT);
+  http.setTimeout(lan ? 6000 : HTTP_TIMEOUT); // LAN 6s (ultra-cepat), Cloud 10s
 
   StaticJsonDocument<128> doc;
   doc["uid"]       = uid;
@@ -499,7 +594,7 @@ void sendToServer(String uid, String type) {
       parseAndDisplay(payload, uid);
     } else {
       playAudio(1, 7); // 007.MP3 - Sistem Ada Gangguan Hubungi Admin
-      showError("Server Error: " + errMsg.substring(0, 14));
+      showError(lan ? "Err Server LAN" : "Err Server Cloud");
     }
   }
 
@@ -514,23 +609,24 @@ void sendToServer(String uid, String type) {
 }
 
 // ============================================================
-//  KIRIM UID KE SCAN BUFFER (untuk fitur daftar RFID di web)
+//  KIRIM UID KE SCAN BUFFER (untuk fitur registrasi RFID massal)
 //  Dipanggil saat action_code == "NEW_CARD"
 // ============================================================
 void sendScanBuffer(String uid) {
   if (WiFi.status() != WL_CONNECTED) return;
 
-  Serial.println(F("Mengirim UID ke scan-buffer..."));
+  String bufferUrl = getActiveScanBufferUrl();
+  Serial.println("Mengirim UID ke scan-buffer (" + String(isLanMode() ? "LAN" : "Cloud") + "): " + bufferUrl);
 
   HTTPClient http;
   WiFiClient client;
   WiFiClientSecure secureClient;
 
-  if (String(SCAN_BUFFER_URL).startsWith("https://")) {
+  if (bufferUrl.startsWith("https://")) {
     secureClient.setInsecure();
-    http.begin(secureClient, SCAN_BUFFER_URL);
+    http.begin(secureClient, bufferUrl);
   } else {
-    http.begin(client, SCAN_BUFFER_URL);
+    http.begin(client, bufferUrl);
   }
   http.addHeader("Content-Type",    "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
@@ -632,39 +728,90 @@ void parseAndDisplay(String json, String uid) {
 }
 
 // ============================================================
-//  KONEKSI WIFI (Multi-AP Failover)
+//  KONEKSI WIFI (SMART PRIORITY: LAN PEMBDA-LINK -> INTERNET CLOUD)
 // ============================================================
 void connectWiFi() {
   WiFi.mode(WIFI_STA);
-  int attempt = 0;
 
+  // --- TAHAP 1: Coba koneksi ke LAN Utama (PembdaLINK) ---
   lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(F("=== MENCARI WIFI ==="));
-  lcd.setCursor(0, 1); lcd.print(F("Mencoba koneksi...  "));
-  lcd.setCursor(0, 2); lcd.print(F("Hubungkan WiFi...   "));
-  lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+  lcd.setCursor(0, 0); lcd.print(F("=== CEK LAN LOKAL ==="));
+  lcd.setCursor(0, 1); lcd.print("Cari: " + String(WIFI_LOCAL_SSID).substring(0, 14));
+  lcd.setCursor(0, 2); lcd.print(F("Mencoba LAN...      "));
+  lcd.setCursor(0, 3); lcd.print(F("Server: Ubuntu Lokal"));
 
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
+  Serial.println(F("\n[NET] Tahap 1: Mencoba koneksi ke LAN Utama (PembdaLINK)..."));
+  WiFi.begin(WIFI_LOCAL_SSID, WIFI_LOCAL_PASS);
+
+  int attempt = 0;
+  while (WiFi.status() != WL_CONNECTED && attempt < 14) { // Coba ~7 detik
     delay(500);
-    Serial.print(".");
+    Serial.print(F("."));
     String dots = "";
-    for (int i = 0; i < (attempt % 6); i++) dots += ".";
+    for (int i = 0; i < (attempt % 5) + 1; i++) dots += ".";
     lcd.setCursor(0, 2); lcd.print("Menghubungkan" + dots + "    ");
     attempt++;
   }
 
+  // Jika LAN Utama berhasil terhubung:
   if (WiFi.status() == WL_CONNECTED) {
+    isOnline = true;
+    Serial.println(F("\n[NET] BERHASIL terhubung ke LAN PembdaLINK!"));
+    Serial.print(F("[NET] IP Address   : ")); Serial.println(WiFi.localIP());
+    Serial.print(F("[NET] Target Server: ")); Serial.println(SERVER_LOCAL_URL);
+
     lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("=== WIFI CONNECT ==="));
-    lcd.setCursor(0, 1); lcd.print("SSID: " + WiFi.SSID().substring(0, 14));
-    lcd.setCursor(0, 2); lcd.print("IP: " + WiFi.localIP().toString());
-    lcd.setCursor(0, 3); lcd.print(F("--------------------"));
+    lcd.setCursor(0, 0); lcd.print(F("=== [LAN] CONNECT ==="));
+    lcd.setCursor(0, 1); lcd.print("SSID  : " + WiFi.SSID().substring(0, 12));
+    lcd.setCursor(0, 2); lcd.print(F("Server: Ubuntu Lokal"));
+    lcd.setCursor(0, 3); lcd.print("IP: " + WiFi.localIP().toString());
     beep(1, 200);
     delay(1500);
-  } else {
+    return;
+  }
+
+  // --- TAHAP 2: LAN PembdaLINK Tidak Ditemukan -> Fallback ke Internet Cloud ---
+  Serial.println(F("\n[NET] LAN PembdaLINK tidak ditemukan! Mencoba WiFi Internet Alternatif..."));
+  WiFi.disconnect();
+  delay(100);
+
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print(F("=== LAN TDK ADA ===="));
+  lcd.setCursor(0, 1); lcd.print(F("Mencari Internet... "));
+  lcd.setCursor(0, 2); lcd.print(F("Alt WiFi Scanning.. "));
+  lcd.setCursor(0, 3); lcd.print(F("Target: CLOUD PROD  "));
+  delay(1000);
+
+  attempt = 0;
+  while (wifiMulti.run() != WL_CONNECTED && attempt < 16) { // Coba ~8 detik
+    delay(500);
+    Serial.print(F("*"));
+    String dots = "";
+    for (int i = 0; i < (attempt % 5) + 1; i++) dots += "*";
+    lcd.setCursor(0, 2); lcd.print("Hubungkan Alt" + dots + "    ");
+    attempt++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    isOnline = true;
+    Serial.println(F("\n[NET] BERHASIL terhubung ke Internet Alternatif!"));
+    Serial.print(F("[NET] SSID         : ")); Serial.println(WiFi.SSID());
+    Serial.print(F("[NET] Target Server: ")); Serial.println(SERVER_CLOUD_URL);
+
     lcd.clear();
-    lcd.setCursor(0, 0); lcd.print(F("=== WIFI GAGAL ====="));
-    lcd.setCursor(0, 1); lcd.print(F("Koneksi gagal!      "));
+    lcd.setCursor(0, 0); lcd.print(F("=== [NET] CONNECT ==="));
+    lcd.setCursor(0, 1); lcd.print("SSID  : " + WiFi.SSID().substring(0, 12));
+    lcd.setCursor(0, 2); lcd.print(F("Server: CLOUD PROD  "));
+    lcd.setCursor(0, 3); lcd.print("IP: " + WiFi.localIP().toString());
+    beep(2, 100);
+    delay(1500);
+  } else {
+    isOnline = false;
+    Serial.println(F("\n[NET] Semua jaringan WiFi gagal terhubung!"));
+
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print(F("=== SEMUA OFFLINE =="));
+    lcd.setCursor(0, 1); lcd.print(F("LAN & Net Tdk Ada!  "));
     lcd.setCursor(0, 2); lcd.print(F("Auto-retry di bg... "));
     lcd.setCursor(0, 3); lcd.print(F("--------------------"));
     beep(3, 100);
@@ -692,14 +839,25 @@ void showReady() {
   lcd.setCursor(0, 2);
   lcd.print(F("   >> RFID / QR <<  "));
 
-  // Baris 3: Status Bar & SSID WiFi
+  // Baris 3: Status Bar & Jalur Jaringan (LAN vs CLOUD)
   lcd.setCursor(0, 3);
   if (isOnline) {
     lcd.write(byte(0)); // Ikon WiFi
-    lcd.print(F(" ON:"));
-    String ssid = WiFi.SSID();
-    if (ssid.length() > 10) ssid = ssid.substring(0, 10);
-    lcd.print(ssid);
+    if (isLanMode()) {
+      lcd.print(F(" LAN:"));
+      String ssid = WiFi.SSID();
+      if (ssid.length() > 9) ssid = ssid.substring(0, 9);
+      lcd.print(ssid);
+      lcd.setCursor(15, 3);
+      lcd.print(F("[LAN]"));
+    } else {
+      lcd.print(F(" NET:"));
+      String ssid = WiFi.SSID();
+      if (ssid.length() > 9) ssid = ssid.substring(0, 9);
+      lcd.print(ssid);
+      lcd.setCursor(15, 3);
+      lcd.print(F("[NET]"));
+    }
   } else {
     lcd.print(F("[OFFLINE] Cari AP..."));
   }
@@ -747,18 +905,18 @@ void showScreensaverBase() {
   lcd.setCursor(0, 1);
   lcd.print(F("STATION ABSENSI     "));
   
-  // Baris 3: Status Bar Siaga Scan
+  // Baris 3: Status Bar Siaga Scan & Mode Jaringan
   lcd.setCursor(0, 3);
   if (isOnline) {
     lcd.write(byte(0));
-    lcd.print(F(" "));
+    lcd.print(isLanMode() ? F(" LAN:") : F(" NET:"));
     String ssid = WiFi.SSID();
     if (ssid.length() > 8) ssid = ssid.substring(0, 8);
     lcd.print(ssid);
-    lcd.setCursor(12, 3);
-    lcd.print(F("SCAN"));
+    lcd.setCursor(14, 3);
+    lcd.print(isLanMode() ? F("LOKAL") : F("CLOUD"));
   } else {
-    lcd.print(F("[OFFLINE]   SCAN"));
+    lcd.print(F("[OFFLINE]   SCAN    "));
   }
 }
 
