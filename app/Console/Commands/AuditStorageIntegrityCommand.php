@@ -21,6 +21,7 @@ class AuditStorageIntegrityCommand extends Command
                             {--missing-only : Hanya tampilkan tabel yang memiliki berkas fisik hilang}
                             {--detailed : Tampilkan rincian ID record dan path berkas yang hilang}
                             {--download-missing : Otomatis unduh berkas yang hilang dari server production Hostinger}
+                            {--import-dir= : Path direktori lokal/FTP (misal: /storage/data_ftp) untuk memulihkan berkas yang hilang secara otomatis}
                             {--fix-symlink : Otomatis buat ulang symbolic link public/storage jika rusak}
                             {--remote-url= : URL endpoint storage sync production}
                             {--remote-secret= : Token rahasia storage sync production}
@@ -421,14 +422,20 @@ class AuditStorageIntegrityCommand extends Command
             $this->exportToCsv($exportPath, $allMissingFiles);
         }
 
-        // 5. Fitur Auto-Download / Self-Healing jika diminta
-        if ($downloadMissing && !empty($allMissingFiles)) {
+        $importDir = $this->option('import-dir');
+
+        // 5. Fitur Pemulihan Berkas dari Direktori Lokal / Backup FTP jika diminta
+        if ($importDir && !empty($allMissingFiles)) {
+            $this->importFromLocalDirectory($allMissingFiles, $importDir);
+        } elseif ($downloadMissing && !empty($allMissingFiles)) {
             $this->downloadMissingFiles($allMissingFiles, $remoteUrl, $remoteSecret);
         } elseif (!empty($allMissingFiles)) {
             $this->line("<fg=yellow>💡 Rekomendasi Pemulihan:</fg=yellow>");
-            $this->line("1. Untuk otomatis menarik file yang hilang dari Hostinger Production langsung ke tempatnya, jalankan:");
+            $this->line("1. Jika memiliki folder backup FTP di server lokal, jalankan:");
+            $this->line("   <info>php artisan storage:audit --import-dir=/storage/data_ftp</info>");
+            $this->line("2. Untuk menarik file yang hilang dari Hostinger Production via internet:");
             $this->line("   <info>php artisan storage:audit --download-missing</info>");
-            $this->line("2. Atau untuk menarik seluruh folder foto & dokumen sekaligus via sync tool, jalankan:");
+            $this->line("3. Atau untuk menarik seluruh folder foto & dokumen sekaligus via sync tool:");
             $this->line("   <info>php sync-storage.php --pull --missing-only</info>\n");
         } else {
             $this->info("✅ SELURUH BERKAS FISIK TELAH SELARAS 100%! Tidak ada link atau foto yang kosong.\n");
@@ -447,12 +454,17 @@ class AuditStorageIntegrityCommand extends Command
             return true;
         }
 
-        // 2. Cek di direktori public web
+        // 2. Cek di disk local default (storage/app/...)
+        if (Storage::disk('local')->exists($cleanPath)) {
+            return true;
+        }
+
+        // 3. Cek di direktori public web
         if (file_exists(public_path($cleanPath)) && is_file(public_path($cleanPath))) {
             return true;
         }
 
-        // 3. Cek jika file tersimpan di public/storage/...
+        // 4. Cek jika file tersimpan di public/storage/...
         if (file_exists(public_path('storage/' . $cleanPath)) && is_file(public_path('storage/' . $cleanPath))) {
             return true;
         }
@@ -571,6 +583,87 @@ class AuditStorageIntegrityCommand extends Command
             $this->warn("Sebanyak {$failCount} berkas tidak ditemukan di server remote (kemungkinan memang berkas lama yang sudah dihapus).");
         }
         $this->line('');
+    }
+
+    /**
+     * Pulihkan berkas yang hilang dari direktori cadangan lokal / FTP dump
+     */
+    protected function importFromLocalDirectory(array $missingFiles, string $importDir): void
+    {
+        $candidates = [
+            $importDir,
+            base_path($importDir),
+            storage_path($importDir),
+            '/storage/data_ftp',
+            '/var/www/pembdahub/storage/data_ftp',
+            rtrim($importDir, '/'),
+        ];
+
+        $resolvedDir = null;
+        foreach ($candidates as $c) {
+            if (!empty($c) && is_dir($c)) {
+                $resolvedDir = realpath($c);
+                break;
+            }
+        }
+
+        if (!$resolvedDir) {
+            $this->error("Direktori impor '{$importDir}' tidak ditemukan di server!");
+            return;
+        }
+
+        $this->info("═════════════════════════════════════════════════════════════════");
+        $this->info("  MEMULIHKAN BERKAS DARI DIREKTORI LOKAL / FTP DUMP             ");
+        $this->info("═════════════════════════════════════════════════════════════════");
+        $this->line("Sumber Direktori: <comment>{$resolvedDir}</comment>");
+
+        $uniquePaths = array_unique(array_column($missingFiles, 'clean_path'));
+        $total = count($uniquePaths);
+        $restoredCount = 0;
+
+        $bar = $this->output->createProgressBar($total);
+        $bar->start();
+
+        foreach ($uniquePaths as $cleanPath) {
+            $searchLocations = [
+                $resolvedDir . '/' . $cleanPath,
+                $resolvedDir . '/storage/' . $cleanPath,
+                $resolvedDir . '/public/storage/' . $cleanPath,
+                $resolvedDir . '/app/public/' . $cleanPath,
+                $resolvedDir . '/storage/app/public/' . $cleanPath,
+                $resolvedDir . '/' . basename($cleanPath),
+            ];
+
+            $foundSource = null;
+            foreach ($searchLocations as $src) {
+                if (is_file($src)) {
+                    $foundSource = $src;
+                    break;
+                }
+            }
+
+            if ($foundSource) {
+                $destPath = Storage::disk('public')->path($cleanPath);
+                $destDir = dirname($destPath);
+                if (!is_dir($destDir)) {
+                    @mkdir($destDir, 0775, true);
+                }
+                if (@copy($foundSource, $destPath)) {
+                    @chmod($destPath, 0664);
+                    $restoredCount++;
+                }
+            }
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->line("\n");
+
+        $this->info("✓ Berhasil memulihkan: <fg=green>{$restoredCount}</fg=green> dari {$total} berkas hilang.");
+        if ($restoredCount > 0) {
+            $this->line("<fg=yellow>💡 Jalankan kembali 'php artisan storage:audit' untuk melihat hasil terbaru.</fg=yellow>\n");
+        }
     }
 
     /**
