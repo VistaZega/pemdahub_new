@@ -313,11 +313,19 @@ class AuditStorageIntegrityCommand extends Command
             $tableExist = 0;
             $tableMissing = 0;
 
+            $hasCreatedAt = isset($columnsInTable['created_at']);
+            $hasUpdatedAt = isset($columnsInTable['updated_at']);
+
+            $selectCols = [$idCol, $titleCol];
+            if ($hasCreatedAt) $selectCols[] = 'created_at';
+            elseif ($hasUpdatedAt) $selectCols[] = 'updated_at';
+
             foreach ($validCols as $col) {
+                $colsToFetch = array_unique(array_merge($selectCols, [$col]));
                 $query = DB::table($tableName)
                     ->whereNotNull($col)
                     ->where($col, '!=', '')
-                    ->select([$idCol, $titleCol, $col]);
+                    ->select($colsToFetch);
 
                 $records = $query->get();
 
@@ -339,6 +347,13 @@ class AuditStorageIntegrityCommand extends Command
                         $tableExist++;
                     } else {
                         $tableMissing++;
+                        $recDate = null;
+                        if ($hasCreatedAt && !empty($rec->created_at)) {
+                            $recDate = (string) $rec->created_at;
+                        } elseif ($hasUpdatedAt && !empty($rec->updated_at)) {
+                            $recDate = (string) $rec->updated_at;
+                        }
+
                         $allMissingFiles[] = [
                             'table' => $tableName,
                             'column' => $col,
@@ -347,6 +362,7 @@ class AuditStorageIntegrityCommand extends Command
                             'raw_path' => $rawPath,
                             'clean_path' => $cleanPath,
                             'category' => $spec['category'],
+                            'created_at' => $recDate,
                         ];
                     }
                 }
@@ -396,19 +412,73 @@ class AuditStorageIntegrityCommand extends Command
         ));
         $this->info("--------------------------------------------------------------------------------\n");
 
-        // 3. Tampilkan Detail Berkas Hilang jika diminta
+        // 3. Analisis Usia Berkas Hilang
+        if (!empty($allMissingFiles)) {
+            $now = now();
+            $olderThan30Days = 0;
+            $newerThan30Days = 0;
+            $noDateCount = 0;
+            $byPeriod = [];
+
+            foreach ($allMissingFiles as $m) {
+                if (!empty($m['created_at'])) {
+                    try {
+                        $cDate = \Carbon\Carbon::parse($m['created_at']);
+                        $diffDays = $cDate->diffInDays($now);
+                        if ($diffDays > 30) {
+                            $olderThan30Days++;
+                        } else {
+                            $newerThan30Days++;
+                        }
+                        $period = $cDate->format('Y-m');
+                        $byPeriod[$period] = ($byPeriod[$period] ?? 0) + 1;
+                    } catch (\Exception $e) {
+                        $noDateCount++;
+                    }
+                } else {
+                    $noDateCount++;
+                }
+            }
+            ksort($byPeriod);
+
+            $this->info("════════════════════════════════════════════════════════════════════════════");
+            $this->info("  ANALISIS USIA BERKAS HILANG (Berdasarkan Waktu Dibuat / created_at)       ");
+            $this->info("════════════════════════════════════════════════════════════════════════════");
+            $pctOld = count($allMissingFiles) > 0 ? round(($olderThan30Days / count($allMissingFiles)) * 100, 1) : 0;
+            $pctNew = count($allMissingFiles) > 0 ? round(($newerThan30Days / count($allMissingFiles)) * 100, 1) : 0;
+
+            $this->line(sprintf("  • Berkas Lama (> 30 Hari yang lalu) : <fg=green;options=bold>%d berkas (%s%%)</>", $olderThan30Days, $pctOld));
+            $this->line(sprintf("  • Berkas Baru (< 30 Hari terakhir)  : <fg=%s;options=bold>%d berkas (%s%%)</>", $newerThan30Days > 0 ? 'yellow' : 'green', $newerThan30Days, $pctNew));
+            if ($noDateCount > 0) {
+                $this->line(sprintf("  • Tanpa Metadata Tanggal             : %d berkas", $noDateCount));
+            }
+            $this->line('');
+
+            if (!empty($byPeriod)) {
+                $periodRows = [];
+                foreach ($byPeriod as $p => $c) {
+                    $periodRows[] = [$p, $c . ' berkas'];
+                }
+                $this->table(['Periode Bulan Dibuat', 'Jumlah Berkas Hilang'], $periodRows);
+                $this->line('');
+            }
+        }
+
+        // 4. Tampilkan Detail Berkas Hilang jika diminta
         if ($detailed && !empty($allMissingFiles)) {
             $this->warn("DAFTAR BERKAS FISIK YANG HILANG DI DISK:");
             $detailRows = [];
             foreach (array_slice($allMissingFiles, 0, 100) as $m) {
+                $cDateStr = $m['created_at'] ? substr($m['created_at'], 0, 10) : '-';
                 $detailRows[] = [
                     $m['table'] . '.' . $m['column'],
                     $m['id'],
-                    Str::limit($m['title'], 25),
+                    Str::limit($m['title'], 22),
+                    $cDateStr,
                     $m['clean_path'],
                 ];
             }
-            $this->table(['Lokasi Kolom', 'ID', 'Nama / Judul', 'Path Berkas'], $detailRows);
+            $this->table(['Lokasi Kolom', 'ID', 'Nama / Judul', 'Tgl Dibuat', 'Path Berkas'], $detailRows);
 
             if (count($allMissingFiles) > 100) {
                 $rem = count($allMissingFiles) - 100;
@@ -417,7 +487,7 @@ class AuditStorageIntegrityCommand extends Command
             $this->line('');
         }
 
-        // 4. Ekspor ke CSV jika opsi --export diisi
+        // 5. Ekspor ke CSV jika opsi --export diisi
         if ($exportPath && !empty($allMissingFiles)) {
             $this->exportToCsv($exportPath, $allMissingFiles);
         }
@@ -672,7 +742,7 @@ class AuditStorageIntegrityCommand extends Command
     protected function exportToCsv(string $path, array $missingFiles): void
     {
         $fp = fopen($path, 'w');
-        fputcsv($fp, ['Tabel', 'Kolom', 'ID Record', 'Nama/Judul', 'Path Berkas Asli', 'Path Normalisasi', 'Kategori']);
+        fputcsv($fp, ['Tabel', 'Kolom', 'ID Record', 'Nama/Judul', 'Tanggal Dibuat', 'Path Berkas Asli', 'Path Normalisasi', 'Kategori']);
 
         foreach ($missingFiles as $row) {
             fputcsv($fp, [
@@ -680,6 +750,7 @@ class AuditStorageIntegrityCommand extends Command
                 $row['column'],
                 $row['id'],
                 $row['title'],
+                $row['created_at'] ?? '-',
                 $row['raw_path'],
                 $row['clean_path'],
                 $row['category'],
