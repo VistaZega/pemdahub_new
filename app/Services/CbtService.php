@@ -306,34 +306,33 @@ class CbtService
             ? $session->started_at->diffInSeconds($session->finished_at)
             : 0;
 
-        // Lock row to prevent race condition (duplicate insert under concurrency)
-        CbtExamResult::where('exam_id', $exam->id)
+        // Lock row to prevent race condition (lock persists through save)
+        $result = CbtExamResult::where('exam_id', $exam->id)
             ->where('session_id', $session->id)
             ->where('student_id', $session->student_id)
             ->lockForUpdate()
             ->first();
 
-        $result = CbtExamResult::updateOrCreate(
-            [
-                'exam_id' => $exam->id,
-                'session_id' => $session->id,
-                'student_id' => $session->student_id,
-            ],
-            [
-                'total_questions' => $totalQuestions,
-                'answered_questions' => $answeredQuestions,
-                'correct_answers' => $correctAnswers,
-                'wrong_answers' => $wrongAnswers,
-                'unanswered' => $unanswered,
-                'total_score' => $totalScore,
-                'max_score' => $maxScore,
-                'percentage_score' => $percentageScore,
-                'final_score' => $finalScore,
-                'is_passed' => $isPassed,
-                'predicate' => $predicate,
-                'time_spent_seconds' => $timeSpent,
-            ]
-        );
+        if (!$result) {
+            $result = new CbtExamResult();
+            $result->exam_id = $exam->id;
+            $result->session_id = $session->id;
+            $result->student_id = $session->student_id;
+        }
+
+        $result->total_questions = $totalQuestions;
+        $result->answered_questions = $answeredQuestions;
+        $result->correct_answers = $correctAnswers;
+        $result->wrong_answers = $wrongAnswers;
+        $result->unanswered = $unanswered;
+        $result->total_score = $totalScore;
+        $result->max_score = $maxScore;
+        $result->percentage_score = $percentageScore;
+        $result->final_score = $finalScore;
+        $result->is_passed = $isPassed;
+        $result->predicate = $predicate;
+        $result->time_spent_seconds = $timeSpent;
+        $result->save();
 
         // Reputation Hook
         $student = $session->student;
