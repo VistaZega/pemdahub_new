@@ -24,6 +24,7 @@ class AuditStorageIntegrityCommand extends Command
                             {--import-dir= : Path direktori lokal/FTP (misal: /storage/data_ftp) untuk memulihkan berkas yang hilang secara otomatis}
                             {--fix-symlink : Otomatis buat ulang symbolic link public/storage jika rusak}
                             {--remote-url= : URL endpoint storage sync production}
+                            {--remote-secret= : Token rahasia storage sync production}
                             {--export= : Path file CSV untuk mengekspor daftar berkas yang hilang}
                             {--month= : Filter rincian berkas hilang berdasarkan bulan YYYY-MM (contoh: 2026-09)}';
 
