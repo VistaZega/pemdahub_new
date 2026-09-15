@@ -382,20 +382,10 @@ class PublicDisplayController extends Controller
             $unitName  = $att->student->school->type ?? '';
 
             // Tentukan Cara Absen
-            $recordedVia = strtolower($att->recorded_via ?? 'manual');
-            if ($recordedVia === 'rfid') {
-                $caraAbsen = 'Scan Kartu RFID';
-                $caraAbsenTipe = 'rfid';
-                $caraAbsenIcon = 'fa-solid fa-id-card';
-            } elseif (in_array($recordedVia, ['gps', 'qr_gps', 'mobile', 'gps_pkl'])) {
-                $caraAbsen = 'Mobile Phone';
-                $caraAbsenTipe = 'mobile';
-                $caraAbsenIcon = 'fa-solid fa-mobile-screen-button';
-            } else {
-                $caraAbsen = 'Manual';
-                $caraAbsenTipe = 'manual';
-                $caraAbsenIcon = 'fa-solid fa-clipboard-user';
-            }
+            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id);
+            $caraAbsen = $metode['label'];
+            $caraAbsenTipe = $metode['tipe'];
+            $caraAbsenIcon = $metode['icon'];
 
             $feed->push([
                 'waktu'           => $waktuFormat,
@@ -430,20 +420,10 @@ class PublicDisplayController extends Controller
             $unitName  = $att->employee->school->type ?? '';
 
             // Tentukan Cara Absen
-            $recordedVia = strtolower($att->recorded_via ?? 'manual');
-            if ($recordedVia === 'rfid') {
-                $caraAbsen = 'Scan Kartu RFID';
-                $caraAbsenTipe = 'rfid';
-                $caraAbsenIcon = 'fa-solid fa-id-card';
-            } elseif (in_array($recordedVia, ['gps', 'qr_gps', 'mobile', 'gps_pkl'])) {
-                $caraAbsen = 'Mobile Phone';
-                $caraAbsenTipe = 'mobile';
-                $caraAbsenIcon = 'fa-solid fa-mobile-screen-button';
-            } else {
-                $caraAbsen = 'Manual';
-                $caraAbsenTipe = 'manual';
-                $caraAbsenIcon = 'fa-solid fa-clipboard-user';
-            }
+            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id ?? null);
+            $caraAbsen = $metode['label'];
+            $caraAbsenTipe = $metode['tipe'];
+            $caraAbsenIcon = $metode['icon'];
 
             $feed->push([
                 'waktu'           => $waktuFormat,
@@ -490,5 +470,59 @@ class PublicDisplayController extends Controller
             'feed'         => $feedSorted,
             'last_updated' => $now->format('H:i:s'),
         ]);
+    }
+
+    /**
+     * Resolusi metadata metode/cara absensi (RFID, QR Code, Mobile Phone, Manual)
+     */
+    private function resolveAttendanceMethod($recordedVia, $deviceId = null): array
+    {
+        $via = strtolower(trim((string)($recordedVia ?? 'manual')));
+
+        if ($via === 'rfid') {
+            return [
+                'label' => 'Scan Kartu RFID',
+                'tipe'  => 'rfid',
+                'icon'  => 'fa-solid fa-id-card',
+            ];
+        }
+
+        if (in_array($via, ['qr', 'qr_code', 'qrcode', 'barcode', 'scan_qr'])) {
+            return [
+                'label' => 'Scan QR Code',
+                'tipe'  => 'qr',
+                'icon'  => 'fa-solid fa-qrcode',
+            ];
+        }
+
+        if ($via === 'qr_gps') {
+            // Jika device_id dari KIOSK -> Scan QR Code di Mesin Kiosk
+            if (!empty($deviceId) && str_starts_with(strtoupper($deviceId), 'KIOSK')) {
+                return [
+                    'label' => 'Scan QR Code',
+                    'tipe'  => 'qr',
+                    'icon'  => 'fa-solid fa-qrcode',
+                ];
+            }
+            return [
+                'label' => 'Mobile Phone',
+                'tipe'  => 'mobile',
+                'icon'  => 'fa-solid fa-mobile-screen-button',
+            ];
+        }
+
+        if (in_array($via, ['gps', 'mobile', 'gps_pkl'])) {
+            return [
+                'label' => 'Mobile Phone',
+                'tipe'  => 'mobile',
+                'icon'  => 'fa-solid fa-mobile-screen-button',
+            ];
+        }
+
+        return [
+            'label' => 'Manual',
+            'tipe'  => 'manual',
+            'icon'  => 'fa-solid fa-clipboard-user',
+        ];
     }
 }

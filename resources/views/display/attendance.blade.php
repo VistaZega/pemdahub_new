@@ -585,6 +585,11 @@
             color: #1d4ed8 !important;
             border: 1.5px solid #bfdbfe !important;
         }
+        .method-qr {
+            background: #faf5ff !important;
+            color: #7c3aed !important;
+            border: 1.5px solid #e9d5ff !important;
+        }
         .method-mobile {
             background: #f0fdf4 !important;
             color: #15803d !important;
@@ -596,6 +601,7 @@
             border: 1.5px solid #fde68a !important;
         }
         .feed-item-newest .method-rfid,
+        .feed-item-newest .method-qr,
         .feed-item-newest .method-mobile,
         .feed-item-newest .method-manual {
             background: rgba(255,255,255,0.95) !important;
