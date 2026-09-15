@@ -70,6 +70,12 @@
             padding: 10px;
             gap: 8px;
         }
+        .display-wrapper > .header {
+            grid-row: 1;
+        }
+        .display-wrapper > .body-grid {
+            grid-row: 2;
+        }
 
         /* ============================================================
            HEADER
@@ -81,9 +87,10 @@
             background: var(--bg-panel);
             border: 1px solid var(--border-bright);
             border-radius: 12px;
-            padding: 0 22px;
+            padding: 0 20px;
             position: relative;
             overflow: hidden;
+            height: 76px;
         }
         .header::before {
             content: '';
@@ -95,6 +102,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-shrink: 0;
         }
         .school-logo {
             width: 48px; height: 48px;
@@ -108,22 +116,46 @@
             object-fit: contain;
         }
         .school-info h1 {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             color: var(--text-primary);
-            letter-spacing: 0.03em;
+            letter-spacing: 0.02em;
             text-transform: uppercase;
-            line-height: 1.1;
+            line-height: 1.15;
         }
         .school-info p {
             font-size: 11px;
             color: var(--text-secondary);
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
             font-weight: 600;
         }
         .header-center {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 0 14px;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .header-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 2px;
+        }
+        .header-clock-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
         }
         .live-badge {
             display: inline-flex;
@@ -155,25 +187,27 @@
             color: var(--text-secondary);
             font-weight: 600;
             letter-spacing: 0.02em;
-        }
-        .header-right {
-            text-align: right;
+            white-space: nowrap;
         }
         .clock {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: var(--text-primary);
             letter-spacing: 0.04em;
             line-height: 1;
         }
         .clock-label {
-            font-size: 10px;
+            font-size: 9.5px;
             color: var(--text-secondary);
             letter-spacing: 0.08em;
             text-transform: uppercase;
             margin-top: 2px;
             font-weight: 600;
+            white-space: nowrap;
+        }
+        .header-mobile-meta {
+            display: none; /* Disembunyikan di desktop */
         }
 
         /* ============================================================
@@ -1316,13 +1350,14 @@
            UNIT SWITCHER NAVIGATION BAR (SEMUA, SMP, SMA, SMK)
         ============================================================ */
         .unit-switcher-nav {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 2px 2px 4px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            gap: 4px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 30px;
+            border: 1.5px solid var(--border-bright);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
             flex-shrink: 0;
         }
         .unit-switcher-nav::-webkit-scrollbar {
@@ -1332,38 +1367,75 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 7px 16px;
-            border-radius: 24px;
-            background: #ffffff;
-            border: 1.5px solid var(--border-bright);
+            padding: 5px 14px;
+            border-radius: 20px;
+            background: transparent;
+            border: 1px solid transparent;
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 800;
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 0.04em;
             white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
         }
         .unit-switch-pill i {
-            font-size: 13px;
+            font-size: 12px;
+            opacity: 0.85;
         }
         .unit-switch-pill:hover {
-            border-color: #2563eb;
+            background: #ffffff;
             color: #2563eb;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(37,99,235,0.12);
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
         .unit-switch-pill.active {
             background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
             border-color: #1d4ed8;
             color: #ffffff;
-            box-shadow: 0 3px 10px rgba(37,99,235,0.3);
+            box-shadow: 0 2px 6px rgba(37,99,235,0.28);
         }
         .unit-switch-pill.active i {
-            color: #93c5fd;
+            color: #bfdbfe;
+            opacity: 1;
+        }
+
+        /* Container Pembungkus Tab & Stats Mobile (Disembunyikan di Desktop) */
+        .mobile-top-bar {
+            display: none !important;
+        }
+
+        /* Penyesuaian Responsif untuk Layar Laptop Sedang (901px - 1150px) */
+        @media (min-width: 901px) and (max-width: 1150px) {
+            .header {
+                padding: 0 14px;
+            }
+            .header-left {
+                gap: 8px;
+            }
+            .school-logo {
+                width: 40px;
+                height: 40px;
+            }
+            .school-info h1 {
+                font-size: 14px;
+            }
+            .school-info p {
+                font-size: 9.5px;
+            }
+            .unit-switch-pill {
+                padding: 4px 10px;
+                font-size: 10.5px;
+                gap: 4px;
+            }
+            .clock {
+                font-size: 24px;
+            }
+            .header-right {
+                gap: 12px;
+            }
         }
 
         /* ============================================================
@@ -1807,6 +1879,10 @@
                 padding: 8px 8px 24px !important;
                 gap: 8px !important;
             }
+            .display-wrapper > .header,
+            .display-wrapper > .body-grid {
+                grid-row: auto !important;
+            }
 
             /* Header Mobile */
             .header {
@@ -1815,6 +1891,9 @@
                 flex-wrap: wrap !important;
                 height: auto !important;
                 min-height: auto !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
             }
             .header-left {
                 gap: 8px !important;
@@ -1832,7 +1911,59 @@
             .school-info p {
                 font-size: 9.5px !important;
             }
+            .header-right {
+                flex-shrink: 0 !important;
+                gap: 0 !important;
+            }
+            .header-meta {
+                display: none !important;
+            }
+            .header-clock-group {
+                align-items: flex-end !important;
+            }
+            .clock {
+                font-size: 20px !important;
+            }
+            .clock-label {
+                display: none !important;
+            }
+
+            /* Unit Switcher Mobile */
             .header-center {
+                order: 2 !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 2px 0 !important;
+                display: block !important;
+            }
+            .unit-switcher-nav {
+                width: 100% !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                gap: 5px !important;
+                padding: 3px !important;
+                background: #f1f5f9 !important;
+                border-radius: 12px !important;
+                overflow-x: auto !important;
+                box-shadow: none !important;
+            }
+            .unit-switch-pill {
+                flex: 1 !important;
+                justify-content: center !important;
+                padding: 6px 4px !important;
+                font-size: 11px !important;
+                border-radius: 8px !important;
+                gap: 4px !important;
+            }
+            .unit-switch-pill span {
+                font-size: 10.5px !important;
+            }
+            .unit-switch-pill i {
+                font-size: 11px !important;
+            }
+
+            /* Mobile Meta (Live + Date) */
+            .header-mobile-meta {
                 order: 3 !important;
                 width: 100% !important;
                 display: flex !important;
@@ -1842,17 +1973,19 @@
                 padding-top: 6px !important;
                 margin-top: 2px !important;
             }
-            .header-date {
+            .header-mobile-meta .live-badge {
+                margin-bottom: 0 !important;
+            }
+            .header-mobile-meta .header-date {
                 font-size: 11px !important;
             }
-            .header-right {
+
+            /* Tampilkan elemen mobile */
+            .mobile-top-bar {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
                 flex-shrink: 0 !important;
-            }
-            .clock {
-                font-size: 20px !important;
-            }
-            .clock-label {
-                display: none !important;
             }
 
             /* Tampilkan elemen mobile */
@@ -2000,62 +2133,79 @@
                 <p>{{ isset($targetSchool) ? 'Live Monitoring Kehadiran Unit ' . $targetSchool->type . ' Real-Time' : 'Sistem Monitoring Kehadiran Real-Time' }}</p>
             </div>
         </div>
+
         <div class="header-center">
+            <!-- ── UNIT SWITCHER BAR (SEMUA, SMP, SMA, SMK) ── -->
+            <nav class="unit-switcher-nav" aria-label="Pilih Unit Sekolah">
+                <a href="{{ route('display.index') }}" class="unit-switch-pill {{ empty($unitNumber) ? 'active' : '' }}" title="Tampilkan Semua Unit">
+                    <i class="fa-solid fa-layer-group"></i> <span>SEMUA</span>
+                </a>
+                <a href="{{ route('display.unit1') }}" class="unit-switch-pill {{ ($unitNumber == 1) ? 'active' : '' }}" title="Unit SMP (SMPS Pembda 2)">
+                    <i class="fa-solid fa-school"></i> <span>SMP</span>
+                </a>
+                <a href="{{ route('display.unit2') }}" class="unit-switch-pill {{ ($unitNumber == 2) ? 'active' : '' }}" title="Unit SMA (SMAS Pembda 1)">
+                    <i class="fa-solid fa-building-columns"></i> <span>SMA</span>
+                </a>
+                <a href="{{ route('display.unit3') }}" class="unit-switch-pill {{ ($unitNumber == 3) ? 'active' : '' }}" title="Unit SMK (SMKS Pembda)">
+                    <i class="fa-solid fa-graduation-cap"></i> <span>SMK</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="header-right">
+            <div class="header-meta">
+                <div class="live-badge">
+                    <span class="live-dot"></span>
+                    LIVE
+                </div>
+                <div class="header-date" id="header-date">Memuat...</div>
+            </div>
+            <div class="header-clock-group">
+                <div class="clock" id="clock">--:--:--</div>
+                <div class="clock-label">Waktu Saat Ini</div>
+            </div>
+        </div>
+
+        <!-- Mobile-only meta row: Live badge & Tanggal (Muncul hanya di layar HP) -->
+        <div class="header-mobile-meta">
             <div class="live-badge">
                 <span class="live-dot"></span>
                 LIVE
             </div>
-            <div class="header-date" id="header-date">Memuat...</div>
-        </div>
-        <div class="header-right">
-            <div class="clock" id="clock">--:--:--</div>
-            <div class="clock-label">Waktu Saat Ini</div>
+            <div class="header-date" id="header-date-mobile">Memuat...</div>
         </div>
     </header>
 
-    <!-- ── UNIT SWITCHER BAR (SEMUA, SMP, SMA, SMK) ── -->
-    <nav class="unit-switcher-nav" aria-label="Pilih Unit Sekolah">
-        <a href="{{ route('display.index') }}" class="unit-switch-pill {{ empty($unitNumber) ? 'active' : '' }}">
-            <i class="fa-solid fa-layer-group"></i> <span>SEMUA</span>
-        </a>
-        <a href="{{ route('display.unit1') }}" class="unit-switch-pill {{ ($unitNumber == 1) ? 'active' : '' }}">
-            <i class="fa-solid fa-school"></i> <span>SMP</span>
-        </a>
-        <a href="{{ route('display.unit2') }}" class="unit-switch-pill {{ ($unitNumber == 2) ? 'active' : '' }}">
-            <i class="fa-solid fa-building-columns"></i> <span>SMA</span>
-        </a>
-        <a href="{{ route('display.unit3') }}" class="unit-switch-pill {{ ($unitNumber == 3) ? 'active' : '' }}">
-            <i class="fa-solid fa-graduation-cap"></i> <span>SMK</span>
-        </a>
-    </nav>
+    <!-- ── CONTAINER KHUSUS MOBILE: TABS & STATS STRIP (Disembunyikan total di Desktop) ── -->
+    <div class="mobile-top-bar" id="mobile-top-bar">
+        <!-- ── MOBILE VIEW TABS (TOGGLE LIVE ABSENSI vs REKAPITULASI) ── -->
+        <div class="mobile-view-tabs" id="mobile-view-tabs">
+            <button type="button" class="view-tab-btn active" id="tab-btn-feed" onclick="switchMobileView('feed')">
+                <i class="fa-solid fa-bolt"></i> Live Absensi
+            </button>
+            <button type="button" class="view-tab-btn" id="tab-btn-rekap" onclick="switchMobileView('rekap')">
+                <i class="fa-solid fa-chart-pie"></i> Rekapitulasi
+            </button>
+        </div>
 
-    <!-- ── MOBILE VIEW TABS (TOGGLE LIVE ABSENSI vs REKAPITULASI) ── -->
-    <div class="mobile-view-tabs" id="mobile-view-tabs">
-        <button type="button" class="view-tab-btn active" id="tab-btn-feed" onclick="switchMobileView('feed')">
-            <i class="fa-solid fa-bolt"></i> Live Absensi
-        </button>
-        <button type="button" class="view-tab-btn" id="tab-btn-rekap" onclick="switchMobileView('rekap')">
-            <i class="fa-solid fa-chart-pie"></i> Rekapitulasi
-        </button>
-    </div>
-
-    <!-- ── MOBILE SUMMARY STATS STRIP ── -->
-    <div class="mobile-stats-strip" id="mobile-stats-strip">
-        <div class="m-stat-card m-stat-total" title="Total Siswa & Pegawai Hadir Hari Ini">
-            <div class="m-stat-label"><i class="fa-solid fa-users"></i> Hadir</div>
-            <div class="m-stat-value" id="m-stat-total">0</div>
-        </div>
-        <div class="m-stat-card m-stat-siswa" title="Siswa Hadir Hari Ini">
-            <div class="m-stat-label"><i class="fa-solid fa-user-graduate"></i> Siswa</div>
-            <div class="m-stat-value" id="m-stat-siswa">0</div>
-        </div>
-        <div class="m-stat-card m-stat-guru" title="Guru & Pegawai Hadir Hari Ini">
-            <div class="m-stat-label"><i class="fa-solid fa-chalkboard-user"></i> Guru/Staf</div>
-            <div class="m-stat-value" id="m-stat-guru">0</div>
-        </div>
-        <div class="m-stat-card m-stat-lambat" title="Total Hadir Terlambat Hari Ini">
-            <div class="m-stat-label"><i class="fa-solid fa-clock"></i> Lambat</div>
-            <div class="m-stat-value" id="m-stat-lambat">0</div>
+        <!-- ── MOBILE SUMMARY STATS STRIP ── -->
+        <div class="mobile-stats-strip" id="mobile-stats-strip">
+            <div class="m-stat-card m-stat-total" title="Total Siswa & Pegawai Hadir Hari Ini">
+                <div class="m-stat-label"><i class="fa-solid fa-users"></i> Hadir</div>
+                <div class="m-stat-value" id="m-stat-total">0</div>
+            </div>
+            <div class="m-stat-card m-stat-siswa" title="Siswa Hadir Hari Ini">
+                <div class="m-stat-label"><i class="fa-solid fa-user-graduate"></i> Siswa</div>
+                <div class="m-stat-value" id="m-stat-siswa">0</div>
+            </div>
+            <div class="m-stat-card m-stat-guru" title="Guru & Pegawai Hadir Hari Ini">
+                <div class="m-stat-label"><i class="fa-solid fa-chalkboard-user"></i> Guru/Staf</div>
+                <div class="m-stat-value" id="m-stat-guru">0</div>
+            </div>
+            <div class="m-stat-card m-stat-lambat" title="Total Hadir Terlambat Hari Ini">
+                <div class="m-stat-label"><i class="fa-solid fa-clock"></i> Lambat</div>
+                <div class="m-stat-value" id="m-stat-lambat">0</div>
+            </div>
         </div>
     </div>
 
@@ -2315,6 +2465,10 @@ function updateDisplay(data) {
     const dateEl = document.getElementById('header-date');
     if (dateEl && data.tanggal) {
         dateEl.textContent = data.tanggal;
+    }
+    const dateMobileEl = document.getElementById('header-date-mobile');
+    if (dateMobileEl && data.tanggal) {
+        dateMobileEl.textContent = data.tanggal;
     }
     const lastUpEl = document.getElementById('last-updated');
     if (lastUpEl && data.last_updated) {
