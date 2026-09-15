@@ -24,8 +24,8 @@ class AuditStorageIntegrityCommand extends Command
                             {--import-dir= : Path direktori lokal/FTP (misal: /storage/data_ftp) untuk memulihkan berkas yang hilang secara otomatis}
                             {--fix-symlink : Otomatis buat ulang symbolic link public/storage jika rusak}
                             {--remote-url= : URL endpoint storage sync production}
-                            {--remote-secret= : Token rahasia storage sync production}
-                            {--export= : Path file CSV untuk mengekspor daftar berkas yang hilang}';
+                            {--export= : Path file CSV untuk mengekspor daftar berkas yang hilang}
+                            {--month= : Filter rincian berkas hilang berdasarkan bulan YYYY-MM (contoh: 2026-09)}';
 
     /**
      * The console command description.
@@ -462,13 +462,58 @@ class AuditStorageIntegrityCommand extends Command
                 $this->table(['Periode Bulan Dibuat', 'Jumlah Berkas Hilang'], $periodRows);
                 $this->line('');
             }
+
+            // Rincian per Tabel dan Periode Bulan
+            $byTablePeriod = [];
+            foreach ($allMissingFiles as $m) {
+                $tbl = $m['table'];
+                $period = !empty($m['created_at']) ? substr($m['created_at'], 0, 7) : 'Tanpa Tanggal';
+                if (!isset($byTablePeriod[$tbl])) {
+                    $byTablePeriod[$tbl] = ['sep' => 0, 'aug' => 0, 'older' => 0, 'total' => 0];
+                }
+                $byTablePeriod[$tbl]['total']++;
+                if ($period === '2026-09') {
+                    $byTablePeriod[$tbl]['sep']++;
+                } elseif ($period === '2026-08') {
+                    $byTablePeriod[$tbl]['aug']++;
+                } else {
+                    $byTablePeriod[$tbl]['older']++;
+                }
+            }
+
+            $tblPeriodRows = [];
+            foreach ($byTablePeriod as $tblName => $counts) {
+                $tblPeriodRows[] = [
+                    $tblName,
+                    $counts['total'],
+                    $counts['sep'] > 0 ? "<fg=yellow;options=bold>{$counts['sep']}</>" : "0",
+                    $counts['aug'],
+                    $counts['older'],
+                ];
+            }
+            $this->table(
+                ['Tabel', 'Total Hilang', 'Sept 2026 (Bulan Ini)', 'Agt 2026', 'Juli 2026 & Lebih Lama'],
+                $tblPeriodRows
+            );
+            $this->line('');
         }
+
+        $filterMonth = $this->option('month');
 
         // 4. Tampilkan Detail Berkas Hilang jika diminta
         if ($detailed && !empty($allMissingFiles)) {
-            $this->warn("DAFTAR BERKAS FISIK YANG HILANG DI DISK:");
+            $displayedMissing = $allMissingFiles;
+            if ($filterMonth) {
+                $displayedMissing = array_values(array_filter($allMissingFiles, function($m) use ($filterMonth) {
+                    return !empty($m['created_at']) && str_starts_with($m['created_at'], $filterMonth);
+                }));
+                $this->warn("DAFTAR BERKAS FISIK YANG HILANG DI DISK (Filter Bulan: {$filterMonth}, Total: " . count($displayedMissing) . "):");
+            } else {
+                $this->warn("DAFTAR BERKAS FISIK YANG HILANG DI DISK:");
+            }
+
             $detailRows = [];
-            foreach (array_slice($allMissingFiles, 0, 100) as $m) {
+            foreach (array_slice($displayedMissing, 0, 100) as $m) {
                 $cDateStr = $m['created_at'] ? substr($m['created_at'], 0, 10) : '-';
                 $detailRows[] = [
                     $m['table'] . '.' . $m['column'],
@@ -480,8 +525,8 @@ class AuditStorageIntegrityCommand extends Command
             }
             $this->table(['Lokasi Kolom', 'ID', 'Nama / Judul', 'Tgl Dibuat', 'Path Berkas'], $detailRows);
 
-            if (count($allMissingFiles) > 100) {
-                $rem = count($allMissingFiles) - 100;
+            if (count($displayedMissing) > 100) {
+                $rem = count($displayedMissing) - 100;
                 $this->line("<comment>... dan {$rem} berkas lainnya (gunakan opsi --export=missing.csv untuk melihat semua).</comment>");
             }
             $this->line('');
