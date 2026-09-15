@@ -12,6 +12,11 @@ use App\Models\CbtExamQuestion;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Models\StudentClass;
+use App\Models\Classroom;
+use App\Models\Teacher;
+use App\Models\TeachingAssignment;
+use App\Models\User;
+use App\Services\VocationalMajorFilterService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 
@@ -463,11 +468,19 @@ class CbtService
     }
 
     /**
-     * Get exam statistics
+     * Get exam statistics (supports classroom filtering)
      */
-    public function getExamStatistics(CbtExam $exam): array
+    public function getExamStatistics(CbtExam $exam, ?int $classroomId = null, ?array $allowedClassroomIds = null): array
     {
-        $results = CbtExamResult::where('exam_id', $exam->id)->get();
+        $query = CbtExamResult::where('exam_id', $exam->id);
+
+        if ($classroomId) {
+            $query->whereHas('session', fn($q) => $q->where('classroom_id', $classroomId));
+        } elseif (!empty($allowedClassroomIds)) {
+            $query->whereHas('session', fn($q) => $q->whereIn('classroom_id', $allowedClassroomIds));
+        }
+
+        $results = $query->get();
 
         if ($results->isEmpty()) {
             return [
@@ -491,6 +504,168 @@ class CbtService
             'passed_count' => $results->where('is_passed', true)->count(),
             'failed_count' => $results->where('is_passed', false)->count(),
             'pass_rate' => round(($results->where('is_passed', true)->count() / $results->count()) * 100, 2),
+        ];
+    }
+
+    /**
+     * Resolve classrooms accessible for a user for a specific exam.
+     * Admin/SuperAdmin gets all participating classrooms.
+     * Guru only gets classrooms they teach in this exam.
+     */
+    public function getAccessibleClassroomsForUser(CbtExam $exam, User $user): Collection
+    {
+        $examClassrooms = $exam->classrooms()->orderBy('name')->get();
+
+        $isAdmin = $user->isSuperAdmin() || in_array($user->role ?? '', ['admin', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'panitia_cbt']);
+        if ($isAdmin) {
+            return $examClassrooms;
+        }
+
+        $teacher = $user->teacher ?? Teacher::where('user_id', $user->id)->first();
+        if (!$teacher) {
+            return collect();
+        }
+
+        // 1. Taught classrooms for this specific subject and academic year
+        $taQuery = TeachingAssignment::where('teacher_id', $teacher->id);
+        if ($exam->academic_year_id) {
+            $taQuery->where('academic_year_id', $exam->academic_year_id);
+        }
+        if ($exam->subject_id) {
+            $taQuery->where('subject_id', $exam->subject_id);
+        }
+        $taughtClassroomIds = $taQuery->pluck('classroom_id')->unique()->toArray();
+
+        // 2. Fallback: all classrooms taught by this teacher in the academic year
+        if (empty($taughtClassroomIds)) {
+            $taughtClassroomIds = TeachingAssignment::where('teacher_id', $teacher->id)
+                ->when($exam->academic_year_id, fn($q) => $q->where('academic_year_id', $exam->academic_year_id))
+                ->pluck('classroom_id')
+                ->unique()
+                ->toArray();
+        }
+
+        // 3. Fallback: all classrooms taught by teacher anytime
+        if (empty($taughtClassroomIds)) {
+            $taughtClassroomIds = TeachingAssignment::where('teacher_id', $teacher->id)
+                ->pluck('classroom_id')
+                ->unique()
+                ->toArray();
+        }
+
+        $filtered = $examClassrooms->whereIn('id', $taughtClassroomIds)->values();
+
+        // Fallback: If exam creator is this teacher and no teaching assignment matched, allow all exam classrooms
+        if ($filtered->isEmpty() && $exam->teacher_id === $teacher->id) {
+            return $examClassrooms;
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * Build detailed participation data (Sudah Mengikuti vs Belum Mengikuti) per student in an exam
+     */
+    public function getExamParticipationData(CbtExam $exam, ?int $classroomId = null, ?array $allowedClassroomIds = null): array
+    {
+        $classroomsQuery = Classroom::with('homeroomTeacher');
+        if ($classroomId) {
+            $classrooms = $classroomsQuery->where('id', $classroomId)->get();
+        } elseif (!empty($allowedClassroomIds)) {
+            $classrooms = $classroomsQuery->whereIn('id', $allowedClassroomIds)->orderBy('name')->get();
+        } else {
+            $classrooms = $exam->classrooms()->with('homeroomTeacher')->orderBy('name')->get();
+        }
+
+        $subjectKeywords = VocationalMajorFilterService::getSubjectMajorKeywords(
+            $exam->subject?->name,
+            $exam->subject?->code,
+            $exam->exam_title
+        );
+
+        $recapList = collect();
+
+        foreach ($classrooms as $classroom) {
+            $studentsQuery = $classroom->students()
+                ->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])
+                ->when($exam->academic_year_id, fn($q) => $q->where('student_classes.academic_year_id', $exam->academic_year_id))
+                ->with(['user', 'currentClassroom'])
+                ->orderBy('full_name');
+
+            $students = $studentsQuery->get();
+
+            if ($subjectKeywords) {
+                $students = $students->filter(fn($s) => VocationalMajorFilterService::isStudentRelevantToMajor($s, $subjectKeywords))->values();
+            }
+
+            if ($students->isEmpty()) {
+                continue;
+            }
+
+            $studentIds = $students->pluck('id')->toArray();
+
+            // Load sessions for these students
+            $sessions = CbtExamSession::where('exam_id', $exam->id)
+                ->whereIn('student_id', $studentIds)
+                ->with('result')
+                ->orderByDesc('id')
+                ->get()
+                ->groupBy('student_id');
+
+            foreach ($students as $student) {
+                $studentSessions = $sessions->get($student->id);
+                $latestSession = $studentSessions ? $studentSessions->first() : null;
+                $result = $latestSession?->result;
+
+                $status = 'not_started';
+                $statusLabel = 'Belum Mengerjakan';
+
+                if ($latestSession) {
+                    if (in_array($latestSession->status, ['submitted', 'graded', 'timeout'])) {
+                        $status = 'completed';
+                        $statusLabel = 'Sudah Mengerjakan';
+                    } elseif ($latestSession->status === 'in_progress') {
+                        $status = 'in_progress';
+                        $statusLabel = 'Sedang Mengerjakan';
+                    }
+                }
+
+                $recapList->push([
+                    'student' => $student,
+                    'classroom' => $classroom,
+                    'classroom_name' => $classroom->class_name,
+                    'session' => $latestSession,
+                    'result' => $result,
+                    'status' => $status,
+                    'status_label' => $statusLabel,
+                    'attempts_count' => $studentSessions ? $studentSessions->count() : 0,
+                    'final_score' => $result?->final_score,
+                    'predicate' => $result?->predicate,
+                    'is_passed' => $result?->is_passed,
+                    'correct_answers' => $result?->correct_answers,
+                    'wrong_answers' => $result?->wrong_answers,
+                    'unanswered' => $result?->unanswered,
+                    'started_at' => $latestSession?->started_at,
+                    'finished_at' => $latestSession?->finished_at,
+                ]);
+            }
+        }
+
+        $totalEligible = $recapList->count();
+        $completedCount = $recapList->where('status', 'completed')->count();
+        $inProgressCount = $recapList->where('status', 'in_progress')->count();
+        $notStartedCount = $recapList->where('status', 'not_started')->count();
+        $participationRate = $totalEligible > 0 ? round(($completedCount / $totalEligible) * 100, 1) : 0;
+
+        return [
+            'classrooms' => $classrooms,
+            'selectedClassroom' => $classroomId ? $classrooms->firstWhere('id', $classroomId) : null,
+            'students' => $recapList,
+            'total_eligible' => $totalEligible,
+            'completed_count' => $completedCount,
+            'in_progress_count' => $inProgressCount,
+            'not_started_count' => $notStartedCount,
+            'participation_rate' => $participationRate,
         ];
     }
 

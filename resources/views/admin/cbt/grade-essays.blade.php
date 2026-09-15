@@ -18,18 +18,25 @@
         <div class="absolute bottom-0 left-0 -mb-12 -ml-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
         <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-5">
-                <a href="{{ route('admin.cbt.results', $exam) }}" class="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center hover:bg-white/25 transition border border-gray-200">
+                <a href="{{ route('admin.cbt.results', ['exam' => $exam, 'classroom_id' => $selectedClassroomId]) }}" class="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center hover:bg-white/25 transition border border-gray-200">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
-                    <h1 class="text-2xl lg:text-3xl font-bold tracking-tight">Koreksi Soal Esai</h1>
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-2xl lg:text-3xl font-bold tracking-tight">Koreksi Soal Esai</h1>
+                        @if($selectedClassroom)
+                        <span class="px-3 py-1 bg-white/20 border border-white/30 rounded-lg text-sm font-bold text-white">
+                            {{ $selectedClassroom->class_name }}
+                        </span>
+                        @endif
+                    </div>
                     <p class="text-violet-100 mt-1 text-base">
                         {{ $exam->exam_title }} &bull; {{ $exam->subject->subject_name ?? $exam->subject->name ?? '-' }}
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('admin.cbt.results', $exam) }}" class="px-5 py-2.5 bg-white text-violet-700 rounded-xl font-semibold hover:bg-violet-50 transition shadow-lg shadow-violet-900/20 text-sm flex items-center gap-2">
+                <a href="{{ route('admin.cbt.results', ['exam' => $exam, 'classroom_id' => $selectedClassroomId]) }}" class="px-5 py-2.5 bg-white text-violet-700 rounded-xl font-semibold hover:bg-violet-50 transition shadow-lg shadow-violet-900/20 text-sm flex items-center gap-2">
                     <i class="fas fa-chart-bar"></i>Lihat Hasil Ujian
                 </a>
             </div>
@@ -44,6 +51,40 @@
         <p class="text-emerald-700 text-base font-medium">{{ session('success') }}</p>
     </div>
     @endif
+
+    {{-- Filter Bar Kelas --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <form method="GET" action="{{ route('admin.cbt.grade-essays', $exam) }}" class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 font-bold">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <label for="classroom_id" class="text-sm font-bold text-gray-700">Filter Kelas:</label>
+                <div class="relative min-w-[240px]">
+                    <select name="classroom_id" id="classroom_id" onchange="this.form.submit()" class="w-full appearance-none rounded-xl border border-gray-300 bg-white py-2 pl-4 pr-10 text-sm font-semibold text-gray-800 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                        <option value="">-- Semua Kelas Terdaftar ({{ $accessibleClassrooms->count() }}) --</option>
+                        @foreach($accessibleClassrooms as $cls)
+                        <option value="{{ $cls->id }}" {{ $selectedClassroomId == $cls->id ? 'selected' : '' }}>
+                            {{ $cls->class_name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+                @if($selectedClassroomId)
+                <a href="{{ route('admin.cbt.grade-essays', $exam) }}" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-red-600 bg-gray-100 hover:bg-red-50 rounded-xl transition">
+                    <i class="fas fa-times mr-1"></i>Reset
+                </a>
+                @endif
+            </div>
+
+            <div class="text-sm text-gray-500 font-medium">
+                Menampilkan jawaban siswa dari: <span class="font-bold text-gray-800">{{ $selectedClassroom ? $selectedClassroom->class_name : 'Semua Kelas' }}</span>
+            </div>
+        </form>
+    </div>
 
     {{-- Stats Summary --}}
     @php
@@ -88,7 +129,7 @@
         </div>
         <h3 class="text-xl font-bold text-gray-700 mb-2">Belum Ada Jawaban Esai</h3>
         <p class="text-gray-500 max-w-md mx-auto">
-            Tidak ada jawaban esai yang perlu dikoreksi untuk ujian ini atau siswa belum mengumpulkan ujian.
+            Tidak ada jawaban esai yang perlu dikoreksi untuk kelas yang dipilih atau siswa belum mengumpulkan ujian.
         </p>
     </div>
     @else
@@ -100,7 +141,7 @@
             $eq = $examQuestions->get($answer->question_id);
             $maxScore = $eq?->getEffectivePoints() ?? $answer->question->points ?? 10;
             $student = $answer->session->student ?? null;
-            $classroom = $student?->classroom ?? null;
+            $classroom = $answer->session?->classroom ?? $student?->currentClassroom?->first() ?? null;
         @endphp
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" x-data="{ open: {{ $isGraded ? 'false' : 'true' }} }">
             {{-- Accordion Header --}}
@@ -113,7 +154,7 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="font-bold text-gray-900 text-base">{{ $student->full_name ?? '-' }}</span>
                             @if($classroom)
-                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
                                 {{ $classroom->class_name }}
                             </span>
                             @endif

@@ -21,10 +21,12 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use App\Services\CbtService;
 use App\Exports\CbtQuestionsTemplateExport;
+use App\Exports\CbtExamParticipationExport;
 use App\Imports\CbtQuestionsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use ZipArchive;
 
@@ -947,42 +949,100 @@ class CbtController extends Controller
     }
 
     /**
-     * Results page for an exam
+     * Results page for an exam (supports classroom filtering & teacher access scope)
      */
-    public function examResults(CbtExam $exam)
+    public function examResults(CbtExam $exam, Request $request)
     {
-        $this->authorizeExam($exam);
+        $teacher = $this->authorizeExam($exam);
         $exam->load(['examQuestions.question']);
 
-        $results = CbtExamResult::where('exam_id', $exam->id)
-            ->with(['student.classroom', 'session'])
-            ->orderBy('rank')
-            ->get();
+        $user = Auth::user();
+        $accessibleClassrooms = $this->cbtService->getAccessibleClassroomsForUser($exam, $user);
+        $allowedClassroomIds = $accessibleClassrooms->pluck('id')->toArray();
 
-        $statistics = $this->cbtService->getExamStatistics($exam);
+        $selectedClassroomId = $request->filled('classroom_id') ? (int) $request->classroom_id : null;
+        if ($selectedClassroomId && !in_array($selectedClassroomId, $allowedClassroomIds)) {
+            $selectedClassroomId = null;
+        }
+
+        $resultsQuery = CbtExamResult::where('exam_id', $exam->id)
+            ->with(['student.currentClassroom', 'session.classroom', 'session.student']);
+
+        if ($selectedClassroomId) {
+            $resultsQuery->whereHas('session', fn($q) => $q->where('classroom_id', $selectedClassroomId));
+        } elseif (!empty($allowedClassroomIds)) {
+            $resultsQuery->whereHas('session', fn($q) => $q->whereIn('classroom_id', $allowedClassroomIds));
+        }
+
+        $results = $resultsQuery->orderBy('rank')->get();
+
+        $statistics = $this->cbtService->getExamStatistics($exam, $selectedClassroomId, $allowedClassroomIds);
         $itemAnalysis = $this->cbtService->getItemAnalysis($exam);
 
-        $pendingEssaysCount = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
-            ->needsGrading()
-            ->count();
+        $pendingEssaysQuery = CbtAnswer::whereHas('session', function($q) use ($exam, $selectedClassroomId, $allowedClassroomIds) {
+            $q->where('exam_id', $exam->id);
+            if ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId);
+            } elseif (!empty($allowedClassroomIds)) {
+                $q->whereIn('classroom_id', $allowedClassroomIds);
+            }
+        })
+        ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
+        ->whereNull('manual_score');
+
+        $pendingEssaysCount = $pendingEssaysQuery->count();
 
         $hasEssayQuestions = $exam->examQuestions->filter(
             fn($eq) => $eq->question && in_array($eq->question->question_type, ['essay', 'fill_blank'])
         )->isNotEmpty();
 
-        return view('guru.cbt.exams.results', compact('exam', 'results', 'statistics', 'itemAnalysis', 'pendingEssaysCount', 'hasEssayQuestions'));
+        // Participation summary for the selected / allowed classrooms
+        $participationData = $this->cbtService->getExamParticipationData($exam, $selectedClassroomId, $allowedClassroomIds);
+
+        $selectedClassroom = $selectedClassroomId ? $accessibleClassrooms->firstWhere('id', $selectedClassroomId) : null;
+
+        return view('guru.cbt.exams.results', compact(
+            'exam',
+            'results',
+            'statistics',
+            'itemAnalysis',
+            'pendingEssaysCount',
+            'hasEssayQuestions',
+            'accessibleClassrooms',
+            'selectedClassroomId',
+            'selectedClassroom',
+            'participationData'
+        ));
     }
 
     /**
-     * Grade essay answers
+     * Grade essay answers (filtered by classroom)
      */
-    public function gradeEssays(CbtExam $exam)
+    public function gradeEssays(CbtExam $exam, Request $request)
     {
-        $this->authorizeExam($exam);
-        $answers = CbtAnswer::whereHas('session', fn($q) => $q->where('exam_id', $exam->id))
-            ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
-            ->with(['session.student', 'question'])
-            ->orderByRaw('CASE WHEN manual_score IS NULL THEN 0 ELSE 1 END')
+        $teacher = $this->authorizeExam($exam);
+        $user = Auth::user();
+
+        $accessibleClassrooms = $this->cbtService->getAccessibleClassroomsForUser($exam, $user);
+        $allowedClassroomIds = $accessibleClassrooms->pluck('id')->toArray();
+
+        $selectedClassroomId = $request->filled('classroom_id') ? (int) $request->classroom_id : null;
+        if ($selectedClassroomId && !in_array($selectedClassroomId, $allowedClassroomIds)) {
+            $selectedClassroomId = null;
+        }
+
+        $answersQuery = CbtAnswer::whereHas('session', function($q) use ($exam, $selectedClassroomId, $allowedClassroomIds) {
+            $q->where('exam_id', $exam->id);
+            if ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId);
+            } elseif (!empty($allowedClassroomIds)) {
+                $q->whereIn('classroom_id', $allowedClassroomIds);
+            }
+        })
+        ->whereHas('question', fn($q) => $q->whereIn('question_type', ['essay', 'fill_blank']))
+        ->with(['session.student.currentClassroom', 'session.classroom', 'question']);
+
+        $answers = $answersQuery->orderByRaw('CASE WHEN manual_score IS NULL THEN 0 ELSE 1 END')
             ->orderBy('id')
             ->get();
 
@@ -990,14 +1050,30 @@ class CbtController extends Controller
             ->get()
             ->keyBy('question_id');
 
-        return view('guru.cbt.exams.grade-essays', compact('exam', 'answers', 'examQuestions'));
+        $selectedClassroom = $selectedClassroomId ? $accessibleClassrooms->firstWhere('id', $selectedClassroomId) : null;
+
+        return view('guru.cbt.exams.grade-essays', compact(
+            'exam',
+            'answers',
+            'examQuestions',
+            'accessibleClassrooms',
+            'selectedClassroomId',
+            'selectedClassroom'
+        ));
     }
 
     public function gradeEssayStore(GradeEssayRequest $request, CbtAnswer $answer)
     {
-        // Verify teacher owns the exam this answer belongs to
-        $answer->load('session.exam');
+        // Verify teacher owns or teaches the exam/student this answer belongs to
+        $answer->load(['session.exam', 'session']);
         $this->authorizeExam($answer->session->exam);
+
+        $user = Auth::user();
+        $accessibleClassrooms = $this->cbtService->getAccessibleClassroomsForUser($answer->session->exam, $user);
+        $allowedClassroomIds = $accessibleClassrooms->pluck('id')->toArray();
+        if (!empty($allowedClassroomIds) && $answer->session->classroom_id && !in_array($answer->session->classroom_id, $allowedClassroomIds)) {
+            abort(403, 'Anda tidak memiliki hak untuk menilai jawaban siswa dari kelas ini.');
+        }
 
         $validated = $request->validated();
 
@@ -1006,6 +1082,35 @@ class CbtController extends Controller
         );
 
         return back()->with('success', 'Jawaban berhasil dinilai.');
+    }
+
+    /**
+     * Export status keikutsertaan siswa (sudah vs belum ujian) ke Excel
+     */
+    public function exportParticipation(Request $request, CbtExam $exam)
+    {
+        $this->authorizeExam($exam);
+        $user = Auth::user();
+
+        $accessibleClassrooms = $this->cbtService->getAccessibleClassroomsForUser($exam, $user);
+        $allowedClassroomIds = $accessibleClassrooms->pluck('id')->toArray();
+
+        $selectedClassroomId = $request->filled('classroom_id') ? (int) $request->classroom_id : null;
+        if ($selectedClassroomId && !in_array($selectedClassroomId, $allowedClassroomIds)) {
+            abort(403, 'Akses ditolak ke kelas ini.');
+        }
+
+        $participationData = $this->cbtService->getExamParticipationData($exam, $selectedClassroomId, $allowedClassroomIds);
+        $selectedClassroom = $selectedClassroomId ? $accessibleClassrooms->firstWhere('id', $selectedClassroomId) : null;
+
+        $examTitleSlug = Str::slug($exam->exam_title);
+        $classSlug = $selectedClassroom ? Str::slug($selectedClassroom->class_name) : 'semua-kelas';
+        $filename = "Status_Ujian_{$examTitleSlug}_{$classSlug}_" . date('Ymd_His') . '.xlsx';
+
+        return Excel::download(
+            new CbtExamParticipationExport($exam, $participationData, $selectedClassroom),
+            $filename
+        );
     }
 
     /**

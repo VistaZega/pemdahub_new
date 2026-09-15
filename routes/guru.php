@@ -103,6 +103,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/exams/{exam}/pause', [App\Http\Controllers\Guru\CbtController::class, 'examPause'])->name('exams.pause');
         Route::post('/exams/{exam}/resume', [App\Http\Controllers\Guru\CbtController::class, 'examResume'])->name('exams.resume');
         Route::get('/exams/{exam}/results', [App\Http\Controllers\Guru\CbtController::class, 'examResults'])->name('exams.results');
+        Route::get('/exams/{exam}/export-participation', [App\Http\Controllers\Guru\CbtController::class, 'exportParticipation'])->name('exams.export-participation');
         Route::post('/exams/{exam}/sync-grades', [App\Http\Controllers\Guru\CbtController::class, 'syncGrades'])->name('exams.sync-grades');
 
         // Essay Grading
