@@ -358,31 +358,33 @@ class Student extends Model
      */
     public function getPhotoUrlAttribute(): string
     {
-        if (!empty($this->photo)) {
-            if (filter_var($this->photo, FILTER_VALIDATE_URL) || str_starts_with($this->photo, 'http://') || str_starts_with($this->photo, 'https://')) {
-                return $this->photo;
+        $resolvePhoto = function ($photo) {
+            if (empty($photo)) return null;
+            if (filter_var($photo, FILTER_VALIDATE_URL) || str_starts_with($photo, 'http://') || str_starts_with($photo, 'https://')) {
+                return $photo;
             }
-            if (str_starts_with($this->photo, 'storage/')) {
-                return asset($this->photo);
+            $clean = ltrim(preg_replace('#^/?storage/#', '', $photo), '/');
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($clean)) {
+                return asset('storage/' . $clean);
             }
-            return asset('storage/' . ltrim($this->photo, '/'));
+            if (file_exists(public_path($clean))) {
+                return asset($clean);
+            }
+            if (file_exists(public_path('storage/' . $clean))) {
+                return asset('storage/' . $clean);
+            }
+            return null;
+        };
+
+        if ($url = $resolvePhoto($this->photo)) return $url;
+        if ($this->applicant && ($url = $resolvePhoto($this->applicant->photo_path))) return $url;
+        if ($this->user && ($url = $resolvePhoto($this->user->photo))) return $url;
+
+        if (file_exists(public_path('images/default-student.jpg'))) {
+            return asset('images/default-student.jpg');
         }
 
-        if ($this->applicant && !empty($this->applicant->photo_path)) {
-            if (filter_var($this->applicant->photo_path, FILTER_VALIDATE_URL) || str_starts_with($this->applicant->photo_path, 'http://') || str_starts_with($this->applicant->photo_path, 'https://')) {
-                return $this->applicant->photo_path;
-            }
-            return asset('storage/' . ltrim($this->applicant->photo_path, '/'));
-        }
-
-        if ($this->user && !empty($this->user->photo)) {
-            if (filter_var($this->user->photo, FILTER_VALIDATE_URL) || str_starts_with($this->user->photo, 'http://') || str_starts_with($this->user->photo, 'https://')) {
-                return $this->user->photo;
-            }
-            return asset('storage/' . ltrim($this->user->photo, '/'));
-        }
-
-        return asset('images/default-student.jpg');
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name) . '&background=0284c7&color=ffffff&bold=true';
     }
 
     /**

@@ -693,16 +693,17 @@ class User extends Authenticatable
                 if (\Illuminate\Support\Str::startsWith($p, ['http://', 'https://'])) {
                     return $p;
                 }
-                if (\Illuminate\Support\Str::startsWith($p, ['storage/', '/storage/'])) {
-                    return asset(ltrim($p, '/'));
+                $clean = ltrim(preg_replace('#^/?storage/#', '', $p), '/');
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($clean)) {
+                    return asset('storage/' . $clean);
                 }
-                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($p)) {
-                    return asset('storage/' . $p);
+                if (file_exists(public_path($clean))) {
+                    return asset($clean);
                 }
-                if (file_exists(public_path($p))) {
-                    return asset($p);
+                if (file_exists(public_path('storage/' . $clean))) {
+                    return asset('storage/' . $clean);
                 }
-                return asset('storage/' . $p);
+                // Jika berkas fisik tidak ditemukan di storage, jangan return URL 404 (lanjutkan fallback)
             }
         }
 

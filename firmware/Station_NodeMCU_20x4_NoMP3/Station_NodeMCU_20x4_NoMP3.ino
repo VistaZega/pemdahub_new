@@ -51,9 +51,6 @@ const char* WIFI_ALT_PASSWORD   = "PEMBDA2026";
 const char* WIFI_ALT1_SSID      = "PembdaNET";
 const char* WIFI_ALT1_PASSWORD  = "pelita31";
 
-const char* WIFI_ALT2_SSID      = "Xspace";
-const char* WIFI_ALT2_PASSWORD  = "12345678starlink";
-
 const char* SERVER_CLOUD_URL    = "https://perguruanpembda.com/api/attendance/rfid-scan";
 const char* SCAN_BUFFER_CLOUD   = "https://perguruanpembda.com/api/rfid/scan-buffer";
 
@@ -61,7 +58,7 @@ const char* SCAN_BUFFER_CLOUD   = "https://perguruanpembda.com/api/rfid/scan-buf
 const char* KIOSK_API_KEY       = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-const char* DEVICE_ID           = "STATION-SMP-03";
+const char* DEVICE_ID           = "STATION-SMA-02";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
@@ -265,7 +262,6 @@ void setup() {
   // Daftarkan profil WiFi alternatif internet ke wifiMulti
   wifiMulti.addAP(WIFI_ALT_SSID,  WIFI_ALT_PASSWORD);
   wifiMulti.addAP(WIFI_ALT1_SSID, WIFI_ALT1_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
   connectWiFi();
   isOnline = (WiFi.status() == WL_CONNECTED);
 
