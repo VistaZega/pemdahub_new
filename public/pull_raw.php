@@ -1,6 +1,6 @@
 <?php
 /**
- * Standalone Direct File Updater via GitHub API
+ * Standalone Direct File Updater via GitHub API & Raw GitHub
  * Akses: https://perguruanpembda.com/pull_raw.php?secret=pembda99
  * Dengan Token: https://perguruanpembda.com/pull_raw.php?secret=pembda99&token=ghp_xxx
  */
@@ -9,8 +9,8 @@ if (($_GET['secret'] ?? '') !== 'pembda99') {
     die('Forbidden: Invalid secret key.');
 }
 
-@ini_set('max_execution_time', '180');
-@set_time_limit(180);
+@ini_set('max_execution_time', '300');
+@set_time_limit(300);
 header('Content-Type: text/html; charset=utf-8');
 
 echo "<!DOCTYPE html><html><head><title>Direct GitHub File Updater</title>";
@@ -18,9 +18,22 @@ echo "<style>body{font-family:monospace;background:#0d1117;color:#c9d1d9;padding
 echo ".ok{color:#3fb950;font-weight:bold;} .warn{color:#d29922;} .err{color:#f85149;font-weight:bold;} .info{color:#58a6ff;}";
 echo "pre{background:#161b22;border:1px solid #30363d;padding:16px;border-radius:8px;overflow-x:auto;}";
 echo "</style></head><body>";
-echo "<h1>🚀 PembdaHUB Direct File Sync (GitHub API)</h1><pre>";
+echo "<h1>🚀 PembdaHUB Direct File Sync (GitHub API & Raw)</h1><pre>";
 
-$root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+// Auto-detect root folder (Ubuntu /var/www/pembdahub maupun Hostinger)
+$root = realpath(__DIR__ . '/../');
+if (!$root || !file_exists("{$root}/artisan")) {
+    $root = realpath(__DIR__ . '/pembdahub');
+}
+if (!$root || !file_exists("{$root}/artisan")) {
+    $root = '/var/www/pembdahub';
+}
+if (!$root || !file_exists("{$root}/artisan")) {
+    $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+}
+
+echo "<span class='info'>ℹ Root Folder: {$root}</span>\n";
+
 $repo = 'VistaZega/pemdahub_new';
 $branch = 'main';
 
@@ -44,60 +57,85 @@ if (!empty($token) && file_exists($envFile)) {
     }
 }
 
+if (!empty($token)) {
+    $masked = substr($token, 0, 7) . '...' . substr($token, -4);
+    echo "<span class='ok'>✔ Token GitHub terdeteksi: {$masked}</span>\n";
+} else {
+    echo "<span class='warn'>⚠ Tidak ada token GitHub. File dari repo private mungkin gagal diunduh.</span>\n";
+}
+
+// Coba perbaiki permissions folder .git dan bersihkan file lock
+if (is_dir("{$root}/.git")) {
+    @chmod("{$root}/.git", 0777);
+    @chmod("{$root}/.git/FETCH_HEAD", 0666);
+    @unlink("{$root}/.git/FETCH_HEAD");
+    @unlink("{$root}/.git/index.lock");
+    @unlink("{$root}/.git/refs/heads/main.lock");
+    @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/.git") . " 2>/dev/null");
+    @shell_exec("rm -f " . escapeshellarg("{$root}/.git/FETCH_HEAD") . " " . escapeshellarg("{$root}/.git/*.lock") . " " . escapeshellarg("{$root}/.git/refs/heads/*.lock") . " 2>/dev/null");
+    echo "<span class='ok'>✔ Pembersihan lock file .git dan permissions selesai</span>\n";
+}
+
+// Daftar file prioritas yang diperbarui
 $files = [
     'public/git_pull_now.php',
     'public/pull_raw.php',
-    'resources/views/auth/login.blade.php',
-    'resources/views/index.blade.php',
-    'resources/views/landing/partials/hero.blade.php',
-    'resources/views/landing/partials/navigation.blade.php',
-    'resources/views/landing/partials/unit-sekolah.blade.php',
-    'resources/views/landing/partials/hall-of-fame.blade.php',
-    'resources/views/landing/partials/showcase.blade.php',
-    'resources/views/landing/partials/kegiatan-siswa.blade.php',
-    'resources/views/landing/partials/footer.blade.php',
-    'resources/views/public/pkl_map.blade.php',
-    'routes/web.php',
-    'routes/api.php',
-    'routes/api_v1.php',
-    'bootstrap/app.php',
-    'app/Http/Controllers/Admin/NewsController.php',
-    'app/Http/Controllers/Admin/GalleryController.php',
-    'app/Http/Controllers/Api/V1/AuthController.php',
-    'app/Http/Controllers/Api/V1/SpaceController.php',
-    'app/Http/Controllers/Api/V1/NotificationController.php',
-    'app/Services/FcmService.php',
-    'app/Jobs/SendFcmNotification.php',
-    'resources/views/admin/news/form.blade.php',
-    'app/Models/User.php',
-    'resources/views/profile/settings.blade.php',
-    'app/Http/Controllers/ProfileSettingsController.php',
+    'app/Http/Controllers/PublicDisplayController.php',
+    'app/Http/Controllers/Admin/UnifiedAttendanceController.php',
+    'app/Http/Controllers/Admin/DashboardController.php',
+    'app/Http/Controllers/Mobile/MobileDashboardController.php',
+    'app/Repositories/AttendanceRepository.php',
+    'app/Services/AttendanceStatisticsService.php',
 ];
-
 
 $successCount = 0;
 $failCount = 0;
 
-$headers = [
-    "Accept: application/vnd.github.v3.raw",
-    "User-Agent: PembdaHUB-Updater"
-];
-if (!empty($token)) {
-    $headers[] = "Authorization: token {$token}";
-}
-
 foreach ($files as $file) {
-    $apiUrl = "https://api.github.com/repos/{$repo}/contents/{$file}?ref={$branch}";
-    $ch = curl_init($apiUrl);
+    $content = null;
+    $httpCode = 0;
+
+    // Metode 1: Raw GitHub UserContent dengan Authorization Header
+    $rawUrl = "https://raw.githubusercontent.com/{$repo}/{$branch}/{$file}";
+    $ch = curl_init($rawUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_USERAGENT, 'PembdaHUB-Updater');
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
-    $content = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if (!empty($token)) {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: token {$token}"]);
+    }
+    $rawContent = curl_exec($ch);
+    $rawCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    if ($rawCode === 200 && !empty($rawContent)) {
+        $content = $rawContent;
+        $httpCode = 200;
+    } else {
+        // Metode 2: Fallback ke GitHub Contents API
+        $apiUrl = "https://api.github.com/repos/{$repo}/contents/{$file}?ref={$branch}";
+        $ch = curl_init($apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'PembdaHUB-Updater');
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $headers = ["Accept: application/vnd.github.v3.raw"];
+        if (!empty($token)) {
+            $headers[] = "Authorization: token {$token}";
+        }
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $apiContent = curl_exec($ch);
+        $apiCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($apiCode === 200 && !empty($apiContent)) {
+            $content = $apiContent;
+            $httpCode = 200;
+        } else {
+            $httpCode = $rawCode ?: $apiCode;
+        }
+    }
 
     if ($httpCode === 200 && !empty($content)) {
         $dest = "{$root}/{$file}";
@@ -106,12 +144,15 @@ foreach ($files as $file) {
             @mkdir($dir, 0755, true);
         }
         @file_put_contents($dest, $content);
-        echo "<span class='ok'>✔ Berhasil memperbarui: {$file}</span>\n";
+        $fileSize = strlen($content);
+        echo "<span class='ok'>✔ Berhasil memperbarui: {$file} (" . number_format($fileSize) . " bytes)</span>\n";
         $successCount++;
     } else {
         echo "<span class='err'>✖ Gagal mengunduh (HTTP {$httpCode}): {$file}</span>\n";
         $failCount++;
     }
+
+    usleep(150000); // 150ms delay mencegah rate limiting
 }
 
 // Reset OPcache & view cache
@@ -121,7 +162,7 @@ if (function_exists('opcache_reset')) {
     echo "<span class='ok'>✔ OPcache reset berhasil</span>\n";
 }
 
-$cacheFiles = ['config.php', 'routes-v7.php', 'packages.php', 'services.php'];
+$cacheFiles = ['config.php', 'routes-v7.php', 'packages.php', 'services.php', 'events.php'];
 foreach ($cacheFiles as $cf) {
     $fp = "{$root}/bootstrap/cache/{$cf}";
     if (file_exists($fp)) {
@@ -130,15 +171,33 @@ foreach ($cacheFiles as $cf) {
     }
 }
 
+// Hapus compiled views
+$viewDir = "{$root}/storage/framework/views/";
+if (is_dir($viewDir)) {
+    $vCount = 0;
+    foreach (glob($viewDir . '*.php') as $v) {
+        if (@unlink($v)) $vCount++;
+    }
+    echo "<span class='ok'>✔ Compiled views dibersihkan ({$vCount} views)</span>\n";
+}
+
+// Coba juga git sync jika token ada
 if (!empty($token)) {
-    $gitCmd = "git -C {$root} remote set-url origin https://{$token}@github.com/{$repo}.git && git -C {$root} fetch origin main && git -C {$root} reset --hard origin/main";
+    echo "\n--- Percobaan Sinkronisasi Git Lokal ---\n";
+    $gitCmd = "git -C {$root} fetch origin main 2>&1 && git -C {$root} reset --hard origin/main 2>&1";
+    $gitOut = [];
+    $gitRet = -1;
     @exec($gitCmd, $gitOut, $gitRet);
     if ($gitRet === 0) {
-        echo "<span class='ok'>✔ Git Local Sync: Berhasil disinkronkan ke commit terbaru GitHub!</span>\n";
+        echo "<span class='ok'>✔ Git Local Sync: Berhasil disinkronkan via Git!</span>\n";
+    } else {
+        echo "<span class='warn'>⚠ Git Sync code {$gitRet}: " . implode(' ', array_slice($gitOut, -2)) . " (File sudah disinkronkan langsung di atas)</span>\n";
     }
 }
 
 echo "</pre>";
-echo "<h2 style='color:#3fb950;'>🎉 UPDATE SELESAI ({$successCount} file diperbarui)</h2>";
-echo "<p><a href='/' style='background:#238636;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;'>← Buka Halaman Utama PembdaHUB</a></p>";
+echo "<h2 style='color:#3fb950;'>🎉 UPDATE SELESAI ({$successCount} file diperbarui, {$failCount} gagal)</h2>";
+echo "<p><a href='/display1' style='background:#238636;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;margin-right:10px;'>→ Buka Live Display SMP (/display1)</a>";
+echo "<a href='/git_pull_now.php?secret=pembda99' style='background:#1f6feb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;'>→ Jalankan git_pull_now.php</a></p>";
 echo "</body></html>";
+

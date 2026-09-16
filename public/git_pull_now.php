@@ -135,10 +135,20 @@ if (file_exists("{$root}/.git/gc.log")) {
 @shell_exec("git -C {$root} config gc.auto 0");
 @shell_exec("git -C {$root} config core.sharedRepository all");
 
-// Coba perbaiki permissions folder .git jika PHP memiliki akses
+// Coba perbaiki permissions folder .git dan bersihkan file lock
 if (is_dir("{$root}/.git")) {
     @chmod("{$root}/.git", 0777);
     @chmod("{$root}/.git/objects", 0777);
+    @chmod("{$root}/.git/refs", 0777);
+    @chmod("{$root}/.git/refs/heads", 0777);
+    @chmod("{$root}/.git/refs/remotes", 0777);
+    @chmod("{$root}/.git/refs/remotes/origin", 0777);
+    @chmod("{$root}/.git/FETCH_HEAD", 0666);
+    @unlink("{$root}/.git/FETCH_HEAD");
+    @unlink("{$root}/.git/index.lock");
+    @unlink("{$root}/.git/refs/heads/main.lock");
+    @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/.git") . " 2>/dev/null");
+    @shell_exec("rm -f " . escapeshellarg("{$root}/.git/FETCH_HEAD") . " " . escapeshellarg("{$root}/.git/*.lock") . " " . escapeshellarg("{$root}/.git/refs/heads/*.lock") . " 2>/dev/null");
 }
 
 if (!empty($githubToken)) {
@@ -153,19 +163,16 @@ $fetchStatus = execCmd("git -C {$root} -c gc.auto=0 fetch origin main --prune", 
 
 if ($fetchStatus !== 0) {
     echo "<div class='notice-box' style='border-color:#f85149;'>";
-    if (strpos($lastCmdError, 'insufficient permission') !== false || strpos($lastCmdOutput, 'insufficient permission') !== false) {
-        echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Izin Tulis Folder Git Terkunci (Permission Denied)</h3>";
-        echo "<p>Token GitHub sudah <b>VALID & DITERIMA</b>, namun Git di server gagal menulis file objek ke folder <code>.git/objects</code> karena folder tersebut dimiliki oleh user lain (seperti <code>root</code>).</p>";
-        echo "<p><b>Solusi:</b> Buka Terminal / SSH server Anda, lalu jalankan perintah perbaikan izin berikut:</p>";
-        echo "<pre style='background:#0d1117;color:#38bdf8;padding:12px;border-radius:6px;font-size:13px;border:1px solid #388bfd;'>sudo chown -R www-data:www-data {$root}/.git\nsudo chmod -R 775 {$root}/.git</pre>";
-        echo "<p style='color:#7ee787;'>Setelah menjalankan perintah di atas, cukup refresh halaman ini!</p>";
+    if (strpos($lastCmdError, 'insufficient permission') !== false || strpos($lastCmdOutput, 'insufficient permission') !== false || strpos($lastCmdError, 'Permission denied') !== false) {
+        echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Terkendala Izin Tulis (.git)</h3>";
+        echo "<p>Git fetch standar terkendala permission folder <code>.git</code>. <b>Sistem akan otomatis menggunakan jalur Fallback Direct Sync</b> pada langkah 5 untuk memperbarui file secara langsung dari GitHub.</p>";
     } elseif (empty($githubToken) || strpos($lastCmdError, 'Permission denied (publickey)') !== false) {
         echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal (Memerlukan Token)</h3>";
         echo "<p>Karena repositori GitHub ini bersifat privat, silakan jalankan dengan menyertakan token sekali saja:</p>";
         echo "<p><code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=ghp_TOKEN_ANDA</code></p>";
     } else {
         echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal</h3>";
-        echo "<p>Periksa detail pesan kesalahan pada langkah 3 di atas.</p>";
+        echo "<p>Periksa detail pesan kesalahan pada langkah 3 di atas. Sistem akan mencoba direct sync.</p>";
     }
     echo "</div>";
     flush();
@@ -174,11 +181,53 @@ if ($fetchStatus !== 0) {
 // 4. Status Commit Sebelum Update
 execCmd("git -C {$root} log -1 --oneline", "4. Commit Server Saat Ini (Sebelum Update)");
 
-// 5. Reset Hard ke origin/main jika fetch berhasil
+// 5. Reset Hard ke origin/main jika fetch berhasil, ATAU Fallback Direct Sync jika fetch gagal
 if ($fetchStatus === 0) {
     execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
 } else {
-    echo "<h2>▶ 5. Menerapkan Update Kode</h2><pre><span class='warn'>Dilewati karena Git Fetch gagal. Server tetap pada commit saat ini.</span></pre>";
+    echo "<h2>▶ 5. Menerapkan Update Kode (Fallback Direct Sync via GitHub)</h2><pre>";
+    echo "<span class='info'>Menjalankan direct sync file terbaru dari GitHub (main)...</span>\n";
+    
+    $fallbackFiles = [
+        'public/git_pull_now.php',
+        'public/pull_raw.php',
+        'app/Http/Controllers/PublicDisplayController.php',
+        'app/Http/Controllers/Admin/UnifiedAttendanceController.php',
+        'app/Http/Controllers/Admin/DashboardController.php',
+        'app/Http/Controllers/Mobile/MobileDashboardController.php',
+        'app/Repositories/AttendanceRepository.php',
+        'app/Services/AttendanceStatisticsService.php',
+    ];
+    
+    $synced = 0;
+    foreach ($fallbackFiles as $ff) {
+        $rawUrl = "https://raw.githubusercontent.com/VistaZega/pemdahub_new/main/{$ff}";
+        $ch = curl_init($rawUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'PembdaHUB-Deploy');
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        if (!empty($githubToken)) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: token {$githubToken}"]);
+        }
+        $content = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($code === 200 && !empty($content)) {
+            $dest = "{$root}/{$ff}";
+            $dir = dirname($dest);
+            if (!is_dir($dir)) @mkdir($dir, 0755, true);
+            @file_put_contents($dest, $content);
+            echo "<span class='ok'>✔ Berhasil memperbarui: {$ff} (" . strlen($content) . " bytes)</span>\n";
+            $synced++;
+        } else {
+            echo "<span class='err'>✖ Gagal mengunduh (HTTP {$code}): {$ff}</span>\n";
+        }
+        usleep(100000);
+    }
+    echo "<span class='ok'>✔ Direct Sync Berhasil: {$synced} file diperbarui ke versi terbaru!</span>\n";
+    echo "</pre>";
 }
 
 // 6. Status Commit Setelah Update
