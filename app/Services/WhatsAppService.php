@@ -21,7 +21,8 @@ class WhatsAppService implements WhatsAppServiceInterface
 
     public function __construct()
     {
-        $this->enabled = config('services.whatsapp.enabled', false);
+        $dbEnabled = Setting::getValue('wa_enabled');
+        $this->enabled = ($dbEnabled !== null) ? (bool)$dbEnabled : config('services.whatsapp.enabled', true);
         $this->timeout = config('services.whatsapp.timeout', 15);
 
         // Tentukan provider aktif: prioritas DB Setting > .env
@@ -33,12 +34,12 @@ class WhatsAppService implements WhatsAppServiceInterface
         $dbUrl = Setting::getValue("wa_{$this->activeProvider}_url");
 
         if ($providerConfig) {
-            $this->apiUrl = !empty($dbUrl) ? $dbUrl : ($providerConfig['api_url'] ?? '');
+            $this->apiUrl = !empty($dbUrl) ? rtrim($dbUrl, '/') : rtrim($providerConfig['api_url'] ?? '', '/');
             $this->apiToken = !empty($dbToken) ? $dbToken : ($providerConfig['api_token'] ?? '');
             $this->providerLabel = $providerConfig['label'] ?? $this->activeProvider;
         } else {
             // Fallback ke config lama (backward compatibility)
-            $this->apiUrl = !empty($dbUrl) ? $dbUrl : config('services.whatsapp.api_url', '');
+            $this->apiUrl = !empty($dbUrl) ? rtrim($dbUrl, '/') : rtrim(config('services.whatsapp.api_url', ''), '/');
             $this->apiToken = !empty($dbToken) ? $dbToken : config('services.whatsapp.api_token', '');
             $this->providerLabel = $this->activeProvider;
         }
@@ -140,6 +141,7 @@ class WhatsAppService implements WhatsAppServiceInterface
     public function sendMessage(string $phone, string $message, array $options = []): array
     {
         if (!$this->enabled) {
+            $err = 'Layanan WhatsApp sedang nonaktif. Pastikan WHATSAPP_ENABLED=true di .env atau aktifkan pada Pengaturan.';
             Log::channel('whatsapp')->info('WhatsApp disabled. Message not sent', [
                 'phone' => $phone,
                 'message' => mb_substr($message, 0, 100),
@@ -147,8 +149,9 @@ class WhatsAppService implements WhatsAppServiceInterface
 
             return [
                 'success' => false,
-                'message' => 'WhatsApp service is disabled',
-                'mode' => 'disabled',
+                'message' => $err,
+                'error'   => $err,
+                'mode'    => 'disabled',
             ];
         }
 

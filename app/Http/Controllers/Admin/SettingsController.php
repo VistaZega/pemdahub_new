@@ -705,7 +705,7 @@ class SettingsController extends Controller
                 ->with('success', 'Pesan uji coba WhatsApp BERHASIL terkirim ke ' . $request->input('phone'));
         }
 
-        $errorMsg = $result['response']['message'] ?? $result['error'] ?? 'Gagal mengirim pesan WhatsApp';
+        $errorMsg = $result['error'] ?? $result['message'] ?? $result['response']['message'] ?? $result['response']['error'] ?? 'Gagal memproses pengiriman pesan ke gateway WhatsApp.';
         return redirect()
             ->route('admin.settings.whatsapp')
             ->with('error', 'Gagal mengirim pesan: ' . $errorMsg);

@@ -61,7 +61,7 @@ return [
             // Provider B: Self-hosted Baileys ($0, butuh Node.js berjalan)
             'selfhosted' => [
                 'label' => 'Self-Hosted Baileys (Gratis)',
-                'api_url' => env('BAILEYS_API_URL', 'http://localhost:3000'),
+                'api_url' => env('BAILEYS_API_URL', 'http://localhost:3002'),
                 'api_token' => env('BAILEYS_API_TOKEN', 'y7xhSUrJ37wpRykg15kc'),
             ],
         ],

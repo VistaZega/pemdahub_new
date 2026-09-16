@@ -264,7 +264,7 @@
                     </div>
 
                     <div x-show="!editing" class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2">
-                        <code class="font-mono text-xs text-slate-700 truncate">{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}</code>
+                        <code class="font-mono text-xs text-slate-700 truncate">{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3002' }}</code>
                         <button type="button" @click="editing = true" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm whitespace-nowrap ml-2">
                             <i class="fas fa-edit text-[10px]"></i>
                             <span>Ubah</span>
@@ -275,7 +275,7 @@
                         @csrf
                         <input type="hidden" name="provider" value="selfhosted">
                         <div class="flex gap-2">
-                            <input type="text" name="api_url" value="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3000' }}" placeholder="http://localhost:3000" class="w-full px-3.5 py-2 rounded-xl border border-blue-400 text-xs font-mono focus:outline-none bg-white" required>
+                            <input type="text" name="api_url" value="{{ $providersInfo['selfhosted']['api_url'] ?? 'http://localhost:3002' }}" placeholder="http://localhost:3002" class="w-full px-3.5 py-2 rounded-xl border border-blue-400 text-xs font-mono focus:outline-none bg-white" required>
                             <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition whitespace-nowrap">
                                 Simpan
                             </button>
