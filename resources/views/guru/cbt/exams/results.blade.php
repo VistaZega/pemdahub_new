@@ -402,7 +402,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-4 text-base">
-                    <div>Tingkat Kesulitan: <span class="font-bold text-{{ $item['difficulty'] === 'Mudah' ? 'emerald' : ($item['difficulty'] === 'Sedang' ? 'amber' : 'red') }}-600">{{ $item['difficulty'] }}</span> ({{ $item['difficulty_index'] }})</div>
+                    <div>Tingkat Kesulitan: <span class="font-bold text-{{ $item['difficulty'] ?? '-' === 'Mudah' ? 'emerald' : ($item['difficulty'] ?? '-' === 'Sedang' ? 'amber' : 'red') }}-600">{{ $item['difficulty'] ?? '-' }}</span> ({{ $item['difficulty_index'] ?? '-' }})</div>
                     <div>Daya Pembeda: <span class="font-bold text-gray-700">{{ $item['discrimination_index'] }}</span></div>
                 </div>
             </div>

@@ -21,6 +21,7 @@ class AcademicYear extends Model
         'semester_start',
         'semester_end',
         'is_active',
+        'status',
     ];
 
     protected $casts = [
@@ -127,6 +128,7 @@ class AcademicYear extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+        'status',
     }
 
     /**
