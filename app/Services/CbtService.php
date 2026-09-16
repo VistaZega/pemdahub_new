@@ -594,7 +594,7 @@ class CbtService
             $students = $studentsQuery->get();
 
             if ($subjectKeywords) {
-                $students = $students->filter(fn($s) => VocationalMajorFilterService::isStudentRelevantToMajor($s, $subjectKeywords))->values();
+                $students = $students->filter(fn($s) => VocationalMajorFilterService::isStudentMatchingVocationalSubject($s, $subjectKeywords))->values();
             }
 
             if ($students->isEmpty()) {
