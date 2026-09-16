@@ -1,0 +1,18 @@
+[Unit]
+Description=PembdaHUB WhatsApp Engine (Baileys Gateway - $0 Cost)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/pembdahub/whatsapp-server
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3000
+StandardOutput=append:/var/log/pembdahub-whatsapp.log
+StandardError=append:/var/log/pembdahub-whatsapp-error.log
+
+[Install]
+WantedBy=multi-user.target
