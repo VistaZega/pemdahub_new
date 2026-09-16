@@ -449,9 +449,10 @@ class PublicDisplayController extends Controller
         $feedSorted = $feed->sortByDesc('sort_time')->take(25)->values();
 
         return response()->json([
-            'tanggal'      => $now->translatedFormat('l, d F Y'),
-            'jam'          => $now->format('H:i:s'),
-            'filter_unit'  => $filterType,
+            'tanggal'          => $now->translatedFormat('l, d F Y'),
+            'jam'              => $now->format('H:i:s'),
+            'server_timestamp' => round(microtime(true) * 1000),
+            'filter_unit'      => $filterType,
             'statistik'    => [
                 'siswa_hadir'        => $studentHadir,
                 'siswa_terlambat'    => $studentTerlambat,

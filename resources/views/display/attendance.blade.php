@@ -2420,7 +2420,7 @@
 const UNIT_PARAM    = "{{ $unitNumber ?? ($targetType ?? '') }}";
 const API_BASE_URL  = "{{ route('display.live-data') }}";
 const API_URL       = API_BASE_URL + (UNIT_PARAM ? '?unit=' + encodeURIComponent(UNIT_PARAM) : '');
-const POLL_INTERVAL = 5000;  // 5 detik
+const POLL_INTERVAL = 3000;  // 3 detik (lebih responsif & mendekati real-time murni)
 const NOTIF_DURATION= 5000;  // Notifikasi hilang setelah 5 detik
 
 // ============================================================
@@ -2435,6 +2435,8 @@ let currentSearchQuery = '';
 let currentStatusFilter= 'all';
 let soundMuted         = localStorage.getItem('pembda_display_muted') === '1';
 let mobileViewMode     = 'feed'; // 'feed' (default) or 'rekap'
+let serverTimeOffset   = 0;
+let isServerTimeSynced = false;
 
 // ============================================================
 //  DETEKSI PERANGKAT (MOBILE vs DESKTOP)
@@ -2449,10 +2451,10 @@ function isMobileView() {
 }
 
 // ============================================================
-//  JAM LOKAL (diperbarui setiap detik via setInterval)
+//  JAM RESMI SERVER (Sinkron Otomatis NTP, Diperbarui Tiap Detik)
 // ============================================================
 function tickClock() {
-    const now = new Date();
+    const now = isServerTimeSynced ? new Date(Date.now() + serverTimeOffset) : new Date();
     const hh  = String(now.getHours()).padStart(2, '0');
     const mm  = String(now.getMinutes()).padStart(2, '0');
     const ss  = String(now.getSeconds()).padStart(2, '0');
@@ -2465,6 +2467,7 @@ tickClock();
 //  POLLING DATA DARI SERVER
 // ============================================================
 async function fetchData() {
+    const fetchStart = Date.now();
     try {
         const sep = API_URL.includes('?') ? '&' : '?';
         const res  = await fetch(API_URL + sep + 't=' + Date.now());
@@ -2472,6 +2475,15 @@ async function fetchData() {
         const data = await res.json();
         failCount  = 0;
         document.getElementById('offline-overlay').classList.remove('show');
+
+        // Sinkronkan Jam dengan Server (Kompensasi Latensi Jaringan)
+        if (data.server_timestamp) {
+            const latency = Math.round((Date.now() - fetchStart) / 2);
+            serverTimeOffset = (data.server_timestamp + latency) - Date.now();
+            isServerTimeSynced = true;
+            tickClock();
+        }
+
         updateDisplay(data);
     } catch (e) {
         failCount++;
