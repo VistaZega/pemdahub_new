@@ -22,7 +22,11 @@ class WhatsAppService implements WhatsAppServiceInterface
     public function __construct()
     {
         $dbEnabled = Setting::getValue('wa_enabled');
-        $this->enabled = ($dbEnabled !== null) ? (bool)$dbEnabled : config('services.whatsapp.enabled', true);
+        if ($dbEnabled !== null) {
+            $this->enabled = filter_var($dbEnabled, FILTER_VALIDATE_BOOLEAN);
+        } else {
+            $this->enabled = true;
+        }
         $this->timeout = config('services.whatsapp.timeout', 15);
 
         // Tentukan provider aktif: prioritas DB Setting > .env
@@ -60,7 +64,7 @@ class WhatsAppService implements WhatsAppServiceInterface
             // Table might not exist yet during migrations
         }
 
-        return config('services.whatsapp.active_provider', 'fonnte');
+        return config('services.whatsapp.active_provider', 'selfhosted');
     }
 
     /**

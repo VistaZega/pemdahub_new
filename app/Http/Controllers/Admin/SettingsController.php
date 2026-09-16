@@ -620,6 +620,7 @@ class SettingsController extends Controller
         ]);
 
         $result = \App\Services\WhatsAppService::switchProvider($request->input('provider'));
+        Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
 
         if ($result['success']) {
             return redirect()
@@ -656,6 +657,8 @@ class SettingsController extends Controller
             $url = rtrim(trim((string)$request->input('api_url')), '/');
             Setting::setValue("wa_{$provider}_url", $url, 'string', 'whatsapp');
         }
+
+        Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
 
         return redirect()
             ->route('admin.settings.whatsapp')
@@ -695,6 +698,9 @@ class SettingsController extends Controller
             'phone' => 'required|string',
             'message' => 'required|string',
         ]);
+
+        // Pastikan WhatsApp otomatis aktif di database
+        Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
 
         $service = new \App\Services\WhatsAppService();
         $result = $service->sendMessage($request->input('phone'), $request->input('message'));

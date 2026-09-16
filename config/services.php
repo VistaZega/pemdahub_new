@@ -45,8 +45,8 @@ return [
     |
     */
     'whatsapp' => [
-        'enabled' => env('WHATSAPP_ENABLED', false),
-        'active_provider' => env('WHATSAPP_PROVIDER', 'fonnte'), // Override via DB Setting: wa_active_provider
+        'enabled' => env('WHATSAPP_ENABLED', true),
+        'active_provider' => env('WHATSAPP_PROVIDER', 'selfhosted'),
         'sender' => env('WHATSAPP_SENDER', '088991144184'),
         'timeout' => env('WHATSAPP_TIMEOUT', 15),
 
