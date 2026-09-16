@@ -189,6 +189,12 @@ if ($fetchStatus === 0) {
     echo "<span class='info'>Menjalankan direct sync file terbaru dari GitHub (main)...</span>\n";
     
     $fallbackFiles = [
+        // AUTO-FIX 2026-09-16: devices table, academic_years.status, difficulty key
+        'database/migrations/2026_09_16_070000_create_devices_table.php',
+        'database/migrations/2026_09_16_070001_add_status_to_academic_years_table.php',
+        'app/Models/Device.php',
+        'app/Models/AcademicYear.php',
+        'resources/views/guru/cbt/exams/results.blade.php',
         'public/git_pull_now.php',
         'public/pull_raw.php',
         'app/Http/Controllers/PublicDisplayController.php',
