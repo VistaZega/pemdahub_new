@@ -117,13 +117,16 @@ class UnifiedAttendanceController extends Controller
                       });
                 })
                 ->orderBy('id', 'desc')
-                ->take(500)
                 ->get();
 
-            $totalEvents = $attendances->count();
+            // Deduplikasi: 1 siswa = 1 status per hari (prioritaskan record dengan scan/waktu fisik atau status terlambat)
+            $attendances = $attendances->groupBy('student_id')->map(function ($group) {
+                return $group->first(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))
+                    ?? $group->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))
+                    ?? $group->first();
+            })->values();
 
-            // Deduplikasi: 1 siswa = 1 status per hari (ambil record terakhir)
-            $attendances = $attendances->groupBy('student_id')->map(fn($g) => $g->last());
+            $totalEvents = $attendances->count();
 
             foreach ($attendances as $idx => $att) {
                 $status = $att->status;
@@ -172,8 +175,13 @@ class UnifiedAttendanceController extends Controller
                       ->orWhere(fn($sq) => $sq->whereNull('employee_type')->whereHas('teacher'));
                 })
                 ->orderBy('id', 'desc')
-                ->take(500)
                 ->get();
+
+            $attendances = $attendances->groupBy('employee_id')->map(function ($group) {
+                return $group->first(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))
+                    ?? $group->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))
+                    ?? $group->first();
+            })->values();
 
             $totalEvents = $attendances->count();
 
@@ -229,8 +237,13 @@ class UnifiedAttendanceController extends Controller
                     }
                 })
                 ->orderBy('id', 'desc')
-                ->take(500)
                 ->get();
+
+            $attendances = $attendances->groupBy('employee_id')->map(function ($group) {
+                return $group->first(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))
+                    ?? $group->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))
+                    ?? $group->first();
+            })->values();
 
             $totalEvents = $attendances->count();
 

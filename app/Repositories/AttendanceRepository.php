@@ -87,7 +87,12 @@ class AttendanceRepository
         }
 
         $attendances = $query->get();
-        $present = $attendances->where('status', 'hadir')->count();
+        // Deduplikasi per tanggal agar multiple input mapel tidak melipatgandakan hari hadir siswa
+        $dateGroups = $attendances->groupBy('date');
+        $present = $dateGroups->filter(fn($recs) => $recs->contains(fn($r) => in_array($r->status, ['hadir', 'terlambat'])))->count();
+        $izin = $dateGroups->filter(fn($recs) => $recs->every(fn($r) => $r->status === 'izin'))->count();
+        $sakit = $dateGroups->filter(fn($recs) => $recs->every(fn($r) => $r->status === 'sakit'))->count();
+        $alpha = $dateGroups->filter(fn($recs) => $recs->every(fn($r) => $r->status === 'alpha'))->count();
 
         $statisticsService = new \App\Services\AttendanceStatisticsService();
         $targetDate = $endDate ? \Carbon\Carbon::parse($endDate) : now();
@@ -102,13 +107,13 @@ class AttendanceRepository
         $z = $statisticsService->calculateZ($calcStart, $targetDate, $classroomId);
 
         return [
-            'total' => $attendances->count(),
+            'total' => $dateGroups->count(),
             'hadir' => $present,
-            'izin' => $attendances->where('status', 'izin')->count(),
-            'sakit' => $attendances->where('status', 'sakit')->count(),
-            'alpha' => $attendances->where('status', 'alpha')->count(),
+            'izin' => $izin,
+            'sakit' => $sakit,
+            'alpha' => $alpha,
             'z_days' => $z,
-            'presence_rate' => ($z > 0) ? round(($present / $z) * 100, 1) : 0,
+            'presence_rate' => ($z > 0) ? round(min(100, ($present / $z) * 100), 1) : 0,
         ];
     }
 

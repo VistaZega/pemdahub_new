@@ -78,9 +78,11 @@ class AttendanceStatisticsService
         $totalHadir = Attendance::where('classroom_id', $classroomId)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $parsedEndDate->format('Y-m-d')])
             ->whereIn('status', ['hadir', 'terlambat'])
-            ->count();
+            ->select(\Illuminate\Support\Facades\DB::raw('count(DISTINCT CONCAT(student_id, "-", date)) as count'))
+            ->value('count') ?? 0;
 
         // Formula: (Total Hadir / (Total Siswa * Z)) * 100
-        return round(($totalHadir / ($studentCount * $z)) * 100, 1);
+        $rate = ($studentCount * $z) > 0 ? ($totalHadir / ($studentCount * $z)) * 100 : 0;
+        return round(min(100, $rate), 1);
     }
 }

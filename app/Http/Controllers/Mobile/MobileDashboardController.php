@@ -335,8 +335,8 @@ class MobileDashboardController extends Controller
                 $targetSchoolId = $user->school_id;
                 $managementStats['total_students'] = Student::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->active()->count();
                 $managementStats['total_teachers'] = Teacher::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->where('is_active', true)->count();
-                $managementStats['students_present_today'] = Attendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->whereHas('student', fn($sq) => $sq->where('school_id', $targetSchoolId)))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'terlambat'])->count();
-                $managementStats['teachers_present_today'] = \App\Models\EmployeeAttendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'dinas_luar'])->count();
+                $managementStats['students_present_today'] = Attendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->whereHas('student', fn($sq) => $sq->where('school_id', $targetSchoolId)))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'terlambat'])->distinct('student_id')->count('student_id');
+                $managementStats['teachers_present_today'] = \App\Models\EmployeeAttendance::when($targetSchoolId && !$user->canAccessAllSchools(), fn($q) => $q->where('school_id', $targetSchoolId))->whereDate('date', now()->toDateString())->whereIn('status', ['hadir', 'dinas_luar'])->distinct('employee_id')->count('employee_id');
             }
         }
 

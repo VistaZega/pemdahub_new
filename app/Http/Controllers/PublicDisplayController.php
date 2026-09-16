@@ -217,21 +217,26 @@ class PublicDisplayController extends Controller
                     })
                     ->count();
 
-                $sHadir = $studentAttendances->where('student.school_id', $school->id)
-                    ->where('status', 'hadir')
-                    ->count();
+                // Kelompokkan absensi siswa per student_id untuk memastikan 1 siswa = 1 status di hari ini
+                $schoolStudentAtts = $studentAttendances->where('student.school_id', $school->id);
+                $uniqueStudentGroups = $schoolStudentAtts->groupBy('student_id');
 
-                $sTerlambat = $studentAttendances->where('student.school_id', $school->id)
-                    ->where('status', 'terlambat')
-                    ->count();
+                $sTapHadir = $uniqueStudentGroups->count();
 
-                $sPulang = $studentAttendances->where('student.school_id', $school->id)
-                    ->whereNotNull('time_out')
-                    ->where('time_out', '!=', '00:00:00')
-                    ->where('time_out', '!=', '00:00')
-                    ->count();
+                // Siswa dinyatakan terlambat jika terdapat rekam absensi terlambat di hari ini
+                $sTerlambat = $uniqueStudentGroups->filter(function ($records) {
+                    return $records->contains('status', 'terlambat');
+                })->count();
 
-                $sBelum = max(0, $sTotal - ($sHadir + $sTerlambat));
+                $sHadir = max(0, $sTapHadir - $sTerlambat);
+
+                $sPulang = $uniqueStudentGroups->filter(function ($records) {
+                    return $records->contains(function ($r) {
+                        return !empty($r->time_out) && $r->time_out !== '00:00:00' && $r->time_out !== '00:00';
+                    });
+                })->count();
+
+                $sBelum = max(0, $sTotal - $sTapHadir);
             }
 
             // 2. Statistika Guru & Staf untuk Sekolah ini
@@ -263,9 +268,10 @@ class PublicDisplayController extends Controller
 
             $expectedEmployeeIds = array_unique(array_merge($requiredTeacherEmployeeIds, $requiredStaffEmployeeIds));
 
-            // Dapatkan ID semua karyawan sekolah ini yang SEBENARNYA hadir hari ini
+            // Dapatkan ID semua karyawan sekolah ini yang SEBENARNYA hadir hari ini (deduplikasi per employee_id)
             $schoolEmpAtts = $employeeAttendances->where('employee.school_id', $school->id)->where('status', 'hadir');
-            $actualAttendedEmployeeIds = $schoolEmpAtts->pluck('employee_id')->toArray();
+            $uniqueEmpGroups = $schoolEmpAtts->groupBy('employee_id');
+            $actualAttendedEmployeeIds = $uniqueEmpGroups->keys()->toArray();
 
             // Gabungkan expected dengan actual untuk mencegah persentase > 100% jika ada karyawan yang masuk tapi tidak terjadwal
             $allExpectedOrAttendedEmployeeIds = array_unique(array_merge($expectedEmployeeIds, $actualAttendedEmployeeIds));
@@ -280,12 +286,13 @@ class PublicDisplayController extends Controller
 
             $gTepat = 0;
             $gTerlambat = 0;
-            foreach ($schoolEmpAtts as $empAtt) {
-                $timeIn = $empAtt->time_in ?? '00:00:00';
+            foreach ($uniqueEmpGroups as $empId => $empRecords) {
+                $earliestTimeIn = $empRecords->filter(fn($r) => !empty($r->time_in) && $r->time_in !== '00:00:00')->sortBy('time_in')->first()?->time_in;
+                $timeIn = $earliestTimeIn ?? '00:00:00';
                 if (strlen($timeIn) === 5) {
                     $timeIn .= ':00';
                 }
-                if ($timeIn > $schoolEntryTime) {
+                if ($timeIn > $schoolEntryTime && $timeIn !== '00:00:00') {
                     $gTerlambat++;
                 } else {
                     $gTepat++;
@@ -299,7 +306,7 @@ class PublicDisplayController extends Controller
                 'is_yayasan' => $isYayasan,
                 'siswa'      => [
                     'total'       => $sTotal,
-                    'tap_hadir'   => $sHadir + $sTerlambat,
+                    'tap_hadir'   => $sTapHadir ?? ($sHadir + $sTerlambat),
                     'tepat_waktu' => $sHadir,
                     'terlambat'   => $sTerlambat,
                     'hadir'       => $sHadir,
@@ -346,9 +353,11 @@ class PublicDisplayController extends Controller
                        ->where('status', 'aktif');
                 })->count();
 
-                $hadirInClass = $studentAttendances->where('classroom_id', $cls->id)->whereIn('status', ['hadir', 'terlambat'])->count();
-                $tepatInClass = $studentAttendances->where('classroom_id', $cls->id)->where('status', 'hadir')->count();
-                $lambatInClass = $studentAttendances->where('classroom_id', $cls->id)->where('status', 'terlambat')->count();
+                // Deduplikasi per siswa dalam rombel
+                $classStudentGroups = $studentAttendances->where('classroom_id', $cls->id)->groupBy('student_id');
+                $hadirInClass = $classStudentGroups->count();
+                $lambatInClass = $classStudentGroups->filter(fn($recs) => $recs->contains('status', 'terlambat'))->count();
+                $tepatInClass = max(0, $hadirInClass - $lambatInClass);
                 $belumInClass = max(0, $totalInClass - $hadirInClass);
                 $pctInClass = $totalInClass > 0 ? round(($hadirInClass / $totalInClass) * 100) : 0;
 
@@ -366,23 +375,33 @@ class PublicDisplayController extends Controller
             }
         }
 
-        // ── GABUNGKAN FEED AKTIVITAS TERBARU (25 item) ─────────────────
+        // ── GABUNGKAN FEED AKTIVITAS TERBARU (25 item, deduplikasi per orang) ──
         $feed = collect();
 
-        foreach ($studentAttendances as $att) {
-            $hasPulang = $att->time_out && $att->time_out !== '00:00:00' && $att->time_out !== '00:00';
+        $studentFeedGroups = $studentAttendances->groupBy('student_id');
+        foreach ($studentFeedGroups as $studentId => $records) {
+            $bestAtt = $records->first(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))
+                ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']) && in_array($r->recorded_via, ['rfid', 'qr', 'qrcode', 'gps', 'qr_gps']))
+                ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))
+                ?? $records->last();
+
+            $earliestIn = $records->filter(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))->sortBy('time_in')->first()?->time_in;
+            $latestOut  = $records->filter(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))->sortByDesc('time_out')->first()?->time_out;
+
+            $hasPulang = !empty($latestOut);
+            $isTerlambat = $records->contains('status', 'terlambat');
             
-            $statusLabel = $hasPulang ? 'Pulang' : ($att->status === 'terlambat' ? 'Terlambat' : 'Masuk');
-            $tipe = $hasPulang ? 'pulang' : ($att->status === 'terlambat' ? 'terlambat' : 'masuk');
+            $statusLabel = $hasPulang ? 'Pulang' : ($isTerlambat ? 'Terlambat' : 'Masuk');
+            $tipe = $hasPulang ? 'pulang' : ($isTerlambat ? 'terlambat' : 'masuk');
             
-            $waktuMasuk = $att->time_in ? substr($att->time_in, 0, 5) : '--:--';
-            $waktuPulang = $hasPulang ? substr($att->time_out, 0, 5) : '';
+            $waktuMasuk = $earliestIn ? substr($earliestIn, 0, 5) : ($bestAtt->time_in ? substr($bestAtt->time_in, 0, 5) : '--:--');
+            $waktuPulang = $latestOut ? substr($latestOut, 0, 5) : '';
             $waktuFormat = $waktuPulang ? "{$waktuMasuk} → {$waktuPulang}" : $waktuMasuk;
             
-            $unitName  = $att->student->school->type ?? '';
+            $unitName  = $bestAtt->student->school->type ?? '';
 
             // Tentukan Cara Absen
-            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id, $unitName);
+            $metode = $this->resolveAttendanceMethod($bestAtt->recorded_via, $bestAtt->device_id, $unitName);
             $caraAbsen = $metode['label'];
             $caraAbsenTipe = $metode['tipe'];
             $caraAbsenIcon = $metode['icon'];
@@ -391,36 +410,44 @@ class PublicDisplayController extends Controller
                 'waktu'           => $waktuFormat,
                 'jam_masuk'       => $waktuMasuk,
                 'jam_keluar'      => $waktuPulang ?: '--:--',
-                'nama'            => $att->student->full_name ?? 'Tidak dikenal',
-                'info'            => $att->classroom->class_name ?? '-',
+                'nama'            => $bestAtt->student->full_name ?? 'Tidak dikenal',
+                'info'            => $bestAtt->classroom->class_name ?? '-',
                 'aksi'            => $statusLabel,
                 'tipe'            => $tipe,
-                'sort_time'       => $hasPulang ? $att->time_out : ($att->time_in ?? '00:00:00'),
+                'sort_time'       => $hasPulang ? $latestOut : ($earliestIn ?? ($bestAtt->time_in ?? '00:00:00')),
                 'kategori'        => 'siswa',
                 'unit'            => strtolower($unitName),
-                'foto'            => $att->student->photo_url ?? asset('images/default-student.jpg'),
-                'school_name'     => $att->student->school->name ?? '',
-                'recorded_via'    => $att->recorded_via,
+                'foto'            => $bestAtt->student->photo_url ?? asset('images/default-student.jpg'),
+                'school_name'     => $bestAtt->student->school->name ?? '',
+                'recorded_via'    => $bestAtt->recorded_via,
                 'cara_absen'      => $caraAbsen,
                 'cara_absen_tipe' => $caraAbsenTipe,
                 'cara_absen_icon' => $caraAbsenIcon,
             ]);
         }
 
-        foreach ($employeeAttendances as $att) {
-            $hasPulang = $att->time_out && $att->time_out !== '00:00:00' && $att->time_out !== '00:00';
+        $employeeFeedGroups = $employeeAttendances->groupBy('employee_id');
+        foreach ($employeeFeedGroups as $empId => $records) {
+            $bestAtt = $records->first(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))
+                ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))
+                ?? $records->last();
+
+            $earliestIn = $records->filter(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))->sortBy('time_in')->first()?->time_in;
+            $latestOut  = $records->filter(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))->sortByDesc('time_out')->first()?->time_out;
+
+            $hasPulang = !empty($latestOut);
             
             $statusLabel = $hasPulang ? 'Pulang' : 'Hadir';
             $tipe = $hasPulang ? 'pulang' : 'masuk';
             
-            $waktuMasuk = $att->time_in ? substr($att->time_in, 0, 5) : '--:--';
-            $waktuPulang = $hasPulang ? substr($att->time_out, 0, 5) : '';
+            $waktuMasuk = $earliestIn ? substr($earliestIn, 0, 5) : ($bestAtt->time_in ? substr($bestAtt->time_in, 0, 5) : '--:--');
+            $waktuPulang = $latestOut ? substr($latestOut, 0, 5) : '';
             $waktuFormat = $waktuPulang ? "{$waktuMasuk} → {$waktuPulang}" : $waktuMasuk;
             
-            $unitName  = $att->employee->school->type ?? '';
+            $unitName  = $bestAtt->employee->school->type ?? '';
 
             // Tentukan Cara Absen
-            $metode = $this->resolveAttendanceMethod($att->recorded_via, $att->device_id ?? null, $unitName);
+            $metode = $this->resolveAttendanceMethod($bestAtt->recorded_via, $bestAtt->device_id ?? null, $unitName);
             $caraAbsen = $metode['label'];
             $caraAbsenTipe = $metode['tipe'];
             $caraAbsenIcon = $metode['icon'];
@@ -429,16 +456,16 @@ class PublicDisplayController extends Controller
                 'waktu'           => $waktuFormat,
                 'jam_masuk'       => $waktuMasuk,
                 'jam_keluar'      => $waktuPulang ?: '--:--',
-                'nama'            => $att->employee->full_name ?? 'Tidak dikenal',
+                'nama'            => $bestAtt->employee->full_name ?? 'Tidak dikenal',
                 'info'            => 'Guru/Staf',
                 'aksi'            => $statusLabel,
                 'tipe'            => $tipe,
-                'sort_time'       => $hasPulang ? $att->time_out : ($att->time_in ?? '00:00:00'),
+                'sort_time'       => $hasPulang ? $latestOut : ($earliestIn ?? ($bestAtt->time_in ?? '00:00:00')),
                 'kategori'        => 'pegawai',
                 'unit'            => strtolower($unitName),
-                'foto'            => $att->employee->photo_url ?? asset('images/default-student.jpg'),
-                'school_name'     => $att->employee->school->name ?? '',
-                'recorded_via'    => $att->recorded_via,
+                'foto'            => $bestAtt->employee->photo_url ?? asset('images/default-student.jpg'),
+                'school_name'     => $bestAtt->employee->school->name ?? '',
+                'recorded_via'    => $bestAtt->recorded_via,
                 'cara_absen'      => $caraAbsen,
                 'cara_absen_tipe' => $caraAbsenTipe,
                 'cara_absen_icon' => $caraAbsenIcon,

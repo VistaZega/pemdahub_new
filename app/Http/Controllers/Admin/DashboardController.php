@@ -85,7 +85,7 @@ class DashboardController extends Controller
         // 📊 Attendance Statistics
         $todayAttendances = \App\Models\Attendance::whereDate('date', Carbon::today())
             ->when($schoolId, fn($q) => $q->whereHas('student', fn($s) => $s->where('school_id', $schoolId)))
-            ->select('status', DB::raw('count(*) as count'))
+            ->select('status', DB::raw('count(DISTINCT student_id) as count'))
             ->groupBy('status')
             ->get();
 
@@ -95,11 +95,12 @@ class DashboardController extends Controller
         
         $totalHadirCumulative = \App\Models\Attendance::whereBetween('date', [$startDateOfYear->format('Y-m-d'), Carbon::today()->format('Y-m-d')])
             ->when($schoolId, fn($q) => $q->whereHas('student', fn($s) => $s->where('school_id', $schoolId)))
-            ->where('status', 'hadir')
-            ->count();
+            ->whereIn('status', ['hadir', 'terlambat'])
+            ->select(DB::raw('count(DISTINCT CONCAT(student_id, "-", date)) as count'))
+            ->value('count') ?? 0;
         
         $cumulativeRate = ($totalZ > 0 && $activeStudents > 0)
-            ? round(($totalHadirCumulative / ($activeStudents * $totalZ)) * 100, 1)
+            ? round(min(100, ($totalHadirCumulative / ($activeStudents * $totalZ)) * 100), 1)
             : 0;
 
         // Today's Employee (Guru & Staf) Attendance Statistics
