@@ -2383,6 +2383,7 @@ let lastFeedHash       = '';
 let failCount          = 0;
 let prevStats          = {};
 let currentFeedData    = [];
+let currentTotalAbsen  = 0;
 let currentSearchQuery = '';
 let currentStatusFilter= 'all';
 let soundMuted         = localStorage.getItem('pembda_display_muted') === '1';
@@ -2489,6 +2490,7 @@ function updateDisplay(data) {
     updateMobileStats(data);
 
     // ─ Feed Aktivitas ─
+    currentTotalAbsen = data.statistik?.total_absen ?? ((data.statistik?.total_siswa_absen ?? 0) + (data.statistik?.total_pegawai_absen ?? 0));
     currentFeedData = data.feed || [];
     const feedHash = JSON.stringify(currentFeedData.slice(0, 3));
     let isNewScan = false;
@@ -2506,7 +2508,7 @@ function updateDisplay(data) {
 
     const countEl = document.getElementById('feed-count');
     if (countEl) {
-        countEl.textContent = currentFeedData.length + ' aktivitas hari ini';
+        countEl.textContent = currentTotalAbsen + ' aktivitas hari ini';
     }
 }
 
@@ -3063,7 +3065,7 @@ function renderFeed(feed, isNewScan) {
         // Kelas khusus untuk item paling baru
         const newestClass = idx === 0 ? 'feed-item-newest' : '';
         const fotoUrl     = item.foto || DEFAULT_PHOTO;
-        const nomor       = items.length - idx;
+        const nomor       = currentTotalAbsen - idx;
 
         // Indicator "TERBARU" berkedip untuk item teratas
         let newLabelHtml = '';
