@@ -51,6 +51,7 @@ class AttendanceController extends Controller
             $teacher = null;
             $tefaEmployee = null;
 
+            $status = 'hadir';
             // =========================================================================
             // 2. IDENTIFIKASI ENTITAS (GURU / PEGAWAI / KARYAWAN TEFA / SISWA)
             // =========================================================================

@@ -470,7 +470,7 @@ class HomeroomLmsController extends Controller
 
             $teacherName = $teacher?->user?->name ?? $teacher?->full_name ?? Auth::user()->name;
             $schoolName = $student->school?->name ?? 'Perguruan Pembda Nias';
-            $className = $student->currentClassroom?->class_name ?? 'Kelas';
+            $className = $student->currentClassroom->first()?->class_name ?? 'Kelas';
 
             $waText = "Halo Bapak/Ibu Wali dari ananda *{$student->full_name}* ({$className}),\n\n"
                     . "Saya *{$teacherName}* selaku Wali Kelas di {$schoolName}.\n\n"
