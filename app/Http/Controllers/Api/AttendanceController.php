@@ -246,7 +246,6 @@ class AttendanceController extends Controller
                 $tolerance = $classroom->late_tolerance ?? 15;
                 $lateLimit = date('H:i:s', strtotime("$entryTime +$tolerance minutes"));
                 $isQrScan = ($type === 'qr') 
-                    || ($student && $student->school && strtoupper($student->school->type) === 'SMP')
                     || ($student && ($rawUid === $student->nis || $rawUid === $student->nisn));
 
                 $attendance = \App\Models\Attendance::create([
@@ -339,7 +338,6 @@ class AttendanceController extends Controller
                 }
 
                 $isQrScan = ($type === 'qr')
-                    || ($employee && $employee->school && strtoupper($employee->school->type) === 'SMP')
                     || ($employee && ($rawUid === $employee->employee_code || $rawUid === $employee->nip))
                     || ($teacher && $rawUid === $teacher->teacher_code);
 

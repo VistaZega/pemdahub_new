@@ -136,7 +136,6 @@ class EmployeeAttendanceController extends Controller
             }
 
             $isQrScan = ($request->input('type') === 'qr')
-                || ($employee && $employee->school && strtoupper($employee->school->type) === 'SMP')
                 || ($employee && ($rawUid === $employee->employee_code || $rawUid === $employee->nip));
 
             // First scan: create with time_in
