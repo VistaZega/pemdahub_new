@@ -1902,20 +1902,42 @@
                 justify-content: space-between !important;
             }
             .header-left {
-                gap: 8px !important;
+                gap: 10px !important;
                 min-width: 0 !important;
                 flex: 1 !important;
+                display: flex !important;
+                align-items: center !important;
+                overflow: hidden !important;
             }
             .school-logo {
-                width: 36px !important;
-                height: 36px !important;
+                width: 38px !important;
+                height: 38px !important;
+                flex-shrink: 0 !important;
+            }
+            .school-info {
+                min-width: 0 !important;
+                flex: 1 !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
             }
             .school-info h1 {
-                font-size: 13px !important;
-                line-height: 1.2 !important;
+                font-size: 13.5px !important;
+                font-weight: 800 !important;
+                line-height: 1.25 !important;
+                margin: 0 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
             }
             .school-info p {
                 font-size: 9.5px !important;
+                margin-top: 2px !important;
+                line-height: 1.2 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
             }
             .header-right {
                 flex-shrink: 0 !important;
@@ -2093,26 +2115,51 @@
                 grid-template-columns: 1fr !important;
             }
 
-            /* Notifikasi Pop-up Toast di Layar HP */
+            /* Notifikasi Pop-up Toast di Layar HP (Pindah ke bawah agar tidak menutupi Title Header) */
             .notif-wrapper {
-                top: 10px !important;
-                width: 94% !important;
+                top: auto !important;
+                bottom: 24px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 92% !important;
                 max-width: 420px !important;
+                z-index: 99999 !important;
             }
             .notif {
-                padding: 10px 12px !important;
+                background: #ffffff !important;
+                padding: 12px 14px !important;
                 gap: 10px !important;
-                border-radius: 12px !important;
-                box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25) !important;
+                border-radius: 14px !important;
+                box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+                animation: notif-in-mobile 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+            }
+            @keyframes notif-in-mobile {
+                from { opacity: 0; transform: translateY(30px) scale(0.95); }
+                to   { opacity: 1; transform: translateY(0) scale(1); }
             }
             .notif-icon-circle {
                 width: 38px !important;
                 height: 38px !important;
                 font-size: 18px !important;
             }
+            .notif-title-row {
+                display: flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+                margin-bottom: 2px !important;
+                flex-wrap: wrap !important;
+            }
+            .notif-title-row .unit-tag {
+                font-size: 9.5px !important;
+                padding: 1px 6px !important;
+                margin: 0 !important;
+            }
             .notif-nama {
-                font-size: 15px !important;
-                max-width: 180px !important;
+                font-size: 14px !important;
+                max-width: 170px !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
             }
             .notif-detail {
                 font-size: 11px !important;
