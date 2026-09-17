@@ -208,6 +208,7 @@ if ($fetchStatus !== 0) {
     if (strpos($lastCmdError, 'insufficient permission') !== false || strpos($lastCmdOutput, 'insufficient permission') !== false || strpos($lastCmdError, 'Permission denied') !== false) {
         echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Terkendala Izin Tulis (.git)</h3>";
         echo "<p>Git fetch standar terkendala permission folder <code>.git</code>. <b>Sistem akan otomatis menggunakan jalur Fallback Direct Sync cerdas</b> pada langkah 5 untuk memperbarui seluruh file yang berubah langsung dari GitHub.</p>";
+        echo "<p>👉 <a href='fix_git_perm.php?secret=pembda99&action=fix' style='color:#58a6ff;font-weight:bold;text-decoration:underline;'>Klik di sini untuk Memperbaiki Izin Tulis Git (.git Permission) Secara Permanen</a></p>";
     } elseif (empty($githubToken) || strpos($lastCmdError, 'Permission denied (publickey)') !== false) {
         echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal (Memerlukan Token)</h3>";
         echo "<p>Karena repositori GitHub ini bersifat privat, silakan jalankan dengan menyertakan token sekali saja:</p>";
@@ -231,6 +232,7 @@ if ($fetchStatus === 0) {
     echo "<span class='info'>Menjalankan sinkronisasi langsung file terbaru dari GitHub (branch main)...</span>\n";
     
     $fallbackFiles = [
+        'public/fix_git_perm.php',
         // CBT SPP Tuition Compliance & Dispensations (2026-09-17)
         'app/Http/Controllers/Guru/CbtDispensationController.php',
         'app/Models/CbtExamDispensation.php',

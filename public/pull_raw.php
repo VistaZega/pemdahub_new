@@ -112,6 +112,7 @@ if (is_dir("{$root}/.git")) {
 
 // Daftar file prioritas yang diperbarui
 $files = [
+    'public/fix_git_perm.php',
     // CBT SPP Tuition Compliance & Dispensations (2026-09-17)
     'app/Http/Controllers/Guru/CbtDispensationController.php',
     'app/Models/CbtExamDispensation.php',
