@@ -136,6 +136,42 @@ if ($action === 'fix') {
             echo "<span class='err'>✖ Gagal mengalihkan folder .git. Parent directory mungkin memerlukan izin tambahan.</span>\n";
         }
     }
+
+    // Langkah C: Memperbaiki kepemilikan folder deploy/ & file di dalamnya
+    echo "\n<span class='info'>[Langkah C] Menyelaraskan izin folder deploy/ & file sistem...</span>\n";
+    $deployDir = "{$root}/deploy";
+    if (!is_dir($deployDir)) {
+        @mkdir($deployDir, 0777, true);
+        @chmod($deployDir, 0777);
+        echo "<span class='ok'>✔ Folder deploy/ berhasil dibuat dengan izin 0777.</span>\n";
+    } else {
+        @chmod($deployDir, 0777);
+        if (!is_writable($deployDir)) {
+            $backupDeploy = "{$root}/deploy_old_" . time();
+            if (@rename($deployDir, $backupDeploy)) {
+                @mkdir($deployDir, 0777, true);
+                @chmod($deployDir, 0777);
+                if (file_exists("{$backupDeploy}/pembdahub-whatsapp.service")) {
+                    @copy("{$backupDeploy}/pembdahub-whatsapp.service", "{$deployDir}/pembdahub-whatsapp.service");
+                }
+                @shell_exec("rm -rf " . escapeshellarg($backupDeploy) . " 2>/dev/null");
+                echo "<span class='ok'>✔ Folder deploy/ berhasil dibuat ulang dengan kepemilikan user {$currentUser}.</span>\n";
+            } else {
+                echo "<span class='warn'>⚠ Folder deploy/ belum bisa dialihkan. Mencoba chmod via shell...</span>\n";
+                @shell_exec("chmod -R 777 " . escapeshellarg($deployDir) . " 2>&1");
+            }
+        } else {
+            echo "<span class='ok'>✔ Folder deploy/ berstatus WRITEABLE.</span>\n";
+        }
+    }
+    if (file_exists("{$deployDir}/maintenance-cloudflare.html")) {
+        @chmod("{$deployDir}/maintenance-cloudflare.html", 0666);
+    }
+
+    // Jalankan git checkout dan reset hard untuk folder deploy
+    @shell_exec("git -C {$root} checkout -f origin/main -- deploy/ 2>&1");
+    $hardResetOut = @shell_exec("git -C {$root} reset --hard origin/main 2>&1");
+    echo "<span class='info'>Status Sinkronisasi Kode:</span>\n" . htmlspecialchars($hardResetOut) . "\n";
     echo "</pre>";
 
     // Re-check status

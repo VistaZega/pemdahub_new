@@ -226,8 +226,45 @@ execCmd("git -C {$root} log -1 --oneline", "4. Commit Server Saat Ini (Sebelum U
 
 // 5. Reset Hard ke origin/main jika fetch berhasil, ATAU Fallback Direct Sync jika fetch gagal
 if ($fetchStatus === 0) {
-    execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
-} else {
+    // Pra-pemeriksaan izin folder deploy/ dan working tree
+    $deployDir = "{$root}/deploy";
+    if (!is_dir($deployDir)) {
+        @mkdir($deployDir, 0777, true);
+        @chmod($deployDir, 0777);
+    } else {
+        @chmod($deployDir, 0777);
+        if (!is_writable($deployDir)) {
+            $backupDeploy = "{$root}/deploy_old_" . time();
+            if (@rename($deployDir, $backupDeploy)) {
+                @mkdir($deployDir, 0777, true);
+                @chmod($deployDir, 0777);
+                if (file_exists("{$backupDeploy}/pembdahub-whatsapp.service")) {
+                    @copy("{$backupDeploy}/pembdahub-whatsapp.service", "{$deployDir}/pembdahub-whatsapp.service");
+                }
+                @shell_exec("rm -rf " . escapeshellarg($backupDeploy) . " 2>/dev/null");
+            }
+        }
+    }
+    if (file_exists("{$deployDir}/maintenance-cloudflare.html")) {
+        @chmod("{$deployDir}/maintenance-cloudflare.html", 0666);
+    }
+
+    $resetStatus = execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
+
+    // Jika reset hard awal terkendala permission pada file/folder deploy
+    if ($resetStatus !== 0 && (strpos($lastCmdError, 'Permission denied') !== false || strpos($lastCmdOutput, 'Permission denied') !== false)) {
+        echo "<div class='notice-box' style='border-color:#d29922;'><span class='warn'>⚠ Menyesuaikan file terkunci dan mencoba ulang reset...</span></div>";
+        @shell_exec("chmod -R 777 " . escapeshellarg($deployDir) . " 2>/dev/null");
+        @unlink("{$deployDir}/maintenance-cloudflare.html");
+        @shell_exec("git -C {$root} checkout -f origin/main 2>/dev/null");
+        $retryStatus = execCmd("git -C {$root} reset --hard origin/main", "5b. Percobaan Ulang Git Reset Hard");
+        if ($retryStatus !== 0) {
+            $fetchStatus = 1; // Pemicu untuk fallback direct sync jika masih gagal
+        }
+    }
+}
+
+if ($fetchStatus !== 0) {
     echo "<h2>▶ 5. Menerapkan Update Kode (Fallback Direct Sync Cerdas via GitHub API)</h2><pre>";
     echo "<span class='info'>Menjalankan sinkronisasi langsung file terbaru dari GitHub (branch main)...</span>\n";
     
