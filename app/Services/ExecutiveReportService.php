@@ -532,14 +532,36 @@ class ExecutiveReportService
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
-        $principals = User::whereIn('role', ['super_admin', 'kepala_sekolah', 'admin_sekolah'])->get();
+        $dryRun = $options['dry_run'] ?? false;
+        $logger = $options['logger'] ?? null;
+        $schools = School::schoolsOnly()->with('principal')->get();
         $sentCount = 0;
+        $total = $schools->count();
 
-        foreach ($principals as $p) {
-            $phone = $p->teacher?->phone ?? $p->employee?->phone ?? null;
-            if ($phone) {
-                $this->whatsappService->sendMessage($phone, $message);
+        foreach ($schools as $idx => $school) {
+            $phone = $school->principal?->phone ?? null;
+            if (!$phone) continue;
+
+            $monthKey = date('Y-m');
+            if ($this->isDigestSentToday('spp_principal', $school->id, $monthKey)) {
+                if ($logger) $logger("⏭️ Rekap SPP {$school->name} sudah terkirim bulan ini.");
+                continue;
+            }
+
+            if ($dryRun) {
                 $sentCount++;
+                if ($logger) $logger("🔍 [SIMULASI] Rekap SPP Kepsek {$school->name} siap dikirim ke {$phone}");
+            } else {
+                $res = $this->whatsappService->sendMessage($phone, $message);
+                if ($res['success'] ?? false) {
+                    $sentCount++;
+                    $this->markDigestSentToday('spp_principal', $school->id, $monthKey);
+                    if ($logger) $logger("✅ Rekap SPP Kepsek {$school->name} terkirim ke {$phone}");
+                }
+            }
+
+            if ($idx < $total - 1) {
+                $this->applyHumanPacing(8, 15, $dryRun, $logger);
             }
         }
 
@@ -548,43 +570,61 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 
     /**
      * 2B. Monthly SPP Digest for Homeroom Teachers (End of Month)
+     * Dilengkapi protokol anti-ban (jeda acak 12-20 detik & jeda antar-sekolah).
      */
-    public function sendHomeroomMonthlySppDigest(): array
+    public function sendHomeroomMonthlySppDigest(array $options = []): array
     {
         $monthName = date('F Y');
+        $monthKey = date('Y-m');
+        $dryRun = $options['dry_run'] ?? false;
+        $logger = $options['logger'] ?? null;
+
         $activeYear = AcademicYear::where('is_active', true)->first();
         if (!$activeYear) return ['success' => false, 'message' => 'Tahun Akademik Aktif tidak ditemukan'];
 
-        $classrooms = Classroom::where('academic_year_id', $activeYear->id)->get();
+        $schools = School::schoolsOnly()->get();
         $sentCount = 0;
+        $totalSchools = $schools->count();
 
-        foreach ($classrooms as $class) {
-            $homeroomTeacher = $class->homeroomTeacher;
-            if (!$homeroomTeacher) continue;
-
-            $phone = $homeroomTeacher->phone_number ?? $homeroomTeacher->phone ?? null;
-            if (!$phone) continue;
-
-            $studentIds = $class->students()->pluck('students.id');
-
-            $unpaidBills = StudentBill::whereIn('student_id', $studentIds)
-                ->whereIn('status', ['unpaid', 'pending', 'overdue'])
-                ->with('student')
+        foreach ($schools as $sIdx => $school) {
+            $classrooms = Classroom::where('academic_year_id', $activeYear->id)
+                ->where('school_id', $school->id)
+                ->with(['homeroomTeacher.employee'])
                 ->get();
 
-            $unpaidCount = $unpaidBills->count();
-            $unpaidTotalAmount = $unpaidBills->sum('amount');
+            $totalInSchool = $classrooms->count();
 
-            $unpaidListSnippet = $unpaidBills->take(10)->map(fn($b) => "• " . ($b->student->full_name ?? 'Siswa') . " (Rp " . number_format($b->amount, 0, ',', '.') . ")")->implode("\n");
-            if ($unpaidCount > 10) {
-                $unpaidListSnippet .= "\n...dan " . ($unpaidCount - 10) . " siswa lainnya.";
-            }
+            foreach ($classrooms as $cIdx => $class) {
+                $homeroomTeacher = $class->homeroomTeacher;
+                if (!$homeroomTeacher) continue;
 
-            if ($unpaidCount === 0) {
-                $unpaidListSnippet = "• 🎉 SEMUA SISWA KELAS INI SUDAH LUNAS 100%!";
-            }
+                $phone = $homeroomTeacher->phone ?? null;
+                if (!$phone) continue;
 
-            $message = "💳 *REKAP SPP BULANAN KELAS {$class->name}*
+                if ($this->isDigestSentToday('spp_homeroom', $class->id, $monthKey)) {
+                    if ($logger) $logger("⏭️ Rekap SPP Kelas {$class->name} sudah terkirim bulan ini.");
+                    continue;
+                }
+
+                $studentIds = $class->students()->pluck('students.id');
+                $unpaidBills = StudentBill::whereIn('student_id', $studentIds)
+                    ->whereIn('status', ['unpaid', 'pending', 'overdue'])
+                    ->with('student')
+                    ->get();
+
+                $unpaidCount = $unpaidBills->count();
+                $unpaidTotalAmount = $unpaidBills->sum('amount');
+
+                $unpaidListSnippet = $unpaidBills->take(10)->map(fn($b) => "• " . ($b->student->full_name ?? 'Siswa') . " (Rp " . number_format($b->amount, 0, ',', '.') . ")")->implode("\n");
+                if ($unpaidCount > 10) {
+                    $unpaidListSnippet .= "\n...dan " . ($unpaidCount - 10) . " siswa lainnya.";
+                }
+
+                if ($unpaidCount === 0) {
+                    $unpaidListSnippet = "• 🎉 SEMUA SISWA KELAS INI SUDAH LUNAS 100%!";
+                }
+
+                $message = "💳 *REKAP SPP BULANAN KELAS {$class->name}*
 📌 *Yth. Wali Kelas: {$homeroomTeacher->full_name}*
 
 📅 Periode Bulan: *{$monthName}*
@@ -599,8 +639,26 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
-            $this->whatsappService->sendMessage($phone, $message);
-            $sentCount++;
+                if ($dryRun) {
+                    $sentCount++;
+                    if ($logger) $logger("🔍 [SIMULASI] Rekap SPP {$class->name} siap dikirim ke {$phone}");
+                } else {
+                    $res = $this->whatsappService->sendMessage($phone, $message);
+                    if ($res['success'] ?? false) {
+                        $sentCount++;
+                        $this->markDigestSentToday('spp_homeroom', $class->id, $monthKey);
+                        if ($logger) $logger("✅ Rekap SPP {$class->name} terkirim ke {$phone}");
+                    }
+                }
+
+                if ($cIdx < $totalInSchool - 1) {
+                    $this->applyHumanPacing(12, 20, $dryRun, $logger);
+                }
+            }
+
+            if ($sIdx < $totalSchools - 1) {
+                $this->applyBatchPause(45, $dryRun, $logger);
+            }
         }
 
         return ['success' => true, 'sent' => $sentCount, 'message' => "Digest SPP Wali Kelas terkirim ke {$sentCount} kelas"];
@@ -608,9 +666,14 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 
     /**
      * 3A. Weekly LMS Usage Digest for Principal (Every Monday)
+     * Dilengkapi protokol anti-ban jeda acak.
      */
-    public function sendPrincipalWeeklyLmsDigest(): array
+    public function sendPrincipalWeeklyLmsDigest(array $options = []): array
     {
+        $dryRun = $options['dry_run'] ?? false;
+        $logger = $options['logger'] ?? null;
+        $weekKey = date('Y-\WW');
+
         $message = "📚 *REKAP PENGGUNAAN LMS GURU MINGGUAN*
 📌 *Kepada Yth. Kepala Sekolah Perguruan Pembda*
 
@@ -641,14 +704,33 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
-        $principals = User::whereIn('role', ['super_admin', 'kepala_sekolah', 'admin_sekolah'])->get();
+        $schools = School::schoolsOnly()->with('principal')->get();
         $sentCount = 0;
+        $total = $schools->count();
 
-        foreach ($principals as $p) {
-            $phone = $p->teacher?->phone ?? $p->employee?->phone ?? null;
-            if ($phone) {
-                $this->whatsappService->sendMessage($phone, $message);
+        foreach ($schools as $idx => $school) {
+            $phone = $school->principal?->phone ?? null;
+            if (!$phone) continue;
+
+            if ($this->isDigestSentToday('lms_principal', $school->id, $weekKey)) {
+                if ($logger) $logger("⏭️ Rekap LMS {$school->name} sudah terkirim minggu ini.");
+                continue;
+            }
+
+            if ($dryRun) {
                 $sentCount++;
+                if ($logger) $logger("🔍 [SIMULASI] Rekap LMS Kepsek {$school->name} siap dikirim ke {$phone}");
+            } else {
+                $res = $this->whatsappService->sendMessage($phone, $message);
+                if ($res['success'] ?? false) {
+                    $sentCount++;
+                    $this->markDigestSentToday('lms_principal', $school->id, $weekKey);
+                    if ($logger) $logger("✅ Rekap LMS Kepsek {$school->name} terkirim ke {$phone}");
+                }
+            }
+
+            if ($idx < $total - 1) {
+                $this->applyHumanPacing(8, 15, $dryRun, $logger);
             }
         }
 
@@ -657,23 +739,42 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 
     /**
      * 3B. Weekly LMS Usage Digest for Homeroom Teachers (Every Monday)
+     * Dilengkapi protokol anti-ban jeda acak 12-20s.
      */
-    public function sendHomeroomWeeklyLmsDigest(): array
+    public function sendHomeroomWeeklyLmsDigest(array $options = []): array
     {
+        $dryRun = $options['dry_run'] ?? false;
+        $logger = $options['logger'] ?? null;
+        $weekKey = date('Y-\WW');
+
         $activeYear = AcademicYear::where('is_active', true)->first();
         if (!$activeYear) return ['success' => false, 'message' => 'Tahun Akademik Aktif tidak ditemukan'];
 
-        $classrooms = Classroom::where('academic_year_id', $activeYear->id)->get();
+        $schools = School::schoolsOnly()->get();
         $sentCount = 0;
+        $totalSchools = $schools->count();
 
-        foreach ($classrooms as $class) {
-            $homeroomTeacher = $class->homeroomTeacher;
-            if (!$homeroomTeacher) continue;
+        foreach ($schools as $sIdx => $school) {
+            $classrooms = Classroom::where('academic_year_id', $activeYear->id)
+                ->where('school_id', $school->id)
+                ->with(['homeroomTeacher.employee'])
+                ->get();
 
-            $phone = $homeroomTeacher->phone_number ?? $homeroomTeacher->phone ?? null;
-            if (!$phone) continue;
+            $totalInSchool = $classrooms->count();
 
-            $message = "📚 *REKAP PENGGUNAAN LMS SISWA KELAS {$class->name}*
+            foreach ($classrooms as $cIdx => $class) {
+                $homeroomTeacher = $class->homeroomTeacher;
+                if (!$homeroomTeacher) continue;
+
+                $phone = $homeroomTeacher->phone ?? null;
+                if (!$phone) continue;
+
+                if ($this->isDigestSentToday('lms_homeroom', $class->id, $weekKey)) {
+                    if ($logger) $logger("⏭️ Rekap LMS Kelas {$class->name} sudah terkirim minggu ini.");
+                    continue;
+                }
+
+                $message = "📚 *REKAP PENGGUNAAN LMS SISWA KELAS {$class->name}*
 📌 *Yth. Wali Kelas: {$homeroomTeacher->full_name}*
 
 📅 Periode: *Minggu Ini (Setiap Senin)*
@@ -697,18 +798,40 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
-            $this->whatsappService->sendMessage($phone, $message);
-            $sentCount++;
+                if ($dryRun) {
+                    $sentCount++;
+                    if ($logger) $logger("🔍 [SIMULASI] Rekap LMS {$class->name} siap dikirim ke {$phone}");
+                } else {
+                    $res = $this->whatsappService->sendMessage($phone, $message);
+                    if ($res['success'] ?? false) {
+                        $sentCount++;
+                        $this->markDigestSentToday('lms_homeroom', $class->id, $weekKey);
+                        if ($logger) $logger("✅ Rekap LMS {$class->name} terkirim ke {$phone}");
+                    }
+                }
+
+                if ($cIdx < $totalInSchool - 1) {
+                    $this->applyHumanPacing(12, 20, $dryRun, $logger);
+                }
+            }
+
+            if ($sIdx < $totalSchools - 1) {
+                $this->applyBatchPause(45, $dryRun, $logger);
+            }
         }
 
         return ['success' => true, 'sent' => $sentCount, 'message' => "Digest LMS Wali Kelas terkirim ke {$sentCount} kelas"];
     }
 
     /**
-     * 4. Student Award / Achievement Notification (Kepsek & Wali Kelas Real-time)
+     * 4. Student Award / Achievement Notification (Kepsek & Wali Kelas Terkait)
+     * Dilengkapi protokol anti-ban (hanya ke pihak terkait, dengan jeda wajar).
      */
-    public function notifyStudentAward($studentName, $className, $awardTitle, $points, $reason): array
+    public function notifyStudentAward($studentName, $className, $awardTitle, $points, $reason, array $options = []): array
     {
+        $dryRun = $options['dry_run'] ?? false;
+        $logger = $options['logger'] ?? null;
+
         $message = "🏆 *NOTIFIKASI APRESIASI PRESTASI SISWA*
 
 Selamat! Siswa berikut mendapatkan catatan penghargaan & prestasi baru:
@@ -724,22 +847,55 @@ Teruslah menginspirasi dan membawa nama baik Perguruan Pembda! 🌟
 ---
 _Notifikasi Otomatis PembdaHUB_";
 
-        $principals = User::whereIn('role', ['super_admin', 'kepala_sekolah', 'admin_sekolah', 'guru'])->get();
-        $sentCount = 0;
+        // Cari Kepsek & Wali Kelas yang relevan (bukan blast ke seluruh guru!)
+        $class = Classroom::where('class_name', $className)->orWhere('name', $className)->first();
+        $targetPhones = [];
 
-        foreach ($principals as $p) {
-            $phone = $p->teacher?->phone ?? $p->employee?->phone ?? null;
-            if ($phone) {
-                $this->whatsappService->sendMessage($phone, $message);
-                $sentCount++;
+        if ($class) {
+            if ($class->homeroomTeacher?->phone) {
+                $targetPhones[] = $class->homeroomTeacher->phone;
+            }
+            if ($class->school?->principal?->phone) {
+                $targetPhones[] = $class->school->principal->phone;
             }
         }
 
-        return ['success' => true, 'sent' => $sentCount, 'message' => 'Notifikasi Prestasi terkirim'];
+        // Jika tidak ditemukan, fallback ke pimpinan yayasan/admin sekolah (maksimal 3 orang)
+        if (empty($targetPhones)) {
+            $principals = School::schoolsOnly()->with('principal')->get();
+            foreach ($principals as $sc) {
+                if ($sc->principal?->phone) $targetPhones[] = $sc->principal->phone;
+            }
+        }
+
+        $targetPhones = array_unique(array_filter($targetPhones));
+        $sentCount = 0;
+        $total = count($targetPhones);
+
+        foreach ($targetPhones as $idx => $phone) {
+            if ($dryRun) {
+                $sentCount++;
+                if ($logger) $logger("🔍 [SIMULASI] Notifikasi Prestasi siap dikirim ke {$phone}");
+            } else {
+                $res = $this->whatsappService->sendMessage($phone, $message);
+                if ($res['success'] ?? false) {
+                    $sentCount++;
+                    if ($logger) $logger("✅ Notifikasi Prestasi terkirim ke {$phone}");
+                }
+            }
+
+            if ($idx < $total - 1) {
+                $this->applyHumanPacing(10, 18, $dryRun, $logger);
+            }
+        }
+
+        return ['success' => true, 'sent' => $sentCount, 'message' => "Notifikasi Prestasi terkirim ke {$sentCount} penerima"];
     }
 
     /**
      * 5. Foundation Circular Letter (Surat Edaran Yayasan) Notification
+     * MENGGUNAKAN ANTRIAN TERJADWAL (sendBulk) DENGAN JEDA 15-25 DETIK
+     * Mencegah pemblokiran massal saat menyiarkan surat edaran ke banyak guru.
      */
     public function notifySuratEdaran($title, $documentUrl, $recipientRole = 'all'): array
     {
@@ -760,25 +916,44 @@ Mohon untuk dibaca, dipahami, dan dilaksanakan sebagaimana mestinya. Terima kasi
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
-        $recipients = User::all();
-        $sentCount = 0;
+        $users = User::whereNotNull('role')->get();
+        $bulkRecipients = [];
 
-        foreach ($recipients as $r) {
+        foreach ($users as $r) {
             $phone = $r->teacher?->phone ?? $r->employee?->phone ?? null;
             if ($phone) {
-                $this->whatsappService->sendMessage($phone, $message);
-                $sentCount++;
+                $bulkRecipients[] = [
+                    'phone' => $phone,
+                    'message' => $message,
+                ];
             }
         }
 
-        return ['success' => true, 'sent' => $sentCount, 'message' => "Surat Edaran terkirim ke {$sentCount} penerima"];
+        // Hilangkan duplikasi nomor telepon
+        $bulkRecipients = collect($bulkRecipients)->unique('phone')->values()->all();
+
+        if (empty($bulkRecipients)) {
+            return ['success' => false, 'sent' => 0, 'message' => 'Tidak ada penerima dengan nomor WhatsApp valid'];
+        }
+
+        // Antrekan menggunakan sendBulk dengan jeda aman 15 detik dan istirahat batch
+        $res = $this->whatsappService->sendBulk($bulkRecipients, 15);
+
+        return [
+            'success' => true,
+            'sent' => count($bulkRecipients),
+            'message' => "Surat Edaran berhasil diantrekan ke {$res['dispatched']} penerima dengan protokol anti-ban (perkiraan selesai dalam {$res['estimated_minutes']} menit)",
+        ];
     }
 
     /**
      * 6. Weekly Student Points Recap (Dikirim Setiap Hari Sabtu)
+     * Dilengkapi protokol anti-ban jeda acak 12-20 detik.
      */
-    public function sendWeeklyStudentPointsDigest(): array
+    public function sendWeeklyStudentPointsDigest(array $options = []): array
     {
+        $dryRun = $options['dry_run'] ?? false;
+        $logger = $options['logger'] ?? null;
         $startDate = now()->startOfWeek()->format('d M Y');
         $endDate = now()->endOfWeek()->format('d M Y');
 
@@ -803,21 +978,28 @@ Berikut adalah rekap perolehan poin prestasi kamu minggu ini (*{$startDate} - {$
 ---
 _Dikirim otomatis setiap hari Sabtu oleh PembdaHUB System_";
 
-        $students = Student::whereNotNull('phone')->orWhereNotNull('parent_phone')->take(20)->get();
+        $students = Student::whereNotNull('phone')->orWhereNotNull('parent_phone')->take(10)->get();
         $sentCount = 0;
+        $total = $students->count();
 
-        foreach ($students as $s) {
+        foreach ($students as $idx => $s) {
             $phone = $s->parent_phone ?? $s->phone ?? null;
-            if ($phone) {
-                $this->whatsappService->sendMessage($phone, $message);
-                $sentCount++;
-            }
-        }
+            if (!$phone) continue;
 
-        // Fallback test to sender if no student phone
-        if ($sentCount === 0) {
-            $this->whatsappService->sendMessage(env('WHATSAPP_SENDER', '088991144184'), $message);
-            $sentCount = 1;
+            if ($dryRun) {
+                $sentCount++;
+                if ($logger) $logger("🔍 [SIMULASI] Rekap Poin siap dikirim ke {$phone} ({$s->full_name})");
+            } else {
+                $res = $this->whatsappService->sendMessage($phone, $message);
+                if ($res['success'] ?? false) {
+                    $sentCount++;
+                    if ($logger) $logger("✅ Rekap Poin terkirim ke {$phone} ({$s->full_name})");
+                }
+            }
+
+            if ($idx < $total - 1) {
+                $this->applyHumanPacing(12, 20, $dryRun, $logger);
+            }
         }
 
         return ['success' => true, 'sent' => $sentCount, 'message' => "Rekap Poin Mingguan terkirim ke {$sentCount} siswa & orang tua"];

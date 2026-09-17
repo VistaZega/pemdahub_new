@@ -135,15 +135,26 @@ if (file_exists("{$root}/.git/gc.log")) {
 @shell_exec("git -C {$root} config gc.auto 0");
 @shell_exec("git -C {$root} config core.sharedRepository all");
 
-// Coba perbaiki permissions folder .git dan bersihkan file lock
+// Coba perbaiki permissions folder .git secara rekursif dan bersihkan file lock
 if (is_dir("{$root}/.git")) {
-    @chmod("{$root}/.git", 0777);
-    @chmod("{$root}/.git/objects", 0777);
-    @chmod("{$root}/.git/refs", 0777);
-    @chmod("{$root}/.git/refs/heads", 0777);
-    @chmod("{$root}/.git/refs/remotes", 0777);
-    @chmod("{$root}/.git/refs/remotes/origin", 0777);
-    @chmod("{$root}/.git/FETCH_HEAD", 0666);
+    $fixGitPerms = function ($dir) use (&$fixGitPerms) {
+        if (!is_dir($dir)) return;
+        @chmod($dir, 0777);
+        $items = @scandir($dir);
+        if ($items) {
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') continue;
+                $path = $dir . DIRECTORY_SEPARATOR . $item;
+                if (is_dir($path)) {
+                    @chmod($path, 0777);
+                    $fixGitPerms($path);
+                } else {
+                    @chmod($path, 0666);
+                }
+            }
+        }
+    };
+    $fixGitPerms("{$root}/.git");
     @unlink("{$root}/.git/FETCH_HEAD");
     @unlink("{$root}/.git/index.lock");
     @unlink("{$root}/.git/refs/heads/main.lock");
@@ -165,14 +176,14 @@ if ($fetchStatus !== 0) {
     echo "<div class='notice-box' style='border-color:#f85149;'>";
     if (strpos($lastCmdError, 'insufficient permission') !== false || strpos($lastCmdOutput, 'insufficient permission') !== false || strpos($lastCmdError, 'Permission denied') !== false) {
         echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Terkendala Izin Tulis (.git)</h3>";
-        echo "<p>Git fetch standar terkendala permission folder <code>.git</code>. <b>Sistem akan otomatis menggunakan jalur Fallback Direct Sync</b> pada langkah 5 untuk memperbarui file secara langsung dari GitHub.</p>";
+        echo "<p>Git fetch standar terkendala permission folder <code>.git</code>. <b>Sistem akan otomatis menggunakan jalur Fallback Direct Sync cerdas</b> pada langkah 5 untuk memperbarui seluruh file yang berubah langsung dari GitHub.</p>";
     } elseif (empty($githubToken) || strpos($lastCmdError, 'Permission denied (publickey)') !== false) {
         echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal (Memerlukan Token)</h3>";
         echo "<p>Karena repositori GitHub ini bersifat privat, silakan jalankan dengan menyertakan token sekali saja:</p>";
         echo "<p><code>https://perguruanpembda.com/git_pull_now.php?secret=pembda99&token=ghp_TOKEN_ANDA</code></p>";
     } else {
         echo "<h3 style='color:#f85149;margin-top:0;'>⚠️ PERHATIAN: Git Fetch Gagal</h3>";
-        echo "<p>Periksa detail pesan kesalahan pada langkah 3 di atas. Sistem akan mencoba direct sync.</p>";
+        echo "<p>Periksa detail pesan kesalahan pada langkah 3 di atas. Sistem akan mencoba direct sync cerdas.</p>";
     }
     echo "</div>";
     flush();
@@ -185,18 +196,30 @@ execCmd("git -C {$root} log -1 --oneline", "4. Commit Server Saat Ini (Sebelum U
 if ($fetchStatus === 0) {
     execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
 } else {
-    echo "<h2>▶ 5. Menerapkan Update Kode (Fallback Direct Sync via GitHub)</h2><pre>";
-    echo "<span class='info'>Menjalankan direct sync file terbaru dari GitHub (main)...</span>\n";
+    echo "<h2>▶ 5. Menerapkan Update Kode (Fallback Direct Sync Cerdas via GitHub API)</h2><pre>";
+    echo "<span class='info'>Menjalankan sinkronisasi langsung file terbaru dari GitHub (branch main)...</span>\n";
     
     $fallbackFiles = [
-        // AUTO-FIX 2026-09-16: devices table, academic_years.status, difficulty key
+        // WhatsApp Anti-Ban & Pacing Updates (2026-09-17)
+        'app/Services/ExecutiveReportService.php',
+        'app/Services/WhatsAppService.php',
+        'app/Contracts/WhatsAppServiceInterface.php',
+        'app/Services/NotificationService.php',
+        'app/Http/Controllers/Yayasan/InvitationController.php',
+        'app/Http/Controllers/Admin/PSBNotificationController.php',
+        'app/Console/Commands/SendWaExecutiveDigest.php',
+        'app/Console/Commands/CloseSurveyAndNotify.php',
+        'config/whatsapp-templates.php',
+        'routes/console.php',
+        'public/check_phone_data.php',
+        'public/git_pull_now.php',
+        'public/pull_raw.php',
+        // Recent core controllers, models & migrations
         'database/migrations/2026_09_16_070000_create_devices_table.php',
         'database/migrations/2026_09_16_070001_add_status_to_academic_years_table.php',
         'app/Models/Device.php',
         'app/Models/AcademicYear.php',
         'resources/views/guru/cbt/exams/results.blade.php',
-        'public/git_pull_now.php',
-        'public/pull_raw.php',
         'app/Http/Controllers/PublicDisplayController.php',
         'app/Http/Controllers/Admin/UnifiedAttendanceController.php',
         'app/Http/Controllers/Admin/DashboardController.php',
@@ -204,6 +227,62 @@ if ($fetchStatus === 0) {
         'app/Repositories/AttendanceRepository.php',
         'app/Services/AttendanceStatisticsService.php',
     ];
+    
+    // Deteksi file yang berubah di GitHub API secara otomatis (10 commit terakhir)
+    if (!empty($githubToken)) {
+        echo "<span class='info'>Memeriksa GitHub Commits API untuk mendeteksi perubahan file terbaru...</span>\n";
+        $commitsApiUrl = "https://api.github.com/repos/VistaZega/pemdahub_new/commits?per_page=10";
+        $ch = curl_init($commitsApiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'PembdaHUB-Deploy');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: token {$githubToken}",
+            "Accept: application/vnd.github.v3+json"
+        ]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $res = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($code === 200 && !empty($res)) {
+            $commits = json_decode($res, true);
+            if (is_array($commits)) {
+                $dynamicList = [];
+                foreach ($commits as $c) {
+                    if (empty($c['sha'])) continue;
+                    $detailUrl = "https://api.github.com/repos/VistaZega/pemdahub_new/commits/" . $c['sha'];
+                    $ch2 = curl_init($detailUrl);
+                    curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch2, CURLOPT_USERAGENT, 'PembdaHUB-Deploy');
+                    curl_setopt($ch2, CURLOPT_HTTPHEADER, [
+                        "Authorization: token {$githubToken}",
+                        "Accept: application/vnd.github.v3+json"
+                    ]);
+                    curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($ch2, CURLOPT_TIMEOUT, 15);
+                    $res2 = curl_exec($ch2);
+                    curl_close($ch2);
+
+                    if (!empty($res2)) {
+                        $detailData = json_decode($res2, true);
+                        if (isset($detailData['files']) && is_array($detailData['files'])) {
+                            foreach ($detailData['files'] as $df) {
+                                if (isset($df['filename']) && ($df['status'] ?? '') !== 'removed') {
+                                    $dynamicList[] = $df['filename'];
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!empty($dynamicList)) {
+                    $dynamicList = array_unique($dynamicList);
+                    echo "<span class='ok'>✔ Berhasil mendeteksi " . count($dynamicList) . " file dari riwayat commit GitHub terbaru.</span>\n";
+                    $fallbackFiles = array_values(array_unique(array_merge($dynamicList, $fallbackFiles)));
+                }
+            }
+        }
+    }
     
     $synced = 0;
     foreach ($fallbackFiles as $ff) {
@@ -230,7 +309,7 @@ if ($fetchStatus === 0) {
         } else {
             echo "<span class='err'>✖ Gagal mengunduh (HTTP {$code}): {$ff}</span>\n";
         }
-        usleep(100000);
+        usleep(50000);
     }
     echo "<span class='ok'>✔ Direct Sync Berhasil: {$synced} file diperbarui ke versi terbaru!</span>\n";
     echo "</pre>";

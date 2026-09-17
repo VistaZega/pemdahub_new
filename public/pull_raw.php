@@ -78,8 +78,26 @@ if (is_dir("{$root}/.git")) {
 
 // Daftar file prioritas yang diperbarui
 $files = [
+    // WhatsApp Anti-Ban & Pacing Updates (2026-09-17)
+    'app/Services/ExecutiveReportService.php',
+    'app/Services/WhatsAppService.php',
+    'app/Contracts/WhatsAppServiceInterface.php',
+    'app/Services/NotificationService.php',
+    'app/Http/Controllers/Yayasan/InvitationController.php',
+    'app/Http/Controllers/Admin/PSBNotificationController.php',
+    'app/Console/Commands/SendWaExecutiveDigest.php',
+    'app/Console/Commands/CloseSurveyAndNotify.php',
+    'config/whatsapp-templates.php',
+    'routes/console.php',
+    'public/check_phone_data.php',
     'public/git_pull_now.php',
     'public/pull_raw.php',
+    // Recent core controllers, models & migrations
+    'database/migrations/2026_09_16_070000_create_devices_table.php',
+    'database/migrations/2026_09_16_070001_add_status_to_academic_years_table.php',
+    'app/Models/Device.php',
+    'app/Models/AcademicYear.php',
+    'resources/views/guru/cbt/exams/results.blade.php',
     'app/Http/Controllers/PublicDisplayController.php',
     'app/Http/Controllers/Admin/UnifiedAttendanceController.php',
     'app/Http/Controllers/Admin/DashboardController.php',
@@ -87,6 +105,62 @@ $files = [
     'app/Repositories/AttendanceRepository.php',
     'app/Services/AttendanceStatisticsService.php',
 ];
+
+// Deteksi file yang berubah di GitHub API secara otomatis (10 commit terakhir)
+if (!empty($token)) {
+    echo "<span class='info'>Memeriksa GitHub Commits API untuk mendeteksi perubahan file terbaru...</span>\n";
+    $commitsApiUrl = "https://api.github.com/repos/{$repo}/commits?per_page=10";
+    $ch = curl_init($commitsApiUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'PembdaHUB-Updater');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: token {$token}",
+        "Accept: application/vnd.github.v3+json"
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    $res = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code === 200 && !empty($res)) {
+        $commits = json_decode($res, true);
+        if (is_array($commits)) {
+            $dynamicList = [];
+            foreach ($commits as $c) {
+                if (empty($c['sha'])) continue;
+                $detailUrl = "https://api.github.com/repos/{$repo}/commits/" . $c['sha'];
+                $ch2 = curl_init($detailUrl);
+                curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch2, CURLOPT_USERAGENT, 'PembdaHUB-Updater');
+                curl_setopt($ch2, CURLOPT_HTTPHEADER, [
+                    "Authorization: token {$token}",
+                    "Accept: application/vnd.github.v3+json"
+                ]);
+                curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch2, CURLOPT_TIMEOUT, 15);
+                $res2 = curl_exec($ch2);
+                curl_close($ch2);
+
+                if (!empty($res2)) {
+                    $detailData = json_decode($res2, true);
+                    if (isset($detailData['files']) && is_array($detailData['files'])) {
+                        foreach ($detailData['files'] as $df) {
+                            if (isset($df['filename']) && ($df['status'] ?? '') !== 'removed') {
+                                $dynamicList[] = $df['filename'];
+                            }
+                        }
+                    }
+                }
+            }
+            if (!empty($dynamicList)) {
+                $dynamicList = array_unique($dynamicList);
+                echo "<span class='ok'>✔ Berhasil mendeteksi " . count($dynamicList) . " file dari riwayat commit GitHub terbaru.</span>\n";
+                $files = array_values(array_unique(array_merge($dynamicList, $files)));
+            }
+        }
+    }
+}
 
 $successCount = 0;
 $failCount = 0;

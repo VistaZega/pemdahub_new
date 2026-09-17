@@ -319,34 +319,56 @@ class WhatsAppService implements WhatsAppServiceInterface
     }
 
     /**
-     * Send bulk messages by dispatching individual jobs (non-blocking).
+     * Send bulk messages by dispatching individual jobs with human-like randomized delays (Anti-Ban Protocol).
+     * Mencegah pengiriman serentak: setiap pesan diberi jeda acak 12-20 detik dan istirahat 45 detik tiap 8 pesan.
      */
-    public function sendBulk(array $recipients, int $delay = 2): array
+    public function sendBulk(array $recipients, int $delay = 12): array
     {
+        $minDelay = max(10, $delay);
+        $maxDelay = max($minDelay, (int)Setting::getValue('wa_bulk_delay_max', $minDelay + 8));
+        $batchSize = 8;
+        $batchPause = 45;
+
         $dispatched = 0;
+        $cumulativeSeconds = 0;
 
         foreach ($recipients as $index => $recipient) {
+            if ($index > 0) {
+                // Tambahkan jeda acak alami per pesan (misal 12–20 detik)
+                $cumulativeSeconds += rand($minDelay, $maxDelay);
+
+                // Tambahkan jeda istirahat ekstra tiap mencapai ukuran batch (8 pesan)
+                if ($index % $batchSize === 0) {
+                    $cumulativeSeconds += $batchPause;
+                }
+            }
+
             SendWhatsAppMessage::dispatch(
                 $recipient['phone'],
                 $recipient['message'],
                 $recipient['options'] ?? [],
                 'bulk-send'
-            )->delay(now()->addSeconds($index * $delay));
+            )->delay(now()->addSeconds($cumulativeSeconds));
 
             $dispatched++;
         }
 
-        Log::channel('whatsapp')->info('Bulk WhatsApp messages queued', [
+        $totalMinutes = round($cumulativeSeconds / 60, 1);
+
+        Log::channel('whatsapp')->info('Bulk WhatsApp messages queued with Anti-Ban Pacing', [
             'provider' => $this->activeProvider,
             'total' => $dispatched,
-            'delay_between' => $delay . 's',
+            'estimated_duration_minutes' => $totalMinutes,
+            'min_delay' => $minDelay . 's',
+            'max_delay' => $maxDelay . 's',
         ]);
 
         return [
             'success' => true,
             'provider' => $this->activeProvider,
             'dispatched' => $dispatched,
-            'message' => "{$dispatched} messages queued for delivery via {$this->providerLabel}",
+            'estimated_minutes' => $totalMinutes,
+            'message' => "{$dispatched} pesan berhasil diantrekan dengan jeda aman anti-ban (perkiraan selesai dalam {$totalMinutes} menit) via {$this->providerLabel}",
         ];
     }
 

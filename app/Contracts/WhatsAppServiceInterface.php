@@ -22,7 +22,7 @@ interface WhatsAppServiceInterface
     /**
      * Send bulk messages.
      */
-    public function sendBulk(array $recipients, int $delay = 2): array;
+    public function sendBulk(array $recipients, int $delay = 12): array;
 
     /**
      * Check if the service is enabled.

@@ -447,8 +447,14 @@ class NotificationService
                     'result' => $result
                 ];
 
-                // Delay to avoid rate limiting
-                sleep(2);
+                // Anti-Ban Pacing: Jeda acak alami 10–18 detik per pesan & jeda istirahat tiap 8 pesan
+                if ($index < count($applicantIds) - 1) {
+                    $delaySeconds = rand(10, 18);
+                    if (($index + 1) % 8 === 0) {
+                        $delaySeconds += 40; // Istirahat batch ekstra 40 detik
+                    }
+                    sleep($delaySeconds);
+                }
                 
             } catch (\Exception $e) {
                 $results[] = [

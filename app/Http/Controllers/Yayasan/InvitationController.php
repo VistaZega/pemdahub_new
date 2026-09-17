@@ -168,8 +168,8 @@ class InvitationController extends Controller
             ], 422);
         }
 
-        // Send bulk using WhatsAppService (delayed queues)
-        $result = $this->whatsappService->sendBulk($bulkRecipients, 2);
+        // Send bulk using WhatsAppService (delayed queues with Anti-Ban Pacing)
+        $result = $this->whatsappService->sendBulk($bulkRecipients, 12);
 
         // Update status to 'sent' (since they are pushed to database queue jobs successfully)
         foreach ($bulkRecipients as $recipient) {
