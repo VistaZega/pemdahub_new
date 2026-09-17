@@ -35,8 +35,8 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 10);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 45);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 90);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && !Setting::getValue('wa_send_principal_attendance', true)) {
@@ -237,9 +237,9 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 12);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 20);
-        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 45);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 90);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 180);
+        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 600);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && !Setting::getValue('wa_send_homeroom_attendance', true)) {
@@ -481,7 +481,8 @@ class ExecutiveReportService
         $sleepSeconds = rand($min, $max);
 
         if ($logger) {
-            $logger("⏳ Jeda alami {$sleepSeconds} detik sebelum pesan berikutnya...");
+            $timeStr = $sleepSeconds >= 60 ? "{$sleepSeconds} detik (~" . round($sleepSeconds / 60, 1) . " menit)" : "{$sleepSeconds} detik";
+            $logger("⏳ Jeda santai alami {$timeStr} sebelum pesan berikutnya...");
         }
 
         sleep($sleepSeconds);
@@ -499,7 +500,8 @@ class ExecutiveReportService
 
         $pause = max(5, $seconds);
         if ($logger) {
-            $logger("☕ Istirahat jeda batch antar-sekolah ({$pause} detik)...");
+            $pauseMins = round($pause / 60, 1);
+            $logger("☕ Istirahat pendinginan antar-sekolah ({$pause} detik / ~{$pauseMins} menit)...");
         }
 
         sleep($pause);

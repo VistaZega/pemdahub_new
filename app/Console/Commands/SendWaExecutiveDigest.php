@@ -69,8 +69,9 @@ class SendWaExecutiveDigest extends Command
 
                 // Jika ada kepala sekolah yang terkirim dan bukan dry-run, beri jeda sebelum batch wali kelas
                 if (($res1['sent'] ?? 0) > 0 && !$options['dry_run']) {
-                    $pause = $options['batch_pause'] ?? 45;
-                    $this->line(" ☕ Jeda istirahat transisi ke Wali Kelas ({$pause} detik)...");
+                    $pause = $options['batch_pause'] ?? 600;
+                    $pauseMins = round($pause / 60, 1);
+                    $this->line(" ☕ Jeda istirahat transisi ke Wali Kelas ({$pause} detik / ~{$pauseMins} menit)...");
                     sleep($pause);
                 }
 
