@@ -94,6 +94,12 @@
         <span>Biaya Pendidikan</span>
     </a>
 
+    <!-- Dispensasi Ujian CBT (Wali Kelas) -->
+    <a href="{{ route('guru.walikelas.cbt-dispensasi.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.walikelas.cbt-dispensasi.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #d97706 !important; color: #ffffff !important;"><i class="fas fa-shield-halved text-[10px] text-white"></i></div>
+        <span>Dispensasi Ujian CBT</span>
+    </a>
+
     <!-- Monitoring LMS Kelas (Wali Kelas) -->
     <a href="{{ route('guru.walikelas.lms-monitoring') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.walikelas.lms-monitoring*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #f59e0b !important; color: #000000 !important;"><i class="fas fa-chart-pie text-[10px] text-black"></i></div>

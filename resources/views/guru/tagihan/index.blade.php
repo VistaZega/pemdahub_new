@@ -20,6 +20,10 @@
                 </p>
             </div>
             <div class="flex items-center gap-3">
+                <a href="{{ route('guru.walikelas.cbt-dispensasi.index', ['classroom_id' => $classroom->id]) }}" 
+                   class="bg-rose-400 hover:bg-rose-300 text-black border-2 border-black px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition">
+                    <i class="fas fa-shield-halved text-black"></i> Dispensasi Ujian CBT
+                </a>
                 <span class="bg-amber-400 text-black border-2 border-black px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
                     <i class="fas fa-users text-black"></i> {{ $students->count() }} Siswa
                 </span>

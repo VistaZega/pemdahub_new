@@ -11,12 +11,16 @@ use App\Models\CbtExamSession;
 use App\Models\Student;
 use App\Models\StudentClass;
 use App\Services\CbtService;
+use App\Services\CbtTuitionComplianceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CbtController extends Controller
 {
-    public function __construct(private CbtService $cbtService) {}
+    public function __construct(
+        private CbtService $cbtService,
+        private CbtTuitionComplianceService $complianceService
+    ) {}
 
     /**
      * Resolve the authenticated student record (DRY helper)
@@ -117,12 +121,15 @@ class CbtController extends Controller
             ->get()
             ->keyBy('exam_id');
 
-        $availableExams->each(function ($exam) use ($attemptCounts, $lastResults, $activeSessions) {
+        $availableExams->each(function ($exam) use ($student, $attemptCounts, $lastResults, $activeSessions) {
             $exam->attempts_used = $attemptCounts[$exam->id] ?? 0;
             $exam->has_active_session = isset($activeSessions[$exam->id]);
             
-            // Can attempt if: has active session OR hasn't reached max attempts
-            $exam->can_attempt = $exam->has_active_session || ($exam->attempts_used < $exam->max_attempts);
+            // Check compliance uang sekolah
+            $exam->compliance = $this->complianceService->checkStudentCompliance($exam, $student);
+
+            // Can attempt if: (has active session OR hasn't reached max attempts) AND compliance allowed
+            $exam->can_attempt = ($exam->has_active_session || ($exam->attempts_used < $exam->max_attempts)) && $exam->compliance['allowed'];
             
             $exam->last_result = $lastResults[$exam->id] ?? null;
         });
@@ -149,6 +156,9 @@ class CbtController extends Controller
             abort(403, 'Anda tidak terdaftar untuk ujian ini.');
         }
 
+        // Cek kepatuhan pembayaran uang sekolah / dispensasi
+        $compliance = $this->complianceService->checkStudentCompliance($exam, $student);
+
         // Cek session yang masih berjalan
         $activeSession = CbtExamSession::where('exam_id', $exam->id)
             ->where('student_id', $student->id)
@@ -164,7 +174,7 @@ class CbtController extends Controller
             ->latest()
             ->first();
 
-        return view('siswa.cbt.show', compact('exam', 'activeSession', 'attemptsUsed', 'lastResult'));
+        return view('siswa.cbt.show', compact('exam', 'activeSession', 'attemptsUsed', 'lastResult', 'compliance'));
     }
 
     /**
@@ -172,6 +182,15 @@ class CbtController extends Controller
      */
     public function verifyAccess(Request $request, CbtExam $exam)
     {
+        $student = $this->resolveStudent();
+
+        // Cek kepatuhan uang sekolah terlebih dahulu
+        $compliance = $this->complianceService->checkStudentCompliance($exam, $student);
+        if (!$compliance['allowed']) {
+            return redirect()->route('siswa.cbt.show', $exam)
+                ->with('error', $compliance['message'] ?? 'Akses ujian dibatasi karena kepatuhan uang sekolah.');
+        }
+
         if ($exam->access_code && $request->access_code !== $exam->access_code) {
             return back()->with('error', 'Kode akses salah.');
         }
@@ -196,6 +215,13 @@ class CbtController extends Controller
             ->first();
 
         abort_unless($matchingParticipant, 403, 'Anda tidak terdaftar untuk ujian ini.');
+
+        // Verify compliance uang sekolah
+        $compliance = $this->complianceService->checkStudentCompliance($exam, $student);
+        if (!$compliance['allowed']) {
+            return redirect()->route('siswa.cbt.show', $exam)
+                ->with('error', $compliance['message'] ?? 'Akses ujian dibatasi karena kepatuhan uang sekolah.');
+        }
 
         // Verify exam is accessible (active + within time window)
         if (!$exam->isAccessible()) {

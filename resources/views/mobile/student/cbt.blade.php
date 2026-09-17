@@ -22,22 +22,59 @@
 
     <div class="space-y-3">
         @forelse($exams as $exam)
-            <div class="clay-card p-4.5 space-y-3">
+            @php
+                $compliance = $exam->tuition_compliance ?? ['allowed' => true, 'requires_tuition' => false];
+                $isBlockedByTuition = !($compliance['allowed'] ?? true);
+            @endphp
+            <div class="clay-card p-4.5 space-y-3 {{ $isBlockedByTuition ? 'border-amber-300 bg-amber-50/40' : '' }}">
                 <div class="flex items-start justify-between">
                     <div>
-                        <span class="px-3 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-200">
-                            {{ $exam->subject->name ?? 'Mata Pelajaran' }}
-                        </span>
+                        <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                            <span class="px-3 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-200">
+                                {{ $exam->subject->name ?? 'Mata Pelajaran' }}
+                            </span>
+
+                            @if($compliance['requires_tuition'])
+                                @if($compliance['dispensation_active'])
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-200">
+                                        <i class="fa-solid fa-file-signature mr-1"></i>Dispensasi Wali Kelas
+                                    </span>
+                                @elseif($compliance['tuition_cleared'])
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        <i class="fa-solid fa-check mr-1"></i>SPP Lunas ({{ $compliance['tuition_period']['month_name'] }})
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                                        <i class="fa-solid fa-lock mr-1"></i>Syarat SPP ({{ $compliance['tuition_period']['month_name'] }})
+                                    </span>
+                                @endif
+                            @endif
+                        </div>
                         <h3 class="text-sm font-black text-slate-900 mt-1.5">{{ $exam->title }}</h3>
                         <p class="text-xs text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock mr-1 text-rose-600"></i>Durasi: {{ $exam->duration_minutes }} menit</p>
                     </div>
                 </div>
 
+                @if($isBlockedByTuition)
+                    <div class="p-2.5 bg-amber-100/70 border border-amber-300 rounded-xl text-[11px] text-amber-900 font-semibold space-y-1">
+                        <div class="flex items-center gap-1.5 font-black text-amber-950">
+                            <i class="fa-solid fa-circle-exclamation text-amber-600"></i>
+                            Akses Ujian Tertahan
+                        </div>
+                        <p class="text-[10px] text-amber-800 leading-snug">
+                            {{ $compliance['message'] }}
+                        </p>
+                    </div>
+                @endif
+
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-[10px] text-emerald-600 font-black"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Ujian Aktif</span>
+                    <span class="text-[10px] {{ $isBlockedByTuition ? 'text-amber-700' : 'text-emerald-600' }} font-black">
+                        <i class="fa-solid {{ $isBlockedByTuition ? 'fa-triangle-exclamation' : 'fa-circle' }} text-[8px] mr-1"></i>
+                        {{ $isBlockedByTuition ? 'Perlu Kepatuhan SPP' : 'Ujian Siap' }}
+                    </span>
                     <a href="{{ route('siswa.cbt.show', $exam->id) }}"
-                       class="clay-btn px-4 py-2 text-white font-black text-xs">
-                        Mulai Ujian
+                       class="clay-btn px-4 py-2 text-white font-black text-xs {{ $isBlockedByTuition ? 'bg-gradient-to-r from-amber-500 to-rose-500' : '' }}">
+                        {{ $isBlockedByTuition ? 'Cek & Hubungi Wali' : 'Mulai Ujian' }}
                     </a>
                 </div>
             </div>

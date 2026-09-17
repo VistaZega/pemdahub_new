@@ -17,6 +17,7 @@ use App\Models\Teacher;
 use App\Models\TeachingAssignment;
 use App\Models\User;
 use App\Services\VocationalMajorFilterService;
+use App\Services\CbtTuitionComplianceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 
@@ -77,6 +78,15 @@ class CbtService
 
             if ($existingSession) {
                 return $existingSession;
+            }
+
+            // Check kepatuhan pembayaran uang sekolah jika disyaratkan oleh ujian
+            if ($exam->requires_tuition_payment) {
+                $complianceService = app(CbtTuitionComplianceService::class);
+                $compliance = $complianceService->checkStudentCompliance($exam, $student);
+                if (!$compliance['allowed']) {
+                    throw new \RuntimeException($compliance['message'] ?? 'Akses ujian dibatasi karena kepatuhan uang sekolah.');
+                }
             }
 
             // Check max attempts (with lock to prevent race conditions)
@@ -176,6 +186,17 @@ class CbtService
                 if ($exists) {
                     $skipped++;
                     continue;
+                }
+
+                // Check kepatuhan uang sekolah untuk batch start
+                if ($exam->requires_tuition_payment) {
+                    $complianceService = app(CbtTuitionComplianceService::class);
+                    $compliance = $complianceService->checkStudentCompliance($exam, $student);
+                    if (!$compliance['allowed']) {
+                        $skipped++;
+                        $errors[] = "{$student->full_name}: Dilewati (belum lunas uang sekolah & belum ada dispensasi)";
+                        continue;
+                    }
                 }
 
                 $this->startExamSession($exam, $student, $classroomId);

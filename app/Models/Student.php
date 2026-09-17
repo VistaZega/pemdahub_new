@@ -176,6 +176,14 @@ class Student extends Model
         return $this->hasMany(StudentBill::class, 'student_id');
     }
 
+    /**
+     * Relationship: Dispensasi Ujian CBT
+     */
+    public function cbtDispensations()
+    {
+        return $this->hasMany(CbtExamDispensation::class, 'student_id');
+    }
+
     public function finalProjectMemberships()
     {
         return $this->hasMany(FinalProjectMember::class, 'student_id');

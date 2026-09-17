@@ -285,6 +285,57 @@
             </div>
         </div>
 
+        {{-- Persyaratan Uang Sekolah --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6" x-data="{ requiresTuition: {{ old('requires_tuition_payment', $exam->requires_tuition_payment ? 1 : 0) ? 'true' : 'false' }} }">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 shadow-sm border border-amber-100">
+                    <i class="fas fa-file-invoice-dollar text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 leading-none">Persyaratan Uang Sekolah (SPP)</h2>
+                    <p class="text-gray-500 text-sm mt-1">Kepatuhan pembayaran SPP siswa sebagai syarat mengikuti ujian</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <label class="flex items-start gap-4 p-5 bg-gray-50 rounded-2xl border border-gray-200 cursor-pointer hover:bg-amber-50 hover:border-amber-200 transition-all">
+                    <input type="hidden" name="requires_tuition_payment" value="0">
+                    <input type="checkbox" name="requires_tuition_payment" value="1" x-model="requiresTuition" class="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-1" {{ old('requires_tuition_payment', $exam->requires_tuition_payment) ? 'checked' : '' }}>
+                    <div>
+                        <span class="text-base font-bold text-gray-800">Mensyaratkan Pembayaran Uang Sekolah (SPP)</span>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Jika diaktifkan, hanya siswa yang sudah melunasi SPP pada bulan pelaksanaan ujian (atau memperoleh dispensasi dari Wali Kelas) yang dapat mengerjakan soal ujian.
+                        </p>
+                    </div>
+                </label>
+
+                <div x-show="requiresTuition" x-transition class="p-5 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-3">
+                    <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                        <i class="fas fa-info-circle text-amber-600"></i>
+                        <span>Ketentuan Bulan Tagihan</span>
+                    </div>
+                    <p class="text-xs text-gray-600">
+                        Secara standar, sistem akan memeriksa SPP siswa pada <strong>bulan berkenaan tanggal pelaksanaan ujian</strong>. Anda juga dapat menentukan bulan/tahun override khusus jika diperlukan.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Override Bulan (Opsional)</label>
+                            <select name="tuition_month" class="w-full rounded-xl border-gray-200 bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm py-2.5 px-3">
+                                <option value="">Otomatis (Sesuai Bulan Pelaksanaan Ujian)</option>
+                                @foreach([1=>'Januari', 2=>'Februari', 3=>'Maret', 4=>'April', 5=>'Mei', 6=>'Juni', 7=>'Juli', 8=>'Agustus', 9=>'September', 10=>'Oktober', 11=>'November', 12=>'Desember'] as $mNum => $mName)
+                                    <option value="{{ $mNum }}" {{ old('tuition_month', $exam->tuition_month) == $mNum ? 'selected' : '' }}>{{ $mName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Override Tahun (Opsional)</label>
+                            <input type="number" name="tuition_year" value="{{ old('tuition_year', $exam->tuition_year) }}" placeholder="Otomatis dari tanggal ujian" min="2020" max="2099" class="w-full rounded-xl border-gray-200 bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm py-2.5 px-3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="flex justify-end gap-4 p-4 bg-gray-100/50 rounded-2xl">
             <a href="{{ route('admin.cbt.show', $exam) }}" class="px-8 py-4 bg-white border border-gray-200 text-gray-800 rounded-xl hover:bg-gray-50 transition font-bold text-sm uppercase tracking-widest">Batalkan</a>
             <button type="submit" class="px-12 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-2xl transition font-bold text-sm uppercase tracking-widest shadow-xl shadow-amber-200">

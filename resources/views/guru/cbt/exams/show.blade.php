@@ -82,13 +82,18 @@
                     <h2 class="text-lg font-bold text-gray-900">Detail Ujian</h2>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    @php $detailItems = [
+                    @php 
+                    $tuitionInfo = $exam->requires_tuition_payment 
+                        ? 'Wajib Lunas (' . $exam->getTargetTuitionPeriod()['month_name'] . ' ' . $exam->getTargetTuitionPeriod()['year'] . ')' 
+                        : 'Tidak Bersyarat';
+                    $detailItems = [
                         ['Waktu Mulai', $exam->start_time ? $exam->start_time->format('d/m/Y H:i') : '-', 'fa-calendar-check'],
                         ['Waktu Selesai', $exam->end_time ? $exam->end_time->format('d/m/Y H:i') : '-', 'fa-calendar-times'],
                         ['KKM', $exam->passing_score, 'fa-bullseye'],
                         ['Maks Percobaan', $exam->max_attempts . '×', 'fa-redo'],
                         ['Kode Akses', $exam->access_code ?: 'Tidak ada', 'fa-key'],
                         ['Sinkron Nilai', $exam->auto_sync_grade ? 'Ya' : 'Tidak', 'fa-sync'],
+                        ['Syarat SPP', $tuitionInfo, 'fa-money-bill-wave'],
                     ]; @endphp
                     @foreach($detailItems as [$label, $val, $icon])
                     <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200">
@@ -250,6 +255,33 @@
                     @endforeach
                 </div>
             </div>
+
+            {{-- Kepatuhan Uang Sekolah & Dispensasi --}}
+            @if($exam->requires_tuition_payment)
+            <div class="bg-white rounded-2xl shadow-sm border border-amber-200 p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-hand-holding-usd text-amber-600"></i> Kepatuhan SPP
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                        {{ $exam->getTargetTuitionPeriod()['month_name'] }} {{ $exam->getTargetTuitionPeriod()['year'] }}
+                    </span>
+                </div>
+                <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+                    Siswa yang belum lunas SPP bulan ini otomatis diblokir saat memulai ujian, kecuali menerima dispensasi dari Wali Kelas.
+                </p>
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 mb-4 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-amber-900">Dispensasi Diberikan:</span>
+                    <span class="text-sm font-black text-amber-950 px-2 py-0.5 bg-white rounded-lg border border-amber-200">
+                        {{ $exam->dispensations()->where('status', 'granted')->count() }} Siswa
+                    </span>
+                </div>
+                <a href="{{ route('guru.walikelas.cbt-dispensasi.index', ['cbt_exam_id' => $exam->id]) }}" 
+                   class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition font-bold text-xs shadow-sm">
+                    <i class="fas fa-user-shield"></i> Portal Dispensasi Wali Kelas
+                </a>
+            </div>
+            @endif
 
             {{-- Statistik --}}
             @if(($statistics['average_score'] ?? 0) > 0)

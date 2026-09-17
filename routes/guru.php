@@ -34,6 +34,13 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/motivation', [App\Http\Controllers\Guru\HomeroomLmsController::class, 'sendMotivation'])->name('.motivation');
         Route::get('/print', [App\Http\Controllers\Guru\HomeroomLmsController::class, 'printRekap'])->name('.print');
     });
+
+    // Dispensasi Ujian CBT (Wali Kelas)
+    Route::prefix('walikelas/cbt-dispensasi')->name('walikelas.cbt-dispensasi.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Guru\CbtDispensationController::class, 'index'])->name('index');
+        Route::post('/exams/{exam}/students/{student}/grant', [App\Http\Controllers\Guru\CbtDispensationController::class, 'grant'])->name('grant');
+        Route::post('/exams/{exam}/students/{student}/revoke', [App\Http\Controllers\Guru\CbtDispensationController::class, 'revoke'])->name('revoke');
+    });
     Route::get('/nilai', [App\Http\Controllers\Guru\DashboardController::class, 'nilai'])->name('nilai');
     Route::get('/nilai/details', [App\Http\Controllers\Guru\DashboardController::class, 'gradeDetails'])->name('nilai.details');
     

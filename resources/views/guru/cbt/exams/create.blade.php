@@ -226,6 +226,55 @@
             </div>
         </div>
 
+        {{-- Persyaratan Uang Sekolah --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6" x-data="{ requiresTuition: {{ old('requires_tuition_payment', 0) ? 'true' : 'false' }} }">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><i class="fas fa-file-invoice-dollar text-amber-600"></i></div>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Persyaratan Uang Sekolah (SPP)</h2>
+                    <p class="text-xs text-gray-500">Hubungkan hak akses ujian siswa dengan kepatuhan pembayaran uang sekolah</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <label class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-amber-50 hover:border-amber-200 transition">
+                    <input type="hidden" name="requires_tuition_payment" value="0">
+                    <input type="checkbox" name="requires_tuition_payment" value="1" x-model="requiresTuition" class="rounded text-emerald-600 focus:ring-emerald-500 mt-1" {{ old('requires_tuition_payment') ? 'checked' : '' }}>
+                    <div>
+                        <span class="text-base font-bold text-gray-800">Mensyaratkan Pembayaran Uang Sekolah (SPP)</span>
+                        <p class="text-sm text-gray-600 mt-0.5">
+                            Jika diaktifkan, hanya siswa yang sudah melunasi SPP pada bulan pelaksanaan ujian (atau memperoleh dispensasi dari Wali Kelas) yang dapat mengerjakan soal ujian.
+                        </p>
+                    </div>
+                </label>
+
+                <div x-show="requiresTuition" x-transition class="p-4 bg-amber-50/60 rounded-xl border border-amber-200 space-y-3">
+                    <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                        <i class="fas fa-info-circle text-amber-600"></i>
+                        <span>Ketentuan Bulan Tagihan</span>
+                    </div>
+                    <p class="text-xs text-gray-600">
+                        Secara standar, sistem akan memeriksa SPP siswa pada <strong>bulan berkenaan tanggal pelaksanaan ujian</strong>. Anda juga dapat menentukan bulan/tahun khusus jika diperlukan.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Override Bulan (Opsional)</label>
+                            <select name="tuition_month" class="w-full rounded-xl border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 text-sm py-2 px-3">
+                                <option value="">Otomatis (Sesuai Bulan Pelaksanaan Ujian)</option>
+                                @foreach([1=>'Januari', 2=>'Februari', 3=>'Maret', 4=>'April', 5=>'Mei', 6=>'Juni', 7=>'Juli', 8=>'Agustus', 9=>'September', 10=>'Oktober', 11=>'November', 12=>'Desember'] as $mNum => $mName)
+                                    <option value="{{ $mNum }}" {{ old('tuition_month') == $mNum ? 'selected' : '' }}>{{ $mName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Override Tahun (Opsional)</label>
+                            <input type="number" name="tuition_year" value="{{ old('tuition_year') }}" placeholder="Otomatis dari tanggal ujian" min="2020" max="2099" class="w-full rounded-xl border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 text-sm py-2 px-3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Submit --}}
         <div class="flex justify-end gap-3">
             <a href="{{ route('guru.cbt.exams.index') }}" class="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition font-medium">Batal</a>

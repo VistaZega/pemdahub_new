@@ -21,6 +21,7 @@ use App\Models\StudentClass;
 use App\Models\StudentCounselingRecord;
 use App\Models\StudentDevelopmentNote;
 use App\Models\StudentRecommendation;
+use App\Services\CbtTuitionComplianceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -495,6 +496,11 @@ class MobileStudentController extends Controller
                 ->with('subject')
                 ->latest()
                 ->get();
+
+            $complianceService = app(CbtTuitionComplianceService::class);
+            $exams->each(function ($exam) use ($complianceService, $student) {
+                $exam->tuition_compliance = $complianceService->checkStudentCompliance($exam, $student);
+            });
         }
 
         return view('mobile.student.cbt', compact('student', 'classroom', 'exams'));

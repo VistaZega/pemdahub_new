@@ -136,9 +136,90 @@
     </div>
     @endif
 
+    {{-- Status Kepatuhan Uang Sekolah / Blokir Akses --}}
+    @if(isset($compliance) && !$compliance['allowed'])
+    <div class="bg-gradient-to-br from-rose-50 to-red-100 rounded-2xl border-2 border-rose-300 p-6 shadow-sm space-y-4">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-xl shrink-0 shadow-md">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-lg font-black text-rose-950">Akses Ujian Dibatasi: Memerlukan Kepatuhan Uang Sekolah</h3>
+                <p class="text-sm text-rose-800 font-medium">
+                    Ujian ini mensyaratkan pelunasan uang sekolah (SPP) untuk <strong>Bulan {{ $compliance['month_label'] }}</strong>.
+                </p>
+            </div>
+        </div>
+
+        <div class="p-4 bg-white/90 backdrop-blur-xs rounded-xl border border-rose-200 text-xs text-rose-900 space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-600">Status Pembayaran SPP {{ $compliance['month_label'] }}:</span>
+                <span class="px-2.5 py-0.5 rounded-full font-black bg-rose-100 text-rose-800 border border-rose-200">Belum Lunas</span>
+            </div>
+            @if($compliance['unpaid_amount'] > 0)
+            <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-600">Sisa Tagihan Belum Dibayar:</span>
+                <span class="font-black text-rose-700 font-mono text-sm">Rp {{ number_format($compliance['unpaid_amount'], 0, ',', '.') }}</span>
+            </div>
+            @endif
+            <div class="pt-2 border-t border-rose-100 text-slate-700 leading-relaxed">
+                Untuk dapat masuk dan mengerjakan soal ujian, Anda memiliki <strong>2 mekanisme</strong> pilihan:
+                <ol class="list-decimal list-inside mt-1 space-y-1 font-semibold text-slate-800">
+                    <li>Menyelesaikan pembayaran uang sekolah ke Bagian Keuangan / Tata Usaha sekolah.</li>
+                    <li>Menghubungi <strong>Wali Kelas</strong> untuk mendapatkan <strong>otorisasi dispensasi ujian</strong> setelah tercapai kesepakatan penyelesaian uang sekolah.</li>
+                </ol>
+            </div>
+        </div>
+
+        {{-- Kontak Wali Kelas --}}
+        <div class="p-4 bg-white rounded-xl border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-800 font-black flex items-center justify-center text-sm">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div>
+                    <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Wali Kelas Anda</div>
+                    <div class="text-sm font-black text-slate-900">{{ $compliance['homeroom_name'] ?? 'Wali Kelas' }}</div>
+                    @if($compliance['homeroom_phone'])
+                        <div class="text-xs text-slate-500 font-mono">{{ $compliance['homeroom_phone'] }}</div>
+                    @endif
+                </div>
+            </div>
+            @if($compliance['whatsapp_url'])
+            <a href="{{ $compliance['whatsapp_url'] }}" target="_blank" rel="noopener noreferrer"
+               class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2">
+                <i class="fab fa-whatsapp text-base"></i>
+                <span>Hubungi Wali Kelas via WhatsApp</span>
+            </a>
+            @else
+            <span class="text-xs text-slate-500 italic">Silakan temui Wali Kelas di ruang guru sekolah</span>
+            @endif
+        </div>
+    </div>
+    @elseif(isset($compliance) && $compliance['has_dispensation'])
+    <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-base font-black shrink-0">
+            <i class="fas fa-certificate"></i>
+        </div>
+        <div>
+            <div class="text-xs font-bold text-blue-900">Dispensasi Ujian CBT Aktif</div>
+            <p class="text-xs text-blue-700">
+                Wali Kelas telah memberikan otorisasi dispensasi untuk ujian ini.
+                @if($compliance['dispensation']?->reason)
+                    <span class="italic font-medium">"{{ $compliance['dispensation']->reason }}"</span>
+                @endif
+            </p>
+        </div>
+    </div>
+    @endif
+
     {{-- Action --}}
     <div class="text-center py-4">
-        @if($activeSession)
+        @if(isset($compliance) && !$compliance['allowed'])
+            <button type="button" disabled class="inline-flex items-center px-8 py-3.5 bg-slate-200 text-slate-400 rounded-xl cursor-not-allowed text-base font-bold gap-2">
+                <i class="fas fa-lock"></i> Akses Ujian Dibatasi (Hubungi Wali Kelas)
+            </button>
+        @elseif($activeSession)
         <form action="{{ route('siswa.cbt.start', $exam) }}" method="POST" class="inline-block">
             @csrf
             <button type="submit" class="inline-flex items-center px-8 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition text-lg font-bold gap-3">

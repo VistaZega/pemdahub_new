@@ -24,6 +24,7 @@ class CbtExam extends Model
         'passing_score', 'max_attempts',
         'access_code', 'prevent_tab_switch', 'prevent_copy_paste',
         'auto_sync_grade', 'created_by', 'is_paused', 'paused_at',
+        'requires_tuition_payment', 'tuition_month', 'tuition_year',
     ];
 
     protected $casts = [
@@ -43,6 +44,9 @@ class CbtExam extends Model
         'auto_sync_grade' => 'boolean',
         'is_paused' => 'boolean',
         'paused_at' => 'datetime',
+        'requires_tuition_payment' => 'boolean',
+        'tuition_month' => 'integer',
+        'tuition_year' => 'integer',
     ];
 
     public const EXAM_TYPES = [
@@ -117,6 +121,25 @@ class CbtExam extends Model
     }
     public function sessions(): HasMany { return $this->hasMany(CbtExamSession::class, 'exam_id'); }
     public function results(): HasMany { return $this->hasMany(CbtExamResult::class, 'exam_id'); }
+    public function dispensations(): HasMany { return $this->hasMany(CbtExamDispensation::class, 'cbt_exam_id'); }
+
+    /**
+     * Dapatkan periode bulan dan tahun evaluasi kepatuhan uang sekolah
+     */
+    public function getTargetTuitionPeriod(): array
+    {
+        $baseDate = $this->start_time ?: now();
+        $month = (int) ($this->tuition_month ?: $baseDate->month);
+        $year = (int) ($this->tuition_year ?: $baseDate->year);
+
+        $monthName = \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->isoFormat('MMMM Y');
+
+        return [
+            'month' => $month,
+            'year' => $year,
+            'label' => $monthName,
+        ];
+    }
 
     public function answers(): HasManyThrough
     {
