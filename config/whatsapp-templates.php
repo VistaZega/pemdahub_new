@@ -742,6 +742,7 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 👨‍🎓 *1. KEHADIRAN SISWA (Total: {total_siswa} Siswa):*
 • ✅ Hadir Tepat Waktu: *{siswa_hadir}* | 🕒 Terlambat: *{siswa_terlambat}*
 • 🤒 Sakit: *{siswa_sakit}* | 📩 Izin: *{siswa_izin}* | ❌ Alpha: *{siswa_alpha}*
+• ⏳ Belum Presensi: *{siswa_belum_presensi}*
 
 👨‍🏫 *2. KEHADIRAN GURU & TENAGA PENDIDIK:*
 • ✅ Hadir: *{guru_hadir}* | 🚗 Dinas Luar: *{guru_dinas}*
@@ -775,8 +776,9 @@ _Dikirim otomatis oleh PembdaHUB Executive System_",
 • ✅ Hadir: *{hadir}* | 🕒 Terlambat: *{terlambat}*
 • 🤒 Sakit: *{sakit}* | 📩 Izin: *{izin}*
 • ❌ Alpha: *{alpha}*
+• ⏳ Belum Presensi: *{belum_presensi}*
 
-📋 *DAFTAR SISWA TIDAK HADIR / TERLAMBAT:*
+📋 *RINCIAN KETIDAKHADIRAN & STATUS PRESENSI:*
 {daftar_tidak_hadir}
 
 {catatan_penutup}

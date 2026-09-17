@@ -122,6 +122,8 @@ class ExecutiveReportService
                 $permitS = $statsSiswa['izin'] ?? 0;
                 $absentS = $statsSiswa['alpha'] ?? $statsSiswa['alpa'] ?? 0;
                 $totalSiswa = $studentIds->count();
+                $recordedS = $presentS + $lateS + $sickS + $permitS + $absentS;
+                $unrecordedS = max(0, $totalSiswa - $recordedS);
 
                 // 2. GURU STATS — pegawai bertipe 'guru' di unit sekolah ini
                 $statsGuru = \App\Models\EmployeeAttendance::whereDate('date', $dateToday)
@@ -167,6 +169,7 @@ class ExecutiveReportService
                     'siswa_sakit' => $sickS,
                     'siswa_izin' => $permitS,
                     'siswa_alpha' => $absentS,
+                    'siswa_belum_presensi' => $unrecordedS,
                     'guru_hadir' => $presentG,
                     'guru_dinas' => $dinasG,
                     'guru_sakit' => $sickG,
@@ -307,6 +310,7 @@ class ExecutiveReportService
 
                 // Get attendance stats for this classroom — hanya absensi harian (schedule_id = null)
                 $studentIds = $class->students()->pluck('students.id');
+                $totalSiswa = $studentIds->count();
                 $stats = Attendance::whereIn('student_id', $studentIds)
                     ->whereDate('date', $dateToday)
                     ->whereNull('schedule_id')
@@ -320,18 +324,55 @@ class ExecutiveReportService
                 $sick = $stats['sakit'] ?? 0;
                 $permit = $stats['izin'] ?? 0;
                 $absent = $stats['alpha'] ?? $stats['alpa'] ?? 0;
+                $recordedCount = $present + $late + $sick + $permit + $absent;
+                $unrecordedCount = max(0, $totalSiswa - $recordedCount);
 
-                // Get names of absent/late students
-                $absentStudentNames = Attendance::whereIn('student_id', $studentIds)
+                // Daftar siswa tidak hadir / terlambat yang tercatat
+                $recordedAbsentItems = Attendance::whereIn('student_id', $studentIds)
                     ->whereDate('date', $dateToday)
                     ->whereNull('schedule_id')
                     ->whereIn('status', ['alpha', 'alpa', 'sakit', 'izin', 'terlambat'])
                     ->with('student')
                     ->get()
                     ->map(fn($a) => "• " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
-                    ->implode("\n");
+                    ->values()
+                    ->toArray();
 
-                $absentListSnippet = $absentStudentNames ?: "• Tidak ada (Semua Hadir 100%)";
+                // Logika penyusunan rincian kehadiran & status presensi yang akurat
+                if ($totalSiswa === 0) {
+                    $absentListSnippet = "• Belum ada siswa yang terdaftar di kelas ini.";
+                } elseif ($recordedCount === 0) {
+                    $absentListSnippet = "⚠️ Belum ada data presensi yang masuk untuk kelas ini ({$totalSiswa} siswa belum presensi).";
+                } else {
+                    $detailItems = $recordedAbsentItems;
+
+                    // Tambahkan informasi siswa yang belum melakukan presensi sama sekali
+                    if ($unrecordedCount > 0) {
+                        $recordedStudentIds = Attendance::whereIn('student_id', $studentIds)
+                            ->whereDate('date', $dateToday)
+                            ->whereNull('schedule_id')
+                            ->pluck('student_id');
+                        $unrecordedStudentIds = $studentIds->diff($recordedStudentIds);
+
+                        $unrecordedStudents = \App\Models\Student::whereIn('id', $unrecordedStudentIds)
+                            ->orderBy('full_name')
+                            ->pluck('full_name');
+
+                        if ($unrecordedStudents->count() <= 10) {
+                            foreach ($unrecordedStudents as $unName) {
+                                $detailItems[] = "• {$unName} (BELUM PRESENSI)";
+                            }
+                        } else {
+                            $detailItems[] = "• {$unrecordedCount} siswa lainnya (BELUM PRESENSI)";
+                        }
+                    }
+
+                    if (empty($detailItems)) {
+                        $absentListSnippet = "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Hadir Tepat Waktu - 100% ✨)";
+                    } else {
+                        $absentListSnippet = implode("\n", $detailItems);
+                    }
+                }
 
                 $greeting = $this->getPolymorphicGreeting($homeroomTeacher->full_name, 'Bapak/Ibu');
                 $closing = $this->getPolymorphicClosing();
@@ -341,12 +382,13 @@ class ExecutiveReportService
                     'nama_wali_kelas' => $homeroomTeacher->full_name,
                     'tanggal' => $dateFormatted,
                     'waktu_rekap' => '08:00 WIB',
-                    'total_siswa' => $studentIds->count(),
+                    'total_siswa' => $totalSiswa,
                     'hadir' => $present,
                     'terlambat' => $late,
                     'sakit' => $sick,
                     'izin' => $permit,
                     'alpha' => $absent,
+                    'belum_presensi' => $unrecordedCount,
                     'daftar_tidak_hadir' => $absentListSnippet,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
