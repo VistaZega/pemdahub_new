@@ -11,6 +11,7 @@ use App\Models\StudentBill;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -26,10 +27,19 @@ class ExecutiveReportService
     /**
      * 1A. Daily Attendance Digest for Principal (Kepala Sekolah) - per unit sekolah
      * Dikirim 15 menit setelah batas toleransi (08:00 WIB) setiap hari aktif (Senin-Jumat)
+     * Dilengkapi protokol anti-ban (jeda acak, proteksi duplikasi harian, & variasi sapaan).
      */
-    public function sendPrincipalDailyAttendanceDigest(): array
+    public function sendPrincipalDailyAttendanceDigest(array $options = []): array
     {
-        if (!Setting::getValue('wa_send_principal_attendance', true)) {
+        $dryRun = $options['dry_run'] ?? false;
+        $force = $options['force'] ?? false;
+        $targetPhone = $options['target_phone'] ?? null;
+        $schoolIdFilter = $options['school_id'] ?? null;
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 10);
+        $logger = $options['logger'] ?? null;
+
+        if (!$targetPhone && !Setting::getValue('wa_send_principal_attendance', true)) {
             Log::channel('whatsapp')->info('WA digest skipped: wa_send_principal_attendance is disabled');
             return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi WA Rekap Kepsek dinonaktifkan di pengaturan'];
         }
@@ -37,16 +47,25 @@ class ExecutiveReportService
         $dateToday = date('Y-m-d');
         $dateFormatted = date('d F Y');
         $sentCount = 0;
+        $skippedCount = 0;
         $errors = [];
 
         // Iterasi per unit sekolah aktif (tanpa Yayasan)
-        $schools = School::schoolsOnly()->with('principal')->get();
+        $query = School::schoolsOnly()->with('principal');
+        if ($schoolIdFilter) {
+            $query->where('id', $schoolIdFilter);
+        }
+        $schools = $query->get();
+
+        $totalToSend = $schools->count();
+        $currentIndex = 0;
 
         foreach ($schools as $school) {
+            $currentIndex++;
             try {
                 // Resolve nomor HP Kepala Sekolah via relasi School -> Principal (Teacher) -> phone
                 $principal = $school->principal;
-                $phone = $principal?->phone ?? null;
+                $phone = $targetPhone ?: ($principal?->phone ?? null);
 
                 // Fallback: cari user dengan role kepala_sekolah di sekolah ini
                 if (!$phone) {
@@ -54,16 +73,27 @@ class ExecutiveReportService
                         ->where('school_id', $school->id)
                         ->first();
                     if ($kepsekUser && $kepsekUser->teacher) {
-                        $phone = $kepsekUser->teacher->phone;
+                        $phone = $targetPhone ?: $kepsekUser->teacher->phone;
                     }
                 }
 
                 if (!$phone) {
-                    Log::channel('whatsapp')->warning("Principal phone not found for school: {$school->name}");
+                    $msg = "Nomor HP Kepala Sekolah {$school->name} tidak ditemukan";
+                    Log::channel('whatsapp')->warning($msg);
+                    if ($logger) $logger("⚠️ {$msg}");
                     continue;
                 }
 
                 $principalName = $principal?->full_name ?? $school->principal_name ?? 'Kepala Sekolah';
+
+                // Check Idempotency Lock: lewati jika hari ini sudah pernah terkirim (kecuali mode force atau single test)
+                if (!$targetPhone && !$force && $this->isDigestSentToday('principal', $school->id, $dateToday)) {
+                    $skippedCount++;
+                    $msg = "Rekap Kepsek {$school->name} sudah terkirim hari ini (dilewati)";
+                    Log::channel('whatsapp')->info($msg);
+                    if ($logger) $logger("⏭️ {$msg}");
+                    continue;
+                }
 
                 // Ambil classroom_ids milik unit sekolah ini di TP aktif
                 $activeYear = AcademicYear::where('is_active', true)->first();
@@ -123,7 +153,10 @@ class ExecutiveReportService
                 $absentP = $statsStaff['alpha'] ?? $statsStaff['alpa'] ?? 0;
                 $cutiP = $statsStaff['cuti'] ?? 0;
 
-                $this->whatsappService->sendTemplate($phone, 'executive.principal_daily_attendance', [
+                $greeting = $this->getPolymorphicGreeting($principalName, 'Bapak/Ibu');
+                $closing = $this->getPolymorphicClosing();
+
+                $templateData = [
                     'sekolah' => $school->name,
                     'nama_kepsek' => $principalName,
                     'tanggal' => $dateFormatted,
@@ -144,30 +177,69 @@ class ExecutiveReportService
                     'pegawai_sakit' => $sickP,
                     'pegawai_izin' => $permitP,
                     'pegawai_alpha' => $absentP,
-                ]);
-                $sentCount++;
+                    'salam_pembuka' => $greeting,
+                    'catatan_penutup' => $closing,
+                ];
+
+                if ($dryRun) {
+                    $sentCount++;
+                    if ($logger) $logger("🔍 [SIMULASI] Rekap Kepsek {$school->name} siap dikirim ke {$phone} ({$principalName})");
+                } else {
+                    $res = $this->whatsappService->sendTemplate($phone, 'executive.principal_daily_attendance', $templateData);
+                    if ($res['success'] ?? false) {
+                        $sentCount++;
+                        $this->markDigestSentToday('principal', $school->id, $dateToday);
+                        if ($logger) $logger("✅ Rekap Kepsek {$school->name} berhasil terkirim ke {$phone} ({$principalName})");
+                    } else {
+                        $errMsg = $res['error'] ?? 'Gagal kirim via gateway';
+                        $errors[] = "{$school->name}: {$errMsg}";
+                        if ($logger) $logger("❌ Gagal kirim Kepsek {$school->name}: {$errMsg}");
+                    }
+                }
+
+                // Jika mode single target test, cukup kirim 1 contoh dan berhenti
+                if ($targetPhone) {
+                    break;
+                }
+
+                // Pacing aman antar Kepala Sekolah
+                if ($currentIndex < $totalToSend) {
+                    $this->applyHumanPacing($delayMin, $delayMax, $dryRun, $logger);
+                }
 
             } catch (\Exception $e) {
                 Log::channel('whatsapp')->error("Failed to send principal digest for {$school->name}: " . $e->getMessage());
                 $errors[] = $school->name;
+                if ($logger) $logger("❌ Error Kepsek {$school->name}: " . $e->getMessage());
             }
         }
 
         return [
             'success' => true,
             'sent' => $sentCount,
+            'skipped' => $skippedCount,
             'errors' => $errors,
-            'message' => "Digest Kehadiran Kepsek terkirim ke {$sentCount} unit sekolah" . (count($errors) ? ", gagal: " . implode(', ', $errors) : ''),
+            'message' => "Digest Kehadiran Kepsek terkirim ke {$sentCount} unit sekolah" . ($skippedCount ? " ({$skippedCount} dilewati)" : '') . (count($errors) ? ", gagal: " . implode(', ', $errors) : ''),
         ];
     }
 
     /**
      * 1B. Daily Attendance Digest for Homeroom Teachers (Wali Kelas)
      * Dikirim 15 menit setelah batas toleransi (08:00 WIB) setiap hari aktif (Senin-Jumat)
+     * Dilengkapi protokol anti-ban (jeda acak 12-20s, batching antar sekolah, idempotensi, variasi teks).
      */
-    public function sendHomeroomDailyAttendanceDigest(): array
+    public function sendHomeroomDailyAttendanceDigest(array $options = []): array
     {
-        if (!Setting::getValue('wa_send_homeroom_attendance', true)) {
+        $dryRun = $options['dry_run'] ?? false;
+        $force = $options['force'] ?? false;
+        $targetPhone = $options['target_phone'] ?? null;
+        $schoolIdFilter = $options['school_id'] ?? null;
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 12);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 20);
+        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 45);
+        $logger = $options['logger'] ?? null;
+
+        if (!$targetPhone && !Setting::getValue('wa_send_homeroom_attendance', true)) {
             Log::channel('whatsapp')->info('WA digest skipped: wa_send_homeroom_attendance is disabled');
             return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi WA Rekap Wali Kelas dinonaktifkan di pengaturan'];
         }
@@ -179,49 +251,92 @@ class ExecutiveReportService
         if (!$activeYear) return ['success' => false, 'message' => 'Tahun Akademik Aktif tidak ditemukan'];
 
         // Hanya kelas dari unit sekolah aktif (tanpa Yayasan)
-        $schoolIds = School::schoolsOnly()->pluck('id');
-        $classrooms = Classroom::where('academic_year_id', $activeYear->id)
-            ->whereIn('school_id', $schoolIds)
-            ->get();
+        $querySchools = School::schoolsOnly();
+        if ($schoolIdFilter) {
+            $querySchools->where('id', $schoolIdFilter);
+        }
+        $schools = $querySchools->get();
+
         $sentCount = 0;
+        $skippedCount = 0;
+        $errors = [];
 
-        foreach ($classrooms as $class) {
-            $homeroomTeacher = $class->homeroomTeacher;
-            if (!$homeroomTeacher) continue;
+        $totalSchools = $schools->count();
+        $schoolIndex = 0;
 
-            // Resolve nomor HP wali kelas via accessor Teacher -> Employee -> phone
-            $phone = $homeroomTeacher->phone ?? null;
-            if (!$phone) continue;
+        foreach ($schools as $school) {
+            $schoolIndex++;
 
-            // Get attendance stats for this classroom — hanya absensi harian (schedule_id = null)
-            $studentIds = $class->students()->pluck('students.id');
-            $stats = Attendance::whereIn('student_id', $studentIds)
-                ->whereDate('date', $dateToday)
-                ->whereNull('schedule_id')
-                ->select('status', DB::raw('count(*) as count'))
-                ->groupBy('status')
-                ->pluck('count', 'status')
-                ->toArray();
+            $classrooms = Classroom::where('academic_year_id', $activeYear->id)
+                ->where('school_id', $school->id)
+                ->with(['homeroomTeacher.employee'])
+                ->get();
 
-            $present = $stats['hadir'] ?? 0;
-            $late = $stats['terlambat'] ?? 0;
-            $sick = $stats['sakit'] ?? 0;
-            $permit = $stats['izin'] ?? 0;
-            $absent = $stats['alpha'] ?? $stats['alpa'] ?? 0;
+            if ($classrooms->isEmpty()) continue;
 
-            // Get names of absent/late students — hanya absensi harian
-            $absentStudentNames = Attendance::whereIn('student_id', $studentIds)
-                ->whereDate('date', $dateToday)
-                ->whereNull('schedule_id')
-                ->whereIn('status', ['alpha', 'alpa', 'sakit', 'izin', 'terlambat'])
-                ->with('student')
-                ->get()
-                ->map(fn($a) => "• " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
-                ->implode("\n");
+            if ($logger) {
+                $logger("🏫 Memulai batch Wali Kelas: {$school->name} ({$classrooms->count()} kelas)...");
+            }
 
-            $absentListSnippet = $absentStudentNames ?: "• Tidak ada (Semua Hadir 100%)";
+            $totalClassesInSchool = $classrooms->count();
+            $classIndex = 0;
 
-                $this->whatsappService->sendTemplate($phone, 'executive.homeroom_daily_attendance', [
+            foreach ($classrooms as $class) {
+                $classIndex++;
+                $homeroomTeacher = $class->homeroomTeacher;
+                if (!$homeroomTeacher) {
+                    if ($logger) $logger("⚠️ Kelas {$class->name} ({$school->name}) belum memiliki Wali Kelas (dilewati)");
+                    continue;
+                }
+
+                // Resolve nomor HP wali kelas
+                $phone = $targetPhone ?: ($homeroomTeacher->phone ?? null);
+                if (!$phone) {
+                    if ($logger) $logger("⚠️ Wali Kelas {$homeroomTeacher->full_name} ({$class->name}) tidak memiliki nomor HP");
+                    continue;
+                }
+
+                // Check Idempotency Lock: lewati jika hari ini sudah pernah terkirim
+                if (!$targetPhone && !$force && $this->isDigestSentToday('homeroom', $class->id, $dateToday)) {
+                    $skippedCount++;
+                    $msg = "Rekap Kelas {$class->name} ({$homeroomTeacher->full_name}) sudah terkirim hari ini (dilewati)";
+                    Log::channel('whatsapp')->info($msg);
+                    if ($logger) $logger("⏭️ {$msg}");
+                    continue;
+                }
+
+                // Get attendance stats for this classroom — hanya absensi harian (schedule_id = null)
+                $studentIds = $class->students()->pluck('students.id');
+                $stats = Attendance::whereIn('student_id', $studentIds)
+                    ->whereDate('date', $dateToday)
+                    ->whereNull('schedule_id')
+                    ->select('status', DB::raw('count(*) as count'))
+                    ->groupBy('status')
+                    ->pluck('count', 'status')
+                    ->toArray();
+
+                $present = $stats['hadir'] ?? 0;
+                $late = $stats['terlambat'] ?? 0;
+                $sick = $stats['sakit'] ?? 0;
+                $permit = $stats['izin'] ?? 0;
+                $absent = $stats['alpha'] ?? $stats['alpa'] ?? 0;
+
+                // Get names of absent/late students
+                $absentStudentNames = Attendance::whereIn('student_id', $studentIds)
+                    ->whereDate('date', $dateToday)
+                    ->whereNull('schedule_id')
+                    ->whereIn('status', ['alpha', 'alpa', 'sakit', 'izin', 'terlambat'])
+                    ->with('student')
+                    ->get()
+                    ->map(fn($a) => "• " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
+                    ->implode("\n");
+
+                $absentListSnippet = $absentStudentNames ?: "• Tidak ada (Semua Hadir 100%)";
+
+                $greeting = $this->getPolymorphicGreeting($homeroomTeacher->full_name, 'Bapak/Ibu');
+                $closing = $this->getPolymorphicClosing();
+
+                $templateData = [
                     'kelas' => $class->name,
                     'nama_wali_kelas' => $homeroomTeacher->full_name,
                     'tanggal' => $dateFormatted,
@@ -233,11 +348,149 @@ class ExecutiveReportService
                     'izin' => $permit,
                     'alpha' => $absent,
                     'daftar_tidak_hadir' => $absentListSnippet,
-                ]);
-                $sentCount++;
+                    'salam_pembuka' => $greeting,
+                    'catatan_penutup' => $closing,
+                ];
+
+                if ($dryRun) {
+                    $sentCount++;
+                    if ($logger) $logger("🔍 [SIMULASI] Rekap {$class->name} siap dikirim ke {$phone} ({$homeroomTeacher->full_name})");
+                } else {
+                    $res = $this->whatsappService->sendTemplate($phone, 'executive.homeroom_daily_attendance', $templateData);
+                    if ($res['success'] ?? false) {
+                        $sentCount++;
+                        $this->markDigestSentToday('homeroom', $class->id, $dateToday);
+                        if ($logger) $logger("✅ Rekap {$class->name} terkirim ke {$phone} ({$homeroomTeacher->full_name})");
+                    } else {
+                        $errMsg = $res['error'] ?? 'Gagal kirim via gateway';
+                        $errors[] = "{$class->name}: {$errMsg}";
+                        if ($logger) $logger("❌ Gagal kirim {$class->name}: {$errMsg}");
+                    }
+                }
+
+                // Jika mode single target test, cukup kirim 1 contoh dan selesai
+                if ($targetPhone) {
+                    break 2;
+                }
+
+                // Apply human pacing between classes within the same school
+                if ($classIndex < $totalClassesInSchool) {
+                    $this->applyHumanPacing($delayMin, $delayMax, $dryRun, $logger);
+                }
+            }
+
+            // Pause between school units (resting window) if more schools remain
+            if ($schoolIndex < $totalSchools && !$targetPhone) {
+                $this->applyBatchPause($batchPause, $dryRun, $logger);
+            }
         }
 
-        return ['success' => true, 'sent' => $sentCount, 'message' => "Digest Kehadiran Wali Kelas terkirim ke {$sentCount} kelas"];
+        return [
+            'success' => true,
+            'sent' => $sentCount,
+            'skipped' => $skippedCount,
+            'errors' => $errors,
+            'message' => "Digest Kehadiran Wali Kelas terkirim ke {$sentCount} kelas" . ($skippedCount ? " ({$skippedCount} dilewati)" : '') . (count($errors) ? ", gagal: " . implode(', ', $errors) : ''),
+        ];
+    }
+
+    /**
+     * Check if a digest has already been sent today (Idempotency Lock).
+     */
+    public function isDigestSentToday(string $type, int|string $targetId, ?string $date = null): bool
+    {
+        $date = $date ?: date('Y-m-d');
+        $key = "wa_digest_sent_{$type}_{$targetId}_{$date}";
+        return Cache::has($key);
+    }
+
+    /**
+     * Mark a digest as sent today (TTL 2 days).
+     */
+    public function markDigestSentToday(string $type, int|string $targetId, ?string $date = null): void
+    {
+        $date = $date ?: date('Y-m-d');
+        $key = "wa_digest_sent_{$type}_{$targetId}_{$date}";
+        Cache::put($key, now()->toDateTimeString(), 86400 * 2);
+    }
+
+    /**
+     * Clear idempotency lock for today (useful for re-sending/testing).
+     */
+    public function clearDigestSentToday(string $type, int|string $targetId, ?string $date = null): void
+    {
+        $date = $date ?: date('Y-m-d');
+        $key = "wa_digest_sent_{$type}_{$targetId}_{$date}";
+        Cache::forget($key);
+    }
+
+    /**
+     * Apply randomized delay to mimic human behavior (Anti-Ban).
+     */
+    protected function applyHumanPacing(int $minSeconds, int $maxSeconds, bool $dryRun = false, ?callable $logger = null): void
+    {
+        if ($dryRun) {
+            usleep(100000); // 0.1s
+            return;
+        }
+
+        $min = max(2, $minSeconds);
+        $max = max($min, $maxSeconds);
+        $sleepSeconds = rand($min, $max);
+
+        if ($logger) {
+            $logger("⏳ Jeda alami {$sleepSeconds} detik sebelum pesan berikutnya...");
+        }
+
+        sleep($sleepSeconds);
+    }
+
+    /**
+     * Apply resting window between batches / school units.
+     */
+    protected function applyBatchPause(int $seconds, bool $dryRun = false, ?callable $logger = null): void
+    {
+        if ($dryRun) {
+            usleep(100000); // 0.1s
+            return;
+        }
+
+        $pause = max(5, $seconds);
+        if ($logger) {
+            $logger("☕ Istirahat jeda batch antar-sekolah ({$pause} detik)...");
+        }
+
+        sleep($pause);
+    }
+
+    /**
+     * Dynamic natural greetings to vary message structure.
+     */
+    protected function getPolymorphicGreeting(string $name, string $title = 'Bapak/Ibu'): string
+    {
+        $firstWord = explode(' ', trim($name))[0];
+        $greetings = [
+            "Selamat pagi, {$title} {$name}. 🙏",
+            "Salam hormat, {$title} {$name}.",
+            "Selamat pagi dan salam hangat, {$title} {$name}. ✨",
+            "Yth. {$title} {$name}, selamat pagi.",
+            "Semoga sehat dan bersemangat selalu, {$title} {$firstWord}. 🌿",
+        ];
+        return $greetings[array_rand($greetings)];
+    }
+
+    /**
+     * Dynamic closing statements.
+     */
+    protected function getPolymorphicClosing(): string
+    {
+        $closings = [
+            "Semoga kegiatan belajar mengajar hari ini berjalan lancar dan penuh berkah. 🙏",
+            "Terima kasih atas dedikasi dan bimbingan luar biasa Bapak/Ibu untuk siswa kita. ✨",
+            "Semangat mendampingi dan mencerdaskan generasi penerus Pembda hari ini! 🌟",
+            "Semoga seluruh aktivitas pendidikan hari ini diberikan kemudahan dan kelancaran. 🌿",
+        ];
+        return $closings[array_rand($closings)];
     }
 
     /**

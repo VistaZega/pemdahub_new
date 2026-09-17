@@ -105,5 +105,6 @@ Schedule::command('wa:digest attendance-daily')
     ->weekdays()
     ->at('08:00')
     ->timezone('Asia/Jakarta')
-    ->withoutOverlapping()
+    ->withoutOverlapping(60)
+    ->runInBackground()
     ->description('Kirim Rekap Kehadiran Harian ke Kepala Sekolah & Wali Kelas via WhatsApp');

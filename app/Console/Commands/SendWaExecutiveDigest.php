@@ -12,14 +12,22 @@ class SendWaExecutiveDigest extends Command
      *
      * @var string
      */
-    protected $signature = 'wa:digest {type=attendance-daily : Type of digest (attendance-daily, spp-monthly, lms-weekly, award-sample, edaran-sample)}';
+    protected $signature = 'wa:digest 
+        {type=attendance-daily : Type of digest (attendance-daily, spp-monthly, lms-weekly, award-sample, edaran-sample)}
+        {--delay-min= : Jeda minimum antar pesan dalam detik}
+        {--delay-max= : Jeda maksimum antar pesan dalam detik}
+        {--batch-pause= : Jeda istirahat antar unit sekolah dalam detik}
+        {--school= : Filter hanya ID sekolah tertentu}
+        {--force : Paksa kirim meskipun hari ini sudah terkirim}
+        {--dry-run : Simulasi perhitungan tanpa mengirim pesan riil ke WhatsApp}
+        {--test-phone= : Kirim 1 contoh sampel hanya ke nomor ini (Uji Coba Aman)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Send automated WhatsApp Executive Digests to Principal and Homeroom Teachers';
+    protected $description = 'Send automated WhatsApp Executive Digests to Principal and Homeroom Teachers with anti-ban pacing';
 
     /**
      * Execute the console command.
@@ -27,14 +35,48 @@ class SendWaExecutiveDigest extends Command
     public function handle(ExecutiveReportService $reportService): int
     {
         $type = $this->argument('type');
+        $dryRun = (bool)$this->option('dry-run');
 
-        $this->info("🚀 Executing WhatsApp Executive Digest: [{$type}]...");
+        $this->info("🚀 Menjalankan WhatsApp Executive Digest: [{$type}]" . ($dryRun ? " [MODE SIMULASI / DRY-RUN]" : "") . "...");
+
+        $options = [
+            'dry_run' => $dryRun,
+            'force' => (bool)$this->option('force'),
+            'school_id' => $this->option('school') ? (int)$this->option('school') : null,
+            'target_phone' => $this->option('test-phone') ?: null,
+            'delay_min' => $this->option('delay-min') !== null ? (int)$this->option('delay-min') : null,
+            'delay_max' => $this->option('delay-max') !== null ? (int)$this->option('delay-max') : null,
+            'batch_pause' => $this->option('batch-pause') !== null ? (int)$this->option('batch-pause') : null,
+            'logger' => function ($msg) {
+                $time = date('H:i:s');
+                $this->line(" [{$time}] {$msg}");
+            },
+        ];
 
         switch ($type) {
             case 'attendance-daily':
-                $res1 = $reportService->sendPrincipalDailyAttendanceDigest();
-                $res2 = $reportService->sendHomeroomDailyAttendanceDigest();
-                $this->info("✅ " . ($res1['message'] ?? 'Done Kepsek') . " | " . ($res2['message'] ?? 'Done Wali Kelas'));
+                if ($options['target_phone']) {
+                    $this->warn("🧪 Mode Uji Coba: Mengirim 1 contoh rekap ke nomor {$options['target_phone']}...");
+                    $res1 = $reportService->sendPrincipalDailyAttendanceDigest($options);
+                    $res2 = $reportService->sendHomeroomDailyAttendanceDigest($options);
+                    $this->info("🏁 Selesai Uji Coba: Kepsek=" . ($res1['sent'] ? 'OK' : 'Skip') . ", Wali Kelas=" . ($res2['sent'] ? 'OK' : 'Skip'));
+                    break;
+                }
+
+                $this->info("🏫 1. Memproses Rekap Kepala Sekolah...");
+                $res1 = $reportService->sendPrincipalDailyAttendanceDigest($options);
+                $this->info("   " . ($res1['message'] ?? 'Selesai Kepsek'));
+
+                // Jika ada kepala sekolah yang terkirim dan bukan dry-run, beri jeda sebelum batch wali kelas
+                if (($res1['sent'] ?? 0) > 0 && !$options['dry_run']) {
+                    $pause = $options['batch_pause'] ?? 45;
+                    $this->line(" ☕ Jeda istirahat transisi ke Wali Kelas ({$pause} detik)...");
+                    sleep($pause);
+                }
+
+                $this->info("👩‍🏫 2. Memproses Rekap Wali Kelas...");
+                $res2 = $reportService->sendHomeroomDailyAttendanceDigest($options);
+                $this->info("   " . ($res2['message'] ?? 'Selesai Wali Kelas'));
                 break;
 
             case 'spp-monthly':

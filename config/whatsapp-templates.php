@@ -734,6 +734,8 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 "🏫 *LAPORAN KEHADIRAN HARIAN {sekolah}*
 📌 *Kepada Yth. {nama_kepsek}*
 
+{salam_pembuka}
+
 📅 Tanggal: *{tanggal}*
 ⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi ({waktu_rekap})*
 
@@ -751,6 +753,8 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 
 💡 *Catatan:* Rincian lengkap per kelas dapat dipantau di Portal Admin PembdaHUB.
 
+{catatan_penutup}
+
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_",
 
@@ -760,6 +764,8 @@ _Dikirim otomatis oleh PembdaHUB Executive System_",
     'executive.homeroom_daily_attendance' =>
 "👩‍🏫 *REKAP KEHADIRAN HARIAN KELAS {kelas}*
 📌 *Yth. Wali Kelas: {nama_wali_kelas}*
+
+{salam_pembuka}
 
 📅 Tanggal: *{tanggal}*
 ⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi ({waktu_rekap})*
@@ -772,6 +778,8 @@ _Dikirim otomatis oleh PembdaHUB Executive System_",
 
 📋 *DAFTAR SISWA TIDAK HADIR / TERLAMBAT:*
 {daftar_tidak_hadir}
+
+{catatan_penutup}
 
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_",
