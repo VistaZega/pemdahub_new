@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 const API_TOKEN = process.env.API_TOKEN || 'y7xhSUrJ37wpRykg15kc'; // Token PembdaHUB
 
 app.use(cors());
@@ -182,7 +182,7 @@ app.post('/send', authMiddleware, async (req, res) => {
     if (connectionStatus !== 'connected') {
       return res.status(503).json({
         success: false,
-        message: 'WhatsApp connection is not ready. Scan QR first at http://localhost:3000/qr'
+        message: `WhatsApp connection is not ready. Scan QR first at http://localhost:${PORT}/qr`
       });
     }
 
@@ -221,6 +221,14 @@ app.post('/send', authMiddleware, async (req, res) => {
   }
 });
 
+// Prevent crash on socket network drops
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT EXCEPTION]', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[UNHANDLED REJECTION]', reason);
+});
+
 // Start Express Server
 app.listen(PORT, () => {
   console.log(`\n=================================================`);
@@ -229,3 +237,4 @@ app.listen(PORT, () => {
   console.log(`Buka QR Code: http://localhost:${PORT}/qr`);
   console.log(`=================================================\n`);
 });
+
