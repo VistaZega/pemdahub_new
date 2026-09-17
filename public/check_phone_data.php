@@ -367,13 +367,42 @@ $sendHomeroom = Setting::getValue('wa_send_homeroom_attendance', '1');
     </div>
 </div>
 
-<h2>⏱️ 4. Panduan Cron Job Hostinger</h2>
+<h2>⏱️ 4. Panduan Cron Job Server</h2>
 <div style="background:#1e293b; color:#f1f5f9; padding:15px 20px; border-radius:8px; margin:15px 0;">
+<?php
+    // Deteksi otomatis lingkungan server
+    $isHostinger = file_exists('/home/u474310197') || strpos(__DIR__, 'u474310197') !== false;
+    $laravelRoot = realpath(__DIR__ . '/../');
+    if (!$laravelRoot || !file_exists("{$laravelRoot}/artisan")) {
+        $laravelRoot = '/var/www/pembdahub';
+    }
+
+    // Deteksi path PHP
+    $phpPath = '/usr/bin/php';
+    if (file_exists('/usr/bin/php8.3')) {
+        $phpPath = '/usr/bin/php8.3';
+    } elseif (file_exists('/usr/bin/php8.2')) {
+        $phpPath = '/usr/bin/php8.2';
+    }
+
+    if ($isHostinger):
+?>
     <p style="margin:0 0 10px 0; color:#38bdf8; font-weight:bold;">📋 Salin perintah Cron Job ini ke hPanel Hostinger:</p>
     <code style="display:block; background:#0f172a; padding:10px; border-radius:6px; color:#4ade80; font-size:13px; word-break:break-all;">
-        /usr/bin/php8.2 /home/u474310197/domains/perguruanpembda.com/public_html/pembdahub/artisan schedule:run >> /dev/null 2>&1
+        <?= $phpPath ?> /home/u474310197/domains/perguruanpembda.com/public_html/pembdahub/artisan schedule:run >> /dev/null 2>&1
     </code>
-    <p style="margin:10px 0 0 0; font-size:12px; color:#94a3b8;">* Cron ini terjadwal otomatis setiap hari aktif (Senin–Jumat) pukul 08:00 WIB.</p>
+    <p style="margin:10px 0 0 0; font-size:12px; color:#94a3b8;">* Hostinger menggunakan PHP <?= PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION ?> pada path <code><?= $phpPath ?></code>. Cron terjadwal otomatis setiap hari aktif (Senin–Jumat) pukul 08:00 WIB.</p>
+<?php else: ?>
+    <p style="margin:0 0 10px 0; color:#38bdf8; font-weight:bold;">📋 Server Ubuntu VPS — Perintah Crontab:</p>
+    <code style="display:block; background:#0f172a; padding:10px; border-radius:6px; color:#4ade80; font-size:13px; word-break:break-all;">
+        * * * * * cd <?= $laravelRoot ?> && <?= $phpPath ?> artisan schedule:run >> /dev/null 2>&1
+    </code>
+    <p style="margin:10px 0 0 0; font-size:12px; color:#94a3b8;">
+        * Jalankan <code>crontab -e</code> lalu tempel perintah di atas. Laravel scheduler akan otomatis mengeksekusi jadwal yang terdaftar di <code>routes/console.php</code>.<br>
+        * PHP terdeteksi: <code><?= $phpPath ?></code> (PHP <?= PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION ?>)<br>
+        * Laravel Root: <code><?= $laravelRoot ?></code>
+    </p>
+<?php endif; ?>
 </div>
 
 </body>
