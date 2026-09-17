@@ -44,26 +44,55 @@ if (!$root || !file_exists("{$root}/artisan")) {
 }
 $envFile = "{$root}/.env";
 
+// Validasi format token GitHub resmi (PAT klasik ghp_ atau fine-grained github_pat_)
+if (!function_exists('isValidGithubToken')) {
+    function isValidGithubToken($t) {
+        if (empty($t) || !is_string($t)) return false;
+        $t = trim($t);
+        if (in_array(strtolower($t), ['dry_run', 'pembda99', 'null', 'undefined', 'true', 'false', 'none', 'secret', 'test'])) {
+            return false;
+        }
+        if (str_starts_with($t, 'ghp_') || str_starts_with($t, 'github_pat_')) {
+            return strlen($t) >= 25;
+        }
+        return (strlen($t) >= 30 && preg_match('/^[a-zA-Z0-9_]+$/', $t));
+    }
+}
+
 // 1. Baca token yang tersimpan di server (.env)
 $savedToken = '';
 if (file_exists($envFile)) {
     $envContent = @file_get_contents($envFile);
     if (preg_match('/^GITHUB_DEPLOY_TOKEN=(.*)$/m', $envContent, $matches)) {
-        $savedToken = trim($matches[1], "\"' \r\n");
+        $candidateToken = trim($matches[1], "\"' \r\n");
+        if (isValidGithubToken($candidateToken)) {
+            $savedToken = $candidateToken;
+        } else {
+            // Otomatis hapus token palsu / invalid seperti 'dry_run' dari .env agar tidak merusak remote Git
+            $newEnvContent = preg_replace('/^GITHUB_DEPLOY_TOKEN=.*$/m', '', $envContent);
+            @file_put_contents($envFile, $newEnvContent);
+            echo "<div class='notice-box' style='border-color:#d29922;'><span class='warn'>⚠ Token tidak valid ('" . htmlspecialchars($candidateToken) . "') pada .env telah dihapus untuk mencegah kegagalan otentikasi.</span></div>";
+        }
     }
 }
 
-// 2. Jika ada token baru via query string $_GET['token'], simpan permanen ke .env server
-$githubToken = trim($_GET['token'] ?? '');
-if (!empty($githubToken)) {
-    if (file_exists($envFile)) {
-        if (strpos($envContent, 'GITHUB_DEPLOY_TOKEN=') !== false) {
-            $newEnvContent = preg_replace('/^GITHUB_DEPLOY_TOKEN=.*$/m', "GITHUB_DEPLOY_TOKEN={$githubToken}", $envContent);
-        } else {
-            $newEnvContent = $envContent . "\nGITHUB_DEPLOY_TOKEN={$githubToken}\n";
+// 2. Jika ada token baru via query string $_GET['token'], simpan permanen ke .env server jika valid
+$inputToken = trim($_GET['token'] ?? '');
+if (!empty($inputToken)) {
+    if (isValidGithubToken($inputToken)) {
+        $githubToken = $inputToken;
+        if (file_exists($envFile)) {
+            if (strpos($envContent, 'GITHUB_DEPLOY_TOKEN=') !== false) {
+                $newEnvContent = preg_replace('/^GITHUB_DEPLOY_TOKEN=.*$/m', "GITHUB_DEPLOY_TOKEN={$githubToken}", $envContent);
+            } else {
+                $newEnvContent = $envContent . "\nGITHUB_DEPLOY_TOKEN={$githubToken}\n";
+            }
+            @file_put_contents($envFile, $newEnvContent);
+            echo "<div class='notice-box' style='border-color:#3fb950;'><span class='ok'>✔ Token GitHub valid berhasil disimpan permanen ke server (.env).</span></div>";
         }
-        @file_put_contents($envFile, $newEnvContent);
-        echo "<div class='notice-box' style='border-color:#3fb950;'><span class='ok'>✔ Token GitHub berhasil disimpan permanen ke server (.env). Mulai sekarang deploy dapat dijalankan tanpa mengetik token lagi!</span></div>";
+    } else {
+        echo "<div class='notice-box' style='border-color:#d29922;'><span class='warn'>⚠ Parameter token '" . htmlspecialchars($inputToken) . "' diabaikan karena bukan format token GitHub yang valid.</span></div>";
+        $githubToken = $savedToken;
     }
 } else {
     $githubToken = $savedToken;
@@ -162,11 +191,13 @@ if (is_dir("{$root}/.git")) {
     @shell_exec("rm -f " . escapeshellarg("{$root}/.git/FETCH_HEAD") . " " . escapeshellarg("{$root}/.git/*.lock") . " " . escapeshellarg("{$root}/.git/refs/heads/*.lock") . " 2>/dev/null");
 }
 
-if (!empty($githubToken)) {
+if (!empty($githubToken) && isValidGithubToken($githubToken)) {
     $maskedToken = substr($githubToken, 0, 7) . '...' . substr($githubToken, -4);
     echo "<h2>▶ 2. Otentikasi GitHub Token</h2><pre><span class='ok'>✔ Token aktif terdeteksi: {$maskedToken}</span></pre>";
     $authRepoUrl = "https://{$githubToken}@github.com/VistaZega/pemdahub_new.git";
     execCmd("git -C {$root} remote set-url origin {$authRepoUrl}", "Menyelaraskan Remote URL dengan Kredensial Token");
+} else {
+    echo "<h2>▶ 2. Otentikasi GitHub Token</h2><pre><span class='info'>ℹ Menggunakan kredensial remote Git yang sudah terkonfigurasi pada repositori server.</span></pre>";
 }
 
 // 3. Fetch data terbaru dari GitHub
@@ -200,6 +231,31 @@ if ($fetchStatus === 0) {
     echo "<span class='info'>Menjalankan sinkronisasi langsung file terbaru dari GitHub (branch main)...</span>\n";
     
     $fallbackFiles = [
+        // CBT SPP Tuition Compliance & Dispensations (2026-09-17)
+        'app/Http/Controllers/Guru/CbtDispensationController.php',
+        'app/Models/CbtExamDispensation.php',
+        'app/Services/CbtTuitionComplianceService.php',
+        'database/migrations/2026_09_17_150000_add_tuition_compliance_and_dispensations_to_cbt.php',
+        'resources/views/guru/cbt/dispensations/index.blade.php',
+        'app/Http/Controllers/Admin/CbtManagementController.php',
+        'app/Http/Controllers/Mobile/MobileStudentController.php',
+        'app/Http/Controllers/Siswa/CbtController.php',
+        'app/Http/Requests/Cbt/StoreCbtExamRequest.php',
+        'app/Models/AcademicYear.php',
+        'app/Models/CbtExam.php',
+        'app/Models/Student.php',
+        'app/Services/CbtService.php',
+        'resources/views/admin/cbt/exams/create.blade.php',
+        'resources/views/admin/cbt/exams/edit.blade.php',
+        'resources/views/guru/cbt/exams/create.blade.php',
+        'resources/views/guru/cbt/exams/edit.blade.php',
+        'resources/views/guru/cbt/exams/show.blade.php',
+        'resources/views/guru/tagihan/index.blade.php',
+        'resources/views/layouts/guru.blade.php',
+        'resources/views/mobile/student/cbt.blade.php',
+        'resources/views/siswa/cbt/index.blade.php',
+        'resources/views/siswa/cbt/show.blade.php',
+        'routes/guru.php',
         // WhatsApp Anti-Ban & Pacing Updates (2026-09-17)
         'app/Services/ExecutiveReportService.php',
         'app/Services/WhatsAppService.php',
