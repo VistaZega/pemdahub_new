@@ -56,11 +56,22 @@ async function connectToWhatsApp() {
     }
 
     if (connection === 'close') {
-      const shouldReconnect = (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut);
-      console.log('⚠️ WhatsApp connection closed. Reconnecting:', shouldReconnect);
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
+      const isLoggedOut = (statusCode === DisconnectReason.loggedOut);
+      console.log(`⚠️ WhatsApp connection closed. StatusCode: ${statusCode}. LoggedOut: ${isLoggedOut}`);
       connectionStatus = 'disconnected';
       qrCodeData = null;
-      if (shouldReconnect) {
+
+      if (isLoggedOut) {
+        console.log('🔄 Sesi telah dikeluarkan (logged out) oleh WhatsApp. Membersihkan folder auth dan membuat QR baru...');
+        try {
+          fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
+        } catch (e) {
+          console.error('Gagal menghapus folder auth:', e);
+        }
+        setTimeout(connectToWhatsApp, 3000);
+      } else {
+        console.log('🔄 Menghubungkan ulang ke WhatsApp dalam 3 detik...');
         setTimeout(connectToWhatsApp, 3000);
       }
     } else if (connection === 'open') {
