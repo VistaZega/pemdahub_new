@@ -397,23 +397,23 @@
                     <div class="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center font-bold text-base">{{ $idx + 1 }}</div>
                     <div>
                         <span class="px-2 py-0.5 rounded text-base font-bold uppercase tracking-wide bg-blue-100 text-blue-700 border border-blue-200">
-                            {{ strtoupper(str_replace('_', ' ', $item['question_type'])) }}
+                            {{ strtoupper(str_replace('_', ' ', $item['question_type'] ?? 'Soal')) }}
                         </span>
                     </div>
                 </div>
                 <div class="flex items-center gap-4 text-base">
-                    <div>Tingkat Kesulitan: <span class="font-bold text-{{ ($item['difficulty'] ?? '-') === 'Mudah' ? 'emerald' : (($item['difficulty'] ?? '-') === 'Sedang' ? 'amber' : 'red') }}-600">{{ $item['difficulty'] ?? '-' }}</span> ({{ $item['difficulty_index'] ?? '-' }})</div>
-                    <div>Daya Pembeda: <span class="font-bold text-gray-700">{{ $item['discrimination_index'] }}</span></div>
+                    <div>Tingkat Kesulitan: <span class="font-bold text-{{ ($item['difficulty_label'] ?? $item['difficulty'] ?? '-') === 'Mudah' ? 'emerald' : (($item['difficulty_label'] ?? $item['difficulty'] ?? '-') === 'Sedang' ? 'amber' : 'red') }}-600">{{ $item['difficulty_label'] ?? $item['difficulty'] ?? '-' }}</span> ({{ $item['difficulty_index'] ?? '-' }})</div>
+                    <div>Daya Pembeda: <span class="font-bold text-gray-700">{{ $item['discrimination_index'] ?? '-' }}</span></div>
                 </div>
             </div>
 
-            <div class="text-base text-gray-800 mb-4 prose prose-sm max-w-none">{!! $item['question_text'] !!}</div>
+            <div class="text-base text-gray-800 mb-4 prose prose-sm max-w-none">{!! $item['question_text'] ?? '' !!}</div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3 rounded-xl border border-gray-200 text-center">
-                <div><span class="text-base text-gray-700 block">Total Menjawab</span><span class="font-bold text-gray-900 text-base">{{ $item['total_answers'] }}</span></div>
-                <div><span class="text-base text-gray-700 block">Benar</span><span class="font-bold text-emerald-600 text-base">{{ $item['correct_count'] }}</span></div>
-                <div><span class="text-base text-gray-700 block">Salah</span><span class="font-bold text-red-500 text-base">{{ $item['wrong_count'] }}</span></div>
-                <div><span class="text-base text-gray-700 block">% Benar</span><span class="font-bold text-blue-600 text-base">{{ $item['correct_percentage'] }}%</span></div>
+                <div><span class="text-base text-gray-700 block">Total Menjawab</span><span class="font-bold text-gray-900 text-base">{{ $item['total_answers'] ?? 0 }}</span></div>
+                <div><span class="text-base text-gray-700 block">Benar</span><span class="font-bold text-emerald-600 text-base">{{ $item['correct_count'] ?? $item['correct_answers'] ?? 0 }}</span></div>
+                <div><span class="text-base text-gray-700 block">Salah</span><span class="font-bold text-red-500 text-base">{{ $item['wrong_count'] ?? (max(0, ($item['total_answers'] ?? 0) - ($item['correct_answers'] ?? 0))) }}</span></div>
+                <div><span class="text-base text-gray-700 block">% Benar</span><span class="font-bold text-blue-600 text-base">{{ $item['correct_percentage'] ?? (($item['total_answers'] ?? 0) > 0 ? round((($item['correct_answers'] ?? 0) / $item['total_answers']) * 100, 1) : 0) }}%</span></div>
             </div>
         </div>
         @empty
