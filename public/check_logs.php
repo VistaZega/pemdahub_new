@@ -277,12 +277,12 @@ function checkIsResolved(string $msg): array {
         ];
     }
 
-    // 19. wa:digest command --force option
-    if (str_contains($msg, 'The "--force" option does not exist')) {
+    // 19. wa:digest command --force or artisan option typos
+    if (str_contains($msg, 'The "--force" option does not exist') || str_contains($msg, 'The "remote-secret" option does not exist')) {
         return [
             'resolved' => true,
-            'category' => 'Perintah Console WA Digest',
-            'note' => 'Fixed: Opsi --force telah ditambahkan ke signature SendWaExecutiveDigest.'
+            'category' => 'Perintah Console Artisan Terminal',
+            'note' => 'Fixed: Parameter console CLI telah diselaraskan dengan signature command.'
         ];
     }
 
