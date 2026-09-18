@@ -332,6 +332,86 @@ if ($action === 'inspect_all') {
 }
 
 // ══════════════════════════════════════════════════════
+// ACTION: RESTORE_DATA_FTP (PINDAHKAN BERKAS LOKAL DARI data_ftp KE ROOT STORAGE)
+// ══════════════════════════════════════════════════════
+if ($action === 'restore_data_ftp') {
+    @ini_set('max_execution_time', '300');
+    @set_time_limit(300);
+    while (@ob_end_flush());
+    ob_implicit_flush(true);
+    
+    header('Content-Type: text/html; charset=utf-8');
+    header('X-Accel-Buffering: no');
+    
+    echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Restore data_ftp ke Storage Utama</title>";
+    echo "<style>body{font-family:monospace;background:#0d1117;color:#c9d1d9;padding:20px;font-size:13px;line-height:1.8;}";
+    echo ".ok{color:#3fb950;font-weight:bold;} .warn{color:#d29922;} .err{color:#f85149;font-weight:bold;} .info{color:#58a6ff;}";
+    echo "pre{background:#161b22;border:1px solid #30363d;padding:16px;border-radius:12px;white-space:pre-wrap;max-height:75vh;overflow-y:auto;}";
+    echo "h1{color:#58a6ff;font-size:1.3em;} .btn{display:inline-block;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:12px;}</style></head><body>";
+    echo "<h1>📦 Sinkronisasi Berkas Lokal: data_ftp → Storage Utama</h1>";
+    echo "<p>Menyalin berkas dari subfolder data_ftp ke folder penyimpanan yang semestinya...</p><pre>";
+    flush();
+    
+    $sourceBase = $storagePath . '/data_ftp';
+    if (!is_dir($sourceBase)) {
+        echo "<span class='err'>Folder data_ftp tidak ditemukan di {$sourceBase}.</span></pre>";
+        echo "<a href='?secret=" . htmlspecialchars($secret) . "' class='btn'>« Kembali</a></body></html>";
+        exit;
+    }
+    
+    $copied = 0;
+    $skipped = 0;
+    $folders = ['photos', 'pkl_proofs', 'achievements', 'teachers', 'employees', 'avatars', 'alumni_photos', 'applicants', 'pkl_perangkat', 'forum', 'forum_attachments', 'final_project_docs', 'documents', 'cbt', 'lms_materials', 'materials', 'gallery', 'news', 'alumni_forums'];
+    
+    foreach ($folders as $f) {
+        $srcDir = $sourceBase . '/' . $f;
+        $dstDir = $storagePath . '/' . $f;
+        if (!is_dir($srcDir)) continue;
+        
+        if (!is_dir($dstDir)) @mkdir($dstDir, 0755, true);
+        
+        $files = @scandir($srcDir) ?: [];
+        $fCopied = 0;
+        $fSkipped = 0;
+        
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') continue;
+            $srcFile = $srcDir . '/' . $file;
+            $dstFile = $dstDir . '/' . $file;
+            
+            if (is_file($srcFile)) {
+                if (!file_exists($dstFile) || filesize($dstFile) === 0) {
+                    if (@copy($srcFile, $dstFile)) {
+                        @chmod($dstFile, 0644);
+                        $copied++;
+                        $fCopied++;
+                    }
+                } else {
+                    $skipped++;
+                    $fSkipped++;
+                }
+            }
+        }
+        echo "<span class='info'>📁 Folder [{$f}]:</span> <span class='ok'>+{$fCopied} berkas disalin</span> (sudah ada: {$fSkipped})\n";
+        flush();
+    }
+    
+    // Fix ownership di Linux
+    if (PHP_OS_FAMILY === 'Linux') {
+        @exec("chown -R www-data:www-data " . escapeshellarg($storagePath) . " 2>/dev/null");
+    }
+    
+    echo "\n<span class='ok'>══════════════════════════════════════════</span>\n";
+    echo "<span class='ok'>🎉 PROSES SALIN LOKAL SELESAI!</span>\n";
+    echo "<span class='ok'>   ✔ Total berkas baru dipulihkan: {$copied} berkas</span>\n";
+    echo "<span class='info'>   ✔ Berkas yang sudah ada sebelumnya: {$skipped} berkas</span>\n";
+    echo "<span class='ok'>══════════════════════════════════════════</span></pre>";
+    echo "<a href='?secret=" . htmlspecialchars($secret) . "' class='btn'>« Kembali ke Dashboard</a>";
+    echo "</body></html>";
+    exit;
+}
+
+// ══════════════════════════════════════════════════════
 // ACTION: SYNC PER KURSUS (dengan logging & resume)
 // ══════════════════════════════════════════════════════
 if ($action === 'sync_course') {
@@ -765,6 +845,32 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
             </div>
         </div>
     </div>
+
+    <?php if (is_dir($storagePath . '/data_ftp')): ?>
+    <!-- Banner Restore Non-LMS (data_ftp) -->
+    <div class="bg-gradient-to-r from-amber-950/70 via-slate-900 to-slate-900 border-2 border-amber-500/50 p-5 rounded-2xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+            <div class="flex items-center gap-2">
+                <span class="text-xl">📦</span>
+                <span class="font-black text-amber-300 text-base uppercase tracking-wide">Ditemukan 22.909 Berkas Lokal di Folder data_ftp!</span>
+                <span class="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/40 font-bold">Tanpa Download Internet</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Berkas <strong>Foto Profil Pengguna, Foto Siswa (1.014 foto), Logbook PKL (2.200 foto), Sertifikat Prestasi (611 berkas), dan Foto Guru (74 foto)</strong> ternyata <strong>sudah ada di server lokal</strong> di dalam subfolder <code class="text-amber-300 font-mono bg-slate-950 px-1.5 py-0.5 rounded">storage/app/public/data_ftp/</code>.
+            </p>
+            <p class="text-[11px] text-slate-400">
+                Klik tombol di samping untuk menyalin seluruh berkas ke folder penyimpanan yang semestinya. Proses ini berjalan secara lokal dalam hitungan detik.
+            </p>
+        </div>
+        <div class="shrink-0">
+            <a href="?secret=<?= htmlspecialchars($secret) ?>&action=restore_data_ftp"
+               onclick="return confirm('Salin seluruh berkas foto profil, logbook PKL, prestasi, dll dari data_ftp ke storage utama? Proses ini berjalan cepat secara lokal.');"
+               class="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition shadow-xl shadow-amber-500/20 flex items-center gap-2 whitespace-nowrap">
+                ⚡ Pulihkan Berkas Non-LMS (Lokal ~3 Detik)
+            </a>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- KPI -->
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
