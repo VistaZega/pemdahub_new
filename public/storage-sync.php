@@ -51,24 +51,32 @@ if (!in_array($secret, $VALID_SECRETS, true)) {
 header('X-LiteSpeed-NoAbort: 1');
 
 // ══════════════════════════════════════════════════════
-// 2. DETEKSI LOKASI STORAGE/APP/PUBLIC
+// 2. DETEKSI LOKASI STORAGE/APP/PUBLIC (MULTI-LOCATION AUTO-DETECT)
 // ══════════════════════════════════════════════════════
 $possiblePaths = [
     __DIR__ . '/../storage/app/public',
     '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub/storage/app/public',
+    '/home/u474310197/domains/perguruanpembda.com/public_html/storage',
+    dirname(__DIR__, 2) . '/storage',
     dirname(__DIR__) . '/storage/app/public',
+    '/var/www/pembdahub/storage/app/public',
     __DIR__ . '/storage',
 ];
 
-$storagePath = null;
+$validDirs = [];
 foreach ($possiblePaths as $p) {
     if (is_dir($p)) {
-        $storagePath = realpath($p);
-        break;
+        $rp = realpath($p);
+        if ($rp) {
+            $normalized = str_replace('\\', '/', $rp);
+            if (!in_array($normalized, $validDirs, true)) {
+                $validDirs[] = $normalized;
+            }
+        }
     }
 }
 
-if (!$storagePath) {
+if (empty($validDirs)) {
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -76,6 +84,18 @@ if (!$storagePath) {
         'message' => 'Direktori storage/app/public tidak ditemukan di server.'
     ], JSON_PRETTY_PRINT);
     exit;
+}
+
+// Pilih direktori yang memiliki berkas/folder terbanyak sebagai storagePath utama
+$storagePath = $validDirs[0];
+$maxEntries = -1;
+foreach ($validDirs as $vd) {
+    $items = @scandir($vd);
+    $count = $items ? count($items) : 0;
+    if ($count > $maxEntries) {
+        $maxEntries = $count;
+        $storagePath = $vd;
+    }
 }
 
 // Normalisasi separator path
@@ -545,7 +565,18 @@ if ($action === 'download_file') {
     $file = trim(str_replace(['..', '\\'], ['', '/'], $file), '/');
     $fullPath = $storagePath . '/' . $file;
     
-    if (empty($file) || !is_file($fullPath) || !isPathWithinStorage($fullPath, $storagePath)) {
+    // Fallback search across all valid directories if missing in primary
+    if (!is_file($fullPath) && !empty($validDirs)) {
+        foreach ($validDirs as $altDir) {
+            $candidate = $altDir . '/' . $file;
+            if (is_file($candidate)) {
+                $fullPath = $candidate;
+                break;
+            }
+        }
+    }
+    
+    if (empty($file) || !is_file($fullPath)) {
         http_response_code(404);
         die('File tidak ditemukan di storage.');
     }

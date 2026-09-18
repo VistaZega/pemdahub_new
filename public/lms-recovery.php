@@ -48,7 +48,7 @@ try {
 }
 
 // ══════════════════════════════════════════════════════
-// STORAGE PATH & LOG FILE
+// STORAGE PATH & SYMLINK VERIFIKASI
 // ══════════════════════════════════════════════════════
 $storagePath = null;
 foreach ([__DIR__ . '/../storage/app/public', '/var/www/pembdahub/storage/app/public'] as $sp) {
@@ -56,6 +56,42 @@ foreach ([__DIR__ . '/../storage/app/public', '/var/www/pembdahub/storage/app/pu
 }
 if (!$storagePath) die("<h1>Error</h1><p>storage/app/public tidak ditemukan.</p>");
 $storagePath = str_replace('\\', '/', $storagePath);
+
+// Deteksi status public/storage symlink di server
+$publicStorage = __DIR__ . '/storage';
+$symlinkStatus = 'unknown';
+$symlinkTarget = '';
+if (is_link($publicStorage)) {
+    $symlinkTarget = readlink($publicStorage);
+    if (file_exists($publicStorage)) {
+        $symlinkStatus = 'active';
+    } else {
+        $symlinkStatus = 'broken';
+    }
+} elseif (is_dir($publicStorage)) {
+    $symlinkStatus = 'dir';
+} else {
+    if (PHP_OS_FAMILY === 'Linux') {
+        @symlink($storagePath, $publicStorage);
+        if (file_exists($publicStorage)) {
+            $symlinkStatus = 'active';
+            $symlinkTarget = $storagePath;
+        } else {
+            $symlinkStatus = 'missing';
+        }
+    } else {
+        $symlinkStatus = 'missing';
+    }
+}
+
+if ($action === 'fix_symlink') {
+    if (is_link($publicStorage) || file_exists($publicStorage)) {
+        @unlink($publicStorage);
+    }
+    @symlink($storagePath, $publicStorage);
+    header("Location: ?secret=" . urlencode($secret));
+    exit;
+}
 
 // Log file untuk tracking progress sync
 $logDir = dirname($storagePath) . '/lms-recovery';
@@ -481,6 +517,36 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
                 <?php if ($globalMissing > 0): ?>
                 <a href="?secret=<?= htmlspecialchars($secret) ?>&action=export_missing" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">📋 Export JSON</a>
                 <?php endif; ?>
+            </div>
+        </div>
+    <!-- Lokasi Fisik & Verifikasi Path -->
+    <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl text-xs space-y-2">
+        <div class="font-bold text-slate-300 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">📍 Konfirmasi Lokasi Penyimpanan Berkas LMS</span>
+            <span class="text-[10px] text-slate-500 font-mono">PHP OS: <?= PHP_OS_FAMILY ?></span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800/80 space-y-1">
+                <div class="font-bold text-emerald-400 flex items-center justify-between">
+                    <span>🖥️ Server Lokal (Ubuntu Saat Ini)</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded <?= $symlinkStatus === 'active' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30' ?>">
+                        Symlink Web: <?= strtoupper($symlinkStatus) ?>
+                    </span>
+                </div>
+                <p class="text-slate-400">Lokasi Fisik File: <code class="text-white font-mono"><?= htmlspecialchars($storagePath) ?></code></p>
+                <p class="text-slate-400">Folder Sub-LMS: <code class="text-slate-300 font-mono"><?= htmlspecialchars($storagePath) ?>/lms/materials/</code></p>
+                <div class="flex items-center justify-between pt-1">
+                    <span class="text-[11px] text-slate-400">Jalur Akses Web: <code class="text-sky-300 font-mono"><?= htmlspecialchars($publicStorage) ?></code></span>
+                    <?php if ($symlinkStatus !== 'active'): ?>
+                    <a href="?secret=<?= htmlspecialchars($secret) ?>&action=fix_symlink" class="text-[10px] px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded font-bold">⚡ Perbaiki Symlink</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800/80 space-y-1">
+                <div class="font-bold text-sky-400">☁️ Server Sumber (Hostinger Production)</div>
+                <p class="text-slate-400">Lokasi Utama: <code class="text-slate-300 font-mono">.../pembdahub/storage/app/public/lms/materials/</code></p>
+                <p class="text-slate-400">Lokasi Fallback: <code class="text-slate-300 font-mono">.../public_html/storage/lms/materials/</code></p>
+                <p class="text-[11px] text-emerald-300/80 pt-1">✅ Script auto-detect di Hostinger sudah mendukung kedua path di atas.</p>
             </div>
         </div>
     </div>
