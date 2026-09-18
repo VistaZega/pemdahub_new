@@ -1425,6 +1425,7 @@ HTML;
             );
         }
 
+        $course->loadMissing(['school', 'subject', 'teacher.user', 'classroom']);
         $roomName    = 'PembdaHub_Course_' . $course->id . '_' . md5($course->code . config('app.key'));
         $displayName = $student->full_name;
 
