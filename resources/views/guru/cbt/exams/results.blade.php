@@ -328,18 +328,18 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        @forelse($participationData['students'] as $idx => $row)
-                        <tr x-show="statusFilter === 'all' || statusFilter === '{{ $row['status'] }}'" class="hover:bg-gray-50/60 transition {{ $row['status'] === 'not_started' ? 'bg-rose-50/20' : '' }}">
+                        @forelse(($participationData['students'] ?? []) as $idx => $row)
+                        <tr x-show="statusFilter === 'all' || statusFilter === '{{ $row['status'] ?? 'not_started' }}'" class="hover:bg-gray-50/60 transition {{ ($row['status'] ?? '') === 'not_started' ? 'bg-rose-50/20' : '' }}">
                             <td class="px-4 py-3.5 text-center font-semibold text-gray-500">{{ $idx + 1 }}</td>
                             <td class="px-4 py-3.5">
-                                <span class="font-bold text-gray-900 block">{{ $row['student']->full_name ?? '-' }}</span>
+                                <span class="font-bold text-gray-900 block">{{ $row['student']->full_name ?? ($row['student']->name ?? '-') }}</span>
                             </td>
                             <td class="px-4 py-3.5 text-gray-600 font-mono text-xs">
                                 {{ $row['student']->nisn ?? $row['student']->nis ?? '-' }}
                             </td>
                             <td class="px-4 py-3.5">
                                 <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-800 text-xs font-semibold">
-                                    {{ $row['classroom_name'] }}
+                                    {{ $row['classroom_name'] ?? '-' }}
                                 </span>
                             </td>
                             <td class="px-4 py-3.5 text-center">
@@ -411,9 +411,9 @@
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3 rounded-xl border border-gray-200 text-center">
                 <div><span class="text-base text-gray-700 block">Total Menjawab</span><span class="font-bold text-gray-900 text-base">{{ $item['total_answers'] ?? 0 }}</span></div>
-                <div><span class="text-base text-gray-700 block">Benar</span><span class="font-bold text-emerald-600 text-base">{{ $item['correct_count'] ?? $item['correct_answers'] ?? 0 }}</span></div>
-                <div><span class="text-base text-gray-700 block">Salah</span><span class="font-bold text-red-500 text-base">{{ $item['wrong_count'] ?? (max(0, ($item['total_answers'] ?? 0) - ($item['correct_answers'] ?? 0))) }}</span></div>
-                <div><span class="text-base text-gray-700 block">% Benar</span><span class="font-bold text-blue-600 text-base">{{ $item['correct_percentage'] ?? (($item['total_answers'] ?? 0) > 0 ? round((($item['correct_answers'] ?? 0) / $item['total_answers']) * 100, 1) : 0) }}%</span></div>
+                <div><span class="text-base text-gray-700 block">Benar</span><span class="font-bold text-emerald-600 text-base">{{ $item['correct_count'] ?? ($item['correct_answers'] ?? 0) }}</span></div>
+                <div><span class="text-base text-gray-700 block">Salah</span><span class="font-bold text-red-500 text-base">{{ $item['wrong_count'] ?? max(0, ($item['total_answers'] ?? 0) - ($item['correct_count'] ?? ($item['correct_answers'] ?? 0))) }}</span></div>
+                <div><span class="text-base text-gray-700 block">% Benar</span><span class="font-bold text-blue-600 text-base">{{ $item['correct_percentage'] ?? ((!empty($item['total_answers'])) ? round((($item['correct_count'] ?? ($item['correct_answers'] ?? 0)) / $item['total_answers']) * 100, 1) : 0) }}%</span></div>
             </div>
         </div>
         @empty
