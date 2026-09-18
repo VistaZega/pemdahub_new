@@ -412,6 +412,128 @@ if ($action === 'restore_data_ftp') {
 }
 
 // ══════════════════════════════════════════════════════
+// ACTION: SYNC FOLDER NON-LMS DARI HOSTINGER (CBT, MONITORING, DLL)
+// ══════════════════════════════════════════════════════
+if ($action === 'sync_folder') {
+    @ini_set('max_execution_time', '600');
+    @set_time_limit(600);
+    while (@ob_end_flush());
+    ob_implicit_flush(true);
+    
+    header('Content-Type: text/html; charset=utf-8');
+    header('X-Accel-Buffering: no');
+    
+    $folderName = trim($_GET['folder'] ?? '');
+    $hostingerIp = trim($_GET['hostinger_ip'] ?? ($syncLog['hostinger_ip'] ?? ''));
+    $prodSecret = 'pembda2026storage';
+    
+    echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Sync Folder {$folderName}</title>";
+    echo "<style>body{font-family:monospace;background:#0d1117;color:#c9d1d9;padding:20px;font-size:13px;line-height:1.8;}";
+    echo ".ok{color:#3fb950;font-weight:bold;} .warn{color:#d29922;} .err{color:#f85149;font-weight:bold;} .info{color:#58a6ff;}";
+    echo "pre{background:#161b22;border:1px solid #30363d;padding:16px;border-radius:12px;white-space:pre-wrap;max-height:75vh;overflow-y:auto;}";
+    echo "h1{color:#58a6ff;font-size:1.3em;} .btn{display:inline-block;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:12px;}</style></head><body>";
+    echo "<h1>📥 Sync Folder [{$folderName}] dari Hostinger</h1>";
+    echo "<p>Menghubungi Hostinger ({$hostingerIp}) untuk mengambil manifest dan berkas folder {$folderName}...</p><pre>";
+    flush();
+    
+    $domain = 'perguruanpembda.com';
+    $resolveConfig = [
+        "{$domain}:443:{$hostingerIp}",
+        "{$domain}:80:{$hostingerIp}",
+    ];
+    
+    // 1. Ambil manifest folder dari Hostinger
+    $manifestUrl = "https://{$domain}/storage-sync.php?secret={$prodSecret}&action=manifest&folder=" . urlencode($folderName);
+    $ch = curl_init($manifestUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_RESOLVE => $resolveConfig,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_TIMEOUT => 30,
+    ]);
+    $res = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    $manifestData = json_decode((string)$res, true);
+    $files = $manifestData['files'] ?? [];
+    
+    if ($httpCode !== 200 || empty($files)) {
+        echo "<span class='err'>✖ Gagal mengambil manifest folder {$folderName} dari Hostinger (HTTP {$httpCode}).</span></pre>";
+        echo "<a href='?secret=" . htmlspecialchars($secret) . "' class='btn'>« Kembali</a></body></html>";
+        exit;
+    }
+    
+    $totalFiles = count($files);
+    echo "<span class='ok'>✔ Berhasil membaca manifest: ditemukan {$totalFiles} berkas di folder [{$folderName}] Hostinger.</span>\n\n";
+    flush();
+    
+    $downloaded = 0;
+    $skipped = 0;
+    $failed = 0;
+    
+    foreach ($files as $idx => $fInfo) {
+        $relPath = $fInfo['path'];
+        $num = $idx + 1;
+        $dest = $storagePath . '/' . $relPath;
+        
+        if (file_exists($dest) && filesize($dest) > 0) {
+            $skipped++;
+            continue;
+        }
+        
+        $shortName = basename($relPath);
+        echo "<span class='info'>[{$num}/{$totalFiles}]</span> {$shortName} ... ";
+        flush();
+        
+        $parentDir = dirname($dest);
+        if (!is_dir($parentDir)) @mkdir($parentDir, 0755, true);
+        
+        $fileUrl = "https://{$domain}/storage-sync.php?secret={$prodSecret}&action=download_file&file=" . urlencode($relPath);
+        $ch = curl_init($fileUrl);
+        $fh = fopen($dest, 'w+');
+        curl_setopt_array($ch, [
+            CURLOPT_RESOLVE => $resolveConfig,
+            CURLOPT_FILE => $fh,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_TIMEOUT => 120,
+        ]);
+        curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $dlSize = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
+        curl_close($ch);
+        fclose($fh);
+        
+        if ($code === 200 && file_exists($dest) && filesize($dest) > 0) {
+            @chmod($dest, 0644);
+            $downloaded++;
+            echo "<span class='ok'>✔ " . fmtBytes((int)$dlSize) . "</span>\n";
+        } else {
+            @unlink($dest);
+            $failed++;
+            echo "<span class='err'>✖ GAGAL (HTTP {$code})</span>\n";
+        }
+        flush();
+    }
+    
+    if (PHP_OS_FAMILY === 'Linux') {
+        @exec("chown -R www-data:www-data " . escapeshellarg($storagePath . '/' . $folderName) . " 2>/dev/null");
+    }
+    
+    echo "\n<span class='ok'>══════════════════════════════════════════</span>\n";
+    echo "<span class='ok'>🎉 SYNC FOLDER [{$folderName}] SELESAI!</span>\n";
+    echo "<span class='ok'>   ✔ Berhasil diunduh: {$downloaded} berkas</span>\n";
+    echo "<span class='info'>   ✔ Dilewati (sudah ada): {$skipped} berkas</span>\n";
+    if ($failed > 0) echo "<span class='err'>   ✖ Gagal: {$failed} berkas</span>\n";
+    echo "<span class='ok'>══════════════════════════════════════════</span></pre>";
+    echo "<a href='?secret=" . htmlspecialchars($secret) . "' class='btn'>« Kembali ke Dashboard</a>";
+    echo "</body></html>";
+    exit;
+}
+
+// ══════════════════════════════════════════════════════
 // ACTION: SYNC PER KURSUS (dengan logging & resume)
 // ══════════════════════════════════════════════════════
 if ($action === 'sync_course') {
@@ -861,13 +983,24 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
             <p class="text-[11px] text-slate-400">
                 Klik tombol di samping untuk menyalin seluruh berkas ke folder penyimpanan yang semestinya. Proses ini berjalan secara lokal dalam hitungan detik.
             </p>
-        </div>
-        <div class="shrink-0">
+        <div class="shrink-0 flex flex-col gap-2">
             <a href="?secret=<?= htmlspecialchars($secret) ?>&action=restore_data_ftp"
                onclick="return confirm('Salin seluruh berkas foto profil, logbook PKL, prestasi, dll dari data_ftp ke storage utama? Proses ini berjalan cepat secara lokal.');"
-               class="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition shadow-xl shadow-amber-500/20 flex items-center gap-2 whitespace-nowrap">
-                ⚡ Pulihkan Berkas Non-LMS (Lokal ~3 Detik)
+               class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 whitespace-nowrap">
+                ⚡ Pulihkan Berkas Lokal (data_ftp)
             </a>
+            <div class="flex gap-2">
+                <a href="?secret=<?= htmlspecialchars($secret) ?>&action=sync_folder&folder=cbt"
+                   onclick="return confirm('Tarik seluruh media soal CBT dari Hostinger?');"
+                   class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 font-bold text-[11px] rounded-lg transition flex-1 text-center">
+                    📥 Sync CBT (36 File)
+                </a>
+                <a href="?secret=<?= htmlspecialchars($secret) ?>&action=sync_folder&folder=pkl_monitorings"
+                   onclick="return confirm('Tarik seluruh foto monitoring PKL dari Hostinger?');"
+                   class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold text-[11px] rounded-lg transition flex-1 text-center">
+                    📥 Sync Monitoring (8 File)
+                </a>
+            </div>
         </div>
     </div>
     <?php endif; ?>
