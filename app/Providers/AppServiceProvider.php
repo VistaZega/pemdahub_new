@@ -69,6 +69,15 @@ class AppServiceProvider extends ServiceProvider
             try { app('files')->link(storage_path('app/public'), public_path('storage')); } catch (\Exception $e) {}
         }
 
+        // Guarantee $errors is always bound as a ViewErrorBag across ALL blade views
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            $data = $view->getData();
+            if (!isset($data['errors'])) {
+                $sessionErrors = (session()->isStarted()) ? session()->get('errors') : null;
+                $view->with('errors', $sessionErrors instanceof \Illuminate\Support\ViewErrorBag ? $sessionErrors : new \Illuminate\Support\ViewErrorBag());
+            }
+        });
+
         // Fix CORS & Mixed Content: Force HTTPS in production or via perguruanpembda.com
         $isHttps = config('app.env') === 'production' 
             || str_contains(request()->getHost(), 'perguruanpembda.com')
