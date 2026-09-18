@@ -34,19 +34,33 @@ class BackupDatabase extends Command
         $filename = "backup_{$database}_{$timestamp}.sql";
         $filepath = "{$backupDir}/{$filename}";
 
-        // Try mysqldump first
+        // 1. Try mysqldump first if available
         $mysqldumpPath = $this->findMysqldump();
+        $success = false;
+
         if ($mysqldumpPath !== null) {
             $this->info("📀 Using mysqldump: {$mysqldumpPath}");
-            $success = $this->dumpWithMysqldump($mysqldumpPath, $host, $port, $username, $password, $database, $filepath);
-        } else {
-            $this->warn('⚠️ mysqldump not found, using PHP-based backup fallback...');
+            $dumpResult = $this->dumpWithMysqldump($mysqldumpPath, $host, $port, $username, $password, $database, $filepath);
+            if ($dumpResult === true && file_exists($filepath) && filesize($filepath) > 0) {
+                $success = true;
+            } else {
+                $errDetail = is_string($dumpResult) ? $dumpResult : 'Unknown mysqldump error';
+                $this->warn("⚠️ mysqldump gagal ({$errDetail}), beralih ke PHP fallback...");
+                if (file_exists($filepath)) {
+                    @unlink($filepath);
+                }
+            }
+        }
+
+        // 2. Fallback to PHP dumper if mysqldump not available or failed
+        if ($success !== true) {
+            $this->warn('⚠️ Menggunakan PHP-based backup fallback...');
             $success = $this->dumpWithPHP($host, $port, $username, $password, $database, $filepath);
         }
 
         if ($success !== true) {
             $this->error('❌ Backup failed!');
-            $this->error($success ?? 'Unknown error');
+            $this->error(is_string($success) ? $success : 'Unknown error');
             return self::FAILURE;
         }
 
@@ -56,17 +70,17 @@ class BackupDatabase extends Command
         }
 
         // Compress if requested
-        if ($this->option('compress')) {
+        if ($this->option('compress') && function_exists('gzopen')) {
             $gzFilepath = $filepath . '.gz';
-            $fp = fopen($filepath, 'rb');
-            $gz = gzopen($gzFilepath, 'wb9');
+            $fp = @fopen($filepath, 'rb');
+            $gz = @gzopen($gzFilepath, 'wb9');
             if ($fp && $gz) {
                 while (!feof($fp)) {
                     gzwrite($gz, fread($fp, 1024 * 512));
                 }
                 gzclose($gz);
                 fclose($fp);
-                unlink($filepath);
+                @unlink($filepath);
                 $filepath = $gzFilepath;
                 $filename .= '.gz';
             }
@@ -84,6 +98,16 @@ class BackupDatabase extends Command
 
     private function findMysqldump(): ?string
     {
+        // Check if exec is permitted
+        if (!function_exists('exec')) {
+            return null;
+        }
+
+        $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
+        if (in_array('exec', $disabled)) {
+            return null;
+        }
+
         $paths = [
             'mysqldump',
             '/usr/bin/mysqldump',
@@ -91,14 +115,17 @@ class BackupDatabase extends Command
             '/usr/bin/mariadb-dump',
             '/bin/mysqldump',
         ];
+
         foreach ($paths as $path) {
             $result = null;
             $code = -1;
-            @exec("which " . escapeshellarg($path) . " 2>/dev/null", $result, $code);
-            if ($code === 0 && !empty($result[0])) {
-                return $result[0];
+            if (DIRECTORY_SEPARATOR === '/') {
+                @exec("which " . escapeshellarg($path) . " 2>/dev/null", $result, $code);
+                if ($code === 0 && !empty($result[0])) {
+                    return $result[0];
+                }
             }
-            if (is_executable($path)) {
+            if (@is_executable($path)) {
                 return $path;
             }
         }
@@ -107,8 +134,11 @@ class BackupDatabase extends Command
 
     private function dumpWithMysqldump(string $mysqldumpPath, string $host, string $port, string $username, string $password, string $database, string $filepath): bool|string
     {
+        // Notice: On shared hosting (Hostinger, cPanel), standard users lack PROCESS and EVENT privileges.
+        // --no-tablespaces avoids "Access denied: PROCESS privilege required"
+        // Omitting --events avoids "Access denied for user to database (1044): show events"
         $cmd = sprintf(
-            '%s --host=%s --port=%s --user=%s --password=%s --routines --events --triggers --single-transaction --opt %s > %s',
+            '%s --host=%s --port=%s --user=%s --password=%s --no-tablespaces --single-transaction --quick --skip-lock-tables --routines --triggers --opt %s > %s',
             escapeshellarg($mysqldumpPath),
             escapeshellarg($host),
             escapeshellarg($port),
@@ -131,12 +161,20 @@ class BackupDatabase extends Command
 
     private function dumpWithPHP(string $host, string $port, string $username, string $password, string $database, string $filepath): bool|string
     {
+        @set_time_limit(0);
+        @ini_set('memory_limit', '512M');
+
         try {
-            $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
-            $pdo = new PDO($dsn, $username, $password, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_TIMEOUT => 300,
-            ]);
+            // Prioritize existing Laravel PDO connection
+            try {
+                $pdo = \Illuminate\Support\Facades\DB::connection()->getPdo();
+            } catch (\Throwable $e) {
+                $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+                $pdo = new PDO($dsn, $username, $password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 300,
+                ]);
+            }
 
             $sql = "-- PembdaHUB Database Backup (PHP)\n";
             $sql .= "-- Database: {$database}\n";
@@ -144,8 +182,15 @@ class BackupDatabase extends Command
             $sql .= "SET NAMES utf8mb4;\n";
             $sql .= "SET FOREIGN_KEY_CHECKS = 0;\n\n";
 
-            // Get all tables
-            $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+            // Get all base tables (exclude views to avoid query issues)
+            try {
+                $tables = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetchAll(PDO::FETCH_COLUMN);
+            } catch (\Throwable $e) {
+                $tables = [];
+            }
+            if (empty($tables)) {
+                $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+            }
 
             foreach ($tables as $table) {
                 $this->info("  📦 Exporting: {$table}");
@@ -153,7 +198,10 @@ class BackupDatabase extends Command
                 $sql .= "DROP TABLE IF EXISTS `{$table}`;\n";
 
                 $stmt = $pdo->query("SHOW CREATE TABLE `{$table}`");
-                $row = $stmt->fetch(PDO::FETCH_NUM);
+                $row = $stmt ? $stmt->fetch(PDO::FETCH_NUM) : null;
+                if (!$row || empty($row[1])) {
+                    continue;
+                }
                 $sql .= $row[1] . ";\n\n";
 
                 // Get row count
