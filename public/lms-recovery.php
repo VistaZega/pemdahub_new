@@ -327,41 +327,45 @@ if ($action === 'sync_course') {
         exit;
     }
     
-    // Test koneksi Hostinger
-    echo "<span class='info'>▶ Menguji koneksi ke Hostinger ({$hostingerIp})...</span>\n";
+    // Test koneksi Hostinger via CURLOPT_RESOLVE (Bypass Cloudflare DNS)
+    echo "<span class='info'>▶ Menguji koneksi langsung ke Hostinger ({$hostingerIp})...</span>\n";
     flush();
     
-    $protocol = 'http';
     $domain = 'perguruanpembda.com';
-    $connected = false;
+    $resolveConfig = [
+        "{$domain}:443:{$hostingerIp}",
+        "{$domain}:80:{$hostingerIp}",
+    ];
     
-    foreach (['https', 'http'] as $proto) {
-        $testUrl = "{$proto}://{$hostingerIp}/storage-sync.php?secret={$prodSecret}&action=status&format=json";
-        $ch = curl_init($testUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ["Host: {$domain}"],
-            CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 20, CURLOPT_CONNECTTIMEOUT => 10,
-        ]);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        
-        if ($code === 200 && !empty($res)) {
-            $protocol = $proto;
-            $connected = true;
-            echo "<span class='ok'>✔ Terhubung via {$proto}!</span>\n";
-            break;
-        }
-    }
+    $testUrl = "https://{$domain}/storage-sync.php?secret={$prodSecret}&action=status&format=json";
+    $ch = curl_init($testUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_RESOLVE => $resolveConfig,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_CONNECTTIMEOUT => 10,
+    ]);
+    $res = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
+    curl_close($ch);
     
-    if (!$connected) {
-        echo "<span class='err'>✖ Gagal terhubung ke Hostinger di IP {$hostingerIp}</span>\n";
-        echo "<span class='warn'>Pastikan IP benar dan storage-sync.php ada di server Hostinger.</span>\n";
+    if ($code !== 200 || empty($res)) {
+        echo "<span class='err'>✖ Gagal terhubung ke Hostinger di IP {$hostingerIp} (HTTP {$code})</span>\n";
+        if ($curlErr) echo "<span class='err'>  cURL Error: {$curlErr}</span>\n";
+        echo "<span class='warn'>Pastikan IP benar dan server Hostinger aktif.</span>\n";
         echo "</pre><a href='?secret=" . htmlspecialchars($secret) . "' class='btn'>« Kembali</a></body></html>";
         exit;
     }
+    
+    $statusData = json_decode($res, true);
+    $remoteCount = $statusData['total_files'] ?? 0;
+    $remoteSize = $statusData['total_size_human'] ?? '?';
+    echo "<span class='ok'>✔ Terhubung ke Hostinger via HTTPS (Direct IP Resolution)!</span>\n";
+    echo "<span class='info'>  Total berkas di storage Hostinger: {$remoteCount} berkas ({$remoteSize})</span>\n";
+    flush();
     
     // Sync file satu per satu dengan logging
     $synced = 0;
@@ -377,7 +381,7 @@ if ($action === 'sync_course') {
         echo "<span class='info'>[{$num}/{$totalFiles}]</span> {$shortName} ... ";
         flush();
         
-        $fileUrl = "{$protocol}://{$hostingerIp}/storage-sync.php?secret={$prodSecret}&action=download_file&file=" . urlencode($relPath);
+        $fileUrl = "https://{$domain}/storage-sync.php?secret={$prodSecret}&action=download_file&file=" . urlencode($relPath);
         $dest = $storagePath . '/' . $relPath;
         $parentDir = dirname($dest);
         if (!is_dir($parentDir)) @mkdir($parentDir, 0755, true);
@@ -385,14 +389,16 @@ if ($action === 'sync_course') {
         $ch = curl_init($fileUrl);
         $fh = fopen($dest, 'w+');
         curl_setopt_array($ch, [
-            CURLOPT_HTTPHEADER => ["Host: {$domain}"],
+            CURLOPT_RESOLVE => $resolveConfig,
             CURLOPT_FILE => $fh,
-            CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 180,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_TIMEOUT => 180,
         ]);
         curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $dlSize = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
+        $fileErr = curl_error($ch);
         curl_close($ch);
         fclose($fh);
         
