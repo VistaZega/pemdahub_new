@@ -458,6 +458,127 @@ if ($action === 'sync_course') {
 }
 
 // ══════════════════════════════════════════════════════
+// ACTION: SYNC PER KURSUS VIA AJAX (UNTUK AUTO-RUNNER)
+// ══════════════════════════════════════════════════════
+if ($action === 'sync_course_ajax') {
+    header('Content-Type: application/json; charset=utf-8');
+    @ini_set('max_execution_time', '180');
+    @set_time_limit(180);
+    
+    $courseId = (int)($_POST['course_id'] ?? $_GET['course_id'] ?? 0);
+    $hostingerIp = trim($_POST['hostinger_ip'] ?? $_GET['hostinger_ip'] ?? ($syncLog['hostinger_ip'] ?? ''));
+    $prodSecret = 'pembda2026storage';
+    
+    if (empty($hostingerIp)) {
+        echo json_encode(['status' => 'error', 'message' => 'IP Hostinger belum diset.']);
+        exit;
+    }
+    
+    $target = $courseStats[$courseId] ?? null;
+    if (!$target || empty($target['missing_files'])) {
+        echo json_encode([
+            'status' => 'ok',
+            'course_id' => $courseId,
+            'course_name' => $target['course_name'] ?? "ID {$courseId}",
+            'synced' => 0,
+            'failed' => 0,
+            'remaining' => 0,
+            'message' => 'Sudah lengkap'
+        ]);
+        exit;
+    }
+    
+    $courseName = $target['course_name'];
+    $filesToSync = $target['missing_files'];
+    
+    // Filter: skip file yang sudah pernah berhasil di-sync (resume)
+    $filesToSync = array_values(array_filter($filesToSync, function($f) use ($syncLog) {
+        return !isset($syncLog['synced_files'][$f]);
+    }));
+    
+    if (empty($filesToSync)) {
+        echo json_encode([
+            'status' => 'ok',
+            'course_id' => $courseId,
+            'course_name' => $courseName,
+            'synced' => 0,
+            'failed' => 0,
+            'remaining' => 0,
+            'message' => 'Semua file sudah pernah di-sync'
+        ]);
+        exit;
+    }
+    
+    $domain = 'perguruanpembda.com';
+    $resolveConfig = [
+        "{$domain}:443:{$hostingerIp}",
+        "{$domain}:80:{$hostingerIp}",
+    ];
+    
+    $synced = 0;
+    $failed = 0;
+    
+    foreach ($filesToSync as $relPath) {
+        $fileUrl = "https://{$domain}/storage-sync.php?secret={$prodSecret}&action=download_file&file=" . urlencode($relPath);
+        $dest = $storagePath . '/' . $relPath;
+        $parentDir = dirname($dest);
+        if (!is_dir($parentDir)) @mkdir($parentDir, 0755, true);
+        
+        $ch = curl_init($fileUrl);
+        $fh = fopen($dest, 'w+');
+        curl_setopt_array($ch, [
+            CURLOPT_RESOLVE => $resolveConfig,
+            CURLOPT_FILE => $fh,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_TIMEOUT => 60,
+        ]);
+        curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $dlSize = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
+        curl_close($ch);
+        fclose($fh);
+        
+        if ($httpCode === 200 && file_exists($dest) && filesize($dest) > 0) {
+            @chmod($dest, 0644);
+            $synced++;
+            $syncLog['synced_files'][$relPath] = [
+                'synced_at' => date('Y-m-d H:i:s'),
+                'size' => (int)$dlSize,
+                'course' => $courseName,
+            ];
+            $syncLog['total_synced'] = ($syncLog['total_synced'] ?? 0) + 1;
+            unset($syncLog['failed_files'][$relPath]);
+        } else {
+            @unlink($dest);
+            $failed++;
+            $syncLog['failed_files'][$relPath] = [
+                'failed_at' => date('Y-m-d H:i:s'),
+                'http_code' => $httpCode,
+                'course' => $courseName,
+            ];
+        }
+    }
+    
+    saveSyncLog($logFile, $syncLog);
+    
+    if (PHP_OS_FAMILY === 'Linux') {
+        @exec("chown -R www-data:www-data " . escapeshellarg($storagePath . '/lms') . " 2>/dev/null");
+        @exec("chown -R www-data:www-data " . escapeshellarg($storagePath . '/lms_materials') . " 2>/dev/null");
+    }
+    
+    echo json_encode([
+        'status' => 'ok',
+        'course_id' => $courseId,
+        'course_name' => $courseName,
+        'synced' => $synced,
+        'failed' => $failed,
+        'remaining' => count($filesToSync) - $synced,
+    ]);
+    exit;
+}
+
+// ══════════════════════════════════════════════════════
 // ACTION: RETRY FAILED FILES
 // ══════════════════════════════════════════════════════
 if ($action === 'retry_failed') {
@@ -527,6 +648,11 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
                 <p class="text-xs text-slate-400 mt-1">Database: <code class="text-emerald-300 font-mono"><?= htmlspecialchars($env['DB_DATABASE'] ?? '') ?></code></p>
             </div>
             <div class="flex flex-wrap gap-2">
+                <?php if ($globalMissing > 0 && !empty($savedIp)): ?>
+                <button onclick="openAutoRunner()" class="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-700/30">
+                    ⚡ Auto-Sync Semua Kursus
+                </button>
+                <?php endif; ?>
                 <a href="?secret=<?= htmlspecialchars($secret) ?>" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition">🔄 Refresh</a>
                 <?php if ($globalMissing > 0): ?>
                 <a href="?secret=<?= htmlspecialchars($secret) ?>&action=export_missing" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">📋 Export JSON</a>
@@ -778,6 +904,82 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
     <p class="text-center text-[10px] text-slate-600 py-3">PembdaHUB LMS Recovery v2 · <?= date('Y-m-d H:i:s') ?></p>
 </div>
 
+<!-- Auto-Runner Modal Overlay -->
+<div id="autoRunnerModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Modal Header -->
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-900 to-slate-800">
+            <div>
+                <h3 class="font-black text-white text-base flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    ⚡ Auto-Runner: Sinkronisasi Massal Semua Kursus
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Menarik berkas dari Hostinger kursus per kursus secara otomatis & aman</p>
+            </div>
+            <button onclick="closeAutoRunner()" class="text-slate-400 hover:text-white text-2xl p-1 leading-none">&times;</button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-5 space-y-4 flex-1 overflow-y-auto">
+            <!-- Metrics -->
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Progres Kursus</span>
+                    <div id="runnerCourseCount" class="text-lg font-black text-sky-400 mt-0.5">0 / <?= count(array_filter($courseStats, fn($c) => $c['missing'] > 0)) ?></div>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Berkas Ditarik</span>
+                    <div id="runnerSyncedCount" class="text-lg font-black text-emerald-400 mt-0.5">0</div>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Berkas 404 (Dilewati)</span>
+                    <div id="runnerFailedCount" class="text-lg font-black text-amber-400 mt-0.5">0</div>
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs font-semibold">
+                    <span id="runnerStatusText" class="text-slate-300">Siap dijalankan...</span>
+                    <span id="runnerPercentText" class="text-emerald-400 font-mono">0%</span>
+                </div>
+                <div class="h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                    <div id="runnerProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Terminal Log -->
+            <div class="space-y-1">
+                <div class="flex justify-between items-center">
+                    <span class="text-[11px] font-bold text-slate-400">Terminal Log Real-Time</span>
+                    <span class="text-[10px] text-slate-500 font-mono">Hostinger: <?= htmlspecialchars($savedIp) ?></span>
+                </div>
+                <div id="runnerTerminal" class="bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-slate-300 h-56 overflow-y-auto space-y-1 select-text">
+                    <div class="text-slate-500">Klik "Mulai Sinkronisasi" untuk menjalankan proses otomatis kursus per kursus...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
+            <div class="text-[11px] text-slate-400 hidden sm:block">
+                💡 Bisa di-pause atau ditutup kapan saja. Berkas yang sudah ditarik tidak akan hilang.
+            </div>
+            <div class="flex gap-2 ml-auto">
+                <button id="btnStartRunner" onclick="startAutoRunner()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-700/30">
+                    ▶ Mulai Sinkronisasi
+                </button>
+                <button id="btnPauseRunner" onclick="pauseAutoRunner()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition hidden">
+                    ⏸️ Jeda (Pause)
+                </button>
+                <button onclick="closeAutoRunner()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function filterCourses(query) {
     const q = query.toLowerCase().trim();
@@ -785,6 +987,116 @@ function filterCourses(query) {
         const text = card.textContent.toLowerCase();
         card.style.display = text.includes(q) ? '' : 'none';
     });
+}
+
+// ══════════════════════════════════════════════════════
+// AUTO-RUNNER ENGINE
+// ══════════════════════════════════════════════════════
+const runnerQueue = <?= json_encode(array_values(array_filter(array_map(function($c) {
+    if ($c['missing'] <= 0) return null;
+    return [
+        'id' => $c['course_id'],
+        'name' => $c['course_name'] . (!empty($c['class_name']) ? ' (' . $c['class_name'] . ')' : ''),
+        'teacher' => $c['teacher_name'],
+        'missing' => $c['missing'],
+    ];
+}, $courseStats)))) ?>;
+
+let runnerIndex = 0;
+let runnerIsRunning = false;
+let runnerTotalSynced = 0;
+let runnerTotalFailed = 0;
+const hostingerIp = <?= json_encode($savedIp) ?>;
+const secretKey = <?= json_encode($secret) ?>;
+
+function openAutoRunner() {
+    document.getElementById('autoRunnerModal').classList.remove('hidden');
+}
+
+function closeAutoRunner() {
+    if (runnerIsRunning) {
+        if (!confirm('Auto-Runner sedang berjalan. Ingin menjeda proses?')) return;
+        pauseAutoRunner();
+    }
+    document.getElementById('autoRunnerModal').classList.add('hidden');
+    if (runnerTotalSynced > 0) {
+        window.location.href = `?secret=${encodeURIComponent(secretKey)}`;
+    }
+}
+
+function logTerminal(html) {
+    const term = document.getElementById('runnerTerminal');
+    const line = document.createElement('div');
+    line.innerHTML = `<span class="text-slate-500">[${new Date().toTimeString().split(' ')[0]}]</span> ${html}`;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+}
+
+async function startAutoRunner() {
+    if (!hostingerIp) {
+        alert('IP Hostinger belum diatur!');
+        return;
+    }
+    runnerIsRunning = true;
+    document.getElementById('btnStartRunner').classList.add('hidden');
+    document.getElementById('btnPauseRunner').classList.remove('hidden');
+    logTerminal('<span class="text-emerald-400 font-bold">🚀 Memulai sinkronisasi massal otomatis...</span>');
+
+    while (runnerIndex < runnerQueue.length && runnerIsRunning) {
+        const item = runnerQueue[runnerIndex];
+        const progressPct = Math.round((runnerIndex / runnerQueue.length) * 100);
+        document.getElementById('runnerProgressBar').style.width = progressPct + '%';
+        document.getElementById('runnerPercentText').innerText = progressPct + '%';
+        document.getElementById('runnerCourseCount').innerText = `${runnerIndex + 1} / ${runnerQueue.length}`;
+        document.getElementById('runnerStatusText').innerText = `Memproses: #${item.id} ${item.name}...`;
+
+        logTerminal(`<span class="text-sky-400">▶ Memproses [#${item.id}] ${item.name} (${item.missing} file)...</span>`);
+
+        try {
+            const res = await fetch(`?secret=${encodeURIComponent(secretKey)}&action=sync_course_ajax&course_id=${item.id}&hostinger_ip=${encodeURIComponent(hostingerIp)}`);
+            const data = await res.json();
+
+            if (data.status === 'ok') {
+                runnerTotalSynced += (data.synced || 0);
+                runnerTotalFailed += (data.failed || 0);
+                document.getElementById('runnerSyncedCount').innerText = runnerTotalSynced;
+                document.getElementById('runnerFailedCount').innerText = runnerTotalFailed;
+
+                let msg = `<span class="text-emerald-400">✔ Selesai: ${data.synced || 0} berhasil ditarik</span>`;
+                if (data.failed > 0) {
+                    msg += `, <span class="text-amber-400">${data.failed} dilewati (404)</span>`;
+                }
+                logTerminal(`  ${msg}`);
+            } else {
+                logTerminal(`  <span class="text-rose-400">✖ Error: ${data.message || 'Gagal'}</span>`);
+            }
+        } catch (err) {
+            logTerminal(`  <span class="text-rose-400">✖ Jaringan terganggu: ${err.message}. Lanjut ke kursus berikutnya...</span>`);
+        }
+
+        runnerIndex++;
+        await new Promise(r => setTimeout(r, 200));
+    }
+
+    if (runnerIndex >= runnerQueue.length) {
+        runnerIsRunning = false;
+        document.getElementById('runnerProgressBar').style.width = '100%';
+        document.getElementById('runnerPercentText').innerText = '100%';
+        document.getElementById('runnerStatusText').innerText = '🎉 Semua kursus selesai disinkronkan!';
+        logTerminal('<span class="text-emerald-400 font-bold">🎉 SINKRONISASI MASSAL SELESAI SELURUHNYA! Memuat ulang dashboard dalam 3 detik...</span>');
+        setTimeout(() => {
+            window.location.href = `?secret=${encodeURIComponent(secretKey)}`;
+        }, 3000);
+    }
+}
+
+function pauseAutoRunner() {
+    runnerIsRunning = false;
+    document.getElementById('btnStartRunner').classList.remove('hidden');
+    document.getElementById('btnStartRunner').innerText = '▶ Lanjutkan Sinkronisasi';
+    document.getElementById('btnPauseRunner').classList.add('hidden');
+    document.getElementById('runnerStatusText').innerText = 'Dijeda (Paused)';
+    logTerminal('<span class="text-amber-400 font-bold">⏸️ Proses dijeda oleh pengguna.</span>');
 }
 </script>
 </body>
