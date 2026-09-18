@@ -142,13 +142,15 @@ try {
     $materials = $pdo->query("
         SELECT m.id, m.title, m.material_type, m.file_path, m.file_size, m.file_url,
                md.title AS module_title,
-               c.id AS course_id, c.course_name,
+               c.id AS course_id, c.course_name, c.code AS course_code,
+               clr.name AS class_name,
                t.full_name AS teacher_name,
                s.name AS school_name,
                COALESCE(sub.name, sub.subject_name) AS subject_name
         FROM lms_materials m
         LEFT JOIN lms_modules md ON m.module_id = md.id
         LEFT JOIN lms_courses c ON COALESCE(m.course_id, md.course_id) = c.id
+        LEFT JOIN classrooms clr ON c.classroom_id = clr.id
         LEFT JOIN teachers t ON c.teacher_id = t.id
         LEFT JOIN schools s ON c.school_id = s.id
         LEFT JOIN subjects sub ON c.subject_id = sub.id
@@ -162,12 +164,14 @@ try {
     $assignments = $pdo->query("
         SELECT a.id, a.title, a.assignment_type, a.file_path,
                md.title AS module_title,
-               c.id AS course_id, c.course_name,
+               c.id AS course_id, c.course_name, c.code AS course_code,
+               clr.name AS class_name,
                t.full_name AS teacher_name,
                s.name AS school_name
         FROM lms_assignments a
         LEFT JOIN lms_modules md ON a.module_id = md.id
         LEFT JOIN lms_courses c ON COALESCE(a.course_id, md.course_id) = c.id
+        LEFT JOIN classrooms clr ON c.classroom_id = clr.id
         LEFT JOIN teachers t ON c.teacher_id = t.id
         LEFT JOIN schools s ON c.school_id = s.id
         WHERE a.deleted_at IS NULL AND a.file_path IS NOT NULL AND a.file_path != ''
@@ -185,6 +189,8 @@ foreach ($materials as $m) {
         $courseStats[$cid] = [
             'course_id' => $cid,
             'course_name' => $m['course_name'] ?? 'Tanpa Kursus',
+            'course_code' => $m['course_code'] ?? '',
+            'class_name' => $m['class_name'] ?? '',
             'teacher_name' => $m['teacher_name'] ?? '-',
             'school_name' => $m['school_name'] ?? '-',
             'subject_name' => $m['subject_name'] ?? '-',
@@ -213,6 +219,8 @@ foreach ($assignments as $a) {
         $courseStats[$cid] = [
             'course_id' => $cid,
             'course_name' => $a['course_name'] ?? 'Tanpa Kursus',
+            'course_code' => $a['course_code'] ?? '',
+            'class_name' => $a['class_name'] ?? '',
             'teacher_name' => $a['teacher_name'] ?? '-',
             'school_name' => $a['school_name'] ?? '-',
             'subject_name' => '-',
@@ -610,9 +618,22 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
         </div>
     <?php endif; ?>
 
+    <!-- Search & Filter Bar -->
+    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+            <span class="text-slate-400 text-sm">🔍</span>
+            <input type="text" id="courseSearch" placeholder="Cari nama mapel, guru, kelas, atau ID kursus (misal: 496, Seni Musik, Hasrat)..."
+                   oninput="filterCourses(this.value)"
+                   class="bg-slate-950 border border-slate-800 text-white text-xs px-3 py-2 rounded-lg w-full focus:outline-none focus:border-emerald-500 font-medium">
+        </div>
+        <div class="text-[11px] text-slate-400">
+            Ketik ID <code class="text-sky-300 font-mono font-bold">496</code> untuk melihat Seni Musik yang sudah di-sync
+        </div>
+    </div>
+
     <!-- Per-School Course Cards -->
     <?php foreach ($bySchool as $schoolName => $courses): ?>
-    <div class="space-y-3">
+    <div class="space-y-3 school-group">
         <h2 class="text-sm font-black text-slate-300 uppercase tracking-wider flex items-center gap-2 pt-2">
             <span>🏫</span> <?= htmlspecialchars($schoolName) ?>
             <span class="text-[10px] font-mono text-slate-500">(<?= count($courses) ?> kursus)</span>
@@ -624,20 +645,31 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
             $barColor = $isComplete ? 'bg-emerald-500' : ($pct > 50 ? 'bg-amber-500' : 'bg-rose-500');
             $borderColor = $isComplete ? 'border-emerald-500/20' : ($cs['missing'] > 5 ? 'border-rose-500/30' : 'border-amber-500/20');
         ?>
-        <div class="bg-slate-800 border <?= $borderColor ?> rounded-xl overflow-hidden">
+        <div class="bg-slate-800 border <?= $borderColor ?> rounded-xl overflow-hidden course-card">
             <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-base"><?= $isComplete ? '✅' : '❌' ?></span>
+                        <span class="text-[11px] font-mono font-bold bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-700">#<?= $cs['course_id'] ?></span>
                         <h3 class="font-bold text-white text-sm truncate"><?= htmlspecialchars($cs['course_name']) ?></h3>
+                        <?php if (!empty($cs['class_name'])): ?>
+                        <span class="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/30 font-semibold"><?= htmlspecialchars($cs['class_name']) ?></span>
+                        <?php endif; ?>
                         <?php if ($cs['subject_name'] && $cs['subject_name'] !== '-'): ?>
                         <span class="text-[10px] px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30"><?= htmlspecialchars($cs['subject_name']) ?></span>
+                        <?php endif; ?>
+                        <?php if ($cs['present'] > 0 && !$isComplete): ?>
+                        <span class="text-[10px] px-2 py-0.5 bg-teal-500/20 text-teal-300 rounded border border-teal-500/30 font-bold">🎉 <?= $cs['present'] ?> Berhasil Dipulihkan</span>
                         <?php endif; ?>
                     </div>
                     <div class="text-[11px] text-slate-400 mt-1 flex flex-wrap gap-x-4">
                         <span>👨‍🏫 <?= htmlspecialchars($cs['teacher_name']) ?></span>
-                        <span>📄 <?= $cs['total'] ?> file total</span>
-                        <span class="<?= $isComplete ? 'text-emerald-400' : 'text-rose-400' ?>"><?= $isComplete ? '✅ Lengkap' : "❌ {$cs['missing']} hilang" ?></span>
+                        <?php if (!empty($cs['course_code'])): ?>
+                        <span class="font-mono text-slate-500">[<?= htmlspecialchars($cs['course_code']) ?>]</span>
+                        <?php endif; ?>
+                        <span>📄 Total: <strong><?= $cs['total'] ?></strong> file</span>
+                        <span class="text-emerald-400 font-semibold">✔ <?= $cs['present'] ?> ada di server</span>
+                        <span class="<?= $isComplete ? 'text-emerald-400' : 'text-rose-400' ?> font-semibold">❌ <?= $cs['missing'] ?> belum ada</span>
                     </div>
                     <!-- Progress bar -->
                     <div class="mt-2 h-1.5 bg-slate-700 rounded-full overflow-hidden">
@@ -745,5 +777,15 @@ $savedIp = $syncLog['hostinger_ip'] ?? '';
 
     <p class="text-center text-[10px] text-slate-600 py-3">PembdaHUB LMS Recovery v2 · <?= date('Y-m-d H:i:s') ?></p>
 </div>
+
+<script>
+function filterCourses(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.course-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(q) ? '' : 'none';
+    });
+}
+</script>
 </body>
 </html>
