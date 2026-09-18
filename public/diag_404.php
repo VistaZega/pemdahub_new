@@ -308,6 +308,7 @@ try {
             try {
                 // Disable all middleware globally to bypass Auth, CORS, and CSRF
                 app()->instance('middleware.disable', true);
+                view()->share('errors', new \Illuminate\Support\ViewErrorBag());
                 
                 $kernel = app(\Illuminate\Contracts\Http\Kernel::class);
                 $request = \Illuminate\Http\Request::create('/admin/final-projects/proposals', 'GET');

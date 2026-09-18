@@ -44,11 +44,11 @@
                     <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">{{ strtoupper($exam->exam_type) }}</span>
                     <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">{{ $exam->subject->subject_name ?? $exam->subject->name ?? '-' }}</span>
                     @if($exam->requires_tuition_payment && isset($exam->compliance))
-                        @if($exam->compliance['has_dispensation'])
+                        @if(!empty($exam->compliance['has_dispensation']))
                             <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
                                 <i class="fas fa-certificate text-[10px]"></i> Dispensasi Wali Kelas
                             </span>
-                        @elseif($exam->compliance['allowed'])
+                        @elseif(!empty($exam->compliance['allowed']))
                             <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                                 <i class="fas fa-check-circle text-[10px]"></i> SPP Lunas
                             </span>
@@ -90,7 +90,7 @@
                 <a href="{{ route('siswa.cbt.show', $exam) }}" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg transition font-bold text-sm flex items-center gap-2">
                     <i class="fas fa-play"></i>Mulai Ujian
                 </a>
-                @elseif(isset($exam->compliance) && !$exam->compliance['allowed'])
+                @elseif(isset($exam->compliance) && empty($exam->compliance['allowed']))
                 <a href="{{ route('siswa.cbt.show', $exam) }}" class="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition font-bold text-xs flex items-center gap-1.5">
                     <i class="fas fa-lock text-[11px]"></i> Cek Status / Hubungi Wali
                 </a>

@@ -409,61 +409,67 @@ class ErrorAlertService
     public function getRecentErrorLogs(int $limit = 20): array
     {
         $logs = [];
-        $logPath = storage_path('logs/laravel.log');
+        $candidates = glob(storage_path('logs/laravel*.log')) ?: [];
 
-        // Check if file exists, if not check daily log files
-        if (!file_exists($logPath)) {
-            $dailyFiles = glob(storage_path('logs/laravel-*.log'));
-            if (!empty($dailyFiles)) {
-                rsort($dailyFiles);
-                $logPath = $dailyFiles[0];
-            }
-        }
+        // Sort by modification time descending
+        usort($candidates, fn($a, $b) => filemtime($b) <=> filemtime($a));
 
-        if (!file_exists($logPath) || filesize($logPath) === 0) {
+        // Filter to files that have content
+        $validFiles = array_values(array_filter($candidates, fn($f) => file_exists($f) && filesize($f) > 0));
+
+        if (empty($validFiles)) {
             return [];
         }
 
         try {
-            // Read last 200KB of log file for performance
-            $maxBytes = 200 * 1024;
-            $fileSize = filesize($logPath);
-            $fp = fopen($logPath, 'r');
+            $count = 0;
+            // Scan through valid log files until limit is reached
+            foreach ($validFiles as $logPath) {
+                if ($count >= $limit) {
+                    break;
+                }
 
-            if ($fileSize > $maxBytes) {
-                fseek($fp, $fileSize - $maxBytes);
-                fgets($fp); // discard partial line
-            }
+                $maxBytes = 300 * 1024;
+                $fileSize = filesize($logPath);
+                $fp = fopen($logPath, 'r');
+                if (!$fp) {
+                    continue;
+                }
 
-            $content = fread($fp, $maxBytes);
-            fclose($fp);
+                if ($fileSize > $maxBytes) {
+                    fseek($fp, $fileSize - $maxBytes);
+                    fgets($fp); // discard partial line
+                }
 
-            // Pattern to match Laravel log entries
-            $pattern = '/\[(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[\.\d\s\+\-:]*)\]\s+([a-zA-Z0-9_\-]+)\.([A-Z]+):\s+(.*?)(?=\n\[\d{4}-\d{2}-\d{2}|$)/s';
-            preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+                $content = fread($fp, $maxBytes);
+                fclose($fp);
 
-            if (!empty($matches)) {
-                $matches = array_reverse($matches); // newest first
-                $count = 0;
+                // Pattern to match Laravel log entries
+                $pattern = '/\[(\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[\.\d\s\+\-:]*)\]\s+([a-zA-Z0-9_\-]+)\.([A-Z]+):\s+(.*?)(?=\n\[\d{4}-\d{2}-\d{2}|$)/s';
+                preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
 
-                foreach ($matches as $match) {
-                    $level = strtoupper($match[3] ?? 'INFO');
-                    // Filter to ERROR, CRITICAL, EMERGENCY, ALERT
-                    if (in_array($level, ['ERROR', 'CRITICAL', 'EMERGENCY', 'ALERT'])) {
-                        $fullMessage = trim($match[4] ?? '');
-                        $firstLine = strtok($fullMessage, "\n");
-                        
-                        $logs[] = [
-                            'timestamp' => $match[1] ?? '',
-                            'environment' => $match[2] ?? 'production',
-                            'level' => $level,
-                            'short_message' => mb_substr($firstLine, 0, 180),
-                            'full_message' => mb_substr($fullMessage, 0, 1000),
-                        ];
+                if (!empty($matches)) {
+                    $matches = array_reverse($matches); // newest first
 
-                        $count++;
-                        if ($count >= $limit) {
-                            break;
+                    foreach ($matches as $match) {
+                        $level = strtoupper($match[3] ?? 'INFO');
+                        // Filter to ERROR, CRITICAL, EMERGENCY, ALERT
+                        if (in_array($level, ['ERROR', 'CRITICAL', 'EMERGENCY', 'ALERT'])) {
+                            $fullMessage = trim($match[4] ?? '');
+                            $firstLine = strtok($fullMessage, "\n");
+                            
+                            $logs[] = [
+                                'timestamp' => $match[1] ?? '',
+                                'environment' => $match[2] ?? 'production',
+                                'level' => $level,
+                                'short_message' => mb_substr($firstLine, 0, 180),
+                                'full_message' => mb_substr($fullMessage, 0, 1000),
+                            ];
+
+                            $count++;
+                            if ($count >= $limit) {
+                                break;
+                            }
                         }
                     }
                 }

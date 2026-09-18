@@ -99,7 +99,7 @@
             <span class="font-bold tracking-wide">{{ session('error') }}</span>
         </div>
     @endif
-    @if($errors->any())
+    @if(isset($errors) && $errors->any())
         <div class="bg-rose-50 border-2 border-rose-200 text-rose-900 px-5 py-4 rounded-2xl text-xs md:text-sm shadow-md space-y-1.5">
             <div class="flex items-center gap-2 font-extrabold text-rose-700">
                 <i class="fas fa-circle-exclamation"></i> Terdapat kesalahan input:
