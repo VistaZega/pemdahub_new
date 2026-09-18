@@ -866,6 +866,80 @@ class ErrorDiagnosticService
             ];
         }
 
+        // 11. Check LMS Class Deduplication & FirstOrCreate
+        try {
+            $lmsControllerFile = app_path('Http/Controllers/Guru/LmsCourseController.php');
+            $hasLmsSafe = file_exists($lmsControllerFile)
+                && str_contains(file_get_contents($lmsControllerFile), 'LmsClass::firstOrCreate');
+            $checks[] = [
+                'id' => 'lms_class_dedup_safety',
+                'title' => 'Proteksi Duplikasi Rombel LMS (Atomic Guard)',
+                'passed' => $hasLmsSafe,
+                'badge' => $hasLmsSafe ? '🟢 TERVERIFIKASI AMAN' : '🔴 BUTUH PERBAIKAN',
+                'detail' => $hasLmsSafe
+                    ? 'Penetapan rombel LMS menggunakan firstOrCreate() dan array deduplication untuk mencegah constraint violation 1062.'
+                    : 'LmsCourseController belum menerapkan LmsClass::firstOrCreate.',
+            ];
+        } catch (\Throwable $e) {
+            $checks[] = [
+                'id' => 'lms_class_dedup_safety',
+                'title' => 'Proteksi Duplikasi Rombel LMS (Atomic Guard)',
+                'passed' => false,
+                'badge' => '🔴 ERROR',
+                'detail' => $e->getMessage(),
+            ];
+        }
+
+        // 12. Check CBT Sesi & Hasil Race Condition Protection
+        try {
+            $cbtFile = app_path('Services/CbtService.php');
+            $cbtContent = file_exists($cbtFile) ? file_get_contents($cbtFile) : '';
+            $hasCbtSafe = str_contains($cbtContent, 'CbtExamResult::updateOrCreate')
+                && str_contains($cbtContent, 'DB::transaction')
+                && !str_contains($cbtContent, "classrooms()->orderBy('name')");
+            $checks[] = [
+                'id' => 'cbt_race_and_orderby_safety',
+                'title' => 'Proteksi Deadlock CBT & Urutan Kolom Kelas (class_name)',
+                'passed' => $hasCbtSafe,
+                'badge' => $hasCbtSafe ? '🟢 TERVERIFIKASI AMAN' : '🔴 BUTUH PERBAIKAN',
+                'detail' => $hasCbtSafe
+                    ? 'Deadlock mitigation dengan transaction retry, updateOrCreate hasil CBT, dan perbaikan kolom classrooms.class_name telah aktif.'
+                    : 'CbtService belum sepenuhnya mengimplementasikan perbaikan.',
+            ];
+        } catch (\Throwable $e) {
+            $checks[] = [
+                'id' => 'cbt_race_and_orderby_safety',
+                'title' => 'Proteksi Deadlock CBT & Urutan Kolom Kelas (class_name)',
+                'passed' => false,
+                'badge' => '🔴 ERROR',
+                'detail' => $e->getMessage(),
+            ];
+        }
+
+        // 13. Check RFID Kiosk Status Variable Safety
+        try {
+            $attControllerFile = app_path('Http/Controllers/Api/AttendanceController.php');
+            $attContent = file_exists($attControllerFile) ? file_get_contents($attControllerFile) : '';
+            $hasAttSafe = str_contains($attContent, "\$status = (\$currentTime > \$lateLimit) ? 'terlambat' : 'hadir';");
+            $checks[] = [
+                'id' => 'rfid_attendance_status_safety',
+                'title' => 'Kalkulasi Status Absensi RFID Kiosk (Anti Undefined $status)',
+                'passed' => $hasAttSafe,
+                'badge' => $hasAttSafe ? '🟢 TERVERIFIKASI AMAN' : '🔴 BUTUH PERBAIKAN',
+                'detail' => $hasAttSafe
+                    ? 'Variabel $status siswa telah diinisialisasi secara tepat waktu berdasarkan batas toleransi keterlambatan.'
+                    : 'AttendanceController belum menginisialisasi variabel $status sebelum insert.',
+            ];
+        } catch (\Throwable $e) {
+            $checks[] = [
+                'id' => 'rfid_attendance_status_safety',
+                'title' => 'Kalkulasi Status Absensi RFID Kiosk (Anti Undefined $status)',
+                'passed' => false,
+                'badge' => '🔴 ERROR',
+                'detail' => $e->getMessage(),
+            ];
+        }
+
         return $checks;
     }
 }

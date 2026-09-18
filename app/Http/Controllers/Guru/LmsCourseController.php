@@ -224,11 +224,13 @@ class LmsCourseController extends Controller
         ]);
 
         // Assign classrooms via lms_classes and auto-enroll students
-        if ($request->classroom_ids) {
-            foreach ($request->classroom_ids as $classroomId) {
-                $lmsClass = LmsClass::create([
+        $rawClassroomIds = array_values(array_unique(array_filter((array)$request->classroom_ids)));
+        if (!empty($rawClassroomIds)) {
+            foreach ($rawClassroomIds as $classroomId) {
+                $lmsClass = LmsClass::firstOrCreate([
                     'course_id' => $course->id,
                     'classroom_id' => $classroomId,
+                ], [
                     'school_id' => $this->getEffectiveSchoolId($teacher),
                     'status' => 'active',
                 ]);
@@ -390,18 +392,19 @@ class LmsCourseController extends Controller
         ]);
 
         // Sync classrooms assignment
-        $classroomIds = $request->input('classroom_ids', []);
+        $classroomIds = array_values(array_unique(array_filter((array)$request->input('classroom_ids', []))));
         $currentClasses = $course->lmsClasses;
         $currentClassroomIds = $currentClasses->pluck('classroom_id')->toArray();
 
-        $toAdd = array_diff($classroomIds, $currentClassroomIds);
-        $toRemove = array_diff($currentClassroomIds, $classroomIds);
+        $toAdd = array_values(array_diff($classroomIds, $currentClassroomIds));
+        $toRemove = array_values(array_diff($currentClassroomIds, $classroomIds));
 
         // Add new classrooms
         foreach ($toAdd as $classroomId) {
-            $lmsClass = LmsClass::create([
+            $lmsClass = LmsClass::firstOrCreate([
                 'course_id' => $course->id,
                 'classroom_id' => $classroomId,
+            ], [
                 'school_id' => $this->getEffectiveSchoolId($teacher),
                 'status' => 'active',
             ]);
@@ -698,10 +701,12 @@ class LmsCourseController extends Controller
             ]);
 
             // Assign classrooms
-            foreach ($request->classroom_ids as $classroomId) {
-                LmsClass::create([
+            $adoptClassroomIds = array_values(array_unique(array_filter((array)$request->classroom_ids)));
+            foreach ($adoptClassroomIds as $classroomId) {
+                LmsClass::firstOrCreate([
                     'course_id' => $newCourse->id,
                     'classroom_id' => $classroomId,
+                ], [
                     'school_id' => $targetSchoolId,
                     'status' => 'active',
                 ]);

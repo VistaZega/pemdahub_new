@@ -68,89 +68,102 @@ class CbtService
      */
     public function startExamSession(CbtExam $exam, Student $student, ?int $classroomId): CbtExamSession
     {
-        return DB::transaction(function () use ($exam, $student, $classroomId) {
-            // Pessimistic lock: prevent duplicate session creation under concurrency
+        try {
+            return DB::transaction(function () use ($exam, $student, $classroomId) {
+                // Prevent duplicate session creation under concurrency
+                $existingSession = CbtExamSession::where('exam_id', $exam->id)
+                    ->where('student_id', $student->id)
+                    ->whereIn('status', ['not_started', 'in_progress'])
+                    ->first();
+
+                if ($existingSession) {
+                    return $existingSession;
+                }
+
+                // Check kepatuhan pembayaran uang sekolah jika disyaratkan oleh ujian
+                if ($exam->requires_tuition_payment) {
+                    $complianceService = app(CbtTuitionComplianceService::class);
+                    $compliance = $complianceService->checkStudentCompliance($exam, $student);
+                    if (!$compliance['allowed']) {
+                        throw new \RuntimeException($compliance['message'] ?? 'Akses ujian dibatasi karena kepatuhan uang sekolah.');
+                    }
+                }
+
+                // Check max attempts
+                $attemptCount = CbtExamSession::where('exam_id', $exam->id)
+                    ->where('student_id', $student->id)
+                    ->whereIn('status', ['submitted', 'timeout', 'graded'])
+                    ->count();
+
+                if ($attemptCount >= $exam->max_attempts) {
+                    throw new \RuntimeException("Batas percobaan ({$exam->max_attempts}) sudah tercapai.");
+                }
+
+                // Get exam questions
+                $questionIds = $exam->examQuestions()->pluck('question_id')->toArray();
+
+                // Randomize question order if enabled
+                $questionOrder = $questionIds;
+                if ($exam->randomize_questions) {
+                    shuffle($questionOrder);
+                }
+
+                // Randomize option orders if enabled
+                $optionOrders = [];
+                if ($exam->randomize_options) {
+                    foreach ($questionIds as $qId) {
+                        $options = CbtQuestionOption::where('question_id', $qId)
+                            ->pluck('option_label')
+                            ->toArray();
+                        shuffle($options);
+                        $optionOrders[$qId] = $options;
+                    }
+                }
+
+                // Create session
+                $session = CbtExamSession::create([
+                    'exam_id' => $exam->id,
+                    'student_id' => $student->id,
+                    'classroom_id' => $classroomId,
+                    'attempt_number' => $attemptCount + 1,
+                    'started_at' => now(),
+                    'deadline_at' => now()->addMinutes($exam->duration_minutes),
+                    'status' => 'in_progress',
+                    'question_order' => $questionOrder,
+                    'option_orders' => $optionOrders ?: null,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
+
+                // Pre-create empty answer records
+                $answerRecords = [];
+                $now = now();
+                foreach ($questionOrder as $qId) {
+                    $answerRecords[] = [
+                        'session_id' => $session->id,
+                        'question_id' => $qId,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+                CbtAnswer::insert($answerRecords);
+
+                return $session;
+            }, 3);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle deadlock (40001 / 1213) or unique constraint race conditions gracefully
             $existingSession = CbtExamSession::where('exam_id', $exam->id)
                 ->where('student_id', $student->id)
                 ->whereIn('status', ['not_started', 'in_progress'])
-                ->lockForUpdate()
+                ->latest('id')
                 ->first();
 
             if ($existingSession) {
                 return $existingSession;
             }
 
-            // Check kepatuhan pembayaran uang sekolah jika disyaratkan oleh ujian
-            if ($exam->requires_tuition_payment) {
-                $complianceService = app(CbtTuitionComplianceService::class);
-                $compliance = $complianceService->checkStudentCompliance($exam, $student);
-                if (!$compliance['allowed']) {
-                    throw new \RuntimeException($compliance['message'] ?? 'Akses ujian dibatasi karena kepatuhan uang sekolah.');
-                }
-            }
-
-            // Check max attempts (with lock to prevent race conditions)
-            $attemptCount = CbtExamSession::where('exam_id', $exam->id)
-                ->where('student_id', $student->id)
-                ->whereIn('status', ['submitted', 'timeout', 'graded'])
-                ->lockForUpdate()
-                ->count();
-
-            if ($attemptCount >= $exam->max_attempts) {
-                throw new \RuntimeException("Batas percobaan ({$exam->max_attempts}) sudah tercapai.");
-            }
-
-            // Get exam questions
-            $questionIds = $exam->examQuestions()->pluck('question_id')->toArray();
-
-            // Randomize question order if enabled
-            $questionOrder = $questionIds;
-            if ($exam->randomize_questions) {
-                shuffle($questionOrder);
-            }
-
-            // Randomize option orders if enabled
-            $optionOrders = [];
-            if ($exam->randomize_options) {
-                foreach ($questionIds as $qId) {
-                    $options = CbtQuestionOption::where('question_id', $qId)
-                        ->pluck('option_label')
-                        ->toArray();
-                    shuffle($options);
-                    $optionOrders[$qId] = $options;
-                }
-            }
-
-            // Create session
-            $session = CbtExamSession::create([
-                'exam_id' => $exam->id,
-                'student_id' => $student->id,
-                'classroom_id' => $classroomId,
-                'attempt_number' => $attemptCount + 1,
-                'started_at' => now(),
-                'deadline_at' => now()->addMinutes($exam->duration_minutes),
-                'status' => 'in_progress',
-                'question_order' => $questionOrder,
-                'option_orders' => $optionOrders ?: null,
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
-
-            // Pre-create empty answer records
-            $answerRecords = [];
-            $now = now();
-            foreach ($questionOrder as $qId) {
-                $answerRecords[] = [
-                    'session_id' => $session->id,
-                    'question_id' => $qId,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
-            CbtAnswer::insert($answerRecords);
-
-            return $session;
-        });
+            throw $e;
+        }
     }
 
     /**
@@ -247,6 +260,14 @@ class CbtService
      */
     public function submitSession(CbtExamSession $session, bool $isTimeout = false): CbtExamResult
     {
+        // Idempotency: jika sesi ini sudah selesai dan hasilnya sudah ada, kembalikan hasil yang ada
+        if (in_array($session->status, ['submitted', 'timeout', 'graded'])) {
+            $existing = CbtExamResult::where('session_id', $session->id)->first();
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         return DB::transaction(function () use ($session, $isTimeout) {
             // Auto-grade MC and TF questions
             $this->autoGradeSession($session);
@@ -327,33 +348,42 @@ class CbtService
             ? $session->started_at->diffInSeconds($session->finished_at)
             : 0;
 
-        // Lock row to prevent race condition (lock persists through save)
-        $result = CbtExamResult::where('exam_id', $exam->id)
-            ->where('session_id', $session->id)
-            ->where('student_id', $session->student_id)
-            ->lockForUpdate()
-            ->first();
-
-        if (!$result) {
-            $result = new CbtExamResult();
-            $result->exam_id = $exam->id;
-            $result->session_id = $session->id;
-            $result->student_id = $session->student_id;
+        // Idempotent and race-condition proof updateOrCreate for exam results
+        try {
+            $result = CbtExamResult::updateOrCreate(
+                [
+                    'exam_id' => $exam->id,
+                    'session_id' => $session->id,
+                    'student_id' => $session->student_id,
+                ],
+                [
+                    'total_questions' => $totalQuestions,
+                    'answered_questions' => $answeredQuestions,
+                    'correct_answers' => $correctAnswers,
+                    'wrong_answers' => $wrongAnswers,
+                    'unanswered' => $unanswered,
+                    'total_score' => $totalScore,
+                    'max_score' => $maxScore,
+                    'percentage_score' => $percentageScore,
+                    'final_score' => $finalScore,
+                    'is_passed' => $isPassed,
+                    'predicate' => $predicate,
+                    'time_spent_seconds' => $timeSpent,
+                ]
+            );
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Jika terjadi benturan unique constraint (uq_cer_exam_student_session) dari request bersamaan
+            $result = CbtExamResult::where('session_id', $session->id)->first();
+            if (!$result) {
+                $result = CbtExamResult::where('exam_id', $exam->id)
+                    ->where('student_id', $session->student_id)
+                    ->latest('id')
+                    ->first();
+            }
+            if (!$result) {
+                throw $e;
+            }
         }
-
-        $result->total_questions = $totalQuestions;
-        $result->answered_questions = $answeredQuestions;
-        $result->correct_answers = $correctAnswers;
-        $result->wrong_answers = $wrongAnswers;
-        $result->unanswered = $unanswered;
-        $result->total_score = $totalScore;
-        $result->max_score = $maxScore;
-        $result->percentage_score = $percentageScore;
-        $result->final_score = $finalScore;
-        $result->is_passed = $isPassed;
-        $result->predicate = $predicate;
-        $result->time_spent_seconds = $timeSpent;
-        $result->save();
 
         // Reputation Hook
         $student = $session->student;
@@ -534,7 +564,7 @@ class CbtService
      */
     public function getAccessibleClassroomsForUser(CbtExam $exam, User $user): Collection
     {
-        $examClassrooms = $exam->classrooms()->orderBy('name')->get();
+        $examClassrooms = $exam->classrooms()->orderBy('class_name')->get();
 
         $isAdmin = $user->isSuperAdmin() || in_array($user->role ?? '', ['admin', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'panitia_cbt']);
         if ($isAdmin) {
@@ -592,9 +622,9 @@ class CbtService
         if ($classroomId) {
             $classrooms = $classroomsQuery->where('id', $classroomId)->get();
         } elseif (!empty($allowedClassroomIds)) {
-            $classrooms = $classroomsQuery->whereIn('id', $allowedClassroomIds)->orderBy('name')->get();
+            $classrooms = $classroomsQuery->whereIn('id', $allowedClassroomIds)->orderBy('class_name')->get();
         } else {
-            $classrooms = $exam->classrooms()->with('homeroomTeacher')->orderBy('name')->get();
+            $classrooms = $exam->classrooms()->with('homeroomTeacher')->orderBy('class_name')->get();
         }
 
         $subjectKeywords = VocationalMajorFilterService::getSubjectMajorKeywords(

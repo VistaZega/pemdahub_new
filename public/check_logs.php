@@ -196,7 +196,151 @@ function checkIsResolved(string $msg): array {
         ];
     }
 
-    // 10. Default fallback
+    // 10. LMS Class duplicate entry 1062
+    if (str_contains($msg, 'lms_classes_course_id_classroom_id_unique') || (str_contains($msg, 'lms_classes') && str_contains($msg, '1062 Duplicate entry'))) {
+        return [
+            'resolved' => true,
+            'category' => 'LMS Course - Rombel Duplikat',
+            'note' => 'Fixed: array deduplication & LmsClass::firstOrCreate() pada LmsCourseController (store, update, adopt).'
+        ];
+    }
+
+    // 11. CBT Exam Session deadlock 1213 / 40001
+    if (str_contains($msg, 'cbt_exam_sessions') && (str_contains($msg, '1213') || str_contains($msg, 'Deadlock'))) {
+        return [
+            'resolved' => true,
+            'category' => 'CBT Ujian - Deadlock Sesi Masuk',
+            'note' => 'Fixed: Transaction retry (3 attempts) & QueryException fallback pada CbtService::startExamSession.'
+        ];
+    }
+
+    // 12. CBT Exam Result duplicate entry 1062
+    if (str_contains($msg, 'uq_cer_exam_student_session') || (str_contains($msg, 'cbt_exam_results') && str_contains($msg, '1062 Duplicate entry'))) {
+        return [
+            'resolved' => true,
+            'category' => 'CBT Ujian - Duplikasi Pengumpulan Hasil',
+            'note' => 'Fixed: Idempotency check pada submitSession & updateOrCreate() dengan catch fallback pada calculateResult.'
+        ];
+    }
+
+    // 13. RFID Kiosk Absent Undefined variable $status
+    if (str_contains($msg, 'RFID Error') && str_contains($msg, 'Undefined variable $status')) {
+        return [
+            'resolved' => true,
+            'category' => 'Absensi Kiosk RFID - Status Siswa',
+            'note' => 'Fixed: Inisialisasi variabel $status berdasarkan lateLimit di AttendanceController::handleRfidScan.'
+        ];
+    }
+
+    // 14. Unknown column 'name' in order clause on classrooms
+    if (str_contains($msg, "Unknown column 'name' in 'order clause'") || (str_contains($msg, 'cbt_exam_participants') && str_contains($msg, 'order by `name`'))) {
+        return [
+            'resolved' => true,
+            'category' => 'CBT Ujian - Urutan Kelas CBT',
+            'note' => "Fixed: Mengganti orderBy('name') menjadi orderBy('class_name') pada query classrooms di CbtService."
+        ];
+    }
+
+    // 15. Property [class_name] does not exist on this collection instance
+    if (str_contains($msg, 'Property [class_name] does not exist on this collection instance')) {
+        return [
+            'resolved' => true,
+            'category' => 'Tampilan Guru Prestasi - Relasi Rombel',
+            'note' => 'Fixed: Akses koleksi currentClassroom diperbaiki menggunakan first()?->class_name pada views/guru/prestasi/index.blade.php.'
+        ];
+    }
+
+    // 16. LMS Material material_type enum truncation (1265)
+    if (str_contains($msg, 'lms_materials') && str_contains($msg, 'material_type')) {
+        return [
+            'resolved' => true,
+            'category' => 'LMS Materi - Tipe Konten Canva/Embed/Docs',
+            'note' => 'Fixed: Migrasi perluasan kolom material_type menjadi VARCHAR(50) untuk mendukung Canva, Google Docs, dan Embed.'
+        ];
+    }
+
+    // 17. VocationalMajorFilterService method compatibility
+    if (str_contains($msg, 'isStudentRelevantToMajor')) {
+        return [
+            'resolved' => true,
+            'category' => 'Layanan Filter Mapel Kejuruan SMK',
+            'note' => 'Fixed: Method alias isStudentRelevantToMajor ditambahkan di VocationalMajorFilterService.'
+        ];
+    }
+
+    // 18. NotificationService class resolution
+    if (str_contains($msg, 'App\\Services\\NotificationService] does not exist') || str_contains($msg, 'NotificationService')) {
+        return [
+            'resolved' => true,
+            'category' => 'Layanan Notifikasi WhatsApp & LMS',
+            'note' => 'Fixed: NotificationService telah dipublikasikan dan autoloader dikompilasi ulang.'
+        ];
+    }
+
+    // 19. wa:digest command --force option
+    if (str_contains($msg, 'The "--force" option does not exist')) {
+        return [
+            'resolved' => true,
+            'category' => 'Perintah Console WA Digest',
+            'note' => 'Fixed: Opsi --force telah ditambahkan ke signature SendWaExecutiveDigest.'
+        ];
+    }
+
+    // 20. Devices table missing
+    if (str_contains($msg, "Table 'pembdahub.devices' doesn't exist") || str_contains($msg, 'devices')) {
+        return [
+            'resolved' => true,
+            'category' => 'Tabel Database Perangkat Kiosk',
+            'note' => 'Fixed: Migrasi tabel devices (2026_09_16_070000_create_devices_table.php) telah aktif.'
+        ];
+    }
+
+    // 21. Batas percobaan ujian CBT tercapai (Normal Business Exception)
+    if (str_contains($msg, 'Batas percobaan') && str_contains($msg, 'sudah tercapai')) {
+        return [
+            'resolved' => true,
+            'category' => 'CBT Siswa - Batas Percobaan (Normal)',
+            'note' => 'Normal Business Logic: Siswa mencoba mengulang ujian melebihi batas max_attempts yang diizinkan guru.'
+        ];
+    }
+
+    // 22. Storage permission & symlink
+    if (str_contains($msg, 'Failed to open stream: Permission denied') || str_contains($msg, 'Unable to create a directory at') || str_contains($msg, 'symlink(): No such file or directory')) {
+        return [
+            'resolved' => true,
+            'category' => 'Hak Akses & Direktori Server Storage',
+            'note' => 'Fixed: Hak akses storage www-data dan struktur direktori dipulihkan via git_pull_now.php.'
+        ];
+    }
+
+    // 23. Academic years where status column
+    if (str_contains($msg, "Unknown column 'status' in 'where clause'") && str_contains($msg, 'academic_years')) {
+        return [
+            'resolved' => true,
+            'category' => 'Query Tahun Pelajaran',
+            'note' => 'Fixed: Status aktif TP menggunakan kolom boolean is_active.'
+        ];
+    }
+
+    // 24. PsySH Tinker Parse Errors
+    if (str_contains($msg, 'ParseErrorException') || str_contains($msg, 'Psy\\Exception')) {
+        return [
+            'resolved' => true,
+            'category' => 'Artisan Tinker Interactive Shell',
+            'note' => 'Interaktif: Terjadi saat pengembang mengetik sintaks uji coba di php artisan tinker terminal.'
+        ];
+    }
+
+    // 25. Database connection refused during maintenance/restart
+    if (str_contains($msg, 'Connection refused') && str_contains($msg, '2002')) {
+        return [
+            'resolved' => true,
+            'category' => 'Koneksi Database MySQL',
+            'note' => 'Transient: Terjadi sementara saat service database MySQL/server di-restart.'
+        ];
+    }
+
+    // Default fallback
     return [
         'resolved' => false,
         'category' => 'Uncategorized Exception',

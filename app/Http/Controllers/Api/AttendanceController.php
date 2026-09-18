@@ -249,6 +249,8 @@ class AttendanceController extends Controller
                 $isQrScan = ($type === 'qr') 
                     || ($student && ($rawUid === $student->nis || $rawUid === $student->nisn));
 
+                $status = ($currentTime > $lateLimit) ? 'terlambat' : 'hadir';
+
                 $attendance = \App\Models\Attendance::create([
                     'student_id'   => $student->id,
                     'classroom_id' => $studentClass->classroom_id,

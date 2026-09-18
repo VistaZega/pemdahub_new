@@ -55,6 +55,14 @@ class VocationalMajorFilterService
     }
 
     /**
+     * Alias method untuk kompatibilitas mundur dengan kode pemanggil lama.
+     */
+    public static function isStudentRelevantToMajor(Student $student, ?array $subjectKeywords, ?Classroom $classroom = null): bool
+    {
+        return self::isStudentMatchingVocationalSubject($student, $subjectKeywords, $classroom);
+    }
+
+    /**
      * Periksa apakah siswa relevan dengan mata pelajaran kejuruan ini.
      * SOLUSI PERMANEN: Menggunakan Jurusan resmi siswa (major_id) atau mapel Konsentrasi Keahlian
      * yang dipelajari siswa di Tahun Pelajaran aktif saat ini (TIDAK PERLU MELIHAT KELAS TAHUN LALU).

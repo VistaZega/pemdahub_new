@@ -226,7 +226,7 @@
                                         {{ $ach->student->full_name ?? 'Siswa' }}
                                     </h3>
                                     <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-slate-900 text-white border border-black">
-                                        {{ $ach->student->currentClassroom->class_name ?? 'Kelas' }}
+                                        {{ $ach->student->currentClassroom->first()?->class_name ?? ($ach->student->classroom?->class_name ?? 'Kelas') }}
                                     </span>
                                     <span class="text-xs font-bold text-slate-500 font-mono">
                                         NISN: {{ $ach->student->nisn ?? '-' }}
