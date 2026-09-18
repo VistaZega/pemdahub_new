@@ -257,6 +257,81 @@ foreach ($courseStats as $cs) {
 }
 
 // ══════════════════════════════════════════════════════
+// ACTION: INSPECT ALL NON-LMS & DATA_FTP CONTENTS
+// ══════════════════════════════════════════════════════
+if ($action === 'inspect_all') {
+    header('Content-Type: application/json; charset=utf-8');
+    
+    $dataFtpSubs = [];
+    if (is_dir($storagePath . '/data_ftp')) {
+        foreach (@scandir($storagePath . '/data_ftp') ?: [] as $it) {
+            if ($it === '.' || $it === '..') continue;
+            $subPath = $storagePath . '/data_ftp/' . $it;
+            $dataFtpSubs[$it] = is_dir($subPath) ? count(@scandir($subPath) ?: []) - 2 : 'file';
+        }
+    }
+    
+    $publicSubs = [];
+    if (is_dir($storagePath . '/public')) {
+        foreach (@scandir($storagePath . '/public') ?: [] as $it) {
+            if ($it === '.' || $it === '..') continue;
+            $subPath = $storagePath . '/public/' . $it;
+            $publicSubs[$it] = is_dir($subPath) ? count(@scandir($subPath) ?: []) - 2 : 'file';
+        }
+    }
+    
+    $nonLmsTables = [
+        'users' => ['col' => 'photo', 'label' => 'Foto Profil Akun'],
+        'students' => ['col' => 'photo', 'label' => 'Foto Siswa'],
+        'teachers' => ['col' => 'photo', 'label' => 'Foto Guru'],
+        'employees' => ['col' => 'photo', 'label' => 'Foto Tendik'],
+        'pkl_logs' => ['col' => 'photo', 'label' => 'Foto Logbook PKL'],
+        'pkl_monitorings' => ['col' => 'photo_path', 'label' => 'Foto Monitoring Guru PKL'],
+        'pkl_perangkats' => ['col' => 'file_path', 'label' => 'Berkas Perangkat PKL'],
+        'cbt_questions' => ['col' => 'question_image', 'label' => 'Gambar Soal CBT'],
+        'final_projects' => ['col' => 'file_path', 'label' => 'Berkas Tugas Akhir/Riset'],
+        'student_documents' => ['col' => 'file_path', 'label' => 'Dokumen Siswa (KK/Akta)'],
+        'applicant_documents' => ['col' => 'file_path', 'label' => 'Dokumen PPDB'],
+    ];
+    
+    $auditNonLms = [];
+    foreach ($nonLmsTables as $tbl => $info) {
+        try {
+            $col = $info['col'];
+            $rows = $pdo->query("SELECT {$col} AS p FROM {$tbl} WHERE {$col} IS NOT NULL AND {$col} != ''")->fetchAll(PDO::FETCH_COLUMN);
+            $total = count($rows);
+            $exist = 0;
+            $missing = 0;
+            $samples = [];
+            foreach ($rows as $r) {
+                $clean = ltrim(str_replace(['storage/', 'public/'], ['', ''], $r), '/');
+                if (file_exists($storagePath . '/' . $clean) && filesize($storagePath . '/' . $clean) > 0) {
+                    $exist++;
+                } else {
+                    $missing++;
+                    if (count($samples) < 3) $samples[] = $clean;
+                }
+            }
+            $auditNonLms[$tbl] = [
+                'label' => $info['label'],
+                'total' => $total,
+                'exist' => $exist,
+                'missing' => $missing,
+                'sample_missing' => $samples
+            ];
+        } catch (Exception $e) {}
+    }
+    
+    echo json_encode([
+        'storage_path' => $storagePath,
+        'data_ftp_subs' => $dataFtpSubs,
+        'public_subs' => $publicSubs,
+        'audit_non_lms' => $auditNonLms,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ══════════════════════════════════════════════════════
 // ACTION: SYNC PER KURSUS (dengan logging & resume)
 // ══════════════════════════════════════════════════════
 if ($action === 'sync_course') {
