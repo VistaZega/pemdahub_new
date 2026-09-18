@@ -27,6 +27,10 @@ class CbtExam extends Model
         'requires_tuition_payment', 'tuition_month', 'tuition_year',
     ];
 
+    protected $attributes = [
+        'requires_tuition_payment' => false,
+    ];
+
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',

@@ -118,6 +118,7 @@ $files = [
     'app/Models/CbtExamDispensation.php',
     'app/Services/CbtTuitionComplianceService.php',
     'database/migrations/2026_09_17_150000_add_tuition_compliance_and_dispensations_to_cbt.php',
+    'database/migrations/2026_09_19_053500_ensure_cbt_exams_default_tuition_compliance_false.php',
     'resources/views/guru/cbt/dispensations/index.blade.php',
     'app/Http/Controllers/Admin/CbtManagementController.php',
     'app/Http/Controllers/Mobile/MobileStudentController.php',
