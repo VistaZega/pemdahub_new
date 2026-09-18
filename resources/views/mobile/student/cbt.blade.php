@@ -23,35 +23,50 @@
     <div class="space-y-3">
         @forelse($exams as $exam)
             @php
-                $compliance = $exam->tuition_compliance ?? ['allowed' => true, 'requires_tuition' => false];
+                $compliance = $exam->tuition_compliance ?? [
+                    'allowed' => true,
+                    'requires_tuition' => false,
+                    'is_required' => false,
+                    'dispensation_active' => false,
+                    'has_dispensation' => false,
+                    'tuition_cleared' => true,
+                    'is_paid' => true,
+                    'month_label' => '',
+                    'tuition_period' => ['month_name' => ''],
+                    'message' => '',
+                ];
                 $isBlockedByTuition = !($compliance['allowed'] ?? true);
+                $hasTuitionReq = !empty($compliance['requires_tuition']) || !empty($compliance['is_required']);
+                $hasDispensation = !empty($compliance['dispensation_active']) || !empty($compliance['has_dispensation']);
+                $isTuitionCleared = !empty($compliance['tuition_cleared']) || !empty($compliance['is_paid']);
+                $periodMonthName = $compliance['month_label'] ?? ($compliance['tuition_period']['month_name'] ?? '');
             @endphp
             <div class="clay-card p-4.5 space-y-3 {{ $isBlockedByTuition ? 'border-amber-300 bg-amber-50/40' : '' }}">
                 <div class="flex items-start justify-between">
                     <div>
                         <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
                             <span class="px-3 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-200">
-                                {{ $exam->subject->name ?? 'Mata Pelajaran' }}
+                                {{ $exam->subject->name ?? ($exam->subject->subject_name ?? 'Mata Pelajaran') }}
                             </span>
 
-                            @if($compliance['requires_tuition'])
-                                @if($compliance['dispensation_active'])
+                            @if($hasTuitionReq)
+                                @if($hasDispensation)
                                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-200">
                                         <i class="fa-solid fa-file-signature mr-1"></i>Dispensasi Wali Kelas
                                     </span>
-                                @elseif($compliance['tuition_cleared'])
+                                @elseif($isTuitionCleared)
                                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                        <i class="fa-solid fa-check mr-1"></i>SPP Lunas ({{ $compliance['tuition_period']['month_name'] }})
+                                        <i class="fa-solid fa-check mr-1"></i>SPP Lunas{{ $periodMonthName ? " ({$periodMonthName})" : '' }}
                                     </span>
                                 @else
                                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-                                        <i class="fa-solid fa-lock mr-1"></i>Syarat SPP ({{ $compliance['tuition_period']['month_name'] }})
+                                        <i class="fa-solid fa-lock mr-1"></i>Syarat SPP{{ $periodMonthName ? " ({$periodMonthName})" : '' }}
                                     </span>
                                 @endif
                             @endif
                         </div>
-                        <h3 class="text-sm font-black text-slate-900 mt-1.5">{{ $exam->title }}</h3>
-                        <p class="text-xs text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock mr-1 text-rose-600"></i>Durasi: {{ $exam->duration_minutes }} menit</p>
+                        <h3 class="text-sm font-black text-slate-900 mt-1.5">{{ $exam->exam_title ?? ($exam->title ?? 'Ujian CBT') }}</h3>
+                        <p class="text-xs text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock mr-1 text-rose-600"></i>Durasi: {{ $exam->duration_minutes ?? 0 }} menit</p>
                     </div>
                 </div>
 
@@ -62,7 +77,7 @@
                             Akses Ujian Tertahan
                         </div>
                         <p class="text-[10px] text-amber-800 leading-snug">
-                            {{ $compliance['message'] }}
+                            {{ $compliance['message'] ?? 'Ujian ini mensyaratkan penyelesaian administrasi SPP. Silakan hubungi Wali Kelas atau tata usaha.' }}
                         </p>
                     </div>
                 @endif

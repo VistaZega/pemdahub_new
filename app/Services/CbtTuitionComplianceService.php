@@ -22,7 +22,7 @@ class CbtTuitionComplianceService
     {
         // 1. Jika ujian tidak mensyaratkan pembayaran uang sekolah, langsung lolos
         if (!$exam->requires_tuition_payment) {
-            return [
+            return $this->formatResult([
                 'allowed' => true,
                 'is_required' => false,
                 'reason' => 'not_required',
@@ -39,7 +39,7 @@ class CbtTuitionComplianceService
                 'homeroom_phone' => null,
                 'whatsapp_url' => null,
                 'message' => 'Ujian tidak mensyaratkan pembayaran uang sekolah.',
-            ];
+            ]);
         }
 
         // 2. Dapatkan target bulan dan tahun evaluasi
@@ -76,7 +76,7 @@ class CbtTuitionComplianceService
             ->first();
 
         if ($dispensation) {
-            return [
+            return $this->formatResult([
                 'allowed' => true,
                 'is_required' => true,
                 'reason' => 'dispensation_granted',
@@ -93,7 +93,7 @@ class CbtTuitionComplianceService
                 'homeroom_phone' => $homeroomPhone,
                 'whatsapp_url' => $whatsappUrl,
                 'message' => 'Dispensasi ujian aktif diberikan oleh ' . ($dispensation->granter?->name ?? 'Wali Kelas') . ($dispensation->reason ? " (Catatan: {$dispensation->reason})" : ''),
-            ];
+            ]);
         }
 
         // 5. Mekanisme 1: Periksa Pembayaran Uang Sekolah (SPP) pada bulan berkenaan
@@ -118,7 +118,7 @@ class CbtTuitionComplianceService
             $unpaidAmount = (float) $unpaidBills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
 
             if ($unpaidBills->isEmpty()) {
-                return [
+                return $this->formatResult([
                     'allowed' => true,
                     'is_required' => true,
                     'reason' => 'paid',
@@ -135,10 +135,10 @@ class CbtTuitionComplianceService
                     'homeroom_phone' => $homeroomPhone,
                     'whatsapp_url' => $whatsappUrl,
                     'message' => "Uang sekolah bulan {$monthLabel} telah lunas.",
-                ];
+                ]);
             }
 
-            return [
+            return $this->formatResult([
                 'allowed' => false,
                 'is_required' => true,
                 'reason' => 'unpaid',
@@ -155,7 +155,7 @@ class CbtTuitionComplianceService
                 'homeroom_phone' => $homeroomPhone,
                 'whatsapp_url' => $whatsappUrl,
                 'message' => "Uang sekolah bulan {$monthLabel} belum lunas (sisa tagihan: Rp " . number_format($unpaidAmount, 0, ',', '.') . "). Silakan selesaikan pembayaran atau hubungi Wali Kelas.",
-            ];
+            ]);
         }
 
         // Jika belum ada tagihan SPP spesifik di bulan tersebut, periksa apakah ada tunggakan di tahun ajaran aktif
@@ -177,7 +177,7 @@ class CbtTuitionComplianceService
 
         if ($hasAnyOverdue) {
             $unpaidAmount = (float) max(0, $hasAnyOverdue->amount - $hasAnyOverdue->paid_amount);
-            return [
+            return $this->formatResult([
                 'allowed' => false,
                 'is_required' => true,
                 'reason' => 'unpaid',
@@ -194,11 +194,11 @@ class CbtTuitionComplianceService
                 'homeroom_phone' => $homeroomPhone,
                 'whatsapp_url' => $whatsappUrl,
                 'message' => "Terdapat tunggakan uang sekolah hingga bulan {$monthLabel}. Silakan selesaikan pembayaran atau hubungi Wali Kelas.",
-            ];
+            ]);
         }
 
         // Tidak ada tagihan sama sekali (misal beasiswa penuh / tagihan belum dibuat)
-        return [
+        return $this->formatResult([
             'allowed' => true,
             'is_required' => true,
             'reason' => 'paid',
@@ -215,7 +215,47 @@ class CbtTuitionComplianceService
             'homeroom_phone' => $homeroomPhone,
             'whatsapp_url' => $whatsappUrl,
             'message' => 'Tidak ditemukan tagihan tertunggak untuk siswa ini.',
-        ];
+        ]);
+    }
+
+    /**
+     * Standardize and enrich compliance check array with backward-compatible aliases.
+     */
+    private function formatResult(array $data): array
+    {
+        $isRequired = (bool)($data['is_required'] ?? false);
+        $isPaid = (bool)($data['is_paid'] ?? false);
+        $hasDispensation = (bool)($data['has_dispensation'] ?? false);
+        $monthLabel = (string)($data['month_label'] ?? '');
+        $targetMonth = $data['target_month'] ?? null;
+        $targetYear = $data['target_year'] ?? null;
+
+        return array_merge([
+            'allowed' => true,
+            'is_required' => $isRequired,
+            'requires_tuition' => $isRequired,
+            'reason' => 'not_required',
+            'is_paid' => $isPaid,
+            'tuition_cleared' => $isPaid,
+            'has_dispensation' => $hasDispensation,
+            'dispensation_active' => $hasDispensation,
+            'dispensation' => null,
+            'target_month' => $targetMonth,
+            'target_year' => $targetYear,
+            'month_label' => $monthLabel,
+            'tuition_period' => [
+                'month' => $targetMonth,
+                'year' => $targetYear,
+                'month_name' => $monthLabel,
+            ],
+            'bill' => null,
+            'unpaid_amount' => 0,
+            'homeroom_teacher' => null,
+            'homeroom_name' => null,
+            'homeroom_phone' => null,
+            'whatsapp_url' => null,
+            'message' => '',
+        ], $data);
     }
 
     /**
