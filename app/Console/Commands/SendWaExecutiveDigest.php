@@ -63,21 +63,8 @@ class SendWaExecutiveDigest extends Command
                     break;
                 }
 
-                $this->info("🏫 1. Memproses Rekap Kepala Sekolah...");
-                $res1 = $reportService->sendPrincipalDailyAttendanceDigest($options);
-                $this->info("   " . ($res1['message'] ?? 'Selesai Kepsek'));
-
-                // Jika ada kepala sekolah yang terkirim dan bukan dry-run, beri jeda sebelum batch wali kelas
-                if (($res1['sent'] ?? 0) > 0 && !$options['dry_run']) {
-                    $pause = $options['batch_pause'] ?? 600;
-                    $pauseMins = round($pause / 60, 1);
-                    $this->line(" ☕ Jeda istirahat transisi ke Wali Kelas ({$pause} detik / ~{$pauseMins} menit)...");
-                    sleep($pause);
-                }
-
-                $this->info("👩‍🏫 2. Memproses Rekap Wali Kelas...");
-                $res2 = $reportService->sendHomeroomDailyAttendanceDigest($options);
-                $this->info("   " . ($res2['message'] ?? 'Selesai Wali Kelas'));
+                $workflowRes = $reportService->sendDailyAttendanceDigestWorkflow($options);
+                $this->info("🏁 " . ($workflowRes['message'] ?? 'Workflow Selesai'));
                 break;
 
             case 'spp-monthly':

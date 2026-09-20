@@ -538,6 +538,253 @@ class ExecutiveReportService
     }
 
     /**
+     * Resolve target admin WhatsApp numbers for process notifications.
+     */
+    public function getAdminRecipients(): array
+    {
+        $phones = [];
+
+        // 1. Setting khusus pengingat admin digest / alert WA
+        $custom = Setting::getValue('wa_digest_admin_phone') 
+            ?: Setting::getValue('wa_admin_phone') 
+            ?: Setting::getValue('wa_alert_phone') 
+            ?: config('services.alerts.whatsapp.admin_phone');
+
+        if (!empty($custom)) {
+            $clean = preg_replace('/[^0-9]/', '', (string)$custom);
+            if (strlen($clean) >= 9) {
+                $phones[$clean] = 'Admin PembdaHUB';
+            }
+        }
+
+        // 2. Deteksi akun role superadmin / admin_yayasan
+        try {
+            $admins = User::whereIn('role', ['superadmin', 'admin_yayasan'])
+                ->with(['employee', 'teacher.employee'])
+                ->get();
+
+            foreach ($admins as $adm) {
+                $phone = $adm->phone 
+                    ?? $adm->employee?->phone 
+                    ?? $adm->teacher?->phone 
+                    ?? $adm->teacher?->employee?->phone 
+                    ?? null;
+
+                if ($phone) {
+                    $clean = preg_replace('/[^0-9]/', '', (string)$phone);
+                    if (strlen($clean) >= 9) {
+                        $phones[$clean] = $adm->name;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed resolving admin recipients: ' . $e->getMessage());
+        }
+
+        // 3. Fallback nomor pengelola jika belum terkonfigurasi
+        if (empty($phones)) {
+            $phones['081263582950'] = 'Admin Pengelola';
+        }
+
+        return $phones;
+    }
+
+    /**
+     * Notify Admin that attendance digest broadcast has started.
+     */
+    public function notifyAdminDigestStarted(array $context = []): array
+    {
+        if (!Setting::getValue('wa_notify_admin_digest', true)) {
+            return ['success' => false, 'message' => 'Notifikasi admin dinonaktifkan di pengaturan'];
+        }
+
+        $dryRun = $context['dry_run'] ?? false;
+        $logger = $context['logger'] ?? null;
+        $targetPhone = $context['target_phone'] ?? null;
+
+        $schoolsCount = $context['schools_count'] ?? School::schoolsOnly()->count();
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $classesCount = $context['classes_count'] ?? ($activeYear ? Classroom::where('academic_year_id', $activeYear->id)->count() : 0);
+
+        $nowTime = date('H:i');
+        $dateFormatted = date('d F Y');
+
+        $message = "📢 *INFORMASI SISTEM PEMBDAHUB*\n" .
+                   "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+                   "Halo Admin PembdaHUB,\n\n" .
+                   "Otomatisasi pengiriman *Rekapitulasi Kehadiran Harian* ke Kepala Sekolah dan Wali Kelas baru saja *DIMULAI* pada pukul *{$nowTime} WIB* ({$dateFormatted}).\n\n" .
+                   "📋 *Target Pengiriman:*\n" .
+                   "• 🏫 Kepala Sekolah: *{$schoolsCount} Unit Sekolah*\n" .
+                   "• 👩‍🏫 Wali Kelas: *{$classesCount} Rombel*\n" .
+                   "• 🛡️ Mode Pacing: *Anti-Ban Santai* (Jeda acak bertahap)\n\n" .
+                   "⏳ _Proses pengiriman berjalan di latar belakang (background). Laporan hasil akhir status pengiriman akan segera dikirimkan kembali ke nomor ini setelah seluruh batch selesai._\n" .
+                   "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+                   "_Sistem Otomasi Eksekutif PembdaHUB_";
+
+        $recipients = $targetPhone ? [$targetPhone => 'Test Target'] : $this->getAdminRecipients();
+        $sentCount = 0;
+
+        foreach ($recipients as $phone => $name) {
+            if ($dryRun) {
+                $sentCount++;
+                if ($logger) $logger("📢 [SIMULASI] Notifikasi Mulai dikirim ke Admin {$phone} ({$name})");
+            } else {
+                $res = $this->whatsappService->sendMessage($phone, $message);
+                if ($res['success'] ?? false) {
+                    $sentCount++;
+                    if ($logger) $logger("📢 Notifikasi Mulai berhasil dikirim ke Admin {$phone} ({$name})");
+                } else {
+                    if ($logger) $logger("⚠️ Gagal kirim notifikasi mulai ke Admin {$phone}: " . ($res['error'] ?? 'Unknown error'));
+                }
+            }
+        }
+
+        return ['success' => $sentCount > 0, 'sent' => $sentCount, 'message' => "Notifikasi mulai terkirim ke {$sentCount} nomor admin"];
+    }
+
+    /**
+     * Notify Admin that attendance digest broadcast has completed with full status recap.
+     */
+    public function notifyAdminDigestCompleted(array $summary = []): array
+    {
+        if (!Setting::getValue('wa_notify_admin_digest', true)) {
+            return ['success' => false, 'message' => 'Notifikasi admin dinonaktifkan di pengaturan'];
+        }
+
+        $dryRun = $summary['dry_run'] ?? false;
+        $logger = $summary['logger'] ?? null;
+        $targetPhone = $summary['target_phone'] ?? null;
+
+        $resP = $summary['res_principal'] ?? [];
+        $resH = $summary['res_homeroom'] ?? [];
+
+        $pSent = $resP['sent'] ?? 0;
+        $pSkipped = $resP['skipped'] ?? 0;
+        $pErrors = $resP['errors'] ?? [];
+        $pErrCount = count($pErrors);
+        $pErrStr = $pErrCount > 0 ? " (" . implode(', ', $pErrors) . ")" : "";
+
+        $hSent = $resH['sent'] ?? 0;
+        $hSkipped = $resH['skipped'] ?? 0;
+        $hErrors = $resH['errors'] ?? [];
+        $hErrCount = count($hErrors);
+        $hErrStr = $hErrCount > 0 ? " (" . implode(', ', array_slice($hErrors, 0, 5)) . ($hErrCount > 5 ? ' & lainnya' : '') . ")" : "";
+
+        $totalSent = $pSent + $hSent;
+        $totalSkipped = $pSkipped + $hSkipped;
+        $totalErrors = $pErrCount + $hErrCount;
+
+        $durationSec = $summary['duration_seconds'] ?? 0;
+        $durationMins = floor($durationSec / 60);
+        $durationRemSec = $durationSec % 60;
+        $durationFormatted = $durationMins > 0 ? "{$durationMins} Menit {$durationRemSec} Detik" : "{$durationRemSec} Detik";
+
+        $nowTime = date('H:i');
+        $statusBadge = ($totalErrors === 0) ? "✅ SELURUH REKAP SUKSES TERKIRIM" : "⚠️ TERDAPAT KENDALA ({$totalErrors} Gagal)";
+
+        $message = "🏁 *LAPORAN AKHIR REKAPITULASI ABSENSI*\n" .
+                   "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+                   "Halo Admin PembdaHUB,\n\n" .
+                   "Pengiriman rekapitulasi kehadiran harian telah *SELESAI* diproses pada pukul *{$nowTime} WIB*.\n" .
+                   "⏱️ Total Waktu: *{$durationFormatted}*\n\n" .
+                   "📊 *REKAP STATUS PENGIRIMAN:*\n" .
+                   "1️⃣ *Kepala Sekolah:*\n" .
+                   "   • ✅ Berhasil Terkirim: *{$pSent} unit*\n" .
+                   "   • ⏭️ Dilewati (Sudah ada): *{$pSkipped} unit*\n" .
+                   "   • ❌ Gagal: *{$pErrCount} unit*{$pErrStr}\n\n" .
+                   "2️⃣ *Wali Kelas:*\n" .
+                   "   • ✅ Berhasil Terkirim: *{$hSent} kelas*\n" .
+                   "   • ⏭️ Dilewati (Sudah ada): *{$hSkipped} kelas*\n" .
+                   "   • ❌ Gagal: *{$hErrCount} kelas*{$hErrStr}\n\n" .
+                   "📈 *Ringkasan Keseluruhan:*\n" .
+                   "• Total Pesan Terkirim: *{$totalSent} Pesan*\n" .
+                   "• Total Dilewati: *{$totalSkipped}*\n" .
+                   "• Status Akhir: *{$statusBadge}*\n\n" .
+                   "_Data kehadiran dan log pengiriman dapat dicek melalui portal PembdaHUB._ 🙏\n" .
+                   "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
+                   "_Sistem Otomasi Eksekutif PembdaHUB_";
+
+        $recipients = $targetPhone ? [$targetPhone => 'Test Target'] : $this->getAdminRecipients();
+        $sentCount = 0;
+
+        foreach ($recipients as $phone => $name) {
+            if ($dryRun) {
+                $sentCount++;
+                if ($logger) $logger("🏁 [SIMULASI] Laporan Selesai dikirim ke Admin {$phone} ({$name})");
+            } else {
+                $res = $this->whatsappService->sendMessage($phone, $message);
+                if ($res['success'] ?? false) {
+                    $sentCount++;
+                    if ($logger) $logger("🏁 Laporan Selesai berhasil dikirim ke Admin {$phone} ({$name})");
+                } else {
+                    if ($logger) $logger("⚠️ Gagal kirim laporan selesai ke Admin {$phone}: " . ($res['error'] ?? 'Unknown error'));
+                }
+            }
+        }
+
+        return ['success' => $sentCount > 0, 'sent' => $sentCount, 'message' => "Laporan selesai terkirim ke {$sentCount} nomor admin"];
+    }
+
+    /**
+     * Unified daily attendance digest workflow with admin start notice and completion report.
+     */
+    public function sendDailyAttendanceDigestWorkflow(array $options = []): array
+    {
+        $startTime = microtime(true);
+        $dryRun = $options['dry_run'] ?? false;
+        $logger = $options['logger'] ?? null;
+        $isSingleTest = !empty($options['target_phone']);
+
+        if ($logger) {
+            $time = date('H:i:s');
+            $logger("🚀 [{$time}] Memulai alur pengiriman rekapitulasi harian terpadu...");
+        }
+
+        // 1. Kirim notifikasi awal ke Admin (kecuali single test)
+        if (!$isSingleTest) {
+            $this->notifyAdminDigestStarted($options);
+        }
+
+        // 2. Eksekusi pengiriman rekap Kepala Sekolah
+        if ($logger) $logger("🏫 1. Memproses Rekap Kepala Sekolah...");
+        $resP = $this->sendPrincipalDailyAttendanceDigest($options);
+        if ($logger) $logger("   " . ($resP['message'] ?? 'Selesai Kepsek'));
+
+        // 3. Jeda istirahat transisi ke Wali Kelas jika bukan dry-run dan bukan single-test
+        if (($resP['sent'] ?? 0) > 0 && !$dryRun && !$isSingleTest) {
+            $pause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 60);
+            $pauseMins = round($pause / 60, 1);
+            if ($logger) $logger("☕ Jeda istirahat transisi ke Wali Kelas ({$pause} detik / ~{$pauseMins} menit)...");
+            sleep($pause);
+        }
+
+        // 4. Eksekusi pengiriman rekap Wali Kelas
+        if ($logger) $logger("👩‍🏫 2. Memproses Rekap Wali Kelas...");
+        $resH = $this->sendHomeroomDailyAttendanceDigest($options);
+        if ($logger) $logger("   " . ($resH['message'] ?? 'Selesai Wali Kelas'));
+
+        $durationSeconds = (int)round(microtime(true) - $startTime);
+
+        // 5. Kirim laporan akhir ke Admin (kecuali single test)
+        if (!$isSingleTest) {
+            $summary = array_merge($options, [
+                'res_principal' => $resP,
+                'res_homeroom' => $resH,
+                'duration_seconds' => $durationSeconds,
+            ]);
+            $this->notifyAdminDigestCompleted($summary);
+        }
+
+        return [
+            'success' => true,
+            'principal' => $resP,
+            'homeroom' => $resH,
+            'duration_seconds' => $durationSeconds,
+            'message' => "Workflow Rekap Selesai dalam {$durationSeconds} detik (Kepsek: {$resP['sent']} terkirim, Wali Kelas: {$resH['sent']} terkirim)",
+        ];
+    }
+
+    /**
      * 2A. Monthly SPP Digest for Principal (End of Month)
      */
     public function sendPrincipalMonthlySppDigest(): array
