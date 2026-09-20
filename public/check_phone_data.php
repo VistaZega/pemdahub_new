@@ -94,9 +94,10 @@ if (isset($_GET['clear_today_locks']) && $_GET['clear_today_locks'] === 'yes') {
 }
 
 // 3. Single Test Mode (Kirim 1 pesan ke nomor tertentu - 100% Bebas Risiko Ban)
-if (($_POST['action'] ?? '') === 'single_test') {
-    $testPhone = trim($_POST['target_phone'] ?? '');
-    $testType = $_POST['test_type'] ?? 'homeroom';
+$testAction = $_POST['action'] ?? $_GET['action'] ?? '';
+if ($testAction === 'single_test') {
+    $testPhone = trim($_POST['target_phone'] ?? $_GET['target_phone'] ?? '');
+    $testType = $_POST['test_type'] ?? $_GET['test_type'] ?? 'homeroom';
 
     if (empty($testPhone)) {
         $alertMessage = '<div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">❌ Harap isi nomor WhatsApp tujuan pengujian!</div>';
