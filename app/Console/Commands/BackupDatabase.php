@@ -137,23 +137,41 @@ class BackupDatabase extends Command
         // Notice: On shared hosting (Hostinger, cPanel), standard users lack PROCESS and EVENT privileges.
         // --no-tablespaces avoids "Access denied: PROCESS privilege required"
         // Omitting --events avoids "Access denied for user to database (1044): show events"
+        $errLogPath = dirname($filepath) . '/mysqldump_err.log';
+
+        if (!empty($password)) {
+            // Use MYSQL_PWD to suppress "Using a password on the command line interface can be insecure" warning
+            // and keep SQL dump file 100% clean of stderr text
+            putenv("MYSQL_PWD={$password}");
+            $_ENV['MYSQL_PWD'] = $password;
+        }
+
         $cmd = sprintf(
-            '%s --host=%s --port=%s --user=%s --password=%s --no-tablespaces --single-transaction --quick --skip-lock-tables --routines --triggers --opt %s > %s',
+            '%s --host=%s --port=%s --user=%s --no-tablespaces --single-transaction --quick --skip-lock-tables --routines --triggers --opt %s > %s 2> %s',
             escapeshellarg($mysqldumpPath),
             escapeshellarg($host),
             escapeshellarg($port),
             escapeshellarg($username),
-            escapeshellarg($password),
             escapeshellarg($database),
-            escapeshellarg($filepath)
+            escapeshellarg($filepath),
+            escapeshellarg($errLogPath)
         );
 
         $output = [];
         $returnVar = -1;
-        @exec($cmd . ' 2>&1', $output, $returnVar);
+        @exec($cmd, $output, $returnVar);
+
+        // Clear password from environment
+        putenv('MYSQL_PWD');
+        unset($_ENV['MYSQL_PWD']);
+
+        $errContent = file_exists($errLogPath) ? trim((string) file_get_contents($errLogPath)) : '';
+        if (file_exists($errLogPath)) {
+            @unlink($errLogPath);
+        }
 
         if ($returnVar !== 0) {
-            return "mysqldump failed (code {$returnVar}): " . implode("\n", $output);
+            return "mysqldump failed (code {$returnVar}): " . ($errContent ?: implode("\n", $output));
         }
 
         return true;

@@ -27,6 +27,7 @@ Schedule::command('queue:work --stop-when-empty --max-time=50')
 // Auto close survey and notify via WhatsApp
 Schedule::command('surveys:close-and-notify')
     ->everyMinute()
+    ->withoutOverlapping(10)
     ->description('Auto-close survey and send WhatsApp notifications');
 
 // Clean up old failed jobs (keep last 7 days)
@@ -60,6 +61,9 @@ Schedule::command('cache:prune-stale-tags')
 // Automated database backup - daily at 01:00
 Schedule::command('backup:database --compress --keep=7')
     ->dailyAt('01:00')
+    ->withoutOverlapping(60)
+    ->onOneServer()
+    ->runInBackground()
     ->description('Automated database backup with compression');
 
 // Log application health check
