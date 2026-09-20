@@ -71,3 +71,16 @@ if ($dumpPath) {
     echo "Version: <pre>" . htmlspecialchars($ver ?? '') . "</pre>";
 }
 
+if (isset($_GET['test']) && $_GET['test'] === 'run') {
+    echo "<h3>Testing artisan backup:database Execution:</h3>";
+    $cmd = "/usr/bin/php8.5 " . escapeshellarg($basePath . '/artisan') . " backup:database --compress --keep=7 2>&1";
+    $output = [];
+    $ret = -1;
+    exec($cmd, $output, $ret);
+    echo "Exit Code: <b>$ret</b><br>";
+    echo "Output: <pre>" . htmlspecialchars(implode("\n", $output)) . "</pre>";
+} else {
+    echo "<br><a href='?secret=pembda99&test=run' style='display:inline-block;background:#388bfd;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;'>▶ Test Run backup:database</a>";
+}
+
+
