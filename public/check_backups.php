@@ -31,6 +31,16 @@ foreach ($backupDirs as $dir) {
                     $size = filesize($filePath);
                     $date = date("Y-m-d H:i:s", filemtime($filePath));
                     echo " - " . $file . " (" . round($size / 1024 / 1024, 2) . " MB, Modified: " . $date . ")<br>";
+                    
+                    // Peek header if .gz
+                    if (str_ends_with($file, '.gz') && function_exists('gzopen')) {
+                        $gz = @gzopen($filePath, 'rb');
+                        if ($gz) {
+                            $preview = @gzread($gz, 300);
+                            @gzclose($gz);
+                            echo "<pre style='background:#222;color:#aef;padding:5px;margin:5px 0 10px 20px;'>" . htmlspecialchars(substr($preview, 0, 200)) . "</pre>";
+                        }
+                    }
                 }
             }
         } else {
@@ -41,3 +51,23 @@ foreach ($backupDirs as $dir) {
     }
     echo "<br>";
 }
+
+// Check mysqldump availability
+echo "<h3>mysqldump Diagnostic:</h3>";
+$dumpPath = null;
+$paths = ['mysqldump', '/usr/bin/mysqldump', '/usr/local/bin/mysqldump', '/usr/bin/mariadb-dump', '/bin/mysqldump'];
+foreach ($paths as $p) {
+    $out = [];
+    $ret = -1;
+    @exec("which " . escapeshellarg($p) . " 2>/dev/null", $out, $ret);
+    if ($ret === 0 && !empty($out[0])) {
+        $dumpPath = $out[0];
+        break;
+    }
+}
+echo "Detected mysqldump: " . ($dumpPath ?? 'None') . "<br>";
+if ($dumpPath) {
+    $ver = @shell_exec("{$dumpPath} --version 2>&1");
+    echo "Version: <pre>" . htmlspecialchars($ver ?? '') . "</pre>";
+}
+
