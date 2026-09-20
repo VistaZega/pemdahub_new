@@ -191,7 +191,9 @@ class ExecutiveReportService
                     $res = $this->whatsappService->sendTemplate($phone, 'executive.principal_daily_attendance', $templateData);
                     if ($res['success'] ?? false) {
                         $sentCount++;
-                        $this->markDigestSentToday('principal', $school->id, $dateToday);
+                        if (!$targetPhone) {
+                            $this->markDigestSentToday('principal', $school->id, $dateToday);
+                        }
                         if ($logger) $logger("✅ Rekap Kepsek {$school->name} berhasil terkirim ke {$phone} ({$principalName})");
                     } else {
                         $errMsg = $res['error'] ?? 'Gagal kirim via gateway';
@@ -401,7 +403,9 @@ class ExecutiveReportService
                     $res = $this->whatsappService->sendTemplate($phone, 'executive.homeroom_daily_attendance', $templateData);
                     if ($res['success'] ?? false) {
                         $sentCount++;
-                        $this->markDigestSentToday('homeroom', $class->id, $dateToday);
+                        if (!$targetPhone) {
+                            $this->markDigestSentToday('homeroom', $class->id, $dateToday);
+                        }
                         if ($logger) $logger("✅ Rekap {$class->name} terkirim ke {$phone} ({$homeroomTeacher->full_name})");
                     } else {
                         $errMsg = $res['error'] ?? 'Gagal kirim via gateway';
