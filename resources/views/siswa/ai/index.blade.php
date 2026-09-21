@@ -15,6 +15,17 @@
     .font-mono-code {
         font-family: 'JetBrains Mono', monospace;
     }
+
+    @keyframes bubbleSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
     
     /* Tactile Solid Drop-Shadow Buttons */
     .btn-tactile-red {
@@ -122,6 +133,7 @@
         color: #ffffff !important;
         border: 2px solid #121316 !important;
         box-shadow: 3.5px 3.5px 0px #121316 !important;
+        animation: bubbleSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .chat-student-bubble * {
         color: #ffffff !important;
@@ -139,6 +151,7 @@
         border: 2px solid #121316 !important;
         box-shadow: 4px 4px 0px #121316 !important;
         min-width: 120px !important;
+        animation: bubbleSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .chat-ai-bubble * {
         color: #121316 !important;
@@ -451,13 +464,11 @@
                                      :class="msg.sender === 'student' 
                                         ? 'chat-student-bubble text-white rounded-tr-none font-mono-code font-bold' 
                                         : 'chat-ai-bubble text-[#121316] rounded-tl-none prose prose-xs max-w-none font-medium'">
-                                    <div class="message-body inline" x-html="renderMarkdown(msg.message)"></div>
-                                    <!-- Blinking Red Terminal Cursor during Typing -->
-                                    <span x-show="msg.isTyping" class="inline-block w-2 h-4 bg-[#ff3823] ml-1 animate-pulse align-middle rounded-xs" title="Pembda AI sedang mengetik..."></span>
+                                    <div class="message-body" x-html="renderMarkdown(msg.message)"></div>
                                 </div>
 
                                 <!-- Action Toolbar for AI Messages -->
-                                <template x-if="msg.sender === 'ai' && !msg.isTyping">
+                                <template x-if="msg.sender === 'ai'">
                                     <div class="flex items-center gap-3 px-1 text-[10px] font-mono-code font-bold text-[#121316]">
                                         <button type="button" @click="copyToClipboard(msg.message)" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Salin Jawaban">
                                             <i class="fas fa-copy text-[10px]"></i>
@@ -552,7 +563,7 @@ function aiChatApp() {
         messageList: [
             @if(!empty($messages))
                 @foreach($messages as $m)
-                    { sender: '{{ $m->sender }}', message: `{!! addslashes($m->message) !!}`, liked: false, disliked: false, isTyping: false },
+                    { sender: '{{ $m->sender }}', message: `{!! addslashes($m->message) !!}`, liked: false, disliked: false },
                 @endforeach
             @endif
         ],
@@ -689,58 +700,6 @@ function aiChatApp() {
             });
         },
 
-        // Robust Fail-Safe Interactive Typewriter Stream Effect
-        async typewriterAppend(fullText) {
-            if (!fullText || !fullText.trim()) {
-                fullText = "Mohon tuliskan soal atau pertanyaan lengkap yang ingin dibahas. Pembda AI siap membantumu memecahkan soal Matematika, IPA, Kejuruan, atau Bimbingan Karir!";
-            }
-
-            const initialChunk = fullText.substring(0, Math.min(12, fullText.length));
-            const aiMsg = { sender: 'ai', message: initialChunk, fullMessage: fullText, isTyping: true, liked: false, disliked: false };
-            this.messageList.push(aiMsg);
-            
-            const totalChars = fullText.length;
-            let i = initialChunk.length;
-            const chunkSize = totalChars > 600 ? 8 : (totalChars > 250 ? 5 : 3);
-            
-            return new Promise((resolve) => {
-                try {
-                    const timer = setInterval(() => {
-                        try {
-                            i += chunkSize;
-                            if (i >= totalChars) {
-                                i = totalChars;
-                                aiMsg.message = fullText;
-                                aiMsg.isTyping = false;
-                                clearInterval(timer);
-                                this.renderMathFormulas();
-                                this.scrollToBottom();
-                                resolve();
-                            } else {
-                                aiMsg.message = fullText.substring(0, i);
-                                this.scrollToBottom();
-                            }
-                        } catch (err) {
-                            console.error('Typewriter tick error:', err);
-                            aiMsg.message = fullText;
-                            aiMsg.isTyping = false;
-                            clearInterval(timer);
-                            this.renderMathFormulas();
-                            this.scrollToBottom();
-                            resolve();
-                        }
-                    }, 14);
-                } catch (err) {
-                    console.error('Typewriter init error:', err);
-                    aiMsg.message = fullText;
-                    aiMsg.isTyping = false;
-                    this.renderMathFormulas();
-                    this.scrollToBottom();
-                    resolve();
-                }
-            });
-        },
-
         async submitMessage() {
             const text = this.userInput.trim();
             if (!text || this.isSending) return;
@@ -769,29 +728,33 @@ function aiChatApp() {
 
                 if (result.success) {
                     this.activeConversationId = result.conversation_id;
-                    const aiText = result.ai_message.message;
+                    const aiText = result.ai_message.message || 'Pembda AI telah memproses instruksi Anda.';
                     
                     if (result.usage) {
                         this.usageInfo.remaining = result.usage.remaining;
                     }
 
-                    this.isSending = false;
+                    // Instantly push completed AI message with 100% reliability
+                    this.messageList.push({
+                        sender: 'ai',
+                        message: aiText,
+                        liked: false,
+                        disliked: false
+                    });
 
-                    // Stream typewriter animation effect safely
-                    await this.typewriterAppend(aiText);
+                    this.renderMathFormulas();
 
                     if (this.autoSpeech) {
                         this.speakText(aiText);
                     }
                 } else {
                     alert(result.message || 'Terjadi kesalahan saat memproses jawaban AI.');
-                    this.isSending = false;
                 }
             } catch (err) {
                 console.error(err);
                 alert('Gagal terhubung ke server Pembda AI. Silakan periksa koneksi internet Anda.');
-                this.isSending = false;
             } finally {
+                this.isSending = false;
                 this.scrollToBottom();
             }
         }

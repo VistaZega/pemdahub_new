@@ -96,6 +96,7 @@ class MobileAbsensiController extends Controller
             }
 
             if (!$employee) {
+                $isGuru = $user->isGuru() || $activeRole === 'guru';
                 $employee = \App\Models\Employee::create([
                     'school_id' => $user->school_id ?? 1,
                     'user_id' => $user->id,
@@ -103,8 +104,9 @@ class MobileAbsensiController extends Controller
                     'full_name' => $teacher?->full_name ?? $user->name,
                     'gender' => $teacher?->gender ?? 'L',
                     'birth_place' => $teacher?->birth_place ?? '-',
-                    'employee_type' => $user->isGuru() ? 'teacher' : 'staff',
+                    'employee_type' => $isGuru ? 'guru' : 'staff_tu',
                     'employment_status' => 'yayasan',
+                    'tmt_date' => now()->format('Y-m-d'),
                     'is_active' => true,
                 ]);
             }
