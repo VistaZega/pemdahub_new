@@ -51,27 +51,73 @@ if (file_exists($laravelLogFile)) {
 
 $parsedLogs = [];
 $totalSent = 0;
-$teacherCount = 0;
-$adminCount = 0;
-$principalCount = 0;
-$homeroomCount = 0;
-$otherCount = 0;
+$teacherSentCount = 0;
+$adminSentCount = 0;
+$otherSentCount = 0;
+$sentDetails = [];
+
+// Cache daftar nomor guru/pegawai untuk pencocokan cepat
+$employeePhones = Employee::whereNotNull('phone')->pluck('full_name', 'phone')->toArray();
+// Tambahkan versi dengan prefix 62 dan 0
+$normalizedEmployeeMap = [];
+foreach ($employeePhones as $ph => $nm) {
+    $clean = preg_replace('/[^0-9]/', '', (string)$ph);
+    if ($clean) {
+        $normalizedEmployeeMap[$clean] = $nm;
+        if (str_starts_with($clean, '0')) {
+            $normalizedEmployeeMap['62' . substr($clean, 1)] = $nm;
+        } elseif (str_starts_with($clean, '62')) {
+            $normalizedEmployeeMap['0' . substr($clean, 2)] = $nm;
+        }
+    }
+}
 
 foreach ($rawLines as $line) {
-    if (strpos($line, 'WhatsApp message sent') !== false || strpos($line, 'teacher.attendance') !== false || strpos($line, 'employee.attendance') !== false || strpos($line, 'executive.') !== false) {
-        $parsedLogs[] = $line;
+    if (strpos($line, 'WhatsApp message sent') !== false) {
         $totalSent++;
-        if (strpos($line, 'teacher.attendance') !== false || strpos($line, 'employee.attendance') !== false) {
-            $teacherCount++;
-        } elseif (strpos($line, '081263582950') !== false || strpos($line, 'LAPORAN AKHIR') !== false || strpos($line, 'PENGIRIMAN REKAP ABSENSI DIMULAI') !== false) {
-            $adminCount++;
-        } elseif (strpos($line, 'principal_daily_attendance') !== false) {
-            $principalCount++;
-        } elseif (strpos($line, 'homeroom_daily_attendance') !== false) {
-            $homeroomCount++;
-        } else {
-            $otherCount++;
+        $phone = '-';
+        $status = 'unknown';
+        $time = '-';
+
+        // Extract timestamp
+        if (preg_match('/^\[([^\]]+)\]/', $line, $mt)) {
+            $time = $mt[1];
         }
+
+        // Extract phone
+        if (preg_match('/"phone":"([^"]+)"/', $line, $mp)) {
+            $phone = $mp[1];
+        }
+
+        // Extract status
+        if (preg_match('/"status":"([^"]+)"/', $line, $ms)) {
+            $status = $ms[1];
+        }
+
+        $recipientName = $normalizedEmployeeMap[$phone] ?? null;
+
+        $isAdmin = in_array($phone, ['081263582950', '6281263582950', '082168532567', '6282168532567', '082325756228', '6282325756228']);
+
+        if ($isAdmin) {
+            $adminSentCount++;
+            $category = 'Admin PembdaHUB';
+            $recipientName = $recipientName ?: 'Admin';
+        } elseif ($recipientName) {
+            $teacherSentCount++;
+            $category = 'Guru / Pegawai (Tap RFID)';
+        } else {
+            $otherSentCount++;
+            $category = 'Wali Murid / Umum';
+        }
+
+        $sentDetails[] = [
+            'time' => $time,
+            'phone' => $phone,
+            'recipient' => $recipientName ?: '(Tidak Dikenal / Umum)',
+            'category' => $category,
+            'status' => $status,
+            'raw' => $line,
+        ];
     }
 }
 
@@ -110,26 +156,66 @@ header('Content-Type: text/html; charset=utf-8');
 
 <div class="grid">
     <div class="card" style="border-top: 4px solid #ef4444;">
-        <div style="font-size: 13px; color: #64748b; font-weight: 600;">👨‍🏫 Notifikasi WA Guru (Tap RFID)</div>
-        <div class="stat-val stat-danger"><?= $teacherCount ?> Pesan</div>
+        <div style="font-size: 13px; color: #64748b; font-weight: 600;">👨‍🏫 Notifikasi WA Guru (Tap Masuk)</div>
+        <div class="stat-val stat-danger"><?= $teacherSentCount ?> Pesan</div>
         <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">*Sekarang sudah DIMATIKAN TOTAL</div>
-    </div>
-    <div class="card" style="border-top: 4px solid #3b82f6;">
-        <div style="font-size: 13px; color: #64748b; font-weight: 600;">🏫 Rekap Kepala Sekolah</div>
-        <div class="stat-val stat-primary"><?= $principalCount ?> Pesan</div>
-        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Terkirim ke Kepsek</div>
-    </div>
-    <div class="card" style="border-top: 4px solid #10b981;">
-        <div style="font-size: 13px; color: #64748b; font-weight: 600;">👩‍🏫 Rekap Wali Kelas</div>
-        <div class="stat-val stat-success"><?= $homeroomCount ?> Pesan</div>
-        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Terkirim ke Wali Kelas</div>
     </div>
     <div class="card" style="border-top: 4px solid #8b5cf6;">
         <div style="font-size: 13px; color: #64748b; font-weight: 600;">📢 Notifikasi WhatsApp Admin</div>
-        <div class="stat-val" style="color: #7c3aed;"><?= $adminCount ?> Pesan</div>
+        <div class="stat-val" style="color: #7c3aed;"><?= $adminSentCount ?> Pesan</div>
         <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Uji coba & Laporan Admin</div>
     </div>
+    <div class="card" style="border-top: 4px solid #0284c7;">
+        <div style="font-size: 13px; color: #64748b; font-weight: 600;">📱 Pesan Lainnya / Umum</div>
+        <div class="stat-val stat-primary"><?= $otherSentCount ?> Pesan</div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Sistem / Verifikasi</div>
+    </div>
+    <div class="card" style="border-top: 4px solid #10b981;">
+        <div style="font-size: 13px; color: #64748b; font-weight: 600;">📈 Total Seluruh Pesan Terkirim</div>
+        <div class="stat-val stat-success"><?= $totalSent ?> Pesan</div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Hari Ini via Gateway WhatsApp</div>
+    </div>
 </div>
+
+<h2>📋 Rincian Pesan WhatsApp yang Terkirim Hari Ini (<?= count($sentDetails) ?> Pesan)</h2>
+<table>
+    <tr>
+        <th>No</th>
+        <th>Waktu Kirim</th>
+        <th>Nomor WhatsApp</th>
+        <th>Nama Penerima</th>
+        <th>Kategori</th>
+        <th>Status Gateway</th>
+    </tr>
+    <?php if (empty($sentDetails)): ?>
+        <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">Tidak ada riwayat pengiriman WhatsApp tercatat hari ini.</td></tr>
+    <?php else: ?>
+        <?php foreach (array_reverse($sentDetails) as $idx => $item): ?>
+        <tr>
+            <td><?= $idx + 1 ?></td>
+            <td><?= htmlspecialchars($item['time']) ?></td>
+            <td><b><?= htmlspecialchars($item['phone']) ?></b></td>
+            <td><?= htmlspecialchars($item['recipient']) ?></td>
+            <td>
+                <?php if ($item['category'] === 'Admin PembdaHUB'): ?>
+                    <span style="background: #ede9fe; color: #6b21a8; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;">Admin</span>
+                <?php elseif (str_contains($item['category'], 'Guru')): ?>
+                    <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;">Guru (Tap Masuk)</span>
+                <?php else: ?>
+                    <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;">Lainnya</span>
+                <?php endif; ?>
+            </td>
+            <td>
+                <?php if ($item['status'] === 'success'): ?>
+                    <span style="color: #16a34a; font-weight: bold;">✅ Sukses</span>
+                <?php else: ?>
+                    <span style="color: #dc2626; font-weight: bold;">❌ <?= htmlspecialchars($item['status']) ?></span>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</table>
 
 <h2>👨‍🏫 Data Guru / Staf yang Tap Masuk Hari Ini (<?= $todayEmpAttendances->count() ?> Orang)</h2>
 <table>
@@ -156,17 +242,6 @@ header('Content-Type: text/html; charset=utf-8');
         <?php endforeach; ?>
     <?php endif; ?>
 </table>
-
-<h2>📜 Cuplikan Baris Log WhatsApp Hari Ini (Total: <?= count($parsedLogs) ?> entri)</h2>
-<div class="console">
-    <?php if (empty($parsedLogs)): ?>
-        <div>(Tidak ada log aktivitas WhatsApp yang tercatat hari ini)</div>
-    <?php else: ?>
-        <?php foreach (array_slice(array_reverse($parsedLogs), 0, 50) as $l): ?>
-            <div><?= htmlspecialchars($l) ?></div>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</div>
 
 </body>
 </html>
