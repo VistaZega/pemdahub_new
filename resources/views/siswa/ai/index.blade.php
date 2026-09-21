@@ -65,7 +65,7 @@
         box-shadow: 2px 2px 0px #121316 !important;
     }
 
-    /* Dedicated Icon Box with High-Contrast Yellow Icon on Dark Charcoal Box */
+    /* Dedicated Mode Icon Box - High Contrast Yellow Icon on Dark Charcoal Box */
     .mode-icon-box {
         background-color: #121316 !important;
         border: 2px solid #121316 !important;
@@ -79,6 +79,24 @@
         box-shadow: 2px 2px 0px rgba(0,0,0,0.15) !important;
     }
     .mode-icon-box i {
+        color: #fde047 !important;
+        font-size: 16px !important;
+    }
+
+    /* AI Avatar Box for Chat Stream */
+    .ai-avatar-box {
+        background-color: #121316 !important;
+        border: 2px solid #121316 !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        box-shadow: 2px 2px 0px #121316 !important;
+    }
+    .ai-avatar-box i {
         color: #fde047 !important;
         font-size: 16px !important;
     }
@@ -421,8 +439,8 @@
                             </template>
 
                             <template x-if="msg.sender === 'ai'">
-                                <div class="w-10 h-10 rounded-xl bg-[#ff3823] text-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center text-sm font-black shrink-0">
-                                    <i class="fas fa-robot text-white"></i>
+                                <div class="ai-avatar-box">
+                                    <i class="fas fa-robot"></i>
                                 </div>
                             </template>
 
@@ -432,7 +450,9 @@
                                      :class="msg.sender === 'student' 
                                         ? 'chat-student-bubble text-white rounded-tr-none font-mono-code font-bold' 
                                         : 'chat-ai-bubble text-[#121316] rounded-tl-none prose prose-xs max-w-none font-medium'">
-                                    <div class="message-body" x-html="renderMarkdown(msg.message)"></div>
+                                    <div class="message-body inline" x-html="renderMarkdown(msg.message)"></div>
+                                    <!-- Blinking Red Terminal Cursor during Typing -->
+                                    <span x-show="msg.isTyping" class="inline-block w-2 h-4 bg-[#ff3823] ml-1 animate-pulse align-middle rounded-xs" title="Pembda AI sedang mengetik..."></span>
                                 </div>
 
                                 <!-- Action Toolbar for AI Messages -->
@@ -464,11 +484,16 @@
                     </div>
                 </template>
 
-                <!-- Loading Spinner -->
+                <!-- Loading Spinner Box -->
                 <div x-show="isSending" class="flex justify-start">
-                    <div class="flex items-center gap-3 p-4 bg-white border-2 border-[#121316] rounded-2xl rounded-tl-none text-xs text-[#121316] font-mono-code font-bold shadow-[4px_4px_0px_#121316]">
-                        <span class="w-2.5 h-2.5 rounded-full bg-[#ff3823] animate-ping"></span>
-                        <span>Pembda AI sedang mengetik instruksi Anda...</span>
+                    <div class="flex items-center gap-3 max-w-[85%]">
+                        <div class="ai-avatar-box">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="p-3.5 bg-white border-2 border-[#121316] rounded-2xl rounded-tl-none text-xs text-[#121316] font-mono-code font-bold shadow-[4px_4px_0px_#121316] flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#ff3823] animate-ping"></span>
+                            <span>Pembda AI sedang menganalisis jawaban...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -679,7 +704,7 @@ function aiChatApp() {
                         this.scrollToBottom();
                         resolve();
                     } else {
-                        aiMsg.message = fullText.substring(0, i) + ' ▌';
+                        aiMsg.message = fullText.substring(0, i);
                         this.scrollToBottom();
                     }
                 }, 16);
