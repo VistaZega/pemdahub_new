@@ -42,12 +42,12 @@ class GeminiService
             if ($response->successful()) {
                 $data = $response->json();
                 $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                if (!empty($text)) {
+                if (!empty(trim($text))) {
                     return $text;
                 }
             }
 
-            Log::error('Gemini API Error: ' . $response->body());
+            Log::error('Gemini API Error or empty text: ' . $response->body());
             return $this->getMockResponse($prompt);
         } catch (\Exception $e) {
             Log::error('Gemini API Exception: ' . $e->getMessage());
@@ -130,18 +130,20 @@ class GeminiService
                 . "💡 *Ada pertanyaan seputar Sejarah Indonesia atau PPKn? Silakan tanyakan pada Pembda AI!*";
         }
 
-        // 3. Math / Science Formula
-        if (str_contains($lowered, 'rumus') || str_contains($lowered, 'matematika') || str_contains($lowered, 'fisika') || str_contains($lowered, 'hitung') || str_contains($lowered, 'luas') || str_contains($lowered, 'keliling') || str_contains($lowered, 'tabung') || str_contains($lowered, 'lingkaran')) {
-            return '### 🧮 Pembahasan Konsep Matematika & Sains' . "\n\n"
-                . 'Mari kita bedah langkah demi langkah pemecahan masalah akademis ini:' . "\n\n"
-                . '#### 1. Rumus Luas Permukaan & Volume Tabung' . "\n"
-                . '$$Luas\ Permukaan = 2 \times \pi \times r \times (r + t)$$' . "\n"
-                . '$$Volume = \pi \times r^2 \times t$$' . "\n\n"
-                . '#### 2. Langkah Penyelesaian (Step-by-Step):' . "\n"
-                . '* **Langkah 1:** Identifikasi variabel yang diketahui dari soal (Jari-jari alas $r$ dan Tinggi tabung $t$).' . "\n"
-                . '* **Langkah 2:** Masukkan nilai $r$ dan $t$ ke dalam rumus di atas.' . "\n"
-                . '* **Langkah 3:** Gunakan $\pi = \frac{22}{7}$ jika $r$ kelipatan 7, atau $\pi = 3.14$ untuk desimal.' . "\n\n"
-                . '💡 **Tips:** Latihlah pengerjaan soal secara rutin di menu **LMS / Kuis Mandiri** agar semakin lancar!';
+        // 3. Math / Science Formula & Practice Problems (Soal Matematika)
+        if (str_contains($lowered, 'rumus') || str_contains($lowered, 'matematika') || str_contains($lowered, 'soal matematika') || str_contains($lowered, 'fisika') || str_contains($lowered, 'hitung') || str_contains($lowered, 'luas') || str_contains($lowered, 'keliling') || str_contains($lowered, 'tabung') || str_contains($lowered, 'lingkaran') || str_contains($lowered, 'soal')) {
+            return '### 🧮 Latihan Soal Matematika & Pembahasan Terpadu' . "\n\n"
+                . 'Halo! Berikut adalah pembahasan contoh soal Matematika terpadu yang dapat dipelajari:' . "\n\n"
+                . '#### Contoh Soal:' . "\n"
+                . 'Sebuah tabung memiliki jari-jari alas $r = 7\text{ cm}$ dan tinggi $t = 10\text{ cm}$. Hitunglah **Luas Permukaan** dan **Volume** tabung tersebut!' . "\n\n"
+                . '#### Pembahasan Step-by-Step:' . "\n"
+                . '1. **Rumus Luas Permukaan Tabung**:' . "\n"
+                . '   $$Luas = 2 \times \pi \times r \times (r + t)$$' . "\n"
+                . '   $$Luas = 2 \times \frac{22}{7} \times 7 \times (7 + 10) = 44 \times 17 = 748\text{ cm}^2$$' . "\n\n"
+                . '2. **Rumus Volume Tabung**:' . "\n"
+                . '   $$Volume = \pi \times r^2 \times t$$' . "\n"
+                . '   $$Volume = \frac{22}{7} \times 7^2 \times 10 = 22 \times 7 \times 10 = 1.540\text{ cm}^3$$' . "\n\n"
+                . '💡 *Silakan tuliskan soal Matematika spesifik yang ingin kamu selesaikan, atau tanyakan rumus pelajaran lainnya kepada Pembda AI!*';
         }
 
         // 4. BK / Career / Mental Health Consultation
@@ -165,14 +167,14 @@ class GeminiService
                 . "> *Motto Perjuangan: Keep Moving Forward / Maju Terus Pantang Mundur!*";
         }
 
-        // 6. Dynamic Smart Query Responder for any general questions (Siapa/Apa/Jelaskan/Bagaimana)
-        $cleanQuestion = ucfirst($userQuery);
-        return "### 💡 Jawaban Pembda AI: " . htmlspecialchars($cleanQuestion) . "\n\n"
-            . "Terima kasih telah bertanya! Berikut adalah penjelasan mengenai topik **\"" . htmlspecialchars($cleanQuestion) . "\"**:\n\n"
-            . "1. **Konsep Utama**: Topik ini berkaitan dengan materi pembelajaran dan ilmu pengetahuan umum yang dapat dipelajari di sekolah.\n"
-            . "2. **Pendekatan Belajar**: Untuk memahami topik ini secara mendalam, Anda dapat membaca modul referensi di menu **LMS**, berdiskusi di **Pembda Space**, atau menanyakan contoh soal lanjutan kepada Pembda AI.\n"
-            . "3. **Langkah Selanjutnya**: Coba ajukan pertanyaan spesifik seperti *\"Berikan contoh soal dan penyelesaian terkait " . htmlspecialchars($userQuery) . "\"*.\n\n"
-            . "💡 *Pembda AI siap mendampingi proses belajar Anda setiap hari!*";
+        // 6. Dynamic Smart Query Responder for any general questions
+        $cleanQuestion = !empty($userQuery) ? ucfirst($userQuery) : "Pertanyaan Siswa";
+        return "### 💡 Penjelasan Pembda AI: " . htmlspecialchars($cleanQuestion) . "\n\n"
+            . "Terima kasih telah bertanya! Berikut adalah panduan pembahasan untuk topik **\"" . htmlspecialchars($cleanQuestion) . "\"**:\n\n"
+            . "1. **Pemahaman Dasar**: Topik ini berkaitan dengan materi pembelajaran dan latihan soal di sekolah.\n"
+            . "2. **Langkah Pengerjaan**: Tuliskan soal lengkap beserta angka/variabel yang ingin dihitung (misalnya *\"Hitung luas segitiga jika alas = 10 dan tinggi = 5\"*).\n"
+            . "3. **Fasilitas PembdaHUB**: Anda juga dapat mengakses materi lengkap di menu **LMS**, mencoba ujian di **CBT**, atau berdiskusi di **Pembda Space**.\n\n"
+            . "💡 *Tuliskan soal atau topik lengkap di kolom pesan di bawah ini agar Pembda AI dapat memberikan pembahasan step-by-step!*";
     }
 
     /**

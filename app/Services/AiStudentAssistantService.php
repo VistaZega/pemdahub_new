@@ -91,6 +91,15 @@ class AiStudentAssistantService
         try {
             $aiResult = $this->gemini->generateText($fullPrompt);
 
+            if (empty(trim((string)$aiResult))) {
+                $aiResult = "### 💡 Penjelasan Pembda AI Studio\n\n"
+                    . "Terima kasih telah menghubungi Pembda AI! Pertanyaan atau instruksi yang Anda berikan (*\"" . htmlspecialchars($prompt) . "\"*) perlu dibuat lebih spesifik agar Pembda AI dapat memberikan jawaban langkah demi langkah yang tepat.\n\n"
+                    . "* **Contoh Soal Matematika**: *\"Bantu saya menghitung luas permukaan tabung jika r = 7 cm dan t = 10 cm\"*\n"
+                    . "* **Contoh Konsultasi Karir**: *\"Saran memilih jurusan kuliah teknik vs ekonomi bagi siswa SMA/SMK\"*\n"
+                    . "* **Contoh Info Sekolah**: *\"Di mana saya bisa mengecek transkrip nilai rapor dan jadwal CBT online?\"*\n\n"
+                    . "💡 *Silakan tuliskan pertanyaan lengkap Anda pada kolom pesan di bawah ini!*";
+            }
+
             // Increment usage after successful call
             $this->incrementUsage($student->id);
 

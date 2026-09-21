@@ -685,6 +685,10 @@ function aiChatApp() {
 
         // Fluid Interactive Typewriter Animation Stream Effect for AI Answers
         async typewriterAppend(fullText) {
+            if (!fullText || !fullText.trim()) {
+                fullText = "Mohon tuliskan soal atau pertanyaan lengkap yang ingin dibahas. Pembda AI siap membantumu memecahkan soal Matematika, IPA, Kejuruan, atau Bimbingan Karir!";
+            }
+
             const aiMsg = { sender: 'ai', message: '', fullMessage: fullText, isTyping: true, liked: false, disliked: false };
             this.messageList.push(aiMsg);
             
