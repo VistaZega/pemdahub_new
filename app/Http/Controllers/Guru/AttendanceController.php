@@ -253,6 +253,26 @@ class AttendanceController extends Controller
                     ]
                 );
 
+                // Auto-sync ke Presensi Harian Sekolah (schedule_id = NULL) jika belum ada presensi harian pada tanggal ini
+                $existingDaily = Attendance::where('student_id', $studentId)
+                    ->whereDate('date', $request->date)
+                    ->whereNull('schedule_id')
+                    ->first();
+
+                if (!$existingDaily) {
+                    Attendance::create([
+                        'student_id' => $studentId,
+                        'classroom_id' => $request->classroom_id,
+                        'date' => $request->date,
+                        'schedule_id' => null,
+                        'status' => $status,
+                        'time_in' => $timeIn,
+                        'notes' => $note,
+                        'recorded_via' => 'manual',
+                        'created_by' => Auth::id(),
+                    ]);
+                }
+
                 // Reputation Hook for Student (Maksimal 1x per tanggal)
                 $student = \App\Models\Student::find($studentId);
                 if ($student && $student->user_id) {

@@ -103,18 +103,33 @@ class ExecutiveReportService
                     ->where('academic_year_id', $activeYear->id)
                     ->pluck('id');
 
-                // 1. SISWA STATS — hanya absensi harian (schedule_id = null)
+                // 1. SISWA STATS — absensi harian (schedule_id = null) dengan fallback absensi KBM
                 $studentIds = DB::table('student_classes')
                     ->whereIn('classroom_id', $classroomIds)
                     ->pluck('student_id');
 
-                $statsSiswa = Attendance::whereIn('student_id', $studentIds)
+                $dailyAttsSiswa = Attendance::whereIn('student_id', $studentIds)
                     ->whereDate('date', $dateToday)
                     ->whereNull('schedule_id')
-                    ->select('status', DB::raw('count(*) as count'))
-                    ->groupBy('status')
-                    ->pluck('count', 'status')
-                    ->toArray();
+                    ->get()
+                    ->keyBy('student_id');
+
+                if ($dailyAttsSiswa->count() < $studentIds->count()) {
+                    $subjectAttsSiswa = Attendance::whereIn('student_id', $studentIds)
+                        ->whereDate('date', $dateToday)
+                        ->whereNotNull('schedule_id')
+                        ->orderBy('created_at', 'asc')
+                        ->get()
+                        ->groupBy('student_id');
+
+                    foreach ($subjectAttsSiswa as $sId => $records) {
+                        if (!$dailyAttsSiswa->has($sId)) {
+                            $dailyAttsSiswa->put($sId, $records->last());
+                        }
+                    }
+                }
+
+                $statsSiswa = $dailyAttsSiswa->groupBy('status')->map(fn($g) => $g->count())->toArray();
 
                 $presentS = $statsSiswa['hadir'] ?? 0;
                 $lateS = $statsSiswa['terlambat'] ?? 0;
@@ -310,16 +325,35 @@ class ExecutiveReportService
                     continue;
                 }
 
-                // Get attendance stats for this classroom — hanya absensi harian (schedule_id = null)
+                // Get attendance stats for this classroom — absensi harian (schedule_id = null) dengan fallback absensi KBM jika presensi harian belum tercatat
                 $studentIds = $class->students()->pluck('students.id');
                 $totalSiswa = $studentIds->count();
-                $stats = Attendance::whereIn('student_id', $studentIds)
+
+                $dailyAtts = Attendance::whereIn('student_id', $studentIds)
                     ->whereDate('date', $dateToday)
                     ->whereNull('schedule_id')
-                    ->select('status', DB::raw('count(*) as count'))
-                    ->groupBy('status')
-                    ->pluck('count', 'status')
-                    ->toArray();
+                    ->with('student')
+                    ->get()
+                    ->keyBy('student_id');
+
+                // Fallback dari absensi per-pelajaran (schedule_id != null) jika presensi harian sekolah belum diisi untuk siswa terkait
+                if ($dailyAtts->count() < $totalSiswa) {
+                    $subjectAtts = Attendance::whereIn('student_id', $studentIds)
+                        ->whereDate('date', $dateToday)
+                        ->whereNotNull('schedule_id')
+                        ->with('student')
+                        ->orderBy('created_at', 'asc')
+                        ->get()
+                        ->groupBy('student_id');
+
+                    foreach ($subjectAtts as $sId => $records) {
+                        if (!$dailyAtts->has($sId)) {
+                            $dailyAtts->put($sId, $records->last());
+                        }
+                    }
+                }
+
+                $stats = $dailyAtts->groupBy('status')->map(fn($g) => $g->count())->toArray();
 
                 $present = $stats['hadir'] ?? 0;
                 $late = $stats['terlambat'] ?? 0;
@@ -330,12 +364,8 @@ class ExecutiveReportService
                 $unrecordedCount = max(0, $totalSiswa - $recordedCount);
 
                 // Daftar siswa tidak hadir / terlambat yang tercatat
-                $recordedAbsentItems = Attendance::whereIn('student_id', $studentIds)
-                    ->whereDate('date', $dateToday)
-                    ->whereNull('schedule_id')
-                    ->whereIn('status', ['alpha', 'alpa', 'sakit', 'izin', 'terlambat'])
-                    ->with('student')
-                    ->get()
+                $recordedAbsentItems = $dailyAtts
+                    ->filter(fn($a) => in_array($a->status, ['alpha', 'alpa', 'sakit', 'izin', 'terlambat']))
                     ->map(fn($a) => "• " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
                     ->values()
                     ->toArray();
@@ -350,10 +380,7 @@ class ExecutiveReportService
 
                     // Tambahkan informasi siswa yang belum melakukan presensi sama sekali
                     if ($unrecordedCount > 0) {
-                        $recordedStudentIds = Attendance::whereIn('student_id', $studentIds)
-                            ->whereDate('date', $dateToday)
-                            ->whereNull('schedule_id')
-                            ->pluck('student_id');
+                        $recordedStudentIds = $dailyAtts->keys();
                         $unrecordedStudentIds = $studentIds->diff($recordedStudentIds);
 
                         $unrecordedStudents = \App\Models\Student::whereIn('id', $unrecordedStudentIds)
