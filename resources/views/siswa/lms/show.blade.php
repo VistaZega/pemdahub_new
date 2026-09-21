@@ -848,30 +848,33 @@ if (!function_exists('balanceHtmlTags')) {
                             @php
                                 $ext = strtolower(pathinfo($assignment->file_path, PATHINFO_EXTENSION));
                                 $isPdf = $ext === 'pdf';
+                                $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif']);
+                                $fileUrl = Storage::disk('public')->url($assignment->file_path);
                             @endphp
                             
                             @if($isPdf)
                                 <div class="w-full rounded-xl overflow-hidden shadow-md border border-gray-200 bg-white mb-4 mt-2" style="height: 500px;">
-                                    <iframe src="{{ Storage::disk('public')->url($assignment->file_path) }}" class="w-full h-full" frameborder="0"></iframe>
+                                    <iframe src="{{ $fileUrl }}" class="w-full h-full" frameborder="0"></iframe>
+                                </div>
+                            @elseif($isImg)
+                                <div class="w-full max-h-[450px] rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-slate-900 flex items-center justify-center p-2 mb-4 mt-2">
+                                    <img src="{{ $fileUrl }}" class="max-h-[420px] object-contain rounded-xl cursor-pointer hover:scale-102 transition-transform" onclick="window.open('{{ $fileUrl }}', '_blank')" alt="Lampiran Soal">
                                 </div>
                             @endif
 
                             <div class="p-4 rounded-xl border {{ $hasModule ? 'border-white/20 bg-white/10' : 'border-blue-100 bg-blue-50/30' }} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 mt-2">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl {{ $isPdf ? 'bg-red-500' : 'bg-blue-500' }} text-white flex items-center justify-center shadow-md flex-shrink-0">
-                                        <i class="fas {{ $isPdf ? 'fa-file-pdf' : 'fa-file-alt' }} text-lg"></i>
+                                    <div class="w-10 h-10 rounded-xl {{ $isPdf ? 'bg-red-500' : ($isImg ? 'bg-indigo-500' : 'bg-blue-500') }} text-white flex items-center justify-center shadow-md flex-shrink-0">
+                                        <i class="fas {{ $isPdf ? 'fa-file-pdf' : ($isImg ? 'fa-image' : 'fa-file-alt') }} text-lg"></i>
                                     </div>
                                     <div>
-                                        <p class="font-bold text-sm {{ $hasModule ? 'text-white' : 'text-gray-800' }}">File Lampiran Tugas</p>
+                                        <p class="font-bold text-sm {{ $hasModule ? 'text-white' : 'text-gray-800' }}">File Lampiran Soal / Instruksi Guru</p>
                                         <p class="text-[10px] font-medium {{ $hasModule ? 'text-white/60' : 'text-gray-500' }}">Format: {{ strtoupper($ext) }}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                                    <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" target="_blank" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
-                                        <i class="fas fa-external-link-alt"></i> Buka
-                                    </a>
-                                    <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" download class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl {{ $isPdf ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700' }} text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
-                                        <i class="fas fa-download"></i> Unduh
+                                    <a href="{{ $fileUrl }}" target="_blank" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                        <i class="fas fa-external-link-alt"></i> Buka Penuh
                                     </a>
                                 </div>
                             </div>

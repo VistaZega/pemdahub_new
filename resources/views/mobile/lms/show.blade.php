@@ -368,26 +368,36 @@
                 @endif
 
                 @if($assignment->file_path)
+                    @php
+                        $ext = strtolower(pathinfo($assignment->file_path, PATHINFO_EXTENSION));
+                        $isPdf = $ext === 'pdf';
+                        $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic']);
+                        $fileUrl = Storage::disk('public')->url($assignment->file_path);
+                    @endphp
+                    @if($isImg)
+                        <div class="w-full max-h-64 rounded-xl overflow-hidden bg-slate-900 flex justify-center p-1 mt-2 border border-slate-200">
+                            <img src="{{ $fileUrl }}" class="max-h-60 object-contain rounded-lg" alt="Lampiran Soal">
+                        </div>
+                    @endif
                     <div class="p-3 rounded-xl border border-blue-100 bg-blue-50/50 flex flex-col gap-2 mt-2">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm shrink-0">
-                                @if(strtolower(pathinfo($assignment->file_path, PATHINFO_EXTENSION)) === 'pdf')
+                            <div class="w-8 h-8 rounded-lg {{ $isPdf ? 'bg-rose-500' : ($isImg ? 'bg-indigo-500' : 'bg-blue-500') }} text-white flex items-center justify-center shadow-sm shrink-0">
+                                @if($isPdf)
                                     <i class="fa-solid fa-file-pdf"></i>
+                                @elseif($isImg)
+                                    <i class="fa-solid fa-image"></i>
                                 @else
                                     <i class="fa-solid fa-file-alt"></i>
                                 @endif
                             </div>
                             <div>
-                                <p class="font-bold text-slate-800 text-[10px]">Lampiran Soal / Instruksi</p>
-                                <p class="text-[9px] text-slate-500 font-medium uppercase">{{ strtoupper(pathinfo($assignment->file_path, PATHINFO_EXTENSION)) }} File</p>
+                                <p class="font-bold text-slate-800 text-[10px]">Lampiran Soal / Instruksi Guru</p>
+                                <p class="text-[9px] text-slate-500 font-medium uppercase">{{ strtoupper($ext) }} File</p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 mt-1">
-                            <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" target="_blank" class="py-2 text-center rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-[10px] shadow-sm flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-eye"></i> Buka
-                            </a>
-                            <a href="{{ Storage::disk('public')->url($assignment->file_path) }}" download class="py-2 text-center rounded-lg bg-blue-600 text-white font-bold text-[10px] shadow-sm flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-download"></i> Unduh
+                        <div class="mt-1">
+                            <a href="{{ $fileUrl }}" target="_blank" class="w-full py-2 text-center rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-[10px] shadow-sm flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Buka Berkas Penuh
                             </a>
                         </div>
                     </div>
