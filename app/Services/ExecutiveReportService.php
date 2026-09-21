@@ -118,7 +118,7 @@ class ExecutiveReportService
                     $subjectAttsSiswa = Attendance::whereIn('student_id', $studentIds)
                         ->whereDate('date', $dateToday)
                         ->whereNotNull('schedule_id')
-                        ->orderBy('created_at', 'asc')
+                        ->orderBy('id', 'asc')
                         ->get()
                         ->groupBy('student_id');
 
@@ -342,7 +342,7 @@ class ExecutiveReportService
                         ->whereDate('date', $dateToday)
                         ->whereNotNull('schedule_id')
                         ->with('student')
-                        ->orderBy('created_at', 'asc')
+                        ->orderBy('id', 'asc')
                         ->get()
                         ->groupBy('student_id');
 
