@@ -138,6 +138,7 @@
         color: #121316 !important;
         border: 2px solid #121316 !important;
         box-shadow: 4px 4px 0px #121316 !important;
+        min-width: 120px !important;
     }
     .chat-ai-bubble * {
         color: #121316 !important;
@@ -654,22 +655,27 @@ function aiChatApp() {
 
         renderMarkdown(content) {
             if (typeof marked !== 'undefined') {
-                return marked.parse(content);
+                return marked.parse(content || '');
             }
-            return content.replace(/\n/g, '<br>');
+            return (content || '').replace(/\n/g, '<br>');
         },
 
         renderMathFormulas() {
             this.$nextTick(() => {
-                if (window.renderMathInElement && this.$refs.messagesContainer) {
-                    renderMathInElement(this.$refs.messagesContainer, {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false},
-                            {left: '\\(', right: '\\)', display: false},
-                            {left: '\\[', right: '\\]', display: true}
-                        ]
-                    });
+                try {
+                    if (window.renderMathInElement && this.$refs.messagesContainer) {
+                        renderMathInElement(this.$refs.messagesContainer, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false},
+                                {left: '\\(', right: '\\)', display: false},
+                                {left: '\\[', right: '\\]', display: true}
+                            ],
+                            throwOnError: false
+                        });
+                    }
+                } catch (err) {
+                    console.error('KaTeX rendering notice:', err);
                 }
             });
         },
@@ -683,35 +689,55 @@ function aiChatApp() {
             });
         },
 
-        // Fluid Interactive Typewriter Animation Stream Effect for AI Answers
+        // Robust Fail-Safe Interactive Typewriter Stream Effect
         async typewriterAppend(fullText) {
             if (!fullText || !fullText.trim()) {
                 fullText = "Mohon tuliskan soal atau pertanyaan lengkap yang ingin dibahas. Pembda AI siap membantumu memecahkan soal Matematika, IPA, Kejuruan, atau Bimbingan Karir!";
             }
 
-            const aiMsg = { sender: 'ai', message: '', fullMessage: fullText, isTyping: true, liked: false, disliked: false };
+            const initialChunk = fullText.substring(0, Math.min(12, fullText.length));
+            const aiMsg = { sender: 'ai', message: initialChunk, fullMessage: fullText, isTyping: true, liked: false, disliked: false };
             this.messageList.push(aiMsg);
             
             const totalChars = fullText.length;
-            let i = 0;
-            const chunkSize = totalChars > 600 ? 6 : (totalChars > 250 ? 4 : 2);
+            let i = initialChunk.length;
+            const chunkSize = totalChars > 600 ? 8 : (totalChars > 250 ? 5 : 3);
             
             return new Promise((resolve) => {
-                const timer = setInterval(() => {
-                    i += chunkSize;
-                    if (i >= totalChars) {
-                        i = totalChars;
-                        aiMsg.message = fullText;
-                        aiMsg.isTyping = false;
-                        clearInterval(timer);
-                        this.renderMathFormulas();
-                        this.scrollToBottom();
-                        resolve();
-                    } else {
-                        aiMsg.message = fullText.substring(0, i);
-                        this.scrollToBottom();
-                    }
-                }, 16);
+                try {
+                    const timer = setInterval(() => {
+                        try {
+                            i += chunkSize;
+                            if (i >= totalChars) {
+                                i = totalChars;
+                                aiMsg.message = fullText;
+                                aiMsg.isTyping = false;
+                                clearInterval(timer);
+                                this.renderMathFormulas();
+                                this.scrollToBottom();
+                                resolve();
+                            } else {
+                                aiMsg.message = fullText.substring(0, i);
+                                this.scrollToBottom();
+                            }
+                        } catch (err) {
+                            console.error('Typewriter tick error:', err);
+                            aiMsg.message = fullText;
+                            aiMsg.isTyping = false;
+                            clearInterval(timer);
+                            this.renderMathFormulas();
+                            this.scrollToBottom();
+                            resolve();
+                        }
+                    }, 14);
+                } catch (err) {
+                    console.error('Typewriter init error:', err);
+                    aiMsg.message = fullText;
+                    aiMsg.isTyping = false;
+                    this.renderMathFormulas();
+                    this.scrollToBottom();
+                    resolve();
+                }
             });
         },
 
@@ -751,7 +777,7 @@ function aiChatApp() {
 
                     this.isSending = false;
 
-                    // Stream typewriter animation effect for AI response
+                    // Stream typewriter animation effect safely
                     await this.typewriterAppend(aiText);
 
                     if (this.autoSpeech) {
