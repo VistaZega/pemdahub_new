@@ -621,12 +621,24 @@ class UnifiedAttendanceController extends Controller
         if ($group === 'siswa') {
             $classroomId = $request->classroom_id;
             $classroom = Classroom::findOrFail($classroomId);
+            $isToday = ($date === date('Y-m-d'));
+            $currentTime = now()->format('H:i:s');
 
             foreach ($request->attendance as $studentId => $data) {
                 if (empty($data['status'])) continue;
 
-                $timeIn = !empty($data['time_in']) ? $data['time_in'] : null;
+                $status = $data['status'];
+                $timeIn = !empty($data['time_in']) ? $data['time_in'] : ($isToday && in_array($status, ['hadir', 'terlambat']) ? $currentTime : null);
                 $timeOut = !empty($data['time_out']) ? $data['time_out'] : null;
+
+                // KETENTUAN: Bila melebihi batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
+                // Pilihan izin, sakit, dan alpha tetap dihormati
+                if ($status === 'hadir') {
+                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
+                        $status = 'terlambat';
+                    }
+                }
 
                 $attendance = Attendance::updateOrCreate(
                     [
@@ -635,9 +647,9 @@ class UnifiedAttendanceController extends Controller
                         'date'         => $date,
                     ],
                     [
-                        'status'       => $data['status'],
-                        'time_in'      => in_array($data['status'], ['hadir', 'terlambat']) ? $timeIn : null,
-                        'time_out'     => in_array($data['status'], ['hadir', 'terlambat']) ? $timeOut : null,
+                        'status'       => $status,
+                        'time_in'      => in_array($status, ['hadir', 'terlambat']) ? $timeIn : null,
+                        'time_out'     => in_array($status, ['hadir', 'terlambat']) ? $timeOut : null,
                         'notes'        => $data['notes'] ?? null,
                         'recorded_via' => 'manual',
                         'created_by'   => $userId,
@@ -833,6 +845,19 @@ class UnifiedAttendanceController extends Controller
                 $student = Student::with('studentClasses')->find($personId);
                 $classroomId = $student?->studentClasses?->firstWhere('status', 'aktif')?->classroom_id;
             }
+            $classroom = $classroomId ? Classroom::find($classroomId) : null;
+            $isToday = ($date === date('Y-m-d'));
+            $currentTime = now()->format('H:i:s');
+
+            $timeIn = $timeIn ?: ($isToday && in_array($status, ['hadir', 'terlambat']) ? $currentTime : ($classroom?->entry_time ? $classroom->entry_time . ':00' : '07:30:00'));
+
+            // KETENTUAN: Bila melebihi toleransi keterlambatan, status otomatis menjadi 'terlambat'
+            if ($status === 'hadir') {
+                $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
+                    $status = 'terlambat';
+                }
+            }
 
             Attendance::updateOrCreate(
                 [
@@ -842,7 +867,7 @@ class UnifiedAttendanceController extends Controller
                 [
                     'classroom_id' => $classroomId,
                     'status'       => $status,
-                    'time_in'      => in_array($status, ['hadir', 'terlambat']) ? ($timeIn ?: '07:15') : null,
+                    'time_in'      => in_array($status, ['hadir', 'terlambat']) ? $timeIn : null,
                     'time_out'     => in_array($status, ['hadir', 'terlambat']) ? $timeOut : null,
                     'notes'        => $notes,
                     'recorded_via' => 'manual',

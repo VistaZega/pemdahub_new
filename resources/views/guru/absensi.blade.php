@@ -251,6 +251,16 @@
                                     Kelas: <strong>{{ $selectedClassroom->class_name }}</strong> · Total: <strong>{{ $classroomStudents->count() }} Siswa</strong>
                                     <span class="text-purple-950 bg-amber-300 border border-amber-500 px-2 py-0.5 rounded-md text-[10px] ml-1 font-black">👑 Akses Wali Kelas Aktif</span>
                                 </p>
+                                @php
+                                    $lateThresh = $selectedClassroom ? $selectedClassroom->getLateThreshold() : '07:45:00';
+                                    $isPassedLateThresh = ($selectedDailyDate === date('Y-m-d')) && now()->format('H:i:s') > $lateThresh;
+                                @endphp
+                                @if($isPassedLateThresh)
+                                    <div class="mt-2 px-3 py-1.5 bg-amber-100 border border-amber-300 rounded-xl text-amber-900 text-xs font-bold flex items-center gap-2">
+                                        <i class="fas fa-clock text-amber-700"></i>
+                                        <span>Batas Masuk Kelas ({{ substr($selectedClassroom->entry_time ?? '07:30', 0, 5) }} + {{ $selectedClassroom->late_tolerance ?? 15 }}m = <strong>{{ substr($lateThresh, 0, 5) }} WIB</strong>) telah lewat. Input 'Hadir' otomatis tercatat sebagai <strong>Terlambat</strong>.</span>
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- Action Buttons & Filter Chips --}}
@@ -270,7 +280,12 @@
                                     <button type="button" @click="statusFilter = 'hadir'" 
                                         :style="statusFilter === 'hadir' ? 'background-color: #047857 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #047857 !important;'"
                                         class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
-                                        Hadir ({{ $dailySummary['present'] }})
+                                        Hadir ({{ $dailySchoolAttendances->where('status', 'hadir')->count() }})
+                                    </button>
+                                    <button type="button" @click="statusFilter = 'terlambat'" 
+                                        :style="statusFilter === 'terlambat' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #d97706 !important;'"
+                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer">
+                                        Terlambat ({{ $dailySchoolAttendances->where('status', 'terlambat')->count() }})
                                     </button>
                                     <button type="button" @click="statusFilter = 'sakit'" 
                                         :style="statusFilter === 'sakit' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #b45309 !important;'"
@@ -382,8 +397,14 @@
                                                     {{-- Hadir --}}
                                                     <button type="button" @click="rowStatus = 'hadir'" 
                                                         :style="rowStatus === 'hadir' ? 'background-color: #059669 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
-                                                        class="px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Hadir">
+                                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Hadir (Tepat Waktu bila sebelum jam toleransi)">
                                                         Hadir
+                                                    </button>
+                                                    {{-- Terlambat --}}
+                                                    <button type="button" @click="rowStatus = 'terlambat'" 
+                                                        :style="rowStatus === 'terlambat' ? 'background-color: #d97706 !important; color: #ffffff !important;' : 'background-color: transparent !important; color: #334155 !important;'"
+                                                        class="px-2 py-1 rounded-lg text-xs font-black transition cursor-pointer" title="Terlambat">
+                                                        Terlambat
                                                     </button>
                                                     {{-- Sakit --}}
                                                     <button type="button" @click="rowStatus = 'sakit'" 

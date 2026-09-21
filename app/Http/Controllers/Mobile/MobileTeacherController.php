@@ -378,11 +378,23 @@ class MobileTeacherController extends Controller
         }
         $scheduleId = $schedule ? $schedule->id : null;
 
+        $currentTime = now()->format('H:i:s');
+        $isToday = ($date === date('Y-m-d'));
+        $classroomModel = Classroom::find($classroomId);
+        $isLateTime = $isToday && $classroomModel && $classroomModel->isLate($currentTime);
+
         $count = 0;
         foreach ($attendancesInput as $studentId => $status) {
-            if (empty($status) || !in_array($status, ['hadir', 'izin', 'sakit', 'alpha'])) {
+            if (empty($status) || !in_array($status, ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'])) {
                 continue;
             }
+
+            // Jika status 'hadir' dicatat melewati batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
+            // Pilihan izin, sakit, dan alpha tetap dihormati
+            if ($status === 'hadir' && $isLateTime) {
+                $status = 'terlambat';
+            }
+
             $attendance = Attendance::updateOrCreate(
                 [
                     'student_id'   => $studentId,
@@ -393,7 +405,7 @@ class MobileTeacherController extends Controller
                 [
                     'schedule_id'  => $scheduleId,
                     'status'       => $status,
-                    'time_in'      => now()->format('H:i:s'),
+                    'time_in'      => $currentTime,
                     'recorded_via' => 'manual',
                 ]
             );
@@ -403,6 +415,7 @@ class MobileTeacherController extends Controller
             if ($student && $student->user_id) {
                 $points = match($status) {
                     'hadir' => 10,
+                    'terlambat' => 5,
                     'alpha' => -10,
                     default => 0
                 };

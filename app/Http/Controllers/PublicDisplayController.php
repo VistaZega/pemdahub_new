@@ -224,8 +224,16 @@ class PublicDisplayController extends Controller
                 $sTapHadir = $uniqueStudentGroups->count();
 
                 // Siswa dinyatakan terlambat jika terdapat rekam absensi terlambat di hari ini
+                // atau jam masuk pertama melewati batas toleransi masuk kelas
                 $sTerlambat = $uniqueStudentGroups->filter(function ($records) {
-                    return $records->contains('status', 'terlambat');
+                    if ($records->contains('status', 'terlambat')) {
+                        return true;
+                    }
+                    $firstIn = $records->filter(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))->sortBy('time_in')->first();
+                    if ($firstIn && $firstIn->classroom && method_exists($firstIn->classroom, 'isLate')) {
+                        return $firstIn->classroom->isLate($firstIn->time_in);
+                    }
+                    return false;
                 })->count();
 
                 $sHadir = max(0, $sTapHadir - $sTerlambat);
@@ -356,7 +364,11 @@ class PublicDisplayController extends Controller
                 // Deduplikasi per siswa dalam rombel
                 $classStudentGroups = $studentAttendances->where('classroom_id', $cls->id)->groupBy('student_id');
                 $hadirInClass = $classStudentGroups->count();
-                $lambatInClass = $classStudentGroups->filter(fn($recs) => $recs->contains('status', 'terlambat'))->count();
+                $lambatInClass = $classStudentGroups->filter(function($recs) use ($cls) {
+                    if ($recs->contains('status', 'terlambat')) return true;
+                    $firstIn = $recs->filter(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))->sortBy('time_in')->first();
+                    return ($firstIn && method_exists($cls, 'isLate') && $cls->isLate($firstIn->time_in));
+                })->count();
                 $tepatInClass = max(0, $hadirInClass - $lambatInClass);
                 $belumInClass = max(0, $totalInClass - $hadirInClass);
                 $pctInClass = $totalInClass > 0 ? round(($hadirInClass / $totalInClass) * 100) : 0;
@@ -390,6 +402,9 @@ class PublicDisplayController extends Controller
 
             $hasPulang = !empty($latestOut);
             $isTerlambat = $records->contains('status', 'terlambat');
+            if (!$isTerlambat && $earliestIn && $bestAtt->classroom && method_exists($bestAtt->classroom, 'isLate')) {
+                $isTerlambat = $bestAtt->classroom->isLate($earliestIn);
+            }
             
             $statusLabel = $hasPulang ? 'Pulang' : ($isTerlambat ? 'Terlambat' : 'Masuk');
             $tipe = $hasPulang ? 'pulang' : ($isTerlambat ? 'terlambat' : 'masuk');

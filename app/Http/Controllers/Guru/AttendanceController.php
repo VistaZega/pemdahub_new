@@ -214,11 +214,26 @@ class AttendanceController extends Controller
             }
             $scheduleId = $schedule ? $schedule->id : null;
 
+            $isToday = ($request->date === date('Y-m-d'));
+            $currentTime = now()->format('H:i:s');
+
             foreach ($request->statuses as $studentId => $status) {
-                if (empty($status) || !in_array($status, ['hadir', 'izin', 'sakit', 'alpha'])) {
+                if (empty($status) || !in_array($status, ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'])) {
                     continue;
                 }
+
+                // Jika status 'hadir' dicatat melewati batas toleransi kelas, otomatis menjadi 'terlambat'
+                // Pilihan izin, sakit, dan alpha tetap dihormati
+                if ($status === 'hadir') {
+                    $checkTime = $isToday ? $currentTime : null;
+                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
+                        $status = 'terlambat';
+                    }
+                }
+
                 $note = $request->notes[$studentId] ?? null;
+                $timeIn = in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : null) : null;
+
                 $attendance = Attendance::updateOrCreate(
                     [
                         'student_id' => $studentId,
@@ -229,6 +244,7 @@ class AttendanceController extends Controller
                     [
                         'schedule_id' => $scheduleId,
                         'status' => $status,
+                        'time_in' => $timeIn,
                         'notes' => $note,
                         'recorded_via' => 'manual',
                     ]
@@ -239,6 +255,7 @@ class AttendanceController extends Controller
                 if ($student && $student->user_id) {
                     $points = match($status) {
                         'hadir' => 10,
+                        'terlambat' => 5,
                         'alpha' => -10,
                         default => 0
                     };
@@ -324,6 +341,9 @@ class AttendanceController extends Controller
             $classroomName = $classroom->class_name;
             $date = $request->date;
 
+            $isToday = ($date === date('Y-m-d'));
+            $currentTime = now()->format('H:i:s');
+
             foreach ($request->statuses as $studentId => $status) {
                 $note = $request->notes[$studentId] ?? null;
 
@@ -341,8 +361,17 @@ class AttendanceController extends Controller
                     continue;
                 }
 
-                // If existing was recorded via RFID device, update status and note, keep time_in
-                $timeIn = $existing?->time_in ?? ($status === 'hadir' ? now()->format('H:i:s') : null);
+                // Tentukan time_in
+                $timeIn = $existing?->time_in ?? (in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : ($classroom->entry_time ? $classroom->entry_time . ':00' : '07:30:00')) : null);
+
+                // KETENTUAN: Bila waktu pencatatan/kehadiran melebihi batas toleransi kelas, secara default status menjadi 'terlambat'
+                // Pilihan izin, sakit, dan alpha tetap dihormati
+                if ($status === 'hadir') {
+                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
+                        $status = 'terlambat';
+                    }
+                }
 
                 $attendance = Attendance::updateOrCreate(
                     [
@@ -365,6 +394,7 @@ class AttendanceController extends Controller
                 if ($student && $student->user_id) {
                     $points = match($status) {
                         'hadir' => 10,
+                        'terlambat' => 5,
                         'alpha' => -10,
                         default => 0
                     };

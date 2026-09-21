@@ -53,6 +53,29 @@ class Classroom extends Model
     }
 
     /**
+     * Dapatkan batas waktu toleransi kehadiran kelas (H:i:s).
+     * Default entry_time: 07:30, default late_tolerance: 15 menit -> 07:45:00
+     */
+    public function getLateThreshold(): string
+    {
+        $entryTime = $this->entry_time ?: '07:30';
+        $tolerance = (int) ($this->late_tolerance ?? 15);
+        return date('H:i:s', strtotime("{$entryTime} +{$tolerance} minutes"));
+    }
+
+    /**
+     * Tentukan apakah waktu tertentu melewati batas toleransi masuk kelas
+     */
+    public function isLate(?string $time = null): bool
+    {
+        $time = $time ?: now()->format('H:i:s');
+        if (strlen($time) === 5) {
+            $time .= ':00';
+        }
+        return $time > $this->getLateThreshold();
+    }
+
+    /**
      * Classroom belongs to a School
      */
     public function school()

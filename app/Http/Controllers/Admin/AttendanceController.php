@@ -132,10 +132,26 @@ class AttendanceController extends Controller
         ]);
 
         try {
+            $classroom = \App\Models\Classroom::find($validated['classroom_id']);
+            $isToday = ($validated['date'] === date('Y-m-d'));
+            $currentTime = now()->format('H:i:s');
+
+            $status = $validated['status'];
+            $timeIn = $validated['time_in'] ?? ($isToday && in_array($status, ['hadir', 'terlambat']) ? $currentTime : null);
+
+            // KETENTUAN: Bila melebihi toleransi keterlambatan, status otomatis menjadi 'terlambat'
+            // Pilihan izin, sakit, dan alpha tetap dihormati
+            if ($status === 'hadir') {
+                $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
+                    $status = 'terlambat';
+                }
+            }
+
             $data = [
-                'status' => $validated['status'],
-                'time_in' => in_array($validated['status'], ['hadir', 'terlambat']) ? ($validated['time_in'] ?? null) : null,
-                'time_out' => in_array($validated['status'], ['hadir', 'terlambat']) ? ($validated['time_out'] ?? null) : null,
+                'status' => $status,
+                'time_in' => in_array($status, ['hadir', 'terlambat']) ? $timeIn : null,
+                'time_out' => in_array($status, ['hadir', 'terlambat']) ? ($validated['time_out'] ?? null) : null,
                 'notes' => $validated['notes'] ?? null,
                 'recorded_via' => 'manual',
                 'created_by' => auth()->id(),
@@ -160,14 +176,14 @@ class AttendanceController extends Controller
             // Reputation Hook for Student
             $student = \App\Models\Student::find($validated['student_id']);
             if ($student && $student->user_id) {
-                $points = match($validated['status']) {
+                $points = match($status) {
                     'hadir' => 10,
+                    'terlambat' => 5,
                     'alpha' => -10,
                     default => 0
                 };
-                $classroom = \App\Models\Classroom::find($validated['classroom_id']);
                 $classroomName = $classroom ? $classroom->class_name : 'Kelas';
-                $desc = "Kehadiran di kelas " . $classroomName . " (" . ucfirst($validated['status']) . ")";
+                $desc = "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
                 \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
             }
 
@@ -360,6 +376,8 @@ class AttendanceController extends Controller
         ]);
         $classroom = Classroom::findOrFail($request->classroom_id);
         $date = $request->date;
+        $isToday = ($date === date('Y-m-d'));
+        $currentTime = now()->format('H:i:s');
         $count = 0;
 
         foreach ($request->statuses as $studentId => $status) {
@@ -370,8 +388,20 @@ class AttendanceController extends Controller
                 ->whereDate('date', $date)
                 ->first();
 
+            $timeIn = $existing?->time_in ?? (in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : ($classroom->entry_time ? $classroom->entry_time . ':00' : '07:30:00')) : null);
+
+            // KETENTUAN: Bila melebihi toleransi keterlambatan, status otomatis menjadi 'terlambat'
+            // Pilihan izin, sakit, dan alpha tetap dihormati
+            if ($status === 'hadir') {
+                $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                if ($checkTime && $classroom->isLate($checkTime)) {
+                    $status = 'terlambat';
+                }
+            }
+
             $updateData = [
                 'status' => $status,
+                'time_in' => in_array($status, ['hadir', 'terlambat']) ? $timeIn : null,
                 'notes' => $note,
             ];
 
@@ -394,6 +424,7 @@ class AttendanceController extends Controller
             if ($student && $student->user_id) {
                 $points = match($status) {
                     'hadir' => 10,
+                    'terlambat' => 5,
                     'alpha' => -10,
                     default => 0
                 };
