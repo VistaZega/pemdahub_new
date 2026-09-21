@@ -550,18 +550,63 @@ class AttendanceController extends Controller
         }
 
         // ==== KEAMANAN 2: GEOFENCING (GPS Radius Validasi) & PENGECUALIAN PKL ====
-        $school = $student->school;
-        
-        $schoolLat = (float) ($school->latitude ?? 0); 
-        $schoolLong = (float) ($school->longitude ?? 0);
-        if ($schoolLat == 0.0 || $schoolLong == 0.0) {
-            $schoolLat = (float) \App\Models\Setting::getValue('school_latitude', 1.282500);
-            $schoolLong = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
+        $lat = (float) $request->input('latitude', 0);
+        $lng = (float) $request->input('longitude', 0);
+
+        if ($lat == 0.0 && $lng == 0.0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal! Lokasi GPS tidak ditemukan atau belum aktif. Harap izinkan akses lokasi (GPS) pada HP Anda.'
+            ], 422);
         }
 
-        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 50); // Default 50 meter radius
+        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 175); // Default 175 meter radius
         if ($maxRadiusMeters <= 0) {
-            $maxRadiusMeters = 50;
+            $maxRadiusMeters = 175;
+        }
+
+        // Kumpulkan seluruh titik koordinat unit sekolah dalam Kompleks Perguruan Pembda
+        $targetLocations = [];
+        $primarySchool = $student->school;
+        if ($primarySchool && (float)$primarySchool->latitude != 0.0 && (float)$primarySchool->longitude != 0.0) {
+            $targetLocations[] = [
+                'name' => $primarySchool->name,
+                'lat' => (float)$primarySchool->latitude,
+                'lng' => (float)$primarySchool->longitude,
+            ];
+        }
+
+        $allSchools = \App\Models\School::where('is_active', true)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->get();
+        foreach ($allSchools as $sch) {
+            $targetLocations[] = [
+                'name' => $sch->name,
+                'lat' => (float)$sch->latitude,
+                'lng' => (float)$sch->longitude,
+            ];
+        }
+
+        $globalLat = (float) \App\Models\Setting::getValue('school_latitude', 1.282500);
+        $globalLng = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
+        $targetLocations[] = [
+            'name' => 'Kampus Perguruan Pembda',
+            'lat' => $globalLat,
+            'lng' => $globalLng,
+        ];
+
+        // Cari jarak terdekat ke salah satu titik unit sekolah Pembda
+        $minDistance = null;
+        $closestTarget = null;
+        foreach ($targetLocations as $loc) {
+            $dist = $this->calculateDistance($lat, $lng, $loc['lat'], $loc['lng']);
+            if ($minDistance === null || $dist < $minDistance) {
+                $minDistance = $dist;
+                $closestTarget = $loc;
+            }
         }
 
         $todayDate = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
@@ -588,15 +633,15 @@ class AttendanceController extends Controller
         $isPklActive = !empty($activePkl);
         $dudiName = $activePkl ? ($activePkl->dudi->name ?? ($activePkl->company_name ?? 'Mitra DUDI')) : null;
 
-        // Hitung Jarak GPS Siswa ke Titik Sekolah
-        $distance = $this->calculateDistance($request->latitude, $request->longitude, $schoolLat, $schoolLong);
-
         // Jika BUKAN siswa PKL aktif dan berada di luar radius sekolah, TOLAK SEGERA!
-        if (!$isPklActive && $distance > $maxRadiusMeters) {
-            $formattedDist = number_format($distance, 0, ',', '.');
+        if (!$isPklActive && $minDistance > $maxRadiusMeters) {
+            $formattedDist = number_format($minDistance, 0, ',', '.');
+            $targetName = $closestTarget['name'] ?? 'Sekolah';
             return response()->json([
                 'success' => false,
-                'message' => "Gagal! Lokasi Anda berada di luar jangkauan area sekolah ({$formattedDist} meter dari sekolah. Maksimal {$maxRadiusMeters} meter)."
+                'message' => "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$targetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}",
+                'distance' => round($minDistance),
+                'max_radius' => $maxRadiusMeters
             ], 403);
         }
 

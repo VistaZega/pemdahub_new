@@ -243,7 +243,7 @@
                                 timer: 3000,
                                 showConfirmButton: false
                             }).then(() => {
-                                window.location.reload(); // Reload to update table
+                                window.location.reload();
                             });
                         } else {
                             Swal.fire({
@@ -257,11 +257,11 @@
                         console.error('Error:', error);
                         btnAbsen.innerHTML = '<i class="fas fa-fingerprint"></i> Absen Sekarang';
                         btnAbsen.disabled = false;
-                        
+
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error Jaringan',
-                            text: 'Terjadi kesalahan saat menghubungi server. Pastikan koneksi internet stabil.',
+                            title: 'Terjadi Kesalahan',
+                            text: 'Gagal menghubungkan ke server. Harap periksa koneksi internet Anda.',
                         });
                     });
                 },
@@ -269,11 +269,13 @@
                     btnAbsen.innerHTML = '<i class="fas fa-fingerprint"></i> Absen Sekarang';
                     btnAbsen.disabled = false;
 
-                    let errorMsg = 'Gagal mendapatkan lokasi.';
+                    let errorMsg = 'Gagal mendapatkan lokasi GPS.';
                     if (error.code === error.PERMISSION_DENIED) {
-                        errorMsg = 'Anda harus MENGIZINKAN akses lokasi (Izinkan GPS) di browser Anda untuk bisa absen.';
+                        errorMsg = 'Anda harus MENGIZINKAN akses lokasi (GPS) di HP/Browser Anda untuk bisa absen.';
                     } else if (error.code === error.POSITION_UNAVAILABLE) {
-                        errorMsg = 'Sinyal GPS tidak tersedia, coba keluar ruangan untuk mencari sinyal.';
+                        errorMsg = 'Sinyal GPS tidak tersedia, coba keluar ruangan untuk mencari sinyal GPS.';
+                    } else if (error.code === error.TIMEOUT) {
+                        errorMsg = 'Waktu pengambilan GPS habis (timeout). Harap coba lagi di area terbuka.';
                     }
 
                     Swal.fire({
@@ -284,7 +286,7 @@
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 10000,
+                    timeout: 15000,
                     maximumAge: 0
                 }
             );
