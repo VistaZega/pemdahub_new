@@ -137,25 +137,17 @@
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             
-            <!-- Left Info -->
-            <div class="flex items-center gap-4">
-                <!-- AI Avatar Frame -->
-                <div class="w-16 h-16 rounded-2xl bg-[#ff3823] text-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] flex items-center justify-center text-2xl font-black shrink-0 relative">
-                    <i class="fas fa-robot text-white"></i>
-                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-[#fde047] border-2 border-[#121316] rounded-full"></span>
+            <!-- Left Info (Rapat Kiri Murni) -->
+            <div class="flex-1">
+                <div class="text-[11px] font-mono-code font-extrabold text-[#ff3823] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <span class="text-base">✱</span>
+                    <span>NGODING & ASISTEN BELAJAR AI SISWA</span>
                 </div>
-
-                <div>
-                    <div class="text-[11px] font-mono-code font-extrabold text-[#ff3823] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                        <span class="text-base">✱</span>
-                        <span>NGODING & ASISTEN BELAJAR AI SISWA</span>
-                    </div>
-                    <h1 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight leading-tight flex items-center gap-2 flex-wrap">
-                        <span>Pembda</span>
-                        <span class="bg-[#fde047] text-[#121316] px-2.5 py-0.5 rounded-lg border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">AI Studio</span>
-                    </h1>
-                    <p class="text-xs sm:text-sm text-[#4b5563] font-semibold mt-1">Tutor Pelajaran, Konsultasi BK/Karir, dan Pendamping LMS Terpadu</p>
-                </div>
+                <h1 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight leading-tight flex items-center gap-2 flex-wrap">
+                    <span>Pembda</span>
+                    <span class="bg-[#fde047] text-[#121316] px-2.5 py-0.5 rounded-lg border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">AI Studio</span>
+                </h1>
+                <p class="text-xs sm:text-sm text-[#4b5563] font-semibold mt-1">Tutor Pelajaran, Konsultasi BK/Karir, dan Pendamping LMS Terpadu</p>
             </div>
 
             <!-- Right Student Profile Photo Badge & Daily Quota -->
