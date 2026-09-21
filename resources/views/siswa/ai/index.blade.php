@@ -65,6 +65,24 @@
         box-shadow: 2px 2px 0px #121316 !important;
     }
 
+    /* Dedicated Icon Box with High-Contrast Yellow Icon on Dark Charcoal Box */
+    .mode-icon-box {
+        background-color: #121316 !important;
+        border: 2px solid #121316 !important;
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        box-shadow: 2px 2px 0px rgba(0,0,0,0.15) !important;
+    }
+    .mode-icon-box i {
+        color: #fde047 !important;
+        font-size: 16px !important;
+    }
+
     /* Dotted Graph Paper Texture Background */
     .graph-paper-box {
         background-color: #f6f4ee;
@@ -206,9 +224,8 @@
                             :class="activeMode === 'tutor' 
                                 ? 'btn-tactile-red font-black' 
                                 : 'btn-tactile-white'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
-                             :class="activeMode === 'tutor' ? 'bg-white text-[#ff3823]' : 'bg-[#faf3e0] text-[#121316]'">
-                            <i class="fas fa-graduation-cap text-base" :class="activeMode === 'tutor' ? 'text-[#ff3823]' : 'text-[#121316]'"></i>
+                        <div class="mode-icon-box">
+                            <i class="fas fa-graduation-cap"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#121316]'">TUTOR AKADEMIK Q&A</p>
@@ -223,9 +240,8 @@
                             :class="activeMode === 'bk_consultation' 
                                 ? 'btn-tactile-yellow font-black' 
                                 : 'btn-tactile-white'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
-                             :class="activeMode === 'bk_consultation' ? 'bg-[#121316] text-[#fde047]' : 'bg-[#faf3e0] text-[#121316]'">
-                            <i class="fas fa-user-nurse text-base" :class="activeMode === 'bk_consultation' ? 'text-[#fde047]' : 'text-[#121316]'"></i>
+                        <div class="mode-icon-box">
+                            <i class="fas fa-user-nurse"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-black uppercase tracking-tight text-[#121316]">KONSULTASI BK & KARIR</p>
@@ -240,9 +256,8 @@
                             :class="activeMode === 'lms_assistant' 
                                 ? 'btn-tactile-green font-black' 
                                 : 'btn-tactile-white'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
-                             :class="activeMode === 'lms_assistant' ? 'bg-white text-[#10b981]' : 'bg-[#faf3e0] text-[#121316]'">
-                            <i class="fas fa-book-open text-base" :class="activeMode === 'lms_assistant' ? 'text-[#10b981]' : 'text-[#121316]'"></i>
+                        <div class="mode-icon-box">
+                            <i class="fas fa-book-open"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#121316]'">ASISTEN BELAJAR LMS</p>
