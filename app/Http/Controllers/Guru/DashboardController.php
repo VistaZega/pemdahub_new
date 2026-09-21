@@ -722,7 +722,9 @@ class DashboardController extends Controller
                 $isHomeroom = ((int) $selectedClassroom->homeroom_teacher_id === (int) $teacher->id);
 
                 // Fetch active students in class for the daily matrix (applies to all students)
-                $studentsQuery = $selectedClassroom->students()->whereIn('student_classes.status', ['aktif', 'enrolled', 'active']);
+                $studentsQuery = $selectedClassroom->students()
+                    ->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])
+                    ->whereIn('students.status', ['aktif', 'calon', 'naik']);
                 if ($activeYear) {
                     $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                 }

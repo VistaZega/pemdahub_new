@@ -339,7 +339,8 @@ class AttendanceController extends Controller
             $classroom = Classroom::with('school')->find($selectedClassroom);
             if ($classroom) {
                 $students = $classroom->students()
-                    ->where('student_classes.status', 'aktif')
+                    ->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])
+                    ->whereIn('students.status', ['aktif', 'calon', 'naik'])
                     ->when($activeAY, fn($q) => $q->where('student_classes.academic_year_id', $activeAY->id))
                     ->orderBy('full_name')
                     ->get();

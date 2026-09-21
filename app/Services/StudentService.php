@@ -73,6 +73,57 @@ class StudentService
             $data['photo'] = $photo->store('photos/students', 'public');
         }
 
+        $terminalStatuses = ['pindah', 'keluar', 'lulus', 'alumni', 'dikeluarkan'];
+        if (isset($data['status'])) {
+            $newStatus = $data['status'];
+            $oldStatus = $student->status;
+
+            if (in_array($newStatus, $terminalStatuses)) {
+                // Sinkronkan ke student_classes: nonaktifkan status kelas aktif menjadi status terminal ini
+                \App\Models\StudentClass::where('student_id', $student->id)
+                    ->whereIn('status', ['aktif', 'enrolled', 'active'])
+                    ->update(['status' => $newStatus]);
+                    
+                // Jika siswa pindah atau keluar, reset RFID agar kartu fisik tidak lagi aktif
+                if ($newStatus === 'pindah' || $newStatus === 'keluar') {
+                    $data['rfid_uid'] = null;
+                }
+            } elseif ($newStatus === 'aktif') {
+                // Jika diaktifkan kembali, pastikan kelas tahun ajaran aktifnya juga diaktifkan kembali
+                $activeAY = \App\Models\AcademicYear::where('is_active', true)->first();
+                if ($activeAY) {
+                    \App\Models\StudentClass::where('student_id', $student->id)
+                        ->where('academic_year_id', $activeAY->id)
+                        ->whereIn('status', $terminalStatuses)
+                        ->update(['status' => 'aktif']);
+                }
+            }
+
+            // Catat ke StudentStatusHistory jika status berubah
+            if ($oldStatus !== $newStatus) {
+                $reason = match($newStatus) {
+                    'pindah'      => 'Siswa Pindah Sekolah (Mutasi Keluar)',
+                    'keluar'      => 'Siswa Keluar / Mengundurkan Diri',
+                    'lulus'       => 'Siswa Dinyatakan Lulus',
+                    'dikeluarkan' => 'Siswa Dikeluarkan dari Sekolah',
+                    'aktif'       => 'Siswa Diaktifkan Kembali',
+                    default       => 'Pembaruan status dari menu Data Siswa',
+                };
+
+                try {
+                    $student->statusHistories()->create([
+                        'from_status'     => $oldStatus,
+                        'to_status'       => $newStatus,
+                        'change_reason'   => $reason,
+                        'effective_date'  => now()->toDateString(),
+                        'changed_by'      => auth()->id(),
+                    ]);
+                } catch (\Throwable $e) {
+                    // Fail silently on history log
+                }
+            }
+        }
+
         return $this->studentRepository->update($student, $data);
     }
 

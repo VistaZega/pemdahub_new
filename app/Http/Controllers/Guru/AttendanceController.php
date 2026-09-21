@@ -84,7 +84,8 @@ class AttendanceController extends Controller
             })
             ->with('school')
             ->withCount(['students' => function ($q) use ($activeYear) {
-                $q->where('student_classes.status', 'aktif');
+                $q->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])
+                  ->whereIn('students.status', ['aktif', 'calon', 'naik']);
                 if ($activeYear) {
                     $q->where('student_classes.academic_year_id', $activeYear->id);
                 }
@@ -153,7 +154,9 @@ class AttendanceController extends Controller
                             ->toArray();
                     }
                 } else {
-                    $studentsQuery = $selectedClassroom->students()->whereIn('student_classes.status', ['aktif', 'enrolled', 'active']);
+                    $studentsQuery = $selectedClassroom->students()
+                        ->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])
+                        ->whereIn('students.status', ['aktif', 'calon', 'naik']);
                     if ($activeYear) {
                         $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                     }

@@ -18,10 +18,11 @@ class TeachingAssignmentStudentFilterService
         $activeYearId = $assignment->academic_year_id;
         $classroomId = $assignment->classroom_id;
         
-        $studentsQuery = Student::whereHas('studentClasses', function ($q) use ($activeYearId) {
-            $q->whereIn('status', ['aktif', 'enrolled', 'active'])
-              ->where('academic_year_id', $activeYearId);
-        });
+        $studentsQuery = Student::whereIn('students.status', ['aktif', 'calon', 'naik'])
+            ->whereHas('studentClasses', function ($q) use ($activeYearId) {
+                $q->whereIn('status', ['aktif', 'enrolled', 'active'])
+                  ->where('academic_year_id', $activeYearId);
+            });
 
         // Jika kelas gabungan lintas kelas (group_code)
         if (!empty($assignment->group_code)) {
