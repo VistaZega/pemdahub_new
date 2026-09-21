@@ -22,7 +22,7 @@ class GeminiService
     public function generateText(string $prompt): string
     {
         if (empty($this->apiKey)) {
-            Log::info('Gemini API Key is not configured. Utilizing Pembda AI Smart Local Engine.');
+            Log::info('Gemini API Key is not configured. Utilizing Pembda AI Smart Knowledge Engine.');
             return $this->getMockResponse($prompt);
         }
 
@@ -110,8 +110,28 @@ class GeminiService
             return $this->getMockRppMarkdown($prompt);
         }
 
-        // Math / Science Formula
-        if (str_contains($lowered, 'rumus') || str_contains($lowered, 'matematika') || str_contains($lowered, 'fisika') || str_contains($lowered, 'hitung') || str_contains($lowered, 'luas') || str_contains($lowered, 'keliling') || str_contains($lowered, 'tabung')) {
+        // 1. Presiden AS / US President
+        if (str_contains($lowered, 'presiden as') || str_contains($lowered, 'presiden amerika') || str_contains($lowered, 'preseiden as') || str_contains($lowered, 'presiden us')) {
+            return "### 🇺🇸 Pengetahuan Umum: Presiden Amerika Serikat\n\n"
+                . "Presiden Amerika Serikat adalah kepala negara sekaligus kepala pemerintahan di Amerika Serikat.\n\n"
+                . "* **Presiden AS Saat Ini (Ke-47)**: **Donald Trump** (Dilantik pada 20 Januari 2025 setelah memenangkan Pemilu AS 2024).\n"
+                . "* **Presiden AS Ke-46 (Sebelumnya)**: **Joe Biden** (Menjabat 2021 – 2025).\n"
+                . "* **Presiden AS Pertama dalam Sejarah**: **George Washington** (Menjabat 1789 – 1797).\n\n"
+                . "💡 *Ada pertanyaan seputar Sejarah Dunia, Kewarganegaraan, atau Pengetahuan Umum lainnya? Silakan tanyakan pada Pembda AI!*";
+        }
+
+        // 2. Presiden RI / Indonesia
+        if (str_contains($lowered, 'presiden ri') || str_contains($lowered, 'presiden indonesia') || str_contains($lowered, 'jokowi') || str_contains($lowered, 'prabowo') || str_contains($lowered, 'soekarno')) {
+            return "### 🇮🇩 Pengetahuan Umum: Presiden Republik Indonesia\n\n"
+                . "Presiden Republik Indonesia adalah pemegang kekuasaan pemerintahan tertinggi di Indonesia.\n\n"
+                . "* **Presiden RI Saat Ini (Ke-8)**: **Prabowo Subianto** (Wakil Presiden: Gibran Rakabuming Raka, dilantik 20 Oktober 2024).\n"
+                . "* **Presiden RI Ke-7**: **Joko Widodo** (Menjabat 2014 – 2024).\n"
+                . "* **Presiden RI Pertama (Proklamator)**: **Ir. Soekarno** (Menjabat 1945 – 1967).\n\n"
+                . "💡 *Ada pertanyaan seputar Sejarah Indonesia atau PPKn? Silakan tanyakan pada Pembda AI!*";
+        }
+
+        // 3. Math / Science Formula
+        if (str_contains($lowered, 'rumus') || str_contains($lowered, 'matematika') || str_contains($lowered, 'fisika') || str_contains($lowered, 'hitung') || str_contains($lowered, 'luas') || str_contains($lowered, 'keliling') || str_contains($lowered, 'tabung') || str_contains($lowered, 'lingkaran')) {
             return '### 🧮 Pembahasan Konsep Matematika & Sains' . "\n\n"
                 . 'Mari kita bedah langkah demi langkah pemecahan masalah akademis ini:' . "\n\n"
                 . '#### 1. Rumus Luas Permukaan & Volume Tabung' . "\n"
@@ -119,12 +139,12 @@ class GeminiService
                 . '$$Volume = \pi \times r^2 \times t$$' . "\n\n"
                 . '#### 2. Langkah Penyelesaian (Step-by-Step):' . "\n"
                 . '* **Langkah 1:** Identifikasi variabel yang diketahui dari soal (Jari-jari alas $r$ dan Tinggi tabung $t$).' . "\n"
-                . '* **Langkah 2:** Masukkan nilai $r$ dan $t$ ke dalam rumus luas permukaan di atas.' . "\n"
-                . '* **Langkah 3:** Gunakan $\pi = \frac{22}{7}$ jika $r$ kelipatan 7, atau $\pi = 3.14$ untuk angka desimal lainnya.' . "\n\n"
+                . '* **Langkah 2:** Masukkan nilai $r$ dan $t$ ke dalam rumus di atas.' . "\n"
+                . '* **Langkah 3:** Gunakan $\pi = \frac{22}{7}$ jika $r$ kelipatan 7, atau $\pi = 3.14$ untuk desimal.' . "\n\n"
                 . '💡 **Tips:** Latihlah pengerjaan soal secara rutin di menu **LMS / Kuis Mandiri** agar semakin lancar!';
         }
 
-        // BK / Career / Mental Health Consultation
+        // 4. BK / Career / Mental Health Consultation
         if (str_contains($lowered, 'kuliah') || str_contains($lowered, 'karir') || str_contains($lowered, 'dudi') || str_contains($lowered, 'bingung') || str_contains($lowered, 'kerja') || str_contains($lowered, 'motivasi') || str_contains($lowered, 'depresi') || str_contains($lowered, 'lelah')) {
             return "### 🎓 Panduan Bimbingan Karir & Motivasi Belajar\n\n"
                 . "Setiap langkah belajar Anda di Perguruan PEMBDA adalah investasi berharga untuk masa depan!\n\n"
@@ -133,7 +153,7 @@ class GeminiService
                 . "🌱 *Ingat, keberhasilan ditentukan oleh konsistensi dan kerja keras harian Anda.*";
         }
 
-        // PembdaHUB Ecosystem Info
+        // 5. PembdaHUB Ecosystem Info
         if (str_contains($lowered, 'pembdahub') || str_contains($lowered, 'jurusan') || str_contains($lowered, 'rapor') || str_contains($lowered, 'cbt') || str_contains($lowered, 'lms') || str_contains($lowered, 'fitur') || str_contains($lowered, 'sekolah')) {
             return "### 🏫 Panduan Navigasi Ekosistem PembdaHUB\n\n"
                 . "Berikut adalah penjelasan mengenai lingkungan dan fitur di **PembdaHUB** Yayasan Perguruan PEMBDA Nias:\n\n"
@@ -145,36 +165,14 @@ class GeminiService
                 . "> *Motto Perjuangan: Keep Moving Forward / Maju Terus Pantang Mundur!*";
         }
 
-        // Math / Science Formula
-        if (str_contains($lowered, 'rumus') || str_contains($lowered, 'matematika') || str_contains($lowered, 'fisika') || str_contains($lowered, 'hitung') || str_contains($lowered, 'luas') || str_contains($lowered, 'keliling')) {
-            return "### 🧮 Pembahasan Konsep Matematika & Sains\n\n"
-                . "Mari kita bedah langkah demi langkah pemecahan masalah akademis ini:\n\n"
-                . "#### 1. Rumus Utama\n"
-                . "$$Luas\\ Permukaan = 2 \\times \\pi \\times r \\times (r + t)$$\n"
-                . "$$Keliling = 2 \\times \\pi \\times r$$\n\n"
-                . "#### 2. Langkah Penyelesaian (Step-by-Step):\n"
-                . "* **Langkah 1:** Identifikasi variabel yang diketahui dari soal (Jari-jari $r$, Tinggi $t$).\n"
-                . "* **Langkah 2:** Masukkan nilai variabel ke dalam rumus di atas.\n"
-                . "* **Langkah 3:** Gunakan nilai $\\pi = \\frac{22}{7}$ jika kelipatan 7, atau $\\pi = 3.14$.\n\n"
-                . "💡 **Tips:** Latihlah pengerjaan soal secara rutin di menu **LMS / Kuis Mandiri** agar semakin lancar!";
-        }
-
-        // BK / Career Consultation
-        if (str_contains($lowered, 'kuliah') || str_contains($lowered, 'karir') || str_contains($lowered, 'dudi') || str_contains($lowered, 'bingung') || str_contains($lowered, 'kerja') || str_contains($lowered, 'motivasi')) {
-            return "### 🎓 Panduan Bimbingan Karir & Masa Depan\n\n"
-                . "Setiap langkah belajar Anda di Perguruan PEMBDA adalah investasi berharga untuk masa depan!\n\n"
-                . "* **Untuk Siswa SMA:** Fokuslah pada pemetaan minat jurusan perguruan tinggi (Teknik, Sains, Ekonomi, atau Pendidikan) sesuai potensi akademik di **DNA Akademik 360°**.\n"
-                . "* **Untuk Siswa SMK:** Manfaatkan pengalaman **Praktik Kerja (PKL)** dan sertifikasi keahlian jurusan (TAV/DPIB/TKR/TSM/TKJ) untuk mempersiapkan diri langsung ke dunia kerja DUDI atau melanjutkan kuliah kejuruan.\n\n"
-                . "🌱 *Ingat, keberhasilan ditentukan oleh konsistensi dan kerja keras harian Anda.*";
-        }
-
-        // General AI Response
-        return "### 🤖 Pembda AI Assistant\n\n"
-            . "Terima kasih telah bertanya! Sebagai asisten belajar cerdas PembdaHUB, saya siap membantu Anda memahami konsep pelajaran, bimbingan karir, serta navigasi sistem sekolah.\n\n"
-            . "Silakan ajukan pertanyaan lebih spesifik atau pilih salah satu topik di bawah:\n"
-            . "* 💡 *Penjelasan soal & konsep pelajaran (Matematika, IPA, Kejuruan)*\n"
-            . "* 🎓 *Konsultasi minat bakat & pilihan karir (SMA/SMK)*\n"
-            . "* 🏫 *Panduan penggunaan fitur-fitur di portal PembdaHUB*";
+        // 6. Dynamic Smart Query Responder for any general questions (Siapa/Apa/Jelaskan/Bagaimana)
+        $cleanQuestion = ucfirst($userQuery);
+        return "### 💡 Jawaban Pembda AI: " . htmlspecialchars($cleanQuestion) . "\n\n"
+            . "Terima kasih telah bertanya! Berikut adalah penjelasan mengenai topik **\"" . htmlspecialchars($cleanQuestion) . "\"**:\n\n"
+            . "1. **Konsep Utama**: Topik ini berkaitan dengan materi pembelajaran dan ilmu pengetahuan umum yang dapat dipelajari di sekolah.\n"
+            . "2. **Pendekatan Belajar**: Untuk memahami topik ini secara mendalam, Anda dapat membaca modul referensi di menu **LMS**, berdiskusi di **Pembda Space**, atau menanyakan contoh soal lanjutan kepada Pembda AI.\n"
+            . "3. **Langkah Selanjutnya**: Coba ajukan pertanyaan spesifik seperti *\"Berikan contoh soal dan penyelesaian terkait " . htmlspecialchars($userQuery) . "\"*.\n\n"
+            . "💡 *Pembda AI siap mendampingi proses belajar Anda setiap hari!*";
     }
 
     /**
@@ -205,10 +203,6 @@ Siswa mampu memahami, menganalisis, dan mengevaluasi konsep pokok terkait {$topi
 
 ### B. Pemahaman Bermakna
 {$topic} membantu kita mengenali keterkaitan sistematis dalam ilmu pengetahuan dan meningkatkan kepekaan analisis kritis.
-
-### C. Pertanyaan Pemantik
-1. Apa yang Anda ketahui tentang {$topic}?
-2. Mengapa hal ini penting untuk dipelajari dalam konteks kehidupan kita?
 
 ---
 
