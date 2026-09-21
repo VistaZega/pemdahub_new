@@ -45,13 +45,24 @@ class AiStudentAssistantService
     public function incrementUsage(int $studentId): void
     {
         $today = now()->toDateString();
-        DB::table('ai_student_usages')->updateOrInsert(
-            ['student_id' => $studentId, 'usage_date' => $today],
-            [
-                'prompt_count' => DB::raw('prompt_count + 1'),
+        $existing = DB::table('ai_student_usages')
+            ->where('student_id', $studentId)
+            ->where('usage_date', $today)
+            ->first();
+
+        if ($existing) {
+            DB::table('ai_student_usages')
+                ->where('id', $existing->id)
+                ->increment('prompt_count');
+        } else {
+            DB::table('ai_student_usages')->insert([
+                'student_id' => $studentId,
+                'usage_date' => $today,
+                'prompt_count' => 1,
+                'created_at' => now(),
                 'updated_at' => now(),
-            ]
-        );
+            ]);
+        }
     }
 
     /**

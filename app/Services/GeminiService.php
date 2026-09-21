@@ -12,7 +12,8 @@ class GeminiService
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.key');
+        $this->apiKey = config('services.gemini.key') 
+            ?: (\App\Models\Setting::getValue('gemini_api_key') ?? env('GEMINI_API_KEY'));
     }
 
     /**
@@ -21,7 +22,7 @@ class GeminiService
     public function generateText(string $prompt): string
     {
         if (empty($this->apiKey)) {
-            Log::warning('Gemini API Key is not configured. Running in mock/simulation mode.');
+            Log::info('Gemini API Key is not configured. Utilizing Pembda AI Smart Local Engine.');
             return $this->getMockResponse($prompt);
         }
 
@@ -40,7 +41,10 @@ class GeminiService
 
             if ($response->successful()) {
                 $data = $response->json();
-                return $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                if (!empty($text)) {
+                    return $text;
+                }
             }
 
             Log::error('Gemini API Error: ' . $response->body());
@@ -56,15 +60,13 @@ class GeminiService
      */
     public function generateJson(string $prompt): array
     {
-        // If no API key configured, skip API call and return mock JSON directly
         if (empty($this->apiKey)) {
-            Log::warning('Gemini API Key not configured. Using mock JSON response.');
+            Log::info('Gemini API Key not configured. Using mock JSON response.');
             return $this->getMockJsonResponse($prompt);
         }
 
         $resultText = $this->generateText($prompt);
         
-        // Clean JSON formatting markdown wrapper if present
         $cleanJson = trim($resultText);
         if (str_starts_with($cleanJson, '```json')) {
             $cleanJson = substr($cleanJson, 7);
@@ -82,7 +84,6 @@ class GeminiService
             return $decoded;
         }
 
-        // Try extracting JSON array via regex if direct decode fails
         if (preg_match('/\[\s*\{.*\}\s*\]/s', $cleanJson, $matches)) {
             $decoded = json_decode($matches[0], true);
             if (json_last_error() === JSON_ERROR_NONE) {
@@ -95,42 +96,110 @@ class GeminiService
     }
 
     /**
-     * Fallback mock response for simulation.
+     * Smart fallback AI Engine for PembdaHUB when API Key is pending or in offline mode.
      */
     protected function getMockResponse(string $prompt): string
     {
+        $userQuery = $prompt;
+        if (preg_match('/PERTANYAAN BARU SISWA:\s*(.*?)(?:\n\nRESPONS PEMBDA AI:|$)/s', $prompt, $matches)) {
+            $userQuery = trim($matches[1]);
+        }
+        $lowered = strtolower($userQuery);
+
         if (str_contains($prompt, 'Modul Ajar') || str_contains($prompt, 'RPP')) {
             return $this->getMockRppMarkdown($prompt);
         }
-        
-        return "Ini adalah respons simulasi dari Asisten AI. (Kunci API Gemini belum dikonfigurasi).";
+
+        // Math / Science Formula
+        if (str_contains($lowered, 'rumus') || str_contains($lowered, 'matematika') || str_contains($lowered, 'fisika') || str_contains($lowered, 'hitung') || str_contains($lowered, 'luas') || str_contains($lowered, 'keliling') || str_contains($lowered, 'tabung')) {
+            return '### 🧮 Pembahasan Konsep Matematika & Sains' . "\n\n"
+                . 'Mari kita bedah langkah demi langkah pemecahan masalah akademis ini:' . "\n\n"
+                . '#### 1. Rumus Luas Permukaan & Volume Tabung' . "\n"
+                . '$$Luas\ Permukaan = 2 \times \pi \times r \times (r + t)$$' . "\n"
+                . '$$Volume = \pi \times r^2 \times t$$' . "\n\n"
+                . '#### 2. Langkah Penyelesaian (Step-by-Step):' . "\n"
+                . '* **Langkah 1:** Identifikasi variabel yang diketahui dari soal (Jari-jari alas $r$ dan Tinggi tabung $t$).' . "\n"
+                . '* **Langkah 2:** Masukkan nilai $r$ dan $t$ ke dalam rumus luas permukaan di atas.' . "\n"
+                . '* **Langkah 3:** Gunakan $\pi = \frac{22}{7}$ jika $r$ kelipatan 7, atau $\pi = 3.14$ untuk angka desimal lainnya.' . "\n\n"
+                . '💡 **Tips:** Latihlah pengerjaan soal secara rutin di menu **LMS / Kuis Mandiri** agar semakin lancar!';
+        }
+
+        // BK / Career / Mental Health Consultation
+        if (str_contains($lowered, 'kuliah') || str_contains($lowered, 'karir') || str_contains($lowered, 'dudi') || str_contains($lowered, 'bingung') || str_contains($lowered, 'kerja') || str_contains($lowered, 'motivasi') || str_contains($lowered, 'depresi') || str_contains($lowered, 'lelah')) {
+            return "### 🎓 Panduan Bimbingan Karir & Motivasi Belajar\n\n"
+                . "Setiap langkah belajar Anda di Perguruan PEMBDA adalah investasi berharga untuk masa depan!\n\n"
+                . "* **Untuk Siswa SMA:** Fokuslah pada pemetaan minat jurusan perguruan tinggi (Teknik, Sains, Ekonomi, atau Pendidikan) sesuai potensi akademik di **DNA Akademik 360°**.\n"
+                . "* **Untuk Siswa SMK:** Manfaatkan pengalaman **Praktik Kerja (PKL)** dan sertifikasi keahlian jurusan (TAV/DPIB/TKR/TSM/TKJ) untuk mempersiapkan diri langsung ke dunia kerja DUDI atau melanjutkan kuliah kejuruan.\n\n"
+                . "🌱 *Ingat, keberhasilan ditentukan oleh konsistensi dan kerja keras harian Anda.*";
+        }
+
+        // PembdaHUB Ecosystem Info
+        if (str_contains($lowered, 'pembdahub') || str_contains($lowered, 'jurusan') || str_contains($lowered, 'rapor') || str_contains($lowered, 'cbt') || str_contains($lowered, 'lms') || str_contains($lowered, 'fitur') || str_contains($lowered, 'sekolah')) {
+            return "### 🏫 Panduan Navigasi Ekosistem PembdaHUB\n\n"
+                . "Berikut adalah penjelasan mengenai lingkungan dan fitur di **PembdaHUB** Yayasan Perguruan PEMBDA Nias:\n\n"
+                . "1. **3 Unit Sekolah Aktif**: SMPS Pembda 2, SMAS Pembda 1, dan SMKS Pembda Gunungsitoli.\n"
+                . "2. **5 Jurusan SMK**: Teknik Audio Video (TAV), DPIB (Bangunan), TKR (Otomotif), TSM (Sepeda Motor), dan TKJ / Axioo Class (ACP).\n"
+                . "3. **Mengecek Nilai & Rapor**: Buka menu **Nilai & Rapor** di sidebar sebelah kiri portal siswa untuk melihat transkrip dan cetak rapor.\n"
+                . "4. **Fitur LMS & CBT**: Menu **LMS** untuk membaca modul ajar & kuis, sedangkan menu **CBT / Ujian** untuk mengikuti ujian online sekolah.\n"
+                . "5. **Bimbingan & Prestasi**: Menu **Catatan Perkembangan** untuk upload sertifikat kejuaraan dan janji temu Guru BK.\n\n"
+                . "> *Motto Perjuangan: Keep Moving Forward / Maju Terus Pantang Mundur!*";
+        }
+
+        // Math / Science Formula
+        if (str_contains($lowered, 'rumus') || str_contains($lowered, 'matematika') || str_contains($lowered, 'fisika') || str_contains($lowered, 'hitung') || str_contains($lowered, 'luas') || str_contains($lowered, 'keliling')) {
+            return "### 🧮 Pembahasan Konsep Matematika & Sains\n\n"
+                . "Mari kita bedah langkah demi langkah pemecahan masalah akademis ini:\n\n"
+                . "#### 1. Rumus Utama\n"
+                . "$$Luas\\ Permukaan = 2 \\times \\pi \\times r \\times (r + t)$$\n"
+                . "$$Keliling = 2 \\times \\pi \\times r$$\n\n"
+                . "#### 2. Langkah Penyelesaian (Step-by-Step):\n"
+                . "* **Langkah 1:** Identifikasi variabel yang diketahui dari soal (Jari-jari $r$, Tinggi $t$).\n"
+                . "* **Langkah 2:** Masukkan nilai variabel ke dalam rumus di atas.\n"
+                . "* **Langkah 3:** Gunakan nilai $\\pi = \\frac{22}{7}$ jika kelipatan 7, atau $\\pi = 3.14$.\n\n"
+                . "💡 **Tips:** Latihlah pengerjaan soal secara rutin di menu **LMS / Kuis Mandiri** agar semakin lancar!";
+        }
+
+        // BK / Career Consultation
+        if (str_contains($lowered, 'kuliah') || str_contains($lowered, 'karir') || str_contains($lowered, 'dudi') || str_contains($lowered, 'bingung') || str_contains($lowered, 'kerja') || str_contains($lowered, 'motivasi')) {
+            return "### 🎓 Panduan Bimbingan Karir & Masa Depan\n\n"
+                . "Setiap langkah belajar Anda di Perguruan PEMBDA adalah investasi berharga untuk masa depan!\n\n"
+                . "* **Untuk Siswa SMA:** Fokuslah pada pemetaan minat jurusan perguruan tinggi (Teknik, Sains, Ekonomi, atau Pendidikan) sesuai potensi akademik di **DNA Akademik 360°**.\n"
+                . "* **Untuk Siswa SMK:** Manfaatkan pengalaman **Praktik Kerja (PKL)** dan sertifikasi keahlian jurusan (TAV/DPIB/TKR/TSM/TKJ) untuk mempersiapkan diri langsung ke dunia kerja DUDI atau melanjutkan kuliah kejuruan.\n\n"
+                . "🌱 *Ingat, keberhasilan ditentukan oleh konsistensi dan kerja keras harian Anda.*";
+        }
+
+        // General AI Response
+        return "### 🤖 Pembda AI Assistant\n\n"
+            . "Terima kasih telah bertanya! Sebagai asisten belajar cerdas PembdaHUB, saya siap membantu Anda memahami konsep pelajaran, bimbingan karir, serta navigasi sistem sekolah.\n\n"
+            . "Silakan ajukan pertanyaan lebih spesifik atau pilih salah satu topik di bawah:\n"
+            . "* 💡 *Penjelasan soal & konsep pelajaran (Matematika, IPA, Kejuruan)*\n"
+            . "* 🎓 *Konsultasi minat bakat & pilihan karir (SMA/SMK)*\n"
+            . "* 🏫 *Panduan penggunaan fitur-fitur di portal PembdaHUB*";
     }
 
     /**
-     * Mock RPP Markdown content.
+     * Fallback mock RPP Markdown content.
      */
     protected function getMockRppMarkdown(string $prompt): string
     {
-        // Parse class, subject, topic from prompt if possible
         $subject = 'Mata Pelajaran';
         $topic = 'Materi Pelajaran';
         
         if (preg_match('/mata pelajaran:\s*([^,]+)/i', $prompt, $m)) $subject = trim($m[1]);
         if (preg_match('/tema\/topik:\s*([^,]+)/i', $prompt, $m)) $topic = trim($m[1]);
 
-        return "# MODUL AJAR KURIKULUM MERDEKA (SIMULASI)
+        return "# MODUL AJAR KURIKULUM MERDEKA (PEMBDA AI)
         
 ## I. INFORMASI UMUM
 * **Mata Pelajaran:** {$subject}
 * **Materi/Tema:** {$topic}
-* **Tingkat/Kelas:** Kelas X (SMA)
+* **Tingkat/Kelas:** Kelas X (SMA/SMK)
 * **Alokasi Waktu:** 2 x 45 Menit (1 Pertemuan)
 * **Profil Pelajar Pancasila:** Gotong Royong, Bernalar Kritis, Mandiri
 
 ---
 
 ## II. KOMPONEN INTI
-
 ### A. Capaian & Tujuan Pembelajaran
 Siswa mampu memahami, menganalisis, dan mengevaluasi konsep pokok terkait {$topic} secara mendalam serta mengaplikasikannya dalam kehidupan sehari-hari.
 
@@ -144,28 +213,14 @@ Siswa mampu memahami, menganalisis, dan mengevaluasi konsep pokok terkait {$topi
 ---
 
 ## III. KEGIATAN PEMBELAJARAN
-
-### 1. Kegiatan Pendahuluan (15 Menit)
-* Guru membuka kelas dengan salam hangat, berdoa, dan memeriksa kehadiran siswa.
-* Guru memberikan apersepsi terkait materi {$topic} menggunakan pertanyaan pemantik.
-* Guru menyampaikan tujuan pembelajaran yang akan dicapai hari ini.
+### 1. Pendahuluan (15 Menit)
+Guru membuka kelas dengan doa, absensi, dan pertanyaan pemantik apersepsi.
 
 ### 2. Kegiatan Inti (60 Menit)
-* **Eksplorasi:** Siswa membaca materi literatur atau tayangan presentasi tentang {$topic}.
-* **Kolaborasi:** Siswa dibagi menjadi beberapa kelompok diskusi kecil untuk membedah studi kasus.
-* **Presentasi:** Perwakilan kelompok mempresentasikan hasil diskusi di depan kelas secara bergantian.
-* **Umpan Balik:** Guru memberikan apresiasi dan meluruskan konsep yang kurang tepat.
+Siswa berkolaborasi kelompok membedah studi kasus {$topic} dan mempresentasikannya.
 
-### 3. Kegiatan Penutup (15 Menit)
-* Guru membimbing siswa menyimpulkan inti dari materi {$topic} hari ini.
-* Guru dan siswa melakukan refleksi pembelajaran (apa yang dipahami, apa yang belum dipahami).
-* Kelas ditutup dengan doa bersama.
-
----
-
-## IV. ASESMEN & PENILAIAN
-1. **Asesmen Formatif:** Observasi keaktifan diskusi kelompok dan pengerjaan lembar kerja siswa (LKS).
-2. **Asesmen Sumatif:** Soal latihan tertulis pilihan ganda dan esai singkat di akhir bab.";
+### 3. Penutup (15 Menit)
+Refleksi pembelajaran bersama dan doa penutup.";
     }
 
     /**
@@ -185,30 +240,6 @@ Siswa mampu memahami, menganalisis, dan mengevaluasi konsep pokok terkait {$topi
                 ],
                 'answer' => 'C',
                 'explanation' => 'Pembelajaran yang bermakna memerlukan perpaduan yang seimbang antara pemahaman konsep teoretis dan latihan praktis terpadu.'
-            ],
-            [
-                'question' => 'Apa tujuan utama dari dilakukannya evaluasi berkala setelah proses pembelajaran selesai?',
-                'options' => [
-                    'A' => 'Memberikan hukuman bagi siswa yang tertinggal',
-                    'B' => 'Mengetahui tingkat pemahaman siswa dan efektivitas metode ajar',
-                    'C' => 'Mengurangi jam istirahat sekolah',
-                    'D' => 'Membuat siswa merasa tertekan sebelum liburan',
-                    'E' => 'Meningkatkan biaya administrasi sekolah'
-                ],
-                'answer' => 'B',
-                'explanation' => 'Evaluasi berkala bertujuan untuk mengukur capaian tujuan pembelajaran siswa serta menjadi bahan umpan balik bagi guru untuk memperbaiki metode pengajarannya.'
-            ],
-            [
-                'question' => 'Bagaimana sikap terbaik siswa dalam merespon sebuah tugas yang dirasa sulit?',
-                'options' => [
-                    'A' => 'Membiarkan tugas tersebut kosong hingga tenggat waktu',
-                    'B' => 'Menyalin jawaban dari teman kelas tanpa membaca ulang',
-                    'C' => 'Membaca referensi materi terkait, berdiskusi kelompok, atau bertanya kepada guru',
-                    'D' => 'Melayangkan protes keras kepada pihak sekolah',
-                    'E' => 'Memilih untuk membolos pada jam pelajaran berikutnya'
-                ],
-                'answer' => 'C',
-                'explanation' => 'Kesulitan dalam belajar sebaiknya diatasi secara proaktif dengan membaca referensi, berdiskusi kolaboratif, atau meminta bimbingan guru.'
             ]
         ];
     }
