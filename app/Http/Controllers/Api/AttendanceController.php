@@ -613,10 +613,7 @@ class AttendanceController extends Controller
 
         // Cek apakah siswa SEDANG AKTIF PKL di Industri / DUDI
         $activePkl = \App\Models\PklPlacement::with('dudi')
-            ->where(function($q) use ($student, $studentUserId) {
-                $q->where('student_id', $student->id)
-                  ->orWhere('student_id', $studentUserId);
-            })
+            ->where('student_id', $student->id)
             ->where(function($q) {
                 $q->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan']);
             })
@@ -706,6 +703,18 @@ class AttendanceController extends Controller
         // Jika dia tap lagi untuk pulang
         $isNotCheckedOut = !$attendance->time_out || $attendance->time_out === '00:00:00' || $attendance->time_out === '00:00';
         if ($attendance->time_in && $isNotCheckedOut) {
+            // Anti-spam cooldown: minimal 5 menit setelah check-in baru boleh check-out
+            $lastScan = \Carbon\Carbon::parse($today . ' ' . $attendance->time_in);
+            $diffSeconds = now('Asia/Jakarta')->timestamp - $lastScan->timestamp;
+            $cooldown = config('services.kiosk.cooldown_seconds', 300);
+            if ($diffSeconds >= 0 && $diffSeconds < $cooldown) {
+                $timeInFormatted = date('H:i', strtotime($attendance->time_in));
+                return response()->json([
+                    'success' => false,
+                    'message' => "ℹ️ Presensi masuk Anda sudah tercatat pada jam {$timeInFormatted} WIB.\nPresensi pulang baru dapat dilakukan setelah jeda beberapa menit."
+                ], 400);
+            }
+
             $attendance->update(['time_out' => $currentTime]);
             
             $isMerdekaDay = (date('m-d') === '08-17');

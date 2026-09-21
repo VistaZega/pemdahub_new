@@ -249,6 +249,18 @@ class MobileAbsensiController extends Controller
             // Jika tap lagi untuk checkout (presensi pulang)
             $isNotCheckedOut = !$attendance->time_out || $attendance->time_out === '00:00:00' || $attendance->time_out === '00:00';
             if ($attendance->time_in && $isNotCheckedOut) {
+                // Anti-spam cooldown: minimal 5 menit dari presensi masuk baru boleh presensi pulang
+                $lastScan = \Carbon\Carbon::parse($today . ' ' . $attendance->time_in);
+                $diffSeconds = now('Asia/Jakarta')->timestamp - $lastScan->timestamp;
+                $cooldown = config('services.kiosk.cooldown_seconds', 300);
+                if ($diffSeconds >= 0 && $diffSeconds < $cooldown) {
+                    $timeInFormatted = date('H:i', strtotime($attendance->time_in));
+                    $msg = "Anda sudah presensi masuk pada jam {$timeInFormatted} WIB. Presensi pulang dapat dilakukan nanti saat jam pulang.";
+                    return $wantsJson
+                        ? response()->json(['success' => false, 'message' => $msg])
+                        : back()->with('info', $msg);
+                }
+
                 $attendance->update(['time_out' => $currentTime]);
                 if ($isMerdekaDay) {
                     $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Pulang Upacara berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m).";
