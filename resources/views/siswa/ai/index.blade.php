@@ -98,19 +98,20 @@
         box-shadow: 4px 4px 0px #121316;
     }
 
-    /* Force High Contrast Readability for Student Message Bubble */
+    /* Student Question Message Bubble - Sleek Vibrant Indigo/Purple Gradient (NO plain black background or black text) */
     .chat-student-bubble {
-        background-color: #121316 !important;
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #7c3aed 100%) !important;
         color: #ffffff !important;
         border: 2px solid #121316 !important;
-        box-shadow: 3.5px 3.5px 0px rgba(0,0,0,0.2) !important;
+        box-shadow: 3.5px 3.5px 0px #121316 !important;
     }
     .chat-student-bubble * {
         color: #ffffff !important;
     }
     .chat-student-bubble code {
-        background-color: #27272a !important;
+        background-color: #121316 !important;
         color: #fde047 !important;
+        border: 1px solid #121316 !important;
     }
 
     /* Force High Contrast Readability for AI Message Bubble */
@@ -429,13 +430,13 @@
                             <div class="space-y-1.5 flex-1 min-w-0">
                                 <div class="p-4 rounded-2xl text-xs sm:text-sm leading-relaxed"
                                      :class="msg.sender === 'student' 
-                                        ? 'chat-student-bubble text-white rounded-tr-none font-mono-code font-medium' 
+                                        ? 'chat-student-bubble text-white rounded-tr-none font-mono-code font-bold' 
                                         : 'chat-ai-bubble text-[#121316] rounded-tl-none prose prose-xs max-w-none font-medium'">
                                     <div class="message-body" x-html="renderMarkdown(msg.message)"></div>
                                 </div>
 
                                 <!-- Action Toolbar for AI Messages -->
-                                <template x-if="msg.sender === 'ai'">
+                                <template x-if="msg.sender === 'ai' && !msg.isTyping">
                                     <div class="flex items-center gap-3 px-1 text-[10px] font-mono-code font-bold text-[#121316]">
                                         <button type="button" @click="copyToClipboard(msg.message)" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Salin Jawaban">
                                             <i class="fas fa-copy text-[10px]"></i>
@@ -467,7 +468,7 @@
                 <div x-show="isSending" class="flex justify-start">
                     <div class="flex items-center gap-3 p-4 bg-white border-2 border-[#121316] rounded-2xl rounded-tl-none text-xs text-[#121316] font-mono-code font-bold shadow-[4px_4px_0px_#121316]">
                         <span class="w-2.5 h-2.5 rounded-full bg-[#ff3823] animate-ping"></span>
-                        <span>Pembda AI sedang memproses instruksi Anda...</span>
+                        <span>Pembda AI sedang mengetik instruksi Anda...</span>
                     </div>
                 </div>
             </div>
@@ -525,7 +526,7 @@ function aiChatApp() {
         messageList: [
             @if(!empty($messages))
                 @foreach($messages as $m)
-                    { sender: '{{ $m->sender }}', message: `{!! addslashes($m->message) !!}`, liked: false, disliked: false },
+                    { sender: '{{ $m->sender }}', message: `{!! addslashes($m->message) !!}`, liked: false, disliked: false, isTyping: false },
                 @endforeach
             @endif
         ],
@@ -657,6 +658,34 @@ function aiChatApp() {
             });
         },
 
+        // Fluid Interactive Typewriter Animation Stream Effect for AI Answers
+        async typewriterAppend(fullText) {
+            const aiMsg = { sender: 'ai', message: '', fullMessage: fullText, isTyping: true, liked: false, disliked: false };
+            this.messageList.push(aiMsg);
+            
+            const totalChars = fullText.length;
+            let i = 0;
+            const chunkSize = totalChars > 600 ? 6 : (totalChars > 250 ? 4 : 2);
+            
+            return new Promise((resolve) => {
+                const timer = setInterval(() => {
+                    i += chunkSize;
+                    if (i >= totalChars) {
+                        i = totalChars;
+                        aiMsg.message = fullText;
+                        aiMsg.isTyping = false;
+                        clearInterval(timer);
+                        this.renderMathFormulas();
+                        this.scrollToBottom();
+                        resolve();
+                    } else {
+                        aiMsg.message = fullText.substring(0, i) + ' ▌';
+                        this.scrollToBottom();
+                    }
+                }, 16);
+            });
+        },
+
         async submitMessage() {
             const text = this.userInput.trim();
             if (!text || this.isSending) return;
@@ -686,25 +715,28 @@ function aiChatApp() {
                 if (result.success) {
                     this.activeConversationId = result.conversation_id;
                     const aiText = result.ai_message.message;
-                    this.messageList.push({ sender: 'ai', message: aiText, liked: false, disliked: false });
                     
                     if (result.usage) {
                         this.usageInfo.remaining = result.usage.remaining;
                     }
 
-                    this.renderMathFormulas();
+                    this.isSending = false;
+
+                    // Stream typewriter animation effect for AI response
+                    await this.typewriterAppend(aiText);
 
                     if (this.autoSpeech) {
                         this.speakText(aiText);
                     }
                 } else {
                     alert(result.message || 'Terjadi kesalahan saat memproses jawaban AI.');
+                    this.isSending = false;
                 }
             } catch (err) {
                 console.error(err);
                 alert('Gagal terhubung ke server Pembda AI. Silakan periksa koneksi internet Anda.');
-            } finally {
                 this.isSending = false;
+            } finally {
                 this.scrollToBottom();
             }
         }
