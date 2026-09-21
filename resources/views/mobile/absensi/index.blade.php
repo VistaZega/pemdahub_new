@@ -80,17 +80,39 @@
                 );
             }
          }">
+        @if(isset($activePkl) && $activePkl)
+            <div class="mb-3 p-3 rounded-2xl bg-amber-400/20 border border-amber-300/40 text-amber-100 text-left flex items-start gap-2.5 backdrop-blur-md">
+                <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center shrink-0 font-black text-sm shadow">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <div class="space-y-0.5">
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-400 text-slate-900 inline-block">Siswa Status PKL</span>
+                    <h4 class="text-xs font-black text-white leading-tight">Presensi Lokasi PKL DUDI</h4>
+                    <p class="text-[10px] text-amber-100 font-medium">
+                        Mitra: <strong>{{ $activePkl->dudi->name ?? ($activePkl->company_name ?? 'Mitra DUDI') }}</strong><br>
+                        ✨ Jam kerja fleksibel industri (selalu dianggap Hadir) & bebas radius lokasi sekolah.
+                    </p>
+                </div>
+            </div>
+        @endif
+
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 text-white text-2xl mb-3 shadow-md border border-white/30 backdrop-blur-md">
-            <i class="fa-solid fa-location-dot"></i>
+            <i class="fa-solid {{ isset($activePkl) && $activePkl ? 'fa-briefcase' : 'fa-location-dot' }}"></i>
         </div>
 
-        <h3 class="text-base font-black text-white mb-1">Presensi Mandiri GPS</h3>
-        <p class="text-xs text-emerald-100 mb-4 max-w-xs mx-auto font-medium">Pastikan Anda berada di area lokasi sekolah sebelum menekan tombol di bawah.</p>
+        <h3 class="text-base font-black text-white mb-1">
+            {{ isset($activePkl) && $activePkl ? 'Presensi Mandiri PKL (DUDI)' : 'Presensi Mandiri GPS' }}
+        </h3>
+        <p class="text-xs text-emerald-100 mb-4 max-w-xs mx-auto font-medium">
+            {{ isset($activePkl) && $activePkl 
+                ? 'Presensi kehadiran langsung dari lokasi industri/kantor PKL Anda.' 
+                : 'Pastikan Anda berada di area lokasi sekolah sebelum menekan tombol di bawah.' }}
+        </p>
 
         @if($todayAttendance)
             <div class="p-3.5 rounded-2xl bg-white/20 border border-white/30 text-white text-xs font-black inline-flex items-center gap-2 mb-1 backdrop-blur-md shadow">
                 <i class="fa-solid fa-circle-check text-emerald-300 text-sm"></i>
-                <span>Sudah Absen Masuk: {{ $todayAttendance->time_in }} ({{ strtoupper($todayAttendance->status) }})</span>
+                <span>Sudah Absen Masuk: {{ $todayAttendance->time_in }} ({{ strtoupper($todayAttendance->status) }}{{ isset($activePkl) && $activePkl ? ' - PKL' : '' }})</span>
             </div>
         @else
             <button @click="doGpsScan()" :disabled="loading"
@@ -99,9 +121,9 @@
                     <i class="fa-solid fa-spinner animate-spin text-sm"></i>
                 </template>
                 <template x-if="!loading">
-                    <i class="fa-solid fa-fingerprint text-base text-emerald-600"></i>
+                    <i class="fa-solid {{ isset($activePkl) && $activePkl ? 'fa-briefcase text-amber-600' : 'fa-fingerprint text-emerald-600' }} text-base"></i>
                 </template>
-                <span x-text="loading ? statusMsg : 'KIRIM PRESENSI GPS SEKARANG'"></span>
+                <span x-text="loading ? statusMsg : '{{ isset($activePkl) && $activePkl ? 'KIRIM PRESENSI PKL SEKARANG' : 'KIRIM PRESENSI GPS SEKARANG' }}'"></span>
             </button>
         @endif
     </div>

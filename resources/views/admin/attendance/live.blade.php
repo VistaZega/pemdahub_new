@@ -296,7 +296,11 @@
                     <div class="flex items-center gap-4 shrink-0 flex-wrap justify-between md:justify-end">
                         {{-- Recorded Via (Scan RFID / Phone/PC / Manual) --}}
                         <div>
-                            @if(in_array($ev['recorded_via'], ['rfid', 'qrcode', 'device', 'scanner']))
+                            @if($ev['recorded_via'] === 'gps_pkl')
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300" title="Absen dr Tempat PKL DUDI">
+                                    <i class="fas fa-briefcase mr-1.5"></i> Mobile PKL (DUDI)
+                                </span>
+                            @elseif(in_array($ev['recorded_via'], ['rfid', 'qrcode', 'device', 'scanner']))
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Absen via Scan Kartu RFID / QR Code">
                                     <i class="fas fa-id-card mr-1.5"></i> Scan RFID
                                 </span>
@@ -620,7 +624,9 @@ function pollLiveData() {
                             : `<span>${initials}</span>`;
 
                         let viaBadge = '';
-                        if (['rfid', 'qrcode', 'device', 'scanner'].includes(ev.recorded_via)) {
+                        if (ev.recorded_via === 'gps_pkl') {
+                            viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300" title="Absen dari Tempat PKL DUDI"><i class="fas fa-briefcase mr-1.5"></i> Mobile PKL (DUDI)</span>';
+                        } else if (['rfid', 'qrcode', 'device', 'scanner'].includes(ev.recorded_via)) {
                             viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Absen via Scan Kartu RFID / QR Code"><i class="fas fa-id-card mr-1.5"></i> Scan RFID</span>';
                         } else if (['gps', 'web', 'phone', 'online'].includes(ev.recorded_via)) {
                             viaBadge = '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200" title="Absen via Website Mobile/Desktop"><i class="fas fa-mobile-screen-button mr-1.5"></i> Phone/PC</span>';

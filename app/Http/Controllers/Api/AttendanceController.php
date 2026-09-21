@@ -655,12 +655,12 @@ class AttendanceController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki Rombel yang aktif.'], 400);
         }
 
-        // Determine if late
+        // Determine if late (Khusus Siswa PKL: Selalu dianggap HADIR / tidak terlambat sepanjang absen di hari itu)
         $classroom = $studentClass->classroom;
         $entryTime = $classroom->entry_time ?? '07:30';
         $tolerance = $classroom->late_tolerance ?? 15;
         $lateLimit = date('H:i:s', strtotime("$entryTime +$tolerance minutes"));
-        $status = ($currentTime > $lateLimit) ? 'terlambat' : 'hadir';
+        $status = ($isPklActive || $currentTime <= $lateLimit) ? 'hadir' : 'terlambat';
 
         // Catat Absen
         $attendance = \App\Models\Attendance::firstOrCreate(

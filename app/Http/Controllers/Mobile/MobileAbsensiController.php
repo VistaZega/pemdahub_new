@@ -30,13 +30,26 @@ class MobileAbsensiController extends Controller
         }
 
         $todayAttendance = null;
+        $activePkl = null;
         if ($student) {
             $todayAttendance = Attendance::where('student_id', $student->id)
                 ->where('date', now()->format('Y-m-d'))
                 ->first();
+
+            $todayDate = now()->format('Y-m-d');
+            $activePkl = \App\Models\PklPlacement::with('dudi')
+                ->where('student_id', $student->id)
+                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+                ->where(function($q) use ($todayDate) {
+                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $todayDate);
+                })
+                ->where(function($q) use ($todayDate) {
+                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $todayDate);
+                })
+                ->first();
         }
 
-        return view('mobile.absensi.index', compact('student', 'attendances', 'todayAttendance'));
+        return view('mobile.absensi.index', compact('student', 'attendances', 'todayAttendance', 'activePkl'));
     }
 
     public function scan(Request $request)

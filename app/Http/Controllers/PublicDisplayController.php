@@ -554,7 +554,15 @@ class PublicDisplayController extends Controller
             ];
         }
 
-        if (in_array($via, ['gps', 'mobile', 'gps_pkl'])) {
+        if ($via === 'gps_pkl') {
+            return [
+                'label' => 'Mobile PKL (DUDI)',
+                'tipe'  => 'mobile_pkl',
+                'icon'  => 'fa-solid fa-briefcase',
+            ];
+        }
+
+        if (in_array($via, ['gps', 'mobile'])) {
             return [
                 'label' => 'Mobile Phone',
                 'tipe'  => 'mobile',
