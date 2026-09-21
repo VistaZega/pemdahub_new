@@ -16,53 +16,59 @@
         font-family: 'JetBrains Mono', monospace;
     }
     
-    /* Highlighter Yellow Marker khas Anthropic / Homepage PembdaHUB */
-    .highlight-marker {
-        background: linear-gradient(180deg, transparent 62%, #fde047 62%, #fde047 92%, transparent 92%);
-        display: inline;
-    }
-
     /* Tactile Solid Drop-Shadow Buttons */
     .btn-tactile-red {
-        background: #ff3823;
-        color: #ffffff;
-        border: 1.5px solid #121316;
-        box-shadow: 3px 3px 0px #121316;
+        background-color: #ff3823 !important;
+        color: #ffffff !important;
+        border: 2px solid #121316 !important;
+        box-shadow: 3.5px 3.5px 0px #121316 !important;
         transition: all 0.15s ease;
     }
     .btn-tactile-red:hover {
         transform: translate(1.5px, 1.5px);
-        box-shadow: 1.5px 1.5px 0px #121316;
+        box-shadow: 2px 2px 0px #121316 !important;
     }
 
     .btn-tactile-yellow {
-        background: #fde047;
-        color: #121316;
-        border: 1.5px solid #121316;
-        box-shadow: 3px 3px 0px #121316;
+        background-color: #fde047 !important;
+        color: #121316 !important;
+        border: 2px solid #121316 !important;
+        box-shadow: 3.5px 3.5px 0px #121316 !important;
         transition: all 0.15s ease;
     }
     .btn-tactile-yellow:hover {
         transform: translate(1.5px, 1.5px);
-        box-shadow: 1.5px 1.5px 0px #121316;
+        box-shadow: 2px 2px 0px #121316 !important;
+    }
+
+    .btn-tactile-green {
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+        border: 2px solid #121316 !important;
+        box-shadow: 3.5px 3.5px 0px #121316 !important;
+        transition: all 0.15s ease;
+    }
+    .btn-tactile-green:hover {
+        transform: translate(1.5px, 1.5px);
+        box-shadow: 2px 2px 0px #121316 !important;
     }
 
     .btn-tactile-white {
-        background: #ffffff;
-        color: #121316;
-        border: 1.5px solid #121316;
-        box-shadow: 3px 3px 0px #121316;
+        background-color: #ffffff !important;
+        color: #121316 !important;
+        border: 2px solid #121316 !important;
+        box-shadow: 3.5px 3.5px 0px #121316 !important;
         transition: all 0.15s ease;
     }
     .btn-tactile-white:hover {
         transform: translate(1.5px, 1.5px);
-        box-shadow: 1.5px 1.5px 0px #121316;
+        box-shadow: 2px 2px 0px #121316 !important;
     }
 
     /* Dotted Graph Paper Texture Background */
     .graph-paper-box {
         background-color: #f6f4ee;
-        background-image: radial-gradient(#d1cebe 1px, transparent 1px);
+        background-image: radial-gradient(#d1cebe 1.2px, transparent 1.2px);
         background-size: 14px 14px;
     }
 
@@ -74,21 +80,60 @@
         box-shadow: 4px 4px 0px #121316;
     }
 
+    /* Force High Contrast Readability for Student Message Bubble */
+    .chat-student-bubble {
+        background-color: #121316 !important;
+        color: #ffffff !important;
+        border: 2px solid #121316 !important;
+        box-shadow: 3.5px 3.5px 0px rgba(0,0,0,0.2) !important;
+    }
+    .chat-student-bubble * {
+        color: #ffffff !important;
+    }
+    .chat-student-bubble code {
+        background-color: #27272a !important;
+        color: #fde047 !important;
+    }
+
+    /* Force High Contrast Readability for AI Message Bubble */
+    .chat-ai-bubble {
+        background-color: #ffffff !important;
+        color: #121316 !important;
+        border: 2px solid #121316 !important;
+        box-shadow: 4px 4px 0px #121316 !important;
+    }
+    .chat-ai-bubble * {
+        color: #121316 !important;
+    }
+    .chat-ai-bubble code {
+        background-color: #ede9df !important;
+        color: #121316 !important;
+        font-weight: 700 !important;
+    }
+    .chat-ai-bubble pre {
+        background-color: #121316 !important;
+        color: #fde047 !important;
+        padding: 12px !important;
+        border-radius: 12px !important;
+        border: 1.5px solid #121316 !important;
+    }
+    .chat-ai-bubble pre * {
+        color: #fde047 !important;
+    }
+
     .prose p { margin-bottom: 0.5rem; }
     .prose p:last-child { margin-bottom: 0; }
-    .prose code { background: #ede9df; padding: 2px 6px; border-radius: 6px; color: #121316; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; font-weight: 700; }
-    .prose pre { background: #121316; color: #fde047; padding: 14px; border-radius: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; overflow-x: auto; margin-top: 8px; margin-bottom: 8px; border: 1.5px solid #121316; }
 </style>
 
 <div class="space-y-6 pb-12" x-data="aiChatApp()">
     
     <!-- Top Hero Header (DesainPake AI Tactile Card dengan Corner Framing ⌜ ⌟) -->
     <div class="relative bg-white border-2 border-[#121316] rounded-3xl p-6 shadow-[6px_6px_0px_#121316] overflow-hidden">
-        <!-- Corner Crosshairs -->
-        <span class="absolute top-2.5 left-3 text-[#999] font-mono-code text-xs select-none">⌜</span>
-        <span class="absolute top-2.5 right-3 text-[#999] font-mono-code text-xs select-none">⌝</span>
-        <span class="absolute bottom-2.5 left-3 text-[#999] font-mono-code text-xs select-none">⌞</span>
-        <span class="absolute bottom-2.5 right-3 text-[#999] font-mono-code text-xs select-none">⌟</span>
+        <!-- Corner Crosshairs (Larger & Crisp Black) -->
+        <span class="absolute top-2 left-3 text-[#121316] font-mono-code text-base font-black select-none">⌜</span>
+        <span class="absolute top-2 right-3 text-[#121316] font-mono-code text-base font-black select-none">⌝</span>
+        <span class="absolute bottom-2 left-3 text-[#121316] font-mono-code text-base font-black select-none">⌞</span>
+        <span class="absolute bottom-2 right-3 text-[#121316] font-mono-code text-base font-black select-none">⌟</span>
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             
@@ -96,7 +141,7 @@
             <div class="flex items-center gap-4">
                 <!-- AI Avatar Frame -->
                 <div class="w-16 h-16 rounded-2xl bg-[#ff3823] text-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] flex items-center justify-center text-2xl font-black shrink-0 relative">
-                    <i class="fas fa-robot"></i>
+                    <i class="fas fa-robot text-white"></i>
                     <span class="absolute -top-1 -right-1 w-4 h-4 bg-[#fde047] border-2 border-[#121316] rounded-full"></span>
                 </div>
 
@@ -105,15 +150,16 @@
                         <span class="text-base">✱</span>
                         <span>NGODING & ASISTEN BELAJAR AI SISWA</span>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight leading-tight">
-                        Pembda <span class="highlight-marker">AI Studio</span>
+                    <h1 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight leading-tight flex items-center gap-2 flex-wrap">
+                        <span>Pembda</span>
+                        <span class="bg-[#fde047] text-[#121316] px-2.5 py-0.5 rounded-lg border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">AI Studio</span>
                     </h1>
-                    <p class="text-xs sm:text-sm text-[#555] font-medium mt-0.5">Tutor Pelajaran, Konsultasi BK/Karir, dan Pendamping LMS Terpadu</p>
+                    <p class="text-xs sm:text-sm text-[#4b5563] font-semibold mt-1">Tutor Pelajaran, Konsultasi BK/Karir, dan Pendamping LMS Terpadu</p>
                 </div>
             </div>
 
             <!-- Right Student Profile Photo Badge & Daily Quota -->
-            <div class="flex items-center gap-3 bg-[#faf3e0] border-2 border-[#121316] p-3.5 rounded-2xl shadow-[3px_3px_0px_#121316] shrink-0">
+            <div class="flex items-center gap-3 bg-[#faf3e0] border-2 border-[#121316] p-3.5 rounded-2xl shadow-[3.5px_3.5px_0px_#121316] shrink-0">
                 <!-- Foto Profil Siswa -->
                 <div class="w-12 h-12 rounded-xl bg-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] p-0.5 shrink-0 overflow-hidden">
                     <img src="{{ $student->photo_url }}" 
@@ -124,10 +170,10 @@
 
                 <div class="text-left font-mono-code">
                     <p class="text-xs font-black text-[#121316] truncate max-w-[150px]">{{ $student->full_name }}</p>
-                    <p class="text-[10px] font-bold text-[#ff3823] uppercase truncate max-w-[150px]">
+                    <p class="text-[10px] font-extrabold text-[#ff3823] uppercase truncate max-w-[150px]">
                         {{ $student->school->name ?? 'PEMBDA HUB' }}
                     </p>
-                    <div class="mt-0.5 inline-block text-[10px] font-extrabold bg-[#121316] text-[#fde047] px-2 py-0.5 rounded-md">
+                    <div class="mt-0.5 inline-block text-[10px] font-extrabold bg-[#121316] text-[#fde047] px-2 py-0.5 rounded-md border border-[#121316]">
                         ⚡ <span x-text="usageInfo.remaining">{{ $usageInfo['remaining'] }}</span>/{{ $usageInfo['limit'] }} Pesan Harian
                     </div>
                 </div>
@@ -136,13 +182,13 @@
         </div>
 
         <!-- Terminal Prompt Line Bar -->
-        <div class="mt-5 bg-[#121316] text-[#fde047] font-mono-code text-xs p-3.5 rounded-xl border border-[#121316] flex items-center justify-between gap-2 shadow-inner">
+        <div class="mt-5 bg-[#121316] text-[#fde047] font-mono-code text-xs p-3.5 rounded-xl border-2 border-[#121316] flex items-center justify-between gap-2 shadow-inner">
             <div class="flex items-center gap-2 truncate">
                 <span class="text-[#ff3823] font-bold">&rsaquo;</span>
-                <span class="truncate">pembda_ai_core --mode=<span x-text="activeMode">tutor</span> --student="{{ strtolower(explode(' ', $student->full_name)[0]) }}" --status=ONLINE</span>
+                <span class="truncate text-[#fde047]">pembda_ai_core --mode=<span x-text="activeMode">tutor</span> --student="{{ strtolower(explode(' ', $student->full_name)[0]) }}" --status=ONLINE</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0 text-[10px]">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span class="font-bold text-white uppercase">Ready</span>
             </div>
         </div>
@@ -157,60 +203,57 @@
             <!-- Mode Selector Cards -->
             <div class="tactile-card p-5 space-y-3">
                 <div class="flex items-center justify-between font-mono-code">
-                    <h3 class="text-xs font-black uppercase text-[#777] tracking-wider">&bull; MODE INTERAKSI &bull;</h3>
+                    <h3 class="text-xs font-black uppercase text-[#121316] tracking-wider">&bull; MODE INTERAKSI &bull;</h3>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#fde047] text-[#121316] border border-[#121316]">3 Pilihan</span>
                 </div>
 
                 <div class="grid grid-cols-1 gap-2.5">
                     <!-- Mode 1: Tutor Akademik Q&A -->
                     <button type="button" @click="startNewConversation('tutor')"
-                            class="flex items-center gap-3.5 p-3.5 rounded-2xl border-2 transition-all duration-150 text-left cursor-pointer"
+                            class="flex items-center gap-3.5 p-3.5 rounded-2xl transition-all duration-150 text-left cursor-pointer"
                             :class="activeMode === 'tutor' 
                                 ? 'btn-tactile-red font-black' 
-                                : 'bg-white text-[#121316] border-[#121316] hover:bg-[#faf3e0] shadow-[3px_3px_0px_#121316]'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
-                             :class="activeMode === 'tutor' ? 'bg-white text-[#ff3823]' : 'bg-[#ede9df] text-[#121316]'">
-                            <i class="fas fa-graduation-cap text-sm"></i>
+                                : 'btn-tactile-white'">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316] bg-[#121316]">
+                            <i class="fas fa-graduation-cap text-sm text-[#fde047]" style="color: #fde047 !important;"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black uppercase tracking-tight">Tutor Akademik Q&A</p>
-                            <p class="text-[11px] truncate opacity-90 font-medium">Bimbingan Matematika, IPA & Kejuruan</p>
+                            <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#121316]'">TUTOR AKADEMIK Q&A</p>
+                            <p class="text-[11px] truncate font-medium" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#4b5563]'">Bimbingan Matematika, IPA & Kejuruan</p>
                         </div>
-                        <i class="fas fa-arrow-right text-xs"></i>
+                        <i class="fas fa-arrow-right text-xs" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#121316]'"></i>
                     </button>
 
                     <!-- Mode 2: Konsultasi BK & Karir -->
                     <button type="button" @click="startNewConversation('bk_consultation')"
-                            class="flex items-center gap-3.5 p-3.5 rounded-2xl border-2 transition-all duration-150 text-left cursor-pointer"
+                            class="flex items-center gap-3.5 p-3.5 rounded-2xl transition-all duration-150 text-left cursor-pointer"
                             :class="activeMode === 'bk_consultation' 
                                 ? 'btn-tactile-yellow font-black' 
-                                : 'bg-white text-[#121316] border-[#121316] hover:bg-[#faf3e0] shadow-[3px_3px_0px_#121316]'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
-                             :class="activeMode === 'bk_consultation' ? 'bg-[#121316] text-[#fde047]' : 'bg-[#ede9df] text-[#121316]'">
-                            <i class="fas fa-user-nurse text-sm"></i>
+                                : 'btn-tactile-white'">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316] bg-[#121316]">
+                            <i class="fas fa-user-nurse text-sm text-[#fde047]" style="color: #fde047 !important;"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black uppercase tracking-tight">Konsultasi BK & Karir</p>
-                            <p class="text-[11px] truncate opacity-90 font-medium">Curhat belajar, Kuliah & Kerja DUDI</p>
+                            <p class="text-xs font-black uppercase tracking-tight text-[#121316]">KONSULTASI BK & KARIR</p>
+                            <p class="text-[11px] truncate font-medium text-[#121316]">Curhat belajar, Kuliah & Kerja DUDI</p>
                         </div>
-                        <i class="fas fa-arrow-right text-xs"></i>
+                        <i class="fas fa-arrow-right text-xs text-[#121316]"></i>
                     </button>
 
                     <!-- Mode 3: Asisten Belajar LMS -->
                     <button type="button" @click="startNewConversation('lms_assistant')"
-                            class="flex items-center gap-3.5 p-3.5 rounded-2xl border-2 transition-all duration-150 text-left cursor-pointer"
+                            class="flex items-center gap-3.5 p-3.5 rounded-2xl transition-all duration-150 text-left cursor-pointer"
                             :class="activeMode === 'lms_assistant' 
-                                ? 'bg-[#10b981] text-white border-[#121316] shadow-[3px_3px_0px_#121316] font-black' 
-                                : 'bg-white text-[#121316] border-[#121316] hover:bg-[#faf3e0] shadow-[3px_3px_0px_#121316]'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
-                             :class="activeMode === 'lms_assistant' ? 'bg-white text-[#10b981]' : 'bg-[#ede9df] text-[#121316]'">
-                            <i class="fas fa-book-open text-sm"></i>
+                                ? 'btn-tactile-green font-black' 
+                                : 'btn-tactile-white'">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316] bg-[#121316]">
+                            <i class="fas fa-book-open text-sm text-[#fde047]" style="color: #fde047 !important;"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black uppercase tracking-tight">Asisten Belajar LMS</p>
-                            <p class="text-[11px] truncate opacity-90 font-medium">Rangkuman modul & kuis mandiri</p>
+                            <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#121316]'">ASISTEN BELAJAR LMS</p>
+                            <p class="text-[11px] truncate font-medium" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#4b5563]'">Rangkuman modul & kuis mandiri</p>
                         </div>
-                        <i class="fas fa-arrow-right text-xs"></i>
+                        <i class="fas fa-arrow-right text-xs" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#121316]'"></i>
                     </button>
                 </div>
             </div>
@@ -218,7 +261,7 @@
             <!-- List Riwayat Percakapan (Tactile List) -->
             <div class="tactile-card p-5 space-y-3">
                 <div class="flex items-center justify-between font-mono-code">
-                    <h3 class="text-xs font-black uppercase text-[#777] tracking-wider">&bull; RIWAYAT SESI &bull;</h3>
+                    <h3 class="text-xs font-black uppercase text-[#121316] tracking-wider">&bull; RIWAYAT SESI &bull;</h3>
                     <button type="button" @click="startNewConversation(activeMode)" class="text-xs font-bold text-[#ff3823] hover:underline flex items-center gap-1 cursor-pointer">
                         <i class="fas fa-plus text-[10px]"></i>
                         <span>Sesi Baru</span>
@@ -227,7 +270,7 @@
 
                 <div class="space-y-2 max-h-[350px] overflow-y-auto pr-1 no-scrollbar font-mono-code">
                     @forelse($conversations as $conv)
-                        <div class="group flex items-center justify-between p-3 rounded-xl text-xs transition border-1.5 border-[#121316] cursor-pointer {{ $activeConversation && $activeConversation->id == $conv->id ? 'bg-[#faf3e0] shadow-[2px_2px_0px_#121316] font-bold' : 'bg-white hover:bg-[#f6f4ee]' }}">
+                        <div class="group flex items-center justify-between p-3 rounded-xl text-xs transition border-2 border-[#121316] cursor-pointer {{ $activeConversation && $activeConversation->id == $conv->id ? 'bg-[#faf3e0] shadow-[2px_2px_0px_#121316] font-black' : 'bg-white hover:bg-[#f6f4ee]' }}">
                             <a href="{{ route('siswa.ai.index', ['conversation_id' => $conv->id]) }}" class="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
                                 <span class="text-[#ff3823] font-bold">&rsaquo;</span>
                                 <span class="truncate text-[#121316]">{{ $conv->title }}</span>
@@ -241,10 +284,10 @@
                             </form>
                         </div>
                     @empty
-                        <div class="py-8 text-center text-[#777] font-mono-code">
-                            <i class="fas fa-terminal text-2xl mb-2 opacity-40 text-[#121316]"></i>
-                            <p class="text-xs font-bold">Belum ada riwayat percakapan.</p>
-                            <p class="text-[10px] mt-0.5 text-[#999]">Pilih mode di atas untuk memulai!</p>
+                        <div class="py-8 text-center text-[#71717a] font-mono-code">
+                            <i class="fas fa-terminal text-2xl mb-2 text-[#121316]"></i>
+                            <p class="text-xs font-bold text-[#121316]">Belum ada riwayat percakapan.</p>
+                            <p class="text-[10px] mt-0.5 text-[#555]">Pilih mode di atas untuk memulai!</p>
                         </div>
                     @endforelse
                 </div>
@@ -258,16 +301,16 @@
             <!-- Console Top Header -->
             <div class="px-6 py-4 border-b-2 border-[#121316] bg-[#faf3e0] flex items-center justify-between shrink-0 font-mono-code">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-[#121316] text-[#fde047] border border-[#121316] flex items-center justify-center text-base font-bold shadow-xs">
-                        <i class="fas fa-terminal"></i>
+                    <div class="w-9 h-9 rounded-xl bg-[#121316] text-[#fde047] border-2 border-[#121316] flex items-center justify-center text-base font-bold shadow-xs">
+                        <i class="fas fa-terminal" style="color: #fde047 !important;"></i>
                     </div>
                     <div>
                         <h2 class="text-xs sm:text-sm font-black text-[#121316] uppercase tracking-tight" x-text="conversationTitle">
                             {{ $activeConversation ? $activeConversation->title : 'SESI BARU PEMBDA AI' }}
                         </h2>
                         <div class="flex items-center gap-2 mt-0.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-[10px] font-bold text-[#555] uppercase" x-text="getModeLabel()">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-[10px] font-extrabold text-[#121316] uppercase" x-text="getModeLabel()">
                                 {{ $activeConversation ? ($activeConversation->mode == 'bk_consultation' ? 'BK & KARIR' : ($activeConversation->mode == 'lms_assistant' ? 'ASISTEN LMS' : 'TUTOR Q&A')) : 'TUTOR Q&A' }}
                             </span>
                         </div>
@@ -277,13 +320,13 @@
                 <!-- Console Action Tools -->
                 <div class="flex items-center gap-2">
                     <button type="button" @click="clearScreen()" class="px-3 py-1.5 rounded-full btn-tactile-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer" title="Bersihkan Layar">
-                        <i class="fas fa-broom text-[10px]"></i>
+                        <i class="fas fa-broom text-[10px] text-[#121316]"></i>
                         <span class="hidden sm:inline">Bersihkan</span>
                     </button>
 
                     <button type="button" @click="toggleSpeechVoice()" 
-                            class="px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1.5 cursor-pointer border-1.5 border-[#121316] transition"
-                            :class="autoSpeech ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#555] hover:bg-[#f6f4ee]'">
+                            class="px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1.5 cursor-pointer border-2 border-[#121316] transition"
+                            :class="autoSpeech ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#f6f4ee]'">
                         <i class="fas" :class="autoSpeech ? 'fa-volume-high text-[#ff3823]' : 'fa-volume-xmark'"></i>
                         <span class="hidden sm:inline" x-text="autoSpeech ? 'Suara ON' : 'Suara OFF'"></span>
                     </button>
@@ -302,46 +345,48 @@
                             <div class="text-[10px] font-mono-code font-extrabold uppercase tracking-widest text-[#ff3823] mb-1">
                                 &bull; YAYASAN PERGURUAN PEMBDA NIAS &bull;
                             </div>
-                            <h3 class="text-2xl font-black text-[#121316] uppercase tracking-tight">
-                                HALO, <span class="highlight-marker">{{ explode(' ', $student->full_name)[0] }}!</span> 👋
+                            <h3 class="text-2xl font-black text-[#121316] uppercase tracking-tight flex items-center justify-center gap-2 flex-wrap">
+                                <span>HALO,</span>
+                                <span class="bg-[#fde047] text-[#121316] px-2 py-0.5 rounded-md border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">{{ explode(' ', $student->full_name)[0] }}!</span>
+                                <span>👋</span>
                             </h3>
-                            <p class="text-xs text-[#555] font-medium mt-1">Saya Asisten Pintar Pembda AI Studio. Ketik perintah atau pilih kartu pertanyaan di bawah ini:</p>
+                            <p class="text-xs text-[#4b5563] font-bold mt-2">Saya Asisten Pintar Pembda AI Studio. Ketik perintah atau pilih kartu pertanyaan di bawah ini:</p>
                         </div>
 
                         <!-- Tactile Categorized Chips -->
                         <div class="space-y-3 pt-2 text-left font-mono-code">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-[#777] text-center">&bull; REKOMENDASI TOPIK POPULER &bull;</p>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-[#121316] text-center">&bull; REKOMENDASI TOPIK POPULER &bull;</p>
                             
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                                <button @click="useQuickPrompt('Bagaimana cara menghitung Luas Permukaan Tabung? Jelaskan langkahnya.')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
+                                <button @click="useQuickPrompt('Bagaimana cara menghitung Luas Permukaan Tabung? Jelaskan langkahnya.')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
                                     <span class="text-base">🧮</span>
                                     <div>
                                         <p class="font-black text-[#121316] uppercase text-[11px]">Matematika & Sains</p>
-                                        <p class="text-[11px] text-[#555] font-normal mt-0.5">Rumus Luas Permukaan Tabung</p>
+                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Rumus Luas Permukaan Tabung</p>
                                     </div>
                                 </button>
 
-                                <button @click="useQuickPrompt('Apa saja 5 jurusan SMK di PembdaHUB dan apa keunggulannya?')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
+                                <button @click="useQuickPrompt('Apa saja 5 jurusan SMK di PembdaHUB dan apa keunggulannya?')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
                                     <span class="text-base">🏫</span>
                                     <div>
                                         <p class="font-black text-[#121316] uppercase text-[11px]">Info PembdaHUB</p>
-                                        <p class="text-[11px] text-[#555] font-normal mt-0.5">Daftar Jurusan SMK & Fitur Sekolah</p>
+                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Daftar Jurusan SMK & Fitur Sekolah</p>
                                     </div>
                                 </button>
 
-                                <button @click="useQuickPrompt('Saya bingung memilih antara lanjut Kuliah atau kerja di DUDI industri, mohon saran.')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
+                                <button @click="useQuickPrompt('Saya bingung memilih antara lanjut Kuliah atau kerja di DUDI industri, mohon saran.')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
                                     <span class="text-base">🎓</span>
                                     <div>
                                         <p class="font-black text-[#121316] uppercase text-[11px]">Karir & BK</p>
-                                        <p class="text-[11px] text-[#555] font-normal mt-0.5">Saran Kuliah vs Kerja DUDI</p>
+                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Saran Kuliah vs Kerja DUDI</p>
                                     </div>
                                 </button>
 
-                                <button @click="useQuickPrompt('Bagaimana cara melihat nilai rapor dan mengikuti ujian CBT online?')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
+                                <button @click="useQuickPrompt('Bagaimana cara melihat nilai rapor dan mengikuti ujian CBT online?')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
                                     <span class="text-base">📜</span>
                                     <div>
                                         <p class="font-black text-[#121316] uppercase text-[11px]">Panduan Fitur</p>
-                                        <p class="text-[11px] text-[#555] font-normal mt-0.5">Cara Akses Rapor & Ujian CBT</p>
+                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Cara Akses Rapor & Ujian CBT</p>
                                     </div>
                                 </button>
                             </div>
@@ -366,22 +411,22 @@
 
                             <template x-if="msg.sender === 'ai'">
                                 <div class="w-10 h-10 rounded-xl bg-[#ff3823] text-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center text-sm font-black shrink-0">
-                                    <i class="fas fa-robot"></i>
+                                    <i class="fas fa-robot text-white"></i>
                                 </div>
                             </template>
 
-                            <!-- Message Body Frame -->
+                            <!-- Message Body Frame with Explicit High-Contrast Classes -->
                             <div class="space-y-1.5 flex-1 min-w-0">
-                                <div class="p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border-2 border-[#121316]"
+                                <div class="p-4 rounded-2xl text-xs sm:text-sm leading-relaxed"
                                      :class="msg.sender === 'student' 
-                                        ? 'bg-[#121316] text-white rounded-tr-none shadow-[3px_3px_0px_rgba(0,0,0,0.15)] font-mono-code' 
-                                        : 'bg-white text-[#121316] rounded-tl-none shadow-[4px_4px_0px_#121316] prose prose-xs max-w-none'">
+                                        ? 'chat-student-bubble text-white rounded-tr-none font-mono-code font-medium' 
+                                        : 'chat-ai-bubble text-[#121316] rounded-tl-none prose prose-xs max-w-none font-medium'">
                                     <div class="message-body" x-html="renderMarkdown(msg.message)"></div>
                                 </div>
 
                                 <!-- Action Toolbar for AI Messages -->
                                 <template x-if="msg.sender === 'ai'">
-                                    <div class="flex items-center gap-3 px-1 text-[10px] font-mono-code font-bold text-[#777]">
+                                    <div class="flex items-center gap-3 px-1 text-[10px] font-mono-code font-bold text-[#121316]">
                                         <button type="button" @click="copyToClipboard(msg.message)" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Salin Jawaban">
                                             <i class="fas fa-copy text-[10px]"></i>
                                             <span>Salin</span>
@@ -392,11 +437,11 @@
                                             <span>Dengarkan</span>
                                         </button>
 
-                                        <div class="flex items-center gap-2 border-l-1.5 border-[#cbd5e1] pl-3">
-                                            <button type="button" @click="msg.liked = !msg.liked" :class="msg.liked ? 'text-emerald-600' : 'hover:text-[#121316]'" class="transition cursor-pointer">
+                                        <div class="flex items-center gap-2 border-l-2 border-[#121316] pl-3">
+                                            <button type="button" @click="msg.liked = !msg.liked" :class="msg.liked ? 'text-emerald-600' : 'hover:text-[#ff3823]'" class="transition cursor-pointer">
                                                 <i class="fas fa-thumbs-up text-[10px]"></i>
                                             </button>
-                                            <button type="button" @click="msg.disliked = !msg.disliked" :class="msg.disliked ? 'text-rose-600' : 'hover:text-[#121316]'" class="transition cursor-pointer">
+                                            <button type="button" @click="msg.disliked = !msg.disliked" :class="msg.disliked ? 'text-rose-600' : 'hover:text-[#ff3823]'" class="transition cursor-pointer">
                                                 <i class="fas fa-thumbs-down text-[10px]"></i>
                                             </button>
                                         </div>
@@ -421,18 +466,18 @@
             <div class="p-4 bg-[#faf3e0] border-t-2 border-[#121316] shrink-0 font-mono-code">
                 <form @submit.prevent="submitMessage()" class="flex items-end gap-2.5">
                     
-                    <div class="flex-1 relative bg-white rounded-2xl border-2 border-[#121316] shadow-[3px_3px_0px_#121316] focus-within:ring-2 focus-within:ring-[#ff3823] transition">
+                    <div class="flex-1 relative bg-white rounded-2xl border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] focus-within:ring-2 focus-within:ring-[#ff3823] transition">
                         <textarea x-ref="promptInput" x-model="userInput" 
                                   @keydown.enter.prevent="if(!$event.shiftKey) submitMessage()"
                                   placeholder="› Ketik perintah atau pertanyaan Anda di sini... (Enter untuk Kirim)"
                                   rows="2"
-                                  class="w-full p-3.5 pr-10 rounded-2xl bg-transparent text-xs sm:text-sm outline-none resize-none text-[#121316] font-mono-code"
+                                  class="w-full p-3.5 pr-10 rounded-2xl bg-transparent text-xs sm:text-sm outline-none resize-none text-[#121316] font-mono-code font-bold placeholder-[#71717a]"
                                   :disabled="isSending || usageInfo.remaining <= 0"></textarea>
 
                         <!-- Mic Button -->
                         <button type="button" @click="toggleVoiceInput()" 
                                 class="absolute right-3 bottom-3 p-1.5 rounded-lg transition cursor-pointer"
-                                :class="isListening ? 'bg-[#ff3823] text-white animate-pulse' : 'text-[#777] hover:text-[#121316]'"
+                                :class="isListening ? 'bg-[#ff3823] text-white animate-pulse' : 'text-[#121316] hover:text-[#ff3823]'"
                                 title="Bicara via Suara (Speech-to-Text)">
                             <i class="fas" :class="isListening ? 'fa-microphone-slash' : 'fa-microphone'"></i>
                         </button>
