@@ -206,8 +206,9 @@
                             :class="activeMode === 'tutor' 
                                 ? 'btn-tactile-red font-black' 
                                 : 'btn-tactile-white'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316] bg-[#121316]">
-                            <i class="fas fa-graduation-cap text-sm text-[#fde047]" style="color: #fde047 !important;"></i>
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
+                             :class="activeMode === 'tutor' ? 'bg-white text-[#ff3823]' : 'bg-[#faf3e0] text-[#121316]'">
+                            <i class="fas fa-graduation-cap text-base" :class="activeMode === 'tutor' ? 'text-[#ff3823]' : 'text-[#121316]'"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#121316]'">TUTOR AKADEMIK Q&A</p>
@@ -222,8 +223,9 @@
                             :class="activeMode === 'bk_consultation' 
                                 ? 'btn-tactile-yellow font-black' 
                                 : 'btn-tactile-white'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316] bg-[#121316]">
-                            <i class="fas fa-user-nurse text-sm text-[#fde047]" style="color: #fde047 !important;"></i>
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
+                             :class="activeMode === 'bk_consultation' ? 'bg-[#121316] text-[#fde047]' : 'bg-[#faf3e0] text-[#121316]'">
+                            <i class="fas fa-user-nurse text-base" :class="activeMode === 'bk_consultation' ? 'text-[#fde047]' : 'text-[#121316]'"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-black uppercase tracking-tight text-[#121316]">KONSULTASI BK & KARIR</p>
@@ -238,8 +240,9 @@
                             :class="activeMode === 'lms_assistant' 
                                 ? 'btn-tactile-green font-black' 
                                 : 'btn-tactile-white'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316] bg-[#121316]">
-                            <i class="fas fa-book-open text-sm text-[#fde047]" style="color: #fde047 !important;"></i>
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-[#121316]"
+                             :class="activeMode === 'lms_assistant' ? 'bg-white text-[#10b981]' : 'bg-[#faf3e0] text-[#121316]'">
+                            <i class="fas fa-book-open text-base" :class="activeMode === 'lms_assistant' ? 'text-[#10b981]' : 'text-[#121316]'"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#121316]'">ASISTEN BELAJAR LMS</p>
