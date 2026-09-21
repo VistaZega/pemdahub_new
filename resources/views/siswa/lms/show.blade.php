@@ -1118,16 +1118,6 @@ if (!function_exists('balanceHtmlTags')) {
                     </button>
                 </form>
             </details>
-            @endif               </label>
-                        <input type="url" name="submission_text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-4 focus:ring-blue-500/20 outline-none text-gray-800" placeholder="https://..." required>
-                    </div>
-                    @endif
-
-                    <button type="submit" class="w-full py-3.5 rounded-xl text-base font-extrabold uppercase tracking-widest transition-all shadow-md {{ $hasModule ? 'bg-white text-' . $qModColor . '-700 hover:bg-gray-50' : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg' }}">
-                        <i class="fas fa-paper-plane mr-2 text-lg"></i> Kirim Jawaban
-                    </button>
-                </form>
-            </details>
             @endif
         </div>
         @empty
