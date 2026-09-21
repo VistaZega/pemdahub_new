@@ -389,33 +389,10 @@ class MobileLmsController extends Controller
             return back()->with('error', 'Data siswa tidak ditemukan.');
         }
 
-        // Validasi dasar input
-        try {
-            $request->validate([
-                'submission_text' => 'nullable|string',
-                'file' => 'nullable|file|mimes:pdf|max:10240',
-            ], [
-                'file.mimes' => 'Berkas tugas yang diunggah wajib berformat .PDF. Format berkas yang Anda pilih tidak diizinkan (misalnya: .bin, .txt, Word, atau gambar). Mohon simpan atau konversi berkas jawaban Anda ke format .PDF.',
-                'file.max' => 'Ukuran berkas PDF tidak boleh melebihi 10 MB.',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            $errors = implode(' ', \Illuminate\Support\Arr::flatten($e->errors()));
-            return back()->with('error', 'Gagal mengumpulkan tugas: ' . $errors)->withInput();
-        }
-
-        // Validasi ekstra: pastikan ekstensi asli berkas adalah PDF
-        if ($request->hasFile('file')) {
-            $clientExt = strtolower($request->file('file')->getClientOriginalExtension());
-            if ($clientExt !== 'pdf') {
-                return back()->with('error', 'Gagal mengumpulkan tugas: Berkas wajib berformat .PDF. Berkas yang Anda pilih berekstensi .' . ($clientExt ?: 'tidak diketahui') . '. Silakan pilih berkas .PDF asli.')->withInput();
-            }
-        }
-
         // Cek group assignment: jika terdaftar dalam kelompok, kaitkan pengumpulan ke kelompok
         $group = null;
         if ($assignment->isGroupAssignment()) {
             $group = $assignment->getStudentGroup($student->id);
-            // Seluruh anggota kelompok sah berhak mengunggah tugas mewakili kelompoknya
         }
 
         // Cek resubmission: apakah sudah pernah submit sebelumnya
@@ -432,31 +409,87 @@ class MobileLmsController extends Controller
             }
         }
 
-        // Validasi ketat berdasarkan assignment_type
-        $hasUploadedFile = $request->hasFile('file');
-        $hasExistingFile = $existing && !empty($existing->file_path);
+        $allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+        $uploadedPaths = [];
+        $totalSize = 0;
+
+        // 1. Process single 'file' if sent
+        if ($request->hasFile('file')) {
+            $f = $request->file('file');
+            $ext = strtolower($f->getClientOriginalExtension());
+            if (!in_array($ext, $allowedExts)) {
+                return back()->with('error', 'Gagal mengumpulkan tugas: Format berkas .' . ($ext ?: 'tidak diketahui') . ' tidak diizinkan. Harap pilih berkas .PDF atau Gambar (JPG, PNG, WEBP).')->withInput();
+            }
+            try {
+                $path = $f->store('lms/submissions', 'public');
+                $uploadedPaths[] = $path;
+                $totalSize += $f->getSize();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Mobile LMS assignment file upload failed: ' . $e->getMessage());
+                return back()->with('error', 'Gagal mengunggah berkas jawaban. Pastikan ukuran file tidak melebihi 15MB dan jaringan Anda stabil.')->withInput();
+            }
+        }
+
+        // 2. Process multiple 'files' array if sent
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $f) {
+                if (!$f->isValid()) continue;
+                $ext = strtolower($f->getClientOriginalExtension());
+                if (!in_array($ext, $allowedExts)) {
+                    return back()->with('error', 'Gagal mengumpulkan tugas: Berkas (' . $f->getClientOriginalName() . ') berekstensi .' . $ext . ' tidak diizinkan. Harap pilih berkas PDF atau Gambar.')->withInput();
+                }
+                try {
+                    $path = $f->store('lms/submissions', 'public');
+                    $uploadedPaths[] = $path;
+                    $totalSize += $f->getSize();
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Mobile LMS assignment multi-file upload failed: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // 3. Process 'camera_photos' array (Base64 data URLs)
+        if ($request->filled('camera_photos') && is_array($request->input('camera_photos'))) {
+            foreach ($request->input('camera_photos') as $idx => $base64Data) {
+                if (empty($base64Data) || !str_contains($base64Data, ';base64,')) continue;
+                try {
+                    $parts = explode(';base64,', $base64Data);
+                    $imageData = base64_decode($parts[1]);
+                    $fileName = 'lms/submissions/cam_' . uniqid() . '_' . $idx . '.jpg';
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $imageData);
+                    $uploadedPaths[] = $fileName;
+                    $totalSize += strlen($imageData);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Mobile LMS camera photo save failed: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // Submission type enforcement
+        $hasUploadedFile = count($uploadedPaths) > 0;
+        $hasExistingFile = $existing && (!empty($existing->file_path) || !empty($existing->file_paths));
         $hasFile = $hasUploadedFile || $hasExistingFile;
         $hasText = $request->filled('submission_text');
         $aType = $assignment->assignment_type;
 
         if ($aType === 'file' && !$hasFile) {
-            return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file. Silakan pilih dan unggah berkas jawaban Anda.');
+            return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah berkas PDF atau foto lembar jawaban.');
         }
 
         if ($aType === 'text' && !$hasText) {
-            return back()->with('error', 'Pengumpulan tugas ini wajib mengisi teks jawaban. Silakan ketik jawaban Anda.');
+            return back()->with('error', 'Pengumpulan tugas ini wajib mengisi teks jawaban.');
         }
 
         if ($aType === 'link' && !$hasText) {
-            return back()->with('error', 'Pengumpulan tugas ini wajib memasukkan link URL/teks jawaban. Silakan isi link URL jawaban Anda.');
+            return back()->with('error', 'Pengumpulan tugas ini wajib memasukkan link URL/teks jawaban.');
         }
 
         if ($aType === 'file_text') {
             if (!$hasFile && !$hasText) {
-                return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file dan mengisi teks jawaban.');
+                return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah berkas/foto dan mengisi teks jawaban.');
             }
             if (!$hasFile) {
-                return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah file.');
+                return back()->with('error', 'Pengumpulan tugas ini wajib mengunggah berkas PDF atau foto lembar jawaban.');
             }
             if (!$hasText) {
                 return back()->with('error', 'Pengumpulan tugas ini wajib mengisi teks jawaban.');
@@ -464,21 +497,12 @@ class MobileLmsController extends Controller
         }
 
         if (empty($aType) && !$hasFile && !$hasText) {
-            return back()->with('error', 'Silakan unggah file atau ketik teks jawaban Anda sebelum mengirim.');
+            return back()->with('error', 'Silakan unggah berkas/foto atau ketik teks jawaban Anda sebelum mengirim.');
         }
 
-        // Upload file dengan error handling
-        $filePath = null;
-        $fileSize = null;
-        if ($request->hasFile('file')) {
-            try {
-                $filePath = $request->file('file')->store('lms/submissions', 'public');
-                $fileSize = $request->file('file')->getSize();
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Mobile LMS assignment file upload failed: ' . $e->getMessage());
-                return back()->with('error', 'Gagal mengunggah file jawaban. Pastikan ukuran file tidak melebihi 10MB dan jaringan Anda stabil.')->withInput();
-            }
-        }
+        $finalPaths = $hasUploadedFile ? $uploadedPaths : ($existing ? $existing->file_list : []);
+        $primaryPath = count($finalPaths) > 0 ? $finalPaths[0] : null;
+        $primarySize = $hasUploadedFile ? $totalSize : ($existing ? $existing->file_size : null);
 
         $isLate = $assignment->deadline && now()->isAfter($assignment->deadline);
         $attemptNumber = $existing ? $existing->attempt_number + ($existing->status !== 'draft' ? 1 : 0) : 1;
@@ -493,8 +517,9 @@ class MobileLmsController extends Controller
                 'student_id' => $student->id,
                 'group_id' => ($assignment->isGroupAssignment() && $group) ? $group->id : null,
                 'submission_text' => $request->submission_text,
-                'file_path' => $filePath ?? ($existing ? $existing->file_path : null),
-                'file_size' => $fileSize ?? ($existing ? $existing->file_size : null),
+                'file_path' => $primaryPath,
+                'file_paths' => $finalPaths,
+                'file_size' => $primarySize,
                 'status' => $isLate ? 'late' : 'submitted',
                 'submitted_at' => now(),
                 'score' => null,

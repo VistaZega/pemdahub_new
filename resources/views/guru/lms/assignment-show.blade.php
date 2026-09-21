@@ -858,32 +858,45 @@
                                         </div>
                                         @endif
 
-                                        @if($sub->file_path)
-                                            @if($sub->isPdf())
-                                            <div class="w-full h-80 rounded-xl overflow-hidden border border-emerald-300 shadow-inner bg-slate-900">
-                                                <iframe src="{{ Storage::url($sub->file_path) }}" class="w-full h-full"></iframe>
-                                            </div>
-                                            @elseif($sub->isImage())
-                                            <div class="w-full max-h-80 rounded-xl overflow-hidden border border-emerald-300 bg-slate-900 flex items-center justify-center p-2">
-                                                <img src="{{ Storage::url($sub->file_path) }}" class="max-h-76 object-contain rounded-lg" alt="Jawaban Gambar">
-                                            </div>
-                                            @endif
+                                        @if(count($sub->file_list) > 0)
+                                            <div class="space-y-3">
+                                                @foreach($sub->file_list as $fIdx => $fPath)
+                                                    @php 
+                                                        $isPdfF = \App\Models\LmsSubmission::isPdfPath($fPath); 
+                                                        $isImgF = \App\Models\LmsSubmission::isImagePath($fPath);
+                                                        $fileUrl = Storage::url($fPath);
+                                                    @endphp
+                                                    <div class="border border-emerald-200 bg-emerald-50/40 rounded-xl p-3 space-y-2">
+                                                        <div class="flex items-center justify-between text-xs font-bold text-gray-700">
+                                                            <span class="flex items-center gap-1.5">
+                                                                <i class="fas {{ $isImgF ? 'fa-image text-indigo-500' : 'fa-file-pdf text-rose-500' }}"></i>
+                                                                Berkas #{{ $fIdx + 1 }}: {{ basename($fPath) }}
+                                                            </span>
+                                                            <a href="{{ $fileUrl }}" target="_blank" class="text-[11px] text-blue-600 hover:underline flex items-center gap-1">
+                                                                <i class="fas fa-external-link-alt"></i> Buka Penuh
+                                                            </a>
+                                                        </div>
 
-                                            <div class="flex items-center gap-2">
-                                                <a href="{{ Storage::url($sub->file_path) }}" target="_blank"
-                                                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-emerald-200
-                                                          text-emerald-700 text-sm font-semibold hover:bg-emerald-50 transition shadow-sm">
-                                                    <i class="fas fa-external-link-alt"></i> Buka Berkas Penuh
-                                                </a>
-                                                <a href="{{ route('guru.lms.submissions.download', $sub->id) }}"
-                                                   class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600 border border-emerald-700
-                                                          text-white text-xs font-bold hover:bg-emerald-700 transition shadow-sm">
-                                                    <i class="fas fa-download"></i> Unduh File Tugas
-                                                </a>
+                                                        @if($isPdfF)
+                                                        <div class="w-full h-80 rounded-xl overflow-hidden border border-emerald-300 shadow-inner bg-slate-900">
+                                                            <iframe src="{{ $fileUrl }}" class="w-full h-full"></iframe>
+                                                        </div>
+                                                        @elseif($isImgF)
+                                                        <div class="w-full max-h-96 rounded-xl overflow-hidden border border-emerald-300 bg-slate-900 flex items-center justify-center p-2 relative group">
+                                                            <img src="{{ $fileUrl }}" class="max-h-88 object-contain rounded-lg transition-transform cursor-zoom-in" onclick="openLmsLightbox('{{ $fileUrl }}')" alt="Jawaban Gambar {{ $fIdx + 1 }}">
+                                                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                                <button type="button" onclick="openLmsLightbox('{{ $fileUrl }}')" class="px-3.5 py-1.5 rounded-lg bg-white/90 text-gray-800 font-extrabold text-xs shadow-md">
+                                                                    <i class="fas fa-search-plus"></i> Perbesar Foto
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         @endif
 
-                                        @if(!$sub->submission_text && !$sub->file_path)
+                                        @if(!$sub->submission_text && count($sub->file_list) === 0)
                                         <p class="text-sm text-gray-400 italic">Tidak ada konten submission.</p>
                                         @endif
                                     </div>
@@ -1030,8 +1043,33 @@
 </div>
 
 </div>
+
+<!-- Global Lightbox Modal for Teacher Image Zoom -->
+<div id="lmsTeacherLightbox" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xs flex items-center justify-center p-4 hidden" onclick="closeLmsLightbox()">
+    <div class="relative max-w-5xl max-h-[90vh] w-full h-full flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+        <button type="button" onclick="closeLmsLightbox()" class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center text-lg z-10 transition">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="lmsLightboxImg" src="" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" alt="Perbesar Gambar Jawaban">
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+function openLmsLightbox(src) {
+    const modal = document.getElementById('lmsTeacherLightbox');
+    const img = document.getElementById('lmsLightboxImg');
+    if (modal && img) {
+        img.src = src;
+        modal.classList.remove('hidden');
+    }
+}
+function closeLmsLightbox() {
+    const modal = document.getElementById('lmsTeacherLightbox');
+    if (modal) modal.classList.add('hidden');
+}
+</script>
 @endpush

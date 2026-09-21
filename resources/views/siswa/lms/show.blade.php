@@ -909,34 +909,39 @@ if (!function_exists('balanceHtmlTags')) {
             @if($sub && $sub->teacher_notes)
             <div class="border rounded-xl p-3 mb-3 text-sm flex items-start gap-2 {{ $hasModule ? 'bg-white/15 border-white/20 text-white' : 'bg-blue-50 border-blue-200 text-gray-800' }}">
                 <i class="fas fa-sticky-note mt-0.5 {{ $hasModule ? 'text-yellow-200' : 'text-blue-500' }}"></i>
-                <div><strong class="{{ $hasModule ? 'text-white font-bold' : 'text-blue-700' }}">Catatan Guru:</strong> {{ $sub->teacher_notes }}</div>
-            </div>
-            @endif
-
-            @if($sub && $sub->status === 'revision_requested')
-            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-4 text-amber-900 shadow-sm">
-                <div class="flex items-center gap-2 font-bold text-sm text-amber-800 mb-1">
-                    <i class="fas fa-exclamation-triangle text-amber-600 text-lg"></i> Permintaan Revisi Dari Guru
-                </div>
-                <p class="text-xs text-amber-800 font-medium leading-relaxed">{{ $sub->revision_notes ?: $sub->feedback ?: 'Guru meminta Anda untuk memperbaiki dan mengunggah ulang berkas jawaban tugas ini.' }}</p>
-            </div>
-            @endif
-
-            @if($sub && ($sub->submission_text || $sub->file_path))
+                <div><strong class="{{ $hasModule ? 'text-white fon            @if($sub && ($sub->submission_text || count($sub->file_list) > 0))
             <div class="border border-gray-100 bg-gray-50 rounded-xl p-4 mb-3">
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    <i class="fas fa-paperclip"></i> {{ $isGroupWork ? 'Jawaban / Berkas Tugas Kelompok' : 'Jawaban / Tugas Anda' }}
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+                    <span><i class="fas fa-paperclip"></i> {{ $isGroupWork ? 'Jawaban / Berkas Tugas Kelompok' : 'Jawaban / Tugas Anda' }}</span>
                     @if($isGroupWork && $sub->student)
-                    <span class="text-[10px] font-semibold text-purple-700 ml-1">(Dikumpulkan oleh: {{ $sub->student->user->name ?? $sub->student->full_name }})</span>
+                    <span class="text-[10px] font-semibold text-purple-700">(Dikumpulkan oleh: {{ $sub->student->user->name ?? $sub->student->full_name }})</span>
                     @endif
                 </p>
                 @if($sub->submission_text)
                 <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap mb-3">{!! $sub->submission_text !!}</div>
                 @endif
-                @if($sub->file_path)
-                <a href="{{ Storage::disk('public')->url($sub->file_path) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-sm font-semibold shadow-sm">
-                    <i class="fas fa-file-download"></i> Unduh File Jawaban
-                </a>
+                @if(count($sub->file_list) > 0)
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    @foreach($sub->file_list as $fIndex => $fPath)
+                        @php $isImg = \App\Models\LmsSubmission::isImagePath($fPath); @endphp
+                        <div class="bg-white border border-gray-200 rounded-xl p-2 flex flex-col items-center justify-between text-center shadow-2xs group relative">
+                            @if($isImg)
+                                <div class="w-full h-24 rounded-lg overflow-hidden bg-slate-900 mb-1.5 flex items-center justify-center">
+                                    <img src="{{ Storage::disk('public')->url($fPath) }}" class="max-h-full max-w-full object-contain cursor-pointer hover:scale-105 transition-transform" onclick="window.open('{{ Storage::disk('public')->url($fPath) }}', '_blank')" alt="Foto Berkas {{ $fIndex + 1 }}">
+                                </div>
+                                <span class="text-[11px] font-bold text-gray-700 truncate w-full">Foto {{ $fIndex + 1 }}</span>
+                            @else
+                                <div class="w-full h-24 rounded-lg bg-rose-50 flex items-center justify-center mb-1.5 border border-rose-100">
+                                    <i class="fas fa-file-pdf text-3xl text-rose-600"></i>
+                                </div>
+                                <span class="text-[11px] font-bold text-rose-700 truncate w-full">Dokumen PDF</span>
+                            @endif
+                            <a href="{{ Storage::disk('public')->url($fPath) }}" target="_blank" class="mt-1 text-[10px] font-extrabold text-blue-600 hover:underline flex items-center gap-1">
+                                <i class="fas fa-external-link-alt"></i> Buka / Lihat
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
                 @endif
             </div>
             @endif
@@ -979,9 +984,9 @@ if (!function_exists('balanceHtmlTags')) {
                         <i class="fas fa-info text-xs"></i>
                     </div>
                     <div class="text-xs text-purple-900">
-                        <p class="font-extrabold">Informasi Pengumpulan Tugas Kelompok ({{ $myGroup->name }})</p>
+                        <p class="font-extrabold">Informasi Pengumpulkan Tugas Kelompok ({{ $myGroup->name }})</p>
                         <p class="font-medium text-purple-800 mt-0.5">
-                            Pengumpulan tugas dapat dilakukan oleh Ketua Kelompok (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Ketua' }}</strong>) atau anggota kelompok manapun yang mewakili. Cukup 1 siswa yang mengunggah tugas untuk seluruh kelompok.
+                            Pengumpulkan tugas dapat dilakukan oleh Ketua Kelompok (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Ketua' }}</strong>) atau anggota kelompok manapun yang mewakili. Cukup 1 siswa yang mengunggah tugas untuk seluruh kelompok.
                         </p>
                     </div>
                 </div>
@@ -1029,13 +1034,13 @@ if (!function_exists('balanceHtmlTags')) {
                         <i class="fas fa-info-circle text-base text-amber-400"></i>
                         <span>Ketentuan Pengumpulan: 
                             @if($aType === 'file')
-                                <strong class="underline decoration-rose-400 text-rose-600 font-black">Wajib Unggah Dokumen PDF (.pdf)</strong>
+                                <strong class="underline decoration-indigo-400 font-black">Wajib Unggah PDF / Foto Lembar Jawaban</strong>
                             @elseif($aType === 'text')
                                 <strong class="underline decoration-rose-400">Wajib Mengisi Teks Jawaban</strong>
                             @elseif($aType === 'link')
                                 <strong class="underline decoration-rose-400">Wajib Memasukkan Link URL / Teks</strong>
                             @else
-                                <strong class="underline decoration-rose-400 text-rose-600 font-black">Wajib Unggah Dokumen PDF (.pdf) DAN Mengisi Teks Jawaban</strong>
+                                <strong class="underline decoration-indigo-400 font-black">Wajib Unggah PDF/Foto DAN Mengisi Teks Jawaban</strong>
                             @endif
                         </span>
                     </div>
@@ -1051,22 +1056,43 @@ if (!function_exists('balanceHtmlTags')) {
 
                     @if(in_array($aType, ['file', 'file_text']))
                     <div>
-                        <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-xs font-bold {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
-                                Berkas Dokumen PDF @if(in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) <span class="text-rose-500 font-extrabold">* (Wajib .PDF)</span> @endif
+                                Berkas Tugas (PDF atau Foto) @if(in_array($aType, ['file', 'file_text']) && !($sub && count($sub->file_list))) <span class="text-rose-500 font-extrabold">* (Bisa lebih dari 1 file)</span> @endif
                             </label>
-                            <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-700 border border-rose-200">
-                                <i class="fas fa-file-pdf"></i> Format Wajib .PDF
+                            <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-0.5 rounded-lg bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                <i class="fas fa-camera"></i> PDF / Foto (JPG, PNG)
                             </span>
                         </div>
-                        <div class="bg-white border-2 border-dashed border-rose-300 rounded-xl p-4 text-center hover:bg-rose-50/40 transition-colors">
-                            <input type="file" name="file" accept=".pdf,application/pdf" onchange="validateLmsPdfFile(this)" class="w-full text-sm cursor-pointer {{ $hasModule ? 'text-white/80 file:bg-white/20 file:text-white hover:file:bg-white/30' : 'text-gray-600 file:bg-rose-100 file:text-rose-700 hover:file:bg-rose-200 file:px-4 file:py-2 file:border-none file:rounded-lg file:font-bold file:mr-4' }}" {{ (in_array($aType, ['file', 'file_text']) && !($sub && $sub->file_path)) ? 'required' : '' }}>
-                            <div class="mt-2.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-left flex items-start gap-2.5 shadow-2xs">
-                                <i class="fas fa-exclamation-triangle text-rose-600 mt-0.5 text-xs flex-shrink-0"></i>
-                                <div class="text-[11px] text-rose-900 leading-relaxed font-medium">
-                                    <strong class="font-extrabold">Ketentuan Format:</strong> Berkas yang diunggah <strong>wajib berekstensi .PDF</strong> (Maksimal 10 MB). Sistem akan menolak berkas .bin, .txt, dokumen Word mentah, atau gambar. Pastikan tugas sudah disimpan/diekspor sebagai PDF sebelum dikirim.
-                                </div>
+
+                        <div class="bg-white border-2 border-dashed border-indigo-200 rounded-2xl p-4 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                {{-- Button 1: Live Camera Modal Trigger --}}
+                                <button type="button" onclick="openLmsCameraModal()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-camera text-base"></i> Ambil Foto Langsung (Kamera)
+                                </button>
+                                
+                                {{-- Button 2: Multi File Picker --}}
+                                <label class="w-full py-3 px-4 rounded-xl bg-indigo-50 border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-extrabold text-xs shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                                    <i class="fas fa-folder-open text-base text-indigo-600"></i> Pilih Berkas (Gambar / PDF)
+                                    <input type="file" name="files[]" id="lmsFileInput" multiple accept=".pdf,image/jpeg,image/png,image/jpg,image/webp,image/heic" onchange="handleLmsFileSelection(this)" class="hidden">
+                                </label>
                             </div>
+
+                            <p class="text-[11px] text-gray-500 font-medium leading-relaxed">
+                                <i class="fas fa-info-circle text-indigo-500 mr-1"></i>
+                                Anda bisa mengunggah dokumen PDF atau mengambil <strong>beberapa foto lembar jawaban</strong> sekaligus.
+                            </p>
+
+                            {{-- Queue Container for selected files / camera snapshots --}}
+                            <div id="lmsSubmissionQueue" class="hidden space-y-2 pt-2 border-t border-gray-100">
+                                <div class="flex items-center justify-between text-xs font-bold text-gray-700">
+                                    <span>Daftar Berkas Terpilih (<span id="lmsQueueCount">0</span>):</span>
+                                    <button type="button" onclick="clearAllLmsFiles()" class="text-[11px] text-rose-600 hover:underline">Hapus Semua</button>
+                                </div>
+                                <div id="lmsQueueList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5"></div>
+                            </div>
+                            <div id="lmsCameraPhotosHidden"></div>
                         </div>
                     </div>
                     @endif
@@ -1076,6 +1102,16 @@ if (!function_exists('balanceHtmlTags')) {
                         <label class="block text-xs font-bold mb-1 {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
                             Link URL Jawaban <span class="text-rose-500 font-extrabold">* (Wajib)</span>
                         </label>
+                        <input type="url" name="submission_text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-4 focus:ring-blue-500/20 outline-none text-gray-800" placeholder="https://..." required>
+                    </div>
+                    @endif
+
+                    <button type="submit" class="w-full py-3.5 rounded-xl text-base font-extrabold uppercase tracking-widest transition-all shadow-md {{ $hasModule ? 'bg-white text-' . $qModColor . '-700 hover:bg-gray-50' : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg' }}">
+                        <i class="fas fa-paper-plane mr-2 text-lg"></i> Kirim Jawaban
+                    </button>
+                </form>
+            </details>
+            @endif               </label>
                         <input type="url" name="submission_text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-4 focus:ring-blue-500/20 outline-none text-gray-800" placeholder="https://..." required>
                     </div>
                     @endif
@@ -1344,51 +1380,238 @@ function reactMaterial(materialId, type, event) {
     });
 }
 
-function validateLmsPdfFile(input) {
-    if (input && input.files && input.files[0]) {
-        const file = input.files[0];
-        const fileName = (file.name || '').trim();
-        const isPdf = fileName.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+<!-- Live Camera Modal for LMS Assignment -->
+<div id="lmsCameraModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl space-y-4 p-5 animate-in fade-in zoom-in duration-200">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <h3 class="font-extrabold text-gray-800 text-sm flex items-center gap-2">
+                <i class="fas fa-camera text-emerald-600 text-base"></i> Ambil Foto Lembar Jawaban
+            </h3>
+            <button type="button" onclick="closeLmsCameraModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
 
-        if (!isPdf) {
-            alert('⚠️ FORMAT BERKAS TIDAK SESUAI!\n\nBerkas yang Anda pilih: "' + fileName + '"\n\nPengumpulan tugas ini DIKUNCI dan WAJIB menggunakan format dokumen .PDF.\nSistem menolak berkas dengan format lain (seperti .bin, .txt, dokumen Word, atau gambar mentah).\n\nSilakan simpan atau konversi tugas Anda ke format .PDF terlebih dahulu sebelum diunggah.');
-            input.value = '';
-            return false;
-        }
+        <div class="relative bg-slate-900 rounded-2xl overflow-hidden min-h-[250px] flex items-center justify-center border-2 border-emerald-500/30">
+            <video id="lmsCameraVideo" autoplay playsinline class="w-full h-full object-cover max-h-[320px]"></video>
+            <canvas id="lmsCameraCanvas" class="hidden"></canvas>
+            <img id="lmsCameraPreview" class="w-full h-full object-contain max-h-[320px] hidden" alt="Pratinjau Foto">
+        </div>
 
-        const maxBytes = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxBytes) {
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-            alert('⚠️ PERHATIAN: Ukuran berkas "' + fileName + '" (' + sizeMB + ' MB) melebihi batas maksimal 10 MB.\n\nSilakan kompres berkas PDF Anda terlebih dahulu agar pengiriman berhasil.');
-            input.value = '';
-            return false;
-        }
+        <div class="flex items-center justify-center gap-3 pt-1">
+            <button type="button" id="lmsSnapBtn" onclick="snapLmsPhoto()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2">
+                <i class="fas fa-camera text-sm"></i> 📸 Jepret Foto
+            </button>
+            <button type="button" id="lmsRetakeBtn" onclick="retakeLmsPhoto()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 hidden">
+                <i class="fas fa-redo"></i> 🔄 Foto Ulang
+            </button>
+            <button type="button" id="lmsUsePhotoBtn" onclick="useLmsCapturedPhoto()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 hidden">
+                <i class="fas fa-check"></i> ✔️ Gunakan Foto Ini
+            </button>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+let lmsCapturedPhotos = [];
+let lmsSelectedFiles = [];
+let lmsMediaStream = null;
+
+function openLmsCameraModal() {
+    const modal = document.getElementById('lmsCameraModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    
+    const video = document.getElementById('lmsCameraVideo');
+    const preview = document.getElementById('lmsCameraPreview');
+    const snapBtn = document.getElementById('lmsSnapBtn');
+    const retakeBtn = document.getElementById('lmsRetakeBtn');
+    const useBtn = document.getElementById('lmsUsePhotoBtn');
+    
+    video.classList.remove('hidden');
+    preview.classList.add('hidden');
+    snapBtn.classList.remove('hidden');
+    retakeBtn.classList.add('hidden');
+    useBtn.classList.add('hidden');
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                lmsMediaStream = stream;
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                alert('Tidak dapat mengakses kamera: ' + err.message + '\n\nPastikan izin kamera sudah diaktifkan pada browser Anda.');
+                closeLmsCameraModal();
+            });
+    } else {
+        alert('Browser Anda belum mendukung akses kamera langsung. Silakan gunakan tombol "Pilih Berkas" untuk mengambil foto dari galeri/kamera hp.');
+        closeLmsCameraModal();
     }
-    return true;
 }
 
-// Alias untuk kompatibilitas jika dipanggil dengan nama fungsi lama
-function validateLmsFileSize(input) {
-    return validateLmsPdfFile(input);
+function closeLmsCameraModal() {
+    const modal = document.getElementById('lmsCameraModal');
+    if (modal) modal.classList.add('hidden');
+    if (lmsMediaStream) {
+        lmsMediaStream.getTracks().forEach(track => track.stop());
+        lmsMediaStream = null;
+    }
+}
+
+function snapLmsPhoto() {
+    const video = document.getElementById('lmsCameraVideo');
+    const canvas = document.getElementById('lmsCameraCanvas');
+    const preview = document.getElementById('lmsCameraPreview');
+    const snapBtn = document.getElementById('lmsSnapBtn');
+    const retakeBtn = document.getElementById('lmsRetakeBtn');
+    const useBtn = document.getElementById('lmsUsePhotoBtn');
+
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    preview.src = dataUrl;
+    
+    video.classList.add('hidden');
+    preview.classList.remove('hidden');
+    snapBtn.classList.add('hidden');
+    retakeBtn.classList.remove('hidden');
+    useBtn.classList.remove('hidden');
+}
+
+function retakeLmsPhoto() {
+    const video = document.getElementById('lmsCameraVideo');
+    const preview = document.getElementById('lmsCameraPreview');
+    const snapBtn = document.getElementById('lmsSnapBtn');
+    const retakeBtn = document.getElementById('lmsRetakeBtn');
+    const useBtn = document.getElementById('lmsUsePhotoBtn');
+
+    video.classList.remove('hidden');
+    preview.classList.add('hidden');
+    snapBtn.classList.remove('hidden');
+    retakeBtn.classList.add('hidden');
+    useBtn.classList.add('hidden');
+}
+
+function useLmsCapturedPhoto() {
+    const preview = document.getElementById('lmsCameraPreview');
+    if (!preview || !preview.src) return;
+    
+    lmsCapturedPhotos.push(preview.src);
+    renderLmsQueue();
+    closeLmsCameraModal();
+}
+
+function handleLmsFileSelection(input) {
+    if (!input || !input.files) return;
+    const allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+    for (let i = 0; i < input.files.length; i++) {
+        const f = input.files[i];
+        const ext = (f.name.split('.').pop() || '').toLowerCase();
+        if (!allowed.includes(ext)) {
+            alert('⚠️ Berkas "' + f.name + '" berekstensi .' + ext + ' tidak diizinkan.\nHarap pilih berkas PDF atau Gambar (JPG, PNG, WEBP).');
+            continue;
+        }
+        lmsSelectedFiles.push(f);
+    }
+    renderLmsQueue();
+}
+
+function removeLmsPhoto(index) {
+    lmsCapturedPhotos.splice(index, 1);
+    renderLmsQueue();
+}
+
+function removeLmsFile(index) {
+    lmsSelectedFiles.splice(index, 1);
+    renderLmsQueue();
+}
+
+function clearAllLmsFiles() {
+    lmsCapturedPhotos = [];
+    lmsSelectedFiles = [];
+    const fileInput = document.getElementById('lmsFileInput');
+    if (fileInput) fileInput.value = '';
+    renderLmsQueue();
+}
+
+function renderLmsQueue() {
+    const queueContainer = document.getElementById('lmsSubmissionQueue');
+    const queueList = document.getElementById('lmsQueueList');
+    const queueCount = document.getElementById('lmsQueueCount');
+    const hiddenInputs = document.getElementById('lmsCameraPhotosHidden');
+    
+    if (!queueContainer || !queueList || !queueCount || !hiddenInputs) return;
+
+    const total = lmsCapturedPhotos.length + lmsSelectedFiles.length;
+    queueCount.innerText = total;
+    hiddenInputs.innerHTML = '';
+    queueList.innerHTML = '';
+
+    if (total === 0) {
+        queueContainer.classList.add('hidden');
+        return;
+    }
+    queueContainer.classList.remove('hidden');
+
+    // Render Camera Snapshots
+    lmsCapturedPhotos.forEach((src, idx) => {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'camera_photos[]';
+        hidden.value = src;
+        hiddenInputs.appendChild(hidden);
+
+        const card = document.createElement('div');
+        card.className = 'relative bg-slate-900 rounded-xl overflow-hidden p-1 border border-emerald-300 flex flex-col items-center justify-between text-center shadow-xs';
+        card.innerHTML = `
+            <img src="${src}" class="w-full h-20 object-contain rounded-lg">
+            <span class="text-[10px] font-bold text-white mt-1 truncate w-full">Foto Kamera ${idx + 1}</span>
+            <button type="button" onclick="removeLmsPhoto(${idx})" class="mt-1 text-[10px] font-extrabold text-rose-400 hover:text-rose-200">❌ Hapus</button>
+        `;
+        queueList.appendChild(card);
+    });
+
+    // Render Selected Files
+    lmsSelectedFiles.forEach((file, idx) => {
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const isImg = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+        const card = document.createElement('div');
+        card.className = 'relative bg-gray-50 rounded-xl overflow-hidden p-1.5 border border-indigo-200 flex flex-col items-center justify-between text-center shadow-xs';
+        
+        if (isImg) {
+            const url = URL.createObjectURL(file);
+            card.innerHTML = `
+                <img src="${url}" class="w-full h-20 object-contain rounded-lg bg-slate-900">
+                <span class="text-[10px] font-bold text-gray-700 mt-1 truncate w-full">${file.name}</span>
+                <button type="button" onclick="removeLmsFile(${idx})" class="mt-1 text-[10px] font-extrabold text-rose-600 hover:text-rose-800">❌ Hapus</button>
+            `;
+        } else {
+            card.innerHTML = `
+                <div class="w-full h-20 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center">
+                    <i class="fas fa-file-pdf text-3xl text-rose-600"></i>
+                </div>
+                <span class="text-[10px] font-bold text-rose-700 mt-1 truncate w-full">${file.name}</span>
+                <button type="button" onclick="removeLmsFile(${idx})" class="mt-1 text-[10px] font-extrabold text-rose-600 hover:text-rose-800">❌ Hapus</button>
+            `;
+        }
+        queueList.appendChild(card);
+    });
 }
 
 function handleLmsAssignmentSubmit(form) {
-    const fileInput = form.querySelector('input[type="file"][name="file"]');
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-        const file = fileInput.files[0];
-        const fileName = (file.name || '').trim();
-        const isPdf = fileName.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
-
-        if (!isPdf) {
-            alert('⚠️ PENGUMPULAN TUGAS DITOLAK!\n\nBerkas "' + fileName + '" bukan berformat .PDF.\nPengumpulan tugas ini wajib menyertakan dokumen .PDF.\nSilakan pilih berkas berekstensi .pdf.');
-            return false;
-        }
-
-        const maxBytes = 10 * 1024 * 1024;
-        if (file.size > maxBytes) {
-            alert('⚠️ Berkas terlalu besar (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB). Batas maksimal pengungahan adalah 10 MB.');
-            return false;
-        }
+    // Sync selected files to DataTransfer if any
+    if (lmsSelectedFiles.length > 0) {
+        const dt = new DataTransfer();
+        lmsSelectedFiles.forEach(file => dt.items.add(file));
+        const fileInput = document.getElementById('lmsFileInput');
+        if (fileInput) fileInput.files = dt.files;
     }
 
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -1398,6 +1621,14 @@ function handleLmsAssignmentSubmit(form) {
         submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
     }
     return true;
+}
+
+// Backward compatibility alias
+function validateLmsPdfFile(input) {
+    return handleLmsFileSelection(input);
+}
+function validateLmsFileSize(input) {
+    return handleLmsFileSelection(input);
 }
 </script>
 @endpush

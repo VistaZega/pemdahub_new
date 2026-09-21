@@ -20,6 +20,7 @@ class LmsSubmission extends Model
         'group_id',
         'submission_text',
         'file_path',
+        'file_paths',
         'file_size',
         'score',
         'feedback',
@@ -36,6 +37,7 @@ class LmsSubmission extends Model
         'submitted_at' => 'datetime',
         'graded_at' => 'datetime',
         'score' => 'float',
+        'file_paths' => 'array',
     ];
 
     protected const STATUSES = [
@@ -110,17 +112,61 @@ class LmsSubmission extends Model
         return $query->where('status', 'graded');
     }
 
-    public function isPdf(): bool
+    /**
+     * Get full list of files (backward compatible with single file_path)
+     */
+    public function getFileListAttribute(): array
     {
-        if (!$this->file_path) return false;
-        return strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) === 'pdf';
+        if (!empty($this->file_paths) && is_array($this->file_paths)) {
+            return array_values(array_filter($this->file_paths));
+        }
+        if (!empty($this->file_paths) && is_string($this->file_paths)) {
+            $decoded = json_decode($this->file_paths, true);
+            if (is_array($decoded) && count($decoded) > 0) {
+                return array_values(array_filter($decoded));
+            }
+        }
+        if (!empty($this->file_path)) {
+            return [$this->file_path];
+        }
+        return [];
     }
 
-    public function isImage(): bool
+    public static function isPdfPath(?string $path): bool
     {
-        if (!$this->file_path) return false;
-        $ext = strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION));
-        return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+        if (!$path) return false;
+        return strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf';
+    }
+
+    public static function isImagePath(?string $path): bool
+    {
+        if (!$path) return false;
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif']);
+    }
+
+    public function isPdf(?string $path = null): bool
+    {
+        $targetPath = $path ?? $this->file_path;
+        if ($targetPath) {
+            return static::isPdfPath($targetPath);
+        }
+        foreach ($this->file_list as $f) {
+            if (static::isPdfPath($f)) return true;
+        }
+        return false;
+    }
+
+    public function isImage(?string $path = null): bool
+    {
+        $targetPath = $path ?? $this->file_path;
+        if ($targetPath) {
+            return static::isImagePath($targetPath);
+        }
+        foreach ($this->file_list as $f) {
+            if (static::isImagePath($f)) return true;
+        }
+        return false;
     }
 
     public function needsRevision(): bool

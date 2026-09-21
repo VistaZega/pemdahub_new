@@ -166,11 +166,31 @@
                                 </div>
                             @endif
 
-                            @if($sub->file_path)
-                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank" 
-                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-[10px] font-black border border-blue-200 hover:bg-blue-100 active:scale-95 transition">
-                                    <i class="fa-solid fa-paperclip"></i> Lihat File Lampiran Siswa
-                                </a>
+                            @if(count($sub->file_list) > 0)
+                                <div class="space-y-1.5 pt-1">
+                                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                                        <i class="fa-solid fa-paperclip"></i> Lampiran Berkas Siswa ({{ count($sub->file_list) }}):
+                                    </p>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        @foreach($sub->file_list as $fIdx => $fPath)
+                                            @php 
+                                                $isImgF = \App\Models\LmsSubmission::isImagePath($fPath);
+                                                $fileUrl = asset('storage/' . $fPath);
+                                            @endphp
+                                            <a href="{{ $fileUrl }}" target="_blank" class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 hover:bg-slate-100 transition min-w-0">
+                                                @if($isImgF)
+                                                    <img src="{{ $fileUrl }}" class="w-8 h-8 rounded-lg object-cover bg-slate-900 shrink-0" alt="Foto">
+                                                    <span class="text-[10px] font-black text-slate-700 truncate">Foto #{{ $fIdx + 1 }}</span>
+                                                @else
+                                                    <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 text-xs font-black">
+                                                        <i class="fa-solid fa-file-pdf"></i>
+                                                    </div>
+                                                    <span class="text-[10px] font-black text-rose-700 truncate">Dokumen PDF</span>
+                                                @endif
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
                             @endif
 
                             <form action="{{ route('mobile.guru.tugas.grade', $sub->id) }}" method="POST" class="flex items-center gap-2 pt-1 border-t border-slate-200/60">

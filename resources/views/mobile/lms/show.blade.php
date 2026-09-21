@@ -485,13 +485,13 @@
                             @if(in_array($assignment->assignment_type, ['file', 'file_text', null, '']))
                                 <div>
                                     <div class="flex items-center justify-between mb-1">
-                                        <label class="block text-xs font-black text-slate-800">Unggah Berkas PDF {{ $assignment->assignment_type === 'file' ? '*' : '(Opsional)' }}</label>
-                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-700">Wajib .PDF</span>
+                                        <label class="block text-xs font-black text-slate-800">Unggah Berkas PDF / Foto {{ $assignment->assignment_type === 'file' ? '*' : '(Opsional)' }}</label>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">PDF / Foto</span>
                                     </div>
-                                    <input type="file" name="file" accept=".pdf,application/pdf" onchange="validateMobileLmsPdf(this)" {{ $assignment->assignment_type === 'file' ? 'required' : '' }}
+                                    <input type="file" name="files[]" multiple accept=".pdf,image/jpeg,image/png,image/jpg,image/webp,image/heic,capture=camera" onchange="validateMobileLmsFiles(this)" {{ ($assignment->assignment_type === 'file' && !($sub && count($sub->file_list))) ? 'required' : '' }}
                                            class="w-full text-xs font-bold text-slate-600 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-purple-600 file:text-white">
-                                    <p class="text-[10px] text-rose-600 font-bold mt-1.5 flex items-center gap-1">
-                                        <i class="fa-solid fa-file-pdf"></i> Wajib format .PDF (Maks. 10MB). Format lain (.bin/.txt/foto) akan ditolak.
+                                    <p class="text-[10px] text-purple-700 font-bold mt-1.5 flex items-center gap-1">
+                                        <i class="fa-solid fa-camera"></i> Anda dapat memilih berkas PDF atau memfoto beberapa lembar tugas sekaligus dari HP.
                                     </p>
                                 </div>
                             @endif
@@ -649,48 +649,32 @@
 
 @push('scripts')
 <script>
-function validateMobileLmsPdf(input) {
-    if (input && input.files && input.files[0]) {
-        const file = input.files[0];
-        const fileName = (file.name || '').trim();
-        const isPdf = fileName.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+function validateMobileLmsFiles(input) {
+    if (input && input.files) {
+        const allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+        for (let i = 0; i < input.files.length; i++) {
+            const file = input.files[i];
+            const ext = (file.name.split('.').pop() || '').toLowerCase();
 
-        if (!isPdf) {
-            alert('⚠️ FORMAT BERKAS DITOLAK!\n\nBerkas "' + fileName + '" bukan berkas .PDF.\n\nPengumpulan tugas WAJIB berformat dokumen .PDF. Berkas format .bin, .txt, dokumen Word, atau foto mentah otomatis ditolak sistem.\n\nSilakan simpan/konversi berkas ke format .PDF terlebih dahulu.');
-            input.value = '';
-            return false;
-        }
+            if (!allowed.includes(ext)) {
+                alert('⚠️ FORMAT BERKAS DITOLAK!\n\nBerkas "' + file.name + '" berekstensi .' + ext + ' tidak diizinkan.\nHarap pilih berkas PDF atau Gambar (JPG, PNG, WEBP).');
+                input.value = '';
+                return false;
+            }
 
-        const maxBytes = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxBytes) {
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-            alert('⚠️ UKURAN BERKAS TERLALU BESAR!\n\nUkuran berkas (' + sizeMB + ' MB) melebihi batas maksimal 10 MB.\nSilakan kompres berkas PDF Anda terlebih dahulu.');
-            input.value = '';
-            return false;
+            const maxBytes = 15 * 1024 * 1024;
+            if (file.size > maxBytes) {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                alert('⚠️ UKURAN BERKAS TERLALU BESAR!\n\nUkuran berkas "' + file.name + '" (' + sizeMB + ' MB) melebihi batas maksimal 15 MB.');
+                input.value = '';
+                return false;
+            }
         }
     }
     return true;
 }
 
 function handleMobileAssignmentSubmit(form) {
-    const fileInput = form.querySelector('input[type="file"][name="file"]');
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-        const file = fileInput.files[0];
-        const fileName = (file.name || '').trim();
-        const isPdf = fileName.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
-
-        if (!isPdf) {
-            alert('⚠️ PENGUMPULAN DITOLAK!\n\nBerkas yang dipilih bukan file berformat .PDF. Tugas ini wajib mengunggah file .PDF.');
-            return false;
-        }
-
-        const maxBytes = 10 * 1024 * 1024;
-        if (file.size > maxBytes) {
-            alert('⚠️ Ukuran berkas melebihi batas maksimal 10 MB.');
-            return false;
-        }
-    }
-
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) {
         submitBtn.disabled = true;
@@ -698,6 +682,11 @@ function handleMobileAssignmentSubmit(form) {
         submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
     }
     return true;
+}
+
+// Alias backward compatibility
+function validateMobileLmsPdf(input) {
+    return validateMobileLmsFiles(input);
 }
 </script>
 @endpush
