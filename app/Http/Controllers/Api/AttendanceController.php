@@ -355,9 +355,11 @@ class AttendanceController extends Controller
                     'device_id' => $request->input('device_id', 'KIOSK-EMP'),
                 ]);
 
-                // Kirim Notifikasi WA ke Nomor HP Guru / Pegawai
+                // Notifikasi WA perorangan ke Guru / Pegawai DIMATIKAN SECARA DEFAULT demi mencegah bahaya ban WhatsApp & spam
+                // Rekapitulasi kehadiran hanya dikirim secara santai & terjadwal (08:00 WIB) ke Kepala Sekolah & Wali Kelas
+                $enableIndividualTeacherWa = \App\Models\Setting::getValue('wa_send_teacher_attendance', false);
                 $empPhone = $employee->phone ?? $employee->user?->phone_number ?? null;
-                if ($empPhone) {
+                if ($enableIndividualTeacherWa && $empPhone) {
                     try {
                         $waService = app(\App\Services\WhatsAppService::class);
                         $templateName = $isTeacher ? 'teacher.attendance' : 'employee.attendance';

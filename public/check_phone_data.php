@@ -41,6 +41,9 @@ $reportService = app(ExecutiveReportService::class);
 $alertMessage = '';
 $streamLogs = [];
 
+// Kunci mati notifikasi perorangan saat guru tap RFID agar tidak membanjiri pesan / risiko ban WA
+Setting::setValue('wa_send_teacher_attendance', false, 'boolean', 'features');
+
 // 1. Saklar Otomatisasi
 if (isset($_GET['enable_attendance_wa']) && $_GET['enable_attendance_wa'] === 'yes') {
     Setting::setValue('wa_send_principal_attendance', true, 'boolean', 'features');
@@ -464,8 +467,9 @@ $sendAdminNotify = Setting::getValue('wa_notify_admin_digest', '1');
 <div class="card">
     <table style="box-shadow: none; margin: 0;">
         <tr><td>Saklar: Berita Mulai & Laporan Selesai ke Admin</td><td><b><?= $sendAdminNotify ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif</span>' ?></b></td></tr>
-        <tr><td>Saklar: Rekap Kepala Sekolah</td><td><b><?= $sendPrincipal ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif</span>' ?></b></td></tr>
-        <tr><td>Saklar: Rekap Wali Kelas</td><td><b><?= $sendHomeroom ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif</span>' ?></b></td></tr>
+        <tr><td>Saklar: Rekap Harian Kepala Sekolah (08:00 WIB)</td><td><b><?= $sendPrincipal ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif</span>' ?></b></td></tr>
+        <tr><td>Saklar: Rekap Harian Wali Kelas (08:00 WIB)</td><td><b><?= $sendHomeroom ? '<span class="ok">✅ Aktif</span>' : '<span class="warn">⚠️ Nonaktif</span>' ?></b></td></tr>
+        <tr><td style="color:#b91c1c;">Notifikasi Instan Perorangan saat Guru Tap RFID</td><td><b style="color:#b91c1c;">🔒 NONAKTIF (Dimatikan demi Keamanan Anti-Ban & Kuota Gateway)</b></td></tr>
         <tr><td>Jeda Acak Antar Pesan</td><td><b>10 - 18 detik / pesan</b> (Anti-Ban Proteksi)</td></tr>
         <tr><td>Jeda Istirahat Antar Unit Sekolah</td><td><b>45 detik</b></td></tr>
     </table>
