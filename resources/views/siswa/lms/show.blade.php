@@ -912,7 +912,11 @@ if (!function_exists('balanceHtmlTags')) {
             @if($sub && $sub->teacher_notes)
             <div class="border rounded-xl p-3 mb-3 text-sm flex items-start gap-2 {{ $hasModule ? 'bg-white/15 border-white/20 text-white' : 'bg-blue-50 border-blue-200 text-gray-800' }}">
                 <i class="fas fa-sticky-note mt-0.5 {{ $hasModule ? 'text-yellow-200' : 'text-blue-500' }}"></i>
-                <div><strong class="{{ $hasModule ? 'text-white fon            @if($sub && ($sub->submission_text || count($sub->file_list) > 0))
+                <div><strong class="{{ $hasModule ? 'text-white font-bold' : 'text-blue-700' }}">Catatan Guru:</strong> {{ $sub->teacher_notes }}</div>
+            </div>
+            @endif
+
+            @if($sub && ($sub->submission_text || count($sub->file_list) > 0))
             <div class="border border-gray-100 bg-gray-50 rounded-xl p-4 mb-3">
                 <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center justify-between">
                     <span><i class="fas fa-paperclip"></i> {{ $isGroupWork ? 'Jawaban / Berkas Tugas Kelompok' : 'Jawaban / Tugas Anda' }}</span>
