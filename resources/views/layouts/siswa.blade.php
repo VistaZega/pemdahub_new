@@ -114,6 +114,16 @@
         <span>Pembda Space</span>
     </a>
 
+    <!-- Pembda AI (Tutor, Konsultasi & Asisten Belajar) -->
+    <a href="{{ route('siswa.ai.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.ai.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 via-indigo-600 to-violet-700 flex items-center justify-center text-white shadow-xs animate-pulse-slow">
+            <i class="fas fa-robot text-[11px]"></i>
+        </div>
+        <span class="font-bold text-violet-950 flex-1">Pembda AI</span>
+        <span class="text-[9px] font-black bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full border border-purple-200">AI Tutor</span>
+    </a>
+
+
     @if(\App\Models\Setting::getValue('siswa_view_reputation_leaderboard', true))
     <a href="{{ route('reputation.leaderboard') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('reputation.leaderboard') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white"><i class="fas fa-ranking-star text-[10px]"></i></div>

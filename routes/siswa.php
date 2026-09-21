@@ -115,4 +115,13 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     Route::get('surveys', [App\Http\Controllers\Respondent\SurveyParticipantController::class, 'index'])->name('surveys.index');
     Route::get('surveys/{survey}', [App\Http\Controllers\Respondent\SurveyParticipantController::class, 'take'])->name('surveys.take');
     Route::post('surveys/{survey}', [App\Http\Controllers\Respondent\SurveyParticipantController::class, 'submit'])->name('surveys.submit');
+
+    // Pembda AI Routes (Tutor, Konsultasi BK/Karir & LMS Assistant)
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Siswa\AiAssistantController::class, 'index'])->name('index');
+        Route::post('/new', [App\Http\Controllers\Siswa\AiAssistantController::class, 'newConversation'])->name('new');
+        Route::post('/send', [App\Http\Controllers\Siswa\AiAssistantController::class, 'sendMessage'])->name('send');
+        Route::delete('/{conversation}', [App\Http\Controllers\Siswa\AiAssistantController::class, 'destroyConversation'])->name('destroy');
+    });
 });
+
