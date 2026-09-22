@@ -864,14 +864,16 @@ class SettingsController extends Controller
         ]);
 
         $type = $request->input('digest_type');
+        $targetPhone = $request->input('target_phone') ?: null;
+        $options = $targetPhone ? ['target_phone' => $targetPhone] : [];
         $reportService = app(\App\Services\ExecutiveReportService::class);
 
         switch ($type) {
             case 'principal_attendance':
-                $res = $reportService->sendPrincipalDailyAttendanceDigest();
+                $res = $reportService->sendPrincipalDailyAttendanceDigest($options);
                 break;
             case 'homeroom_attendance':
-                $res = $reportService->sendHomeroomDailyAttendanceDigest();
+                $res = $reportService->sendHomeroomDailyAttendanceDigest($options);
                 break;
             case 'principal_spp':
                 $res = $reportService->sendPrincipalMonthlySppDigest();
