@@ -773,12 +773,14 @@ _Dikirim otomatis oleh PembdaHUB Executive System_",
 
 📊 *RINGKASAN KEHADIRAN SISWA KELAS {kelas}:*
 • 👥 Total Siswa: *{total_siswa} Siswa*
-• ✅ Hadir: *{hadir}* | 🕒 Terlambat: *{terlambat}*
-• 🤒 Sakit: *{sakit}* | 📩 Izin: *{izin}*
-• ❌ Alpha: *{alpha}*
-• ⏳ Belum Presensi: *{belum_presensi}*
+• 🏫 Total Fisik Hadir: *{total_fisik_hadir} Siswa ({persen_hadir}%)*
+  - 🟢 Hadir Tepat Waktu: *{hadir} Siswa*
+  - 🟡 Hadir Terlambat  : *{terlambat} Siswa*
+• 🚫 Tidak Hadir Fisik  : *{total_tidak_hadir} Siswa*
+  - 🤒 Sakit: *{sakit}* | 📩 Izin: *{izin}* | ❌ Alpha: *{alpha}*
+• ⏳ Belum Presensi: *{belum_presensi} Siswa*
 
-📋 *RINCIAN KETIDAKHADIRAN & STATUS PRESENSI:*
+📋 *CATATAN KETERLAMBATAN & KETIDAKHADIRAN:*
 {daftar_tidak_hadir}
 
 {catatan_penutup}

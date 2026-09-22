@@ -382,46 +382,61 @@ class ExecutiveReportService
                 $sick = $stats['sakit'] ?? 0;
                 $permit = $stats['izin'] ?? 0;
                 $absent = $stats['alpha'] ?? $stats['alpa'] ?? 0;
-                $recordedCount = $present + $late + $sick + $permit + $absent;
+
+                $totalFisikHadir = $present + $late;
+                $totalTidakHadir = $sick + $permit + $absent;
+                $persenHadir = $totalSiswa > 0 ? (int)round(($totalFisikHadir / $totalSiswa) * 100) : 0;
+                $recordedCount = $totalFisikHadir + $totalTidakHadir;
                 $unrecordedCount = max(0, $totalSiswa - $recordedCount);
 
-                // Daftar siswa tidak hadir / terlambat yang tercatat
-                $recordedAbsentItems = $dailyAtts
-                    ->filter(fn($a) => in_array($a->status, ['alpha', 'alpa', 'sakit', 'izin', 'terlambat']))
-                    ->map(fn($a) => "• " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
-                    ->values()
-                    ->toArray();
+                // Grouping rincian rincian kehadiran & Keterlambatan secara terstruktur
+                $detailSections = [];
 
-                // Logika penyusunan rincian kehadiran & status presensi yang akurat
                 if ($totalSiswa === 0) {
                     $absentListSnippet = "• Belum ada siswa yang terdaftar di kelas ini.";
                 } elseif ($recordedCount === 0) {
                     $absentListSnippet = "⚠️ Belum ada data presensi yang masuk untuk kelas ini ({$totalSiswa} siswa belum presensi).";
                 } else {
-                    $detailItems = $recordedAbsentItems;
+                    // 1. Rincian Siswa Hadir Terlambat
+                    if ($late > 0) {
+                        $lateItems = $dailyAtts
+                            ->filter(fn($a) => $a->status === 'terlambat')
+                            ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . ($a->time_in ? " (" . date('H:i', strtotime($a->time_in)) . " WIB)" : " (TERLAMBAT)"))
+                            ->values()
+                            ->toArray();
+                        $detailSections[] = "🟡 *Siswa Hadir Terlambat ({$late} Siswa):*\n" . implode("\n", $lateItems);
+                    }
 
-                    // Tambahkan informasi siswa yang belum melakukan presensi sama sekali
+                    // 2. Rincian Siswa Tidak Hadir (Sakit / Izin / Alpha)
+                    if ($totalTidakHadir > 0) {
+                        $absentItems = $dailyAtts
+                            ->filter(fn($a) => in_array($a->status, ['sakit', 'izin', 'alpha', 'alpa']))
+                            ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
+                            ->values()
+                            ->toArray();
+                        $detailSections[] = "🚫 *Siswa Tidak Hadir ({$totalTidakHadir} Siswa):*\n" . implode("\n", $absentItems);
+                    }
+
+                    // 3. Rincian Siswa Belum Presensi
                     if ($unrecordedCount > 0) {
                         $recordedStudentIds = $dailyAtts->keys();
                         $unrecordedStudentIds = $studentIds->diff($recordedStudentIds);
-
                         $unrecordedStudents = \App\Models\Student::whereIn('id', $unrecordedStudentIds)
                             ->orderBy('full_name')
                             ->pluck('full_name');
 
                         if ($unrecordedStudents->count() <= 10) {
-                            foreach ($unrecordedStudents as $unName) {
-                                $detailItems[] = "• {$unName} (BELUM PRESENSI)";
-                            }
+                            $unList = $unrecordedStudents->map(fn($n) => "  • {$n}")->toArray();
+                            $detailSections[] = "⏳ *Siswa Belum Presensi ({$unrecordedCount} Siswa):*\n" . implode("\n", $unList);
                         } else {
-                            $detailItems[] = "• {$unrecordedCount} siswa lainnya (BELUM PRESENSI)";
+                            $detailSections[] = "⏳ *Siswa Belum Presensi:* {$unrecordedCount} Siswa";
                         }
                     }
 
-                    if (empty($detailItems)) {
+                    if (empty($detailSections)) {
                         $absentListSnippet = "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Hadir Tepat Waktu - 100% ✨)";
                     } else {
-                        $absentListSnippet = implode("\n", $detailItems);
+                        $absentListSnippet = implode("\n\n", $detailSections);
                     }
                 }
 
@@ -434,8 +449,11 @@ class ExecutiveReportService
                     'tanggal' => $dateFormatted,
                     'waktu_rekap' => '08:00 WIB',
                     'total_siswa' => $totalSiswa,
+                    'total_fisik_hadir' => $totalFisikHadir,
+                    'persen_hadir' => $persenHadir,
                     'hadir' => $present,
                     'terlambat' => $late,
+                    'total_tidak_hadir' => $totalTidakHadir,
                     'sakit' => $sick,
                     'izin' => $permit,
                     'alpha' => $absent,
