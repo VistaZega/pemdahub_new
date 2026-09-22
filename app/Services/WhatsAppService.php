@@ -47,6 +47,32 @@ class WhatsAppService implements WhatsAppServiceInterface
             $this->apiToken = !empty($dbToken) ? $dbToken : config('services.whatsapp.api_token', '');
             $this->providerLabel = $this->activeProvider;
         }
+
+        if ($this->activeProvider === 'selfhosted') {
+            $this->apiUrl = $this->resolveSelfhostedApiUrl();
+        }
+    }
+
+    /**
+     * Resolve active localhost port (3002 or 3000) for Self-Hosted Baileys
+     */
+    protected function resolveSelfhostedApiUrl(): string
+    {
+        $defaultUrl = $this->apiUrl ?: 'http://localhost:3002';
+        $candidateUrls = array_unique([$defaultUrl, 'http://localhost:3002', 'http://localhost:3000']);
+
+        foreach ($candidateUrls as $candidate) {
+            try {
+                $res = Http::timeout(2)->connectTimeout(1)->withHeaders(['Authorization' => $this->apiToken])->get(rtrim($candidate, '/') . '/device');
+                if ($res->successful()) {
+                    return rtrim($candidate, '/');
+                }
+            } catch (\Throwable $e) {
+                // Ignore and try next port candidate
+            }
+        }
+
+        return $defaultUrl;
     }
 
     /**
