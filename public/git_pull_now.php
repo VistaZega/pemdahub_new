@@ -453,65 +453,45 @@ try {
         \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
 
-        // Force disable WA auto-digest & clear pending job queue for safety
-        \App\Models\Setting::setValue('wa_digest_enabled', false, 'boolean', 'whatsapp');
-        \App\Models\Setting::setValue('wa_enabled', false, 'boolean', 'whatsapp');
-        \App\Models\Setting::setValue('wa_send_principal_attendance', false, 'boolean', 'whatsapp');
-        \App\Models\Setting::setValue('wa_send_homeroom_attendance', false, 'boolean', 'whatsapp');
+        // 8b. TOTAL SHUTDOWN: Set ALL WhatsApp features & automations to OFF in Database
+        $allWaKeys = [
+            'wa_enabled',
+            'wa_digest_enabled',
+            'wa_send_principal_attendance',
+            'wa_send_homeroom_attendance',
+            'wa_send_teacher_attendance',
+            'wa_send_psb_registration',
+            'wa_send_psb_payment',
+            'wa_send_psb_test_schedule',
+            'wa_send_psb_acceptance',
+            'wa_send_payment_reminder',
+            'wa_send_lms_notification',
+            'wa_send_counseling_record',
+            'wa_send_reputation_award',
+            'wa_send_payment_receipt',
+            'wa_send_teaching_reminder',
+            'wa_send_grade_published',
+            'wa_send_attendance_alert',
+            'wa_notify_admin_digest',
+        ];
+        foreach ($allWaKeys as $wak) {
+            \App\Models\Setting::setValue($wak, false, 'boolean', 'whatsapp');
+        }
         $deletedCount = \Illuminate\Support\Facades\DB::table('jobs')->delete();
-        echo "<span class='warn'>🔒 Otomatisasi WhatsApp & Rekapitulasi Eksekutif telah DINONAKTIFKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
+        echo "<span class='warn'>🔒 TOTAL SHUTDOWN: Seluruh (" . count($allWaKeys) . ") Fitur WhatsApp & Otomatisasi telah DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
     }
 
-    // 9. Auto-Check & Start WhatsApp Node.js Engine
-    echo "</pre><h2>▶ 9. Pemeriksaan Otomatis Service WhatsApp Engine Node.js</h2><pre>";
-    $serverDir = "{$root}/whatsapp-server";
-    $serverPath = "{$serverDir}/server.js";
-    $nodeModules = "{$serverDir}/node_modules";
-
-    if (file_exists($serverPath) && !file_exists($nodeModules)) {
-        echo "<span class='info'>📦 Menjalankan npm install di whatsapp-server...</span>\n";
-        $npmBin = '/usr/bin/npm';
-        if (!file_exists($npmBin)) {
-            $npmBin = trim(@shell_exec('which npm 2>/dev/null') ?? '') ?: 'npm';
-        }
-        @shell_exec("cd {$serverDir} && {$npmBin} install 2>&1");
-        echo "<span class='ok'>✔ Dependensi npm install selesai.</span>\n";
-    }
-
-    $isEngineOk = false;
-    $activePort = null;
-    foreach ([3002, 3000] as $port) {
-        $ch = @curl_init("http://localhost:{$port}/device");
-        if ($ch) {
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-            $res = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            if ($httpCode === 200 && $res) {
-                $isEngineOk = true;
-                $activePort = $port;
-                break;
-            }
-        }
-    }
-
-    if ($isEngineOk) {
-        echo "<span class='ok'>✔ WhatsApp Engine Server (Node.js) sedang AKTIF & BERJALAN di port {$activePort}.</span>\n";
+    // 9. Force Kill WhatsApp Node.js Engine (Disabled permanently per user request)
+    echo "</pre><h2>▶ 9. Pemutusan & Penghentian Total Service WhatsApp Engine Node.js</h2><pre>";
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        @shell_exec("taskkill /F /IM node.exe 2>&1");
+        echo "<span class='ok'>✔ Windows node.exe terminated.</span>\n";
     } else {
-        echo "<span class='warn'>⚠ WhatsApp Engine Server mati. Memulai ulang secara otomatis di background...</span>\n";
-        if (file_exists($serverPath)) {
-            $nodeBin = '/usr/bin/node';
-            if (!file_exists($nodeBin)) {
-                $nodeBin = trim(@shell_exec('which node 2>/dev/null') ?? '') ?: 'node';
-            }
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                @pclose(@popen("start /B {$nodeBin} {$serverPath}", "r"));
-            } else {
-                @shell_exec("cd {$serverDir} && nohup {$nodeBin} server.js > /dev/null 2>&1 &");
-            }
-            echo "<span class='ok'>✔ WhatsApp Engine Server telah otomatis diaktifkan di background server.</span>\n";
-        }
+        @shell_exec("pkill -9 -f 'whatsapp-server/server.js' 2>&1");
+        @shell_exec("pkill -9 -f 'server.js' 2>&1");
+        @shell_exec("fuser -k -9 3002/tcp 2>&1");
+        @shell_exec("fuser -k -9 3000/tcp 2>&1");
+        echo "<span class='ok'>✔ WhatsApp Engine Node.js telah DIMATIKAN TOTAL (Port 3002/3000 dibebaskan). Tidak ada proses yang berjalan.</span>\n";
     }
 } catch (\Throwable $e) {
     $diag = class_exists('\App\Services\ErrorDiagnosticService') 
