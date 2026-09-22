@@ -108,7 +108,11 @@ Route::get('/rfid/scan-buffer', function (Request $request) {
     if (!file_exists($bufferFile)) {
         return response()->json(['uid' => null]);
     }
-    $data = json_decode(file_get_contents($bufferFile), true);
+    $content = @file_get_contents($bufferFile);
+    if ($content === false || empty($content)) {
+        return response()->json(['uid' => null]);
+    }
+    $data = json_decode($content, true);
     // Hapus file setelah dibaca (one-time read)
     @unlink($bufferFile);
     // Abaikan jika data lebih dari 60 detik

@@ -37,7 +37,7 @@ class EmployeeAttendanceController extends Controller
 
         // Tulis UID ke scan-buffer agar browser (modal registrasi RFID) bisa mengambilnya
         $bufferFile = storage_path('app/rfid_scan_buffer.json');
-        file_put_contents($bufferFile, json_encode(['uid' => $uid, 'time' => time()]));
+        @file_put_contents($bufferFile, json_encode(['uid' => $uid, 'time' => time()]));
 
         // Find employee by RFID UID
         $employee = Employee::where('rfid_uid', $uid)->where('is_active', true)->first();
