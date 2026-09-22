@@ -24,11 +24,11 @@ Schedule::command('queue:work --stop-when-empty --max-time=50')
     ->withoutOverlapping()
     ->description('Process pending database queue jobs');
 
-// Auto close survey and notify via WhatsApp
-Schedule::command('surveys:close-and-notify')
-    ->everyMinute()
-    ->withoutOverlapping(10)
-    ->description('Auto-close survey and send WhatsApp notifications');
+// Auto close survey and notify via WhatsApp (Disabled per user request)
+// Schedule::command('surveys:close-and-notify')
+//     ->everyMinute()
+//     ->withoutOverlapping(10)
+//     ->description('Auto-close survey and send WhatsApp notifications');
 
 // Clean up old failed jobs (keep last 7 days)
 Schedule::command('queue:prune-failed --hours=168')
@@ -101,46 +101,11 @@ Schedule::call(function () {
 })->everyFifteenMinutes()->description('Application health check');
 
 // ============================================================================
-// Auto-Keepalive Self-Hosted WhatsApp Engine (Node.js Baileys)
-// Mengecek ketersediaan server Node.js di port 3000 setiap 5 menit.
-// Jika terhenti/mati, otomatis dinyalakan kembali di background secara mandiri.
+// Auto-Keepalive Self-Hosted WhatsApp Engine (Node.js Baileys) - DISABLED
 // ============================================================================
-Schedule::call(function () {
-    $rootDir = base_path();
-    $serverPath = "{$rootDir}/whatsapp-server/server.js";
-
-    foreach ([3002, 3000] as $port) {
-        $ch = @curl_init("http://localhost:{$port}/device");
-        if ($ch) {
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($httpCode === 200 && $response) {
-                return; // Node.js engine is alive
-            }
-        }
-    }
-
-    if (file_exists($serverPath)) {
-        $nodeBin = '/usr/bin/node';
-        if (!file_exists($nodeBin)) {
-            $which = trim(@shell_exec('which node 2>/dev/null') ?? '');
-            $nodeBin = $which ?: 'node';
-        }
-
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            @pclose(@popen("start /B {$nodeBin} {$serverPath}", "r"));
-        } else {
-            $cmd = "nohup {$nodeBin} {$serverPath} > /dev/null 2>&1 &";
-            @exec($cmd);
-        }
-
-        \Illuminate\Support\Facades\Log::channel('whatsapp')->info('Auto-Keepalive: Node.js WhatsApp Engine restarted automatically');
-    }
-})->everyFiveMinutes()->name('wa-engine-keepalive')->withoutOverlapping();
+// Schedule::call(function () {
+//     // Keepalive disabled
+// })->everyFiveMinutes()->name('wa-engine-keepalive')->withoutOverlapping();
 
 // ============================================================================
 // WhatsApp Daily Attendance Digest — Senin s/d Jumat pukul 08:00 WIB
