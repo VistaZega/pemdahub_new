@@ -8,7 +8,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Increase execution time limit for streaming broadcast
 set_time_limit(600);
 
 if (($_GET['secret'] ?? '') !== 'pembda99') {
@@ -16,7 +15,6 @@ if (($_GET['secret'] ?? '') !== 'pembda99') {
     die('Forbidden - Secret key required (?secret=pembda99)');
 }
 
-// Disable buffering for live HTML output
 if (function_exists('apache_setenv')) {
     @apache_setenv('no-gzip', 1);
 }
@@ -38,6 +36,7 @@ pre { background: #090d16; padding: 15px; border-radius: 8px; color: #e2e8f0; fo
 .err { color: #f87171; font-weight: bold; }
 .info { color: #38bdf8; }
 .badge { display: inline-block; padding: 4px 10px; background: #0284c7; color: #fff; border-radius: 4px; font-weight: bold; font-size: 12px; }
+.btn { display: inline-block; padding: 8px 16px; background: #a855f7; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; }
 </style></head><body><div class='card'>";
 echo "<h2>🚀 PELUNCUR REKAPITULASI KEHADIRAN EKSEKUTIF HARI INI</h2>";
 echo "<p><span class='badge'>LIVE BROADCAST</span> Memproses pengiriman rekapitulasi harian ke Kepala Sekolah & Wali Kelas secara aman (Anti-Ban Pacing)...</p>";
@@ -76,31 +75,60 @@ use App\Models\Setting;
 use App\Services\ExecutiveReportService;
 use App\Services\WhatsAppService;
 
-// 1. Pre-flight Check WA Gateway
-logMsg("🔍 1. Memeriksa ketersediaan WA Engine Gateway...");
-$waService = app(WhatsAppService::class);
-
 // Force re-enable WA settings for this session
 Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
 Setting::setValue('wa_digest_enabled', true, 'boolean', 'whatsapp');
 Setting::setValue('wa_send_principal_attendance', true, 'boolean', 'whatsapp');
 Setting::setValue('wa_send_homeroom_attendance', true, 'boolean', 'whatsapp');
 
+logMsg("🔍 1. Memeriksa ketersediaan WA Engine Gateway...");
+$waService = app(WhatsAppService::class);
+$accountInfo = $waService->getAccountInfo();
+
+// Attempt auto-start if server is down on localhost
+if (empty($accountInfo['success']) || !($waService->isConnected())) {
+    logMsg("⚠️ WA Engine belum merespons. Mencoba menyalakan server Node.js di background...");
+    $rootDir = dirname(__DIR__);
+    $serverPath = "{$rootDir}/whatsapp-server/server.js";
+    if (file_exists($serverPath)) {
+        $nodeBin = '/usr/bin/node';
+        if (!file_exists($nodeBin)) {
+            $which = trim(@shell_exec('which node 2>/dev/null') ?? '');
+            $nodeBin = $which ?: 'node';
+        }
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            @pclose(@popen("start /B {$nodeBin} {$serverPath}", "r"));
+        } else {
+            @shell_exec("nohup {$nodeBin} {$serverPath} > /dev/null 2>&1 &");
+        }
+        logMsg("⏳ Memuat ulang status server (menunggu 3 detik)...");
+        sleep(3);
+        $accountInfo = $waService->getAccountInfo();
+    }
+}
+
 $isConn = $waService->isConnected();
+$provider = $waService->getActiveProvider();
+$statusText = $accountInfo['data']['status'] ?? ($isConn ? 'connected' : 'disconnected');
+
+logMsg("ℹ️ Active Provider: {$provider} | Status WA: {$statusText}");
+
 if (!$isConn) {
-    logMsg("❌ ERRROR: WA Gateway dalam status TERPUTUS (Disconnected). Pengiriman dibatalkan demi keamanan.");
-    echo "</pre></div></body></html>";
+    logMsg("❌ ERRROR: WA Gateway dalam status TERPUTUS (Disconnected / QR Scan Required).");
+    logMsg("👉 Silakan lakukan Scan QR Code atau Start Engine melalui tool installer:");
+    echo "</pre>";
+    echo "<a href='wa_qr.php?secret=pembda99' target='_blank' class='btn'>1. Scan QR Code WhatsApp 📱</a> ";
+    echo "<a href='install_wa_engine.php?secret=pembda99' target='_blank' class='btn' style='background:#059669;'>2. Buka Web Setup WhatsApp Engine ⚙️</a>";
+    echo "</div></body></html>";
     exit;
 }
 
 logMsg("✅ WA Gateway TERHUBUNG & SIAP (Status: Connected).");
 
-// 2. Clear Idempotency Lock Today
-logMsg("🧹 2. Membersihkan Idempotency Lock hari ini (" . date('Y-m-d') . ") agar rekap terkirim segar...");
+// 2. Execute Workflow with Anti-Ban Pacing
+logMsg("🚀 2. Memulai pengiriman rekapitulasi harian ke Kepala Sekolah & Wali Kelas...");
 $reportService = app(ExecutiveReportService::class);
 
-// 3. Execute Workflow with Anti-Ban Pacing
-logMsg("🚀 3. Memulai pengiriman rekapitulasi harian...");
 $options = [
     'dry_run' => false,
     'force' => true,

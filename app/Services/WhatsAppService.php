@@ -58,14 +58,14 @@ class WhatsAppService implements WhatsAppServiceInterface
      */
     protected function resolveSelfhostedApiUrl(): string
     {
-        $candidateUrls = ['http://localhost:3002', 'http://localhost:3000'];
+        $candidateUrls = ['http://127.0.0.1:3002', 'http://localhost:3002', 'http://127.0.0.1:3000', 'http://localhost:3000'];
         if ($this->apiUrl && !in_array($this->apiUrl, $candidateUrls)) {
             array_unshift($candidateUrls, $this->apiUrl);
         }
 
         foreach ($candidateUrls as $candidate) {
             try {
-                $res = Http::timeout(2)->connectTimeout(1)->withHeaders(['Authorization' => $this->apiToken])->get(rtrim($candidate, '/') . '/device');
+                $res = Http::timeout(4)->connectTimeout(2)->withHeaders(['Authorization' => $this->apiToken])->get(rtrim($candidate, '/') . '/device');
                 if ($res->successful()) {
                     return rtrim($candidate, '/');
                 }
@@ -74,7 +74,7 @@ class WhatsAppService implements WhatsAppServiceInterface
             }
         }
 
-        return 'http://localhost:3002';
+        return 'http://127.0.0.1:3002';
     }
 
     /**
