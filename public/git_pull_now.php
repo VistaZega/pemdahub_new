@@ -456,6 +456,20 @@ try {
 
     // 9. Auto-Check & Start WhatsApp Node.js Engine
     echo "</pre><h2>▶ 9. Pemeriksaan Otomatis Service WhatsApp Engine Node.js</h2><pre>";
+    $serverDir = "{$root}/whatsapp-server";
+    $serverPath = "{$serverDir}/server.js";
+    $nodeModules = "{$serverDir}/node_modules";
+
+    if (file_exists($serverPath) && !file_exists($nodeModules)) {
+        echo "<span class='info'>📦 Menjalankan npm install di whatsapp-server...</span>\n";
+        $npmBin = '/usr/bin/npm';
+        if (!file_exists($npmBin)) {
+            $npmBin = trim(@shell_exec('which npm 2>/dev/null') ?? '') ?: 'npm';
+        }
+        @shell_exec("cd {$serverDir} && {$npmBin} install 2>&1");
+        echo "<span class='ok'>✔ Dependensi npm install selesai.</span>\n";
+    }
+
     $ch = @curl_init('http://localhost:3000/device');
     $isEngineOk = false;
     if ($ch) {
@@ -473,17 +487,15 @@ try {
         echo "<span class='ok'>✔ WhatsApp Engine Server (Node.js) sedang AKTIF & BERJALAN di port 3000.</span>\n";
     } else {
         echo "<span class='warn'>⚠ WhatsApp Engine Server mati. Memulai ulang secara otomatis di background...</span>\n";
-        $serverPath = "{$root}/whatsapp-server/server.js";
         if (file_exists($serverPath)) {
             $nodeBin = '/usr/bin/node';
             if (!file_exists($nodeBin)) {
-                $which = trim(@shell_exec('which node 2>/dev/null') ?? '');
-                $nodeBin = $which ?: 'node';
+                $nodeBin = trim(@shell_exec('which node 2>/dev/null') ?? '') ?: 'node';
             }
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                 @pclose(@popen("start /B {$nodeBin} {$serverPath}", "r"));
             } else {
-                @shell_exec("nohup {$nodeBin} {$serverPath} > /dev/null 2>&1 &");
+                @shell_exec("cd {$serverDir} && nohup {$nodeBin} server.js > /dev/null 2>&1 &");
             }
             echo "<span class='ok'>✔ WhatsApp Engine Server telah otomatis diaktifkan di background server.</span>\n";
         }
