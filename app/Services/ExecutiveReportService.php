@@ -44,6 +44,12 @@ class ExecutiveReportService
             return ['success' => false, 'sent' => 0, 'message' => 'Layanan WhatsApp atau otomatisasi rekapitulasi sedang dihentikan sementara di Pengaturan'];
         }
 
+        if (!$targetPhone && !$this->whatsappService->isConnected()) {
+            $msg = 'Gateway WhatsApp sedang terputus (Disconnect). Rekapitulasi dibatalkan otomatis demi mencegah pengiriman pesan error.';
+            Log::channel('whatsapp')->warning("WA digest aborted: {$msg}");
+            return ['success' => false, 'sent' => 0, 'message' => $msg];
+        }
+
         if (!$targetPhone && !Setting::getValue('wa_send_principal_attendance', true)) {
             Log::channel('whatsapp')->info('WA digest skipped: wa_send_principal_attendance is disabled');
             return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi WA Rekap Kepsek dinonaktifkan di pengaturan'];
@@ -267,6 +273,12 @@ class ExecutiveReportService
         if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
             Log::channel('whatsapp')->info('WA digest skipped: WhatsApp service or wa_digest_enabled is disabled');
             return ['success' => false, 'sent' => 0, 'message' => 'Layanan WhatsApp atau otomatisasi rekapitulasi sedang dihentikan sementara di Pengaturan'];
+        }
+
+        if (!$targetPhone && !$this->whatsappService->isConnected()) {
+            $msg = 'Gateway WhatsApp sedang terputus (Disconnect). Rekapitulasi dibatalkan otomatis demi mencegah pengiriman pesan error.';
+            Log::channel('whatsapp')->warning("WA digest aborted: {$msg}");
+            return ['success' => false, 'sent' => 0, 'message' => $msg];
         }
 
         if (!$targetPhone && !Setting::getValue('wa_send_homeroom_attendance', true)) {
@@ -779,6 +791,13 @@ class ExecutiveReportService
         if (!$isSingleTest && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
             $msg = 'Pengiriman rekapitulasi WhatsApp sedang dihentikan sementara (dinonaktifkan di Pengaturan).';
             if ($logger) $logger("🛑 {$msg}");
+            return ['success' => false, 'sent' => 0, 'principal' => ['sent' => 0], 'homeroom' => ['sent' => 0], 'message' => $msg];
+        }
+
+        if (!$isSingleTest && !$this->whatsappService->isConnected()) {
+            $msg = 'Gateway WhatsApp (088991144184) sedang terputus (Disconnect). Pengiriman rekapitulasi otomatis dibatalkan secara aman.';
+            if ($logger) $logger("⚠️ {$msg}");
+            Log::channel('whatsapp')->warning("WA digest workflow aborted: {$msg}");
             return ['success' => false, 'sent' => 0, 'principal' => ['sent' => 0], 'homeroom' => ['sent' => 0], 'message' => $msg];
         }
 

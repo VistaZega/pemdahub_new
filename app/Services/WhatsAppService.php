@@ -60,11 +60,39 @@ class WhatsAppService implements WhatsAppServiceInterface
             if ($dbOverride && in_array($dbOverride, ['fonnte', 'selfhosted'])) {
                 return $dbOverride;
             }
+
+            $fonnteToken = Setting::getValue('wa_fonnte_token') ?: config('services.whatsapp.providers.fonnte.api_token');
+            if (!empty($fonnteToken)) {
+                return 'fonnte';
+            }
         } catch (\Throwable $e) {
             // Table might not exist yet during migrations
         }
 
         return config('services.whatsapp.active_provider', 'selfhosted');
+    }
+
+    /**
+     * Check if the active WhatsApp Gateway device is connected and ready.
+     */
+    public function isConnected(): bool
+    {
+        $info = $this->getAccountInfo();
+        if (empty($info['success'])) {
+            return false;
+        }
+
+        $data = $info['data'] ?? [];
+        if ($this->activeProvider === 'fonnte') {
+            $deviceStatus = strtolower($data['device_status'] ?? '');
+            return $deviceStatus === 'connect' || ($deviceStatus !== 'disconnect' && !empty($data['status']));
+        }
+
+        if ($this->activeProvider === 'selfhosted') {
+            return ($data['status'] ?? '') === 'connected';
+        }
+
+        return !empty($info['success']);
     }
 
     /**
