@@ -306,7 +306,8 @@ class HomeroomLmsController extends Controller
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
 
         // Verifikasi apakah siswa berada di rombel yang diampu oleh wali kelas ini
-        $isMyStudent = Classroom::where('homeroom_teacher_id', $teacher?->id)
+        $tIds = Auth::user() ? Auth::user()->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+        $isMyStudent = Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->whereHas('students', fn($q) => $q->where('students.id', $student->id))
             ->exists();
 
@@ -501,8 +502,9 @@ class HomeroomLmsController extends Controller
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
 
         $classroomId = $request->query('classroom_id');
+        $tIds = Auth::user() ? Auth::user()->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
         $classroom = Classroom::where('id', $classroomId)
-            ->where('homeroom_teacher_id', $teacher?->id)
+            ->whereIn('homeroom_teacher_id', $tIds)
             ->with(['school'])
             ->firstOrFail();
 

@@ -83,25 +83,27 @@ class DashboardController extends Controller
     {
         if (!$activeYear) return collect();
 
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+
         return Classroom::where('is_active', true)
             ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
             ->where(function ($yearQ) use ($activeYear) {
                 $yearQ->where('academic_year_id', $activeYear->id)
                       ->orWhereNull('academic_year_id');
             })
-            ->where(function ($q) use ($teacher) {
-                $q->whereHas('schedules', function ($sq) use ($teacher) {
-                    $sq->where('teacher_id', $teacher->id);
+            ->where(function ($q) use ($tIds) {
+                $q->whereHas('schedules', function ($sq) use ($tIds) {
+                    $sq->whereIn('teacher_id', $tIds);
                 })
-                ->orWhereHas('teachingAssignments', function ($tq) use ($teacher) {
-                    $tq->where('teacher_id', $teacher->id)
+                ->orWhereHas('teachingAssignments', function ($tq) use ($tIds) {
+                    $tq->whereIn('teacher_id', $tIds)
                        ->where('is_active', true);
                 })
-                ->orWhere('homeroom_teacher_id', $teacher->id)
-                ->orWhereHas('lmsClasses', function ($lq) use ($teacher) {
+                ->orWhereIn('homeroom_teacher_id', $tIds)
+                ->orWhereHas('lmsClasses', function ($lq) use ($tIds) {
                     $lq->where('status', 'active')
-                       ->whereHas('course', function ($cq) use ($teacher) {
-                           $cq->where('teacher_id', $teacher->id);
+                       ->whereHas('course', function ($cq) use ($tIds) {
+                           $cq->whereIn('teacher_id', $tIds);
                        });
                 });
             })
@@ -189,7 +191,8 @@ class DashboardController extends Controller
         // Kelas wali kelas
         $homeroomClassroom = null;
         if ($activeYear) {
-            $homeroomClassroom = Classroom::where('homeroom_teacher_id', $teacher->id)
+            $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+            $homeroomClassroom = Classroom::whereIn('homeroom_teacher_id', $tIds)
                 ->where('academic_year_id', $activeYear->id)
                 ->withCount(['students' => function ($q) use ($activeYear) {
                     $q->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])
@@ -444,7 +447,8 @@ class DashboardController extends Controller
         $classrooms = $this->getTeacherClassrooms($teacher, $activeYear, $isMultiSchool ? $effectiveSchoolId : null);
 
         // Kelas wali kelas
-        $homeroomClassroom = Classroom::where('homeroom_teacher_id', $teacher->id)
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+        $homeroomClassroom = Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->when($isMultiSchool && $effectiveSchoolId, fn($q) => $q->where('school_id', $effectiveSchoolId))
             ->where('is_active', true)
             ->first();
@@ -468,15 +472,17 @@ class DashboardController extends Controller
             $q->orderBy('full_name');
         }])->findOrFail($classroomId);
 
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+
         // Verify teacher has access to this classroom
-        $hasAccess = Schedule::where('teacher_id', $teacher->id)
+        $hasAccess = Schedule::whereIn('teacher_id', $tIds)
             ->where('classroom_id', $classroom->id)
             ->exists()
-            || TeachingAssignment::where('teacher_id', $teacher->id)
+            || TeachingAssignment::whereIn('teacher_id', $tIds)
                 ->where('classroom_id', $classroom->id)
                 ->where('is_active', true)
                 ->exists()
-            || (int) $classroom->homeroom_teacher_id === (int) $teacher->id;
+            || in_array((int) $classroom->homeroom_teacher_id, array_map('intval', $tIds), true);
 
         if (!$hasAccess) {
             abort(403, 'Anda tidak mengajar di kelas ini.');
@@ -719,7 +725,8 @@ class DashboardController extends Controller
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', (int) $selectedClassroomId) ?? \App\Models\Classroom::find($selectedClassroomId);
             if ($selectedClassroom) {
-                $isHomeroom = ((int) $selectedClassroom->homeroom_teacher_id === (int) $teacher->id);
+                $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+                $isHomeroom = $selectedClassroom && in_array((int) $selectedClassroom->homeroom_teacher_id, array_map('intval', $tIds), true);
 
                 // Fetch active students in class for the daily matrix (applies to all students)
                 $studentsQuery = $selectedClassroom->students()
@@ -970,7 +977,8 @@ class DashboardController extends Controller
                     'percentage' => $totalActiveStudents > 0 ? round(($dailyPresentCount / $totalActiveStudents) * 100, 1) : 0,
                 ];
 
-                $isHomeroom = $selectedClassroom && ((int) $selectedClassroom->homeroom_teacher_id === (int) $teacher->id);
+                $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+                $isHomeroom = $selectedClassroom && in_array((int) $selectedClassroom->homeroom_teacher_id, array_map('intval', $tIds), true);
 
                 // Rekap Bulanan Kehadiran Harian Sekolah
                 $monthlySummary = [

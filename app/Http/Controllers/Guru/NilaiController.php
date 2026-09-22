@@ -78,25 +78,28 @@ class NilaiController extends Controller
     {
         if (!$activeYear) return collect();
 
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+        $tIdsInt = array_map('intval', $tIds);
+
         return Classroom::where('is_active', true)
             ->where('academic_year_id', $activeYear->id)
-            ->where(function ($q) use ($teacher, $activeYear) {
-                $q->whereHas('schedules', function ($sq) use ($teacher, $activeYear) {
-                    $sq->where('teacher_id', $teacher->id)
+            ->where(function ($q) use ($tIds, $activeYear) {
+                $q->whereHas('schedules', function ($sq) use ($tIds, $activeYear) {
+                    $sq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $activeYear->id);
                 })
-                ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeYear) {
-                    $tq->where('teacher_id', $teacher->id)
+                ->orWhereHas('teachingAssignments', function ($tq) use ($tIds, $activeYear) {
+                    $tq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $activeYear->id)
                        ->where('is_active', true);
                 })
-                ->orWhere('homeroom_teacher_id', $teacher->id);
+                ->orWhereIn('homeroom_teacher_id', $tIds);
             })
             ->with('school')
             ->orderBy('class_name')
             ->get()
-            ->each(function ($classroom) use ($teacher) {
-                $classroom->is_homeroom = ($classroom->homeroom_teacher_id == $teacher->id);
+            ->each(function ($classroom) use ($tIdsInt) {
+                $classroom->is_homeroom = in_array((int) $classroom->homeroom_teacher_id, $tIdsInt, true);
             });
     }
 
@@ -105,8 +108,10 @@ class NilaiController extends Controller
      */
     private function isHomeroomTeacher(Teacher $teacher, int $classroomId): bool
     {
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+
         return Classroom::where('id', $classroomId)
-            ->where('homeroom_teacher_id', $teacher->id)
+            ->whereIn('homeroom_teacher_id', $tIds)
             ->exists();
     }
 
@@ -517,8 +522,9 @@ class NilaiController extends Controller
             ->pluck('classroom_id');
 
         // 2. Homeroom teacher of the student's class can also manage
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
         $isHomeroom = Classroom::whereIn('id', $studentClassroomIds)
-            ->where('homeroom_teacher_id', $teacher->id)
+            ->whereIn('homeroom_teacher_id', $tIds)
             ->exists();
         if ($isHomeroom) {
             return true;

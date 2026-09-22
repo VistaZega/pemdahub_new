@@ -37,7 +37,9 @@ class ReportCardController extends Controller
         $activeYear = AcademicYear::where('is_active', true)->first();
         if (!$activeYear) return collect();
 
-        return Classroom::where('homeroom_teacher_id', $teacher->id)
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+
+        return Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('academic_year_id', $activeYear->id)
             ->where('is_active', true)
             ->with('school')

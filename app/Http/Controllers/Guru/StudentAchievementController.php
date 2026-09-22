@@ -32,7 +32,8 @@ class StudentAchievementController extends Controller
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
 
         // Get homeroom classrooms assigned to this teacher
-        $homeroomClassrooms = Classroom::where('homeroom_teacher_id', $teacher?->id)
+        $tIds = Auth::user() ? Auth::user()->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+        $homeroomClassrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->with(['school', 'students' => function ($q) use ($activeYear) {
                 $q->whereIn('student_classes.status', ['aktif', 'enrolled', 'active']);

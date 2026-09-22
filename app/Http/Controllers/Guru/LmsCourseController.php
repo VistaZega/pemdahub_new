@@ -158,7 +158,8 @@ class LmsCourseController extends Controller
         $classroomIds = $classroomIds->merge($teachingClassrooms);
 
         // From homeroom
-        $homeroomClassrooms = \App\Models\Classroom::where('homeroom_teacher_id', $teacher->id)
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+        $homeroomClassrooms = \App\Models\Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('is_active', true)
             ->pluck('id');
         $classroomIds = $classroomIds->merge($homeroomClassrooms);
@@ -356,7 +357,8 @@ class LmsCourseController extends Controller
             ->pluck('classroom_id');
         $classroomIds = $classroomIds->merge($teachingClassrooms);
 
-        $homeroomClassrooms = \App\Models\Classroom::where('homeroom_teacher_id', $teacher->id)->where('is_active', true)->pluck('id');
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+        $homeroomClassrooms = \App\Models\Classroom::whereIn('homeroom_teacher_id', $tIds)->where('is_active', true)->pluck('id');
         $classroomIds = $classroomIds->merge($homeroomClassrooms);
 
         // Hanya tampilkan kelas yang terkait dengan guru (tanpa fallback ke semua kelas)

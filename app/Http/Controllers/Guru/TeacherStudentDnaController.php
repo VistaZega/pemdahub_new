@@ -58,21 +58,23 @@ class TeacherStudentDnaController extends Controller
             $assignedClassroomIds = collect();
 
             if ($teacher) {
+                $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+
                 // Dari Penugasan Mengajar (TeachingAssignment)
-                $taClassroomIds = TeachingAssignment::where('teacher_id', $teacher->id)
+                $taClassroomIds = TeachingAssignment::whereIn('teacher_id', $tIds)
                     ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                     ->where('is_active', true)
                     ->pluck('classroom_id');
                 $assignedClassroomIds = $assignedClassroomIds->merge($taClassroomIds);
 
                 // Dari Jadwal Pelajaran (Schedule)
-                $schedClassroomIds = Schedule::where('teacher_id', $teacher->id)
+                $schedClassroomIds = Schedule::whereIn('teacher_id', $tIds)
                     ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                     ->pluck('classroom_id');
                 $assignedClassroomIds = $assignedClassroomIds->merge($schedClassroomIds);
 
                 // Dari Perwalian (Wali Kelas)
-                $homeroomClassroomIds = Classroom::where('homeroom_teacher_id', $teacher->id)
+                $homeroomClassroomIds = Classroom::whereIn('homeroom_teacher_id', $tIds)
                     ->where('is_active', true)
                     ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id)->orWhereNull('academic_year_id'))
                     ->pluck('id');
@@ -177,18 +179,19 @@ class TeacherStudentDnaController extends Controller
         // Guru Pengampu & Wali Kelas: Cek apakah siswa terdaftar pada kelas yang diampu pada TP aktif
         $assignedClassroomIds = collect();
         if ($teacher) {
-            $taClassroomIds = TeachingAssignment::where('teacher_id', $teacher->id)
+            $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+            $taClassroomIds = TeachingAssignment::whereIn('teacher_id', $tIds)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                 ->where('is_active', true)
                 ->pluck('classroom_id');
             $assignedClassroomIds = $assignedClassroomIds->merge($taClassroomIds);
 
-            $schedClassroomIds = Schedule::where('teacher_id', $teacher->id)
+            $schedClassroomIds = Schedule::whereIn('teacher_id', $tIds)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                 ->pluck('classroom_id');
             $assignedClassroomIds = $assignedClassroomIds->merge($schedClassroomIds);
 
-            $homeroomClassroomIds = Classroom::where('homeroom_teacher_id', $teacher->id)
+            $homeroomClassroomIds = Classroom::whereIn('homeroom_teacher_id', $tIds)
                 ->where('is_active', true)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id)->orWhereNull('academic_year_id'))
                 ->pluck('id');

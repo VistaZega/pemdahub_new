@@ -1017,7 +1017,8 @@ class MobileTeacherController extends Controller
 
         $homeroomClasses = collect();
         if ($teacher) {
-            $homeroomClasses = Classroom::where('homeroom_teacher_id', $teacher->id)
+            $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+            $homeroomClasses = Classroom::whereIn('homeroom_teacher_id', $tIds)
                 ->where('is_active', true)
                 ->with('students')
                 ->get();
@@ -1100,12 +1101,13 @@ class MobileTeacherController extends Controller
         }
 
         // Rombel Mengajar & Rombel Wali Kelas
-        $homeroomClasses = Classroom::where('homeroom_teacher_id', $teacher->id)->get();
-        $teachingClassrooms = Classroom::where(function ($q) use ($teacher) {
-            $q->whereHas('teachingAssignments', function ($tq) use ($teacher) {
-                $tq->where('teacher_id', $teacher->id);
-            })->orWhereHas('schedules', function ($sq) use ($teacher) {
-                $sq->where('teacher_id', $teacher->id);
+        $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+        $homeroomClasses = Classroom::whereIn('homeroom_teacher_id', $tIds)->get();
+        $teachingClassrooms = Classroom::where(function ($q) use ($tIds) {
+            $q->whereHas('teachingAssignments', function ($tq) use ($tIds) {
+                $tq->whereIn('teacher_id', $tIds);
+            })->orWhereHas('schedules', function ($sq) use ($tIds) {
+                $sq->whereIn('teacher_id', $tIds);
             });
         })->get();
 
@@ -1485,7 +1487,8 @@ class MobileTeacherController extends Controller
         // Cari Rombel Wali Kelas (Hanya untuk Wali Kelas aktif)
         $classroom = null;
         if ($teacher) {
-            $classroom = Classroom::where('homeroom_teacher_id', $teacher->id)
+            $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+            $classroom = Classroom::whereIn('homeroom_teacher_id', $tIds)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                 ->first();
         }

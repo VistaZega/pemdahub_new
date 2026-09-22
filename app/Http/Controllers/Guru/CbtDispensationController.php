@@ -48,7 +48,8 @@ class CbtDispensationController extends Controller
         // Ambil kelas bimbingan wali kelas
         $classroomsQuery = Classroom::where('academic_year_id', $activeYear->id);
         if (!$isAdmin && $teacher) {
-            $classroomsQuery->where('homeroom_teacher_id', $teacher->id);
+            $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+            $classroomsQuery->whereIn('homeroom_teacher_id', $tIds);
         }
         $homeroomClassrooms = $classroomsQuery->orderBy('grade_level')->orderBy('class_name')->get();
 
@@ -116,7 +117,8 @@ class CbtDispensationController extends Controller
         // Pastikan guru adalah wali kelas dari siswa ini atau admin
         if (!$isAdmin) {
             $activeClass = $student->currentClassroom()->first() ?? $student->classroom;
-            $isHomeroom = $activeClass && $teacher && $activeClass->homeroom_teacher_id === $teacher->id;
+            $tIds = Auth::user() ? Auth::user()->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+            $isHomeroom = $activeClass && in_array((int) $activeClass->homeroom_teacher_id, array_map('intval', $tIds), true);
             abort_unless($isHomeroom, 403, 'Anda bukan Wali Kelas dari siswa ini.');
         }
 
@@ -146,7 +148,8 @@ class CbtDispensationController extends Controller
 
         if (!$isAdmin) {
             $activeClass = $student->currentClassroom()->first() ?? $student->classroom;
-            $isHomeroom = $activeClass && $teacher && $activeClass->homeroom_teacher_id === $teacher->id;
+            $tIds = Auth::user() ? Auth::user()->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+            $isHomeroom = $activeClass && in_array((int) $activeClass->homeroom_teacher_id, array_map('intval', $tIds), true);
             abort_unless($isHomeroom, 403, 'Anda bukan Wali Kelas dari siswa ini.');
         }
 

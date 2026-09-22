@@ -30,7 +30,8 @@ class StudentBillingController extends Controller
         }
 
         // Get homeroom classroom for active year
-        $classroom = Classroom::where('homeroom_teacher_id', $teacher->id)
+        $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+        $classroom = Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('academic_year_id', $activeYear->id)
             ->with(['students' => function ($q) use ($activeYear) {
                 // only active students
