@@ -204,22 +204,21 @@ class WhatsAppService implements WhatsAppServiceInterface
     /**
      * Send WhatsApp message.
      */
+    public function isEnabled(): bool
+    {
+        return false; // HARD EMERGENCY SHUTOFF
+    }
+
     public function sendMessage(string $phone, string $message, array $options = []): array
     {
-        if (!$this->enabled) {
-            $err = 'Layanan WhatsApp sedang nonaktif. Pastikan WHATSAPP_ENABLED=true di .env atau aktifkan pada Pengaturan.';
-            Log::channel('whatsapp')->info('WhatsApp disabled. Message not sent', [
-                'phone' => $phone,
-                'message' => mb_substr($message, 0, 100),
-            ]);
-
-            return [
-                'success' => false,
-                'message' => $err,
-                'error'   => $err,
-                'mode'    => 'disabled',
-            ];
-        }
+        Log::channel('whatsapp')->info('HARD EMERGENCY SHUTOFF: WhatsApp sendMessage blocked', ['phone' => $phone]);
+        return [
+            'success' => false,
+            'message' => 'Layanan WhatsApp telah dimatikan secara total (HARD EMERGENCY SHUTDOWN).',
+            'error'   => 'EMERGENCY_SHUTDOWN',
+            'mode'    => 'disabled',
+        ];
+    }
 
         $phone = $this->normalizePhoneNumber($phone);
 
