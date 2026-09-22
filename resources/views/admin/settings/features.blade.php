@@ -227,10 +227,10 @@
                         Latitude Titik Pusat Sekolah
                     </label>
                     <input type="text" id="school_latitude" name="school_latitude" 
-                           value="{{ $settings['school_latitude'] ?? '1.282500' }}"
+                           value="{{ $settings['school_latitude'] ?? '1.28127778' }}"
                            class="w-full text-sm font-mono font-bold px-3.5 py-2.5 rounded-xl border-2 border-slate-300 focus:border-indigo-500 outline-none bg-white text-slate-800">
                     <p class="text-[11px] text-slate-500 font-medium">
-                        Default: <code>1.282500</code> (Kompleks Jl. Pelita No. 09 Gunungsitoli).
+                        Default: <code>1.28127778</code> (Kompleks Perguruan Pembda, Jl. Pelita No. 09 Gunungsitoli).
                     </p>
                 </div>
 
@@ -240,10 +240,10 @@
                         Longitude Titik Pusat Sekolah
                     </label>
                     <input type="text" id="school_longitude" name="school_longitude" 
-                           value="{{ $settings['school_longitude'] ?? '97.619000' }}"
+                           value="{{ $settings['school_longitude'] ?? '97.62566667' }}"
                            class="w-full text-sm font-mono font-bold px-3.5 py-2.5 rounded-xl border-2 border-slate-300 focus:border-indigo-500 outline-none bg-white text-slate-800">
                     <p class="text-[11px] text-slate-500 font-medium">
-                        Default: <code>97.619000</code> (Kompleks Jl. Pelita No. 09 Gunungsitoli).
+                        Default: <code>97.62566667</code> (Kompleks Perguruan Pembda, Jl. Pelita No. 09 Gunungsitoli).
                     </p>
                 </div>
             </div>

@@ -183,8 +183,8 @@ class SettingsController extends Controller
 
             // Presensi & Geofencing GPS
             'attendance_max_radius' => Setting::getValue('attendance_max_radius', 175),
-            'school_latitude' => Setting::getValue('school_latitude', '1.282500'),
-            'school_longitude' => Setting::getValue('school_longitude', '97.619000'),
+            'school_latitude' => Setting::getValue('school_latitude', '1.28127778'),
+            'school_longitude' => Setting::getValue('school_longitude', '97.62566667'),
 
             // WhatsApp Otomatis
             'wa_send_psb_registration' => Setting::getValue('wa_send_psb_registration', true),

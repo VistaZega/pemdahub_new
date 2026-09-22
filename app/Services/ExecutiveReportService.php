@@ -39,6 +39,11 @@ class ExecutiveReportService
         $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 90);
         $logger = $options['logger'] ?? null;
 
+        if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
+            Log::channel('whatsapp')->info('WA digest skipped: WhatsApp service or wa_digest_enabled is disabled');
+            return ['success' => false, 'sent' => 0, 'message' => 'Layanan WhatsApp atau otomatisasi rekapitulasi sedang dihentikan sementara di Pengaturan'];
+        }
+
         if (!$targetPhone && !Setting::getValue('wa_send_principal_attendance', true)) {
             Log::channel('whatsapp')->info('WA digest skipped: wa_send_principal_attendance is disabled');
             return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi WA Rekap Kepsek dinonaktifkan di pengaturan'];
@@ -258,6 +263,11 @@ class ExecutiveReportService
         $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 180);
         $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 600);
         $logger = $options['logger'] ?? null;
+
+        if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
+            Log::channel('whatsapp')->info('WA digest skipped: WhatsApp service or wa_digest_enabled is disabled');
+            return ['success' => false, 'sent' => 0, 'message' => 'Layanan WhatsApp atau otomatisasi rekapitulasi sedang dihentikan sementara di Pengaturan'];
+        }
 
         if (!$targetPhone && !Setting::getValue('wa_send_homeroom_attendance', true)) {
             Log::channel('whatsapp')->info('WA digest skipped: wa_send_homeroom_attendance is disabled');
@@ -765,6 +775,12 @@ class ExecutiveReportService
         $dryRun = $options['dry_run'] ?? false;
         $logger = $options['logger'] ?? null;
         $isSingleTest = !empty($options['target_phone']);
+
+        if (!$isSingleTest && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
+            $msg = 'Pengiriman rekapitulasi WhatsApp sedang dihentikan sementara (dinonaktifkan di Pengaturan).';
+            if ($logger) $logger("🛑 {$msg}");
+            return ['success' => false, 'sent' => 0, 'principal' => ['sent' => 0], 'homeroom' => ['sent' => 0], 'message' => $msg];
+        }
 
         if ($logger) {
             $time = date('H:i:s');

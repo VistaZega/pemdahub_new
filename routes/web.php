@@ -1883,19 +1883,17 @@ Route::get('/fix-attendance', function () {
     echo "<h2 style='color:#4ade80;'>=== SINKRONISASI RELASI PEGAWAI GURU & RADIUS GEOFENCING ===</h2>\n";
 
     try {
-        // 1. Update Radius Presensi ke 175 Meter
+        // 1. Update Radius Presensi ke 175 Meter & Koordinat Real Kompleks Perguruan Pembda (Jl. Pelita No. 09)
         \App\Models\Setting::setValue('attendance_max_radius', '175', 'integer', 'features');
-        \App\Models\Setting::setValue('school_latitude', '1.282500', 'string', 'features');
-        \App\Models\Setting::setValue('school_longitude', '97.619000', 'string', 'features');
+        \App\Models\Setting::setValue('school_latitude', '1.28127778', 'string', 'features');
+        \App\Models\Setting::setValue('school_longitude', '97.62566667', 'string', 'features');
         echo "✅ Radius Geofencing GPS diset ke <b>175 meter</b> (Toleransi Area Sekolah & Deviasi Ruangan).\n";
 
-        // 2. Sinkronisasi Sekolah
+        // 2. Sinkronisasi Sekolah ke Koordinat Real Kompleks Perguruan Pembda
         $schools = \App\Models\School::all();
         foreach ($schools as $sc) {
-            if (empty($sc->latitude) || (float)$sc->latitude == 0) {
-                $sc->update(['latitude' => 1.282500, 'longitude' => 97.619000]);
-                echo "🏫 Set koordinat default untuk sekolah: {$sc->name}\n";
-            }
+            $sc->update(['latitude' => 1.28127778, 'longitude' => 97.62566667]);
+            echo "🏫 Set koordinat Kampus Perguruan Pembda (1.28127778, 97.62566667) untuk sekolah: {$sc->name}\n";
         }
 
         // 3. Sinkronisasi Relasi Guru & Pegawai

@@ -590,8 +590,8 @@ class AttendanceController extends Controller
             ];
         }
 
-        $globalLat = (float) \App\Models\Setting::getValue('school_latitude', 1.282500);
-        $globalLng = (float) \App\Models\Setting::getValue('school_longitude', 97.619000);
+        $globalLat = (float) \App\Models\Setting::getValue('school_latitude', 1.28127778);
+        $globalLng = (float) \App\Models\Setting::getValue('school_longitude', 97.62566667);
         $targetLocations[] = [
             'name' => 'Kampus Perguruan Pembda',
             'lat' => $globalLat,
