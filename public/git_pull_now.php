@@ -455,6 +455,8 @@ try {
 
         // 8b. SETTING KHUSUS: Pindah ke Fonnte Cloud API & Hanya 3 Notifikasi yang Aktif
         \App\Models\Setting::setValue('wa_active_provider', 'fonnte', 'string', 'whatsapp');
+        \App\Models\Setting::setValue('wa_fonnte_token', 'uqZV7F1uB8ccnw8MAnSz', 'string', 'whatsapp');
+        \App\Models\Setting::setValue('whatsapp_sender', '082364729261', 'string', 'whatsapp');
         \App\Models\Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
         \App\Models\Setting::setValue('wa_digest_enabled', true, 'boolean', 'whatsapp');
 
