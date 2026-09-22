@@ -325,9 +325,19 @@ class MobileTeacherController extends Controller
                 $tIds = $user ? $user->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
                 $isHomeroom = $classroom && in_array((int) $classroom->homeroom_teacher_id, array_map('intval', $tIds), true);
 
+                $allClassroomIds = [(int) $selectedClassroomId];
+
                 if ($assignment) {
                     $students = $filterService->getStudentsForAssignment($assignment, $date);
                     $assignmentRuleInfo = ($isHomeroom ? '[Wali Kelas] ' : '') . ($assignment->subject->name ?? 'Mata Pelajaran');
+                    if (!empty($assignment->group_code)) {
+                        $allClassroomIds = \App\Models\TeachingAssignment::whereIn('teacher_id', $tIds)
+                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                            ->where('group_code', $assignment->group_code)
+                            ->pluck('classroom_id')
+                            ->unique()
+                            ->toArray();
+                    }
                 } else {
                     $students = $classroom->students()->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])->orderBy('full_name')->get();
                     $assignmentRuleInfo = $isHomeroom ? 'Wali Kelas (Semua Siswa)' : 'Reguler';
