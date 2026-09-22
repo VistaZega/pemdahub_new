@@ -35,8 +35,8 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 45);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 90);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 8);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -265,9 +265,9 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 90);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 180);
-        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 600);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 8);
+        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 15);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -836,7 +836,7 @@ class ExecutiveReportService
 
         // 3. Jeda istirahat transisi ke Wali Kelas jika bukan dry-run dan bukan single-test
         if (($resP['sent'] ?? 0) > 0 && !$dryRun && !$isSingleTest) {
-            $pause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 60);
+            $pause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 15);
             $pauseMins = round($pause / 60, 1);
             if ($logger) $logger("☕ Jeda istirahat transisi ke Wali Kelas ({$pause} detik / ~{$pauseMins} menit)...");
             sleep($pause);
