@@ -452,6 +452,14 @@ try {
         $outputClear = new \Symfony\Component\Console\Output\BufferedOutput();
         \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
+
+        // Force disable WA auto-digest & clear pending job queue for safety
+        \App\Models\Setting::setValue('wa_digest_enabled', false, 'boolean', 'whatsapp');
+        \App\Models\Setting::setValue('wa_enabled', false, 'boolean', 'whatsapp');
+        \App\Models\Setting::setValue('wa_send_principal_attendance', false, 'boolean', 'whatsapp');
+        \App\Models\Setting::setValue('wa_send_homeroom_attendance', false, 'boolean', 'whatsapp');
+        $deletedCount = \Illuminate\Support\Facades\DB::table('jobs')->delete();
+        echo "<span class='warn'>🔒 Otomatisasi WhatsApp & Rekapitulasi Eksekutif telah DINONAKTIFKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
     }
 
     // 9. Auto-Check & Start WhatsApp Node.js Engine

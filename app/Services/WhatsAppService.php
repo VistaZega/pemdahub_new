@@ -58,8 +58,10 @@ class WhatsAppService implements WhatsAppServiceInterface
      */
     protected function resolveSelfhostedApiUrl(): string
     {
-        $defaultUrl = $this->apiUrl ?: 'http://localhost:3002';
-        $candidateUrls = array_unique([$defaultUrl, 'http://localhost:3002', 'http://localhost:3000']);
+        $candidateUrls = ['http://localhost:3002', 'http://localhost:3000'];
+        if ($this->apiUrl && !in_array($this->apiUrl, $candidateUrls)) {
+            array_unshift($candidateUrls, $this->apiUrl);
+        }
 
         foreach ($candidateUrls as $candidate) {
             try {
@@ -72,7 +74,7 @@ class WhatsAppService implements WhatsAppServiceInterface
             }
         }
 
-        return $defaultUrl;
+        return 'http://localhost:3002';
     }
 
     /**
