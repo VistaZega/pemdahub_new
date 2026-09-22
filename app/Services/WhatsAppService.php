@@ -61,15 +61,21 @@ class WhatsAppService implements WhatsAppServiceInterface
                 return $dbOverride;
             }
 
+            // Jika ada token Fonnte di DB/config, utamakan Fonnte untuk server production Hostinger
             $fonnteToken = Setting::getValue('wa_fonnte_token') ?: config('services.whatsapp.providers.fonnte.api_token');
             if (!empty($fonnteToken)) {
                 return 'fonnte';
+            }
+
+            $envProvider = config('services.whatsapp.active_provider');
+            if ($envProvider && in_array($envProvider, ['fonnte', 'selfhosted'])) {
+                return $envProvider;
             }
         } catch (\Throwable $e) {
             // Table might not exist yet during migrations
         }
 
-        return config('services.whatsapp.active_provider', 'selfhosted');
+        return 'selfhosted';
     }
 
     /**
