@@ -458,6 +458,7 @@ try {
             'wa_enabled',
             'wa_digest_enabled',
             'wa_notify_admin_digest',
+            'wa_alert_enabled',
             'wa_send_teacher_attendance',
             // Siswa & Wali Murid
             'wa_send_attendance_alert',
