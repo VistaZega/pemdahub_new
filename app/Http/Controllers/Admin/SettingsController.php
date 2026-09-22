@@ -359,12 +359,16 @@ class SettingsController extends Controller
             ],
 
             'guru' => [
-                'target' => 'Ke Guru (Tenaga Pendidik)',
-                'description' => 'Otomatisasi pengiriman pesan ke nomor WhatsApp Guru dan Pengajar Mata Pelajaran',
+                'target' => 'Ke Guru & Pegawai (Presensi Kiosk & Akademik)',
+                'description' => 'Otomatisasi pengiriman pesan ke nomor WhatsApp Guru dan Pegawai',
                 'icon' => 'fas fa-chalkboard-teacher',
                 'color' => 'indigo',
-                'badge' => 'Dewan Guru',
+                'badge' => 'Guru & Pegawai',
                 'items' => [
+                    'wa_send_teacher_attendance' => [
+                        'label' => 'Notifikasi Tap Hadir Guru & Pegawai (RFID / Kiosk)',
+                        'desc' => 'Notifikasi instan ke WhatsApp pribadi Guru atau Pegawai saat berhasil tap presensi masuk / scan QR di Kiosk.',
+                    ],
                     'wa_send_teaching_reminder' => [
                         'label' => 'Pengingat Jadwal Mengajar Harian (Pagi)',
                         'desc' => 'Pengingat jam mengajar, kelas rombel, dan mata pelajaran yang diampu hari ini.',
