@@ -109,16 +109,18 @@ Schedule::call(function () {
     $rootDir = base_path();
     $serverPath = "{$rootDir}/whatsapp-server/server.js";
 
-    $ch = @curl_init('http://localhost:3000/device');
-    if ($ch) {
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+    foreach ([3002, 3000] as $port) {
+        $ch = @curl_init("http://localhost:{$port}/device");
+        if ($ch) {
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
-        if ($httpCode === 200 && $response) {
-            return; // Node.js engine is alive
+            if ($httpCode === 200 && $response) {
+                return; // Node.js engine is alive
+            }
         }
     }
 

@@ -83,22 +83,36 @@ $npmBin = findBinary('npm');
         <p style="color: #8696a0;">Kelola instalasi dependensi dan pengaktifan WhatsApp Engine tanpa perlu akses SSH/Terminal.</p>
         
         <?php
-        // Check engine status on localhost:3000
-        $ch = curl_init('http://localhost:3000/device');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        // Check engine status on localhost:3002 or 3000
+        $activePort = null;
+        $response = null;
+        $isEngineRunning = false;
 
-        $isEngineRunning = ($httpCode === 200 && $response);
+        foreach ([3002, 3000] as $port) {
+            $ch = @curl_init("http://localhost:{$port}/device");
+            if ($ch) {
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+                $res = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode === 200 && $res) {
+                    $isEngineRunning = true;
+                    $response = $res;
+                    $activePort = $port;
+                    break;
+                }
+            }
+        }
+
         $statusData = $isEngineRunning ? json_decode($response, true) : null;
         ?>
 
         <div style="margin: 20px 0;">
             <strong>Status Server Engine:</strong>
             <?php if ($isEngineRunning): ?>
-                <span class="status connected">🟢 AKTIF (Port 3000) - Status WA: <?php echo htmlspecialchars($statusData['status'] ?? 'Running'); ?></span>
+                <span class="status connected">🟢 AKTIF (Port <?php echo $activePort; ?>) - Status WA: <?php echo htmlspecialchars($statusData['status'] ?? 'Running'); ?></span>
             <?php else: ?>
                 <span class="status disconnected">🟡 MATI / BELUM BERJALAN</span>
             <?php endif; ?>

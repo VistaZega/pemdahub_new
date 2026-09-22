@@ -470,21 +470,26 @@ try {
         echo "<span class='ok'>✔ Dependensi npm install selesai.</span>\n";
     }
 
-    $ch = @curl_init('http://localhost:3000/device');
     $isEngineOk = false;
-    if ($ch) {
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-        $res = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if ($httpCode === 200 && $res) {
-            $isEngineOk = true;
+    $activePort = null;
+    foreach ([3002, 3000] as $port) {
+        $ch = @curl_init("http://localhost:{$port}/device");
+        if ($ch) {
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            $res = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($httpCode === 200 && $res) {
+                $isEngineOk = true;
+                $activePort = $port;
+                break;
+            }
         }
     }
 
     if ($isEngineOk) {
-        echo "<span class='ok'>✔ WhatsApp Engine Server (Node.js) sedang AKTIF & BERJALAN di port 3000.</span>\n";
+        echo "<span class='ok'>✔ WhatsApp Engine Server (Node.js) sedang AKTIF & BERJALAN di port {$activePort}.</span>\n";
     } else {
         echo "<span class='warn'>⚠ WhatsApp Engine Server mati. Memulai ulang secara otomatis di background...</span>\n";
         if (file_exists($serverPath)) {

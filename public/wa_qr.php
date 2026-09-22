@@ -10,12 +10,25 @@ if ($secret !== 'pembda99') {
     die('<h1 style="color:red; font-family:sans-serif; text-align:center;">403 Forbidden: Invalid Secret Token</h1>');
 }
 
-$ch = curl_init('http://localhost:3000/qr');
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-$html = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+$html = null;
+$httpCode = 0;
+
+foreach ([3002, 3000] as $port) {
+    $ch = @curl_init("http://localhost:{$port}/qr");
+    if ($ch) {
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        $res = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($code === 200 && $res) {
+            $html = $res;
+            $httpCode = 200;
+            break;
+        }
+    }
+}
 
 if ($httpCode !== 200 || !$html) {
     header('Content-Type: text/html; charset=utf-8');
