@@ -112,11 +112,11 @@ Schedule::call(function () {
 // Mengirim rekap kehadiran harian (siswa, guru, pegawai) ke Kepala Sekolah
 // dan rekap kelas ke Wali Kelas, 15 menit setelah batas toleransi jam masuk.
 // ============================================================================
-// Schedule::command('wa:digest attendance-daily')
-//     ->weekdays()
-//     ->at('08:00')
-//     ->timezone('Asia/Jakarta')
-//     ->withoutOverlapping(180)
-//     ->runInBackground()
-//     ->description('Kirim Rekap Kehadiran Harian ke Kepala Sekolah & Wali Kelas via WhatsApp');
+Schedule::command('wa:digest attendance-daily')
+    ->weekdays()
+    ->at('08:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping(180)
+    ->runInBackground()
+    ->description('Kirim Rekap Kehadiran Harian ke Kepala Sekolah & Wali Kelas via WhatsApp');
 

@@ -203,13 +203,109 @@ class WhatsAppService implements WhatsAppServiceInterface
 
     public function sendMessage(string $phone, string $message, array $options = []): array
     {
-        Log::channel('whatsapp')->info('HARD EMERGENCY SHUTOFF: WhatsApp sendMessage blocked', ['phone' => $phone]);
-        return [
-            'success' => false,
-            'message' => 'Layanan WhatsApp telah dimatikan secara total (HARD EMERGENCY SHUTDOWN).',
-            'error'   => 'EMERGENCY_SHUTDOWN',
-            'mode'    => 'disabled',
-        ];
+        if (!$this->isEnabled()) {
+            return [
+                'success' => false,
+                'message' => 'Layanan WhatsApp saat ini nonaktif di pengaturan sistem.',
+                'mode'    => 'disabled',
+            ];
+        }
+
+        $phone = $this->normalizePhoneNumber($phone);
+
+        // Global System Footer
+        $systemFooter = "\n\n---\n🤖 _Pesan ini dikirimkan secara otomatis oleh Sistem PembdaHUB Perguruan Pembda._";
+        if (!str_contains($message, 'Sistem PembdaHUB') && !str_contains($message, 'PembdaHUB Executive')) {
+            $message .= $systemFooter;
+        }
+
+        try {
+            $data = [
+                'target' => $phone,
+                'message' => $message,
+            ];
+
+            if (isset($options['image'])) {
+                $data['url'] = $options['image'];
+            }
+
+            if (isset($options['document'])) {
+                $data['filename'] = $options['document'];
+            }
+
+            /** @var Response $response */
+            $response = Http::timeout($this->timeout)
+                ->connectTimeout(5)
+                ->withHeaders([
+                    'Authorization' => $this->apiToken,
+                ])
+                ->post($this->apiUrl . '/send', $data);
+
+            $result = $response->json();
+            $isHttpSuccess = $response->successful();
+            $isDelivered = false;
+            $failureReason = null;
+
+            if ($this->activeProvider === 'fonnte') {
+                // Fonnte returns HTTP 200 even on failures with JSON status: false
+                if ($isHttpSuccess && isset($result['status']) && $result['status'] === true) {
+                    $isDelivered = true;
+                } else {
+                    $isDelivered = false;
+                    $failureReason = $result['reason'] ?? $result['message'] ?? 'Fonnte gagal memproses pesan (kemungkinan nomor perangkat WhatsApp di Fonnte terputus atau kuota habis)';
+                }
+            } elseif ($this->activeProvider === 'selfhosted') {
+                if ($isHttpSuccess && (($result['status'] ?? '') === 'success' || ($result['success'] ?? false) === true)) {
+                    $isDelivered = true;
+                } else {
+                    $isDelivered = false;
+                    $failureReason = $result['message'] ?? $result['error'] ?? 'Node Baileys Gateway gagal memproses pesan';
+                }
+            } else {
+                $isDelivered = $isHttpSuccess;
+            }
+
+            Log::channel('whatsapp')->info('WhatsApp message sent', [
+                'provider' => $this->activeProvider,
+                'phone' => $phone,
+                'status' => $isDelivered ? 'success' : 'failed',
+                'status_code' => $response->status(),
+                'response' => $result,
+                'failure_reason' => $failureReason,
+            ]);
+
+            return [
+                'success' => $isDelivered,
+                'provider' => $this->activeProvider,
+                'response' => $result,
+                'status_code' => $response->status(),
+                'error' => $failureReason,
+            ];
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::channel('whatsapp')->error('WhatsApp connection timeout', [
+                'provider' => $this->activeProvider,
+                'phone' => $phone,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'provider' => $this->activeProvider,
+                'error' => "Connection timeout ({$this->providerLabel}): " . $e->getMessage(),
+            ];
+        } catch (\Exception $e) {
+            Log::channel('whatsapp')->error('WhatsApp send failed', [
+                'provider' => $this->activeProvider,
+                'phone' => $phone,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'provider' => $this->activeProvider,
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 
     /**
@@ -271,7 +367,7 @@ class WhatsAppService implements WhatsAppServiceInterface
      */
     public function isEnabled(): bool
     {
-        return false; // All WhatsApp services disabled
+        return $this->enabled;
     }
 
     /**

@@ -453,13 +453,26 @@ try {
         \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
 
-        // 8b. TOTAL SHUTDOWN: Set ALL 51 WhatsApp features & automations to OFF in Database
-        $allWaKeys = [
-            'wa_enabled',
-            'wa_digest_enabled',
+        // 8b. SETTING KHUSUS: Pindah ke Fonnte Cloud API & Hanya 3 Notifikasi yang Aktif
+        \App\Models\Setting::setValue('wa_active_provider', 'fonnte', 'string', 'whatsapp');
+        \App\Models\Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
+        \App\Models\Setting::setValue('wa_digest_enabled', true, 'boolean', 'whatsapp');
+
+        // 3 Notifikasi yang DIMINTA AKTIF
+        $enabledKeys = [
+            'wa_send_teacher_attendance',       // 1. Notifikasi Tap Hadir Guru dan Pegawai Saja
+            'wa_send_principal_attendance',     // 2. Notifikasi Rekapitulasi Absen Sekolah Kepada Kepala Sekolah
+            'wa_send_homeroom_attendance',      // 3. Notifikasi Rekapitulasi Absen Kelas Kepada Wali Kelas
+        ];
+
+        foreach ($enabledKeys as $ek) {
+            \App\Models\Setting::setValue($ek, true, 'boolean', 'whatsapp');
+        }
+
+        // Seluruh 48 notifikasi lainnya tetap DIMATIKAN (OFF)
+        $disabledKeys = [
             'wa_notify_admin_digest',
             'wa_alert_enabled',
-            'wa_send_teacher_attendance',
             // Siswa & Wali Murid
             'wa_send_attendance_alert',
             'wa_send_payment_receipt',
@@ -476,8 +489,7 @@ try {
             'wa_send_guru_lms_submission',
             'wa_send_guru_meeting_alert',
             'wa_send_guru_training_alert',
-            // Wali Kelas
-            'wa_send_homeroom_attendance',
+            // Wali Kelas (spp, lms, bk)
             'wa_send_homeroom_spp',
             'wa_send_homeroom_lms',
             'wa_send_homeroom_bk_alert',
@@ -485,8 +497,7 @@ try {
             'wa_send_staff_attendance_reminder',
             'wa_send_staff_payroll_notice',
             'wa_send_staff_announcement',
-            // Kepala Sekolah
-            'wa_send_principal_attendance',
+            // Kepala Sekolah (spp, lms, critical)
             'wa_send_principal_spp',
             'wa_send_principal_lms',
             'wa_send_principal_critical_cases',
@@ -519,11 +530,15 @@ try {
             'wa_send_broadcast_emergency_holiday',
             'wa_send_broadcast_event_announcement',
         ];
-        foreach ($allWaKeys as $wak) {
-            \App\Models\Setting::setValue($wak, false, 'boolean', 'whatsapp');
+
+        foreach ($disabledKeys as $dk) {
+            \App\Models\Setting::setValue($dk, false, 'boolean', 'whatsapp');
         }
+
         $deletedCount = \Illuminate\Support\Facades\DB::table('jobs')->delete();
-        echo "<span class='warn'>🔒 TOTAL SHUTDOWN: Seluruh (" . count($allWaKeys) . ") Fitur WhatsApp & Otomatisasi telah DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
+        echo "<span class='ok'>✔ Provider WhatsApp: FONNTE (Cloud API) diaktifkan.</span>\n";
+        echo "<span class='ok'>✔ 3 Notifikasi Terpilih (Tap Guru/Pegawai, Rekap Kepsek, Rekap Wali Kelas) AKTIF (ON).</span>\n";
+        echo "<span class='warn'>🔒 48 Notifikasi lainnya tetap DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
     }
 
     // 9. Force Kill WhatsApp Node.js Engine (Disabled permanently per user request)
