@@ -101,6 +101,46 @@ Schedule::call(function () {
 })->everyFifteenMinutes()->description('Application health check');
 
 // ============================================================================
+// Auto-Keepalive Self-Hosted WhatsApp Engine (Node.js Baileys)
+// Mengecek ketersediaan server Node.js di port 3000 setiap 5 menit.
+// Jika terhenti/mati, otomatis dinyalakan kembali di background secara mandiri.
+// ============================================================================
+Schedule::call(function () {
+    $rootDir = base_path();
+    $serverPath = "{$rootDir}/whatsapp-server/server.js";
+
+    $ch = @curl_init('http://localhost:3000/device');
+    if ($ch) {
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200 && $response) {
+            return; // Node.js engine is alive
+        }
+    }
+
+    if (file_exists($serverPath)) {
+        $nodeBin = '/usr/bin/node';
+        if (!file_exists($nodeBin)) {
+            $which = trim(@shell_exec('which node 2>/dev/null') ?? '');
+            $nodeBin = $which ?: 'node';
+        }
+
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            @pclose(@popen("start /B {$nodeBin} {$serverPath}", "r"));
+        } else {
+            $cmd = "nohup {$nodeBin} {$serverPath} > /dev/null 2>&1 &";
+            @exec($cmd);
+        }
+
+        \Illuminate\Support\Facades\Log::channel('whatsapp')->info('Auto-Keepalive: Node.js WhatsApp Engine restarted automatically');
+    }
+})->everyFiveMinutes()->name('wa-engine-keepalive')->withoutOverlapping();
+
+// ============================================================================
 // WhatsApp Daily Attendance Digest — Senin s/d Jumat pukul 08:00 WIB
 // Mengirim rekap kehadiran harian (siswa, guru, pegawai) ke Kepala Sekolah
 // dan rekap kelas ke Wali Kelas, 15 menit setelah batas toleransi jam masuk.
@@ -112,3 +152,4 @@ Schedule::command('wa:digest attendance-daily')
     ->withoutOverlapping(180)
     ->runInBackground()
     ->description('Kirim Rekap Kehadiran Harian ke Kepala Sekolah & Wali Kelas via WhatsApp');
+

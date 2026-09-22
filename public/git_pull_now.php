@@ -453,6 +453,41 @@ try {
         \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
     }
+
+    // 9. Auto-Check & Start WhatsApp Node.js Engine
+    echo "</pre><h2>▶ 9. Pemeriksaan Otomatis Service WhatsApp Engine Node.js</h2><pre>";
+    $ch = @curl_init('http://localhost:3000/device');
+    $isEngineOk = false;
+    if ($ch) {
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        $res = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($httpCode === 200 && $res) {
+            $isEngineOk = true;
+        }
+    }
+
+    if ($isEngineOk) {
+        echo "<span class='ok'>✔ WhatsApp Engine Server (Node.js) sedang AKTIF & BERJALAN di port 3000.</span>\n";
+    } else {
+        echo "<span class='warn'>⚠ WhatsApp Engine Server mati. Memulai ulang secara otomatis di background...</span>\n";
+        $serverPath = "{$root}/whatsapp-server/server.js";
+        if (file_exists($serverPath)) {
+            $nodeBin = '/usr/bin/node';
+            if (!file_exists($nodeBin)) {
+                $which = trim(@shell_exec('which node 2>/dev/null') ?? '');
+                $nodeBin = $which ?: 'node';
+            }
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                @pclose(@popen("start /B {$nodeBin} {$serverPath}", "r"));
+            } else {
+                @shell_exec("nohup {$nodeBin} {$serverPath} > /dev/null 2>&1 &");
+            }
+            echo "<span class='ok'>✔ WhatsApp Engine Server telah otomatis diaktifkan di background server.</span>\n";
+        }
+    }
 } catch (\Throwable $e) {
     $diag = class_exists('\App\Services\ErrorDiagnosticService') 
         ? \App\Services\ErrorDiagnosticService::diagnose($e)
