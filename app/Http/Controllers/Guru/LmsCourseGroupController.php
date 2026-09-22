@@ -43,6 +43,7 @@ class LmsCourseGroupController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:100',
+            'theme' => 'nullable|string|max:255',
             'leader_id' => 'required|exists:students,id',
             'member_ids' => 'nullable|array',
             'member_ids.*' => 'exists:students,id',
@@ -79,6 +80,7 @@ class LmsCourseGroupController extends Controller
 
         $group = $course->courseGroups()->create([
             'name' => $request->name,
+            'theme' => $request->theme,
             'leader_id' => $request->leader_id,
         ]);
 
@@ -87,6 +89,67 @@ class LmsCourseGroupController extends Controller
 
         return redirect()->route('guru.lms.show', ['course' => $course->id, 'tab' => 'groups'])
             ->with('success', "Kelompok '{$group->name}' berhasil ditambahkan ke kursus.");
+    }
+
+    /**
+     * Update an existing course master group
+     */
+    public function update(Request $request, LmsCourse $course, LmsCourseGroup $group)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher) || $group->course_id !== $course->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'theme' => 'nullable|string|max:255',
+            'leader_id' => 'required|exists:students,id',
+            'member_ids' => 'nullable|array',
+            'member_ids.*' => 'exists:students,id',
+        ]);
+
+        $assignmentCtrl = app(LmsAssignmentController::class);
+        $refMethod = new \ReflectionMethod($assignmentCtrl, 'getEnrolledStudentsForCourse');
+        $refMethod->setAccessible(true);
+        $allEnrolledStudents = $refMethod->invoke($assignmentCtrl, $course);
+        $validStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+
+        // Validasi ketua harus merupakan siswa sah kursus ini
+        if (!in_array((int)$request->leader_id, $validStudentIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ketua kelompok yang dipilih bukan siswa sah yang terdaftar di kursus ini.');
+        }
+
+        $allRequestedIds = collect($request->member_ids ?? [])->push((int)$request->leader_id)->unique()->toArray();
+        $invalidIds = array_diff($allRequestedIds, $validStudentIds);
+        if (!empty($invalidIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ada siswa yang dipilih bukan merupakan siswa terdaftar di kursus ini.');
+        }
+
+        // Cek konflik siswa yang sudah masuk kelompok kursus LAIN (selain kelompok ini)
+        $otherGroups = $course->courseGroups()->where('id', '!=', $group->id)->with('members')->get();
+        $alreadyGroupedStudentIds = $otherGroups->flatMap(function ($grp) {
+            return $grp->members->pluck('id')->push($grp->leader_id);
+        })->unique()->filter()->toArray();
+
+        $conflicts = array_values(array_intersect($allRequestedIds, $alreadyGroupedStudentIds));
+
+        if (!empty($conflicts)) {
+            $conflictStudents = Student::whereIn('id', $conflicts)->get()->map(fn($s) => $s->user->name ?? $s->full_name)->implode(', ');
+            return redirect()->back()->with('error', "Gagal: Siswa ({$conflictStudents}) sudah terdaftar di kelompok kursus lain.");
+        }
+
+        $group->update([
+            'name' => $request->name,
+            'theme' => $request->theme,
+            'leader_id' => $request->leader_id,
+        ]);
+
+        $memberIds = collect($request->member_ids ?? [])->push($request->leader_id)->unique()->filter()->values()->toArray();
+        $group->members()->sync($memberIds);
+
+        return redirect()->route('guru.lms.show', ['course' => $course->id, 'tab' => 'groups'])
+            ->with('success', "Kelompok '{$group->name}' berhasil diperbarui.");
     }
 
     /**
@@ -257,6 +320,7 @@ class LmsCourseGroupController extends Controller
 
             foreach ($rows as $row) {
                 $groupName = trim($row['nama_kelompok'] ?? $row['kelompok'] ?? $row['group_name'] ?? '');
+                $theme = trim($row['tema_proyek'] ?? $row['tema'] ?? $row['proyek'] ?? $row['theme'] ?? $row['project'] ?? '');
                 $nisn = trim((string)($row['nisn'] ?? $row['nis'] ?? $row['no_induk'] ?? ''));
                 $studentName = trim((string)($row['nama_siswa'] ?? $row['nama'] ?? $row['full_name'] ?? ''));
                 $peran = strtolower(trim($row['peran'] ?? $row['role'] ?? 'anggota'));
@@ -281,8 +345,11 @@ class LmsCourseGroupController extends Controller
                 if (!isset($groupedData[$groupName])) {
                     $groupedData[$groupName] = [
                         'leader_id' => null,
+                        'theme' => !empty($theme) ? $theme : null,
                         'member_ids' => [],
                     ];
+                } elseif (!empty($theme) && empty($groupedData[$groupName]['theme'])) {
+                    $groupedData[$groupName]['theme'] = $theme;
                 }
 
                 if ($peran === 'ketua' || $peran === 'leader' || $groupedData[$groupName]['leader_id'] === null) {
@@ -309,11 +376,18 @@ class LmsCourseGroupController extends Controller
 
                 $group = $course->courseGroups()->firstOrCreate(
                     ['name' => $name],
-                    ['leader_id' => $leaderId]
+                    ['leader_id' => $leaderId, 'theme' => $gInfo['theme'] ?? null]
                 );
 
+                $updatePayload = [];
                 if ($group->leader_id !== $leaderId) {
-                    $group->update(['leader_id' => $leaderId]);
+                    $updatePayload['leader_id'] = $leaderId;
+                }
+                if (!empty($gInfo['theme']) && $group->theme !== $gInfo['theme']) {
+                    $updatePayload['theme'] = $gInfo['theme'];
+                }
+                if (!empty($updatePayload)) {
+                    $group->update($updatePayload);
                 }
 
                 $group->members()->sync($memberIds);
@@ -361,6 +435,7 @@ class LmsCourseGroupController extends Controller
             if (!$existing) {
                 $grp = $assignment->groups()->create([
                     'name' => $cg->name,
+                    'theme' => $cg->theme,
                     'leader_id' => $cg->leader_id,
                 ]);
                 $grp->members()->sync($cg->members->pluck('id')->toArray());

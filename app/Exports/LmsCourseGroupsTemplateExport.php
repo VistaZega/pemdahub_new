@@ -30,6 +30,7 @@ class LmsCourseGroupsTemplateExport implements FromArray, WithHeadings, WithStyl
             return [
                 [
                     'nama_kelompok' => 'Kelompok 1',
+                    'tema_proyek' => 'Contoh Tema / Judul Proyek 1',
                     'nisn' => '0012345678',
                     'nama_siswa' => 'Siswa Contoh 1',
                     'peran' => 'Ketua',
@@ -37,6 +38,7 @@ class LmsCourseGroupsTemplateExport implements FromArray, WithHeadings, WithStyl
                 ],
                 [
                     'nama_kelompok' => 'Kelompok 1',
+                    'tema_proyek' => 'Contoh Tema / Judul Proyek 1',
                     'nisn' => '0012345679',
                     'nama_siswa' => 'Siswa Contoh 2',
                     'peran' => 'Anggota',
@@ -44,6 +46,7 @@ class LmsCourseGroupsTemplateExport implements FromArray, WithHeadings, WithStyl
                 ],
                 [
                     'nama_kelompok' => 'Kelompok 2',
+                    'tema_proyek' => 'Contoh Tema / Judul Proyek 2',
                     'nisn' => '0012345680',
                     'nama_siswa' => 'Siswa Contoh 3',
                     'peran' => 'Ketua',
@@ -64,6 +67,7 @@ class LmsCourseGroupsTemplateExport implements FromArray, WithHeadings, WithStyl
             foreach ($chunk as $std) {
                 $rows[] = [
                     'nama_kelompok' => $groupName,
+                    'tema_proyek' => '',
                     'nisn' => (string)($std->nisn ?? $std->nis ?? $std->id),
                     'nama_siswa' => $std->user->name ?? $std->full_name ?? '',
                     'peran' => $isFirst ? 'Ketua' : 'Anggota',
@@ -81,6 +85,7 @@ class LmsCourseGroupsTemplateExport implements FromArray, WithHeadings, WithStyl
     {
         return [
             'nama_kelompok',
+            'tema_proyek',
             'nisn',
             'nama_siswa',
             'peran',

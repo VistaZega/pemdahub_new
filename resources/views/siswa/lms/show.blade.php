@@ -827,6 +827,12 @@ if (!function_exists('balanceHtmlTags')) {
                                         Ketua Kelompok: <strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Belum Ditunjuk' }}</strong>
                                     </div>
                                 </div>
+                                @if(!empty($myGroup->theme))
+                                <div class="text-xs font-bold text-purple-950 bg-white/90 border border-purple-200 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                                    <i class="fas fa-lightbulb text-amber-500 shrink-0"></i>
+                                    <span><strong class="text-purple-700 uppercase text-[10px]">Tema / Proyek:</strong> {{ $myGroup->theme }}</span>
+                                </div>
+                                @endif
                                 <div class="text-xs text-gray-700 font-medium">
                                     <span class="font-bold text-purple-900">Daftar Anggota Kelompok:</span>
                                     <span class="text-gray-600">{{ $myGroup->members->pluck('user.name')->filter()->implode(', ') ?: ($myGroup->members->pluck('full_name')->filter()->implode(', ') ?: '—') }}</span>
@@ -991,7 +997,7 @@ if (!function_exists('balanceHtmlTags')) {
                         <i class="fas fa-info text-xs"></i>
                     </div>
                     <div class="text-xs text-purple-900">
-                        <p class="font-extrabold">Informasi Pengumpulkan Tugas Kelompok ({{ $myGroup->name }})</p>
+                        <p class="font-extrabold">Informasi Pengumpulkan Tugas Kelompok ({{ $myGroup->name }}{{ !empty($myGroup->theme) ? ' — ' . $myGroup->theme : '' }})</p>
                         <p class="font-medium text-purple-800 mt-0.5">
                             Pengumpulkan tugas dapat dilakukan oleh Ketua Kelompok (<strong class="text-gray-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Ketua' }}</strong>) atau anggota kelompok manapun yang mewakili. Cukup 1 siswa yang mengunggah tugas untuk seluruh kelompok.
                         </p>
@@ -1026,7 +1032,7 @@ if (!function_exists('balanceHtmlTags')) {
                     @if($isGroupWork && $myGroup)
                     <div class="p-3.5 rounded-xl text-xs font-bold bg-purple-100/80 border border-purple-300 text-purple-900 flex items-center gap-2">
                         <i class="fas fa-users text-purple-700 text-base flex-shrink-0"></i>
-                        <span>Anda mengunggah tugas mewakili <strong>{{ $myGroup->name }}</strong> ({{ $myGroup->members->count() }} Anggota). Berkas jawaban dan nilai akan otomatis terhubung ke seluruh anggota.</span>
+                        <span>Anda mengunggah tugas mewakili <strong>{{ $myGroup->name }}</strong>{{ !empty($myGroup->theme) ? ' (' . $myGroup->theme . ')' : '' }} ({{ $myGroup->members->count() }} Anggota). Berkas jawaban dan nilai akan otomatis terhubung ke seluruh anggota.</span>
                     </div>
                     @elseif($isGroupWork && !$myGroup)
                     <div class="p-3.5 rounded-xl text-xs font-bold bg-amber-100/80 border border-amber-300 text-amber-900 flex items-center gap-2">

@@ -175,6 +175,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::put('/assignments/{assignment}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'update'])->name('assignments.update');
         Route::delete('/assignments/{assignment}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'destroy'])->name('assignments.destroy');
         Route::post('/assignments/{assignment}/groups', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'storeGroup'])->name('assignments.groups.store');
+        Route::put('/assignments/{assignment}/groups/{group}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'updateGroup'])->name('assignments.groups.update');
         Route::delete('/assignments/{assignment}/groups/{group}', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'deleteGroup'])->name('assignments.groups.destroy');
         Route::post('/assignments/{assignment}/groups/auto-generate', [App\Http\Controllers\Guru\LmsAssignmentController::class, 'autoGenerateGroups'])->name('assignments.groups.autoGenerate');
         Route::post('/assignments/{assignment}/groups/import-course-groups', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'importToAssignment'])->name('assignments.groups.importCourseGroups');
@@ -183,6 +184,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
 
         // Course Master Groups (Kelompok Belajar Tingkat Kursus)
         Route::post('/{course}/groups', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'store'])->name('groups.store');
+        Route::put('/{course}/groups/{group}', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'update'])->name('groups.update');
         Route::delete('/{course}/groups/{group}', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'destroy'])->name('groups.destroy');
         Route::post('/{course}/groups/auto-generate', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'autoGenerate'])->name('groups.autoGenerate');
         Route::get('/{course}/groups/download-template', [App\Http\Controllers\Guru\LmsCourseGroupController::class, 'downloadTemplate'])->name('groups.download-template');

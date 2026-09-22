@@ -269,7 +269,7 @@
                                 </button>
 
                                 {{-- Tombol Motivasi / Tindakan Pembinaan --}}
-                                <button onclick="openMotivationModal({{ $st->id }}, '{{ addslashes($st->full_name) }}', '{{ $item['phone'] }}', {{ $item['overall_progress'] }}, {{ $item['submitted_tasks'] }}, {{ $kpi['total_assignments'] }})"
+                                <button onclick="openMotivationModal({{ $st->id }}, '{{ addslashes($st->full_name) }}', '{{ $item['parent_phone'] }}', '{{ $item['student_phone'] }}', '{{ addslashes($item['parent_name']) }}', {{ $item['overall_progress'] }}, {{ $item['submitted_tasks'] }}, {{ $kpi['total_assignments'] }})"
                                         class="px-2.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl border border-black font-black text-[11px] shadow-xs transition flex items-center gap-1">
                                     <i class="fas fa-comment-dots text-xs"></i> Motivasi
                                 </button>
@@ -368,6 +368,30 @@
             <input type="hidden" name="student_id" id="motStudentId">
 
             <div>
+                <label class="block text-xs font-black text-slate-700 uppercase mb-1">Sasaran Penerima Pesan WhatsApp</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label id="labelRecipientParent" class="flex items-center gap-2.5 p-3 bg-amber-50 border-2 border-black rounded-2xl cursor-pointer transition select-none">
+                        <input type="radio" name="target_recipient" id="recParent" value="parent" checked onchange="handleRecipientChange()" class="text-black focus:ring-0">
+                        <div class="min-w-0">
+                            <div class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                <i class="fas fa-user-group text-amber-600"></i> Orang Tua / Wali
+                            </div>
+                            <div id="motParentPhoneBadge" class="text-[10px] font-bold text-slate-600 truncate mt-0.5">Memuat...</div>
+                        </div>
+                    </label>
+                    <label id="labelRecipientStudent" class="flex items-center gap-2.5 p-3 bg-slate-50 border-2 border-slate-300 rounded-2xl cursor-pointer transition select-none">
+                        <input type="radio" name="target_recipient" id="recStudent" value="student" onchange="handleRecipientChange()" class="text-black focus:ring-0">
+                        <div class="min-w-0">
+                            <div class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                <i class="fas fa-graduation-cap text-indigo-600"></i> Langsung ke Siswa
+                            </div>
+                            <div id="motStudentPhoneBadge" class="text-[10px] font-bold text-slate-600 truncate mt-0.5">Memuat...</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div>
                 <label class="block text-xs font-black text-slate-700 uppercase mb-1">Jenis Tindakan / Pesan</label>
                 <select name="message_type" id="motMessageType" onchange="updateTemplateNote()" class="w-full bg-slate-50 border-2 border-black rounded-xl p-2.5 text-xs font-bold text-slate-900 outline-none">
                     <option value="motivasi">📢 Dorongan & Motivasi Belajar (Umum)</option>
@@ -383,14 +407,17 @@
             </div>
 
             <div>
-                <label class="block text-xs font-black text-slate-700 uppercase mb-1">Nomor WhatsApp Tujuan (Orang Tua / Siswa)</label>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-xs font-black text-slate-700 uppercase">Nomor WhatsApp Tujuan</label>
+                    <span id="motPhoneBadgeStatus" class="text-[10px] font-black px-2 py-0.5 rounded-lg border"></span>
+                </div>
                 <div class="relative flex items-center">
                     <i class="fab fa-whatsapp absolute left-4 text-emerald-600 text-base pointer-events-none"></i>
                     <input type="text" name="target_phone" id="motTargetPhone" placeholder="Contoh: 081234567890 (Kosongkan jika hanya rekam sistem)"
                            class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-3 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
                 </div>
-                <p class="text-[10px] text-slate-500 font-bold mt-1">
-                    *Jika nomor diisi, sistem akan otomatis membuka chat WhatsApp dengan template pesan rapi.
+                <p id="motWaHelpText" class="text-[10px] text-slate-500 font-bold mt-1">
+                    *Pesan sapaan WhatsApp akan menyapa Bapak/Ibu Wali Murid.
                 </p>
             </div>
 
@@ -507,17 +534,80 @@
 
     // 2. OPEN MOTIVATION MODAL
     let currentStudentData = {};
-    function openMotivationModal(id, name, phone, progress, submittedTasks, totalTasks) {
-        currentStudentData = { id, name, phone, progress, submittedTasks, totalTasks };
+    function openMotivationModal(id, name, parentPhone, studentPhone, parentName, progress, submittedTasks, totalTasks) {
+        currentStudentData = { id, name, parentPhone, studentPhone, parentName, progress, submittedTasks, totalTasks };
         document.getElementById('motStudentId').value = id;
-        document.getElementById('motStudentNameTitle').textContent = name;
-        document.getElementById('motTargetPhone').value = phone || '';
+        document.getElementById('motStudentNameTitle').textContent = `${name} (${parentName || 'Wali Murid'})`;
         
+        // Update badge nomor di opsi sasaran
+        const pBadge = document.getElementById('motParentPhoneBadge');
+        if (parentPhone) {
+            pBadge.innerHTML = `<span class="text-emerald-700 font-black"><i class="fab fa-whatsapp"></i> ${parentPhone}</span>`;
+        } else {
+            pBadge.innerHTML = `<span class="text-amber-700 italic">Nomor belum ada</span>`;
+        }
+
+        const sBadge = document.getElementById('motStudentPhoneBadge');
+        if (studentPhone) {
+            sBadge.innerHTML = `<span class="text-emerald-700 font-black"><i class="fab fa-whatsapp"></i> ${studentPhone}</span>`;
+        } else {
+            sBadge.innerHTML = `<span class="text-amber-700 italic">Nomor belum ada</span>`;
+        }
+
+        // Tentukan default recipient: Jika orang tua punya nomor, pilih Orang Tua. Jika tidak tapi siswa punya nomor, pilih Siswa.
+        if (!parentPhone && studentPhone) {
+            document.getElementById('recStudent').checked = true;
+        } else {
+            document.getElementById('recParent').checked = true;
+        }
+
+        handleRecipientChange();
         updateTemplateNote();
 
         const modal = document.getElementById('motivationModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+    }
+
+    function handleRecipientChange() {
+        const isParent = document.getElementById('recParent').checked;
+        const targetPhoneInput = document.getElementById('motTargetPhone');
+        const helpText = document.getElementById('motWaHelpText');
+        const statusBadge = document.getElementById('motPhoneBadgeStatus');
+        const lblParent = document.getElementById('labelRecipientParent');
+        const lblStudent = document.getElementById('labelRecipientStudent');
+
+        const name = currentStudentData.name || 'Siswa';
+
+        if (isParent) {
+            lblParent.className = 'flex items-center gap-2.5 p-3 bg-amber-50 border-2 border-black rounded-2xl cursor-pointer transition select-none shadow-xs';
+            lblStudent.className = 'flex items-center gap-2.5 p-3 bg-slate-50 border-2 border-slate-300 rounded-2xl cursor-pointer transition select-none opacity-70';
+
+            targetPhoneInput.value = currentStudentData.parentPhone || '';
+            helpText.textContent = `*Pesan WhatsApp akan menyapa Bapak/Ibu Wali dari ananda ${name}.`;
+
+            if (currentStudentData.parentPhone) {
+                statusBadge.className = 'text-[10px] font-black px-2 py-0.5 rounded-lg border bg-emerald-50 text-emerald-800 border-emerald-300';
+                statusBadge.textContent = 'Nomor Orang Tua Tersedia';
+            } else {
+                statusBadge.className = 'text-[10px] font-black px-2 py-0.5 rounded-lg border bg-amber-50 text-amber-800 border-amber-300';
+                statusBadge.textContent = 'Nomor Orang Tua Belum Terdata (Bisa input manual)';
+            }
+        } else {
+            lblParent.className = 'flex items-center gap-2.5 p-3 bg-slate-50 border-2 border-slate-300 rounded-2xl cursor-pointer transition select-none opacity-70';
+            lblStudent.className = 'flex items-center gap-2.5 p-3 bg-indigo-50 border-2 border-indigo-600 rounded-2xl cursor-pointer transition select-none shadow-xs';
+
+            targetPhoneInput.value = currentStudentData.studentPhone || '';
+            helpText.textContent = `*Pesan WhatsApp akan menyapa langsung ke ananda ${name}.`;
+
+            if (currentStudentData.studentPhone) {
+                statusBadge.className = 'text-[10px] font-black px-2 py-0.5 rounded-lg border bg-emerald-50 text-emerald-800 border-emerald-300';
+                statusBadge.textContent = 'Nomor Siswa Tersedia';
+            } else {
+                statusBadge.className = 'text-[10px] font-black px-2 py-0.5 rounded-lg border bg-amber-50 text-amber-800 border-amber-300';
+                statusBadge.textContent = 'Nomor Siswa Belum Terdata (Bisa input manual)';
+            }
+        }
     }
 
     function closeMotivationModal() {

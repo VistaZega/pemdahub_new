@@ -426,6 +426,7 @@ class LmsAssignmentController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:100',
+            'theme' => 'nullable|string|max:255',
             'leader_id' => 'required|exists:students,id',
             'member_ids' => 'nullable|array',
             'member_ids.*' => 'exists:students,id',
@@ -462,6 +463,7 @@ class LmsAssignmentController extends Controller
 
         $group = $assignment->groups()->create([
             'name' => $request->name,
+            'theme' => $request->theme,
             'leader_id' => $request->leader_id,
         ]);
 
@@ -476,6 +478,73 @@ class LmsAssignmentController extends Controller
 
         return redirect()->route('guru.lms.assignments.show', $redirParams)
             ->with('success', "Kelompok '{$group->name}' berhasil ditambahkan.");
+    }
+
+    /**
+     * Update an existing group for group assignment
+     */
+    public function updateGroup(Request $request, LmsAssignment $assignment, LmsAssignmentGroup $group)
+    {
+        $teacher = $this->getTeacher();
+        $course = $assignment->course;
+        if (!$teacher || !$this->authorizeAccess($course, $teacher) || $group->assignment_id !== $assignment->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'theme' => 'nullable|string|max:255',
+            'leader_id' => 'required|exists:students,id',
+            'member_ids' => 'nullable|array',
+            'member_ids.*' => 'exists:students,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+        ]);
+
+        $selectedClassroomId = $request->classroom_id;
+
+        $allEnrolledStudents = $this->getEnrolledStudentsForCourse($course, $selectedClassroomId ? (int)$selectedClassroomId : null);
+        $validStudentIds = $allEnrolledStudents->pluck('id')->toArray();
+
+        // Validasi ketua harus merupakan siswa sah kursus ini
+        if (!in_array((int)$request->leader_id, $validStudentIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ketua kelompok yang dipilih bukan siswa sah yang terdaftar di tugas ini.');
+        }
+
+        $allRequestedIds = collect($request->member_ids ?? [])->push((int)$request->leader_id)->unique()->toArray();
+        $invalidIds = array_diff($allRequestedIds, $validStudentIds);
+        if (!empty($invalidIds)) {
+            return redirect()->back()->with('error', 'Gagal: Ada siswa yang dipilih bukan merupakan siswa terdaftar di tugas ini.');
+        }
+
+        // Cek konflik siswa yang sudah masuk kelompok LAIN pada tugas ini (selain kelompok ini)
+        $otherGroups = $assignment->groups()->where('id', '!=', $group->id)->with('members')->get();
+        $alreadyGroupedStudentIds = $otherGroups->flatMap(function ($grp) {
+            return $grp->members->pluck('id')->push($grp->leader_id);
+        })->unique()->filter()->toArray();
+
+        $conflicts = array_values(array_intersect($allRequestedIds, $alreadyGroupedStudentIds));
+
+        if (!empty($conflicts)) {
+            $conflictStudents = \App\Models\Student::whereIn('id', $conflicts)->get()->map(fn($s) => $s->user->name ?? $s->full_name)->implode(', ');
+            return redirect()->back()->with('error', "Gagal: Siswa ({$conflictStudents}) sudah terdaftar di kelompok lain pada tugas ini.");
+        }
+
+        $group->update([
+            'name' => $request->name,
+            'theme' => $request->theme,
+            'leader_id' => $request->leader_id,
+        ]);
+
+        $memberIds = collect($request->member_ids ?? [])->push($request->leader_id)->unique()->filter()->values()->toArray();
+        $group->members()->sync($memberIds);
+
+        $redirParams = ['assignment' => $assignment->id];
+        if ($selectedClassroomId) {
+            $redirParams['classroom_id'] = $selectedClassroomId;
+        }
+
+        return redirect()->route('guru.lms.assignments.show', $redirParams)
+            ->with('success', "Kelompok '{$group->name}' berhasil diperbarui.");
     }
 
     /**

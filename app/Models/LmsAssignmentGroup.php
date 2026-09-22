@@ -14,6 +14,7 @@ class LmsAssignmentGroup extends Model
     protected $fillable = [
         'assignment_id',
         'name',
+        'theme',
         'leader_id',
     ];
 

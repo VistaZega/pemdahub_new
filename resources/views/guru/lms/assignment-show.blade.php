@@ -304,8 +304,61 @@
     })->filter(fn($id) => in_array($id, $enrolledStudentIds))->unique()->filter()->toArray();
 
     $availableStudents = $allEnrolledStudents->reject(fn($s) => in_array($s->id, $groupedStudentIds))->values();
+
+    $availableStudentsJson = $availableStudents->map(fn($s) => [
+        'id' => $s->id,
+        'name' => $s->user->name ?? $s->full_name,
+        'classroom' => $s->classroom_name ?? ($selectedClassroom->class_name ?? 'Kelas'),
+        'classroom_id' => $s->classroom_id ?? 0,
+    ])->values()->all();
 @endphp
-<div class="bg-white rounded-2xl border-2 border-purple-200 shadow-md p-6 space-y-6" x-data="{ showAddGroup: false, showAutoGroup: false, activeGroupDetail: null }">
+<div class="bg-white rounded-2xl border-2 border-purple-200 shadow-md p-6 space-y-6" 
+     x-data="{ 
+         showAddGroup: false, 
+         showAutoGroup: false, 
+         activeGroupDetail: null,
+         editGroupModal: false,
+         editingGroup: { id: null, name: '', theme: '', leader_id: null, member_ids: [] },
+         editingCandidates: [],
+         availablePool: {{ json_encode($availableStudentsJson) }},
+         openEditGroupModal(data) {
+             this.editingGroup = {
+                 id: data.id,
+                 name: data.name,
+                 theme: data.theme || '',
+                 leader_id: data.leader_id,
+                 member_ids: [...data.member_ids]
+             };
+             const existingIds = new Set((data.members_info || []).map(m => m.id));
+             const extra = this.availablePool.filter(s => !existingIds.has(s.id));
+             this.editingCandidates = [...(data.members_info || []), ...extra];
+             this.editGroupModal = true;
+         },
+         closeEditGroupModal() {
+             this.editGroupModal = false;
+             this.editingGroup = { id: null, name: '', theme: '', leader_id: null, member_ids: [] };
+             this.editingCandidates = [];
+         },
+         toggleMember(id) {
+             const numId = parseInt(id);
+             const idx = this.editingGroup.member_ids.indexOf(numId);
+             if (idx > -1) {
+                 if (parseInt(this.editingGroup.leader_id) === numId) {
+                     alert('Ketua kelompok wajib menjadi bagian dari anggota kelompok.');
+                     return;
+                 }
+                 this.editingGroup.member_ids.splice(idx, 1);
+             } else {
+                 this.editingGroup.member_ids.push(numId);
+             }
+         },
+         onLeaderChange() {
+             const lid = parseInt(this.editingGroup.leader_id);
+             if (lid && !this.editingGroup.member_ids.includes(lid)) {
+                 this.editingGroup.member_ids.push(lid);
+             }
+         }
+     }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center shadow-md">
@@ -366,14 +419,19 @@
             @if($selectedClassroomId)
             <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
             @endif
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Nama Kelompok <span class="text-rose-600">*</span></label>
                     <input type="text" name="name" required placeholder="Contoh: Kelompok 1" value="Kelompok {{ $assignment->groups->count() + 1 }}"
                            class="w-full border-2 border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Yang berhak upload berkas)</span></label>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tema / Judul Proyek (Opsional)</label>
+                    <input type="text" name="theme" placeholder="Contoh: Rancang Bangun IoT"
+                           class="w-full border-2 border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Upload Berkas)</span></label>
                     <select name="leader_id" required class="w-full border-2 border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
                         <option value="">— Pilih Ketua (Tersedia: {{ $availableStudents->count() }} Siswa{{ $selectedClassroom ? ' ' . $selectedClassroom->class_name : '' }}) —</option>
                         @forelse($availableStudents as $std)
@@ -469,6 +527,7 @@
             $grpDataJson = [
                 'id' => $grp->id,
                 'name' => $grp->name,
+                'theme' => $grp->theme ?? '',
                 'classroom' => $grpClassroomName,
                 'leader' => [
                     'name' => $grpLeaderName,
@@ -487,6 +546,20 @@
                 ] : null,
                 'max_score' => $assignment->max_score ?? 100,
             ];
+
+            $grpEditJson = [
+                'id' => $grp->id,
+                'name' => $grp->name,
+                'theme' => $grp->theme ?? '',
+                'leader_id' => $grp->leader_id,
+                'member_ids' => $validMembers->pluck('id')->values()->all(),
+                'members_info' => $validMembers->map(fn($m) => [
+                    'id' => $m->id,
+                    'name' => $m->user->name ?? $m->full_name,
+                    'classroom' => $grpClassroomName,
+                    'classroom_id' => $m->classroom_id ?? 0,
+                ])->values()->all(),
+            ];
         @endphp
         <div class="p-4 rounded-2xl border-2 border-gray-200 bg-white hover:border-purple-300 transition-all shadow-xs flex flex-col justify-between space-y-3">
             <div>
@@ -501,16 +574,29 @@
                         </span>
                         @endif
                     </div>
-                    <form action="{{ route('guru.lms.assignments.groups.destroy', [$assignment->id, $grp->id]) }}" method="POST" onsubmit="return confirm('Hapus kelompok {{ $grp->name }}?')">
-                        @csrf @method('DELETE')
-                        @if($selectedClassroomId)
-                        <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
-                        @endif
-                        <button type="submit" class="text-gray-400 hover:text-rose-600 text-xs p-1" title="Hapus Kelompok">
-                            <i class="fas fa-trash"></i>
+                    <div class="flex items-center gap-1">
+                        <button type="button" @click='openEditGroupModal(@json($grpEditJson))'
+                                class="p-1 rounded text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition" title="Edit Kelompok & Tema">
+                            <i class="fas fa-edit text-xs"></i>
                         </button>
-                    </form>
+                        <form action="{{ route('guru.lms.assignments.groups.destroy', [$assignment->id, $grp->id]) }}" method="POST" onsubmit="return confirm('Hapus kelompok {{ $grp->name }}?')">
+                            @csrf @method('DELETE')
+                            @if($selectedClassroomId)
+                            <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+                            @endif
+                            <button type="submit" class="text-gray-400 hover:text-rose-600 text-xs p-1" title="Hapus Kelompok">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
+
+                @if(!empty($grp->theme))
+                <div class="text-xs font-bold text-purple-900 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5 mb-2">
+                    <i class="fas fa-lightbulb text-amber-500 text-xs shrink-0"></i>
+                    <span class="truncate"><span class="text-purple-700 font-extrabold text-[10px] uppercase">Tema:</span> {{ $grp->theme }}</span>
+                </div>
+                @endif
 
                 <div class="space-y-1.5 text-xs">
                     <div class="flex items-center gap-1.5 font-bold text-gray-900">
@@ -590,6 +676,19 @@
             {{-- Modal Body --}}
             <div class="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)] text-gray-800 text-xs">
                 
+                {{-- Tema / Topik Proyek (Jika ada) --}}
+                <template x-if="activeGroupDetail?.theme">
+                    <div class="p-3.5 bg-purple-50 border border-purple-200 rounded-2xl flex items-start gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 text-sm shadow-2xs font-black">
+                            <i class="fas fa-lightbulb text-amber-300"></i>
+                        </span>
+                        <div>
+                            <div class="text-[10px] font-mono font-bold uppercase text-purple-700">TEMA / JUDUL PROYEK:</div>
+                            <div class="text-sm font-black text-purple-950 mt-0.5" x-text="activeGroupDetail.theme"></div>
+                        </div>
+                    </div>
+                </template>
+
                 {{-- Status Pengumpulan Bar --}}
                 <div class="p-3.5 rounded-2xl border flex items-center justify-between flex-wrap gap-2"
                      :class="activeGroupDetail?.submission ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'">
@@ -691,6 +790,88 @@
         </div>
     </div>
 
+    {{-- MODAL EDIT KELOMPOK TUGAS --}}
+    <div x-show="editGroupModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+         @keydown.escape.window="closeEditGroupModal()">
+        <div class="bg-white rounded-3xl border-2 border-black shadow-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto animate-fadeUp"
+             @click.away="closeEditGroupModal()">
+            <div class="flex items-center justify-between border-b-2 border-gray-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 border border-purple-300 flex items-center justify-center font-black">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-black uppercase tracking-wider">Edit Kelompok Tugas</h3>
+                        <p class="text-[11px] font-bold text-gray-500">Ubah nama kelompok, tema/proyek, ketua, atau susunan anggota.</p>
+                    </div>
+                </div>
+                <button type="button" @click="closeEditGroupModal()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-black transition flex items-center justify-center">✕</button>
+            </div>
+
+            <form :action="'{{ url('guru/lms/assignments/' . $assignment->id . '/groups') }}/' + editingGroup.id" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                @if($selectedClassroomId)
+                <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+                @endif
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black text-gray-800 mb-1">Nama Kelompok <span class="text-rose-600">*</span></label>
+                        <input type="text" name="name" x-model="editingGroup.name" required
+                               class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-gray-800 mb-1">Tema / Judul Proyek (Opsional)</label>
+                        <input type="text" name="theme" x-model="editingGroup.theme" placeholder="Contoh: Rancang Bangun IoT"
+                               class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-gray-800 mb-1">Pilih Ketua Kelompok <span class="text-rose-600">* (Penanggung Jawab Upload)</span></label>
+                    <select name="leader_id" x-model="editingGroup.leader_id" @change="onLeaderChange()" required
+                            class="w-full border-2 border-black rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-purple-500 outline-none bg-white">
+                        <option value="">— Pilih Ketua Kelompok —</option>
+                        <template x-for="c in editingCandidates" :key="'lead-' + c.id">
+                            <option :value="c.id" x-text="'[' + (c.classroom || 'Kelas') + '] ' + c.name" :selected="c.id == editingGroup.leader_id"></option>
+                        </template>
+                    </select>
+                    <p class="text-[10px] text-gray-500 font-bold mt-1">*Ketua kelompok otomatis terdaftar sebagai anggota kelompok.</p>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-black text-gray-800">Daftar Anggota Kelompok (Centang Siswa):</label>
+                        <span class="text-[11px] font-bold text-purple-700" x-text="editingGroup.member_ids.length + ' Anggota Terpilih'"></span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-3 bg-slate-50 border-2 border-black rounded-xl">
+                        <template x-for="c in editingCandidates" :key="'mem-' + c.id">
+                            <label class="flex items-center gap-2 text-xs font-bold text-gray-700 hover:bg-purple-100 p-2 rounded-xl border border-transparent hover:border-purple-200 cursor-pointer transition select-none"
+                                   :class="editingGroup.member_ids.includes(c.id) ? 'bg-purple-50 border-purple-200' : ''">
+                                <input type="checkbox" name="member_ids[]" :value="c.id"
+                                       :checked="editingGroup.member_ids.includes(c.id)"
+                                       @click="toggleMember(c.id)"
+                                       class="rounded text-purple-600 focus:ring-0">
+                                <span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded font-black border border-blue-200 shrink-0" x-text="c.classroom || 'Kelas'"></span>
+                                <span class="truncate flex-1" x-text="c.name"></span>
+                                <span x-show="c.id == editingGroup.leader_id" class="text-[10px] font-black text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200 shrink-0">👑 Ketua</span>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                    <button type="button" @click="closeEditGroupModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-black bg-purple-600 text-white hover:bg-purple-700 border-2 border-black shadow-sm transition">
+                        <i class="fas fa-save mr-1"></i> Simpan Perubahan Kelompok
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 @endif
 
@@ -767,10 +948,15 @@
                             </div>
                             <div>
                                 @if($sub->group)
-                                    <div class="flex items-center gap-1.5 mb-1">
+                                    <div class="flex items-center gap-1.5 mb-1 flex-wrap">
                                         <span class="text-xs font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded border border-purple-200 uppercase">
                                             {{ $sub->group->name }}
                                         </span>
+                                        @if(!empty($sub->group->theme))
+                                            <span class="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                <i class="fas fa-lightbulb text-amber-500"></i> {{ $sub->group->theme }}
+                                            </span>
+                                        @endif
                                         <span class="text-[10px] text-gray-400 font-bold">({{ $sub->group->members->count() }} Anggota)</span>
                                     </div>
                                     <p class="font-bold text-gray-800 text-xs leading-snug">

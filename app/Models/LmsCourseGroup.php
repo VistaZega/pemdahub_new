@@ -16,6 +16,7 @@ class LmsCourseGroup extends Model
     protected $fillable = [
         'course_id',
         'name',
+        'theme',
         'leader_id',
     ];
 

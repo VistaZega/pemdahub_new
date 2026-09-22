@@ -211,14 +211,21 @@ class HomeroomLmsController extends Controller
                 $statusColor = 'amber';
             }
 
-            // Ambil nomor WhatsApp orang tua atau siswa
+            // Ambil nomor WhatsApp orang tua dan siswa secara terpisah
             $parent = $st->parents->first();
-            $phoneTarget = $parent?->phone ?? $parent?->whatsapp ?? $st->phone ?? $st->whatsapp ?? null;
-            if ($phoneTarget) {
-                // Standarisasi nomor ke format 62xxx
-                $phoneTarget = preg_replace('/[^0-9]/', '', $phoneTarget);
-                if (str_starts_with($phoneTarget, '0')) {
-                    $phoneTarget = '62' . substr($phoneTarget, 1);
+            $parentPhone = $parent?->phone ?? $parent?->whatsapp ?? null;
+            if ($parentPhone) {
+                $parentPhone = preg_replace('/[^0-9]/', '', $parentPhone);
+                if (str_starts_with($parentPhone, '0')) {
+                    $parentPhone = '62' . substr($parentPhone, 1);
+                }
+            }
+
+            $studentPhone = $st->phone ?? $st->whatsapp ?? null;
+            if ($studentPhone) {
+                $studentPhone = preg_replace('/[^0-9]/', '', $studentPhone);
+                if (str_starts_with($studentPhone, '0')) {
+                    $studentPhone = '62' . substr($studentPhone, 1);
                 }
             }
 
@@ -232,7 +239,9 @@ class HomeroomLmsController extends Controller
                 'status_label' => $statusLabel,
                 'status_color' => $statusColor,
                 'is_at_risk' => $isAtRisk,
-                'phone' => $phoneTarget,
+                'phone' => $parentPhone ?: $studentPhone,
+                'parent_phone' => $parentPhone,
+                'student_phone' => $studentPhone,
                 'parent_name' => $parent?->father_name ?? $parent?->mother_name ?? $parent?->guardian_name ?? 'Orang Tua / Wali',
                 'courses' => $courseBreakdown,
             ];
@@ -405,6 +414,23 @@ class HomeroomLmsController extends Controller
             ->take(5)
             ->get();
 
+        $parent = $student->parents->first();
+        $parentPhone = $parent?->phone ?? $parent?->whatsapp ?? null;
+        if ($parentPhone) {
+            $parentPhone = preg_replace('/[^0-9]/', '', $parentPhone);
+            if (str_starts_with($parentPhone, '0')) {
+                $parentPhone = '62' . substr($parentPhone, 1);
+            }
+        }
+
+        $studentPhone = $student->phone ?? $student->whatsapp ?? null;
+        if ($studentPhone) {
+            $studentPhone = preg_replace('/[^0-9]/', '', $studentPhone);
+            if (str_starts_with($studentPhone, '0')) {
+                $studentPhone = '62' . substr($studentPhone, 1);
+            }
+        }
+
         return response()->json([
             'student' => [
                 'id' => $student->id,
@@ -413,8 +439,9 @@ class HomeroomLmsController extends Controller
                 'classroom' => $activeClass?->class_name,
                 'photo' => $student->photo_url,
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($student->full_name) . '&background=4f46e5&color=fff',
-                'parent_name' => $student->parents->first()?->father_name ?? $student->parents->first()?->mother_name ?? 'Orang Tua / Wali',
-                'parent_phone' => $student->parents->first()?->phone ?? $student->parents->first()?->whatsapp ?? $student->phone ?? null,
+                'parent_name' => $parent?->father_name ?? $parent?->mother_name ?? 'Orang Tua / Wali',
+                'parent_phone' => $parentPhone,
+                'student_phone' => $studentPhone,
             ],
             'courses' => $courseDetails,
             'counseling_records' => $counselingRecords,
@@ -429,6 +456,7 @@ class HomeroomLmsController extends Controller
         $request->validate([
             'student_id' => 'required|exists:students,id',
             'message_type' => 'required|in:motivasi,peringatan,apresiasi,evaluasi',
+            'target_recipient' => 'nullable|in:parent,student',
             'note' => 'required|string|max:1000',
             'target_phone' => 'nullable|string',
         ]);
@@ -445,6 +473,15 @@ class HomeroomLmsController extends Controller
             'evaluasi' => 'Catatan Evaluasi Progres Pembelajaran LMS',
         ];
 
+        $targetRecipient = $request->input('target_recipient', 'parent');
+        $teacherName = $teacher?->user?->name ?? $teacher?->full_name ?? Auth::user()->name;
+        $schoolName = $student->school?->name ?? 'Perguruan Pembda Nias';
+        $className = $student->currentClassroom->first()?->class_name ?? 'Kelas';
+
+        $actionDesc = $targetRecipient === 'student'
+            ? 'Pemberian bimbingan & dorongan motivasi LMS langsung ke siswa oleh Wali Kelas (' . $teacherName . ')'
+            : 'Pemberian bimbingan & dorongan motivasi LMS kepada Orang Tua oleh Wali Kelas (' . $teacherName . ')';
+
         // 1. Simpan ke rekaman bimbingan siswa
         $record = StudentCounselingRecord::create([
             'student_id' => $student->id,
@@ -455,12 +492,12 @@ class HomeroomLmsController extends Controller
             'category' => 'akademik',
             'title' => $titles[$request->message_type] ?? 'Catatan Wali Kelas',
             'description' => $request->note,
-            'action_taken' => 'Pemberian bimbingan & dorongan motivasi LMS oleh Wali Kelas (' . ($teacher?->full_name ?? Auth::user()->name) . ')',
+            'action_taken' => $actionDesc,
             'incident_date' => now(),
             'status' => 'selesai',
             'counselor_id' => $teacher?->user_id ?? Auth::id(),
-            'parent_notified' => !empty($request->target_phone),
-            'parent_notified_date' => !empty($request->target_phone) ? now() : null,
+            'parent_notified' => ($targetRecipient === 'parent' && !empty($request->target_phone)),
+            'parent_notified_date' => ($targetRecipient === 'parent' && !empty($request->target_phone)) ? now() : null,
         ]);
 
         // 2. Buat tautan WhatsApp jika nomor tujuan tersedia
@@ -471,16 +508,21 @@ class HomeroomLmsController extends Controller
                 $phone = '62' . substr($phone, 1);
             }
 
-            $teacherName = $teacher?->user?->name ?? $teacher?->full_name ?? Auth::user()->name;
-            $schoolName = $student->school?->name ?? 'Perguruan Pembda Nias';
-            $className = $student->currentClassroom->first()?->class_name ?? 'Kelas';
-
-            $waText = "Halo Bapak/Ibu Wali dari ananda *{$student->full_name}* ({$className}),\n\n"
-                    . "Saya *{$teacherName}* selaku Wali Kelas di {$schoolName}.\n\n"
-                    . "📢 *Catatan Pantauan Pembelajaran Digital (LMS):*\n"
-                    . "_{$request->note}_\n\n"
-                    . "Mari bersama-sama kita motivasi dan dampingi ananda agar selalu giat belajar dan menyelesaikan materi/tugas tepat waktu. Terima kasih banyak atas kerja sama yang baik! 🙏✨\n\n"
-                    . "_Sistem PembdaHUB - Ekosistem Digital Yayasan Perguruan PEMBDA Nias_";
+            if ($targetRecipient === 'student') {
+                $waText = "Halo ananda *{$student->full_name}* ({$className}),\n\n"
+                        . "Saya *{$teacherName}* selaku Wali Kelasmu di {$schoolName}.\n\n"
+                        . "📢 *Catatan Pantauan Pembelajaran Digital (LMS):*\n"
+                        . "_{$request->note}_\n\n"
+                        . "Tetap semangat belajar, giat membaca materi, dan selesaikan tugas-tugas LMS tepat waktu ya! Kamu pasti bisa meraih prestasi terbaik! 💪✨\n\n"
+                        . "_Sistem PembdaHUB - Ekosistem Digital Yayasan Perguruan PEMBDA Nias_";
+            } else {
+                $waText = "Halo Bapak/Ibu Wali dari ananda *{$student->full_name}* ({$className}),\n\n"
+                        . "Saya *{$teacherName}* selaku Wali Kelas di {$schoolName}.\n\n"
+                        . "📢 *Catatan Pantauan Pembelajaran Digital (LMS):*\n"
+                        . "_{$request->note}_\n\n"
+                        . "Mari bersama-sama kita motivasi dan dampingi ananda agar selalu giat belajar dan menyelesaikan materi/tugas tepat waktu. Terima kasih banyak atas kerja sama yang baik! 🙏✨\n\n"
+                        . "_Sistem PembdaHUB - Ekosistem Digital Yayasan Perguruan PEMBDA Nias_";
+            }
 
             $waUrl = "https://wa.me/{$phone}?text=" . urlencode($waText);
         }
