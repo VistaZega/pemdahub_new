@@ -281,7 +281,7 @@ class SettingsController extends Controller
         foreach ($automationGroups as $groupKey => $group) {
             $groupedSettings[$groupKey] = $group;
             foreach ($group['items'] as $itemKey => $item) {
-                $isEnabled = Setting::getValue($itemKey, true);
+                $isEnabled = Setting::getValue($itemKey, false);
                 $groupedSettings[$groupKey]['items'][$itemKey]['enabled'] = $isEnabled;
                 $allSettingsFlat[$itemKey] = [
                     'label' => $item['label'],

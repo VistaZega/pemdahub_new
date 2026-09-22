@@ -453,26 +453,70 @@ try {
         \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
 
-        // 8b. TOTAL SHUTDOWN: Set ALL WhatsApp features & automations to OFF in Database
+        // 8b. TOTAL SHUTDOWN: Set ALL 51 WhatsApp features & automations to OFF in Database
         $allWaKeys = [
             'wa_enabled',
             'wa_digest_enabled',
-            'wa_send_principal_attendance',
-            'wa_send_homeroom_attendance',
+            'wa_notify_admin_digest',
             'wa_send_teacher_attendance',
+            // Siswa & Wali Murid
+            'wa_send_attendance_alert',
+            'wa_send_payment_receipt',
+            'wa_send_payment_reminder',
+            'wa_send_grade_published',
+            'wa_send_reputation_award',
+            'wa_send_lms_notification',
             'wa_send_psb_registration',
             'wa_send_psb_payment',
             'wa_send_psb_test_schedule',
             'wa_send_psb_acceptance',
-            'wa_send_payment_reminder',
-            'wa_send_lms_notification',
-            'wa_send_counseling_record',
-            'wa_send_reputation_award',
-            'wa_send_payment_receipt',
+            // Guru
             'wa_send_teaching_reminder',
-            'wa_send_grade_published',
-            'wa_send_attendance_alert',
-            'wa_notify_admin_digest',
+            'wa_send_guru_lms_submission',
+            'wa_send_guru_meeting_alert',
+            'wa_send_guru_training_alert',
+            // Wali Kelas
+            'wa_send_homeroom_attendance',
+            'wa_send_homeroom_spp',
+            'wa_send_homeroom_lms',
+            'wa_send_homeroom_bk_alert',
+            // Pegawai / Tendik
+            'wa_send_staff_attendance_reminder',
+            'wa_send_staff_payroll_notice',
+            'wa_send_staff_announcement',
+            // Kepala Sekolah
+            'wa_send_principal_attendance',
+            'wa_send_principal_spp',
+            'wa_send_principal_lms',
+            'wa_send_principal_critical_cases',
+            // BK (Bimbingan Konseling)
+            'wa_send_counseling_record',
+            'wa_send_bk_chronic_absenteeism',
+            'wa_send_bk_parent_summons',
+            // Panitia PKL
+            'wa_send_pkl_registration',
+            'wa_send_pkl_supervisor_assigned',
+            'wa_send_pkl_journal_submission',
+            'wa_send_pkl_grading_ready',
+            // Panitia Project Akhir (SMK)
+            'wa_send_final_project_submission',
+            'wa_send_final_project_mentor_assigned',
+            'wa_send_final_project_exam_schedule',
+            'wa_send_final_project_approval',
+            // Panitia Penelitian Akhir (SMA)
+            'wa_send_research_proposal_submitted',
+            'wa_send_research_instrument_reviewed',
+            'wa_send_research_seminar_schedule',
+            'wa_send_research_final_published',
+            // Yayasan
+            'wa_send_yayasan_monthly_digest',
+            'wa_send_yayasan_meeting_invitation',
+            'wa_send_yayasan_budget_alert',
+            'wa_send_yayasan_psb_report',
+            // Siaran Massal / Umum
+            'wa_send_broadcast_official_letter',
+            'wa_send_broadcast_emergency_holiday',
+            'wa_send_broadcast_event_announcement',
         ];
         foreach ($allWaKeys as $wak) {
             \App\Models\Setting::setValue($wak, false, 'boolean', 'whatsapp');
