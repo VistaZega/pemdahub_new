@@ -878,8 +878,9 @@
                                                         </div>
 
                                                         @if($isPdfF)
-                                                        <div class="w-full h-80 rounded-xl overflow-hidden border border-emerald-300 shadow-inner bg-slate-900">
-                                                            <iframe src="{{ $fileUrl }}" class="w-full h-full"></iframe>
+                                                        @php $fullFileUrl = str_starts_with($fileUrl, 'http') ? $fileUrl : asset($fileUrl); @endphp
+                                                        <div class="w-full h-96 rounded-xl overflow-hidden border border-emerald-300 shadow-inner bg-slate-900 relative">
+                                                            <iframe src="https://docs.google.com/viewer?url={{ urlencode($fullFileUrl) }}&embedded=true" class="w-full h-full border-0"></iframe>
                                                         </div>
                                                         @elseif($isImgF)
                                                         <div class="w-full max-h-96 rounded-xl overflow-hidden border border-emerald-300 bg-slate-900 flex items-center justify-center p-2 relative group">

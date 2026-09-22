@@ -102,6 +102,16 @@ class Classroom extends Model
     }
 
     /**
+     * Relationship: Active students in this classroom (excludes transferred / non-active students)
+     */
+    public function activeStudents()
+    {
+        return $this->students()
+            ->whereIn('students.status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
+            ->whereIn('student_classes.status', ['aktif', 'naik']);
+    }
+
+    /**
      * Optional relationship: major (jurusan for SMA/SMP)
      */
     public function major()

@@ -47,7 +47,8 @@ class TeachingAssignmentStudentFilterService
         // Jika guru pengampu adalah WALI KELAS dari rombel ini, seluruh siswa kelas bimbingannya
         // wajib dapat dilihat oleh wali kelas (tidak boleh dipotong oleh filter kejuruan).
         $classroom = $assignment->classroom ?? \App\Models\Classroom::find($classroomId);
-        $isHomeroom = $classroom && ((int) $classroom->homeroom_teacher_id === (int) $assignment->teacher_id);
+        $tIds = $assignment->teacher ? $assignment->teacher->allTeacherIds() : [(int) $assignment->teacher_id];
+        $isHomeroom = $classroom && in_array((int) $classroom->homeroom_teacher_id, array_map('intval', $tIds), true);
         if ($isHomeroom) {
             return $students;
         }

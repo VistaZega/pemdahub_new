@@ -20,7 +20,10 @@ class LmsEnrollmentService
      */
     public function syncStudentEnrollments(Student $student): int
     {
-        if (!$student || !$student->id) {
+        if (!$student || !$student->id || !in_array($student->status, \App\Models\StudentStatusHistory::ACTIVE_STATUSES)) {
+            if ($student && $student->id && in_array($student->status, \App\Models\StudentStatusHistory::TERMINAL_STATUSES)) {
+                LmsEnrollment::where('student_id', $student->id)->update(['status' => 'dropped']);
+            }
             return 0;
         }
 

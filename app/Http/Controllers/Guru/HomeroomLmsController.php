@@ -35,8 +35,10 @@ class HomeroomLmsController extends Controller
         $teacher = $this->getTeacher();
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
 
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+
         // 1. Ambil rombel-rombel yang diampu sebagai Wali Kelas pada tahun pelajaran aktif
-        $homeroomClassrooms = Classroom::where('homeroom_teacher_id', $teacher?->id)
+        $homeroomClassrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('is_active', true)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->with(['school'])
@@ -408,7 +410,7 @@ class HomeroomLmsController extends Controller
                 'name' => $student->full_name,
                 'nisn' => $student->nisn,
                 'classroom' => $activeClass?->class_name,
-                'photo' => $student->photo ? asset('storage/' . $student->photo) : null,
+                'photo' => $student->photo_url,
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($student->full_name) . '&background=4f46e5&color=fff',
                 'parent_name' => $student->parents->first()?->father_name ?? $student->parents->first()?->mother_name ?? 'Orang Tua / Wali',
                 'parent_phone' => $student->parents->first()?->phone ?? $student->parents->first()?->whatsapp ?? $student->phone ?? null,

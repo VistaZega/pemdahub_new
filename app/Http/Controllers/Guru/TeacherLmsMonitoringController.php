@@ -325,10 +325,7 @@ class TeacherLmsMonitoringController extends Controller
             ->get()
             ->groupBy('quiz_id');
 
-        $photoUrl = null;
-        if ($student->photo) {
-            $photoUrl = str_starts_with($student->photo, 'http') ? $student->photo : asset('storage/' . $student->photo);
-        }
+        $photoUrl = $student->photo_url;
 
         return response()->json([
             'student' => [

@@ -605,15 +605,29 @@ class LmsController extends Controller
             }
         }
 
-        $allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+        $allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar'];
         $uploadedPaths = [];
         $totalSize = 0;
+
+        $getExt = function ($file) use ($allowedExts) {
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (empty($ext)) {
+                $mime = strtolower($file->getClientMimeType());
+                if (str_contains($mime, 'pdf')) $ext = 'pdf';
+                elseif (str_contains($mime, 'jpeg') || str_contains($mime, 'jpg')) $ext = 'jpg';
+                elseif (str_contains($mime, 'png')) $ext = 'png';
+                elseif (str_contains($mime, 'webp')) $ext = 'webp';
+                elseif (str_contains($mime, 'word') || str_contains($mime, 'document')) $ext = 'docx';
+                elseif (str_contains($mime, 'image')) $ext = 'jpg';
+            }
+            return $ext;
+        };
 
         // 1. Process single 'file' if sent
         if ($request->hasFile('file')) {
             $f = $request->file('file');
-            $ext = strtolower($f->getClientOriginalExtension());
-            if (!in_array($ext, $allowedExts)) {
+            $ext = $getExt($f);
+            if (!empty($ext) && !in_array($ext, $allowedExts)) {
                 return redirect()->back()->with('error', 'Gagal mengumpulkan tugas: Format berkas .' . ($ext ?: 'tidak diketahui') . ' tidak diizinkan. Silakan pilih berkas .PDF atau Gambar (JPG, PNG, WEBP).')->withInput();
             }
             try {
@@ -630,8 +644,8 @@ class LmsController extends Controller
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $f) {
                 if (!$f->isValid()) continue;
-                $ext = strtolower($f->getClientOriginalExtension());
-                if (!in_array($ext, $allowedExts)) {
+                $ext = $getExt($f);
+                if (!empty($ext) && !in_array($ext, $allowedExts)) {
                     return redirect()->back()->with('error', 'Gagal mengumpulkan tugas: Berkas (' . $f->getClientOriginalName() . ') berekstensi .' . $ext . ' tidak diizinkan. Harap pilih berkas PDF atau Gambar.')->withInput();
                 }
                 try {

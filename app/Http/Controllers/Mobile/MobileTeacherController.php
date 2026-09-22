@@ -257,21 +257,22 @@ class MobileTeacherController extends Controller
         // Priority 1: Filter to assigned classrooms for this teacher (schedules, teaching assignments, or homeroom)
         $classrooms = collect();
         if ($teacher) {
+            $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
             $classrooms = Classroom::where('is_active', true)
-                ->where(function ($q) use ($teacher, $activeYear) {
-                    $q->whereHas('schedules', function ($sq) use ($teacher, $activeYear) {
-                        $sq->where('teacher_id', $teacher->id);
+                ->where(function ($q) use ($tIds, $activeYear) {
+                    $q->whereHas('schedules', function ($sq) use ($tIds, $activeYear) {
+                        $sq->whereIn('teacher_id', $tIds);
                         if ($activeYear) {
                             $sq->where('academic_year_id', $activeYear->id);
                         }
                     })
-                    ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeYear) {
-                        $tq->where('teacher_id', $teacher->id);
+                    ->orWhereHas('teachingAssignments', function ($tq) use ($tIds, $activeYear) {
+                        $tq->whereIn('teacher_id', $tIds);
                         if ($activeYear) {
                             $tq->where('academic_year_id', $activeYear->id);
                         }
                     })
-                    ->orWhere('homeroom_teacher_id', $teacher->id);
+                    ->orWhereIn('homeroom_teacher_id', $tIds);
                 })
                 ->orderBy('class_name')
                 ->get();
@@ -321,9 +322,8 @@ class MobileTeacherController extends Controller
                 }
 
                 $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
-                $allClassroomIds = [$selectedClassroomId];
-
-                $isHomeroom = $classroom && ((int) $classroom->homeroom_teacher_id === (int) $teacher->id);
+                $tIds = $user ? $user->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+                $isHomeroom = $classroom && in_array((int) $classroom->homeroom_teacher_id, array_map('intval', $tIds), true);
 
                 if ($assignment) {
                     $students = $filterService->getStudentsForAssignment($assignment, $date);
@@ -708,9 +708,11 @@ class MobileTeacherController extends Controller
         $teachingClasses = collect();
 
         if ($teacher) {
+            $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+
             // 1. KELAS PERWALIAN (Wali Kelas) di TP Aktif
             $homeroomClasses = Classroom::where('is_active', true)
-                ->where('homeroom_teacher_id', $teacher->id)
+                ->whereIn('homeroom_teacher_id', $tIds)
                 ->when($activeAYId, function ($q) use ($activeAYId) {
                     $q->where(function ($sub) use ($activeAYId) {
                         $sub->where('academic_year_id', $activeAYId)
@@ -728,13 +730,13 @@ class MobileTeacherController extends Controller
 
             // 2. KELAS MENGAJAR (Penugasan Mengajar / Schedules) di TP Aktif
             $teachingClasses = Classroom::where('is_active', true)
-                ->where(function ($q) use ($teacher, $activeAYId) {
-                    $q->whereHas('schedules', function ($sq) use ($teacher, $activeAYId) {
-                        $sq->where('teacher_id', $teacher->id)
+                ->where(function ($q) use ($tIds, $activeAYId) {
+                    $q->whereHas('schedules', function ($sq) use ($tIds, $activeAYId) {
+                        $sq->whereIn('teacher_id', $tIds)
                            ->when($activeAYId, fn($ayq) => $ayq->where(fn($sub) => $sub->where('academic_year_id', $activeAYId)->orWhereNull('academic_year_id')));
                     })
-                    ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeAYId) {
-                        $tq->where('teacher_id', $teacher->id)
+                    ->orWhereHas('teachingAssignments', function ($tq) use ($tIds, $activeAYId) {
+                        $tq->whereIn('teacher_id', $tIds)
                            ->where('is_active', true)
                            ->when($activeAYId, fn($ayq) => $ayq->where(fn($sub) => $sub->where('academic_year_id', $activeAYId)->orWhereNull('academic_year_id')));
                     });
@@ -750,7 +752,7 @@ class MobileTeacherController extends Controller
                 ->get();
 
             foreach ($teachingClasses as $cls) {
-                $cls->is_homeroom = ($cls->homeroom_teacher_id == $teacher->id);
+                $cls->is_homeroom = in_array((int)$cls->homeroom_teacher_id, array_map('intval', $tIds), true);
                 $cls->is_teaching = true;
             }
         }

@@ -68,19 +68,21 @@ class AttendanceController extends Controller
     {
         if (!$activeYear) return collect();
 
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+
         return Classroom::where('is_active', true)
             ->where('academic_year_id', $activeYear->id)
-            ->where(function ($q) use ($teacher, $activeYear) {
-                $q->whereHas('schedules', function ($sq) use ($teacher, $activeYear) {
-                    $sq->where('teacher_id', $teacher->id)
+            ->where(function ($q) use ($tIds, $activeYear) {
+                $q->whereHas('schedules', function ($sq) use ($tIds, $activeYear) {
+                    $sq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $activeYear->id);
                 })
-                ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $activeYear) {
-                    $tq->where('teacher_id', $teacher->id)
+                ->orWhereHas('teachingAssignments', function ($tq) use ($tIds, $activeYear) {
+                    $tq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $activeYear->id)
                        ->where('is_active', true);
                 })
-                ->orWhere('homeroom_teacher_id', $teacher->id);
+                ->orWhereIn('homeroom_teacher_id', $tIds);
             })
             ->with('school')
             ->withCount(['students' => function ($q) use ($activeYear) {
@@ -351,8 +353,10 @@ class AttendanceController extends Controller
             return back()->withErrors(['classroom_id' => 'Kelas tidak ditemukan.'])->withInput();
         }
 
+        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
+
         // Strict Check: Hanya Wali Kelas yang berhak menyimpan/mengubah presensi harian sekolah
-        if ((int) $classroom->homeroom_teacher_id !== (int) $teacher->id) {
+        if (!in_array((int) $classroom->homeroom_teacher_id, array_map('intval', $tIds), true)) {
             $homeroomName = $classroom->homeroomTeacher?->full_name ?? 'Wali Kelas';
             return back()->withErrors([
                 'attendance' => "Akses Ditolak: Anda bukan Wali Kelas dari kelas {$classroom->class_name}. Presensi harian sekolah hanya dapat diisi dan diubah oleh Wali Kelas ({$homeroomName}) atau Admin Sekolah."

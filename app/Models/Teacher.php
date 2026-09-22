@@ -500,6 +500,23 @@ class Teacher extends Model
     }
 
     /**
+     * Helper: Dapatkan seluruh ID profil guru milik pengguna yang sama (misal multi-unit SMK & SMP)
+     */
+    public function allTeacherIds(): array
+    {
+        $ids = [$this->id];
+        if ($this->user_id) {
+            $uIds = self::where('user_id', $this->user_id)->pluck('id')->toArray();
+            $ids = array_merge($ids, $uIds);
+        }
+        if ($this->employee_id) {
+            $eIds = self::where('employee_id', $this->employee_id)->pluck('id')->toArray();
+            $ids = array_merge($ids, $eIds);
+        }
+        return array_unique(array_filter($ids));
+    }
+
+    /**
      * Accessor for name -> alias for full_name
      */
     public function getNameAttribute(): string

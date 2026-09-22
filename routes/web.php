@@ -1617,7 +1617,19 @@ Route::get('/run-migrations', function () {
                 $pos
             );
         }
-        echo "✅ Posisi Kepanitiaan (PAN-PROYEK, PAN-PKL, PAN-CBT, TIM-PKS) dipastikan aktif di Kepegawaian.<br>\n";
+        echo "<h1>=== SYNCING TRANSFERRED STUDENTS & LMS ENROLLMENTS ===</h1>\n";
+        $terminalStudents = \App\Models\Student::whereIn('status', \App\Models\StudentStatusHistory::TERMINAL_STATUSES)->get();
+        $cleanedStudents = 0;
+        foreach ($terminalStudents as $ts) {
+            \App\Models\StudentClass::where('student_id', $ts->id)
+                ->where('status', 'aktif')
+                ->update(['status' => $ts->status]);
+            \App\Models\LmsEnrollment::where('student_id', $ts->id)
+                ->whereIn('status', ['enrolled', 'in_progress'])
+                ->update(['status' => 'dropped']);
+            $cleanedStudents++;
+        }
+        echo "✅ Berhasil membersihkan {$cleanedStudents} data siswa non-aktif/pindah dari rombel & LMS.<br>\n";
 
         echo "<b><h2 style='color:#0f0;'>✅ MIGRATION AND SYNC COMPLETED SUCCESSFULLY!</h2></b>\n";
     } catch (\Exception $e) {

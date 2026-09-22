@@ -175,19 +175,26 @@
                                         @foreach($sub->file_list as $fIdx => $fPath)
                                             @php 
                                                 $isImgF = \App\Models\LmsSubmission::isImagePath($fPath);
+                                                $isPdfF = \App\Models\LmsSubmission::isPdfPath($fPath);
                                                 $fileUrl = asset('storage/' . $fPath);
+                                                $fullUrl = str_starts_with($fileUrl, 'http') ? $fileUrl : asset($fileUrl);
                                             @endphp
-                                            <a href="{{ $fileUrl }}" target="_blank" class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 hover:bg-slate-100 transition min-w-0">
-                                                @if($isImgF)
-                                                    <img src="{{ $fileUrl }}" class="w-8 h-8 rounded-lg object-cover bg-slate-900 shrink-0" alt="Foto">
+                                            @if($isImgF)
+                                                <button type="button" onclick="openDocPreviewModal('{{ $fullUrl }}', 'Foto Jawaban #{{ $fIdx + 1 }}', 'image')" class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 hover:bg-slate-100 transition min-w-0 text-left w-full">
+                                                    <img src="{{ $fullUrl }}" class="w-8 h-8 rounded-lg object-cover bg-slate-900 shrink-0" alt="Foto">
                                                     <span class="text-[10px] font-black text-slate-700 truncate">Foto #{{ $fIdx + 1 }}</span>
-                                                @else
+                                                </button>
+                                            @else
+                                                <button type="button" onclick="openDocPreviewModal('{{ $fullUrl }}', 'Dokumen PDF #{{ $fIdx + 1 }}', 'pdf')" class="p-2 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-2 hover:bg-rose-100 transition min-w-0 text-left w-full">
                                                     <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 text-xs font-black">
                                                         <i class="fa-solid fa-file-pdf"></i>
                                                     </div>
-                                                    <span class="text-[10px] font-black text-rose-700 truncate">Dokumen PDF</span>
-                                                @endif
-                                            </a>
+                                                    <div class="min-w-0 flex-1">
+                                                        <span class="text-[10px] font-black text-rose-700 block truncate">Lihat PDF #{{ $fIdx + 1 }}</span>
+                                                        <span class="text-[8px] font-bold text-rose-500 block truncate">👁️ Preview HP</span>
+                                                    </div>
+                                                </button>
+                                            @endif
                                         @endforeach
                                     </div>
                                 </div>
@@ -220,4 +227,63 @@
         @endforelse
     </div>
 </div>
+
+<!-- Modal Document & Photo Inline Preview (No Download Required) -->
+<div id="docPreviewModal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center p-3 transition-all duration-200">
+    <div class="bg-white rounded-3xl w-full max-w-lg h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+        <!-- Modal Header -->
+        <div class="px-4 py-3 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between shrink-0">
+            <div class="min-w-0 pr-2">
+                <h3 id="docModalTitle" class="text-xs font-black truncate">Preview Jawaban Siswa</h3>
+                <p class="text-[9px] text-slate-300 font-medium">Pratinjau langsung di aplikasi tanpa download</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <a id="docDownloadBtn" href="#" target="_blank" class="px-2.5 py-1 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[10px] font-black flex items-center gap-1 transition">
+                    <i class="fa-solid fa-download"></i> Simpan
+                </a>
+                <button type="button" onclick="closeDocPreviewModal()" class="w-7 h-7 rounded-lg bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body (Container for PDF / Image) -->
+        <div class="flex-1 bg-slate-900 relative overflow-hidden flex items-center justify-center p-1">
+            <img id="docPreviewImage" src="" class="max-h-full max-w-full object-contain rounded-xl hidden" alt="Preview Foto">
+            <iframe id="docPreviewIframe" src="" class="w-full h-full border-0 rounded-xl hidden bg-white"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDocPreviewModal(fileUrl, title, type) {
+        document.getElementById('docModalTitle').innerText = title || 'Preview Berkas';
+        document.getElementById('docDownloadBtn').href = fileUrl;
+        
+        const imgEl = document.getElementById('docPreviewImage');
+        const iframeEl = document.getElementById('docPreviewIframe');
+        
+        if (type === 'image' || fileUrl.match(/\.(jpeg|jpg|png|gif|webp|heic)$/i)) {
+            imgEl.src = fileUrl;
+            imgEl.classList.remove('hidden');
+            iframeEl.classList.add('hidden');
+            iframeEl.src = '';
+        } else {
+            imgEl.classList.add('hidden');
+            imgEl.src = '';
+            // Use Google Docs viewer as primary embedded renderer for mobile Chrome / Webview
+            const embedUrl = 'https://docs.google.com/viewer?url=' + encodeURIComponent(fileUrl) + '&embedded=true';
+            iframeEl.src = embedUrl;
+            iframeEl.classList.remove('hidden');
+        }
+        
+        document.getElementById('docPreviewModal').classList.remove('hidden');
+    }
+
+    function closeDocPreviewModal() {
+        document.getElementById('docPreviewModal').classList.add('hidden');
+        document.getElementById('docPreviewImage').src = '';
+        document.getElementById('docPreviewIframe').src = '';
+    }
+</script>
 @endsection

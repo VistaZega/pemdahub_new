@@ -420,15 +420,36 @@ class User extends Authenticatable
     }
 
     /**
+     * Helper: Dapatkan seluruh ID profil guru milik pengguna yang sama (termasuk relasi via user_id & employee_id)
+     */
+    public function teacherIds(): array
+    {
+        $ids = Teacher::where('user_id', $this->id)->pluck('id')->toArray();
+        $employee = $this->employee ?? $this->teacher?->employee;
+        if ($employee) {
+            $eIds = Teacher::where('employee_id', $employee->id)->pluck('id')->toArray();
+            $ids = array_merge($ids, $eIds);
+        }
+        if ($this->teacher && !in_array($this->teacher->id, $ids)) {
+            $ids[] = $this->teacher->id;
+        }
+        return array_unique(array_filter($ids));
+    }
+
+    /**
      * Check if user is a homeroom teacher (wali kelas)
      */
     public function isHomeroomTeacher(): bool
     {
-        if (!$this->isGuru() || !$this->teacher) {
+        if (!$this->isGuru()) {
+            return false;
+        }
+        $tIds = $this->teacherIds();
+        if (empty($tIds)) {
             return false;
         }
         
-        return Classroom::where('homeroom_teacher_id', $this->teacher->id)->exists();
+        return Classroom::whereIn('homeroom_teacher_id', $tIds)->exists();
     }
 
     /**
@@ -607,11 +628,16 @@ class User extends Authenticatable
      */
     public function homeroomClassrooms()
     {
-        if (!$this->isGuru() || !$this->teacher) {
+        if (!$this->isGuru()) {
+            return collect([]);
+        }
+
+        $tIds = $this->teacherIds();
+        if (empty($tIds)) {
             return collect([]);
         }
         
-        return Classroom::where('homeroom_teacher_id', $this->teacher->id)
+        return Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('is_active', true)
             ->get();
     }
@@ -682,9 +708,9 @@ class User extends Authenticatable
     {
         $photos = [
             $this->photo,
+            $this->student?->photo,
             $this->teacher?->photo,
             $this->employee?->photo,
-            $this->student?->photo,
             $this->alumniDirectory?->photo_path,
         ];
 
@@ -694,6 +720,8 @@ class User extends Authenticatable
                     return $p;
                 }
                 $clean = ltrim(preg_replace('#^/?storage/#', '', $p), '/');
+                $base = basename($clean);
+
                 if (\Illuminate\Support\Facades\Storage::disk('public')->exists($clean)) {
                     return asset('storage/' . $clean);
                 }
@@ -703,7 +731,33 @@ class User extends Authenticatable
                 if (file_exists(public_path('storage/' . $clean))) {
                     return asset('storage/' . $clean);
                 }
-                // Jika berkas fisik tidak ditemukan di storage, jangan return URL 404 (lanjutkan fallback)
+                if (file_exists(storage_path('app/public/' . $clean))) {
+                    return asset('storage/' . $clean);
+                }
+                if (file_exists(storage_path('app/' . $clean))) {
+                    return asset('storage/' . $clean);
+                }
+
+                $subPaths = [
+                    'avatars/' . $base,
+                    'photos/students/' . $base,
+                    'photos/teachers/' . $base,
+                    'students/' . $base,
+                    'teachers/' . $base,
+                    'photos/' . $base,
+                ];
+                foreach ($subPaths as $sub) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($sub)) {
+                        return asset('storage/' . $sub);
+                    }
+                    if (file_exists(public_path('storage/' . $sub))) {
+                        return asset('storage/' . $sub);
+                    }
+                }
+
+                if (!empty($clean) && (str_contains($clean, '/') || str_contains($clean, '.'))) {
+                    return asset('storage/' . $clean);
+                }
             }
         }
 

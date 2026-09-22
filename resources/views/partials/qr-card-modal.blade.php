@@ -81,11 +81,11 @@
                     </div>
                     
                     <!-- Card Footer: QR Code ONLY -->
-                    <div class="flex flex-col items-center justify-center w-full z-10 mt-auto pb-3">
-                        <div class="p-1 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center mb-1">
-                            <img id="qr_img" src="" style="width: 40px; height: 40px;" alt="QR Code">
+                    <div class="flex flex-col items-center justify-center w-full z-10 mt-auto pb-2">
+                        <div class="p-1.5 bg-white border border-slate-200 rounded-lg shadow-sm flex items-center justify-center mb-1">
+                            <img id="qr_img" src="" style="width: 75px; height: 75px;" alt="QR Code">
                         </div>
-                        <span class="font-bold uppercase tracking-widest" style="font-size: 6px; color: #64748b;">Scan QR Untuk Verifikasi</span>
+                        <span class="font-bold uppercase tracking-widest" style="font-size: 7px; color: #475569;">Scan Barcode/QR Untuk Verifikasi</span>
                     </div>
                     
                     <!-- Bottom Deco Strip -->
@@ -391,9 +391,9 @@
             ctx.fillText(ttl.toUpperCase(), width/2 - ttlTotalW/2 + ttlLabelW, textY);
             ctx.textAlign = 'center';
 
-            // 6. QR Code
-            const qrSize = 46 * scale;
-            const qrY = 312 * scale;
+            // 6. QR Code (Enlarged Barcode/QR)
+            const qrSize = 75 * scale;
+            const qrY = 292 * scale;
             
             ctx.fillStyle = '#ffffff';
             ctx.shadowColor = 'rgba(0,0,0,0.1)';

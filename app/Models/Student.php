@@ -372,6 +372,8 @@ class Student extends Model
                 return $photo;
             }
             $clean = ltrim(preg_replace('#^/?storage/#', '', $photo), '/');
+            $base = basename($clean);
+
             if (\Illuminate\Support\Facades\Storage::disk('public')->exists($clean)) {
                 return asset('storage/' . $clean);
             }
@@ -381,6 +383,34 @@ class Student extends Model
             if (file_exists(public_path('storage/' . $clean))) {
                 return asset('storage/' . $clean);
             }
+            if (file_exists(storage_path('app/public/' . $clean))) {
+                return asset('storage/' . $clean);
+            }
+            if (file_exists(storage_path('app/' . $clean))) {
+                return asset('storage/' . $clean);
+            }
+
+            // Subfolder fallback checks
+            $subPaths = [
+                'photos/students/' . $base,
+                'students/' . $base,
+                'photos/' . $base,
+                'avatars/' . $base,
+            ];
+            foreach ($subPaths as $sub) {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($sub)) {
+                    return asset('storage/' . $sub);
+                }
+                if (file_exists(public_path('storage/' . $sub))) {
+                    return asset('storage/' . $sub);
+                }
+            }
+
+            // Soft fallback: If path string is populated, attempt returning asset URL
+            if (!empty($clean) && (str_contains($clean, '/') || str_contains($clean, '.'))) {
+                return asset('storage/' . $clean);
+            }
+
             return null;
         };
 
@@ -425,6 +455,18 @@ class Student extends Model
         ]);
 
         $this->update(['status' => $newStatus]);
+
+        // Auto-update student_classes & LMS enrollments if terminal (pindah/keluar/lulus/alumni/dikeluarkan)
+        if (in_array($newStatus, StudentStatusHistory::TERMINAL_STATUSES)) {
+            try {
+                $this->studentClasses()->where('status', 'aktif')->update(['status' => $newStatus]);
+                \App\Models\LmsEnrollment::where('student_id', $this->id)
+                    ->whereIn('status', ['enrolled', 'in_progress'])
+                    ->update(['status' => 'dropped']);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Transition cleanup failed for student {$this->id}: " . $e->getMessage());
+            }
+        }
 
         // Auto-populate alumni if graduated
         if ($newStatus === 'lulus' || $newStatus === 'alumni') {
