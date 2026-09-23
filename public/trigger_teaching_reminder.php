@@ -64,7 +64,7 @@ $dateFormatted = Carbon::now()->translatedFormat('d F Y');
 
 // Jika belum ada aksi (run, dry_run, test_phone), tampilkan Control Panel Interaktif
 if (!$run && !$dryRun && !$testPhone) {
-    $schedules = Schedule::with(['teacher', 'school'])
+    $schedules = Schedule::with(['teacher', 'classroom', 'school'])
         ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
         ->where('day_of_week', $dayOfWeek)
         ->get();
@@ -72,9 +72,18 @@ if (!$run && !$dryRun && !$testPhone) {
     $teacherCount = $schedules->groupBy('teacher_id')->count();
     $slotCount = $schedules->count();
 
-    $smpTeachers = $schedules->where('school_id', 1)->groupBy('teacher_id')->count();
-    $smaTeachers = $schedules->where('school_id', 2)->groupBy('teacher_id')->count();
-    $smkTeachers = $schedules->where('school_id', 3)->groupBy('teacher_id')->count();
+    $schools = School::schoolsOnly()->get();
+    $schoolTeacherCounts = [];
+    foreach ($schools as $sc) {
+        $count = $schedules->filter(function($sch) use ($sc) {
+            $sid = $sch->school_id ?: ($sch->classroom?->school_id ?: ($sch->teacher?->school_id ?? null));
+            return $sid == $sc->id;
+        })->groupBy('teacher_id')->count();
+        $schoolTeacherCounts[$sc->id] = [
+            'name' => $sc->name,
+            'count' => $count,
+        ];
+    }
 
     $accountInfo = $waService->getAccountInfo();
     $quota = $accountInfo['data']['quota'] ?? 'N/A';
@@ -133,13 +142,15 @@ if (!$run && !$dryRun && !$testPhone) {
     echo "</div>";
 
     echo "<div class='action-section'>";
-    echo "<h3 style='margin-top:0; font-size:16px; color:#e2e8f0;'>3. 🚀 Eksekusi Pengiriman Riil ke Seluruh Guru</h3>";
-    echo "<p style='font-size:13px; color:#94a3b8;'>Pesan akan dikirim langsung ke WhatsApp 76 guru dengan jeda aman anti-ban (4-7 detik per guru):</p>";
+    echo "<h3 style='margin-top:0; font-size:16px; color:#e2e8f0;'>3. 🚀 Eksekusi Pengiriman Riil ke Guru</h3>";
+    echo "<p style='font-size:13px; color:#94a3b8;'>Pesan akan dikirim langsung ke WhatsApp guru dengan jeda aman anti-ban (4-7 detik per guru):</p>";
     echo "<div style='display:flex; flex-wrap:wrap;'>";
-    echo "<a href='?secret=pembda99&run=1&force=1' class='btn btn-green' onclick='return confirm(\"Kirim Pengingat Jadwal ke SELURUH 76 GURU mengajar hari ini?\")'>🚀 Kirim Seluruh Guru ({$teacherCount} Guru)</a>";
-    echo "<a href='?secret=pembda99&run=1&school_id=1&force=1' class='btn btn-blue'>🏫 Unit SMP Saja ({$smpTeachers} Guru)</a>";
-    echo "<a href='?secret=pembda99&run=1&school_id=2&force=1' class='btn btn-blue'>🏫 Unit SMA Saja ({$smaTeachers} Guru)</a>";
-    echo "<a href='?secret=pembda99&run=1&school_id=3&force=1' class='btn btn-blue'>🏫 Unit SMK Saja ({$smkTeachers} Guru)</a>";
+    echo "<a href='?secret=pembda99&run=1&force=1' class='btn btn-green' onclick='return confirm(\"Kirim Pengingat Jadwal ke SELURUH {$teacherCount} GURU mengajar hari ini?\")'>🚀 Kirim Seluruh Guru ({$teacherCount} Guru)</a>";
+    foreach ($schoolTeacherCounts as $scId => $scData) {
+        $shortName = str_replace(['SEKOLAH MENENGAH PERTAMA', 'SEKOLAH MENENGAH ATAS', 'SEKOLAH MENENGAH KEJURUAN', 'GUNUNGSITOLI', 'KOTA'], '', $scData['name']);
+        $shortName = trim($shortName);
+        echo "<a href='?secret=pembda99&run=1&school_id={$scId}&force=1' class='btn btn-blue'>🏫 {$scData['name']} ({$scData['count']} Guru)</a>";
+    }
     echo "</div>";
     echo "</div>";
 

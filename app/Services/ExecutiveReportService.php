@@ -563,7 +563,11 @@ class ExecutiveReportService
             ->orderBy('start_time');
 
         if ($schoolIdFilter) {
-            $query->where('school_id', $schoolIdFilter);
+            $query->where(function ($q) use ($schoolIdFilter) {
+                $q->where('school_id', $schoolIdFilter)
+                  ->orWhereHas('classroom', fn($c) => $c->where('school_id', $schoolIdFilter))
+                  ->orWhereHas('teacher', fn($t) => $t->where('school_id', $schoolIdFilter));
+            });
         }
 
         $allSchedules = $query->get();
