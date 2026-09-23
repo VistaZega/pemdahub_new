@@ -42,7 +42,8 @@ class SendWaExecutiveDigest extends Command
         $options = [
             'dry_run' => $dryRun,
             'force' => (bool)$this->option('force'),
-            'school_id' => $this->option('school') ? (int)$this->option('school') : null,
+            'school' => $this->option('school') ?: null,
+            'school_id' => is_numeric($this->option('school')) ? (int)$this->option('school') : null,
             'target_phone' => $this->option('test-phone') ?: null,
             'delay_min' => $this->option('delay-min') !== null ? (int)$this->option('delay-min') : null,
             'delay_max' => $this->option('delay-max') !== null ? (int)$this->option('delay-max') : null,

@@ -108,16 +108,37 @@ Schedule::call(function () {
 // })->everyFiveMinutes()->name('wa-engine-keepalive')->withoutOverlapping();
 
 // ============================================================================
-// WhatsApp Daily Teaching Schedule Reminder — Senin s/d Jumat pukul 06:45 WIB
-// (DINONAKTIFKAN SEMENTARA DEMI KEAMANAN AKUN WHATSAPP)
+// WhatsApp Daily Teaching Schedule Reminder — Gelombang Bertahap (Staggered Batching)
+// Jadwal KBM guru dikirimkan bertahap per unit sekolah dengan jeda aman 15-25 detik
+// agar akun WhatsApp aman dari batasan / proteksi anti-spam.
 // ============================================================================
-// Schedule::command('wa:digest teaching-daily')
-//     ->weekdays()
-//     ->at('06:45')
-//     ->timezone('Asia/Jakarta')
-//     ->withoutOverlapping(180)
-//     ->runInBackground()
-//     ->description('Kirim Pengingat Jadwal Mengajar Harian ke Guru via WhatsApp');
+
+// Gelombang 1: Unit SMP (14 Guru) — Pukul 06:15 WIB
+Schedule::command('wa:digest teaching-daily --school=smp --delay-min=15 --delay-max=25')
+    ->weekdays()
+    ->at('06:15')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping(180)
+    ->runInBackground()
+    ->description('Pengingat Jadwal Mengajar Harian Guru SMP via WhatsApp');
+
+// Gelombang 2: Unit SMA (28 Guru) — Pukul 06:30 WIB
+Schedule::command('wa:digest teaching-daily --school=sma --delay-min=15 --delay-max=25')
+    ->weekdays()
+    ->at('06:30')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping(180)
+    ->runInBackground()
+    ->description('Pengingat Jadwal Mengajar Harian Guru SMA via WhatsApp');
+
+// Gelombang 3: Unit SMK (34 Guru) — Pukul 06:45 WIB
+Schedule::command('wa:digest teaching-daily --school=smk --delay-min=15 --delay-max=25')
+    ->weekdays()
+    ->at('06:45')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping(180)
+    ->runInBackground()
+    ->description('Pengingat Jadwal Mengajar Harian Guru SMK via WhatsApp');
 
 // ============================================================================
 // WhatsApp Daily Attendance Digest — Senin s/d Jumat pukul 08:00 WIB

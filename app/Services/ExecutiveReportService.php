@@ -519,9 +519,9 @@ class ExecutiveReportService
         $dryRun = $options['dry_run'] ?? false;
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
-        $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 8);
+        $schoolFilter = $options['school'] ?? $options['school_id'] ?? null;
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_teaching_delay_min', 15);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_teaching_delay_max', 25);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && !$dryRun && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -562,12 +562,22 @@ class ExecutiveReportService
             ->where('day_of_week', $dayOfWeek)
             ->orderBy('start_time');
 
-        if ($schoolIdFilter) {
-            $query->where(function ($q) use ($schoolIdFilter) {
-                $q->where('school_id', $schoolIdFilter)
-                  ->orWhereHas('classroom', fn($c) => $c->where('school_id', $schoolIdFilter))
-                  ->orWhereHas('teacher', fn($t) => $t->where('school_id', $schoolIdFilter));
-            });
+        if ($schoolFilter) {
+            if (is_numeric($schoolFilter)) {
+                $targetSchoolId = (int)$schoolFilter;
+                $query->where(function ($q) use ($targetSchoolId) {
+                    $q->where('school_id', $targetSchoolId)
+                      ->orWhereHas('classroom', fn($c) => $c->where('school_id', $targetSchoolId))
+                      ->orWhereHas('teacher', fn($t) => $t->where('school_id', $targetSchoolId));
+                });
+            } else {
+                $schoolType = strtoupper(trim((string)$schoolFilter));
+                $query->where(function ($q) use ($schoolType) {
+                    $q->whereHas('school', fn($s) => $s->where('type', $schoolType))
+                      ->orWhereHas('classroom.school', fn($s) => $s->where('type', $schoolType))
+                      ->orWhereHas('teacher.school', fn($s) => $s->where('type', $schoolType));
+                });
+            }
         }
 
         $allSchedules = $query->get();
@@ -673,6 +683,20 @@ class ExecutiveReportService
                 $errMsg = $res['error'] ?? 'Gagal mengirim pesan WA';
                 $errors[] = "Guru {$teacher->full_name} ({$phone}): {$errMsg}";
                 if ($logger) $logger("   ❌ Gagal: {$errMsg}");
+
+                // Proteksi Banned / Disconnect: Jika gateway terputus atau device offline di tengah jalan, langsung hentikan loop!
+                $lowerErr = strtolower($errMsg);
+                if (str_contains($lowerErr, 'disconnect') 
+                    || str_contains($lowerErr, 'terputus')
+                    || str_contains($lowerErr, 'banned')
+                    || str_contains($lowerErr, 'blocked')
+                    || str_contains($lowerErr, 'dibatasi')
+                    || str_contains($lowerErr, 'restriction')) {
+                    $msgAbort = "⛔ Pengiriman dihentikan darurat: Gateway WhatsApp terputus/terkendala ({$errMsg})";
+                    Log::channel('whatsapp')->warning($msgAbort);
+                    if ($logger) $logger($msgAbort);
+                    break;
+                }
             }
 
             // Jika mode pengujian sampel (targetPhone), hentikan setelah 1 sampel terkirim

@@ -460,20 +460,24 @@ try {
         \App\Models\Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
         \App\Models\Setting::setValue('wa_digest_enabled', true, 'boolean', 'whatsapp');
 
-        // Notifikasi yang AKTIF
+        // 4 Notifikasi yang AKTIF
         $enabledKeys = [
             'wa_send_teacher_attendance',       // 1. Notifikasi Tap Hadir Guru dan Pegawai Saja
             'wa_send_principal_attendance',     // 2. Notifikasi Rekapitulasi Absen Sekolah Kepada Kepala Sekolah
             'wa_send_homeroom_attendance',      // 3. Notifikasi Rekapitulasi Absen Kelas Kepada Wali Kelas
+            'wa_send_teaching_reminder',        // 4. Pengingat Jadwal Mengajar Harian (Gelombang Bertahap SMP 06:15, SMA 06:30, SMK 06:45)
         ];
 
         foreach ($enabledKeys as $ek) {
             \App\Models\Setting::setValue($ek, true, 'boolean', 'whatsapp');
         }
 
+        // Pengaturan Jeda Aman Anti-Banned (15 s/d 25 detik per guru)
+        \App\Models\Setting::setValue('wa_teaching_delay_min', 15, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_teaching_delay_max', 25, 'integer', 'whatsapp');
+
         // Seluruh notifikasi lainnya tetap DIMATIKAN (OFF)
         $disabledKeys = [
-            'wa_send_teaching_reminder',        // Dinonaktifkan sementara demi keamanan anti-ban
             'wa_notify_admin_digest',
             'wa_alert_enabled',
             // Siswa & Wali Murid
