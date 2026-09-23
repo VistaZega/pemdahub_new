@@ -1608,6 +1608,7 @@ if (!function_exists('balanceHtmlTags')) {
                         </button>
                     </div>
                 </div>
+                @endforelse
             </div>
 
             {{-- MODAL EDIT KELOMPOK MASTER KURSUS --}}
