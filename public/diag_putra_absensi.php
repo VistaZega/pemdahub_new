@@ -125,7 +125,7 @@ $todayLog = __DIR__ . '/../storage/logs/laravel-2026-09-23.log';
 if (file_exists($todayLog)) {
     $fp = fopen($todayLog, 'r');
     $size = filesize($todayLog);
-    $readBytes = min($size, 200 * 1024);
+    $readBytes = min($size, 2 * 1024 * 1024);
     fseek($fp, $size - $readBytes);
     $chunk = fread($fp, $readBytes);
     fclose($fp);
@@ -133,12 +133,12 @@ if (file_exists($todayLog)) {
     $lines = explode("\n", $chunk);
     $matched = [];
     foreach ($lines as $line) {
-        if (preg_match('/\[2026-09-23 (07:[0-3]|00:[0-3])/', $line)) {
-            $matched[] = substr($line, 0, 180);
+        if (preg_match('/\[2026-09-23 (06:|07:0|07:1|00:0|00:1)/', $line)) {
+            $matched[] = substr($line, 0, 220);
         }
     }
     echo "Found " . count($matched) . " matching log lines:\n";
-    foreach (array_slice($matched, -30) as $m) {
+    foreach ($matched as $m) {
         echo $m . "\n";
     }
 } else {
