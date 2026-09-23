@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pembdahub-mobile-v6';
+const CACHE_NAME = 'pembdahub-mobile-v7';
 const urlsToCache = [
   '/m/',
   '/m/dashboard',
@@ -32,6 +32,26 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only handle GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Do not intercept build assets, API calls, or external CDN requests
+  // Let the browser handle these natively
+  try {
+    const url = new URL(event.request.url);
+    if (
+      url.pathname.startsWith('/build/') ||
+      url.pathname.startsWith('/api/') ||
+      url.hostname !== self.location.hostname
+    ) {
+      return;
+    }
+  } catch (e) {
+    return;
+  }
+
   // Network first policy for live Laravel dynamic pages
   event.respondWith(
     fetch(event.request).catch(() => {

@@ -10,6 +10,20 @@ class SpintaxService
      */
     public static function spin(string $text): string
     {
+        // Replace {motto} with dynamic randomized motto
+        if (stripos($text, '{motto}') !== false) {
+            $text = preg_replace_callback('/\{motto\}/i', function () {
+                return self::spinMotto(true);
+            }, $text);
+        }
+
+        // Replace {raw_motto} with unformatted pure motto string
+        if (stripos($text, '{raw_motto}') !== false) {
+            $text = preg_replace_callback('/\{raw_motto\}/i', function () {
+                return self::spinMotto(false);
+            }, $text);
+        }
+
         $pattern = '/\{([^{}]+?\|[^{}]+?)\}/s';
         while (preg_match($pattern, $text)) {
             $text = preg_replace_callback($pattern, function ($matches) {
@@ -18,6 +32,40 @@ class SpintaxService
             }, $text, 1);
         }
         return $text;
+    }
+
+    /**
+     * Generate dynamic polymorphic motto / slogan.
+     * Mottos requested:
+     * - "Keep Moving Forward"
+     * - "Maju Terus Pantang Mundur"
+     * - "Semangat"
+     * - "Stop Ask Just Action"
+     * - "Progresive In Harmony"
+     */
+    public static function spinMotto(bool $formatted = true): string
+    {
+        $mottos = [
+            'Keep Moving Forward',
+            'Maju Terus Pantang Mundur',
+            'Semangat',
+            'Stop Ask Just Action',
+            'Progresive In Harmony',
+        ];
+
+        $chosen = $mottos[array_rand($mottos)];
+
+        if (!$formatted) {
+            return $chosen;
+        }
+
+        $icons = ['🔥', '💪', '🚀', '✨', '🎯', '🌟'];
+        $icon = $icons[array_rand($icons)];
+
+        $labels = ['Motto', 'Motto Hari Ini', 'Semangat Hari Ini', 'Motto Pembda'];
+        $label = $labels[array_rand($labels)];
+
+        return "{$icon} *{$label}:* _{$chosen}_";
     }
 
     /**

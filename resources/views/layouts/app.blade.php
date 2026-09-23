@@ -6,6 +6,37 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', $portalTitle ?? 'PembdaHUB')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Tailwind CSS Fallback Detector (ensures styles render even if Vite CSS fails or is blocked on mobile) -->
+    <script>
+        (function() {
+            function checkTailwind() {
+                if (window.__tw_ready) return;
+                var test = document.createElement('div');
+                test.className = 'hidden';
+                test.style.position = 'absolute';
+                test.style.top = '-9999px';
+                (document.body || document.documentElement).appendChild(test);
+                var isStyled = window.getComputedStyle(test).display === 'none';
+                if (test.parentNode) test.parentNode.removeChild(test);
+                if (!isStyled && !document.getElementById('tailwind-cdn-fallback')) {
+                    console.warn('[PembdaHUB] Vite stylesheet not ready/unsupported, activating Tailwind CDN fallback...');
+                    var s = document.createElement('script');
+                    s.id = 'tailwind-cdn-fallback';
+                    s.src = 'https://cdn.tailwindcss.com';
+                    document.head.appendChild(s);
+                } else if (isStyled) {
+                    window.__tw_ready = true;
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', checkTailwind);
+            } else {
+                checkTailwind();
+            }
+            window.addEventListener('load', checkTailwind);
+            setTimeout(checkTailwind, 800);
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,17 +45,17 @@
     <style>[x-cloak] { display: none !important; }</style>
 
     <!-- PWA Manifest & App Shell Meta Tags -->
-    <link rel="manifest" href="/manifest.json?v=6">
+    <link rel="manifest" href="/manifest.json?v=7">
     <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PembdaHUB">
-    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png?v=6">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png?v=7">
 
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js');
+          navigator.serviceWorker.register('/sw.js?v=7');
         });
       }
     </script>
@@ -196,8 +227,8 @@
                     <span></span><span></span><span></span>
                 </button>
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center p-1">
-                        <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Pembda" class="w-full h-full object-contain">
+                    <span class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center p-1" style="width: 32px; height: 32px; min-width: 32px; max-width: 32px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo Pembda" class="w-full h-full object-contain" style="width: 24px; height: 24px; max-width: 100%; max-height: 100%; object-fit: contain;">
                     </span>
                     <div>
                         <h1 class="text-lg font-bold leading-tight">{!! str_replace('HUB', '<span class="text-red-400">HUB</span>', $portalName) !!}</h1>

@@ -213,13 +213,13 @@ class WhatsAppService implements WhatsAppServiceInterface
 
         $phone = $this->normalizePhoneNumber($phone);
 
-        // Global System Footer with Spintax
+        // Global System Footer with Spintax & Motto
         if (!str_contains($message, 'PembdaHUB') && !str_contains($message, 'Pembda')) {
-            $systemFooter = "\n\n---\n" . SpintaxService::spin("{🤖 _Pesan otomatis Sistem PembdaHUB_|✨ _Notifikasi Resmi SIM PembdaHUB_|📡 _Layanan Otomatis Perguruan Pembda Nias_|_SIM Terpadu PembdaHUB Nias_}");
+            $systemFooter = "\n\n" . SpintaxService::spinMotto() . "\n\n---\n" . SpintaxService::spin("{🤖 _Pesan otomatis Sistem PembdaHUB_|✨ _Notifikasi Resmi SIM PembdaHUB_|📡 _Layanan Otomatis Perguruan Pembda Nias_|_SIM Terpadu PembdaHUB Nias_}");
             $message .= $systemFooter;
         }
 
-        // Resolusi seluruh variasi Spintax {opt1|opt2|...} agar teks selalu unik per penerima
+        // Resolusi seluruh variasi Spintax {opt1|opt2|...} dan token {motto} agar teks selalu unik per penerima
         $message = SpintaxService::spin($message);
 
         try {
@@ -340,6 +340,10 @@ class WhatsAppService implements WhatsAppServiceInterface
                 throw new TemplateNotFoundException($templateName);
             }
             $template = $templates[$templateName];
+        }
+
+        if (str_contains($template, '{motto}') && !isset($variables['motto'])) {
+            $variables['motto'] = SpintaxService::spinMotto();
         }
 
         foreach ($variables as $key => $value) {

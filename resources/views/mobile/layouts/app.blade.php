@@ -12,10 +12,10 @@
     <title>@yield('title', 'PembdaHUB Playful Mobile')</title>
 
     <!-- PWA Manifest & App Icons -->
-    <link rel="manifest" href="{{ asset('manifest.json?v=6') }}">
-    <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png?v=6') }}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/icons/icon-192x192.png?v=6') }}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('images/icons/icon-512x512.png?v=6') }}">
+    <link rel="manifest" href="{{ asset('manifest.json?v=7') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png?v=7') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/icons/icon-192x192.png?v=7') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('images/icons/icon-512x512.png?v=7') }}">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

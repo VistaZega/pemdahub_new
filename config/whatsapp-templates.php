@@ -756,6 +756,8 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 
 {catatan_penutup}
 
+{motto}
+
 ---
 {_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Otomatis SIM PembdaHUB_|_Executive Report System Perguruan Pembda Nias_}",
 
@@ -785,6 +787,8 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 
 {catatan_penutup}
 
+{motto}
+
 ---
 {_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Notifikasi Presensi SIM PembdaHUB_|_Sistem Rekapitulasi Terpadu PembdaHUB_}",
 
@@ -804,6 +808,8 @@ Presensi {kehadiran|masuk|KBM} Anda hari ini telah {terekam di sistem|berhasil d
 
 {Selamat menjalankan tugas dan selamat beraktivitas! 🌟|Terima kasih telah hadir tepat waktu. Selamat bertugas! 👨‍🏫|Semoga aktivitas hari ini penuh kelancaran dan berkah. ✨|Terima kasih atas dedikasi dan kedisiplinan Anda. 🙏}
 
+{motto}
+
 ---
 {_Notifikasi Otomatis Gate/Kiosk PembdaHUB_|_SIM Terpadu Perguruan Pembda Nias_|_Presensi Digital PembdaHUB_}",
 
@@ -819,6 +825,8 @@ Presensi {kehadiran|masuk kerja} Anda hari ini telah {terekam di sistem|berhasil
 {📊|🎯} Status: *{status}*
 
 {Selamat menjalankan tugas dan pelayanan hari ini! 🌟|Terima kasih telah hadir tepat waktu di kantor. ✨|Semoga aktivitas dinas hari ini berjalan lancar dan berkah. 🙏}
+
+{motto}
 
 ---
 {_Notifikasi Otomatis Gate/Kiosk PembdaHUB_|_SIM Terpadu Perguruan Pembda Nias_|_Presensi Digital PembdaHUB_}",

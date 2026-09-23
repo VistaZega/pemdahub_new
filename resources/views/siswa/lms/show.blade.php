@@ -171,13 +171,13 @@ if (!function_exists('balanceHtmlTags')) {
             {{-- Progress + Quick Stats --}}
             <div class="flex flex-wrap items-center gap-4">
                 {{-- Progress Ring --}}
-                <div class="bg-blue-100 border-2 border-black rounded-2xl px-5 py-3 flex items-center gap-3 shadow-md">
-                    <div class="relative w-12 h-12">
-                        <svg class="w-12 h-12 progress-ring" viewBox="0 0 36 36">
+                <div class="bg-blue-100 border-2 border-black rounded-2xl px-5 py-3 flex items-center gap-3 shadow-md" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div class="relative w-12 h-12" style="position: relative; width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
+                        <svg class="w-12 h-12 progress-ring" viewBox="0 0 36 36" width="48" height="48" style="width: 48px; height: 48px; max-width: 48px; max-height: 48px;">
                             <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#000000" stroke-width="4"/>
                             <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#2563eb" stroke-width="4" stroke-dasharray="{{ $courseProgress }}, 100" stroke-linecap="round"/>
                         </svg>
-                        <span class="absolute inset-0 flex items-center justify-center text-xs font-black text-black">{{ number_format($courseProgress) }}%</span>
+                        <span class="absolute inset-0 flex items-center justify-center text-xs font-black text-black" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900;">{{ number_format($courseProgress) }}%</span>
                     </div>
                     <div>
                         <div class="text-[10px] font-black uppercase tracking-widest text-black">Progress Belajar</div>

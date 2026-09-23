@@ -210,6 +210,7 @@ class ExecutiveReportService
                     'pegawai_alpha' => $absentP,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
+                    'motto' => SpintaxService::spinMotto(),
                 ];
 
                 if ($dryRun) {
@@ -463,6 +464,7 @@ class ExecutiveReportService
                     'daftar_tidak_hadir' => $absentListSnippet,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
+                    'motto' => SpintaxService::spinMotto(),
                 ];
 
                 if ($dryRun) {
@@ -654,6 +656,7 @@ class ExecutiveReportService
             $greeting = SpintaxService::spinGreeting($teacher->full_name, 'Bapak/Ibu');
             $closing = SpintaxService::spinClosing();
             $footer = SpintaxService::spinFooter();
+            $motto = SpintaxService::spinMotto();
 
             $message = "{⏰|📋|🔔|📚|🗓️} *{PENGINGAT JADWAL MENGAJAR HARI INI|AGENDA MENGAJAR KBM HARI INI|INFORMASI JADWAL MENGAJAR GURU|JADWAL KBM & TUGAS MENGAJAR ANDA|PENGINGAT SESI MENGAJAR HARI INI}*\n"
                 . "{📅|🗓️} *{$dayIndo}, {$dateFormatted}*\n"
@@ -662,6 +665,7 @@ class ExecutiveReportService
                 . "{Mengingatkan agenda mengajar Bapak/Ibu guru hari ini:|Berikut kami sampaikan jadwal sesi KBM Bapak/Ibu untuk hari ini:|Rangkuman kelas dan mata pelajaran yang diampu Bapak/Ibu hari ini:|Agar KBM berjalan tertib dan tepat waktu, berikut jadwal mengajar Bapak/Ibu:|Berikut rincian jadwal mengajar yang tercatat di SIM PembdaHUB hari ini:}\n\n"
                 . "{$jadwalText}\n\n"
                 . "{$closing}\n\n"
+                . "{$motto}\n\n"
                 . "{$footer}";
 
             if ($logger) {
@@ -1374,6 +1378,8 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 🥉 *SISWA PERLU BANTUAN (< 50%):*
 1. Hendrik Putra - 40% Selesai (Perlu diingatkan Wali Kelas)
 
+{motto}
+
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
@@ -1422,6 +1428,8 @@ Selamat! Siswa berikut mendapatkan catatan penghargaan & prestasi baru:
 📝 Keterangan: {$reason}
 
 Teruslah menginspirasi dan membawa nama baik Perguruan Pembda! 🌟
+
+{motto}
 
 ---
 _Notifikasi Otomatis PembdaHUB_";
@@ -1491,6 +1499,8 @@ Telah diterbitkan Surat Edaran Resmi Yayasan terbaru:
 {$documentUrl}
 
 Mohon untuk dibaca, dipahami, dan dilaksanakan sebagaimana mestinya. Terima kasih. 🙏
+
+{motto}
 
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";

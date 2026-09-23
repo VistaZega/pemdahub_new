@@ -33,6 +33,14 @@ class LmsController extends Controller
      */
     public function index()
     {
+        $userAgent = request()->userAgent() ?? '';
+        $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
+        $isMobilePhone = $secChUaMobile || (bool) preg_match('/Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i', $userAgent);
+
+        if ($isMobilePhone && !session('prefer_desktop')) {
+            return redirect()->route('mobile.lms.index');
+        }
+
         $student = $this->getStudent();
         if (!$student) {
             return redirect()->route('siswa.dashboard')->with('error', 'Data siswa tidak ditemukan.');
@@ -207,6 +215,14 @@ class LmsController extends Controller
      */
     public function show(LmsCourse $course)
     {
+        $userAgent = request()->userAgent() ?? '';
+        $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
+        $isMobilePhone = $secChUaMobile || (bool) preg_match('/Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i', $userAgent);
+
+        if ($isMobilePhone && !session('prefer_desktop')) {
+            return redirect()->route('mobile.lms.show', $course->id);
+        }
+
         $student = $this->getStudent();
         if (!$student) {
             return redirect()->route('siswa.dashboard')->with('error', 'Data siswa tidak ditemukan.');
