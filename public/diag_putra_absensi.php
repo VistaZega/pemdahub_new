@@ -93,6 +93,31 @@ if ($teacher && $teacher->user) {
             }
         }
     }
+
+    // 3. Test storeAbsensi for Class 367
+    echo "\n--- TESTING MobileTeacherController::storeAbsensi ---\n";
+    try {
+        $testClass = Classroom::find(367);
+        if ($testClass) {
+            $student = $testClass->students()->first();
+            if ($student) {
+                echo "Testing storeAbsensi for Student ID {$student->id} ({$student->full_name})...\n";
+                $req = Request::create('/m/guru/absensi-store', 'POST', [
+                    'classroom_id' => 367,
+                    'date' => date('Y-m-d'),
+                    'attendances' => [
+                        $student->id => 'hadir'
+                    ]
+                ]);
+                $res = $controller->storeAbsensi($req);
+                echo "✅ storeAbsensi SUCCESS! Status code: " . $res->getStatusCode() . "\n";
+            }
+        }
+    } catch (\Throwable $e) {
+        echo "❌ storeAbsensi ERROR: " . $e->getMessage() . "\n";
+        echo "   File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+        echo "   Trace: " . substr($e->getTraceAsString(), 0, 1000) . "\n";
+    }
 }
 
 echo "\n--- LOG ENTRIES ON 2026-09-23 (LAST 200KB) ---\n";
