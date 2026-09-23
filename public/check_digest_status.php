@@ -26,6 +26,8 @@ header('Content-Type: text/plain; charset=utf-8');
 
 echo "=== STATUS REKAPITULASI KEHADIRAN (2026-09-23) ===\n\n";
 
+$waService = app(\App\Services\WhatsAppService::class);
+
 // 1. Pengaturan WhatsApp & Saklar
 echo "--- 1. PENGATURAN WHATSAPP & SAKLAR REKAP ---\n";
 echo "WA Provider Aktif    : " . $waService->getActiveProvider() . " (" . $waService->getProviderLabel() . ")\n";
