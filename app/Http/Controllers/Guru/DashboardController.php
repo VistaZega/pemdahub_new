@@ -199,6 +199,15 @@ class DashboardController extends Controller
                       ->where('student_classes.academic_year_id', $activeYear->id);
                 }])
                 ->first();
+
+            if (!$homeroomClassroom) {
+                $homeroomClassroom = Classroom::whereIn('homeroom_teacher_id', $tIds)
+                    ->where('is_active', true)
+                    ->withCount(['students' => function ($q) {
+                        $q->whereIn('student_classes.status', ['aktif', 'enrolled', 'active']);
+                    }])
+                    ->first();
+            }
         }
 
         // Tagihan Pembayaran Siswa Wali Kelas

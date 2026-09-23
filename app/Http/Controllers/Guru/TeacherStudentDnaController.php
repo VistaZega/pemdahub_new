@@ -12,6 +12,7 @@ use App\Models\Schedule;
 use App\Services\StudentDnaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TeacherStudentDnaController extends Controller
 {

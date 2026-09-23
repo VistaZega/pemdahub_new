@@ -134,7 +134,7 @@ if (!$run && !$dryRun && !$testPhone) {
     echo "<div class='alert-box'>";
     echo "🛡️ <strong>Sistem Proteksi Ganda Anti-Banned Aktif:</strong><br>";
     echo "1. <strong>Gelombang Bertahap (Staggered Batching):</strong> Dipecah per unit sekolah (SMP 06:15, SMA 06:30, SMK 06:45 WIB) dengan jeda aman <strong>{$delayMin} - {$delayMax} detik</strong>.<br>";
-    echo "2. <strong>Mesin Spin Teks Acak (Polymorphic Spintax):</strong> Setiap guru menerima salam, judul, susunan kalimat, doa penutup, serta <strong>Motto Semangat Acak</strong> (<em>Keep Moving Forward, Maju Terus Pantang Mundur, Semangat, Stop Ask Just Action, Progresive In Harmony</em>) yang selalu berganti.";
+    echo "2. <strong>Mesin Spin Teks Acak (Polymorphic Spintax & Motto):</strong> Setiap guru menerima salam, judul, susunan kalimat, motto institusi secara acak ('Keep Moving Forward', 'Maju Terus Pantang Mundur', 'Semangat', 'Stop Ask Just Action', 'Progresive In Harmony'), dan doa penutup yang selalu unik dan dinamis.";
     echo "</div>";
 
     echo "<div class='stat-grid'>";

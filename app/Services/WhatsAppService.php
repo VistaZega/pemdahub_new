@@ -213,13 +213,22 @@ class WhatsAppService implements WhatsAppServiceInterface
 
         $phone = $this->normalizePhoneNumber($phone);
 
-        // Global System Footer with Spintax & Motto
+        // Sisipkan Motto jika belum ada di dalam pesan (kecuali pesan bertipe OTP/token keamanan)
+        if (stripos($message, 'motto') === false && 
+            !preg_match('/\b(otp|kode verifikasi|token)\b/i', $message)) {
+            $mottoLine = SpintaxService::spinMottoLine();
+            if (str_contains($message, '---')) {
+                $message = preg_replace('/(\n*\s*---\s*\n*)/s', "\n\n" . $mottoLine . "\n\n---\n", $message, 1);
+            }
+        }
+
+        // Global System Footer with Spintax
         if (!str_contains($message, 'PembdaHUB') && !str_contains($message, 'Pembda')) {
-            $systemFooter = "\n\n" . SpintaxService::spinMotto() . "\n\n---\n" . SpintaxService::spin("{🤖 _Pesan otomatis Sistem PembdaHUB_|✨ _Notifikasi Resmi SIM PembdaHUB_|📡 _Layanan Otomatis Perguruan Pembda Nias_|_SIM Terpadu PembdaHUB Nias_}");
+            $systemFooter = "\n\n---\n" . SpintaxService::spin("{🤖 _Pesan otomatis Sistem PembdaHUB_|✨ _Notifikasi Resmi SIM PembdaHUB_|📡 _Layanan Otomatis Perguruan Pembda Nias_|_SIM Terpadu PembdaHUB Nias_}");
             $message .= $systemFooter;
         }
 
-        // Resolusi seluruh variasi Spintax {opt1|opt2|...} dan token {motto} agar teks selalu unik per penerima
+        // Resolusi seluruh variasi Spintax {opt1|opt2|...} dan tag {motto} agar teks selalu unik per penerima
         $message = SpintaxService::spin($message);
 
         try {
@@ -342,8 +351,8 @@ class WhatsAppService implements WhatsAppServiceInterface
             $template = $templates[$templateName];
         }
 
-        if (str_contains($template, '{motto}') && !isset($variables['motto'])) {
-            $variables['motto'] = SpintaxService::spinMotto();
+        if (!isset($variables['motto'])) {
+            $variables['motto'] = SpintaxService::spinMottoLine();
         }
 
         foreach ($variables as $key => $value) {

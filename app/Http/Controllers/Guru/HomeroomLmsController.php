@@ -44,6 +44,13 @@ class HomeroomLmsController extends Controller
             ->with(['school'])
             ->get();
 
+        if ($homeroomClassrooms->isEmpty()) {
+            $homeroomClassrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
+                ->where('is_active', true)
+                ->with(['school'])
+                ->get();
+        }
+
         $isWaliKelas = $homeroomClassrooms->isNotEmpty();
         if (!$isWaliKelas) {
             return redirect()->route('guru.dashboard')

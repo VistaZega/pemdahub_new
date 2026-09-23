@@ -44,6 +44,16 @@ class StudentBillingController extends Controller
             ->first();
 
         if (!$classroom) {
+            $classroom = Classroom::whereIn('homeroom_teacher_id', $tIds)
+                ->where('is_active', true)
+                ->with(['students' => function ($q) {
+                    $q->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])
+                      ->with(['bills' => fn($bq) => $bq->with('paymentType')]);
+                }])
+                ->first();
+        }
+
+        if (!$classroom) {
             // Not a homeroom teacher or no class assigned
             return redirect()->route('guru.dashboard')->with('error', 'Anda tidak ditugaskan sebagai Wali Kelas pada Tahun Ajaran saat ini.');
         }

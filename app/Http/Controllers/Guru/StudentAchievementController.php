@@ -43,6 +43,15 @@ class StudentAchievementController extends Controller
             }])
             ->get();
 
+        if ($homeroomClassrooms->isEmpty()) {
+            $homeroomClassrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
+                ->where('is_active', true)
+                ->with(['school', 'students' => function ($q) {
+                    $q->whereIn('student_classes.status', ['aktif', 'enrolled', 'active']);
+                }])
+                ->get();
+        }
+
         $isWaliKelas = $homeroomClassrooms->isNotEmpty();
 
         // Get all student IDs under homeroom classes

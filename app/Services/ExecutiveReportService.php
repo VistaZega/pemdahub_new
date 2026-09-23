@@ -210,7 +210,7 @@ class ExecutiveReportService
                     'pegawai_alpha' => $absentP,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
-                    'motto' => SpintaxService::spinMotto(),
+                    'motto' => SpintaxService::spinMottoLine(),
                 ];
 
                 if ($dryRun) {
@@ -464,7 +464,7 @@ class ExecutiveReportService
                     'daftar_tidak_hadir' => $absentListSnippet,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
-                    'motto' => SpintaxService::spinMotto(),
+                    'motto' => SpintaxService::spinMottoLine(),
                 ];
 
                 if ($dryRun) {
@@ -655,8 +655,8 @@ class ExecutiveReportService
             $schoolName = $teacher->school?->name ?? 'Perguruan Pembda Nias';
             $greeting = SpintaxService::spinGreeting($teacher->full_name, 'Bapak/Ibu');
             $closing = SpintaxService::spinClosing();
+            $motto = SpintaxService::spinMottoLine();
             $footer = SpintaxService::spinFooter();
-            $motto = SpintaxService::spinMotto();
 
             $message = "{⏰|📋|🔔|📚|🗓️} *{PENGINGAT JADWAL MENGAJAR HARI INI|AGENDA MENGAJAR KBM HARI INI|INFORMASI JADWAL MENGAJAR GURU|JADWAL KBM & TUGAS MENGAJAR ANDA|PENGINGAT SESI MENGAJAR HARI INI}*\n"
                 . "{📅|🗓️} *{$dayIndo}, {$dateFormatted}*\n"
@@ -887,6 +887,7 @@ class ExecutiveReportService
 
         $nowTime = date('H:i');
         $dateFormatted = date('d F Y');
+        $motto = SpintaxService::spinMottoLine();
 
         $message = "📢 *INFORMASI SISTEM PEMBDAHUB*\n" .
                    "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
@@ -896,6 +897,7 @@ class ExecutiveReportService
                    "• 🏫 Kepala Sekolah: *{$schoolsCount} Unit Sekolah*\n" .
                    "• 👩‍🏫 Wali Kelas: *{$classesCount} Rombel*\n" .
                    "• 🛡️ Mode Pacing: *Anti-Ban Santai* (Jeda acak bertahap)\n\n" .
+                   "{$motto}\n\n" .
                    "⏳ _Proses pengiriman berjalan di latar belakang (background). Laporan hasil akhir status pengiriman akan segera dikirimkan kembali ke nomor ini setelah seluruh batch selesai._\n" .
                    "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
                    "_Sistem Otomasi Eksekutif PembdaHUB_";
@@ -960,6 +962,7 @@ class ExecutiveReportService
 
         $nowTime = date('H:i');
         $statusBadge = ($totalErrors === 0) ? "✅ SELURUH REKAP SUKSES TERKIRIM" : "⚠️ TERDAPAT KENDALA ({$totalErrors} Gagal)";
+        $motto = SpintaxService::spinMottoLine();
 
         $message = "🏁 *LAPORAN AKHIR REKAPITULASI ABSENSI*\n" .
                    "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
@@ -979,6 +982,7 @@ class ExecutiveReportService
                    "• Total Pesan Terkirim: *{$totalSent} Pesan*\n" .
                    "• Total Dilewati: *{$totalSkipped}*\n" .
                    "• Status Akhir: *{$statusBadge}*\n\n" .
+                   "{$motto}\n\n" .
                    "_Data kehadiran dan log pengiriman dapat dicek melalui portal PembdaHUB._ 🙏\n" .
                    "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
                    "_Sistem Otomasi Eksekutif PembdaHUB_";
@@ -1378,8 +1382,6 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
 🥉 *SISWA PERLU BANTUAN (< 50%):*
 1. Hendrik Putra - 40% Selesai (Perlu diingatkan Wali Kelas)
 
-{motto}
-
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";
 
@@ -1428,8 +1430,6 @@ Selamat! Siswa berikut mendapatkan catatan penghargaan & prestasi baru:
 📝 Keterangan: {$reason}
 
 Teruslah menginspirasi dan membawa nama baik Perguruan Pembda! 🌟
-
-{motto}
 
 ---
 _Notifikasi Otomatis PembdaHUB_";
@@ -1499,8 +1499,6 @@ Telah diterbitkan Surat Edaran Resmi Yayasan terbaru:
 {$documentUrl}
 
 Mohon untuk dibaca, dipahami, dan dilaksanakan sebagaimana mestinya. Terima kasih. 🙏
-
-{motto}
 
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_";

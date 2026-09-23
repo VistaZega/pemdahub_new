@@ -53,6 +53,15 @@ class CbtDispensationController extends Controller
         }
         $homeroomClassrooms = $classroomsQuery->orderBy('grade_level')->orderBy('class_name')->get();
 
+        if ($homeroomClassrooms->isEmpty() && !$isAdmin && $teacher) {
+            $tIds = Auth::user() ? Auth::user()->teacherIds() : $teacher->allTeacherIds();
+            $homeroomClassrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
+                ->where('is_active', true)
+                ->orderBy('grade_level')
+                ->orderBy('class_name')
+                ->get();
+        }
+
         if ($homeroomClassrooms->isEmpty() && !$isAdmin) {
             return redirect()->route('guru.dashboard')
                 ->with('error', 'Anda tidak terdaftar sebagai Wali Kelas pada Tahun Pelajaran saat ini.');

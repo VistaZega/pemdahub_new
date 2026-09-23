@@ -5,25 +5,35 @@ namespace App\Services;
 class SpintaxService
 {
     /**
+     * Institutional & School Mottos
+     */
+    public const MOTTOS = [
+        'Keep Moving Forward',
+        'Maju Terus Pantang Mundur',
+        'Semangat',
+        'Stop Ask Just Action',
+        'Progresive In Harmony',
+    ];
+
+    /**
      * Spin text containing Spintax format: {option1|option2|option3}
-     * Supports nested Spintax and preserves single variables like {name}.
+     * Supports nested Spintax, {motto}, {motto_raw}, and preserves single variables like {name}.
      */
     public static function spin(string $text): string
     {
-        // Replace {motto} with dynamic randomized motto
+        // 1. Resolve {motto} and {motto_raw}
         if (stripos($text, '{motto}') !== false) {
             $text = preg_replace_callback('/\{motto\}/i', function () {
-                return self::spinMotto(true);
+                return self::spinMottoLine();
+            }, $text);
+        }
+        if (stripos($text, '{motto_raw}') !== false) {
+            $text = preg_replace_callback('/\{motto_raw\}/i', function () {
+                return self::spinMotto();
             }, $text);
         }
 
-        // Replace {raw_motto} with unformatted pure motto string
-        if (stripos($text, '{raw_motto}') !== false) {
-            $text = preg_replace_callback('/\{raw_motto\}/i', function () {
-                return self::spinMotto(false);
-            }, $text);
-        }
-
+        // 2. Resolve standard Spintax {opt1|opt2|...}
         $pattern = '/\{([^{}]+?\|[^{}]+?)\}/s';
         while (preg_match($pattern, $text)) {
             $text = preg_replace_callback($pattern, function ($matches) {
@@ -35,37 +45,32 @@ class SpintaxService
     }
 
     /**
-     * Generate dynamic polymorphic motto / slogan.
-     * Mottos requested:
-     * - "Keep Moving Forward"
-     * - "Maju Terus Pantang Mundur"
-     * - "Semangat"
-     * - "Stop Ask Just Action"
-     * - "Progresive In Harmony"
+     * Get a random raw motto string.
      */
-    public static function spinMotto(bool $formatted = true): string
+    public static function spinMotto(): string
     {
-        $mottos = [
-            'Keep Moving Forward',
-            'Maju Terus Pantang Mundur',
-            'Semangat',
-            'Stop Ask Just Action',
-            'Progresive In Harmony',
-        ];
+        return self::MOTTOS[array_rand(self::MOTTOS)];
+    }
 
-        $chosen = $mottos[array_rand($mottos)];
-
-        if (!$formatted) {
-            return $chosen;
-        }
-
-        $icons = ['🔥', '💪', '🚀', '✨', '🎯', '🌟'];
+    /**
+     * Generate dynamic formatted motto line with emoji and styling.
+     */
+    public static function spinMottoLine(): string
+    {
+        $motto = self::spinMotto();
+        $icons = ['🌟', '💪', '🚀', '✨', '🔥', '🎯', '🌿', '💡', '💫', '⭐'];
         $icon = $icons[array_rand($icons)];
 
-        $labels = ['Motto', 'Motto Hari Ini', 'Semangat Hari Ini', 'Motto Pembda'];
-        $label = $labels[array_rand($labels)];
+        $formats = [
+            "{$icon} *Motto:* \"{$motto}\"",
+            "{$icon} *Motto:* {$motto}",
+            "{$icon} _Motto: \"{$motto}\"_",
+            "{$icon} *Motto Hari Ini:* \"{$motto}\"",
+            "{$icon} Motto: *\"{$motto}\"*",
+            "{$icon} *Motto :* \"{$motto}\"",
+        ];
 
-        return "{$icon} *{$label}:* _{$chosen}_";
+        return $formats[array_rand($formats)];
     }
 
     /**

@@ -39,7 +39,7 @@ class ReportCardController extends Controller
 
         $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
 
-        return Classroom::whereIn('homeroom_teacher_id', $tIds)
+        $classrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('academic_year_id', $activeYear->id)
             ->where('is_active', true)
             ->with('school')
@@ -51,6 +51,19 @@ class ReportCardController extends Controller
             }])
             ->orderBy('class_name')
             ->get();
+
+        if ($classrooms->isEmpty()) {
+            $classrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
+                ->where('is_active', true)
+                ->with('school')
+                ->withCount(['students' => function ($q) {
+                    $q->where('student_classes.status', 'aktif');
+                }])
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        return $classrooms;
     }
 
     /**

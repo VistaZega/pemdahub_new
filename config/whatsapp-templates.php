@@ -461,7 +461,9 @@ Mengingatkan jadwal mengajar Anda hari ini:
 📚 Mata Pelajaran: *{subject_name}*
 🕐 Jam/Sesi: *{time_slot}*
 
-Harap hadir tepat waktu di ruang kelas. Terima kasih atas dedikasi Bapak/Ibu guru! 👨‍🏫👩‍🏫",
+Harap hadir tepat waktu di ruang kelas. Terima kasih atas dedikasi Bapak/Ibu guru! 👨‍🏫👩‍🏫
+
+{motto}",
 
     /**
      * Grades - Grade Published
@@ -847,6 +849,8 @@ Presensi {kehadiran|masuk kerja} Anda hari ini telah {terekam di sistem|berhasil
 
 💡 *Rekomendasi Action:* Laporan rincian penunggak per kelas dapat diunduh di menu Keuangan PembdaHUB untuk ditindaklanjuti Wali Kelas.
 
+{motto}
+
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_",
 
@@ -865,6 +869,8 @@ _Dikirim otomatis oleh PembdaHUB Executive System_",
 
 📋 *DAFTAR SISWA BELUM BAYAR SPP:*
 {daftar_penunggak}
+
+{motto}
 
 ---
 _Dikirim otomatis oleh PembdaHUB Executive System_",
