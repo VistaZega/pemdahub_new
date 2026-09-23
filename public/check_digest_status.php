@@ -28,16 +28,20 @@ echo "=== STATUS REKAPITULASI KEHADIRAN (2026-09-23) ===\n\n";
 
 // 1. Pengaturan WhatsApp & Saklar
 echo "--- 1. PENGATURAN WHATSAPP & SAKLAR REKAP ---\n";
-echo "WA Provider          : " . Setting::getValue('whatsapp_provider', 'none') . "\n";
-echo "Fonnte Token         : " . substr(Setting::getValue('whatsapp_fonnte_token', ''), 0, 6) . "..." . "\n";
+echo "WA Provider Aktif    : " . $waService->getActiveProvider() . " (" . $waService->getProviderLabel() . ")\n";
+echo "wa_active_provider   : " . Setting::getValue('wa_active_provider', '-') . "\n";
+echo "wa_fonnte_token      : " . substr(Setting::getValue('wa_fonnte_token', ''), 0, 6) . "..." . "\n";
 echo "wa_digest_enabled    : " . (Setting::getValue('wa_digest_enabled', true) ? 'AKTIF (true)' : 'NONAKTIF (false)') . "\n";
 echo "wa_send_principal    : " . (Setting::getValue('wa_send_principal_attendance', true) ? 'AKTIF (true)' : 'NONAKTIF (false)') . "\n";
 echo "wa_send_homeroom     : " . (Setting::getValue('wa_send_homeroom_attendance', true) ? 'AKTIF (true)' : 'NONAKTIF (false)') . "\n";
 
 // Test connection
-$waService = app(\App\Services\WhatsAppService::class);
 echo "WA Service Enabled?  : " . ($waService->isEnabled() ? 'YES' : 'NO') . "\n";
 echo "WA Service Connected?: " . ($waService->isConnected() ? 'YES' : 'NO') . "\n";
+
+// Device / Account info
+$accInfo = $waService->getAccountInfo();
+echo "Fonnte Account Info  : " . json_encode($accInfo) . "\n";
 
 // 2. Status Cache Idempotency (Apakah sudah terkirim hari ini?)
 $dateToday = date('Y-m-d');
