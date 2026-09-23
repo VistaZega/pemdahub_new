@@ -213,11 +213,14 @@ class WhatsAppService implements WhatsAppServiceInterface
 
         $phone = $this->normalizePhoneNumber($phone);
 
-        // Global System Footer
-        $systemFooter = "\n\n---\n🤖 _Pesan ini dikirimkan secara otomatis oleh Sistem PembdaHUB Perguruan Pembda._";
-        if (!str_contains($message, 'Sistem PembdaHUB') && !str_contains($message, 'PembdaHUB Executive')) {
+        // Global System Footer with Spintax
+        if (!str_contains($message, 'PembdaHUB') && !str_contains($message, 'Pembda')) {
+            $systemFooter = "\n\n---\n" . SpintaxService::spin("{🤖 _Pesan otomatis Sistem PembdaHUB_|✨ _Notifikasi Resmi SIM PembdaHUB_|📡 _Layanan Otomatis Perguruan Pembda Nias_|_SIM Terpadu PembdaHUB Nias_}");
             $message .= $systemFooter;
         }
+
+        // Resolusi seluruh variasi Spintax {opt1|opt2|...} agar teks selalu unik per penerima
+        $message = SpintaxService::spin($message);
 
         try {
             $data = [
@@ -343,7 +346,7 @@ class WhatsAppService implements WhatsAppServiceInterface
             $template = str_replace("{{$key}}", (string) $value, $template);
         }
 
-        return $template;
+        return SpintaxService::spin($template);
     }
 
     /**

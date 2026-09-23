@@ -129,11 +129,12 @@ if (!$run && !$dryRun && !$testPhone) {
     input[type=text] { background: #1e293b; border: 1px solid #475569; color: white; padding: 10px 14px; border-radius: 8px; font-size: 14px; width: 220px; }
     </style></head><body><div class='card'>";
 
-    echo "<h2>⏰ Pengingat Jadwal Mengajar Harian (Gelombang Bertahap)</h2>";
+    echo "<h2>⏰ Pengingat Jadwal Mengajar Harian (Gelombang Bertahap & Spintax Acak)</h2>";
     
     echo "<div class='alert-box'>";
-    echo "🛡️ <strong>Sistem Gelombang Bertahap (Staggered Batching) Aktif:</strong><br>";
-    echo "Pengiriman tidak lagi membom 76 guru sekaligus. Pesan dipecah menjadi 3 gelombang terpisah dengan jeda antar guru yang sangat aman (<strong>{$delayMin} - {$delayMax} detik</strong>) agar terhindar dari pembatasan WhatsApp.";
+    echo "🛡️ <strong>Sistem Proteksi Ganda Anti-Banned Aktif:</strong><br>";
+    echo "1. <strong>Gelombang Bertahap (Staggered Batching):</strong> Dipecah per unit sekolah (SMP 06:15, SMA 06:30, SMK 06:45 WIB) dengan jeda aman <strong>{$delayMin} - {$delayMax} detik</strong>.<br>";
+    echo "2. <strong>Mesin Spin Teks Acak (Polymorphic Spintax):</strong> Setiap guru menerima salam, judul, susunan kalimat, dan doa penutup yang selalu berbeda (ribuan variasi), sehingga tidak terdeteksi sebagai pesan massal oleh WhatsApp.";
     echo "</div>";
 
     echo "<div class='stat-grid'>";

@@ -651,16 +651,18 @@ class ExecutiveReportService
 
             $jadwalText = implode("\n\n", $scheduleLines);
             $schoolName = $teacher->school?->name ?? 'Perguruan Pembda Nias';
-            $greeting = $this->getPolymorphicGreeting($teacher->full_name, 'Bapak/Ibu');
+            $greeting = SpintaxService::spinGreeting($teacher->full_name, 'Bapak/Ibu');
+            $closing = SpintaxService::spinClosing();
+            $footer = SpintaxService::spinFooter();
 
-            $message = "⏰ *PENGINGAT JADWAL MENGAJAR HARI INI*\n"
-                . "📅 *{$dayIndo}, {$dateFormatted}*\n"
-                . "🏫 *{$schoolName}*\n\n"
-                . "{$greeting},\n"
-                . "Mengingatkan agenda mengajar Bapak/Ibu guru hari ini:\n\n"
+            $message = "{⏰|📋|🔔|📚|🗓️} *{PENGINGAT JADWAL MENGAJAR HARI INI|AGENDA MENGAJAR KBM HARI INI|INFORMASI JADWAL MENGAJAR GURU|JADWAL KBM & TUGAS MENGAJAR ANDA|PENGINGAT SESI MENGAJAR HARI INI}*\n"
+                . "{📅|🗓️} *{$dayIndo}, {$dateFormatted}*\n"
+                . "{🏫|🏛️} *{$schoolName}*\n\n"
+                . "{$greeting}\n\n"
+                . "{Mengingatkan agenda mengajar Bapak/Ibu guru hari ini:|Berikut kami sampaikan jadwal sesi KBM Bapak/Ibu untuk hari ini:|Rangkuman kelas dan mata pelajaran yang diampu Bapak/Ibu hari ini:|Agar KBM berjalan tertib dan tepat waktu, berikut jadwal mengajar Bapak/Ibu:|Berikut rincian jadwal mengajar yang tercatat di SIM PembdaHUB hari ini:}\n\n"
                 . "{$jadwalText}\n\n"
-                . "Harap hadir tepat waktu di ruang kelas. Selamat bertugas & terima kasih atas dedikasi Bapak/Ibu guru! 👨‍🏫👩‍🏫\n\n"
-                . "_Sistem Notifikasi Otomatis PembdaHUB_";
+                . "{$closing}\n\n"
+                . "{$footer}";
 
             if ($logger) {
                 $logger("📤 [{$teacherIndex}/{$totalTeachers}] Mengirim pengingat jadwal ke {$teacher->full_name} ({$phone})...");
@@ -799,29 +801,15 @@ class ExecutiveReportService
      */
     protected function getPolymorphicGreeting(string $name, string $title = 'Bapak/Ibu'): string
     {
-        $firstWord = explode(' ', trim($name))[0];
-        $greetings = [
-            "Selamat pagi, {$title} {$name}. 🙏",
-            "Salam hormat, {$title} {$name}.",
-            "Selamat pagi dan salam hangat, {$title} {$name}. ✨",
-            "Yth. {$title} {$name}, selamat pagi.",
-            "Semoga sehat dan bersemangat selalu, {$title} {$firstWord}. 🌿",
-        ];
-        return $greetings[array_rand($greetings)];
+        return SpintaxService::spinGreeting($name, $title);
     }
 
     /**
-     * Dynamic closing statements.
+     * Dynamic closing statements with rich variations.
      */
     protected function getPolymorphicClosing(): string
     {
-        $closings = [
-            "Semoga kegiatan belajar mengajar hari ini berjalan lancar dan penuh berkah. 🙏",
-            "Terima kasih atas dedikasi dan bimbingan luar biasa Bapak/Ibu untuk siswa kita. ✨",
-            "Semangat mendampingi dan mencerdaskan generasi penerus Pembda hari ini! 🌟",
-            "Semoga seluruh aktivitas pendidikan hari ini diberikan kemudahan dan kelancaran. 🌿",
-        ];
-        return $closings[array_rand($closings)];
+        return SpintaxService::spinClosing();
     }
 
     /**

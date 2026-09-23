@@ -731,62 +731,97 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
      * Executive - Principal Daily Attendance Digest (Kepala Sekolah)
      */
     'executive.principal_daily_attendance' =>
-"🏫 *LAPORAN KEHADIRAN HARIAN {sekolah}*
-📌 *Kepada Yth. {nama_kepsek}*
+"{🏫|🏛️|🏢} *{LAPORAN REKAPITULASI|REKAP EKSEKUTIF|RINGKASAN KEHADIRAN|LAPORAN KEHADIRAN HARIAN} {sekolah}*
+{📌|📋|✉️} *{Kepada Yth.|Yth. Bapak/Ibu|Yth.} {nama_kepsek}*
 
 {salam_pembuka}
 
-📅 Tanggal: *{tanggal}*
-⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi ({waktu_rekap})*
+{📅|🗓️} Tanggal: *{tanggal}*
+{⏰|🕒} Waktu Rekap: *{15 Menit Pasca Batas Toleransi ({waktu_rekap})|Pukul {waktu_rekap} (Sesi Masuk Pagi)|Rekapitulasi Harian ({waktu_rekap})}*
 
-👨‍🎓 *1. KEHADIRAN SISWA (Total: {total_siswa} Siswa):*
-• ✅ Hadir Tepat Waktu: *{siswa_hadir}* | 🕒 Terlambat: *{siswa_terlambat}*
-• 🤒 Sakit: *{siswa_sakit}* | 📩 Izin: *{siswa_izin}* | ❌ Alpha: *{siswa_alpha}*
-• ⏳ Belum Presensi: *{siswa_belum_presensi}*
+{👨‍🎓|🧑‍🎓} *1. {KEHADIRAN SISWA|PRESENSI SISWA} (Total: {total_siswa} Siswa):*
+• {✅|🟢} Hadir Tepat Waktu: *{siswa_hadir}* | {🕒|🟡} Terlambat: *{siswa_terlambat}*
+• {🤒|🏥} Sakit: *{siswa_sakit}* | {📩|📝} Izin: *{siswa_izin}* | {❌|🚫} Alpha: *{siswa_alpha}*
+• {⏳|⌛} Belum Presensi: *{siswa_belum_presensi}*
 
-👨‍🏫 *2. KEHADIRAN GURU & TENAGA PENDIDIK:*
-• ✅ Hadir: *{guru_hadir}* | 🚗 Dinas Luar: *{guru_dinas}*
-• 🤒 Sakit: *{guru_sakit}* | 📩 Izin: *{guru_izin}* | ❌ Alpha: *{guru_alpha}*
+{👨‍🏫|👩‍🏫} *2. {KEHADIRAN GURU & TENAGA PENDIDIK|PRESENSI GURU & TENDIK}:*
+• {✅|🟢} Hadir: *{guru_hadir}* | {🚗|💼} Dinas Luar: *{guru_dinas}*
+• {🤒|🏥} Sakit: *{guru_sakit}* | {📩|📝} Izin: *{guru_izin}* | {❌|🚫} Alpha: *{guru_alpha}*
 
-💼 *3. KEHADIRAN PEGAWAI & STAF TATA USAHA:*
-• ✅ Hadir: *{pegawai_hadir}* | 🏖️ Cuti: *{pegawai_cuti}*
-• 🤒 Sakit: *{pegawai_sakit}* | 📩 Izin: *{pegawai_izin}* | ❌ Alpha: *{pegawai_alpha}*
+{💼|🏢} *3. {KEHADIRAN PEGAWAI & STAF TATA USAHA|PRESENSI STAF TATA USAHA & KARYAWAN}:*
+• {✅|🟢} Hadir: *{pegawai_hadir}* | {🏖️|🌴} Cuti: *{pegawai_cuti}*
+• {🤒|🏥} Sakit: *{pegawai_sakit}* | {📩|📝} Izin: *{pegawai_izin}* | {❌|🚫} Alpha: *{pegawai_alpha}*
 
-💡 *Catatan:* Rincian lengkap per kelas dapat dipantau di Portal Admin PembdaHUB.
+{💡|📌} *Catatan:* {Rincian lengkap per kelas dapat dipantau di Portal Admin PembdaHUB.|Data real-time selengkapnya dapat diakses melalui Dashboard SIM PembdaHUB.|Pantau monitoring kehadiran kelas langsung via portal sistem PembdaHUB.}
 
 {catatan_penutup}
 
 ---
-_Dikirim otomatis oleh PembdaHUB Executive System_",
+{_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Otomatis SIM PembdaHUB_|_Executive Report System Perguruan Pembda Nias_}",
 
     /**
      * Executive - Homeroom Daily Attendance Digest (Wali Kelas)
      */
     'executive.homeroom_daily_attendance' =>
-"👩‍🏫 *REKAP KEHADIRAN HARIAN KELAS {kelas}*
-📌 *Yth. Wali Kelas: {nama_wali_kelas}*
+"{👩‍🏫|👨‍🏫|📊} *{REKAP KEHADIRAN HARIAN KELAS|LAPORAN PRESENSI HARIAN KELAS|RINGKASAN KEHADIRAN SISWA KELAS} {kelas}*
+{📌|📋|✉️} *{Yth. Wali Kelas:|Kepada Yth. Wali Kelas:|Wali Kelas Binaan:} {nama_wali_kelas}*
 
 {salam_pembuka}
 
-📅 Tanggal: *{tanggal}*
-⏰ Waktu Rekap: *15 Menit Pasca Batas Toleransi ({waktu_rekap})*
+{📅|🗓️} Tanggal: *{tanggal}*
+{⏰|🕒} Waktu Rekap: *{15 Menit Pasca Batas Toleransi ({waktu_rekap})|Pukul {waktu_rekap}|Sesi Masuk Pagi ({waktu_rekap})}*
 
-📊 *RINGKASAN KEHADIRAN SISWA KELAS {kelas}:*
-• 👥 Total Siswa: *{total_siswa} Siswa*
-• 🏫 Total Fisik Hadir: *{total_fisik_hadir} Siswa ({persen_hadir}%)*
-  - 🟢 Hadir Tepat Waktu: *{hadir} Siswa*
-  - 🟡 Hadir Terlambat  : *{terlambat} Siswa*
-• 🚫 Tidak Hadir Fisik  : *{total_tidak_hadir} Siswa*
-  - 🤒 Sakit: *{sakit}* | 📩 Izin: *{izin}* | ❌ Alpha: *{alpha}*
-• ⏳ Belum Presensi: *{belum_presensi} Siswa*
+{📊|📈} *{RINGKASAN KEHADIRAN SISWA KELAS|REKAPITULASI PRESENSI KELAS} {kelas}:*
+• {👥|🧑‍🤝‍🧑} Total Siswa: *{total_siswa} Siswa*
+• {🏫|🏢} Total Fisik Hadir: *{total_fisik_hadir} Siswa ({persen_hadir}%)*
+  - {🟢|✅} Hadir Tepat Waktu: *{hadir} Siswa*
+  - {🟡|🕒} Hadir Terlambat  : *{terlambat} Siswa*
+• {🚫|❌} Tidak Hadir Fisik  : *{total_tidak_hadir} Siswa*
+  - {🤒|🏥} Sakit: *{sakit}* | {📩|📝} Izin: *{izin}* | {❌|⛔} Alpha: *{alpha}*
+• {⏳|⌛} Belum Presensi: *{belum_presensi} Siswa*
 
-📋 *CATATAN KETERLAMBATAN & KETIDAKHADIRAN:*
+{📋|📝} *{CATATAN KETERLAMBATAN & KETIDAKHADIRAN:|RINCIAN SISWA TIDAK HADIR / TERLAMBAT:|DAFTAR REKAP SISWA BERKENDALA HARI INI:}*
 {daftar_tidak_hadir}
 
 {catatan_penutup}
 
 ---
-_Dikirim otomatis oleh PembdaHUB Executive System_",
+{_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Notifikasi Presensi SIM PembdaHUB_|_Sistem Rekapitulasi Terpadu PembdaHUB_}",
+
+    /**
+     * Teacher & Employee - Individual Tap Attendance Notification
+     */
+    'teacher.attendance' =>
+"{✅|🟢|📲} *{PRESENSI BERHASIL DICATAT|KONFIRMASI KEHADIRAN MASUK|NOTIFIKASI TAP KEHADIRAN}*
+
+{Halo|Selamat pagi|Salam hangat}, *{nama}*! {👋|🙏|✨}
+Presensi {kehadiran|masuk|KBM} Anda hari ini telah {terekam di sistem|berhasil diverifikasi|tercatat resmi di server SIM}:
+
+{📋|📌} Jabatan: *{jabatan}*
+{📅|🗓️} Tanggal: *{tanggal}*
+{⏰|🕒} Waktu Tap: *{waktu} WIB*
+{📊|🎯} Status: *{status}*
+
+{Selamat menjalankan tugas dan selamat beraktivitas! 🌟|Terima kasih telah hadir tepat waktu. Selamat bertugas! 👨‍🏫|Semoga aktivitas hari ini penuh kelancaran dan berkah. ✨|Terima kasih atas dedikasi dan kedisiplinan Anda. 🙏}
+
+---
+{_Notifikasi Otomatis Gate/Kiosk PembdaHUB_|_SIM Terpadu Perguruan Pembda Nias_|_Presensi Digital PembdaHUB_}",
+
+    'employee.attendance' =>
+"{✅|🟢|📲} *{PRESENSI BERHASIL DICATAT|KONFIRMASI KEHADIRAN PEGAWAI|NOTIFIKASI TAP MASUK}*
+
+{Halo|Selamat pagi|Salam hangat}, *{nama}*! {👋|🙏|✨}
+Presensi {kehadiran|masuk kerja} Anda hari ini telah {terekam di sistem|berhasil diverifikasi|tercatat resmi di server SIM}:
+
+{💼|📌} Posisi/Jabatan: *{jabatan}*
+{📅|🗓️} Tanggal: *{tanggal}*
+{⏰|🕒} Waktu Tap: *{waktu} WIB*
+{📊|🎯} Status: *{status}*
+
+{Selamat menjalankan tugas dan pelayanan hari ini! 🌟|Terima kasih telah hadir tepat waktu di kantor. ✨|Semoga aktivitas dinas hari ini berjalan lancar dan berkah. 🙏}
+
+---
+{_Notifikasi Otomatis Gate/Kiosk PembdaHUB_|_SIM Terpadu Perguruan Pembda Nias_|_Presensi Digital PembdaHUB_}",
 
     /**
      * Executive - Principal Monthly SPP Digest
