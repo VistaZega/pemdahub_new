@@ -108,6 +108,18 @@ Schedule::call(function () {
 // })->everyFiveMinutes()->name('wa-engine-keepalive')->withoutOverlapping();
 
 // ============================================================================
+// WhatsApp Daily Teaching Schedule Reminder — Senin s/d Jumat pukul 06:45 WIB
+// Mengirim pengingat jadwal mengajar harian kepada guru yang memiliki jam mengajar
+// ============================================================================
+Schedule::command('wa:digest teaching-daily')
+    ->weekdays()
+    ->at('06:45')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping(180)
+    ->runInBackground()
+    ->description('Kirim Pengingat Jadwal Mengajar Harian ke Guru via WhatsApp');
+
+// ============================================================================
 // WhatsApp Daily Attendance Digest — Senin s/d Jumat pukul 08:00 WIB
 // Mengirim rekap kehadiran harian (siswa, guru, pegawai) ke Kepala Sekolah
 // dan rekap kelas ke Wali Kelas, 15 menit setelah batas toleransi jam masuk.
@@ -119,4 +131,5 @@ Schedule::command('wa:digest attendance-daily')
     ->withoutOverlapping(180)
     ->runInBackground()
     ->description('Kirim Rekap Kehadiran Harian ke Kepala Sekolah & Wali Kelas via WhatsApp');
+
 

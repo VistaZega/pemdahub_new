@@ -13,7 +13,7 @@ class SendWaExecutiveDigest extends Command
      * @var string
      */
     protected $signature = 'wa:digest 
-        {type=attendance-daily : Type of digest (attendance-daily, spp-monthly, lms-weekly, award-sample, edaran-sample)}
+        {type=attendance-daily : Type of digest (attendance-daily, teaching-daily, spp-monthly, lms-weekly, award-sample, edaran-sample)}
         {--delay-min= : Jeda minimum antar pesan dalam detik}
         {--delay-max= : Jeda maksimum antar pesan dalam detik}
         {--batch-pause= : Jeda istirahat antar unit sekolah dalam detik}
@@ -67,6 +67,11 @@ class SendWaExecutiveDigest extends Command
                 $this->info("🏁 " . ($workflowRes['message'] ?? 'Workflow Selesai'));
                 break;
 
+            case 'teaching-daily':
+                $res = $reportService->sendTeachingScheduleReminder($options);
+                $this->info("🏁 " . ($res['message'] ?? 'Teaching Reminder Selesai'));
+                break;
+
             case 'spp-monthly':
                 $res1 = $reportService->sendPrincipalMonthlySppDigest();
                 $res2 = $reportService->sendHomeroomMonthlySppDigest();
@@ -104,7 +109,7 @@ class SendWaExecutiveDigest extends Command
                 break;
 
             default:
-                $this->error("Unknown digest type: [{$type}]. Available: attendance-daily, spp-monthly, lms-weekly, award-sample, edaran-sample");
+                $this->error("Unknown digest type: [{$type}]. Available: attendance-daily, teaching-daily, spp-monthly, lms-weekly, award-sample, edaran-sample");
                 return 1;
         }
 

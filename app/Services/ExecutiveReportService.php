@@ -524,18 +524,18 @@ class ExecutiveReportService
         $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 8);
         $logger = $options['logger'] ?? null;
 
-        if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
+        if (!$targetPhone && !$dryRun && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
             Log::channel('whatsapp')->info('WA teaching reminder skipped: WhatsApp service or wa_digest_enabled is disabled');
             return ['success' => false, 'sent' => 0, 'message' => 'Layanan WhatsApp atau otomatisasi digest dinonaktifkan di Pengaturan'];
         }
 
-        if (!$targetPhone && !$this->whatsappService->isConnected()) {
+        if (!$targetPhone && !$dryRun && !$this->whatsappService->isConnected()) {
             $msg = 'Gateway WhatsApp sedang terputus (Disconnect). Pengingat jadwal dibatalkan otomatis demi keamanan.';
             Log::channel('whatsapp')->warning("WA teaching reminder aborted: {$msg}");
             return ['success' => false, 'sent' => 0, 'message' => $msg];
         }
 
-        if (!$targetPhone && !Setting::getValue('wa_send_teaching_reminder', true)) {
+        if (!$targetPhone && !$dryRun && !Setting::getValue('wa_send_teaching_reminder', true)) {
             Log::channel('whatsapp')->info('WA teaching reminder skipped: wa_send_teaching_reminder is disabled');
             return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi Pengingat Jadwal Mengajar dinonaktifkan di pengaturan'];
         }
@@ -601,33 +601,35 @@ class ExecutiveReportService
                 continue;
             }
 
-            // Susun ringkasan jadwal per sesi/kelas
-            $scheduleLines = [];
-            $groupedByClassAndSubject = [];
-
+            // Susun ringkasan jadwal per sesi/kelas secara contiguous (berurutan)
+            $contiguousSlots = [];
             foreach ($schedules as $sch) {
                 $clsName = $sch->classroom?->class_name ?? 'Kelas';
                 $subName = $sch->subject?->name ?? 'Mata Pelajaran';
                 $start = substr($sch->start_time ?? ($sch->timeSlot?->start_time ?? '--:--'), 0, 5);
                 $end = substr($sch->end_time ?? ($sch->timeSlot?->end_time ?? '--:--'), 0, 5);
-                $key = "{$clsName}_{$subName}";
 
-                if (!isset($groupedByClassAndSubject[$key])) {
-                    $groupedByClassAndSubject[$key] = [
+                $lastIdx = count($contiguousSlots) - 1;
+                if ($lastIdx >= 0 
+                    && $contiguousSlots[$lastIdx]['classroom'] === $clsName 
+                    && $contiguousSlots[$lastIdx]['subject'] === $subName
+                    && $contiguousSlots[$lastIdx]['end'] === $start) {
+                    $contiguousSlots[$lastIdx]['end'] = $end;
+                    $contiguousSlots[$lastIdx]['slots']++;
+                } else {
+                    $contiguousSlots[] = [
                         'classroom' => $clsName,
                         'subject' => $subName,
                         'start' => $start,
                         'end' => $end,
                         'slots' => 1,
                     ];
-                } else {
-                    $groupedByClassAndSubject[$key]['end'] = $end;
-                    $groupedByClassAndSubject[$key]['slots']++;
                 }
             }
 
+            $scheduleLines = [];
             $num = 1;
-            foreach ($groupedByClassAndSubject as $item) {
+            foreach ($contiguousSlots as $item) {
                 $jamKet = $item['slots'] > 1 ? " ({$item['slots']} Jam)" : "";
                 $scheduleLines[] = "{$num}. ⏰ *{$item['start']} - {$item['end']} WIB*{$jamKet}\n   🏫 Kelas: *{$item['classroom']}*\n   📚 Mapel: *{$item['subject']}*";
                 $num++;
