@@ -87,21 +87,28 @@ if ($teacher && $teacher->user) {
         }
     }
 
-echo "\n--- LOG ENTRIES ON 2026-09-23 AROUND 07:00 - 07:35 WIB ---\n";
+echo "\n--- LOG ENTRIES ON 2026-09-23 (LAST 200KB) ---\n";
 $todayLog = __DIR__ . '/../storage/logs/laravel-2026-09-23.log';
 if (file_exists($todayLog)) {
-    $lines = file($todayLog);
+    $fp = fopen($todayLog, 'r');
+    $size = filesize($todayLog);
+    $readBytes = min($size, 200 * 1024);
+    fseek($fp, $size - $readBytes);
+    $chunk = fread($fp, $readBytes);
+    fclose($fp);
+    
+    $lines = explode("\n", $chunk);
     $matched = [];
     foreach ($lines as $line) {
         if (preg_match('/\[2026-09-23 (07:[0-3]|00:[0-3])/', $line)) {
-            $matched[] = substr($line, 0, 200);
+            $matched[] = substr($line, 0, 180);
         }
     }
-    echo "Total matching log lines: " . count($matched) . "\n";
+    echo "Found " . count($matched) . " matching log lines:\n";
     foreach (array_slice($matched, -30) as $m) {
         echo $m . "\n";
     }
 } else {
-    echo "File log today not found.\n";
+    echo "Log file not found.\n";
 }
 
