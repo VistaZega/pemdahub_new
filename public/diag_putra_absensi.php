@@ -86,6 +86,7 @@ if ($teacher && $teacher->user) {
             }
         }
     }
+}
 
 echo "\n--- LOG ENTRIES ON 2026-09-23 (LAST 200KB) ---\n";
 $todayLog = __DIR__ . '/../storage/logs/laravel-2026-09-23.log';
