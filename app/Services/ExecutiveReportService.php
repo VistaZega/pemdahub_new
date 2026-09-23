@@ -661,7 +661,9 @@ class ExecutiveReportService
             $res = $this->whatsappService->sendMessage($phone, $message);
             if ($res['success']) {
                 $sentCount++;
-                $this->markDigestSentToday('teaching_reminder', $teacher->id, $dateToday);
+                if (!$targetPhone) {
+                    $this->markDigestSentToday('teaching_reminder', $teacher->id, $dateToday);
+                }
                 if ($logger) $logger("   ✅ Berhasil dikirim");
             } else {
                 $errMsg = $res['error'] ?? 'Gagal mengirim pesan WA';
@@ -669,8 +671,14 @@ class ExecutiveReportService
                 if ($logger) $logger("   ❌ Gagal: {$errMsg}");
             }
 
+            // Jika mode pengujian sampel (targetPhone), hentikan setelah 1 sampel terkirim
+            if ($targetPhone) {
+                if ($logger) $logger("🧪 Sampel uji coba berhasil dikirim ke {$targetPhone}. Mengakhiri sesi uji coba.");
+                break;
+            }
+
             // Pacing antar guru jika bukan single test
-            if ($teacherIndex < $totalTeachers && !$dryRun && !$targetPhone) {
+            if ($teacherIndex < $totalTeachers && !$dryRun) {
                 $this->applyHumanPacing($delayMin, $delayMax, $dryRun, $logger);
             }
         }
