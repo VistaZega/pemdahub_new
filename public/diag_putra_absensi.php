@@ -87,18 +87,21 @@ if ($teacher && $teacher->user) {
         }
     }
 
-    // 3. Test Desktop Guru AttendanceController::create
-    echo "\n--- TESTING Desktop Guru AttendanceController::create ---\n";
-    $desktopController = app(\App\Http\Controllers\Guru\AttendanceController::class);
-    try {
-        $req = Request::create('/guru/absensi/input', 'GET');
-        $view = $desktopController->create($req);
-        $renderedHtml = $view->render();
-        echo "✅ Desktop create SUCCESS! Rendered " . strlen($renderedHtml) . " bytes\n";
-    } catch (\Throwable $e) {
-        echo "❌ Desktop create ERROR: " . $e->getMessage() . "\n";
-        echo "   File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+echo "\n--- LOG ENTRIES ON 2026-09-23 AROUND 07:00 - 07:35 WIB ---\n";
+$todayLog = __DIR__ . '/../storage/logs/laravel-2026-09-23.log';
+if (file_exists($todayLog)) {
+    $lines = file($todayLog);
+    $matched = [];
+    foreach ($lines as $line) {
+        if (preg_match('/\[2026-09-23 (07:[0-3]|00:[0-3])/', $line)) {
+            $matched[] = substr($line, 0, 200);
+        }
     }
+    echo "Total matching log lines: " . count($matched) . "\n";
+    foreach (array_slice($matched, -30) as $m) {
+        echo $m . "\n";
+    }
+} else {
+    echo "File log today not found.\n";
 }
 
-echo "\n=== SELESAI ===\n";
