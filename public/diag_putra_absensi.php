@@ -109,10 +109,10 @@ if ($teacher && $teacher->user) {
         
         echo "Testing Class {$cId} ({$testClass->class_name}) - " . count($students) . " students:\n";
         
-        // Test A: Normal 'hadir' for all students
+        // Test A: All 'hadir'
         $attendances = [];
-        foreach ($students as $idx => $st) {
-            $attendances[$st->id] = ($idx % 5 === 0) ? 'terlambat' : 'hadir';
+        foreach ($students as $st) {
+            $attendances[$st->id] = 'hadir';
         }
         
         \Illuminate\Support\Facades\DB::beginTransaction();
@@ -125,21 +125,18 @@ if ($teacher && $teacher->user) {
             ]);
             $res = $controller->storeAbsensi($req);
             $dur = round((microtime(true) - $startT) * 1000, 1);
-            echo "  Status Code: " . $res->getStatusCode() . " | Time: {$dur}ms\n";
-            if ($res->isRedirect()) {
-                $session = session()->all();
-                if (isset($session['errors'])) {
-                    echo "  ❌ Validation ERRORS: " . json_encode($session['errors']->toArray()) . "\n";
-                }
-                if (isset($session['success'])) {
-                    echo "  ✅ Success Msg: " . $session['success'] . "\n";
-                }
+            echo "  [All Hadir] Status Code: " . $res->getStatusCode() . " | Time: {$dur}ms\n";
+            $session = session()->all();
+            if (isset($session['errors'])) {
+                echo "  ❌ Validation ERRORS: " . json_encode($session['errors']->toArray()) . "\n";
+            }
+            if (isset($session['success'])) {
+                echo "  ✅ Success Msg: " . $session['success'] . "\n";
             }
         } catch (\Throwable $e) {
             $dur = round((microtime(true) - $startT) * 1000, 1);
             echo "  ❌ EXCEPTION after {$dur}ms: " . $e->getMessage() . "\n";
             echo "     File: " . $e->getFile() . ":" . $e->getLine() . "\n";
-            echo "     Trace:\n" . substr($e->getTraceAsString(), 0, 500) . "\n";
         } finally {
             \Illuminate\Support\Facades\DB::rollBack();
         }
