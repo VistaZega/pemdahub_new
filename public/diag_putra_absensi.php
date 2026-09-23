@@ -160,9 +160,23 @@ if (file_exists($todayLog)) {
             $matched[] = substr($line, 0, 220);
         }
     }
-    echo "Found " . count($matched) . " matching log lines:\n";
-    foreach ($matched as $m) {
-        echo $m . "\n";
+    echo "\n--- CHECKING PHP ERROR LOG FILES ---\n";
+    $possibleLogs = [
+        __DIR__ . '/error_log',
+        __DIR__ . '/../error_log',
+        __DIR__ . '/../../error_log',
+        __DIR__ . '/../../../error_log',
+        '/home/u474310197/error_log',
+        '/home/u474310197/domains/perguruanpembda.com/error_log',
+        '/home/u474310197/domains/perguruanpembda.com/public_html/error_log',
+        '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub/error_log',
+    ];
+    foreach ($possibleLogs as $pLog) {
+        if (file_exists($pLog)) {
+            echo "Found error_log: {$pLog} (size: " . filesize($pLog) . " bytes)\n";
+            $tail = file_get_contents($pLog, false, null, max(0, filesize($pLog) - 4000));
+            echo substr($tail, -2000) . "\n";
+        }
     }
 } else {
     echo "Log file not found.\n";
