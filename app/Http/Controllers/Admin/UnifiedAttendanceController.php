@@ -624,6 +624,19 @@ class UnifiedAttendanceController extends Controller
             $isToday = ($date === date('Y-m-d'));
             $currentTime = now()->format('H:i:s');
 
+            // Preload status PKL aktif untuk semua siswa di kelas ini (pengecualian jam masuk)
+            $activePklStudentIds = \App\Models\PklPlacement::whereIn('student_id', array_keys($request->attendance))
+                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+                ->where(function($q) use ($date) {
+                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
+                })
+                ->where(function($q) use ($date) {
+                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
+                })
+                ->pluck('student_id')
+                ->flip()
+                ->toArray();
+
             foreach ($request->attendance as $studentId => $data) {
                 if (empty($data['status'])) continue;
 
@@ -632,8 +645,9 @@ class UnifiedAttendanceController extends Controller
                 $timeOut = !empty($data['time_out']) ? $data['time_out'] : null;
 
                 // KETENTUAN: Bila melebihi batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
-                // Pilihan izin, sakit, dan alpha tetap dihormati
-                if ($status === 'hadir') {
+                // Pilihan izin, sakit, dan alpha tetap dihormati (KECUALI siswa aktif PKL)
+                $isStudentPkl = isset($activePklStudentIds[$studentId]);
+                if ($status === 'hadir' && !$isStudentPkl) {
                     $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
                     if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
                         $status = 'terlambat';
@@ -852,10 +866,23 @@ class UnifiedAttendanceController extends Controller
             $timeIn = $timeIn ?: ($isToday && in_array($status, ['hadir', 'terlambat']) ? $currentTime : ($classroom?->entry_time ? $classroom->entry_time . ':00' : '07:30:00'));
 
             // KETENTUAN: Bila melebihi toleransi keterlambatan, status otomatis menjadi 'terlambat'
+            // KECUALI siswa yang sedang aktif PKL
             if ($status === 'hadir') {
-                $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
-                if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
-                    $status = 'terlambat';
+                $isStudentPkl = \App\Models\PklPlacement::where('student_id', $personId)
+                    ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+                    ->where(function($q) use ($date) {
+                        $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
+                    })
+                    ->where(function($q) use ($date) {
+                        $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
+                    })
+                    ->exists();
+
+                if (!$isStudentPkl) {
+                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
+                        $status = 'terlambat';
+                    }
                 }
             }
 

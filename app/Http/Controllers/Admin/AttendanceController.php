@@ -140,11 +140,23 @@ class AttendanceController extends Controller
             $timeIn = $validated['time_in'] ?? ($isToday && in_array($status, ['hadir', 'terlambat']) ? $currentTime : null);
 
             // KETENTUAN: Bila melebihi toleransi keterlambatan, status otomatis menjadi 'terlambat'
-            // Pilihan izin, sakit, dan alpha tetap dihormati
+            // Pilihan izin, sakit, dan alpha tetap dihormati (KECUALI siswa aktif PKL yang jam kerjanya fleksibel)
             if ($status === 'hadir') {
-                $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
-                if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
-                    $status = 'terlambat';
+                $isStudentPkl = \App\Models\PklPlacement::where('student_id', $validated['student_id'])
+                    ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+                    ->where(function($q) use ($validated) {
+                        $q->whereNull('start_date')->orWhereDate('start_date', '<=', $validated['date']);
+                    })
+                    ->where(function($q) use ($validated) {
+                        $q->whereNull('end_date')->orWhereDate('end_date', '>=', $validated['date']);
+                    })
+                    ->exists();
+
+                if (!$isStudentPkl) {
+                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
+                        $status = 'terlambat';
+                    }
                 }
             }
 
@@ -392,11 +404,23 @@ class AttendanceController extends Controller
             $timeIn = $existing?->time_in ?? (in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : ($classroom->entry_time ? $classroom->entry_time . ':00' : '07:30:00')) : null);
 
             // KETENTUAN: Bila melebihi toleransi keterlambatan, status otomatis menjadi 'terlambat'
-            // Pilihan izin, sakit, dan alpha tetap dihormati
+            // Pilihan izin, sakit, dan alpha tetap dihormati (KECUALI siswa aktif PKL)
             if ($status === 'hadir') {
-                $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
-                if ($checkTime && $classroom->isLate($checkTime)) {
-                    $status = 'terlambat';
+                $isStudentPkl = ($existing && $existing->recorded_via === 'gps_pkl') || \App\Models\PklPlacement::where('student_id', $studentId)
+                    ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+                    ->where(function($q) use ($date) {
+                        $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
+                    })
+                    ->where(function($q) use ($date) {
+                        $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
+                    })
+                    ->exists();
+
+                if (!$isStudentPkl) {
+                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
+                    if ($checkTime && $classroom->isLate($checkTime)) {
+                        $status = 'terlambat';
+                    }
                 }
             }
 

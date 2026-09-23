@@ -698,6 +698,23 @@ class AttendanceController extends Controller
             }
 
             return response()->json(['success' => true, 'message' => $msg]);
+        } else {
+            // Jika record sudah ada sebelumnya (misal dari jurnal KBM guru pagi hari),
+            // pastikan status kehadiran siswa PKL dipulihkan ke HADIR dan metode presensi ditandai sebagai Mobile PKL (DUDI)
+            if ($isPklActive) {
+                $patchData = ['recorded_via' => 'gps_pkl'];
+                if ($attendance->status === 'terlambat') {
+                    $patchData['status'] = 'hadir';
+                }
+                if (empty($attendance->time_in) || in_array($attendance->time_in, ['00:00:00', '00:00'])) {
+                    $patchData['time_in'] = $currentTime;
+                }
+                if ($request->latitude) $patchData['latitude'] = $request->latitude;
+                if ($request->longitude) $patchData['longitude'] = $request->longitude;
+                if ($request->device_id) $patchData['device_id'] = $request->device_id;
+                
+                $attendance->update($patchData);
+            }
         }
 
         // Jika dia tap lagi untuk pulang

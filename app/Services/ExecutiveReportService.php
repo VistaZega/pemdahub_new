@@ -11,6 +11,8 @@ use App\Models\StudentBill;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\Setting;
+use App\Models\Schedule;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -504,6 +506,182 @@ class ExecutiveReportService
             'skipped' => $skippedCount,
             'errors' => $errors,
             'message' => "Digest Kehadiran Wali Kelas terkirim ke {$sentCount} kelas" . ($skippedCount ? " ({$skippedCount} dilewati)" : '') . (count($errors) ? ", gagal: " . implode(', ', $errors) : ''),
+        ];
+    }
+
+    /**
+     * 1C. Daily Teaching Schedule Reminder for Teachers (Pengingat Jadwal Mengajar Harian)
+     * Dikirim setiap pagi hari aktif sebelum sesi KBM pertama dimulai.
+     * Mengirimkan ringkasan jam mengajar, kelas rombel, dan mata pelajaran yang diampu hari ini.
+     */
+    public function sendTeachingScheduleReminder(array $options = []): array
+    {
+        $dryRun = $options['dry_run'] ?? false;
+        $force = $options['force'] ?? false;
+        $targetPhone = $options['target_phone'] ?? null;
+        $schoolIdFilter = $options['school_id'] ?? null;
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 8);
+        $logger = $options['logger'] ?? null;
+
+        if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
+            Log::channel('whatsapp')->info('WA teaching reminder skipped: WhatsApp service or wa_digest_enabled is disabled');
+            return ['success' => false, 'sent' => 0, 'message' => 'Layanan WhatsApp atau otomatisasi digest dinonaktifkan di Pengaturan'];
+        }
+
+        if (!$targetPhone && !$this->whatsappService->isConnected()) {
+            $msg = 'Gateway WhatsApp sedang terputus (Disconnect). Pengingat jadwal dibatalkan otomatis demi keamanan.';
+            Log::channel('whatsapp')->warning("WA teaching reminder aborted: {$msg}");
+            return ['success' => false, 'sent' => 0, 'message' => $msg];
+        }
+
+        if (!$targetPhone && !Setting::getValue('wa_send_teaching_reminder', true)) {
+            Log::channel('whatsapp')->info('WA teaching reminder skipped: wa_send_teaching_reminder is disabled');
+            return ['success' => false, 'sent' => 0, 'message' => 'Otomatisasi Pengingat Jadwal Mengajar dinonaktifkan di pengaturan'];
+        }
+
+        $dateToday = date('Y-m-d');
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        if (!$activeYear) return ['success' => false, 'sent' => 0, 'message' => 'Tahun Akademik Aktif tidak ditemukan'];
+
+        $dayOfWeek = strtolower(Carbon::now()->format('l'));
+        $dayNames = [
+            'sunday' => 'Minggu',
+            'monday' => 'Senin',
+            'tuesday' => 'Selasa',
+            'wednesday' => 'Rabu',
+            'thursday' => 'Kamis',
+            'friday' => 'Jumat',
+            'saturday' => 'Sabtu',
+        ];
+        $dayIndo = $dayNames[$dayOfWeek] ?? ucfirst($dayOfWeek);
+        $dateFormatted = Carbon::now()->translatedFormat('d F Y');
+
+        $query = Schedule::with(['teacher.user', 'subject', 'classroom', 'school', 'timeSlot'])
+            ->where('academic_year_id', $activeYear->id)
+            ->where('day_of_week', $dayOfWeek)
+            ->orderBy('start_time');
+
+        if ($schoolIdFilter) {
+            $query->where('school_id', $schoolIdFilter);
+        }
+
+        $allSchedules = $query->get();
+        if ($allSchedules->isEmpty()) {
+            $msg = "Tidak ada jadwal mengajar pada hari {$dayIndo} ({$dateToday})";
+            if ($logger) $logger("ℹ️ {$msg}");
+            return ['success' => true, 'sent' => 0, 'skipped' => 0, 'message' => $msg];
+        }
+
+        $teacherSchedules = $allSchedules->groupBy('teacher_id');
+        $sentCount = 0;
+        $skippedCount = 0;
+        $errors = [];
+
+        $totalTeachers = $teacherSchedules->count();
+        $teacherIndex = 0;
+
+        foreach ($teacherSchedules as $teacherId => $schedules) {
+            $teacherIndex++;
+            $teacher = $schedules->first()->teacher;
+            if (!$teacher) continue;
+
+            $phone = $targetPhone ?: ($teacher->phone ?: ($teacher->user?->phone ?? null));
+            if (!$phone) {
+                if ($logger) $logger("⚠️ Guru {$teacher->full_name} tidak memiliki nomor WhatsApp (dilewati)");
+                continue;
+            }
+
+            // Check Idempotency Lock
+            if (!$targetPhone && !$force && $this->isDigestSentToday('teaching_reminder', $teacher->id, $dateToday)) {
+                $skippedCount++;
+                $msg = "Pengingat jadwal {$teacher->full_name} sudah terkirim hari ini (dilewati)";
+                Log::channel('whatsapp')->info($msg);
+                if ($logger) $logger("⏭️ {$msg}");
+                continue;
+            }
+
+            // Susun ringkasan jadwal per sesi/kelas
+            $scheduleLines = [];
+            $groupedByClassAndSubject = [];
+
+            foreach ($schedules as $sch) {
+                $clsName = $sch->classroom?->class_name ?? 'Kelas';
+                $subName = $sch->subject?->name ?? 'Mata Pelajaran';
+                $start = substr($sch->start_time ?? ($sch->timeSlot?->start_time ?? '--:--'), 0, 5);
+                $end = substr($sch->end_time ?? ($sch->timeSlot?->end_time ?? '--:--'), 0, 5);
+                $key = "{$clsName}_{$subName}";
+
+                if (!isset($groupedByClassAndSubject[$key])) {
+                    $groupedByClassAndSubject[$key] = [
+                        'classroom' => $clsName,
+                        'subject' => $subName,
+                        'start' => $start,
+                        'end' => $end,
+                        'slots' => 1,
+                    ];
+                } else {
+                    $groupedByClassAndSubject[$key]['end'] = $end;
+                    $groupedByClassAndSubject[$key]['slots']++;
+                }
+            }
+
+            $num = 1;
+            foreach ($groupedByClassAndSubject as $item) {
+                $jamKet = $item['slots'] > 1 ? " ({$item['slots']} Jam)" : "";
+                $scheduleLines[] = "{$num}. ⏰ *{$item['start']} - {$item['end']} WIB*{$jamKet}\n   🏫 Kelas: *{$item['classroom']}*\n   📚 Mapel: *{$item['subject']}*";
+                $num++;
+            }
+
+            $jadwalText = implode("\n\n", $scheduleLines);
+            $schoolName = $teacher->school?->name ?? 'Perguruan Pembda Nias';
+            $greeting = $this->getPolymorphicGreeting($teacher->full_name, 'Bapak/Ibu');
+
+            $message = "⏰ *PENGINGAT JADWAL MENGAJAR HARI INI*\n"
+                . "📅 *{$dayIndo}, {$dateFormatted}*\n"
+                . "🏫 *{$schoolName}*\n\n"
+                . "{$greeting},\n"
+                . "Mengingatkan agenda mengajar Bapak/Ibu guru hari ini:\n\n"
+                . "{$jadwalText}\n\n"
+                . "Harap hadir tepat waktu di ruang kelas. Selamat bertugas & terima kasih atas dedikasi Bapak/Ibu guru! 👨‍🏫👩‍🏫\n\n"
+                . "_Sistem Notifikasi Otomatis PembdaHUB_";
+
+            if ($logger) {
+                $logger("📤 [{$teacherIndex}/{$totalTeachers}] Mengirim pengingat jadwal ke {$teacher->full_name} ({$phone})...");
+            }
+
+            if ($dryRun) {
+                $sentCount++;
+                if ($logger) $logger("   [DRY-RUN] Pesan siap dikirim ({$schedules->count()} sesi)");
+                continue;
+            }
+
+            $res = $this->whatsappService->sendMessage($phone, $message);
+            if ($res['success']) {
+                $sentCount++;
+                $this->markDigestSentToday('teaching_reminder', $teacher->id, $dateToday);
+                if ($logger) $logger("   ✅ Berhasil dikirim");
+            } else {
+                $errMsg = $res['error'] ?? 'Gagal mengirim pesan WA';
+                $errors[] = "Guru {$teacher->full_name} ({$phone}): {$errMsg}";
+                if ($logger) $logger("   ❌ Gagal: {$errMsg}");
+            }
+
+            // Pacing antar guru jika bukan single test
+            if ($teacherIndex < $totalTeachers && !$dryRun && !$targetPhone) {
+                $this->applyHumanPacing($delayMin, $delayMax, $dryRun, $logger);
+            }
+        }
+
+        $msg = "Pengingat Jadwal Mengajar selesai: {$sentCount} terkirim, {$skippedCount} dilewati" . (count($errors) > 0 ? ", " . count($errors) . " gagal" : "");
+        Log::channel('whatsapp')->info($msg);
+
+        return [
+            'success' => $sentCount > 0 || $skippedCount > 0,
+            'sent' => $sentCount,
+            'skipped' => $skippedCount,
+            'errors' => $errors,
+            'message' => $msg,
         ];
     }
 

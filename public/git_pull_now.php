@@ -460,18 +460,19 @@ try {
         \App\Models\Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
         \App\Models\Setting::setValue('wa_digest_enabled', true, 'boolean', 'whatsapp');
 
-        // 3 Notifikasi yang DIMINTA AKTIF
+        // 4 Notifikasi yang DIMINTA AKTIF
         $enabledKeys = [
             'wa_send_teacher_attendance',       // 1. Notifikasi Tap Hadir Guru dan Pegawai Saja
             'wa_send_principal_attendance',     // 2. Notifikasi Rekapitulasi Absen Sekolah Kepada Kepala Sekolah
             'wa_send_homeroom_attendance',      // 3. Notifikasi Rekapitulasi Absen Kelas Kepada Wali Kelas
+            'wa_send_teaching_reminder',        // 4. Pengingat Jadwal Mengajar Harian (Pagi)
         ];
 
         foreach ($enabledKeys as $ek) {
             \App\Models\Setting::setValue($ek, true, 'boolean', 'whatsapp');
         }
 
-        // Seluruh 48 notifikasi lainnya tetap DIMATIKAN (OFF)
+        // Seluruh notifikasi lainnya tetap DIMATIKAN (OFF)
         $disabledKeys = [
             'wa_notify_admin_digest',
             'wa_alert_enabled',
@@ -487,7 +488,6 @@ try {
             'wa_send_psb_test_schedule',
             'wa_send_psb_acceptance',
             // Guru
-            'wa_send_teaching_reminder',
             'wa_send_guru_lms_submission',
             'wa_send_guru_meeting_alert',
             'wa_send_guru_training_alert',
@@ -541,6 +541,12 @@ try {
         echo "<span class='ok'>✔ Provider WhatsApp: FONNTE (Cloud API) diaktifkan.</span>\n";
         echo "<span class='ok'>✔ 3 Notifikasi Terpilih (Tap Guru/Pegawai, Rekap Kepsek, Rekap Wali Kelas) AKTIF (ON).</span>\n";
         echo "<span class='warn'>🔒 48 Notifikasi lainnya tetap DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
+
+        // 8c. Auto-fix: Pastikan presensi siswa PKL di DUDI tidak pernah berstatus 'terlambat'
+        $fixedPkl = \App\Models\Attendance::where('recorded_via', 'gps_pkl')->where('status', 'terlambat')->update(['status' => 'hadir']);
+        if ($fixedPkl > 0) {
+            echo "<span class='ok'>✔ Status Kehadiran PKL: {$fixedPkl} presensi PKL yang sempat berstatus terlambat berhasil dipulihkan menjadi 'hadir'.</span>\n";
+        }
     }
 
     // 9. Force Kill WhatsApp Node.js Engine (Disabled permanently per user request)

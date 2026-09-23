@@ -404,13 +404,28 @@ class MobileTeacherController extends Controller
             $studentIds = array_keys($attendancesInput);
             $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
 
+            // Preload status PKL aktif untuk semua siswa di input ini (pengecualian jam masuk)
+            $activePklStudentIds = \App\Models\PklPlacement::whereIn('student_id', $studentIds)
+                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+                ->where(function($q) use ($date) {
+                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
+                })
+                ->where(function($q) use ($date) {
+                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
+                })
+                ->pluck('student_id')
+                ->flip()
+                ->toArray();
+
             foreach ($attendancesInput as $studentId => $status) {
                 if (empty($status) || !in_array($status, ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'])) {
                     continue;
                 }
 
                 // Jika status 'hadir' dicatat melewati batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
-                if ($status === 'hadir' && $isLateTime) {
+                // KECUALI siswa PKL yang memiliki jam kerja fleksibel di tempat industri / DUDI
+                $isStudentPkl = isset($activePklStudentIds[$studentId]);
+                if ($status === 'hadir' && $isLateTime && !$isStudentPkl) {
                     $status = 'terlambat';
                 }
 
@@ -434,12 +449,14 @@ class MobileTeacherController extends Controller
                 }
 
                 if ($attendance) {
+                    $isRecordedPkl = ($attendance->recorded_via === 'gps_pkl');
+                    $finalStatus = ($isStudentPkl || $isRecordedPkl) && $status === 'terlambat' ? 'hadir' : $status;
                     $attendance->update([
                         'classroom_id' => $classroomId,
                         'schedule_id'  => $scheduleId,
-                        'status'       => $status,
+                        'status'       => $finalStatus,
                         'time_in'      => $timeIn ?: $attendance->time_in,
-                        'recorded_via' => 'manual',
+                        'recorded_via' => $isRecordedPkl ? 'gps_pkl' : 'manual',
                     ]);
                 } else {
                     $attendance = Attendance::create([

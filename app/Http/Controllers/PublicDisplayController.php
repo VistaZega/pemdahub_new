@@ -185,6 +185,18 @@ class PublicDisplayController extends Controller
 
         // Ambil ID tahun pelajaran aktif
         $activeAcademicYearId = \App\Models\AcademicYear::where('is_active', true)->value('id');
+
+        // Ambil daftar student_id yang aktif PKL (DUDI) hari ini untuk pengecualian jam masuk (O(1) flip lookup)
+        $activePklStudentIds = \App\Models\PklPlacement::whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+            ->where(function($q) use ($today) {
+                $q->whereNull('start_date')->orWhereDate('start_date', '<=', $today);
+            })
+            ->where(function($q) use ($today) {
+                $q->whereNull('end_date')->orWhereDate('end_date', '>=', $today);
+            })
+            ->pluck('student_id')
+            ->flip()
+            ->toArray();
         
         $rekapUnit = [];
         
@@ -225,7 +237,12 @@ class PublicDisplayController extends Controller
 
                 // Siswa dinyatakan terlambat jika terdapat rekam absensi terlambat di hari ini
                 // atau jam masuk pertama melewati batas toleransi masuk kelas
-                $sTerlambat = $uniqueStudentGroups->filter(function ($records) {
+                // KETENTUAN KHUSUS PKL: Siswa PKL (DUDI) memiliki jam kerja fleksibel industri sehingga tidak pernah dianggap terlambat
+                $sTerlambat = $uniqueStudentGroups->filter(function ($records, $studentId) use ($activePklStudentIds) {
+                    $isPkl = isset($activePklStudentIds[$studentId]) || $records->contains('recorded_via', 'gps_pkl');
+                    if ($isPkl) {
+                        return false;
+                    }
                     if ($records->contains('status', 'terlambat')) {
                         return true;
                     }
@@ -364,7 +381,11 @@ class PublicDisplayController extends Controller
                 // Deduplikasi per siswa dalam rombel
                 $classStudentGroups = $studentAttendances->where('classroom_id', $cls->id)->groupBy('student_id');
                 $hadirInClass = $classStudentGroups->count();
-                $lambatInClass = $classStudentGroups->filter(function($recs) use ($cls) {
+                $lambatInClass = $classStudentGroups->filter(function($recs, $studentId) use ($cls, $activePklStudentIds) {
+                    $isPkl = isset($activePklStudentIds[$studentId]) || $recs->contains('recorded_via', 'gps_pkl');
+                    if ($isPkl) {
+                        return false;
+                    }
                     if ($recs->contains('status', 'terlambat')) return true;
                     $firstIn = $recs->filter(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))->sortBy('time_in')->first();
                     return ($firstIn && method_exists($cls, 'isLate') && $cls->isLate($firstIn->time_in));
@@ -393,7 +414,7 @@ class PublicDisplayController extends Controller
         $studentFeedGroups = $studentAttendances->groupBy('student_id');
         foreach ($studentFeedGroups as $studentId => $records) {
             $bestAtt = $records->first(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))
-                ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']) && in_array($r->recorded_via, ['rfid', 'qr', 'qrcode', 'gps', 'qr_gps']))
+                ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']) && in_array($r->recorded_via, ['rfid', 'qr', 'qrcode', 'gps', 'qr_gps', 'gps_pkl']))
                 ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))
                 ?? $records->last();
 
@@ -401,12 +422,17 @@ class PublicDisplayController extends Controller
             $latestOut  = $records->filter(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))->sortByDesc('time_out')->first()?->time_out;
 
             $hasPulang = !empty($latestOut);
-            $isTerlambat = $records->contains('status', 'terlambat');
-            if (!$isTerlambat && $earliestIn && $bestAtt->classroom && method_exists($bestAtt->classroom, 'isLate')) {
-                $isTerlambat = $bestAtt->classroom->isLate($earliestIn);
+            $isPkl = isset($activePklStudentIds[$studentId]) || $records->contains('recorded_via', 'gps_pkl') || ($bestAtt->recorded_via === 'gps_pkl');
+
+            $isTerlambat = false;
+            if (!$isPkl) {
+                $isTerlambat = $records->contains('status', 'terlambat');
+                if (!$isTerlambat && $earliestIn && $bestAtt->classroom && method_exists($bestAtt->classroom, 'isLate')) {
+                    $isTerlambat = $bestAtt->classroom->isLate($earliestIn);
+                }
             }
             
-            $statusLabel = $hasPulang ? 'Pulang' : ($isTerlambat ? 'Terlambat' : 'Masuk');
+            $statusLabel = $hasPulang ? 'Pulang' : ($isTerlambat ? 'Terlambat' : ($isPkl ? 'Hadir' : 'Masuk'));
             $tipe = $hasPulang ? 'pulang' : ($isTerlambat ? 'terlambat' : 'masuk');
             
             $waktuMasuk = $earliestIn ? substr($earliestIn, 0, 5) : ($bestAtt->time_in ? substr($bestAtt->time_in, 0, 5) : '--:--');
@@ -416,7 +442,7 @@ class PublicDisplayController extends Controller
             $unitName  = $bestAtt->student->school->type ?? '';
 
             // Tentukan Cara Absen
-            $metode = $this->resolveAttendanceMethod($bestAtt->recorded_via, $bestAtt->device_id, $unitName);
+            $metode = $this->resolveAttendanceMethod($bestAtt->recorded_via, $bestAtt->device_id, $unitName, $isPkl);
             $caraAbsen = $metode['label'];
             $caraAbsenTipe = $metode['tipe'];
             $caraAbsenIcon = $metode['icon'];
@@ -519,9 +545,17 @@ class PublicDisplayController extends Controller
      * Resolusi metadata metode/cara absensi (RFID, QR Code, Mobile Phone, Manual)
      * Deteksi murni dari field recorded_via per-transaksi. Berlaku universal untuk semua unit sekolah.
      */
-    private function resolveAttendanceMethod($recordedVia, $deviceId = null, $schoolType = null): array
+    private function resolveAttendanceMethod($recordedVia, $deviceId = null, $schoolType = null, $isPkl = false): array
     {
         $via = strtolower(trim((string)($recordedVia ?? 'manual')));
+
+        if ($via === 'gps_pkl' || $isPkl) {
+            return [
+                'label' => 'Mobile PKL (DUDI)',
+                'tipe'  => 'mobile_pkl',
+                'icon'  => 'fa-solid fa-briefcase',
+            ];
+        }
 
         if ($via === 'rfid') {
             return [
@@ -551,14 +585,6 @@ class PublicDisplayController extends Controller
                 'label' => 'Mobile Phone',
                 'tipe'  => 'mobile',
                 'icon'  => 'fa-solid fa-mobile-screen-button',
-            ];
-        }
-
-        if ($via === 'gps_pkl') {
-            return [
-                'label' => 'Mobile PKL (DUDI)',
-                'tipe'  => 'mobile_pkl',
-                'icon'  => 'fa-solid fa-briefcase',
             ];
         }
 
