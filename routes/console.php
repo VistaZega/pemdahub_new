@@ -109,15 +109,15 @@ Schedule::call(function () {
 
 // ============================================================================
 // WhatsApp Daily Teaching Schedule Reminder — Senin s/d Jumat pukul 06:45 WIB
-// Mengirim pengingat jadwal mengajar harian kepada guru yang memiliki jam mengajar
+// (DINONAKTIFKAN SEMENTARA DEMI KEAMANAN AKUN WHATSAPP)
 // ============================================================================
-Schedule::command('wa:digest teaching-daily')
-    ->weekdays()
-    ->at('06:45')
-    ->timezone('Asia/Jakarta')
-    ->withoutOverlapping(180)
-    ->runInBackground()
-    ->description('Kirim Pengingat Jadwal Mengajar Harian ke Guru via WhatsApp');
+// Schedule::command('wa:digest teaching-daily')
+//     ->weekdays()
+//     ->at('06:45')
+//     ->timezone('Asia/Jakarta')
+//     ->withoutOverlapping(180)
+//     ->runInBackground()
+//     ->description('Kirim Pengingat Jadwal Mengajar Harian ke Guru via WhatsApp');
 
 // ============================================================================
 // WhatsApp Daily Attendance Digest — Senin s/d Jumat pukul 08:00 WIB
