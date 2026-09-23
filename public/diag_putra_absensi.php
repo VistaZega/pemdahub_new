@@ -36,6 +36,13 @@ foreach ($teachers as $t) {
     }
 }
 
+$errorUserIds = [2140, 2146, 2141, 2150, 2130, 2139, 2195, 2144, 2203, 2148, 3942, 3941, 265, 201];
+echo "\n--- USERS ENCOUNTERING ERROR ---:\n";
+$users = User::whereIn('id', $errorUserIds)->get(['id', 'name', 'email', 'role']);
+foreach ($users as $u) {
+    echo "ID: {$u->id} | Name: {$u->name} | Email: {$u->email} | Role: {$u->role}\n";
+}
+
 // Cari user Martperan Putra Zebua
 $teacher = Teacher::where('full_name', 'like', '%Martperan%')->first();
 if (!$teacher) {
