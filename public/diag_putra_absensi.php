@@ -94,29 +94,55 @@ if ($teacher && $teacher->user) {
         }
     }
 
-    // 3. Test storeAbsensi for Class 367
-    echo "\n--- TESTING MobileTeacherController::storeAbsensi ---\n";
-    try {
-        $testClass = Classroom::find(367);
-        if ($testClass) {
-            $student = $testClass->students()->first();
-            if ($student) {
-                echo "Testing storeAbsensi for Student ID {$student->id} ({$student->full_name})...\n";
-                $req = Request::create('/m/guru/absensi-store', 'POST', [
-                    'classroom_id' => 367,
-                    'date' => date('Y-m-d'),
-                    'attendances' => [
-                        $student->id => 'hadir'
-                    ]
-                ]);
-                $res = $controller->storeAbsensi($req);
-                echo "✅ storeAbsensi SUCCESS! Status code: " . $res->getStatusCode() . "\n";
-            }
+    // 3. Test storeAbsensi for Class 367 and others with rollback
+    echo "\n--- TESTING MobileTeacherController::storeAbsensi (Full Class with DB Rollback) ---\n";
+    $testClasses = [163, 367, 370, 280];
+    foreach ($testClasses as $cId) {
+        $testClass = Classroom::find($cId);
+        if (!$testClass) continue;
+        
+        $filterService = app(\App\Services\TeachingAssignmentStudentFilterService::class);
+        $schedule = Schedule::where('teacher_id', $teacher->id)->where('classroom_id', $cId)->first();
+        $assignment = $schedule?->teachingAssignment ?? \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)->where('classroom_id', $cId)->first();
+        
+        $students = $assignment ? $filterService->getStudentsForAssignment($assignment, date('Y-m-d')) : $testClass->students()->whereIn('student_classes.status', ['aktif', 'enrolled', 'active'])->get();
+        
+        echo "Testing Class {$cId} ({$testClass->class_name}) - " . count($students) . " students:\n";
+        
+        // Test A: Normal 'hadir' for all students
+        $attendances = [];
+        foreach ($students as $idx => $st) {
+            $attendances[$st->id] = ($idx % 5 === 0) ? 'terlambat' : 'hadir';
         }
-    } catch (\Throwable $e) {
-        echo "❌ storeAbsensi ERROR: " . $e->getMessage() . "\n";
-        echo "   File: " . $e->getFile() . ":" . $e->getLine() . "\n";
-        echo "   Trace: " . substr($e->getTraceAsString(), 0, 1000) . "\n";
+        
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        $startT = microtime(true);
+        try {
+            $req = Request::create('/m/guru/absensi-store', 'POST', [
+                'classroom_id' => $cId,
+                'date' => date('Y-m-d'),
+                'attendances' => $attendances
+            ]);
+            $res = $controller->storeAbsensi($req);
+            $dur = round((microtime(true) - $startT) * 1000, 1);
+            echo "  Status Code: " . $res->getStatusCode() . " | Time: {$dur}ms\n";
+            if ($res->isRedirect()) {
+                $session = session()->all();
+                if (isset($session['errors'])) {
+                    echo "  ❌ Validation ERRORS: " . json_encode($session['errors']->toArray()) . "\n";
+                }
+                if (isset($session['success'])) {
+                    echo "  ✅ Success Msg: " . $session['success'] . "\n";
+                }
+            }
+        } catch (\Throwable $e) {
+            $dur = round((microtime(true) - $startT) * 1000, 1);
+            echo "  ❌ EXCEPTION after {$dur}ms: " . $e->getMessage() . "\n";
+            echo "     File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+            echo "     Trace:\n" . substr($e->getTraceAsString(), 0, 500) . "\n";
+        } finally {
+            \Illuminate\Support\Facades\DB::rollBack();
+        }
     }
 }
 
