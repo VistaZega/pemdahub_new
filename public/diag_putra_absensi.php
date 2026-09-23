@@ -109,10 +109,11 @@ if ($teacher && $teacher->user) {
         
         echo "Testing Class {$cId} ({$testClass->class_name}) - " . count($students) . " students:\n";
         
-        // Test A: All 'hadir'
+        // Test: Mixed statuses ('hadir', 'terlambat', 'izin', 'sakit', 'alpha')
         $attendances = [];
-        foreach ($students as $st) {
-            $attendances[$st->id] = 'hadir';
+        $statuses = ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'];
+        foreach ($students as $idx => $st) {
+            $attendances[$st->id] = $statuses[$idx % count($statuses)];
         }
         
         \Illuminate\Support\Facades\DB::beginTransaction();
@@ -125,7 +126,7 @@ if ($teacher && $teacher->user) {
             ]);
             $res = $controller->storeAbsensi($req);
             $dur = round((microtime(true) - $startT) * 1000, 1);
-            echo "  [All Hadir] Status Code: " . $res->getStatusCode() . " | Time: {$dur}ms\n";
+            echo "  [Mixed Statuses (Hadir/Terlambat/Izin/Sakit/Alpha)] Status Code: " . $res->getStatusCode() . " | Time: {$dur}ms\n";
             $session = session()->all();
             if (isset($session['errors'])) {
                 echo "  ❌ Validation ERRORS: " . json_encode($session['errors']->toArray()) . "\n";
@@ -137,9 +138,20 @@ if ($teacher && $teacher->user) {
             $dur = round((microtime(true) - $startT) * 1000, 1);
             echo "  ❌ EXCEPTION after {$dur}ms: " . $e->getMessage() . "\n";
             echo "     File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+            echo "     Trace:\n" . substr($e->getTraceAsString(), 0, 500) . "\n";
         } finally {
             \Illuminate\Support\Facades\DB::rollBack();
         }
+    }
+
+    echo "\n--- TESTING GET /m/absensi/scan FALLBACK ---\n";
+    try {
+        $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+        $req = Request::create('/m/absensi/scan', 'GET');
+        $res = $kernel->handle($req);
+        echo "GET /m/absensi/scan status: " . $res->getStatusCode() . " (Redirected to: " . $res->headers->get('Location') . ")\n";
+    } catch (\Throwable $e) {
+        echo "❌ GET /m/absensi/scan ERROR: " . $e->getMessage() . "\n";
     }
 }
 

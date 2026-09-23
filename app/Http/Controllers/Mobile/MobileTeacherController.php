@@ -364,7 +364,11 @@ class MobileTeacherController extends Controller
             'classroom_id' => 'required|exists:classrooms,id',
             'date' => 'required|date',
             'attendances' => 'required|array',
-            'attendances.*' => 'nullable|in:hadir,izin,sakit,alpha,',
+            'attendances.*' => 'nullable|in:hadir,terlambat,izin,sakit,alpha,',
+        ], [
+            'attendances.*.in' => 'Status kehadiran yang dipilih tidak valid.',
+            'classroom_id.required' => 'Kelas harus dipilih.',
+            'date.required' => 'Tanggal harus diisi.',
         ]);
 
         $teacher = $this->getTeacher();
@@ -393,77 +397,141 @@ class MobileTeacherController extends Controller
         $classroomModel = Classroom::find($classroomId);
         $isLateTime = $isToday && $classroomModel && $classroomModel->isLate($currentTime);
 
-        $count = 0;
-        foreach ($attendancesInput as $studentId => $status) {
-            if (empty($status) || !in_array($status, ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'])) {
-                continue;
-            }
+        DB::beginTransaction();
+        try {
+            $count = 0;
+            // Preload all students in one query to avoid N+1 queries
+            $studentIds = array_keys($attendancesInput);
+            $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
 
-            // Jika status 'hadir' dicatat melewati batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
-            // Pilihan izin, sakit, dan alpha tetap dihormati
-            if ($status === 'hadir' && $isLateTime) {
-                $status = 'terlambat';
-            }
-
-            $attendance = Attendance::updateOrCreate(
-                [
-                    'student_id'   => $studentId,
-                    'classroom_id' => $classroomId,
-                    'date'         => $date,
-                    'created_by'   => Auth::id(),
-                ],
-                [
-                    'schedule_id'  => $scheduleId,
-                    'status'       => $status,
-                    'time_in'      => $currentTime,
-                    'recorded_via' => 'manual',
-                ]
-            );
-
-            // Reputation Hook Siswa
-            $student = Student::find($studentId);
-            if ($student && $student->user_id) {
-                $points = match($status) {
-                    'hadir' => 10,
-                    'terlambat' => 5,
-                    'alpha' => -10,
-                    default => 0
-                };
-                $desc = "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
-                
-                $alreadyLoggedOtherDate = ReputationLog::where('user_id', $student->user_id)
-                    ->where('category', 'attendance')
-                    ->whereDate('created_at', $date)
-                    ->where(function($q) use ($attendance) {
-                        $q->where('reference_type', '!=', get_class($attendance))
-                          ->orWhere('reference_id', '!=', $attendance->id);
-                    })
-                    ->exists();
-
-                if (!$alreadyLoggedOtherDate) {
-                    ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+            foreach ($attendancesInput as $studentId => $status) {
+                if (empty($status) || !in_array($status, ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'])) {
+                    continue;
                 }
+
+                // Jika status 'hadir' dicatat melewati batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
+                if ($status === 'hadir' && $isLateTime) {
+                    $status = 'terlambat';
+                }
+
+                $timeIn = in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : null) : null;
+
+                // Cari record yang ada terlebih dahulu untuk menghindari bentrokan index unik (student_id, schedule_id, date)
+                $attendance = null;
+                if ($scheduleId) {
+                    $attendance = Attendance::where('student_id', $studentId)
+                        ->where('schedule_id', $scheduleId)
+                        ->whereDate('date', $date)
+                        ->first();
+                }
+
+                if (!$attendance) {
+                    $attendance = Attendance::where('student_id', $studentId)
+                        ->where('classroom_id', $classroomId)
+                        ->whereDate('date', $date)
+                        ->where('created_by', Auth::id())
+                        ->first();
+                }
+
+                if ($attendance) {
+                    $attendance->update([
+                        'classroom_id' => $classroomId,
+                        'schedule_id'  => $scheduleId,
+                        'status'       => $status,
+                        'time_in'      => $timeIn ?: $attendance->time_in,
+                        'recorded_via' => 'manual',
+                    ]);
+                } else {
+                    $attendance = Attendance::create([
+                        'student_id'   => $studentId,
+                        'classroom_id' => $classroomId,
+                        'schedule_id'  => $scheduleId,
+                        'date'         => $date,
+                        'status'       => $status,
+                        'time_in'      => $timeIn,
+                        'recorded_via' => 'manual',
+                        'created_by'   => Auth::id(),
+                    ]);
+                }
+
+                // Auto-sync ke Presensi Harian Sekolah (schedule_id = NULL) jika belum ada presensi harian pada tanggal ini
+                $existingDaily = Attendance::where('student_id', $studentId)
+                    ->whereDate('date', $date)
+                    ->whereNull('schedule_id')
+                    ->first();
+
+                if (!$existingDaily) {
+                    Attendance::create([
+                        'student_id'   => $studentId,
+                        'classroom_id' => $classroomId,
+                        'date'         => $date,
+                        'schedule_id'  => null,
+                        'status'       => $status,
+                        'time_in'      => $timeIn,
+                        'recorded_via' => 'manual',
+                        'created_by'   => Auth::id(),
+                    ]);
+                }
+
+                // Reputation Hook Siswa
+                $student = $students->get($studentId);
+                if ($student && $student->user_id) {
+                    $points = match($status) {
+                        'hadir'     => 10,
+                        'terlambat' => 5,
+                        'alpha'     => -10,
+                        default     => 0
+                    };
+
+                    if ($points !== 0) {
+                        $desc = "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
+                        
+                        $alreadyLoggedOtherDate = ReputationLog::where('user_id', $student->user_id)
+                            ->where('category', 'attendance')
+                            ->whereDate('created_at', $date)
+                            ->where(function($q) use ($attendance) {
+                                $q->where('reference_type', '!=', get_class($attendance))
+                                  ->orWhere('reference_id', '!=', $attendance->id);
+                            })
+                            ->exists();
+
+                        if (!$alreadyLoggedOtherDate) {
+                            ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
+                        }
+                    }
+                }
+
+                $count++;
             }
 
-            $count++;
+            // Reputation Hook Guru (Maksimal 1x per hari)
+            $teacherAlreadyLoggedToday = ReputationLog::where('user_id', Auth::id())
+                ->where('category', 'attendance_input')
+                ->whereDate('created_at', $date ?? date('Y-m-d'))
+                ->exists();
+
+            if (!$teacherAlreadyLoggedToday) {
+                ReputationLog::log(
+                    Auth::id(),
+                    20,
+                    'attendance_input',
+                    "Melakukan input absensi kelas ({$date})"
+                );
+            }
+
+            DB::commit();
+            return back()->with('success', "Absensi kelas berhasil disimpan untuk {$count} siswa!");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error("MobileTeacherController@storeAbsensi Error: " . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'classroom_id' => $classroomId,
+                'date' => $date,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withInput()->with('error', "Gagal menyimpan absensi: " . $e->getMessage());
         }
-
-        // Reputation Hook Guru
-        $teacherAlreadyLoggedToday = ReputationLog::where('user_id', Auth::id())
-            ->where('category', 'attendance_input')
-            ->whereDate('created_at', $date ?? date('Y-m-d'))
-            ->exists();
-
-        if (!$teacherAlreadyLoggedToday) {
-            ReputationLog::log(
-                Auth::id(),
-                20,
-                'attendance_input',
-                "Melakukan input absensi kelas ({$date})"
-            );
-        }
-
-        return back()->with('success', "Absensi kelas berhasil disimpan untuk {$count} siswa!");
     }
 
     /**

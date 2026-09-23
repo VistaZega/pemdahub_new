@@ -30,6 +30,35 @@
         </button>
     </div>
 
+    <!-- Session Messages & Validation Errors -->
+    @if(session('success'))
+    <div class="p-3.5 rounded-2xl bg-emerald-500 text-white text-xs font-black shadow-md flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-base shrink-0"></i>
+        <span>{{ session('success') }}</span>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="p-3.5 rounded-2xl bg-rose-500 text-white text-xs font-black shadow-md flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-base shrink-0"></i>
+        <span>{{ session('error') }}</span>
+    </div>
+    @endif
+
+    @if($errors->any())
+    <div class="p-3.5 rounded-2xl bg-rose-500 text-white text-xs font-bold shadow-md space-y-1">
+        <div class="font-black flex items-center gap-2">
+            <i class="fa-solid fa-circle-xmark text-base shrink-0"></i>
+            <span>Terdapat kendala pengisian absensi:</span>
+        </div>
+        <ul class="list-disc list-inside text-[11px] opacity-95">
+            @foreach($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <!-- Classroom & Date Select Card (Clay Card) -->
     <div class="clay-card p-5 space-y-3">
         <form action="{{ route('mobile.guru.absensi.input') }}" method="GET" class="space-y-3" id="filterForm">
@@ -175,7 +204,10 @@
             </div>
 
             <!-- Submit Action -->
-            <button type="submit" class="clay-btn w-full py-4 text-white font-black text-xs uppercase tracking-wider shadow-lg">
+            <button type="submit" 
+                    id="btnSubmitAbsensi"
+                    onclick="if(this.form.checkValidity()){ this.disabled=true; this.innerHTML='<i class=\'fa-solid fa-spinner fa-spin mr-1.5\'></i> Menyimpan Presensi...'; this.form.submit(); }"
+                    class="clay-btn w-full py-4 text-white font-black text-xs uppercase tracking-wider shadow-lg transition active:scale-95">
                 <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Kehadiran Belajar
             </button>
         </form>

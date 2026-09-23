@@ -363,7 +363,7 @@
             </a>
 
             <!-- Absensi -->
-            <a href="{{ route('mobile.absensi.scan') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+            <a href="{{ route('mobile.absensi.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
                 <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
                     📷
                 </div>

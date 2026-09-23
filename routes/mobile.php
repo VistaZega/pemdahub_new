@@ -237,6 +237,7 @@ Route::prefix('m')->name('mobile.')->group(function () {
         // Absensi
         Route::prefix('absensi')->name('absensi.')->group(function () {
             Route::get('/', [MobileAbsensiController::class, 'index'])->name('index');
+            Route::get('/scan', fn() => redirect()->route('mobile.absensi.index'));
             Route::post('/scan', [MobileAbsensiController::class, 'scan'])->name('scan');
         });
 
