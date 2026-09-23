@@ -543,8 +543,8 @@ try {
 
         $deletedCount = \Illuminate\Support\Facades\DB::table('jobs')->delete();
         echo "<span class='ok'>✔ Provider WhatsApp: FONNTE (Cloud API) diaktifkan.</span>\n";
-        echo "<span class='ok'>✔ 3 Notifikasi Terpilih (Tap Guru/Pegawai, Rekap Kepsek, Rekap Wali Kelas) AKTIF (ON).</span>\n";
-        echo "<span class='warn'>🔒 48 Notifikasi lainnya tetap DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
+        echo "<span class='ok'>✔ 4 Notifikasi Terpilih (Tap Guru/Pegawai, Rekap Kepsek, Rekap Wali Kelas, Pengingat Jadwal Gelombang) AKTIF (ON).</span>\n";
+        echo "<span class='warn'>🔒 Notifikasi lainnya tetap DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
 
         // 8c. Auto-fix: Pastikan presensi siswa PKL di DUDI tidak pernah berstatus 'terlambat'
         $fixedPkl = \App\Models\Attendance::where('recorded_via', 'gps_pkl')->where('status', 'terlambat')->update(['status' => 'hadir']);
