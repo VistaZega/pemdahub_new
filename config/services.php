@@ -74,7 +74,7 @@ return [
     */
     'kiosk' => [
         'api_key' => env('KIOSK_API_KEY', 'RAHASIA-PEMBDAHUB-12345'),
-        'cooldown_seconds' => env('KIOSK_COOLDOWN_SECONDS', 10),
+        'cooldown_seconds' => env('KIOSK_COOLDOWN_SECONDS', 300),
     ],
 
     /*

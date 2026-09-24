@@ -701,6 +701,7 @@ class AttendanceController extends Controller
         } else {
             // Jika record sudah ada sebelumnya (misal dari jurnal KBM guru pagi hari),
             // pastikan status kehadiran siswa PKL dipulihkan ke HADIR dan metode presensi ditandai sebagai Mobile PKL (DUDI)
+            $wasTimeInSet = false;
             if ($isPklActive) {
                 $patchData = ['recorded_via' => 'gps_pkl'];
                 if ($attendance->status === 'terlambat') {
@@ -708,27 +709,49 @@ class AttendanceController extends Controller
                 }
                 if (empty($attendance->time_in) || in_array($attendance->time_in, ['00:00:00', '00:00'])) {
                     $patchData['time_in'] = $currentTime;
+                    $wasTimeInSet = true;
                 }
                 if ($request->latitude) $patchData['latitude'] = $request->latitude;
                 if ($request->longitude) $patchData['longitude'] = $request->longitude;
                 if ($request->device_id) $patchData['device_id'] = $request->device_id;
                 
                 $attendance->update($patchData);
+            } else {
+                if (empty($attendance->time_in) || in_array($attendance->time_in, ['00:00:00', '00:00'])) {
+                    $attendance->update([
+                        'time_in' => $currentTime,
+                        'recorded_via' => 'qr_gps',
+                        'device_id' => $request->device_id,
+                        'latitude' => $request->latitude,
+                        'longitude' => $request->longitude,
+                    ]);
+                    $wasTimeInSet = true;
+                }
+            }
+
+            if ($wasTimeInSet) {
+                $msg = $isPklActive 
+                    ? "📍 Presensi PKL Berhasil! Kehadiran Anda di {$dudiName} telah tercatat pada jam " . date('H:i', strtotime($currentTime)) . " dengan tag GPS. Selamat bertugas! 💼"
+                    : '📍 Presensi Mandiri Sekolah berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                return response()->json(['success' => true, 'message' => $msg]);
             }
         }
 
         // Jika dia tap lagi untuk pulang
         $isNotCheckedOut = !$attendance->time_out || $attendance->time_out === '00:00:00' || $attendance->time_out === '00:00';
         if ($attendance->time_in && $isNotCheckedOut) {
-            // Anti-spam cooldown: minimal 5 menit setelah check-in baru boleh check-out
+            // Anti-spam cooldown: minimal 15 menit (900 detik) setelah check-in baru boleh check-out pada presensi HP
             $lastScan = \Carbon\Carbon::parse($today . ' ' . $attendance->time_in);
             $diffSeconds = now('Asia/Jakarta')->timestamp - $lastScan->timestamp;
-            $cooldown = config('services.kiosk.cooldown_seconds', 300);
+            $cooldown = (int) config('services.kiosk.cooldown_seconds', 900);
+            if ($cooldown < 900) {
+                $cooldown = 900; // Minimal 15 menit untuk presensi mobile HP
+            }
             if ($diffSeconds >= 0 && $diffSeconds < $cooldown) {
                 $timeInFormatted = date('H:i', strtotime($attendance->time_in));
                 return response()->json([
                     'success' => false,
-                    'message' => "ℹ️ Presensi masuk Anda sudah tercatat pada jam {$timeInFormatted} WIB.\nPresensi pulang baru dapat dilakukan setelah jeda beberapa menit."
+                    'message' => "ℹ️ Presensi masuk Anda sudah tercatat pada jam {$timeInFormatted} WIB.\nPresensi pulang baru dapat dilakukan setelah jam pulang atau jeda minimal 15 menit."
                 ], 400);
             }
 
