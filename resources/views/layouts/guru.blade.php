@@ -75,6 +75,12 @@
     </a>
 
     @if($isWaliKelas)
+    <!-- Kelola & Edit Data Siswa (Wali Kelas) -->
+    <a href="{{ route('admin.students.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.students.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #10b981 !important; color: #ffffff !important;"><i class="fas fa-user-pen text-[10px] text-white"></i></div>
+        <span>Kelola & Edit Data Siswa</span>
+    </a>
+
     <!-- Justifikasi Prestasi Siswa (Wali Kelas) -->
     <a href="{{ route('guru.prestasi-siswa.index') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.prestasi-siswa.*') ? $ac : $nc }}">
         <div class="flex items-center gap-3">

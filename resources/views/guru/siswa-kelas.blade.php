@@ -17,9 +17,19 @@
                     Siswa Kelas: {{ $classroom->class_name }}
                 </h1>
             </div>
-            <span class="bg-amber-400 text-black border-2 border-black px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider shadow-sm">
-                <i class="fas fa-users mr-1"></i> {{ $classroom->students->count() }} Siswa Terdaftar
-            </span>
+            <div class="flex items-center gap-2 flex-wrap">
+                @can('create', App\Models\Student::class)
+                <a href="{{ route('admin.students.create') }}" class="bg-emerald-400 hover:bg-emerald-300 text-black font-black border-2 border-black px-4 py-2 rounded-2xl text-xs uppercase tracking-wider shadow-sm transition inline-flex items-center gap-2">
+                    <i class="fas fa-user-plus"></i> Tambah Siswa
+                </a>
+                @endcan
+                <a href="{{ route('admin.students.index', ['classroom_id' => $classroom->id]) }}" class="bg-amber-400 hover:bg-amber-300 text-black font-black border-2 border-black px-4 py-2 rounded-2xl text-xs uppercase tracking-wider shadow-sm transition inline-flex items-center gap-2">
+                    <i class="fas fa-users-gear"></i> Kelola Siswa
+                </a>
+                <span class="bg-white/10 text-white border border-white/20 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider shadow-sm">
+                    <i class="fas fa-users mr-1"></i> {{ $classroom->students->count() }} Siswa
+                </span>
+            </div>
         </div>
     </div>
 
@@ -35,6 +45,7 @@
                             <th class="px-5 py-4 text-center font-black uppercase text-xs tracking-wider text-amber-400">L/P</th>
                             <th class="px-5 py-4 text-left font-black uppercase text-xs tracking-wider text-amber-400">Agama</th>
                             <th class="px-5 py-4 text-left font-black uppercase text-xs tracking-wider text-amber-400">No. HP</th>
+                            <th class="px-5 py-4 text-center font-black uppercase text-xs tracking-wider text-amber-400">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y-2 divide-black/10">
@@ -50,6 +61,13 @@
                                 </td>
                                 <td class="px-5 py-3.5 font-bold text-black">{{ $student->religion ?? '-' }}</td>
                                 <td class="px-5 py-3.5 font-mono text-xs font-bold text-black">{{ $student->phone ?? '-' }}</td>
+                                <td class="px-5 py-3.5 text-center whitespace-nowrap">
+                                    @can('update', $student)
+                                    <a href="{{ route('admin.students.edit', $student->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-black transition shadow-xs" title="Edit Data Siswa">
+                                        <i class="fas fa-edit text-emerald-700"></i> Edit Data
+                                    </a>
+                                    @endcan
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

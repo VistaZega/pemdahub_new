@@ -453,6 +453,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Alias for isHomeroomTeacher
+     */
+    public function isWaliKelas(): bool
+    {
+        return $this->isHomeroomTeacher();
+    }
+
+    /**
      * Helper untuk mengecek apakah guru memiliki tugas tambahan / kepanitiaan tertentu
      */
     public function hasSpecialDuty(array $keywords): bool

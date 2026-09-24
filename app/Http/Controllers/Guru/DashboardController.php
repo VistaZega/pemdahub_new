@@ -497,7 +497,9 @@ class DashboardController extends Controller
             abort(403, 'Anda tidak mengajar di kelas ini.');
         }
 
-        return view('guru.siswa-kelas', compact('teacher', 'classroom'));
+        $isWaliKelas = in_array((int) $classroom->homeroom_teacher_id, array_map('intval', $tIds), true) || (Auth::user() && Auth::user()->isWaliKelas());
+
+        return view('guru.siswa-kelas', compact('teacher', 'classroom', 'isWaliKelas'));
     }
 
     /**

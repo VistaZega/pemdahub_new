@@ -22,11 +22,21 @@ class ReputationLog extends Model
         'reference_type',
         'reference_id',
         'description',
+        'created_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (!$model->created_at) {
+                $model->created_at = now();
+            }
+        });
+    }
 
     /**
      * Relationship: Log belongs to User
@@ -67,6 +77,7 @@ class ReputationLog extends Model
             $existingLog->update([
                 'points' => $points,
                 'description' => $description,
+                'created_at' => now(),
             ]);
         } else {
             $logData = [
@@ -74,6 +85,7 @@ class ReputationLog extends Model
                 'points' => $points,
                 'category' => $category,
                 'description' => $description,
+                'created_at' => now(),
             ];
             if ($ref) {
                 $logData['reference_type'] = get_class($ref);

@@ -528,6 +528,12 @@
                         <i class="fas fa-users text-xl group-hover:scale-110 transition-transform text-black"></i>
                         <span class="text-xs font-black text-center uppercase tracking-wider text-black">Daftar Kelas</span>
                     </a>
+                    @if(auth()->user()->isWaliKelas())
+                    <a href="{{ route('admin.students.index') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group" style="background-color: #6ee7b7 !important;">
+                        <i class="fas fa-user-pen text-xl group-hover:scale-110 transition-transform text-black"></i>
+                        <span class="text-xs font-black text-center uppercase tracking-wider text-black">Edit Data Siswa</span>
+                    </a>
+                    @endif
                     @endif
                 </div>
             </div>

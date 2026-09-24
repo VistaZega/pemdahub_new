@@ -45,8 +45,16 @@ class StudentPolicy
      */
     public function create(User $user): bool
     {
-        // SuperAdmin dan Admin Sekolah bisa menambah siswa
-        return $user->hasAnyRole(['superadmin', 'admin_sekolah']);
+        // SuperAdmin, Admin Sekolah, dan Wali Kelas bisa menambah siswa
+        if ($user->hasAnyRole(['superadmin', 'admin_sekolah'])) {
+            return true;
+        }
+
+        if ($user->isGuru() && $user->isWaliKelas()) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -57,6 +65,11 @@ class StudentPolicy
         // SuperAdmin dan Admin Sekolah bisa update semua siswa
         if ($user->hasAnyRole(['superadmin', 'admin_sekolah'])) {
             return true;
+        }
+
+        // Wali Kelas bisa mengedit data siswa di sekolah tempat bertugas
+        if ($user->isGuru() && $user->isWaliKelas()) {
+            return $user->school_id === $student->school_id;
         }
 
         // Siswa bisa update data dirinya sendiri (terbatas)
@@ -105,7 +118,15 @@ class StudentPolicy
      */
     public function import(User $user): bool
     {
-        return in_array($user->role, ['superadmin', 'admin_sekolah']);
+        if (in_array($user->role, ['superadmin', 'admin_sekolah'])) {
+            return true;
+        }
+
+        if ($user->isGuru() && $user->isWaliKelas()) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
