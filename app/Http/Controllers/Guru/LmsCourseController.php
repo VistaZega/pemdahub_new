@@ -172,9 +172,13 @@ class LmsCourseController extends Controller
             ->pluck('id');
         $classroomIds = $classroomIds->merge($homeroomClassrooms);
 
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $canAccessAll = $user && $user->canAccessAllSchools();
+
         // Fallback: Jika tidak ditemukan kelas penugasan eksplisit, tampilkan seluruh kelas aktif di sekolah tersebut
         if ($classroomIds->unique()->filter()->isEmpty()) {
-            $classrooms = \App\Models\Classroom::where('school_id', $teacher->school_id)
+            $classrooms = \App\Models\Classroom::when(!$canAccessAll, fn($q) => $q->where('school_id', $effectiveSchoolId))
+                ->when($canAccessAll, fn($q) => $q->whereIn('school_id', \App\Models\School::schoolsOnly()->pluck('id')))
                 ->where('is_active', true)
                 ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
                 ->orderBy('class_name')
@@ -396,8 +400,12 @@ class LmsCourseController extends Controller
         $assignedClassroomIds = $course->lmsClasses->pluck('classroom_id')->toArray();
         $classroomIds = $classroomIds->merge($assignedClassroomIds);
 
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $canAccessAll = $user && $user->canAccessAllSchools();
+
         if ($classroomIds->unique()->filter()->isEmpty()) {
-            $classrooms = \App\Models\Classroom::where('school_id', $teacher->school_id)
+            $classrooms = \App\Models\Classroom::when(!$canAccessAll, fn($q) => $q->where('school_id', $effectiveSchoolId))
+                ->when($canAccessAll, fn($q) => $q->whereIn('school_id', \App\Models\School::schoolsOnly()->pluck('id')))
                 ->where('is_active', true)
                 ->orderBy('class_name')
                 ->get();
