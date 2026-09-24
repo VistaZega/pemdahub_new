@@ -294,7 +294,7 @@ class LmsQuizController extends Controller
             $options = null;
             $correctAnswer = $cbtQuestion->answer_key;
 
-            if (in_array($questionType, ['multiple_choice', 'true_false']) && $cbtQuestion->options->isNotEmpty()) {
+            if ($questionType === 'multiple_choice' && $cbtQuestion->options->isNotEmpty()) {
                 $options = $cbtQuestion->options->sortBy('sort_order')->values()->map(function ($opt) {
                     return [
                         'key' => $opt->option_label,
@@ -307,19 +307,64 @@ class LmsQuizController extends Controller
                 if ($correctOption) {
                     $correctAnswer = $correctOption->option_label;
                 }
+            } elseif ($questionType === 'true_false') {
+                $options = null;
+                $isTrue = null;
+
+                if ($cbtQuestion->options->isNotEmpty()) {
+                    $correctOption = $cbtQuestion->options->firstWhere('is_correct', true);
+                    if ($correctOption) {
+                        $optText = strtolower(trim((string)$correctOption->option_text));
+                        $optLabel = strtoupper(trim((string)$correctOption->option_label));
+
+                        if (in_array($optText, ['benar', 'true', 'ya', 'yes', 't', '1'])) {
+                            $isTrue = true;
+                        } elseif (in_array($optText, ['salah', 'false', 'tidak', 'no', 's', 'f', '0'])) {
+                            $isTrue = false;
+                        } elseif ($optLabel === 'T' || $optLabel === 'A') {
+                            $isTrue = true; // Di Bank Soal CBT, label A atau T adalah 'Benar'
+                        } elseif ($optLabel === 'F' || $optLabel === 'B') {
+                            $isTrue = false; // Di Bank Soal CBT, label B atau F adalah 'Salah'
+                        }
+                    }
+                }
+
+                if ($isTrue === null && !empty($cbtQuestion->answer_key)) {
+                    $ak = strtolower(trim((string)$cbtQuestion->answer_key));
+                    if (in_array($ak, ['true', '1', 't', 'benar', 'ya', 'yes', 'a'])) {
+                        $isTrue = true;
+                    } elseif (in_array($ak, ['false', '0', 'f', 'salah', 'tidak', 'no', 'b'])) {
+                        $isTrue = false;
+                    }
+                }
+
+                $correctAnswer = ($isTrue === false) ? 'false' : 'true';
             }
 
-            $maxOrder++;
-            $quiz->questions()->create([
-                'question' => $cbtQuestion->question_text,
-                'question_type' => $questionType,
-                'options' => $options,
-                'correct_answer' => $correctAnswer,
-                'order_number' => $maxOrder,
-                'score' => $cbtQuestion->points ?: 1,
-                'image_path' => $cbtQuestion->question_image,
-                'video_url' => $cbtQuestion->question_video,
-            ]);
+            // Periksa jika soal dengan teks sama sudah ada di kuis ini (hindari duplikasi saat re-sinkron)
+            $existingQuestion = $quiz->questions()->where('question', $cbtQuestion->question_text)->first();
+            if ($existingQuestion) {
+                $existingQuestion->update([
+                    'question_type' => $questionType,
+                    'options' => $options,
+                    'correct_answer' => $correctAnswer,
+                    'score' => $cbtQuestion->points ?: 1,
+                    'image_path' => $cbtQuestion->question_image,
+                    'video_url' => $cbtQuestion->question_video,
+                ]);
+            } else {
+                $maxOrder++;
+                $quiz->questions()->create([
+                    'question' => $cbtQuestion->question_text,
+                    'question_type' => $questionType,
+                    'options' => $options,
+                    'correct_answer' => $correctAnswer,
+                    'order_number' => $maxOrder,
+                    'score' => $cbtQuestion->points ?: 1,
+                    'image_path' => $cbtQuestion->question_image,
+                    'video_url' => $cbtQuestion->question_video,
+                ]);
+            }
 
             $imported++;
         }
@@ -369,11 +414,19 @@ class LmsQuizController extends Controller
 
         $maxOrder = $quiz->questions()->max('order_number') ?? 0;
 
+        $correctAnswer = $request->correct_answer;
+        $options = $request->options;
+        if ($request->question_type === 'true_false') {
+            $val = strtolower(trim((string)$correctAnswer));
+            $correctAnswer = in_array($val, ['true', '1', 't', 'benar', 'ya', 'yes', 'a']) ? 'true' : 'false';
+            $options = null;
+        }
+
         $data = [
             'question' => $request->question,
             'question_type' => $request->question_type,
-            'options' => $request->options,
-            'correct_answer' => $request->correct_answer,
+            'options' => $options,
+            'correct_answer' => $correctAnswer,
             'order_number' => $maxOrder + 1,
             'score' => $request->score,
             'video_url' => $request->video_url,
@@ -414,11 +467,19 @@ class LmsQuizController extends Controller
             'clear_image' => 'nullable|boolean',
         ]);
 
+        $correctAnswer = $request->correct_answer;
+        $options = $request->options;
+        if ($question->question_type === 'true_false') {
+            $val = strtolower(trim((string)$correctAnswer));
+            $correctAnswer = in_array($val, ['true', '1', 't', 'benar', 'ya', 'yes', 'a']) ? 'true' : 'false';
+            $options = null;
+        }
+
         $data = [
             'question' => $request->question,
             'score' => $request->score,
-            'correct_answer' => $request->correct_answer,
-            'options' => $request->options,
+            'correct_answer' => $correctAnswer,
+            'options' => $options,
             'video_url' => $request->video_url,
         ];
 
@@ -531,6 +592,10 @@ class LmsQuizController extends Controller
                     if (!empty($normalizedRow['option_c'])) $options[] = ['key' => 'C', 'text' => trim($normalizedRow['option_c'])];
                     if (!empty($normalizedRow['option_d'])) $options[] = ['key' => 'D', 'text' => trim($normalizedRow['option_d'])];
                     if (!empty($normalizedRow['option_e'])) $options[] = ['key' => 'E', 'text' => trim($normalizedRow['option_e'])];
+                } elseif ($questionType === 'true_false') {
+                    $val = strtolower(trim((string)$correctAnswer));
+                    $correctAnswer = in_array($val, ['true', '1', 't', 'benar', 'ya', 'yes', 'a']) ? 'true' : 'false';
+                    $options = null;
                 }
 
                 $maxOrder++;

@@ -95,15 +95,23 @@
 
                         {{-- Answer Info --}}
                         <div class="mt-3 p-3 bg-gray-50 rounded-lg text-xs space-y-1">
-                            @if($q->question_type !== 'multiple_choice')
+                            @if($q->question_type === 'true_false')
+                                @php
+                                    $qBenar = method_exists($q, 'isTrueFalseBenar') ? $q->isTrueFalseBenar() : in_array(strtolower(trim((string)$q->correct_answer)), ['true', '1', 't', 'benar', 'ya', 'yes', 'a']);
+                                @endphp
+                                <p class="text-gray-500">Kunci Jawaban: <strong class="{{ $qBenar ? 'text-green-700' : 'text-red-600' }}">{{ $qBenar ? 'Benar' : 'Salah' }}</strong></p>
+                            @elseif($q->question_type !== 'multiple_choice')
                                 <p class="text-gray-500">Kunci Jawaban: <strong class="text-green-700">{{ $q->correct_answer ?? '-' }}</strong></p>
                             @endif
                             <p class="text-gray-700">Jawaban Siswa: 
                                 @if($studentAns !== null)
                                     @php
-                                        // Resolve display text for index-based answers
+                                        // Resolve display text for answers
                                         $displayAns = $studentAns;
-                                        if ($q->question_type === 'multiple_choice' && $q->options) {
+                                        if ($q->question_type === 'true_false') {
+                                            $stBenar = in_array(strtolower(trim((string)$studentAns)), ['true', '1', 't', 'b', 'benar', 'yes', 'y']);
+                                            $displayAns = $stBenar ? 'Benar' : 'Salah';
+                                        } elseif ($q->question_type === 'multiple_choice' && $q->options) {
                                             $firstOpt = $q->options[0] ?? null;
                                             if (!is_array($firstOpt) || !isset($firstOpt['key'])) {
                                                 $aIdx = (int)$displayAns;

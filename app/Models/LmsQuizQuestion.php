@@ -29,6 +29,16 @@ class LmsQuizQuestion extends Model
         'order_number' => 'integer',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function ($question) {
+            if ($question->question_type === 'true_false') {
+                $question->correct_answer = $question->isTrueFalseBenar() ? 'true' : 'false';
+                $question->options = null;
+            }
+        });
+    }
+
     public function quiz()
     {
         return $this->belongsTo(LmsQuiz::class, 'quiz_id');
@@ -42,6 +52,64 @@ class LmsQuizQuestion extends Model
     public function isAutoGradable()
     {
         return in_array($this->question_type, ['multiple_choice', 'true_false', 'short_answer']);
+    }
+
+    /**
+     * Check if true_false question's correct answer is Benar (true)
+     */
+    public function isTrueFalseBenar(): bool
+    {
+        if ($this->question_type !== 'true_false') {
+            return false;
+        }
+
+        $val = strtolower(trim((string)$this->correct_answer));
+
+        // 1. If options array is present (e.g. synced from CBT), check matching option text
+        if (!empty($this->options) && is_array($this->options)) {
+            foreach ($this->options as $opt) {
+                $optKey = strtolower(trim((string)($opt['key'] ?? '')));
+                if ($optKey === $val) {
+                    $optText = strtolower(trim((string)($opt['text'] ?? '')));
+                    if (in_array($optText, ['benar', 'true', 'ya', 'yes', 't', '1'])) {
+                        return true;
+                    }
+                    if (in_array($optText, ['salah', 'false', 'tidak', 'no', 's', 'f', '0'])) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // 2. Direct string value matching
+        if (in_array($val, ['true', '1', 't', 'benar', 'ya', 'yes'])) {
+            return true;
+        }
+        if (in_array($val, ['false', '0', 'f', 'salah', 'tidak', 'no', 's'])) {
+            return false;
+        }
+        if ($val === 'a') {
+            return true; // In CBT True/False import, Option A is Benar
+        }
+        if ($val === 'b') {
+            if ($this->quiz && $this->quiz->question_package_id) {
+                return false; // In CBT True/False import, Option B is Salah
+            }
+            return true; // Fallback: in Indonesian, 'b' is commonly abbreviation for 'benar'
+        }
+
+        return false;
+    }
+
+    /**
+     * Get normalized correct answer ('true' or 'false' for true_false)
+     */
+    public function getNormalizedCorrectAnswerAttribute(): string
+    {
+        if ($this->question_type === 'true_false') {
+            return $this->isTrueFalseBenar() ? 'true' : 'false';
+        }
+        return (string)$this->correct_answer;
     }
 
     /**

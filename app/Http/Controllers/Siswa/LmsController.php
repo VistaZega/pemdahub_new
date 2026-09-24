@@ -954,14 +954,12 @@ class LmsController extends Controller
                         }
                     }
                 } elseif ($question->question_type === 'true_false') {
-                    // Normalisasi true_false: true/1/t/b/benar => 'true' | false/0/f/s/salah => 'false'
-                    $normalizeTf = function($val) {
-                        $v = strtolower(trim($val));
-                        if (in_array($v, ['true', '1', 't', 'b', 'benar', 'yes', 'y'])) return 'true';
-                        if (in_array($v, ['false', '0', 'f', 's', 'salah', 'no', 'n'])) return 'false';
-                        return $v;
-                    };
-                    $isCorrect = $normalizeTf($studentAnswer) === $normalizeTf($correctAnswer);
+                    $studentVal = strtolower(trim((string)$studentAnswer));
+                    $studentNormalized = in_array($studentVal, ['true', '1', 't', 'b', 'benar', 'yes', 'y']) ? 'true' : 'false';
+                    $correctNormalized = method_exists($question, 'isTrueFalseBenar')
+                        ? ($question->isTrueFalseBenar() ? 'true' : 'false')
+                        : (in_array(strtolower(trim((string)$correctAnswer)), ['true', '1', 't', 'b', 'benar', 'yes', 'y', 'a']) ? 'true' : 'false');
+                    $isCorrect = $studentNormalized === $correctNormalized;
                 } else {
                     // short_answer or other text: case-insensitive & trimmed comparison
                     $isCorrect = strtolower(trim($studentAnswer)) === strtolower(trim($correctAnswer));

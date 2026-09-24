@@ -270,7 +270,10 @@
                 @endforeach
             </div>
             @elseif($q->question_type === 'true_false')
-            <p class="text-sm text-gray-500 ml-4 mt-1">Jawaban: <strong class="text-green-600">{{ $q->correct_answer === 'true' ? 'Benar' : 'Salah' }}</strong></p>
+            @php
+                $isBenar = method_exists($q, 'isTrueFalseBenar') ? $q->isTrueFalseBenar() : in_array(strtolower(trim((string)$q->correct_answer)), ['true', '1', 't', 'benar', 'ya', 'yes', 'a']);
+            @endphp
+            <p class="text-sm text-gray-500 ml-4 mt-1">Jawaban: <strong class="{{ $isBenar ? 'text-green-600' : 'text-red-500' }}">{{ $isBenar ? 'Benar' : 'Salah' }}</strong></p>
             @elseif($q->correct_answer)
             <p class="text-sm text-gray-500 ml-4 mt-1">Kunci: <strong class="text-green-600">{{ $q->correct_answer }}</strong></p>
             @endif
@@ -562,7 +565,7 @@
                 'question' => $q->question,
                 'question_type' => $q->question_type,
                 'score' => $q->score,
-                'correct_answer' => (string)($q->correct_answer ?? ''),
+                'correct_answer' => $q->question_type === 'true_false' ? (method_exists($q, 'isTrueFalseBenar') ? ($q->isTrueFalseBenar() ? 'true' : 'false') : (in_array(strtolower(trim((string)$q->correct_answer)), ['true', '1', 't', 'benar', 'ya', 'yes', 'a']) ? 'true' : 'false')) : (string)($q->correct_answer ?? ''),
                 'options' => $q->options ?? [],
                 'video_url' => $q->video_url ?? '',
                 'image_path' => $q->image_path ?? '',
