@@ -49,6 +49,15 @@ return new class extends Migration
                 $mat->update(['module_id' => $firstModule->id]);
             }
         }
+
+        // 4. Auto-sync lms_courses.school_id to match assigned classroom's school_id
+        $coursesWithClasses = LmsCourse::has('lmsClasses.classroom')->with('lmsClasses.classroom')->get();
+        foreach ($coursesWithClasses as $c) {
+            $firstClass = $c->lmsClasses->first()?->classroom;
+            if ($firstClass && $c->school_id != $firstClass->school_id) {
+                $c->update(['school_id' => $firstClass->school_id]);
+            }
+        }
     }
 
     /**

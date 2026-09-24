@@ -84,8 +84,15 @@ class LmsCourseController extends Controller
         // Ambil course yang relevan untuk unit sekolah yang SEDANG AKTIF
         $courses = LmsCourse::whereIn('teacher_id', $tIds)
             ->where(function($q) use ($effectiveSchoolId) {
-                $q->where('school_id', $effectiveSchoolId)
-                  ->orWhereHas('lmsClasses.classroom', fn($sq) => $sq->where('school_id', $effectiveSchoolId));
+                // Course yang memiliki rombel HARUS rombelnya berada di unit sekolah yang sedang aktif
+                $q->whereHas('lmsClasses.classroom', function($sq) use ($effectiveSchoolId) {
+                    $sq->where('school_id', $effectiveSchoolId);
+                })
+                // Atau untuk course tanpa rombel, dipadankan dengan school_id pada tabel lms_courses
+                ->orWhere(function($sq) use ($effectiveSchoolId) {
+                    $sq->whereDoesntHave('lmsClasses')
+                       ->where('school_id', $effectiveSchoolId);
+                });
             })
             ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
                 $q->whereHas('lmsClasses', fn($sq) => $sq->where('classroom_id', $selectedClassroomId));
