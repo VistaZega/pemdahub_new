@@ -67,17 +67,26 @@ class LmsCourseController extends Controller
 
         $user = Auth::user();
         $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
 
         $activeSemester = $this->getActiveSemester();
-        $classrooms = \App\Models\Classroom::whereHas('lmsClasses.course', function($q) use ($tIds) {
-            $q->whereIn('teacher_id', $tIds);
-        })
-        ->orderBy('class_name')
-        ->get();
+
+        // Ambil rombel yang relevan untuk unit sekolah yang SEDANG AKTIF
+        $classrooms = \App\Models\Classroom::where('school_id', $effectiveSchoolId)
+            ->whereHas('lmsClasses.course', function($q) use ($tIds) {
+                $q->whereIn('teacher_id', $tIds);
+            })
+            ->orderBy('class_name')
+            ->get();
 
         $selectedClassroomId = $request->query('classroom_id');
         
+        // Ambil course yang relevan untuk unit sekolah yang SEDANG AKTIF
         $courses = LmsCourse::whereIn('teacher_id', $tIds)
+            ->where(function($q) use ($effectiveSchoolId) {
+                $q->where('school_id', $effectiveSchoolId)
+                  ->orWhereHas('lmsClasses.classroom', fn($sq) => $sq->where('school_id', $effectiveSchoolId));
+            })
             ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
                 $q->whereHas('lmsClasses', fn($sq) => $sq->where('classroom_id', $selectedClassroomId));
             })
@@ -86,8 +95,9 @@ class LmsCourseController extends Controller
             ->orderByDesc('created_at')
             ->paginate(12)->withQueryString();
 
-        // Orphan courses: milik guru, tidak punya rombel
+        // Orphan courses: milik guru, tidak punya rombel pada unit sekolah aktif
         $orphanCourses = LmsCourse::whereIn('teacher_id', $tIds)
+            ->where('school_id', $effectiveSchoolId)
             ->whereDoesntHave('lmsClasses')
             ->with(['subject', 'semester'])
             ->withCount(['materials', 'assignments', 'quizzes'])
