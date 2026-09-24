@@ -123,8 +123,15 @@
                         {{ $cls->students_count ?? count($cls->students ?? []) }} Siswa Terdaftar
                     </p>
                 </div>
-                <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl font-black">
-                    🎓
+                <div class="flex items-center gap-2">
+                    @can('create', App\Models\Student::class)
+                    <a href="{{ route('admin.students.create') }}" class="px-3 py-1.5 rounded-xl bg-emerald-400 text-slate-900 font-black text-xs border border-black shadow-xs hover:bg-emerald-300 transition flex items-center gap-1">
+                        <i class="fa-solid fa-user-plus text-[10px]"></i> Tambah Siswa
+                    </a>
+                    @endcan
+                    <div class="w-9 h-9 rounded-2xl bg-white/20 flex items-center justify-center text-lg font-black shrink-0">
+                        🎓
+                    </div>
                 </div>
             </div>
 
@@ -164,10 +171,15 @@
                             </div>
                         </div>
 
-                        <div class="text-right shrink-0">
+                        <div class="flex flex-col items-end gap-1.5 shrink-0">
                             <span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                                 {{ $std->gender === 'P' || $std->gender === 'perempuan' ? '👧 Perempuan' : '👦 Laki-laki' }}
                             </span>
+                            @can('update', $std)
+                            <a href="{{ route('admin.students.edit', $std->id) }}" class="px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-400 text-[10px] font-black hover:bg-emerald-200 transition shadow-xs flex items-center gap-1" title="Edit Data Siswa">
+                                <i class="fa-solid fa-pen-to-square text-[9px]"></i> Edit Data
+                            </a>
+                            @endcan
                         </div>
                     </div>
                 @empty
