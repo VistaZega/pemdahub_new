@@ -34,6 +34,11 @@
                     class="px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all text-sm">
                     Download Template
                 </a>
+                <a href="{{ route('admin.students.smart-cards-bulk') }}"
+                    class="px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold transition-all flex items-center gap-2 text-sm shadow-sm">
+                    <i class="fas fa-id-card"></i>
+                    Cetak Kartu Pintar Massal
+                </a>
                 <a href="{{ route('admin.students.rfid-bulk') }}"
                     class="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg>

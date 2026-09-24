@@ -237,18 +237,18 @@ class User extends Authenticatable
             return true;
         }
 
-        // Cek tugas tambahan di employee_positions / special duties (misal Operator, Admin, TU)
-        if ($this->hasSpecialDuty(['ADMIN', 'OPERATOR', 'OPS', 'TU', 'ADMINISTRATOR'])) {
+        // Cek tugas tambahan di employee_positions / special duties (misal Operator, Admin)
+        if ($this->hasSpecialDuty(['ADMIN', 'OPERATOR', 'OPS', 'ADMINISTRATOR'])) {
             return true;
         }
 
-        // Cek posisi di tabel teachers / employees
-        if ($this->teacher && $this->teacher->position && preg_match('/(admin|operator|tu|tata usaha)/i', $this->teacher->position)) {
+        // Cek posisi di tabel teachers / employees (hanya jika eksplisit mengandung admin/operator, BUKAN sekadar tu/tata usaha)
+        if ($this->teacher && $this->teacher->position && preg_match('/(admin_sekolah|operator_sekolah|ops_sekolah|administrator_sekolah)/i', $this->teacher->position)) {
             return true;
         }
 
         $employee = $this->employee ?? $this->teacher?->employee;
-        if ($employee && $employee->position && preg_match('/(admin|operator|tu|tata usaha)/i', $employee->position)) {
+        if ($employee && $employee->position && preg_match('/(admin_sekolah|operator_sekolah|ops_sekolah|administrator_sekolah)/i', $employee->position)) {
             return true;
         }
 

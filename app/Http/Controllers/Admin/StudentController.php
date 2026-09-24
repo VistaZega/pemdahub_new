@@ -398,6 +398,49 @@ class StudentController extends Controller
     }
 
     /**
+     * Halaman Cetak Massal Desain Kartu Pintar (Smart Cards) Per Kelas
+     */
+    public function smartCardsBulk(Request $request)
+    {
+        $schools = \App\Models\School::where('is_active', true)->where('type', '!=', 'YAYASAN')->orderBy('name')->get();
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $academicYears = \App\Models\AcademicYear::orderBy('year', 'desc')->get();
+
+        $schoolId = $request->get('school_id');
+        $classroomId = $request->get('classroom_id');
+
+        $classrooms = collect();
+        if ($schoolId) {
+            $classrooms = \App\Models\Classroom::where('school_id', $schoolId)
+                ->where('is_active', true)
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        $students = collect();
+        $selectedClassroom = null;
+
+        if ($classroomId) {
+            $selectedClassroom = \App\Models\Classroom::with('school')->find($classroomId);
+            if ($selectedClassroom) {
+                $students = Student::where('status', 'aktif')
+                    ->whereHas('studentClasses', function($q) use ($classroomId) {
+                        $q->where('classroom_id', $classroomId);
+                    })
+                    ->with(['school'])
+                    ->orderBy('full_name')
+                    ->get();
+            }
+        }
+
+        return view('admin.students.smart-cards-bulk', compact(
+            'schools', 'academicYears', 'classrooms', 'students',
+            'schoolId', 'classroomId', 'selectedClassroom'
+        ));
+    }
+
+    /**
      * Simpan UID RFID ke siswa via AJAX (Registrasi Massal)
      */
     public function rfidBulkAssign(Request $request)

@@ -308,6 +308,51 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
         </div>
 
+        {{-- Unassigned Materials Section (Materi Umum Siswa) --}}
+        @if(isset($unassignedMaterials) && $unassignedMaterials->isNotEmpty())
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+            <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-4 flex items-center justify-between shadow-sm relative overflow-hidden">
+                <div class="flex items-center gap-4 relative z-10">
+                    <span class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-extrabold text-xl border border-white/30 shadow-md">
+                        <i class="fas fa-folder-open text-white"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-white text-lg tracking-wide drop-shadow-sm">📌 Materi Umum / Tambahan</h3>
+                        <p class="text-white/90 text-xs font-bold uppercase tracking-widest mt-0.5 drop-shadow-sm">
+                            {{ $unassignedMaterials->count() }} MATERI AJAR
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 divide-y divide-gray-100">
+                @foreach($unassignedMaterials as $material)
+                <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm border border-amber-200 shrink-0">
+                            <i class="fas fa-file-alt text-amber-600"></i>
+                        </span>
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">{{ $material->title }}</h4>
+                            <span class="text-xs text-gray-500 uppercase">{{ $material->getContentTypeLabel() }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        @if($material->file_path && $material->fileExists())
+                        <a href="{{ route('siswa.lms.materials.view', $material->id) }}" target="_blank" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <i class="fas fa-eye"></i> Buka Materi
+                        </a>
+                        @elseif($material->file_url)
+                        <a href="{{ $material->file_url }}" target="_blank" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1">
+                            <i class="fas fa-external-link-alt"></i> Buka Tautan
+                        </a>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         @forelse($course->modules as $module)
         @php 
             $moduleColor = $module->color ?? 'blue';

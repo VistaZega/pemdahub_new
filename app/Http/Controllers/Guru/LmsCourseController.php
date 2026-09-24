@@ -50,7 +50,9 @@ class LmsCourseController extends Controller
 
     private function authorizeAccess(LmsCourse $course, Teacher $teacher): bool
     {
-        return $course->teacher_id === $teacher->id;
+        $user = Auth::user();
+        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+        return in_array($course->teacher_id, $tIds);
     }
 
     /**
@@ -63,22 +65,21 @@ class LmsCourseController extends Controller
             return redirect()->route('guru.dashboard')->with('error', 'Data guru tidak ditemukan.');
         }
 
+        $user = Auth::user();
+        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+
         $activeSemester = $this->getActiveSemester();
-        $classrooms = \App\Models\Classroom::whereHas('lmsClasses.course', function($q) use ($teacher) {
-            $q->where('teacher_id', $teacher->id);
+        $classrooms = \App\Models\Classroom::whereHas('lmsClasses.course', function($q) use ($tIds) {
+            $q->whereIn('teacher_id', $tIds);
         })
         ->orderBy('class_name')
         ->get();
 
         $selectedClassroomId = $request->query('classroom_id');
         
-        $courses = LmsCourse::where('teacher_id', $teacher->id)
+        $courses = LmsCourse::whereIn('teacher_id', $tIds)
             ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
                 $q->whereHas('lmsClasses', fn($sq) => $sq->where('classroom_id', $selectedClassroomId));
-            })
-            ->when(!$selectedClassroomId, function($q) {
-                // Tanpa filter: tampilkan semua course yang punya rombel
-                $q->whereHas('lmsClasses');
             })
             ->with(['subject', 'semester', 'classroom', 'lmsClasses.classroom'])
             ->withCount(['materials', 'assignments', 'quizzes'])
@@ -86,7 +87,7 @@ class LmsCourseController extends Controller
             ->paginate(12)->withQueryString();
 
         // Orphan courses: milik guru, tidak punya rombel
-        $orphanCourses = LmsCourse::where('teacher_id', $teacher->id)
+        $orphanCourses = LmsCourse::whereIn('teacher_id', $tIds)
             ->whereDoesntHave('lmsClasses')
             ->with(['subject', 'semester'])
             ->withCount(['materials', 'assignments', 'quizzes'])
@@ -120,21 +121,30 @@ class LmsCourseController extends Controller
         }
         $teacher->load('school');
 
+        $user = Auth::user();
+        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+
         $activeSemester = $this->getActiveSemester();
         $activeYear = AcademicYear::where('is_active', true)->first();
 
-        // Ambil mata pelajaran HANYA dari Teaching Assignment aktif
-        $teachingSubjectIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+        // Ambil mata pelajaran dari Teaching Assignment aktif
+        $teachingSubjectIds = \App\Models\TeachingAssignment::whereIn('teacher_id', $tIds)
             ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->pluck('subject_id')
             ->unique();
 
-        // Hanya tampilkan mapel yang ada penugasan aktif
-        $subjects = \App\Models\Subject::whereIn('id', $teachingSubjectIds)
-            ->where('is_active', true)
-            ->orderBy('subject_name')
-            ->get();
+        // Fallback jika penugasan belum diisi: ambil mapel aktif di sekolah guru
+        if ($teachingSubjectIds->isEmpty()) {
+            $subjects = \App\Models\Subject::where('school_id', $teacher->school_id)
+                ->where('is_active', true)
+                ->orderBy('subject_name')
+                ->get();
+        } else {
+            $subjects = \App\Models\Subject::whereIn('id', $teachingSubjectIds)
+                ->where('is_active', true)
+                ->orderBy('subject_name')
+                ->get();
+        }
 
         // Get classrooms from teacher's school for active academic year
         $classroomIds = collect();
@@ -151,25 +161,30 @@ class LmsCourseController extends Controller
         }
 
         // From teaching assignments
-        $teachingClassrooms = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+        $teachingClassrooms = \App\Models\TeachingAssignment::whereIn('teacher_id', $tIds)
             ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->pluck('classroom_id');
         $classroomIds = $classroomIds->merge($teachingClassrooms);
 
         // From homeroom
-        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
         $homeroomClassrooms = \App\Models\Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('is_active', true)
             ->pluck('id');
         $classroomIds = $classroomIds->merge($homeroomClassrooms);
 
-        // Hanya tampilkan kelas yang terkait dengan guru (tanpa fallback ke semua kelas)
-        $classrooms = \App\Models\Classroom::whereIn('id', $classroomIds->unique())
-            ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-            ->orderBy('class_name')
-            ->get();
+        // Fallback: Jika tidak ditemukan kelas penugasan eksplisit, tampilkan seluruh kelas aktif di sekolah tersebut
+        if ($classroomIds->unique()->filter()->isEmpty()) {
+            $classrooms = \App\Models\Classroom::where('school_id', $teacher->school_id)
+                ->where('is_active', true)
+                ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                ->orderBy('class_name')
+                ->get();
+        } else {
+            $classrooms = \App\Models\Classroom::whereIn('id', $classroomIds->unique())
+                ->where('is_active', true)
+                ->orderBy('class_name')
+                ->get();
+        }
 
         $semesters = Semester::with('academicYear')
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
@@ -309,7 +324,16 @@ class LmsCourseController extends Controller
         // Ambil daftar modul yang terhapus (soft-deleted) untuk fitur restore
         $trashedModules = $course->modules()->onlyTrashed()->withCount('materials')->orderByDesc('deleted_at')->get();
 
-        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents', 'classrooms', 'trashedModules'));
+        // Ambil materi tanpa modul (unassigned materials / module_id = null)
+        $unassignedMaterials = $course->materials()
+            ->where(function($q) {
+                $q->whereNull('module_id')
+                  ->orWhereDoesntHave('module');
+            })
+            ->orderBy('order_number')
+            ->get();
+
+        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents', 'classrooms', 'trashedModules', 'unassignedMaterials'));
     }
 
     /**
@@ -322,24 +346,33 @@ class LmsCourseController extends Controller
             abort(403);
         }
         $teacher->load('school');
+        $user = Auth::user();
+        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+
         $activeYear = AcademicYear::where('is_active', true)->first();
 
-        // Ambil mata pelajaran dari Teaching Assignment + kompetensi guru (tanpa fallback ke semua mapel)
+        // Ambil mata pelajaran dari Teaching Assignment + kompetensi guru
         $subjectIds = collect();
 
-        $teachingSubjectIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+        $teachingSubjectIds = \App\Models\TeachingAssignment::whereIn('teacher_id', $tIds)
             ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->pluck('subject_id');
         $subjectIds = $subjectIds->merge($teachingSubjectIds);
 
         $competentSubjectIds = $teacher->competentSubjects()->pluck('subjects.id');
         $subjectIds = $subjectIds->merge($competentSubjectIds);
 
-        $subjects = \App\Models\Subject::whereIn('id', $subjectIds->unique())
-            ->where('is_active', true)
-            ->orderBy('subject_name')
-            ->get();
+        if ($subjectIds->isEmpty()) {
+            $subjects = \App\Models\Subject::where('school_id', $teacher->school_id)
+                ->where('is_active', true)
+                ->orderBy('subject_name')
+                ->get();
+        } else {
+            $subjects = \App\Models\Subject::whereIn('id', $subjectIds->unique())
+                ->where('is_active', true)
+                ->orderBy('subject_name')
+                ->get();
+        }
 
         $semesters = Semester::orderByDesc('start_date')->limit(4)->get();
 
@@ -351,23 +384,29 @@ class LmsCourseController extends Controller
             $classroomIds = $classroomIds->merge($scheduleClassrooms);
         }
 
-        $teachingClassrooms = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
+        $teachingClassrooms = \App\Models\TeachingAssignment::whereIn('teacher_id', $tIds)
             ->where('is_active', true)
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->pluck('classroom_id');
         $classroomIds = $classroomIds->merge($teachingClassrooms);
 
-        $tIds = \Illuminate\Support\Facades\Auth::user() ? \Illuminate\Support\Facades\Auth::user()->teacherIds() : $teacher->allTeacherIds();
         $homeroomClassrooms = \App\Models\Classroom::whereIn('homeroom_teacher_id', $tIds)->where('is_active', true)->pluck('id');
         $classroomIds = $classroomIds->merge($homeroomClassrooms);
 
-        // Hanya tampilkan kelas yang terkait dengan guru (tanpa fallback ke semua kelas)
-        $classrooms = \App\Models\Classroom::whereIn('id', $classroomIds->unique())
-            ->where('is_active', true)
-            ->orderBy('class_name')
-            ->get();
-
+        // Selalu sertakan kelas yang sudah pernah di-assign di course ini
         $assignedClassroomIds = $course->lmsClasses->pluck('classroom_id')->toArray();
+        $classroomIds = $classroomIds->merge($assignedClassroomIds);
+
+        if ($classroomIds->unique()->filter()->isEmpty()) {
+            $classrooms = \App\Models\Classroom::where('school_id', $teacher->school_id)
+                ->where('is_active', true)
+                ->orderBy('class_name')
+                ->get();
+        } else {
+            $classrooms = \App\Models\Classroom::whereIn('id', $classroomIds->unique())
+                ->where('is_active', true)
+                ->orderBy('class_name')
+                ->get();
+        }
 
         return view('guru.lms.edit', compact('teacher', 'course', 'subjects', 'classrooms', 'semesters', 'assignedClassroomIds'));
     }

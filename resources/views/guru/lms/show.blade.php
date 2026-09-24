@@ -371,6 +371,107 @@ if (!function_exists('balanceHtmlTags')) {
                 </div>
             </div>
 
+            {{-- Unassigned Materials Section (Materi Tanpa Modul / Materi Umum) --}}
+            @if(isset($unassignedMaterials) && $unassignedMaterials->isNotEmpty())
+            <div class="module-card bg-amber-50 rounded-3xl shadow-md border-2 border-black overflow-hidden transition-all mb-6">
+                <div class="px-5 py-4 flex items-center justify-between border-b-2 border-black text-black bg-amber-300">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl flex items-center justify-center text-black font-black text-sm border-2 border-black bg-white shadow-sm">
+                            <i class="fas fa-folder-open"></i>
+                        </span>
+                        <div>
+                            <h3 class="font-black text-black text-base tracking-wide uppercase">📌 Materi Umum / Tanpa Modul</h3>
+                            <p class="text-black text-[10px] font-black uppercase tracking-widest">{{ $unassignedMaterials->count() }} MATERI AJAR TERSEDIA</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 space-y-3">
+                    @foreach($unassignedMaterials as $material)
+                    <div x-data="{ expanded: false }" class="bg-white rounded-2xl border-2 border-black hover:shadow-md transition-all overflow-hidden group/mat">
+                        <div class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-amber-100 transition-colors" @click="expanded = !expanded">
+                            <div class="flex items-center gap-4">
+                                @php
+                                    $bgMat = match($material->material_type) {
+                                        'text' => '#4f46e5',
+                                        'pdf' => '#dc2626',
+                                        'video' => '#2563eb',
+                                        'image' => '#059669',
+                                        'link' => '#9333ea',
+                                        'interactive' => '#0284c7',
+                                        'document' => '#ea580c',
+                                        'canva' => '#00c4cc',
+                                        'googledocs' => '#ea4335',
+                                        'audio' => '#d97706',
+                                        'embed' => '#0f172a',
+                                        default => '#475569',
+                                    };
+                                    $iconMat = match($material->material_type) {
+                                        'text' => 'fa-book-open',
+                                        'pdf' => 'fa-file-pdf',
+                                        'video' => 'fa-video',
+                                        'image' => 'fa-image',
+                                        'link' => 'fa-link',
+                                        'interactive' => 'fa-gamepad',
+                                        'document' => 'fa-file-word',
+                                        'canva' => 'fa-palette',
+                                        'googledocs' => 'fa-file-alt',
+                                        'audio' => 'fa-volume-up',
+                                        'embed' => 'fa-code',
+                                        default => 'fa-file',
+                                    };
+                                @endphp
+                                <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black shadow-md border-2 border-black flex-shrink-0 mr-2" style="background-color: {{ $bgMat }} !important; color: #ffffff !important;">
+                                    <i class="fas {{ $iconMat }} text-lg"></i>
+                                </span>
+                                <div class="space-y-1">
+                                    <div class="font-black text-black text-sm flex flex-wrap items-center gap-2">
+                                        <span class="text-black font-black text-xs bg-amber-200 px-2.5 py-0.5 rounded-lg border border-black inline-block shadow-2xs">UMUM-{{ $loop->iteration }}</span>
+                                        <span>{{ preg_replace('/^\d+\.\d+\s*/', '', $material->title) }}</span>
+                                    </div>
+                                    <p class="text-[10px] text-black font-black uppercase tracking-wider">{{ $material->getContentTypeLabel() }}{{ $material->file_size ? ' • ' . number_format($material->file_size / 1024, 0) . ' KB' : '' }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-chevron-down text-black text-sm font-black transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
+                                <button @click.stop="$dispatch('open-edit-material-modal', {{ json_encode([
+                                    'id' => $material->id,
+                                    'module_id' => $material->module_id,
+                                    'title' => preg_replace('/^\d+\.\d+\s*/', '', $material->title),
+                                    'material_type' => $material->material_type,
+                                    'content' => $material->content ?? '',
+                                    'file_url' => $material->file_url,
+                                    'update_url' => route('guru.lms.materials.update', $material->id)
+                                ]) }})" class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-amber-300 transition-colors border border-black shadow-sm" title="Edit Materi"><i class="fas fa-edit text-xs"></i></button>
+                                @if($material->file_path && $material->fileExists())
+                                <a href="{{ route('guru.lms.materials.download', $material->id) }}" class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-sky-300 transition-colors border border-black shadow-sm" onclick="event.stopPropagation()" title="Unduh File"><i class="fas fa-download text-xs"></i></a>
+                                @endif
+                                @if($material->file_url)
+                                <a href="{{ $material->file_url }}" target="_blank" class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-sky-300 transition-colors border border-black shadow-sm" onclick="event.stopPropagation()" title="Buka Link"><i class="fas fa-external-link-alt text-xs"></i></a>
+                                @endif
+                                <form action="{{ route('guru.lms.materials.destroy', $material->id) }}" method="POST" onsubmit="return confirm('Hapus materi ini?')" class="inline" onclick="event.stopPropagation()">
+                                    @csrf @method('DELETE')
+                                    <button class="w-8 h-8 rounded-xl flex items-center justify-center bg-white text-black hover:bg-rose-500 hover:text-white transition-colors border border-black shadow-sm" title="Hapus Materi"><i class="fas fa-trash text-xs"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                        <div x-show="expanded" x-transition x-cloak class="px-5 pb-5 border-t-2 border-black bg-white">
+                            @if($material->content)
+                            <div class="mt-4 rounded-2xl border-2 border-black bg-slate-50 overflow-hidden shadow-md">
+                                <div class="px-5 py-3 border-b-2 border-black flex items-center justify-between flex-wrap gap-2" style="background-color: #0f172a !important; color: #ffffff !important;">
+                                    <span class="text-xs font-black uppercase text-white tracking-wider"><i class="fas fa-book-open text-amber-400 mr-1.5"></i> Konten Materi Teks</span>
+                                </div>
+                                <div class="p-6 bg-white prose prose-sm max-w-none text-slate-900 leading-relaxed font-sans">
+                                    {!! formatLmsContent($material->content) !!}
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             @forelse($course->modules as $module)
             @php
                 $moduleHeaderBg = match($module->color) {

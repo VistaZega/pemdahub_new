@@ -313,10 +313,19 @@ class LmsController extends Controller
             ->get()
             ->keyBy('material_id');
 
+        // Ambil materi tanpa modul (unassigned materials)
+        $unassignedMaterials = $course->materials()
+            ->where(function($q) {
+                $q->whereNull('module_id')
+                  ->orWhereDoesntHave('module');
+            })
+            ->orderBy('order_number')
+            ->get();
+
         return view('siswa.lms.show', compact(
             'student', 'course', 'submissionMap', 'studentGroupMap', 'attemptMap', 'gameAttemptMap',
             'materialProgressMap', 'courseProgress', 'discussionCount',
-            'reactionsMap', 'completedMaterialIds'
+            'reactionsMap', 'completedMaterialIds', 'unassignedMaterials'
         ));
     }
 

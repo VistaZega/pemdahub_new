@@ -584,6 +584,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::post('students/{student}/update-rfid', [App\Http\Controllers\Admin\StudentController::class, 'updateRfid'])->name('students.update-rfid');
     Route::get('students/rfid-bulk', [App\Http\Controllers\Admin\StudentController::class, 'rfidBulk'])->name('students.rfid-bulk');
     Route::post('students/rfid-bulk-assign', [App\Http\Controllers\Admin\StudentController::class, 'rfidBulkAssign'])->name('students.rfid-bulk-assign');
+    Route::get('students/smart-cards-bulk', [App\Http\Controllers\Admin\StudentController::class, 'smartCardsBulk'])->name('students.smart-cards-bulk');
     Route::resource('students', App\Http\Controllers\Admin\StudentController::class);
     Route::resource('grades', App\Http\Controllers\Admin\GradeController::class);
 
