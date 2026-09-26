@@ -472,9 +472,12 @@ try {
             \App\Models\Setting::setValue($ek, true, 'boolean', 'whatsapp');
         }
 
-        // Pengaturan Jeda Aman Anti-Banned (15 s/d 25 detik per guru)
-        \App\Models\Setting::setValue('wa_teaching_delay_min', 15, 'integer', 'whatsapp');
-        \App\Models\Setting::setValue('wa_teaching_delay_max', 25, 'integer', 'whatsapp');
+        // Pengaturan Jeda Aman Anti-Banned Manusiawi (20 s/d 35 detik per guru)
+        \App\Models\Setting::setValue('wa_teaching_delay_min', 20, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_teaching_delay_max', 35, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_digest_delay_min', 15, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_digest_delay_max', 30, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_digest_batch_pause', 45, 'integer', 'whatsapp');
 
         // Seluruh notifikasi lainnya tetap DIMATIKAN (OFF)
         $disabledKeys = [

@@ -37,8 +37,8 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 8);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 15);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 30);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -268,9 +268,9 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 5);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 8);
-        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 15);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 15);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 30);
+        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 45);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -522,8 +522,8 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolFilter = $options['school'] ?? $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_teaching_delay_min', 15);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_teaching_delay_max', 25);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_teaching_delay_min', 20);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_teaching_delay_max', 35);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && !$dryRun && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {

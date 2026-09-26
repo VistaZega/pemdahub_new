@@ -56,9 +56,9 @@ $dayNames = [
 $dayIndo = $dayNames[$dayOfWeek] ?? ucfirst($dayOfWeek);
 $dateFormatted = Carbon::now()->translatedFormat('d F Y');
 
-// Jeda aman anti-ban (default 15 - 25 detik)
-$delayMin = isset($_GET['delay_min']) ? (int)$_GET['delay_min'] : (int)Setting::getValue('wa_teaching_delay_min', 15);
-$delayMax = isset($_GET['delay_max']) ? (int)$_GET['delay_max'] : (int)Setting::getValue('wa_teaching_delay_max', 25);
+// Jeda aman anti-ban (default 20 - 35 detik)
+$delayMin = isset($_GET['delay_min']) ? (int)$_GET['delay_min'] : (int)Setting::getValue('wa_teaching_delay_min', 20);
+$delayMax = isset($_GET['delay_max']) ? (int)$_GET['delay_max'] : (int)Setting::getValue('wa_teaching_delay_max', 35);
 
 // JIKA BELUM ADA AKSI (TAMPILKAN CONTROL PANEL)
 if (!$run && !$dryRun && !$testPhone) {
