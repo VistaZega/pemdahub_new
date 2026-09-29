@@ -299,7 +299,7 @@
                                     </svg>
                                 </a>
                                 <button type="button" 
-                                    onclick="openQrModal('{{ addslashes($s->full_name) }}', '{{ $s->nis ?: $s->nisn }}', '{{ $s->photo_url }}', '{{ addslashes($s->currentClassroom->first()->class_name ?? 'Tanpa Kelas') }}', '{{ addslashes($s->school?->name ?? 'Sekolah') }}', 'Siswa', '{{ addslashes($s->birth_place ?? '-') }}, {{ $s->birth_date ? $s->birth_date->format('d-m-Y') : '-' }}')"
+                                    onclick="openQrModal('{{ addslashes($s->full_name) }}', '{{ $s->nisn ?: $s->nis }}', '{{ $s->photo_url }}', '{{ addslashes($s->currentClassroom->first()->class_name ?? 'Tanpa Kelas') }}', '{{ addslashes($s->school?->name ?? 'Sekolah') }}', 'Siswa', '{{ addslashes($s->birth_place ?? '-') }}, {{ $s->birth_date ? $s->birth_date->format('d-m-Y') : '-' }}')"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-110 transition-all duration-200 group"
                                     title="Cetak Kartu QR Code">
                                     <i class="fas fa-qrcode text-sm"></i>

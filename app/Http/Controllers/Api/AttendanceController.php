@@ -82,15 +82,60 @@ class AttendanceController extends Controller
                     ->first();
             }
 
-            // 4. Cari di Siswa (NIS, NISN, atau RFID UID)
+            // 4. Cari di Siswa (NISN, RFID UID, atau NIS)
+            //    NISN dan RFID UID bersifat unik secara global, sedangkan NIS hanya unik per-sekolah.
+            //    Jika NIS bertabrakan antar sekolah, gunakan konteks device/school untuk disambiguasi.
             if (!$teacher && !$employee && !$tefaEmployee) {
+                // Prioritas 1: Cari via NISN atau RFID (identifikasi pasti, unik global)
                 $student = \App\Models\Student::whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
                     ->where(function($q) use ($rawUid) {
-                        $q->where('nis', $rawUid)
-                          ->orWhere('nisn', $rawUid)
+                        $q->where('nisn', $rawUid)
                           ->orWhere('rfid_uid', $rawUid);
                     })
                     ->first();
+
+                // Prioritas 2: Jika belum ditemukan, cari via NIS (bisa duplikat lintas sekolah)
+                if (!$student) {
+                    $nisCandidates = \App\Models\Student::whereIn('status', \App\Models\StudentStatusHistory::ACTIVE_STATUSES)
+                        ->where('nis', $rawUid)
+                        ->get();
+
+                    if ($nisCandidates->count() === 1) {
+                        // NIS unik — langsung ambil
+                        $student = $nisCandidates->first();
+                    } elseif ($nisCandidates->count() > 1) {
+                        // NIS tabrakan lintas sekolah — coba disambiguasi via device_id / school
+                        $deviceId = $request->input('device_id', '');
+                        $deviceSchoolId = null;
+
+                        // Device ID biasanya berformat "KIOSK-SMP", "KIOSK-SMA", "KIOSK-SMK", dll
+                        if (preg_match('/KIOSK[_-]?(SMP|SMA|SMK)/i', $deviceId, $devMatch)) {
+                            $schoolType = strtoupper($devMatch[1]);
+                            $matchedSchool = \App\Models\School::where('type', $schoolType)->where('is_active', true)->first();
+                            if ($matchedSchool) {
+                                $deviceSchoolId = $matchedSchool->id;
+                            }
+                        }
+
+                        // Coba matching via school context dari device
+                        if ($deviceSchoolId) {
+                            $student = $nisCandidates->where('school_id', $deviceSchoolId)->first();
+                        }
+
+                        // Fallback: ambil yang pertama jika disambiguasi gagal (backward compatible)
+                        if (!$student) {
+                            $student = $nisCandidates->first();
+                            try {
+                                \Illuminate\Support\Facades\Log::warning('NIS Collision Detected', [
+                                    'nis' => $rawUid,
+                                    'candidates' => $nisCandidates->pluck('full_name', 'school_id')->toArray(),
+                                    'picked' => $student->full_name . ' (school_id=' . $student->school_id . ')',
+                                    'device_id' => $deviceId,
+                                ]);
+                            } catch (\Throwable $logEx) {}
+                        }
+                    }
+                }
             }
 
             // 5. Cek User Account (jika scan username akun)
