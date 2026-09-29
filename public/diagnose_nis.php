@@ -3,18 +3,27 @@
  * Diagnosa NIS Collision & Auto-Detect Kiosk School
  * Akses: perguruanpembda.com/diagnose_nis.php?secret=pembda99
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (($_GET['secret'] ?? '') !== 'pembda99') {
     http_response_code(403);
     die('Forbidden');
 }
 
-// Bootstrap Laravel (auto-detect: lokal vs Hostinger production)
-$basePath = is_dir(__DIR__ . '/../vendor') ? __DIR__ . '/..' : __DIR__ . '/../pembdahub';
-require $basePath . '/vendor/autoload.php';
-$app = require_once $basePath . '/bootstrap/app.php';
-$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-
 header('Content-Type: text/plain; charset=utf-8');
+
+try {
+    // Bootstrap Laravel (auto-detect: lokal vs Hostinger production)
+    $basePath = is_dir(__DIR__ . '/../vendor') ? __DIR__ . '/..' : __DIR__ . '/../pembdahub';
+    require $basePath . '/vendor/autoload.php';
+    $app = require_once $basePath . '/bootstrap/app.php';
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+} catch (\Throwable $e) {
+    die('Bootstrap Error: ' . $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine());
+}
+
+try {
 
 $today = now()->format('Y-m-d');
 
@@ -155,3 +164,9 @@ try {
 }
 
 echo "\n=== SELESAI ===\n";
+
+} catch (\Throwable $e) {
+    echo "\n\n❌ ERROR: " . $e->getMessage() . "\n";
+    echo "File: " . $e->getFile() . ':' . $e->getLine() . "\n";
+    echo "Trace:\n" . $e->getTraceAsString() . "\n";
+}
