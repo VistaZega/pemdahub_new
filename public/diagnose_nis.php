@@ -1,10 +1,11 @@
 <?php
 /**
- * Diagnosa NIS Collision & Auto-Detect Kiosk School
+ * Diagnosa NIS Collision & Auto-Detect Kiosk School (LITE)
  * Akses: perguruanpembda.com/diagnose_nis.php?secret=pembda99
  */
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+set_time_limit(30);
 
 if (($_GET['secret'] ?? '') !== 'pembda99') {
     http_response_code(403);
@@ -14,7 +15,6 @@ if (($_GET['secret'] ?? '') !== 'pembda99') {
 header('Content-Type: text/plain; charset=utf-8');
 
 try {
-    // Bootstrap Laravel (auto-detect: lokal vs Hostinger production)
     $basePath = is_dir(__DIR__ . '/../vendor') ? __DIR__ . '/..' : __DIR__ . '/../pembdahub';
     require $basePath . '/vendor/autoload.php';
     $app = require_once $basePath . '/bootstrap/app.php';
@@ -26,14 +26,13 @@ try {
 try {
 
 $today = now()->format('Y-m-d');
-
 echo "=== DIAGNOSA BARCODE / NIS COLLISION ===\n";
-echo "Tanggal: $today\n";
-echo "Server Time: " . now()->format('Y-m-d H:i:s') . "\n\n";
+echo "Tanggal: $today | Server: " . now()->format('H:i:s') . "\n\n";
 
-// 1. Device ID aktif hari ini
-echo "--- 1. DEVICE ID YANG AKTIF HARI INI ---\n";
-$deviceGroups = \App\Models\Attendance::where('date', $today)
+// 1. Device ID aktif HARI INI saja (cepat)
+echo "--- 1. DEVICE ID AKTIF HARI INI ---\n";
+$deviceGroups = \DB::table('attendances')
+    ->where('date', $today)
     ->whereNotNull('device_id')
     ->where('device_id', '!=', '')
     ->selectRaw('device_id, recorded_via, COUNT(*) as cnt')
@@ -42,131 +41,127 @@ $deviceGroups = \App\Models\Attendance::where('date', $today)
     ->get();
 
 if ($deviceGroups->isEmpty()) {
-    echo "  (Tidak ada data absensi dengan device_id hari ini)\n";
+    echo "  (Tidak ada absensi dgn device_id hari ini)\n";
 } else {
     foreach ($deviceGroups as $dg) {
-        echo "  Device: {$dg->device_id} | Via: {$dg->recorded_via} | Jumlah scan: {$dg->cnt}\n";
+        echo "  Device: {$dg->device_id} | Via: {$dg->recorded_via} | Scan: {$dg->cnt}x\n";
     }
 }
 
-// 2. Auto-detect device → school mapping
-echo "\n--- 2. AUTO-DETECT: DEVICE → SCHOOL MAPPING (dari seluruh riwayat) ---\n";
-$deviceIds = \App\Models\Attendance::whereNotNull('device_id')
-    ->where('device_id', '!=', '')
-    ->distinct()
-    ->pluck('device_id');
-
-if ($deviceIds->isEmpty()) {
-    echo "  (Tidak ada device_id yang tercatat di database)\n";
+// 2. Auto-detect: ambil hanya device hari ini, cek mapping-nya
+echo "\n--- 2. AUTO-DETECT: DEVICE → SCHOOL (dari absen hari ini) ---\n";
+$todayDevices = $deviceGroups->pluck('device_id')->unique();
+if ($todayDevices->isEmpty()) {
+    echo "  (Tidak ada device hari ini)\n";
 } else {
-    foreach ($deviceIds as $did) {
-        $lastAtt = \App\Models\Attendance::where('device_id', $did)
-            ->whereNotNull('student_id')
-            ->latest('id')
+    foreach ($todayDevices as $did) {
+        // Ambil 1 attendance siswa dari device ini
+        $att = \DB::table('attendances')
+            ->join('students', 'attendances.student_id', '=', 'students.id')
+            ->join('schools', 'students.school_id', '=', 'schools.id')
+            ->where('attendances.device_id', $did)
+            ->whereNotNull('attendances.student_id')
+            ->select('schools.id as school_id', 'schools.name as school_name', 'schools.type as school_type')
+            ->orderByDesc('attendances.id')
             ->first();
-        if ($lastAtt && $lastAtt->student && $lastAtt->student->school) {
-            $school = $lastAtt->student->school;
-            echo "  ✅ Device '$did' → school_id={$school->id} ({$school->name})\n";
+        if ($att) {
+            echo "  ✅ '$did' → school_id={$att->school_id} ({$att->school_name})\n";
         } else {
-            echo "  ❌ Device '$did' → TIDAK BISA DITENTUKAN\n";
+            echo "  ❌ '$did' → TIDAK BISA DITENTUKAN\n";
         }
     }
 }
 
-// 3. NIS duplikat lintas sekolah
-echo "\n--- 3. NIS COLLISION: NIS YANG DUPLIKAT LINTAS SEKOLAH (siswa aktif) ---\n";
-$activeStatuses = \App\Models\StudentStatusHistory::ACTIVE_STATUSES;
-$collisions = \DB::table('students')
-    ->select('nis', \DB::raw('COUNT(*) as cnt'), \DB::raw('GROUP_CONCAT(DISTINCT school_id ORDER BY school_id) as school_ids'))
-    ->whereIn('status', $activeStatuses)
-    ->whereNotNull('nis')
-    ->where('nis', '!=', '')
-    ->groupBy('nis')
-    ->havingRaw('COUNT(DISTINCT school_id) > 1')
-    ->orderBy('nis')
-    ->get();
+// 3. NIS duplikat lintas sekolah (hanya siswa aktif)
+echo "\n--- 3. NIS COLLISION LINTAS SEKOLAH ---\n";
+$collisions = \DB::select("
+    SELECT nis, COUNT(*) as cnt, GROUP_CONCAT(DISTINCT school_id ORDER BY school_id) as school_ids
+    FROM students
+    WHERE status IN ('aktif','active') AND nis IS NOT NULL AND nis != ''
+    GROUP BY nis
+    HAVING COUNT(DISTINCT school_id) > 1
+    ORDER BY nis
+    LIMIT 100
+");
 
-if ($collisions->isEmpty()) {
-    echo "  ✅ Tidak ada NIS yang duplikat lintas sekolah. Semua barcode aman.\n";
+if (empty($collisions)) {
+    echo "  ✅ Tidak ada NIS duplikat lintas sekolah. Barcode aman.\n";
 } else {
-    echo "  ⚠️  DITEMUKAN " . $collisions->count() . " NIS BENTROK lintas sekolah:\n\n";
-    foreach ($collisions->take(50) as $col) {
-        echo "  NIS: {$col->nis} | Duplikat: {$col->cnt}x | School IDs: [{$col->school_ids}]\n";
-        $students = \App\Models\Student::where('nis', $col->nis)
-            ->whereIn('status', $activeStatuses)
-            ->with('school:id,name,type')
+    echo "  ⚠️  " . count($collisions) . " NIS BENTROK:\n\n";
+    foreach ($collisions as $col) {
+        echo "  NIS: {$col->nis} | {$col->cnt}x | Schools: [{$col->school_ids}]\n";
+        $students = \DB::table('students')
+            ->join('schools', 'students.school_id', '=', 'schools.id')
+            ->where('students.nis', $col->nis)
+            ->whereIn('students.status', ['aktif', 'active'])
+            ->select('students.id', 'students.full_name', 'students.nisn', 'students.school_id', 'schools.name as school_name', 'schools.type as school_type')
             ->get();
         foreach ($students as $s) {
-            $schoolName = $s->school->name ?? '?';
-            $schoolType = $s->school->type ?? '?';
-            echo "    → [$schoolType] {$s->full_name} (ID:{$s->id}, NISN:{$s->nisn}, school_id:{$s->school_id} = $schoolName)\n";
+            echo "    → [{$s->school_type}] {$s->full_name} (ID:{$s->id}, NISN:{$s->nisn}, school:{$s->school_name})\n";
         }
         echo "\n";
-    }
-    if ($collisions->count() > 50) {
-        echo "  ... dan " . ($collisions->count() - 50) . " NIS lainnya\n";
     }
 }
 
 // 4. Detail Alvaro Gavriel
-echo "\n--- 4. DETAIL SISWA ALVARO GAVRIEL ---\n";
-$alvaros = \App\Models\Student::where('full_name', 'like', '%Alvaro Gavriel%')->with('school:id,name,type')->get();
+echo "--- 4. SISWA ALVARO GAVRIEL ---\n";
+$alvaros = \DB::table('students')
+    ->leftJoin('schools', 'students.school_id', '=', 'schools.id')
+    ->where('students.full_name', 'like', '%Alvaro Gavriel%')
+    ->select('students.*', 'schools.name as school_name', 'schools.type as school_type')
+    ->get();
+
 if ($alvaros->isEmpty()) {
-    echo "  Siswa 'Alvaro Gavriel' tidak ditemukan.\n";
+    echo "  Tidak ditemukan.\n";
 } else {
     foreach ($alvaros as $a) {
-        $schoolName = $a->school->name ?? '?';
-        echo "  Siswa: {$a->full_name}\n";
-        echo "    ID: {$a->id} | NIS: {$a->nis} | NISN: {$a->nisn} | School: $schoolName (ID:{$a->school_id})\n";
-        echo "    Status: {$a->status} | RFID: " . ($a->rfid_uid ?: 'belum terdaftar') . "\n";
+        echo "  {$a->full_name} | NIS:{$a->nis} | NISN:{$a->nisn}\n";
+        echo "  School: {$a->school_name} (ID:{$a->school_id}) | Status:{$a->status}\n";
 
-        // Cari siswa lain dengan NIS sama
+        // Cek siswa lain dgn NIS sama
         if ($a->nis) {
-            $sameNis = \App\Models\Student::where('nis', $a->nis)
-                ->where('id', '!=', $a->id)
-                ->whereIn('status', $activeStatuses)
-                ->with('school:id,name,type')
+            $sameNis = \DB::table('students')
+                ->join('schools', 'students.school_id', '=', 'schools.id')
+                ->where('students.nis', $a->nis)
+                ->where('students.id', '!=', $a->id)
+                ->whereIn('students.status', ['aktif', 'active'])
+                ->select('students.full_name', 'students.nisn', 'students.school_id', 'schools.name as school_name')
                 ->get();
             if ($sameNis->isNotEmpty()) {
-                echo "    ⚠️  ADA SISWA LAIN DENGAN NIS SAMA ({$a->nis}):\n";
+                echo "  ⚠️  COLLISION! Siswa lain dgn NIS={$a->nis}:\n";
                 foreach ($sameNis as $s) {
-                    echo "      → {$s->full_name} (ID:{$s->id}, NISN:{$s->nisn}, school:{$s->school->name})\n";
+                    echo "    → {$s->full_name} (NISN:{$s->nisn}, {$s->school_name})\n";
                 }
             } else {
-                echo "    ✅ NIS {$a->nis} unik, tidak ada duplikat.\n";
+                echo "  ✅ NIS {$a->nis} unik (tidak ada duplikat)\n";
             }
         }
 
         // Absensi hari ini
-        $att = \App\Models\Attendance::where('student_id', $a->id)->where('date', $today)->first();
+        $att = \DB::table('attendances')->where('student_id', $a->id)->where('date', $today)->first();
         if ($att) {
-            echo "    Absen hari ini: {$att->time_in} | Via: {$att->recorded_via} | Device: {$att->device_id} | Status: {$att->status}\n";
+            echo "  Absen: {$att->time_in} | Via: {$att->recorded_via} | Device: {$att->device_id}\n";
         } else {
-            echo "    Belum absen hari ini.\n";
+            echo "  Belum absen hari ini\n";
         }
         echo "\n";
     }
 }
 
-// 5. Cek setting kiosk mapping
-echo "--- 5. SETTING KIOSK MAPPING DI DATABASE ---\n";
+// 5. Settings kiosk
+echo "--- 5. KIOSK SETTINGS ---\n";
 try {
-    $devMap = \App\Models\Setting::getValue('kiosk_device_school_map', '');
-    echo "  kiosk_device_school_map = " . ($devMap ?: '(belum diset)') . "\n";
-} catch (\Throwable $e) {
-    echo "  kiosk_device_school_map = ERROR: " . $e->getMessage() . "\n";
-}
+    $v = \App\Models\Setting::getValue('kiosk_device_school_map', '');
+    echo "  kiosk_device_school_map = " . ($v ?: '(kosong)') . "\n";
+} catch (\Throwable $e) { echo "  kiosk_device_school_map = N/A\n"; }
 try {
-    $ipMap = \App\Models\Setting::getValue('kiosk_ip_school_map', '');
-    echo "  kiosk_ip_school_map = " . ($ipMap ?: '(belum diset)') . "\n";
-} catch (\Throwable $e) {
-    echo "  kiosk_ip_school_map = ERROR: " . $e->getMessage() . "\n";
-}
+    $v = \App\Models\Setting::getValue('kiosk_ip_school_map', '');
+    echo "  kiosk_ip_school_map = " . ($v ?: '(kosong)') . "\n";
+} catch (\Throwable $e) { echo "  kiosk_ip_school_map = N/A\n"; }
 
 echo "\n=== SELESAI ===\n";
 
 } catch (\Throwable $e) {
     echo "\n\n❌ ERROR: " . $e->getMessage() . "\n";
     echo "File: " . $e->getFile() . ':' . $e->getLine() . "\n";
-    echo "Trace:\n" . $e->getTraceAsString() . "\n";
 }
