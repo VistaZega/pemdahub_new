@@ -109,7 +109,7 @@ class PSBTestController extends Controller
     private function getWhatsAppMessage($type, $applicant)
     {
         $fee = $applicant->school_id == 3 ? 300000 : 50000;
-        $panitiaWA = '088991144184'; // Nomor real panitia
+        $panitiaWA = '082373642864'; // Nomor real panitia
         
         switch ($type) {
             case 'registration':
@@ -204,7 +204,7 @@ class PSBTestController extends Controller
      */
     private function getSMSMessage($type, $applicant)
     {
-        $panitiaWA = '088991144184'; // Nomor real panitia
+        $panitiaWA = '082373642864'; // Nomor real panitia
         
         switch ($type) {
             case 'test_schedule':

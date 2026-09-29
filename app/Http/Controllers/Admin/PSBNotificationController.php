@@ -291,7 +291,7 @@ class PSBNotificationController extends Controller
             'bank_holder' => 'Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)',
             'email' => $applicant->email,
             'contact_email' => 'psb@pembdanias.sch.id',
-            'contact_phone' => '088991144184',
+            'contact_phone' => '082373642864',
             'website' => 'https://pembdanias.sch.id',
             'upload_url' => route('public.registration.index'),
             'download_url' => route('public.registration.index'),

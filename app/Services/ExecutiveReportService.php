@@ -1025,7 +1025,7 @@ class ExecutiveReportService
         }
 
         if (!$isSingleTest && !$this->whatsappService->isConnected()) {
-            $msg = 'Gateway WhatsApp (088991144184) sedang terputus (Disconnect). Pengiriman rekapitulasi otomatis dibatalkan secara aman.';
+            $msg = 'Gateway WhatsApp (082373642864) sedang terputus (Disconnect). Pengiriman rekapitulasi otomatis dibatalkan secara aman.';
             if ($logger) $logger("⚠️ {$msg}");
             Log::channel('whatsapp')->warning("WA digest workflow aborted: {$msg}");
             return ['success' => false, 'sent' => 0, 'principal' => ['sent' => 0], 'homeroom' => ['sent' => 0], 'message' => $msg];

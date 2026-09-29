@@ -354,7 +354,7 @@ class ApplicantService
                 'bank_name' => 'BCA',
                 'bank_account' => '1234567890',
                 'bank_holder' => 'Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)',
-                'contact_phone' => '088991144184',
+                'contact_phone' => '082373642864',
                 'contact_email' => 'psb@pembdanias.sch.id',
             ];
 
