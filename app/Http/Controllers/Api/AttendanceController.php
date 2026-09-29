@@ -104,33 +104,31 @@ class AttendanceController extends Controller
                         // NIS unik — langsung ambil
                         $student = $nisCandidates->first();
                     } elseif ($nisCandidates->count() > 1) {
-                        // NIS tabrakan lintas sekolah — coba disambiguasi via device_id / school
-                        $deviceId = $request->input('device_id', '');
-                        $deviceSchoolId = null;
+                        // ============================================================
+                        // NIS COLLISION: disambiguasi dari berbagai sumber konteks
+                        // ============================================================
+                        $resolvedSchoolId = $this->resolveSchoolContext($request);
 
-                        // Device ID biasanya berformat "KIOSK-SMP", "KIOSK-SMA", "KIOSK-SMK", dll
-                        if (preg_match('/KIOSK[_-]?(SMP|SMA|SMK)/i', $deviceId, $devMatch)) {
-                            $schoolType = strtoupper($devMatch[1]);
-                            $matchedSchool = \App\Models\School::where('type', $schoolType)->where('is_active', true)->first();
-                            if ($matchedSchool) {
-                                $deviceSchoolId = $matchedSchool->id;
-                            }
+                        if ($resolvedSchoolId) {
+                            $student = $nisCandidates->where('school_id', $resolvedSchoolId)->first();
                         }
 
-                        // Coba matching via school context dari device
-                        if ($deviceSchoolId) {
-                            $student = $nisCandidates->where('school_id', $deviceSchoolId)->first();
-                        }
-
-                        // Fallback: ambil yang pertama jika disambiguasi gagal (backward compatible)
+                        // Fallback: ambil yang pertama jika disambiguasi gagal
                         if (!$student) {
                             $student = $nisCandidates->first();
                             try {
-                                \Illuminate\Support\Facades\Log::warning('NIS Collision Detected', [
+                                \Illuminate\Support\Facades\Log::warning('NIS Collision - Disambiguasi Gagal', [
                                     'nis' => $rawUid,
-                                    'candidates' => $nisCandidates->pluck('full_name', 'school_id')->toArray(),
+                                    'candidates' => $nisCandidates->map(fn($c) => [
+                                        'id' => $c->id,
+                                        'name' => $c->full_name,
+                                        'school_id' => $c->school_id,
+                                        'school' => $c->school->name ?? '?',
+                                    ])->toArray(),
                                     'picked' => $student->full_name . ' (school_id=' . $student->school_id . ')',
-                                    'device_id' => $deviceId,
+                                    'device_id' => $request->input('device_id', ''),
+                                    'school_id_param' => $request->input('school_id', ''),
+                                    'ip' => $request->ip(),
                                 ]);
                             } catch (\Throwable $logEx) {}
                         }
@@ -905,6 +903,105 @@ class AttendanceController extends Controller
         }
 
         return array_values(array_unique(array_filter($candidates)));
+    }
+
+    /**
+     * Tentukan school_id dari konteks request scan.
+     * Digunakan untuk disambiguasi NIS yang tabrakan lintas sekolah.
+     *
+     * Strategi resolusi (berurutan, berhenti di yang pertama berhasil):
+     * 1. Parameter `school_id` eksplisit dari kiosk/client
+     * 2. Device ID mengandung tipe sekolah (KIOSK-SMP, KIOSK-SMA, KIOSK-SMK)
+     * 3. User-Agent mengandung tipe sekolah (PembdaKiosk/SMP, dll)
+     * 4. Mapping IP kiosk → sekolah dari tabel settings
+     *
+     * @return int|null school_id jika berhasil ditentukan, null jika gagal
+     */
+    private function resolveSchoolContext(Request $request): ?int
+    {
+        // --- Strategi 1: Parameter school_id eksplisit ---
+        $schoolIdParam = $request->input('school_id');
+        if ($schoolIdParam && is_numeric($schoolIdParam)) {
+            $school = \App\Models\School::where('id', (int)$schoolIdParam)->where('is_active', true)->first();
+            if ($school) {
+                return $school->id;
+            }
+        }
+
+        $deviceId = $request->input('device_id', '');
+
+        // --- Strategi 2: Device ID → School mapping dari Settings ---
+        // Format: kiosk_device_school_map = "KIOSK-A1B2:1,ESP32-C3D4:2,KIOSK-E5F6:3"
+        // Atau: "KIOSK-0001:SMP,KIOSK-0002:SMA,KIOSK-0003:SMK"
+        if ($deviceId) {
+            try {
+                $deviceMap = \App\Models\Setting::getValue('kiosk_device_school_map', '');
+                if ($deviceMap) {
+                    foreach (explode(',', $deviceMap) as $entry) {
+                        $parts = array_map('trim', explode(':', trim($entry), 2));
+                        if (count($parts) === 2 && strcasecmp($parts[0], $deviceId) === 0) {
+                            $val = $parts[1];
+                            if (is_numeric($val)) {
+                                return (int) $val;
+                            }
+                            // Support tipe sekolah (SMP/SMA/SMK)
+                            $school = \App\Models\School::where('type', strtoupper($val))->where('is_active', true)->first();
+                            if ($school) return $school->id;
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // --- Strategi 3: Device ID mengandung tipe sekolah (pattern match) ---
+        if ($deviceId && preg_match('/(SMP|SMA|SMK)/i', $deviceId, $devMatch)) {
+            $schoolType = strtoupper($devMatch[1]);
+            $school = \App\Models\School::where('type', $schoolType)->where('is_active', true)->first();
+            if ($school) {
+                return $school->id;
+            }
+        }
+
+        // --- Strategi 4: User-Agent mengandung tipe sekolah ---
+        $userAgent = $request->header('User-Agent', '');
+        if (preg_match('/Pembda.*?(SMP|SMA|SMK)/i', $userAgent, $uaMatch)) {
+            $schoolType = strtoupper($uaMatch[1]);
+            $school = \App\Models\School::where('type', $schoolType)->where('is_active', true)->first();
+            if ($school) {
+                return $school->id;
+            }
+        }
+
+        // --- Strategi 5: IP Mapping dari Settings ---
+        // Format setting: kiosk_ip_school_map = "192.168.1.10:1,192.168.1.11:2,192.168.1.12:3"
+        try {
+            $ipMap = \App\Models\Setting::getValue('kiosk_ip_school_map', '');
+            if ($ipMap) {
+                $clientIp = $request->ip();
+                foreach (explode(',', $ipMap) as $entry) {
+                    $parts = explode(':', trim($entry));
+                    if (count($parts) === 2 && trim($parts[0]) === $clientIp) {
+                        return (int) trim($parts[1]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // --- Strategi 6: Auto-detect dari scan terakhir yang berhasil di device ini ---
+        // Jika device_id ini pernah berhasil absenkan siswa sebelumnya, gunakan school_id sekolah terakhir
+        if ($deviceId) {
+            try {
+                $lastAttendance = \App\Models\Attendance::where('device_id', $deviceId)
+                    ->whereNotNull('student_id')
+                    ->latest('id')
+                    ->first();
+                if ($lastAttendance && $lastAttendance->student) {
+                    return $lastAttendance->student->school_id;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        return null;
     }
 }
 
