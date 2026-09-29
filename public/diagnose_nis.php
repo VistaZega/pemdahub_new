@@ -8,9 +8,10 @@ if (($_GET['secret'] ?? '') !== 'pembda99') {
     die('Forbidden');
 }
 
-// Bootstrap Laravel
-require __DIR__ . '/../pembdahub/vendor/autoload.php';
-$app = require_once __DIR__ . '/../pembdahub/bootstrap/app.php';
+// Bootstrap Laravel (auto-detect: lokal vs Hostinger production)
+$basePath = is_dir(__DIR__ . '/../vendor') ? __DIR__ . '/..' : __DIR__ . '/../pembdahub';
+require $basePath . '/vendor/autoload.php';
+$app = require_once $basePath . '/bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 header('Content-Type: text/plain; charset=utf-8');
