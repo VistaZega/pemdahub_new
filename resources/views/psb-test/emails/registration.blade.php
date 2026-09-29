@@ -185,7 +185,7 @@
                     <h4 style="margin: 0 0 10px 0;">Kirim Bukti Pembayaran</h4>
                     <p style="margin: 0;">Foto/Screenshot bukti transfer dan kirim ke:</p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li><strong>WhatsApp:</strong> 088991144184</li>
+                        <li><strong>WhatsApp:</strong> 082373642864</li>
                         <li><strong>Email:</strong> psb@pembdanias.sch.id</li>
                     </ul>
                     <p style="margin: 5px 0; font-size: 13px; color: #6b7280;">Sertakan nomor registrasi: <strong>{{ $applicant->registration_number }}</strong></p>
@@ -222,7 +222,7 @@
 
             <div class="contact-info">
                 <h4 style="margin-top: 0; color: #1e40af;">📞 Butuh Bantuan?</h4>
-                <p style="margin: 5px 0;"><strong>WhatsApp:</strong> 088991144184</p>
+                <p style="margin: 5px 0;"><strong>WhatsApp:</strong> 082373642864</p>
                 <p style="margin: 5px 0;"><strong>Telepon:</strong> (0639) xxxxx</p>
                 <p style="margin: 5px 0;"><strong>Email:</strong> psb@pembdanias.sch.id</p>
                 <p style="margin: 10px 0 0 0; font-size: 13px; color: #6b7280;">

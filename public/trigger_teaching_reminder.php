@@ -98,7 +98,7 @@ if (!$run && !$dryRun && !$testPhone) {
     $accountInfo = $waService->getAccountInfo();
     $quota = $accountInfo['data']['quota'] ?? 'N/A';
     $deviceStatus = $accountInfo['data']['device_status'] ?? ($waService->isConnected() ? 'connect' : 'disconnect');
-    $deviceNumber = $accountInfo['data']['device'] ?? '082364729261';
+    $deviceNumber = $accountInfo['data']['device'] ?? '082373642864';
 
     echo "<!DOCTYPE html><html lang='id'><head><meta charset='UTF-8'><title>Control Panel - Pengingat Jadwal Mengajar (Gelombang Bertahap)</title>";
     echo "<style>

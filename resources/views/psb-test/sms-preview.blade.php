@@ -30,7 +30,7 @@
                     </button>
                     <div class="flex-1">
                         <p class="font-semibold">Panitia PSB PEMBDA</p>
-                        <p class="text-xs opacity-90">088991144184</p>
+                        <p class="text-xs opacity-90">082373642864</p>
                     </div>
                     <button class="text-white">
                         <i class="fas fa-ellipsis-v"></i>

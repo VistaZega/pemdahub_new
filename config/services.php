@@ -47,7 +47,7 @@ return [
     'whatsapp' => [
         'enabled' => env('WHATSAPP_ENABLED', true),
         'active_provider' => env('WHATSAPP_PROVIDER', 'selfhosted'),
-        'sender' => env('WHATSAPP_SENDER', '088991144184'),
+        'sender' => env('WHATSAPP_SENDER', '082373642864'),
         'timeout' => env('WHATSAPP_TIMEOUT', 15),
 
         // Provider A: Fonnte (Berbayar, cocok untuk production/shared hosting)

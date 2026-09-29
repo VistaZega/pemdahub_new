@@ -46,7 +46,7 @@ class NotificationService
             'bank_account' => '1234567890',
             'bank_holder' => 'Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)',
             'email' => $applicant->email,
-            'contact_phone' => $applicant->school->psb_contact_phone ?? '088991144184',
+            'contact_phone' => $applicant->school->psb_contact_phone ?? '082373642864',
             'contact_name' => $applicant->school->psb_contact_person ?? 'Panitia PSB',
             'contact_email' => $applicant->school->email ?? 'psb@pembdanias.sch.id',
             'website' => $applicant->school->website ?? 'https://pembdanias.sch.id',
@@ -113,7 +113,7 @@ class NotificationService
             'tanggal' => now()->format('d F Y'),
             'upload_url' => $uploadUrl,
             'deadline' => now()->addDays(14)->format('d F Y'),
-            'contact_phone' => $applicant->school->psb_contact_phone ?? '088991144184',
+            'contact_phone' => $applicant->school->psb_contact_phone ?? '082373642864',
         ];
 
         // Send WhatsApp
@@ -203,7 +203,7 @@ class NotificationService
             'tempat_daftar_ulang' => $applicant->school->name,
             'biaya_daftar_ulang' => number_format(500000, 0, ',', '.'),
             'deadline' => now()->addDays(14)->format('d F Y'),
-            'contact_phone' => $applicant->school->psb_contact_phone ?? '088991144184',
+            'contact_phone' => $applicant->school->psb_contact_phone ?? '082373642864',
         ];
 
         // Send WhatsApp
@@ -241,7 +241,7 @@ class NotificationService
             'nama' => $applicant->full_name,
             'nomor_registrasi' => $applicant->registration_number,
             'pesan_reminder' => $message,
-            'contact_phone' => $applicant->school->psb_contact_phone ?? '088991144184',
+            'contact_phone' => $applicant->school->psb_contact_phone ?? '082373642864',
             'contact_email' => $applicant->school->email ?? 'psb@pembdanias.sch.id',
         ];
 
@@ -286,7 +286,7 @@ class NotificationService
             'prestasi_detail' => $prestasiDetail,
             'upload_url' => url('/pendaftaran/cek-status'),
             'deadline' => now()->addDays(14)->format('d F Y'),
-            'contact_phone' => $applicant->school->psb_contact_phone ?? '088991144184',
+            'contact_phone' => $applicant->school->psb_contact_phone ?? '082373642864',
         ];
 
         // Send WhatsApp
@@ -337,7 +337,7 @@ class NotificationService
             'bank_name' => 'BCA',
             'bank_account' => '1234567890',
             'bank_holder' => 'Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)',
-            'contact_phone' => $applicant->school->psb_contact_phone ?? '088991144184',
+            'contact_phone' => $applicant->school->psb_contact_phone ?? '082373642864',
             'contact_email' => $applicant->school->email ?? 'psb@pembdanias.sch.id',
         ];
 
@@ -383,7 +383,7 @@ class NotificationService
             'bank_name' => 'BCA',
             'bank_account' => '1234567890',
             'bank_holder' => 'Yayasan Perguruan Pembangunan Daerah Nias (PEMBDA)',
-            'contact_phone' => $student->school->psb_contact_phone ?? '088991144184',
+            'contact_phone' => $student->school->psb_contact_phone ?? '082373642864',
         ];
 
         if ($student->phone) {
