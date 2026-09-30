@@ -67,9 +67,29 @@ class StudentPolicy
             return true;
         }
 
-        // Wali Kelas bisa mengedit data siswa di sekolah tempat bertugas
-        if ($user->isGuru() && $user->isWaliKelas()) {
-            return $user->school_id === $student->school_id;
+        // Wali Kelas bisa mengedit data siswa di rombel perwaliannya atau di sekolah tempat bertugas
+        if ($user->isGuru() && ($user->isWaliKelas() || $user->isHomeroomTeacher())) {
+            // 1. Cek apakah siswa merupakan anggota rombel perwaliannya
+            $homeroomClassroomIds = $user->homeroomClassrooms()->pluck('id')->toArray();
+            if (!empty($homeroomClassroomIds) && $student->studentClasses()->whereIn('classroom_id', $homeroomClassroomIds)->exists()) {
+                return true;
+            }
+
+            // 2. Cek kesesuaian sekolah (User school, Teacher school, Employee school, atau sekolah rombel perwalian)
+            $allowedSchoolIds = array_filter([
+                $user->school_id,
+                $user->getActiveSchoolId(),
+                $user->teacher?->school_id,
+                $user->employee?->school_id,
+            ]);
+            $homeroomSchoolIds = $user->homeroomClassrooms()->pluck('school_id')->toArray();
+            $allowedSchoolIds = array_unique(array_merge($allowedSchoolIds, $homeroomSchoolIds));
+
+            if (!empty($allowedSchoolIds)) {
+                return in_array($student->school_id, $allowedSchoolIds);
+            }
+
+            return true;
         }
 
         // Siswa bisa update data dirinya sendiri (terbatas)

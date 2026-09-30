@@ -63,7 +63,7 @@
                                 <td class="px-5 py-3.5 font-mono text-xs font-bold text-black">{{ $student->phone ?? '-' }}</td>
                                 <td class="px-5 py-3.5 text-center whitespace-nowrap">
                                     @can('update', $student)
-                                    <a href="{{ route('admin.students.edit', $student->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-black transition shadow-xs" title="Edit Data Siswa">
+                                    <a href="{{ route('admin.students.edit', ['student' => $student->id, 'return_to' => request()->fullUrl()]) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-black transition shadow-xs" title="Edit Data Siswa">
                                         <i class="fas fa-edit text-emerald-700"></i> Edit Data
                                     </a>
                                     @endcan

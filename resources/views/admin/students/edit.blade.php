@@ -33,6 +33,9 @@
     <form action="{{ route('admin.students.update', $student) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
+        @if(request('return_to'))
+        <input type="hidden" name="return_to" value="{{ request('return_to') }}">
+        @endif
 
         <!-- Section 1: Data Pribadi -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -45,6 +48,7 @@
                 </div>
             </div>
             <div class="p-6 space-y-4">
+                @if(auth()->user()->hasAnyRole(['superadmin', 'admin_sekolah']))
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-school mr-1"></i> Sekolah</label>
                     <select name="school_id" class="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
@@ -53,6 +57,13 @@
                         @endforeach
                     </select>
                 </div>
+                @else
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-school mr-1"></i> Sekolah</label>
+                    <input type="hidden" name="school_id" value="{{ $student->school_id }}">
+                    <input type="text" value="{{ $student->school?->name ?? 'Sekolah' }}" disabled class="w-full border-2 border-gray-200 bg-gray-100 p-3 rounded-xl font-bold text-gray-700 cursor-not-allowed">
+                </div>
+                @endif
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-list-ol mr-1"></i> NISN</label>
@@ -223,7 +234,7 @@
             <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition duration-200 transform hover:scale-105">
                 <i class="fas fa-save mr-1"></i> Simpan Perubahan
             </button>
-            <a href="{{ route('admin.students.index') }}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition duration-200">
+            <a href="{{ request('return_to', route('admin.students.index')) }}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition duration-200">
                 Batal
             </a>
         </div>

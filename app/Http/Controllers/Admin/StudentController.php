@@ -47,8 +47,11 @@ class StudentController extends Controller
         if ($selectedAcademicYearId) {
             $classroomQuery->where('academic_year_id', $selectedAcademicYearId);
         }
+        $userSchoolId = auth()->user()->getActiveSchoolId() ?? auth()->user()->school_id ?? auth()->user()->teacher?->school_id;
         if (!auth()->user()->isSuperAdmin()) {
-            $classroomQuery->where('school_id', auth()->user()->school_id);
+            if ($userSchoolId) {
+                $classroomQuery->where('school_id', $userSchoolId);
+            }
         } elseif ($request->filled('school_id')) {
             $classroomQuery->where('school_id', $request->school_id);
         }
@@ -167,6 +170,22 @@ class StudentController extends Controller
                 $request->file('photo'),
                 $request->boolean('remove_photo')
             );
+
+            if ($request->filled('return_to')) {
+                return redirect($request->input('return_to'))
+                    ->with('success', 'Data siswa berhasil diperbarui.');
+            }
+
+            // Jika user adalah guru/wali kelas (bukan admin), kembalikan ke tampilan kelas jika ada
+            if (auth()->user()->isGuru() && !auth()->user()->hasAnyRole(['superadmin', 'admin_sekolah'])) {
+                $activeClass = $student->currentClassroom()->first();
+                if ($activeClass) {
+                    return redirect()->route('guru.siswa-kelas', $activeClass->id)
+                        ->with('success', 'Data siswa berhasil diperbarui.');
+                }
+                return redirect()->route('guru.kelas')
+                    ->with('success', 'Data siswa berhasil diperbarui.');
+            }
 
             return redirect()->route('admin.students.index')
                 ->with('success', 'Siswa berhasil diperbarui.');

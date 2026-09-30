@@ -21,8 +21,9 @@
     $isPanitiaPkl = $user ? $user->isPanitiaPkl() : false;
     $isPanitiaProyek = $user ? $user->isPanitiaProyek() : false;
     $isPksOrPiket = $user ? $user->isPksOrPiket() : false;
+    $isWaliKelas = $user ? ($user->isWaliKelas() || $user->isHomeroomTeacher()) : false;
     $canAccess = $isSA || $isAdmin || $isFinance || $isYayasan || $isKepsek;
-    $isOnlyCommittee = !$canAccess && ($isPanitiaCbt || $isPanitiaPkl || $isPanitiaProyek || $isPksOrPiket);
+    $isOnlyCommittee = !$canAccess && ($isPanitiaCbt || $isPanitiaPkl || $isPanitiaProyek || $isPksOrPiket || $isWaliKelas);
     $ac = 'bg-indigo-50 text-indigo-700 font-semibold active'; // active class
     $nc = 'text-gray-600 hover:bg-gray-50'; // normal class
     
@@ -261,6 +262,7 @@
     </div>
 </div>
 
+@if($canAccess || $isWaliKelas || $isPksOrPiket)
 <!-- ════════════════ GROUP: DATA PENGGUNA ════════════════ -->
 <div class="pt-3" data-menu-group="users">
     <button class="menu-group-toggle w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600" onclick="toggleGroup(this)">
@@ -275,11 +277,14 @@
         </a>
         @endif
 
+        @if($canAccess || $isWaliKelas || $isPksOrPiket)
         <a href="{{ route('admin.students.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.students.*') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white"><i class="fas fa-user-graduate text-[10px]"></i></div>
             <span>Data Siswa</span>
         </a>
+        @endif
 
+        @if($canAccess)
         <a href="{{ route('admin.teachers.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.teachers.*') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white"><i class="fas fa-chalkboard-teacher text-[10px]"></i></div>
             <span>Data Guru</span>
@@ -294,8 +299,10 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-400 to-amber-600 flex items-center justify-center text-white"><i class="fas fa-people-roof text-[10px]"></i></div>
             <span>Orang Tua / Wali</span>
         </a>
+        @endif
     </div>
 </div>
+@endif
 
 <!-- ════════════════ GROUP: PEMBDA ELITE ════════════════ -->
 @if(!$isFinance)

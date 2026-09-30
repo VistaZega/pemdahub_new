@@ -19,6 +19,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
+                @can('create', App\Models\Student::class)
                 <a href="{{ route('admin.students.create') }}"
                     class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,6 +27,8 @@
                     </svg>
                     Tambah Siswa
                 </a>
+                @endcan
+                @can('import', App\Models\Student::class)
                 <a href="{{ route('admin.students.import.form') }}"
                     class="px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all">
                     Import Excel
@@ -34,6 +37,7 @@
                     class="px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all text-sm">
                     Download Template
                 </a>
+                @endcan
                 <a href="{{ route('admin.students.smart-cards-bulk') }}"
                     class="px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold transition-all flex items-center gap-2 text-sm shadow-sm">
                     <i class="fas fa-id-card"></i>
@@ -291,25 +295,30 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
                                 </a>
-                                <a href="{{ route('admin.students.edit', $s) }}"
+                                @can('update', $s)
+                                <a href="{{ route('admin.students.edit', ['student' => $s->id, 'return_to' => request()->fullUrl()]) }}"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:scale-110 transition-all duration-200 group"
                                     title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </a>
+                                @endcan
                                 <button type="button" 
                                     onclick="openQrModal('{{ addslashes($s->full_name) }}', '{{ $s->nisn ?: $s->nis }}', '{{ $s->photo_url }}', '{{ addslashes($s->currentClassroom->first()->class_name ?? 'Tanpa Kelas') }}', '{{ addslashes($s->school?->name ?? 'Sekolah') }}', 'Siswa', '{{ addslashes($s->birth_place ?? '-') }}, {{ $s->birth_date ? $s->birth_date->format('d-m-Y') : '-' }}')"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-110 transition-all duration-200 group"
                                     title="Cetak Kartu QR Code">
                                     <i class="fas fa-qrcode text-sm"></i>
                                 </button>
+                                @can('update', $s)
                                 <button type="button" 
                                     onclick="openRfidModal('{{ addslashes($s->full_name) }}', '{{ $s->rfid_uid }}', '{{ route('admin.students.update-rfid', $s->id) }}', 'Siswa', 'student', '{{ $s->id }}')"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 hover:scale-110 transition-all duration-200 group"
                                     title="Daftarkan RFID">
                                     <i class="fas fa-id-card text-sm"></i>
                                 </button>
+                                @endcan
+                                @can('delete', $s)
                                 <form action="{{ route('admin.students.destroy', $s) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
@@ -322,6 +331,7 @@
                                         </svg>
                                     </button>
                                 </form>
+                                @endcan
                             </div>
                         </td>
                     </tr>

@@ -103,6 +103,13 @@ class CheckRole
                     $allowed = true;
                 }
 
+                // Wali Kelas (Kelola & Edit Data Siswa Perwalian)
+                if (($user->isWaliKelas() || $user->isHomeroomTeacher()) && (
+                    str_starts_with($routeName, 'admin.students.') || str_starts_with($path, 'admin/students')
+                )) {
+                    $allowed = true;
+                }
+
                 // Dashboard Admin untuk melihat overview
                 if ($routeName === 'admin.dashboard' || $path === 'admin/dashboard') {
                     $allowed = true;

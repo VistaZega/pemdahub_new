@@ -18,7 +18,10 @@ class StudentRepository
 
         // Auto-filter by school_id for non-superadmin users
         if ($user && !$user->isSuperAdmin()) {
-            $query->where('school_id', $user->school_id);
+            $userSchoolId = $user->getActiveSchoolId() ?? $user->school_id ?? $user->teacher?->school_id;
+            if ($userSchoolId) {
+                $query->where('school_id', $userSchoolId);
+            }
         }
 
         if (!empty($filters['q'])) {

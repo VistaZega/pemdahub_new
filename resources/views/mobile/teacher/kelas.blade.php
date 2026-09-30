@@ -176,7 +176,7 @@
                                 {{ $std->gender === 'P' || $std->gender === 'perempuan' ? '👧 Perempuan' : '👦 Laki-laki' }}
                             </span>
                             @can('update', $std)
-                            <a href="{{ route('admin.students.edit', $std->id) }}" class="px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-400 text-[10px] font-black hover:bg-emerald-200 transition shadow-xs flex items-center gap-1" title="Edit Data Siswa">
+                            <a href="{{ route('admin.students.edit', ['student' => $std->id, 'return_to' => request()->fullUrl()]) }}" class="px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-400 text-[10px] font-black hover:bg-emerald-200 transition shadow-xs flex items-center gap-1" title="Edit Data Siswa">
                                 <i class="fa-solid fa-pen-to-square text-[9px]"></i> Edit Data
                             </a>
                             @endcan

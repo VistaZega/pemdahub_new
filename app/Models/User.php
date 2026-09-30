@@ -425,7 +425,10 @@ class User extends Authenticatable
     public function teacherIds(): array
     {
         $ids = Teacher::where('user_id', $this->id)->pluck('id')->toArray();
-        $employee = $this->employee ?? $this->teacher?->employee;
+        $employee = $this->employee 
+            ?? $this->teacher?->employee 
+            ?? \App\Models\Employee::where('user_id', $this->id)->first()
+            ?? ($this->teacher?->employee_id ? \App\Models\Employee::find($this->teacher->employee_id) : null);
         if ($employee) {
             $eIds = Teacher::where('employee_id', $employee->id)->pluck('id')->toArray();
             $ids = array_merge($ids, $eIds);
@@ -445,11 +448,31 @@ class User extends Authenticatable
             return false;
         }
         $tIds = $this->teacherIds();
-        if (empty($tIds)) {
-            return false;
+        if (!empty($tIds) && Classroom::whereIn('homeroom_teacher_id', $tIds)->exists()) {
+            return true;
         }
         
-        return Classroom::whereIn('homeroom_teacher_id', $tIds)->exists();
+        // Cek juga melalui riwayat penugasan jabatan aktif (employee_positions)
+        $employee = $this->employee 
+            ?? $this->teacher?->employee 
+            ?? \App\Models\Employee::where('user_id', $this->id)->first()
+            ?? ($this->teacher?->employee_id ? \App\Models\Employee::find($this->teacher->employee_id) : null);
+
+        if ($employee) {
+            return \Illuminate\Support\Facades\DB::table('employee_positions as ep')
+                ->join('positions as p', 'ep.position_id', '=', 'p.id')
+                ->where('ep.employee_id', $employee->id)
+                ->whereNull('ep.end_date')
+                ->where(function ($q) {
+                    $q->where('p.position_name', 'like', '%wali kelas%')
+                      ->orWhere('p.position_code', 'like', '%WALIKELAS%')
+                      ->orWhere('p.position_code', 'like', '%WAKEL%')
+                      ->orWhere('p.position_code', 'like', '%WK%');
+                })
+                ->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -645,9 +668,41 @@ class User extends Authenticatable
             return collect([]);
         }
         
-        return Classroom::whereIn('homeroom_teacher_id', $tIds)
+        $classrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)
             ->where('is_active', true)
             ->get();
+
+        if ($classrooms->isEmpty()) {
+            $classrooms = Classroom::whereIn('homeroom_teacher_id', $tIds)->get();
+        }
+
+        if ($classrooms->isEmpty()) {
+            $employee = $this->employee 
+                ?? $this->teacher?->employee 
+                ?? \App\Models\Employee::where('user_id', $this->id)->first()
+                ?? ($this->teacher?->employee_id ? \App\Models\Employee::find($this->teacher->employee_id) : null);
+
+            if ($employee) {
+                $classIds = \Illuminate\Support\Facades\DB::table('employee_positions as ep')
+                    ->join('positions as p', 'ep.position_id', '=', 'p.id')
+                    ->where('ep.employee_id', $employee->id)
+                    ->whereNull('ep.end_date')
+                    ->whereNotNull('ep.classroom_id')
+                    ->where(function ($q) {
+                        $q->where('p.position_name', 'like', '%wali kelas%')
+                          ->orWhere('p.position_code', 'like', '%WALIKELAS%')
+                          ->orWhere('p.position_code', 'like', '%WAKEL%')
+                          ->orWhere('p.position_code', 'like', '%WK%');
+                    })
+                    ->pluck('ep.classroom_id');
+
+                if ($classIds->isNotEmpty()) {
+                    $classrooms = Classroom::whereIn('id', $classIds)->get();
+                }
+            }
+        }
+
+        return $classrooms;
     }
 
     /**
