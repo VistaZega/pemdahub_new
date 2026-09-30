@@ -580,6 +580,96 @@ class Student extends Model
             ->sum(\DB::raw('amount - paid_amount'));
     }
 
+    /**
+     * Get effective parent / guardian name
+     */
+    public function getEffectiveParentNameAttribute(): string
+    {
+        if (!empty($this->parent_name)) {
+            return trim($this->parent_name);
+        }
+        if (!empty($this->guardian_name)) {
+            return trim($this->guardian_name);
+        }
+        if ($this->relationLoaded('parents') ? $this->parents->isNotEmpty() : $this->parents()->exists()) {
+            $p = $this->parents->first();
+            if ($p && !empty($p->full_name)) {
+                return trim($p->full_name);
+            }
+        }
+        if ($this->relationLoaded('applicant') ? $this->applicant : $this->applicant()->first()) {
+            $app = $this->applicant;
+            if (!empty($app->father_name)) return trim($app->father_name);
+            if (!empty($app->mother_name)) return trim($app->mother_name);
+            if (!empty($app->guardian_name)) return trim($app->guardian_name);
+        }
+        return 'Orang Tua / Wali';
+    }
+
+    /**
+     * Get effective parent / guardian raw phone number
+     */
+    public function getEffectiveParentPhoneAttribute(): ?string
+    {
+        $raw = $this->parent_phone;
+        if (empty($raw)) {
+            $raw = $this->guardian_phone;
+        }
+        if (empty($raw)) {
+            $p = $this->relationLoaded('parents') ? $this->parents->first() : $this->parents()->first();
+            $raw = $p?->phone;
+        }
+        if (empty($raw)) {
+            $app = $this->relationLoaded('applicant') ? $this->applicant : $this->applicant()->first();
+            $raw = $app?->father_phone ?: ($app?->mother_phone ?: $app?->guardian_phone);
+        }
+        return $raw ? trim($raw) : null;
+    }
+
+    /**
+     * Format parent / guardian phone for WhatsApp (format: 628xxx)
+     */
+    public function getFormattedParentWaPhoneAttribute(): ?string
+    {
+        $phone = $this->effective_parent_phone;
+        if (!$phone) {
+            return null;
+        }
+        $digits = preg_replace('/[^0-9]/', '', $phone);
+        if (empty($digits)) {
+            return null;
+        }
+        if (str_starts_with($digits, '0')) {
+            $digits = '62' . substr($digits, 1);
+        }
+        return $digits;
+    }
+
+    /**
+     * Format student phone for WhatsApp (format: 628xxx)
+     */
+    public function getFormattedStudentWaPhoneAttribute(): ?string
+    {
+        $phone = $this->phone;
+        if (empty($phone) && $this->relationLoaded('user') && $this->user) {
+            $phone = $this->user->phone;
+        }
+        if (empty($phone) && ($this->relationLoaded('applicant') ? $this->applicant : $this->applicant()->first())) {
+            $phone = $this->applicant?->phone;
+        }
+        if (!$phone) {
+            return null;
+        }
+        $digits = preg_replace('/[^0-9]/', '', $phone);
+        if (empty($digits)) {
+            return null;
+        }
+        if (str_starts_with($digits, '0')) {
+            $digits = '62' . substr($digits, 1);
+        }
+        return $digits;
+    }
+
     // ─── Scopes ─────────────────────────────────────────────────
 
     public function scopeActive($query)

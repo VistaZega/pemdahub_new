@@ -1374,14 +1374,7 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
             );
 
             // Kontak WhatsApp siswa atau orang tua
-            $parent = $student->parents?->first();
-            $studentPhone = $student->phone ?? $student->whatsapp ?? $parent?->phone ?? $parent?->whatsapp ?? null;
-            if ($studentPhone) {
-                $studentPhone = preg_replace('/[^0-9]/', '', $studentPhone);
-                if (str_starts_with($studentPhone, '0')) {
-                    $studentPhone = '62' . substr($studentPhone, 1);
-                }
-            }
+            $studentPhone = $student->formatted_student_wa_phone ?: $student->formatted_parent_wa_phone;
 
             $stat = [
                 'student' => $student,

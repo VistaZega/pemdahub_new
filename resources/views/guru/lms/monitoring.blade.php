@@ -330,7 +330,14 @@
                                 </button>
 
                                 {{-- Tombol Pengingat / Apresiasi --}}
-                                <button onclick="openActionModal({{ $st->id }}, {{ $c->id }}, '{{ addslashes($st->full_name) }}', '{{ $item['phone'] }}', {{ $item['material_pct'] }}, {{ $item['submitted_assignments'] }}, {{ $item['total_assignments'] }})"
+                                <button data-student-id="{{ $st->id }}"
+                                        data-course-id="{{ $c->id }}"
+                                        data-student-name="{{ $st->full_name }}"
+                                        data-phone="{{ $item['phone'] ?? '' }}"
+                                        data-mat-pct="{{ (int)$item['material_pct'] }}"
+                                        data-sub="{{ (int)$item['submitted_assignments'] }}"
+                                        data-tot="{{ (int)$item['total_assignments'] }}"
+                                        onclick="openActionModalFromBtn(this)"
                                         class="px-2.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl border border-black font-black text-[11px] shadow-xs transition flex items-center gap-1">
                                     <i class="fas fa-paper-plane text-xs"></i> Aksi
                                 </button>
@@ -547,6 +554,20 @@
 
     // 2. ACTION MODAL
     let currentActData = {};
+
+    function openActionModalFromBtn(btn) {
+        const d = btn.dataset;
+        openActionModal(
+            parseInt(d.studentId),
+            parseInt(d.courseId),
+            d.studentName,
+            d.phone,
+            parseInt(d.matPct),
+            parseInt(d.sub),
+            parseInt(d.tot)
+        );
+    }
+
     function openActionModal(id, courseId, name, phone, matPct, sub, tot) {
         currentActData = { id, courseId, name, phone, matPct, sub, tot };
         document.getElementById('actStudentId').value = id;

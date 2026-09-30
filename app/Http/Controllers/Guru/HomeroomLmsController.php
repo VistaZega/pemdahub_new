@@ -67,7 +67,7 @@ class HomeroomLmsController extends Controller
               ->whereIn('status', ['aktif', 'enrolled', 'active'])
               ->when($activeYear, fn($sq) => $sq->where('academic_year_id', $activeYear->id));
         })
-        ->with(['user', 'parents'])
+        ->with(['user', 'parents', 'applicant'])
         ->orderBy('full_name')
         ->get();
 
@@ -77,7 +77,7 @@ class HomeroomLmsController extends Controller
                 $q->where('classroom_id', $classroom->id)
                   ->whereIn('status', ['aktif', 'enrolled', 'active']);
             })
-            ->with(['user', 'parents'])
+            ->with(['user', 'parents', 'applicant'])
             ->orderBy('full_name')
             ->get();
         }
@@ -218,23 +218,10 @@ class HomeroomLmsController extends Controller
                 $statusColor = 'amber';
             }
 
-            // Ambil nomor WhatsApp orang tua dan siswa secara terpisah
-            $parent = $st->parents->first();
-            $parentPhone = $parent?->phone ?? $parent?->whatsapp ?? null;
-            if ($parentPhone) {
-                $parentPhone = preg_replace('/[^0-9]/', '', $parentPhone);
-                if (str_starts_with($parentPhone, '0')) {
-                    $parentPhone = '62' . substr($parentPhone, 1);
-                }
-            }
-
-            $studentPhone = $st->phone ?? $st->whatsapp ?? null;
-            if ($studentPhone) {
-                $studentPhone = preg_replace('/[^0-9]/', '', $studentPhone);
-                if (str_starts_with($studentPhone, '0')) {
-                    $studentPhone = '62' . substr($studentPhone, 1);
-                }
-            }
+            // Ambil nomor WhatsApp orang tua dan siswa secara terpisah serta nama wali yang valid
+            $parentPhone = $st->formatted_parent_wa_phone;
+            $studentPhone = $st->formatted_student_wa_phone;
+            $parentName = $st->effective_parent_name;
 
             $studentProgressList[] = [
                 'student' => $st,
@@ -249,7 +236,7 @@ class HomeroomLmsController extends Controller
                 'phone' => $parentPhone ?: $studentPhone,
                 'parent_phone' => $parentPhone,
                 'student_phone' => $studentPhone,
-                'parent_name' => $parent?->father_name ?? $parent?->mother_name ?? $parent?->guardian_name ?? 'Orang Tua / Wali',
+                'parent_name' => $parentName,
                 'courses' => $courseBreakdown,
             ];
         }
@@ -331,7 +318,7 @@ class HomeroomLmsController extends Controller
             return response()->json(['error' => 'Akses ditolak. Siswa bukan anggota rombel Anda.'], 403);
         }
 
-        $student->load(['school', 'currentClassroom', 'classrooms', 'user', 'parents']);
+        $student->load(['school', 'currentClassroom', 'classrooms', 'user', 'parents', 'applicant']);
 
         // Ambil kelas aktif siswa
         $activeClass = $student->currentClassroom->first() ?? $student->classrooms->first();
@@ -421,22 +408,9 @@ class HomeroomLmsController extends Controller
             ->take(5)
             ->get();
 
-        $parent = $student->parents->first();
-        $parentPhone = $parent?->phone ?? $parent?->whatsapp ?? null;
-        if ($parentPhone) {
-            $parentPhone = preg_replace('/[^0-9]/', '', $parentPhone);
-            if (str_starts_with($parentPhone, '0')) {
-                $parentPhone = '62' . substr($parentPhone, 1);
-            }
-        }
-
-        $studentPhone = $student->phone ?? $student->whatsapp ?? null;
-        if ($studentPhone) {
-            $studentPhone = preg_replace('/[^0-9]/', '', $studentPhone);
-            if (str_starts_with($studentPhone, '0')) {
-                $studentPhone = '62' . substr($studentPhone, 1);
-            }
-        }
+        $parentPhone = $student->formatted_parent_wa_phone;
+        $studentPhone = $student->formatted_student_wa_phone;
+        $parentName = $student->effective_parent_name;
 
         return response()->json([
             'student' => [
@@ -446,7 +420,7 @@ class HomeroomLmsController extends Controller
                 'classroom' => $activeClass?->class_name,
                 'photo' => $student->photo_url,
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($student->full_name) . '&background=4f46e5&color=fff',
-                'parent_name' => $parent?->father_name ?? $parent?->mother_name ?? 'Orang Tua / Wali',
+                'parent_name' => $parentName,
                 'parent_phone' => $parentPhone,
                 'student_phone' => $studentPhone,
             ],
@@ -469,7 +443,7 @@ class HomeroomLmsController extends Controller
         ]);
 
         $teacher = $this->getTeacher();
-        $student = Student::with(['school', 'currentClassroom', 'parents'])->findOrFail($request->student_id);
+        $student = Student::with(['school', 'currentClassroom', 'parents', 'applicant'])->findOrFail($request->student_id);
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
         $activeSemester = Semester::where('is_active', true)->first() ?? Semester::latest()->first();
 
@@ -506,6 +480,28 @@ class HomeroomLmsController extends Controller
             'parent_notified' => ($targetRecipient === 'parent' && !empty($request->target_phone)),
             'parent_notified_date' => ($targetRecipient === 'parent' && !empty($request->target_phone)) ? now() : null,
         ]);
+
+        // Auto-sinkronisasi nomor telepon ke profil siswa jika diinput/diperbarui oleh wali kelas
+        if ($targetRecipient === 'parent' && !empty($request->target_phone)) {
+            $cleanDigits = preg_replace('/[^0-9]/', '', $request->target_phone);
+            if (strlen($cleanDigits) >= 9) {
+                $toUpdate = [];
+                if (empty($student->parent_phone) || $student->parent_phone !== $cleanDigits) {
+                    $toUpdate['parent_phone'] = $cleanDigits;
+                }
+                if (empty($student->guardian_phone)) {
+                    $toUpdate['guardian_phone'] = $cleanDigits;
+                }
+                if (!empty($toUpdate)) {
+                    $student->update($toUpdate);
+                }
+            }
+        } elseif ($targetRecipient === 'student' && !empty($request->target_phone)) {
+            $cleanDigits = preg_replace('/[^0-9]/', '', $request->target_phone);
+            if (strlen($cleanDigits) >= 9 && (empty($student->phone) || $student->phone !== $cleanDigits)) {
+                $student->update(['phone' => $cleanDigits]);
+            }
+        }
 
         // 2. Buat tautan WhatsApp jika nomor tujuan tersedia
         $waUrl = null;

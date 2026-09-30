@@ -183,15 +183,8 @@ class TeacherLmsMonitoringController extends Controller
                 $statusColor = 'emerald';
             }
 
-            // Target kontak WhatsApp
-            $parent = $st->parents->first();
-            $targetPhone = $parent?->phone ?? $parent?->whatsapp ?? $st->phone ?? $st->whatsapp ?? null;
-            if ($targetPhone) {
-                $targetPhone = preg_replace('/[^0-9]/', '', $targetPhone);
-                if (str_starts_with($targetPhone, '0')) {
-                    $targetPhone = '62' . substr($targetPhone, 1);
-                }
-            }
+            // Target kontak WhatsApp (prioritas nomor HP orang tua/wali, fallback nomor siswa)
+            $targetPhone = $st->formatted_parent_wa_phone ?: $st->formatted_student_wa_phone;
 
             // Identifikasi kelas siswa pada TAHUN PELAJARAN yang sesuai dengan Kursus
             $lmsClass = $enr->lmsClass?->classroom;
@@ -229,7 +222,7 @@ class TeacherLmsMonitoringController extends Controller
                 'status_badge' => $statusBadge,
                 'status_color' => $statusColor,
                 'phone' => $targetPhone,
-                'parent_name' => $parent?->father_name ?? $parent?->mother_name ?? 'Orang Tua / Wali',
+                'parent_name' => $st->effective_parent_name,
             ];
         }
 
@@ -334,8 +327,8 @@ class TeacherLmsMonitoringController extends Controller
                 'nisn' => $student->nisn,
                 'photo' => $photoUrl,
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($student->full_name) . '&background=ea580c&color=fff',
-                'parent_name' => $student->parents->first()?->father_name ?? 'Orang Tua / Wali',
-                'parent_phone' => $student->parents->first()?->phone ?? $student->parents->first()?->whatsapp ?? $student->phone ?? null,
+                'parent_name' => $student->effective_parent_name,
+                'parent_phone' => $student->formatted_parent_wa_phone ?: $student->formatted_student_wa_phone,
             ],
             'course' => [
                 'id' => $course->id,

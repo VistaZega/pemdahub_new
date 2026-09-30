@@ -269,7 +269,15 @@
                                 </button>
 
                                 {{-- Tombol Motivasi / Tindakan Pembinaan --}}
-                                <button onclick="openMotivationModal({{ $st->id }}, '{{ addslashes($st->full_name) }}', '{{ $item['parent_phone'] }}', '{{ $item['student_phone'] }}', '{{ addslashes($item['parent_name']) }}', {{ $item['overall_progress'] }}, {{ $item['submitted_tasks'] }}, {{ $kpi['total_assignments'] }})"
+                                <button data-student-id="{{ $st->id }}"
+                                        data-student-name="{{ $st->full_name }}"
+                                        data-parent-phone="{{ $item['parent_phone'] ?? '' }}"
+                                        data-student-phone="{{ $item['student_phone'] ?? '' }}"
+                                        data-parent-name="{{ $item['parent_name'] ?? 'Orang Tua / Wali' }}"
+                                        data-progress="{{ (int)$item['overall_progress'] }}"
+                                        data-submitted-tasks="{{ (int)$item['submitted_tasks'] }}"
+                                        data-total-tasks="{{ (int)$kpi['total_assignments'] }}"
+                                        onclick="openMotivationModalFromBtn(this)"
                                         class="px-2.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-black rounded-xl border border-black font-black text-[11px] shadow-xs transition flex items-center gap-1">
                                     <i class="fas fa-comment-dots text-xs"></i> Motivasi
                                 </button>
@@ -534,6 +542,21 @@
 
     // 2. OPEN MOTIVATION MODAL
     let currentStudentData = {};
+
+    function openMotivationModalFromBtn(btn) {
+        const d = btn.dataset;
+        openMotivationModal(
+            parseInt(d.studentId),
+            d.studentName,
+            d.parentPhone,
+            d.studentPhone,
+            d.parentName,
+            parseInt(d.progress),
+            parseInt(d.submittedTasks),
+            parseInt(d.totalTasks)
+        );
+    }
+
     function openMotivationModal(id, name, parentPhone, studentPhone, parentName, progress, submittedTasks, totalTasks) {
         currentStudentData = { id, name, parentPhone, studentPhone, parentName, progress, submittedTasks, totalTasks };
         document.getElementById('motStudentId').value = id;
