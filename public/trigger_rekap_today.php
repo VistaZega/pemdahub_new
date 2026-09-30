@@ -36,30 +36,46 @@ use Illuminate\Support\Facades\DB;
 
 $confirm = $_GET['confirm'] ?? '';
 
-// IF NOT CONFIRMED, FORCE TURN OFF & SHOW CONTROL PANEL
+// SHOW CONTROL PANEL IF NOT CONFIRMED
 if ($confirm !== '1') {
-    Setting::setValue('wa_enabled', false, 'boolean', 'whatsapp');
-    Setting::setValue('wa_digest_enabled', false, 'boolean', 'whatsapp');
-    Setting::setValue('wa_send_principal_attendance', false, 'boolean', 'whatsapp');
-    Setting::setValue('wa_send_homeroom_attendance', false, 'boolean', 'whatsapp');
-    $deleted = DB::table('jobs')->delete();
+    $turnedOff = false;
+    $deleted = 0;
+    if (($_GET['turn_off'] ?? '') === '1') {
+        Setting::setValue('wa_enabled', false, 'boolean', 'whatsapp');
+        Setting::setValue('wa_digest_enabled', false, 'boolean', 'whatsapp');
+        Setting::setValue('wa_send_principal_attendance', false, 'boolean', 'whatsapp');
+        Setting::setValue('wa_send_homeroom_attendance', false, 'boolean', 'whatsapp');
+        $deleted = DB::table('jobs')->delete();
+        $turnedOff = true;
+    }
 
-    echo "<!DOCTYPE html><html><head><title>WhatsApp Control Panel</title>";
+    $isWaEnabled = Setting::getValue('wa_enabled', false);
+    $isDigestEnabled = Setting::getValue('wa_digest_enabled', false);
+
+    echo "<!DOCTYPE html><html><head><title>WhatsApp Digest Control Panel</title>";
     echo "<style>
     body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; margin: 0; }
     .card { background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 700px; margin: auto; border: 1px solid #334155; }
-    h2 { color: #ef4444; margin-top: 0; }
+    h2 { color: #38bdf8; margin-top: 0; }
+    .badge-ok { background: #10b981; color: #fff; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
     .badge-off { background: #ef4444; color: #fff; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
     .btn { display: inline-block; padding: 12px 20px; background: #3b82f6; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; margin-right: 10px; margin-top: 15px; }
+    .btn-green { background: #10b981; }
     .btn-off { background: #ef4444; }
     </style></head><body><div class='card'>";
-    echo "<h2><span class='badge-off'>OFF</span> Otomatisasi WhatsApp Berhasil Dimatikan</h2>";
-    echo "<p>Seluruh fitur pengiriman WhatsApp otomatis dan antrean rekapitulasi saat ini dalam status <strong>NONAKTIF / DISABED (OFF)</strong> di database server.</p>";
-    echo "<ul>";
-    echo "<li>Pesan Otomatis: <strong>OFF</strong></li>";
-    echo "<li>Antrean Job Dihapus: <strong>{$deleted} pekerjaan dibersihkan</strong></li>";
-    echo "</ul>";
-    echo "<p>Tidak ada pesan WhatsApp yang akan dikirimkan secara otomatis.</p>";
+    
+    if ($turnedOff) {
+        echo "<h2><span class='badge-off'>OFF</span> Otomatisasi WhatsApp Dinonaktifkan</h2>";
+        echo "<p>Fitur pengiriman WhatsApp dan {$deleted} antrean job telah dibersihkan.</p>";
+    } else {
+        echo "<h2><span class='" . ($isDigestEnabled ? 'badge-ok' : 'badge-off') . "'>" . ($isDigestEnabled ? 'SIAP' : 'OFF') . "</span> Control Panel Rekapitulasi Harian</h2>";
+        echo "<p>Status Layanan WA: <strong>" . ($isWaEnabled ? 'AKTIF' : 'NONAKTIF') . "</strong> | Digest Harian: <strong>" . ($isDigestEnabled ? 'AKTIF' : 'NONAKTIF') . "</strong></p>";
+        echo "<p>Jeda per pesan: <strong>2 - 3 Menit</strong> | Jeda Transisi Kepsek &rarr; Wali Kelas: <strong>5 Menit</strong></p>";
+    }
+    
+    echo "<p><a href='?secret=pembda99&confirm=1' class='btn btn-green' onclick='return confirm(\"Luncurkan pengiriman rekap harian ke Kepala Sekolah & Wali Kelas sekarang?\")'>🚀 Luncurkan Rekap Sekarang Manual</a> ";
+    echo "<a href='check_digest_readiness.php?secret=pembda99' class='btn' style='background:#6366f1;'>🔍 Pre-Flight Check</a> ";
+    echo "<a href='?secret=pembda99&turn_off=1' class='btn btn-off' onclick='return confirm(\"Matikan seluruh pengiriman WhatsApp?\")'>🛑 Matikan Darurat</a></p>";
     echo "</div></body></html>";
     exit;
 }
@@ -130,9 +146,9 @@ $reportService = app(ExecutiveReportService::class);
 $options = [
     'dry_run' => false,
     'force' => true,
-    'delay_min' => 10,
-    'delay_max' => 18,
-    'batch_pause' => 30,
+    'delay_min' => (int)Setting::getValue('wa_digest_delay_min', 120),
+    'delay_max' => (int)Setting::getValue('wa_digest_delay_max', 180),
+    'batch_pause' => (int)Setting::getValue('wa_digest_batch_pause', 300),
     'logger' => 'logMsg',
 ];
 

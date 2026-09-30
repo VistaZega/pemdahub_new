@@ -69,6 +69,27 @@ $settings = [
 // Mask token for display
 $maskedToken = substr($settings['wa_fonnte_token'], 0, 4) . '...' . substr($settings['wa_fonnte_token'], -4);
 
+// Fetch QR Code if device is disconnected
+$qrBase64 = null;
+if (!$isConnected && $deviceStatus !== 'connect') {
+    try {
+        $ch = curl_init('https://api.fonnte.com/qr');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: ' . $settings['wa_fonnte_token']]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $resQr = curl_exec($ch);
+        curl_close($ch);
+        if ($resQr) {
+            $jsonQr = json_decode($resQr, true);
+            if (!empty($jsonQr['url'])) {
+                $qrBase64 = $jsonQr['url'];
+            }
+        }
+    } catch (\Throwable $e) {}
+}
+
 // 3. Recipients Pre-flight
 $activeYear = AcademicYear::where('is_active', true)->first();
 $schools = School::schoolsOnly()->with('principal')->get();
@@ -186,6 +207,24 @@ $is100Percent = ($passedCount === $totalChecks);
                     : 'Beberapa parameter memerlukan penyesuaian sebelum pukul 08:00 WIB.' ?>
             </div>
         </div>
+
+        <?php if ($qrBase64): ?>
+        <div style="background: #1e1b4b; border: 2px solid #818cf8; border-radius: 12px; padding: 22px; text-align: center; margin: 20px 0;">
+            <h3 style="color: #a5b4fc; margin-top: 0; font-size: 18px;">📲 PINDAI QR CODE WHATSAPP SEKARANG UNTUK MENGHUBUNGKAN</h3>
+            <p style="font-size: 14px; color: #cbd5e1; max-width: 600px; margin: 0 auto 15px auto;">
+                Nomor WhatsApp baru Anda (<strong><?= htmlspecialchars($settings['whatsapp_sender']) ?></strong>) saat ini berstatus <strong>DISCONNECT</strong> di Fonnte.<br>
+                Buka WhatsApp di HP Anda &rarr; <strong>Perangkat Tertaut (Linked Devices)</strong> &rarr; <strong>Tautkan Perangkat</strong> &rarr; Arahkan kamera ke QR di bawah:
+            </p>
+            <div style="background: white; display: inline-block; padding: 14px; border-radius: 14px; margin: 10px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                <img src="data:image/png;base64,<?= $qrBase64 ?>" alt="QR Code Fonnte" style="width: 260px; height: 260px; display: block;" />
+            </div>
+            <p style="margin-top: 15px;">
+                <a href="?secret=pembda99&refresh=<?= time() ?>" style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                    🔄 Refresh & Cek Status Koneksi Setelah Scan
+                </a>
+            </p>
+        </div>
+        <?php endif; ?>
 
         <h2>1. Indikator Kesiapan Sistem (<?= $passedCount ?> / <?= $totalChecks ?>)</h2>
         <div class="check-grid">
