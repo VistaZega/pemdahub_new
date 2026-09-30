@@ -37,8 +37,8 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 15);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 30);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 120);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 180);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -211,6 +211,7 @@ class ExecutiveReportService
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
                     'motto' => SpintaxService::spinMottoLine(),
+                    'reply_request' => SpintaxService::spinReplyRequest(),
                 ];
 
                 if ($dryRun) {
@@ -268,9 +269,9 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 15);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 30);
-        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 45);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_digest_delay_min', 120);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_digest_delay_max', 180);
+        $batchPause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 300);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -465,6 +466,7 @@ class ExecutiveReportService
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
                     'motto' => SpintaxService::spinMottoLine(),
+                    'reply_request' => SpintaxService::spinReplyRequest(),
                 ];
 
                 if ($dryRun) {
@@ -1048,7 +1050,7 @@ class ExecutiveReportService
 
         // 3. Jeda istirahat transisi ke Wali Kelas jika bukan dry-run dan bukan single-test
         if (($resP['sent'] ?? 0) > 0 && !$dryRun && !$isSingleTest) {
-            $pause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 15);
+            $pause = $options['batch_pause'] ?? (int)Setting::getValue('wa_digest_batch_pause', 300);
             $pauseMins = round($pause / 60, 1);
             if ($logger) $logger("☕ Jeda istirahat transisi ke Wali Kelas ({$pause} detik / ~{$pauseMins} menit)...");
             sleep($pause);

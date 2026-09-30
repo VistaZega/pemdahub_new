@@ -113,6 +113,9 @@ Schedule::call(function () {
 // agar akun WhatsApp aman dari batasan / proteksi anti-spam.
 // ============================================================================
 
+// [MODE AMAN] Pengingat Jadwal Mengajar Sementara Dinonaktifkan (Cegah Banned WA)
+// Hanya Rekapitulasi Kepsek & Wali Kelas yang aktif pada pukul 08:00 WIB
+/*
 // Gelombang 1: Unit SMP (14 Guru) — Pukul 06:15 WIB
 Schedule::command('wa:digest teaching-daily --school=smp --delay-min=20 --delay-max=35')
     ->weekdays()
@@ -139,6 +142,7 @@ Schedule::command('wa:digest teaching-daily --school=smk --delay-min=20 --delay-
     ->withoutOverlapping(180)
     ->runInBackground()
     ->description('Pengingat Jadwal Mengajar Harian Guru SMK via WhatsApp');
+*/
 
 // ============================================================================
 // WhatsApp Daily Attendance Digest — Senin s/d Jumat pukul 08:00 WIB

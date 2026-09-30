@@ -453,31 +453,36 @@ try {
         \Illuminate\Support\Facades\Artisan::call('view:clear', [], $outputClear);
         echo "<span class='ok'>View Cache: " . htmlspecialchars(trim($outputClear->fetch())) . "</span>\n";
 
-        // 8b. SETTING KHUSUS: Pindah ke Fonnte Cloud API & Hanya 3 Notifikasi yang Aktif
+        // 8b. SETTING KHUSUS: Fontte Cloud API — MODE AMAN (Hanya Rekap Kepsek & Wali Kelas)
         \App\Models\Setting::setValue('wa_active_provider', 'fonnte', 'string', 'whatsapp');
         \App\Models\Setting::setValue('wa_fonnte_token', 'uvpiXLkGyfi8a9Y3HBNS', 'string', 'whatsapp');
         \App\Models\Setting::setValue('whatsapp_sender', '082373642864', 'string', 'whatsapp');
         \App\Models\Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
         \App\Models\Setting::setValue('wa_digest_enabled', true, 'boolean', 'whatsapp');
 
-        // 4 Notifikasi yang AKTIF
+        // ⚠️ MODE AMAN: Hanya 2 Notifikasi Rekap yang AKTIF (anti-banned)
         $enabledKeys = [
-            'wa_send_teacher_attendance',       // 1. Notifikasi Tap Hadir Guru dan Pegawai Saja
-            'wa_send_principal_attendance',     // 2. Notifikasi Rekapitulasi Absen Sekolah Kepada Kepala Sekolah
-            'wa_send_homeroom_attendance',      // 3. Notifikasi Rekapitulasi Absen Kelas Kepada Wali Kelas
-            'wa_send_teaching_reminder',        // 4. Pengingat Jadwal Mengajar Harian (Gelombang Bertahap SMP 06:15, SMA 06:30, SMK 06:45)
+            'wa_send_principal_attendance',     // 1. Rekap Kehadiran Harian ke Kepala Sekolah (3 pesan/hari)
+            'wa_send_homeroom_attendance',      // 2. Rekap Kehadiran Kelas ke Wali Kelas (~30 pesan/hari)
         ];
 
         foreach ($enabledKeys as $ek) {
             \App\Models\Setting::setValue($ek, true, 'boolean', 'whatsapp');
         }
 
-        // Pengaturan Jeda Aman Anti-Banned Manusiawi (20 s/d 35 detik per guru)
-        \App\Models\Setting::setValue('wa_teaching_delay_min', 20, 'integer', 'whatsapp');
-        \App\Models\Setting::setValue('wa_teaching_delay_max', 35, 'integer', 'whatsapp');
-        \App\Models\Setting::setValue('wa_digest_delay_min', 15, 'integer', 'whatsapp');
-        \App\Models\Setting::setValue('wa_digest_delay_max', 30, 'integer', 'whatsapp');
-        \App\Models\Setting::setValue('wa_digest_batch_pause', 45, 'integer', 'whatsapp');
+        // MATIKAN tap guru & pengingat jadwal mengajar
+        \App\Models\Setting::setValue('wa_send_teacher_attendance', false, 'boolean', 'whatsapp');
+        \App\Models\Setting::setValue('wa_send_teaching_reminder', false, 'boolean', 'whatsapp');
+
+        // Pengaturan Jeda ULTRA-AMAN: Seperti manusia mengetik manual satu per satu
+        // Digest Rekap (Kepsek & Wali Kelas): 2-3 menit per pesan
+        \App\Models\Setting::setValue('wa_digest_delay_min', 120, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_digest_delay_max', 180, 'integer', 'whatsapp');
+        // Jeda antar-batch (Kepsek → Wali Kelas): 5 menit pendinginan
+        \App\Models\Setting::setValue('wa_digest_batch_pause', 300, 'integer', 'whatsapp');
+        // Teaching delay tetap tersimpan tapi tidak aktif saat ini
+        \App\Models\Setting::setValue('wa_teaching_delay_min', 30, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_teaching_delay_max', 60, 'integer', 'whatsapp');
 
         // Seluruh notifikasi lainnya tetap DIMATIKAN (OFF)
         $disabledKeys = [
@@ -546,7 +551,7 @@ try {
 
         $deletedCount = \Illuminate\Support\Facades\DB::table('jobs')->delete();
         echo "<span class='ok'>✔ Provider WhatsApp: FONNTE (Cloud API) diaktifkan.</span>\n";
-        echo "<span class='ok'>✔ 4 Notifikasi Terpilih (Tap Guru/Pegawai, Rekap Kepsek, Rekap Wali Kelas, Pengingat Jadwal Gelombang) AKTIF (ON).</span>\n";
+        echo "<span class='ok'>✔ ⚠️ MODE AMAN: Hanya 2 Notifikasi Rekap (Kepsek & Wali Kelas) AKTIF (ON). Jeda per pesan: 2-3 Menit, Jeda Batch: 5 Menit.</span>\n";
         echo "<span class='warn'>🔒 Notifikasi lainnya tetap DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
 
         // 8c. Auto-fix: Pastikan presensi siswa PKL di DUDI tidak pernah berstatus 'terlambat'

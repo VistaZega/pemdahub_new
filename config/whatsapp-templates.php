@@ -760,6 +760,8 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 
 {motto}
 
+{reply_request}
+
 ---
 {_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Otomatis SIM PembdaHUB_|_Executive Report System Perguruan Pembda Nias_}",
 
@@ -790,6 +792,8 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 {catatan_penutup}
 
 {motto}
+
+{reply_request}
 
 ---
 {_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Notifikasi Presensi SIM PembdaHUB_|_Sistem Rekapitulasi Terpadu PembdaHUB_}",

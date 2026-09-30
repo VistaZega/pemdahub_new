@@ -32,6 +32,11 @@ class SpintaxService
                 return self::spinMotto();
             }, $text);
         }
+        if (stripos($text, '{reply_request}') !== false) {
+            $text = preg_replace_callback('/\{reply_request\}/i', function () {
+                return self::spinReplyRequest();
+            }, $text);
+        }
 
         // 2. Resolve standard Spintax {opt1|opt2|...}
         $pattern = '/\{([^{}]+?\|[^{}]+?)\}/s';
@@ -130,5 +135,23 @@ class SpintaxService
         ];
 
         return $footers[array_rand($footers)];
+    }
+
+    /**
+     * Generate variative reply-request message for digest recaps.
+     * Asks recipients to reply so WhatsApp detects 2-way conversation (anti-spam).
+     */
+    public static function spinReplyRequest(): string
+    {
+        $requests = [
+            "📢 *Pemberitahuan:* Ini adalah nomor admin baru Perguruan Pembda. Mohon bantuannya untuk *membalas pesan ini* (cukup ketik \"OK\" / \"Terima kasih\") agar sistem WhatsApp mengenali bahwa pesan ini bukan spam. Terima kasih atas kerja samanya! 🙏",
+            "📌 *Info Penting:* Nomor ini adalah nomor admin resmi yang baru. Demi kelancaran layanan notifikasi sekolah, mohon *balas pesan ini dengan satu kata* (misal: \"Siap\" / \"Diterima\") agar WhatsApp tidak menandai pesan kami sebagai pesan otomatis. Terima kasih! 🙏",
+            "💬 *Mohon Konfirmasi:* Agar rekapitulasi ini terus terkirim lancar, mohon kiranya Bapak/Ibu *berkenan membalas singkat* pesan ini (contoh: \"OK\" / \"Noted\"). Balasan Anda membantu sistem mengenali bahwa pesan ini diterima oleh orang yang tepat dan bukan spam. Salam hormat! 🙏",
+            "📲 *Perhatian:* Nomor WhatsApp admin sekolah telah diperbarui. Mohon *balas pesan ini* dengan kata singkat (misal: \"Terima kasih\" / \"Sudah dibaca\") untuk memastikan nomor ini tersimpan dan tidak terblokir oleh sistem anti-spam WhatsApp. Terima kasih banyak! 🙏",
+            "🔔 *Catatan Admin:* Ini adalah nomor baru layanan notifikasi Perguruan Pembda. Agar WhatsApp tidak memblokir pengiriman rekapitulasi ini, mohon *balas dengan kata singkat* seperti \"Diterima\" atau \"OK\". Satu balasan Anda sangat membantu kelancaran sistem informasi sekolah kita. 🙏",
+            "✉️ *Himbauan:* Demi keberlangsungan layanan informasi kehadiran harian ini, mohon Bapak/Ibu *berkenan mengirim balasan singkat* (contoh: \"Siap\" / \"Terima kasih\"). Hal ini penting agar WhatsApp mendeteksi komunikasi dua arah dan tidak menganggap pesan ini sebagai spam. Salam! 🙏",
+        ];
+
+        return $requests[array_rand($requests)];
     }
 }
