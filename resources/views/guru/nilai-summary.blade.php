@@ -15,12 +15,15 @@
                 </h1>
                 <p class="text-xs md:text-sm font-bold text-indigo-200 mt-1" style="color: #c7d2fe !important;">Ringkasan dan kalkulasi nilai siswa per semester</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
                 <a href="{{ route('guru.nilai') }}" class="text-xs bg-white hover:bg-slate-100 text-black border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md">
                     <i class="fas fa-list mr-1"></i> Daftar Nilai
                 </a>
                 <a href="{{ route('guru.nilai.input') }}" class="text-xs bg-amber-400 hover:bg-amber-300 text-black border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md">
                     <i class="fas fa-edit mr-1"></i> Input Nilai
+                </a>
+                <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'subject_id' => $selectedSubjectId, 'semester_id' => $selectedSemesterId, 'mode' => 'rekap']) }}" target="_blank" class="text-xs bg-rose-500 hover:bg-rose-400 text-white border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md" style="color: #ffffff !important;">
+                    <i class="fas fa-print mr-1 text-white"></i> Cetak Rekap
                 </a>
             </div>
         </div>
@@ -88,10 +91,13 @@
     {{-- Summary Table --}}
     @if($studentSummary->count() > 0)
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
             <h2 class="font-bold text-gray-800 flex items-center gap-2">
                 <i class="fas fa-table text-blue-500"></i> Rekap Nilai Per Siswa
             </h2>
+            <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'subject_id' => $selectedSubjectId, 'semester_id' => $selectedSemesterId, 'mode' => 'rekap']) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 shadow-sm transition">
+                <i class="fas fa-print"></i> Cetak Rekap Nilai
+            </a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">

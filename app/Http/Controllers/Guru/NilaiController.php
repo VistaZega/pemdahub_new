@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
+use App\Models\FinalGrade;
 use App\Models\Grade;
 use App\Models\GradeWeight;
 use App\Models\Schedule;
@@ -15,6 +16,7 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\TeachingAssignment;
 use App\Services\GradeService;
+use App\Services\VocationalMajorFilterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -433,6 +435,200 @@ class NilaiController extends Controller
             'teacher', 'classrooms', 'subjects', 'semesters',
             'selectedClassroomId', 'selectedSubjectId', 'selectedSemesterId',
             'studentSummary', 'gradeWeight'
+        ));
+    }
+
+    /**
+     * Cetak Lembar & Rekap Nilai Siswa
+     */
+    public function print(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        $teacher->load('school');
+        $activeYear = $this->getActiveYear();
+        $activeSemester = Semester::where('is_active', true)->first();
+
+        $semesters = Semester::with('academicYear')
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->orderByDesc('id')
+            ->get();
+
+        $classrooms = $this->getTeacherClassrooms($teacher, $activeYear);
+
+        $selectedClassroomId = $request->get('classroom_id');
+        if (!$selectedClassroomId && $classrooms->isNotEmpty()) {
+            $selectedClassroomId = $classrooms->first()->id;
+        }
+
+        $selectedSemesterId = $request->get('semester_id');
+        if (!$selectedSemesterId) {
+            $selectedSemesterId = ($activeSemester && $semesters->contains('id', $activeSemester->id))
+                ? $activeSemester->id
+                : ($semesters->first()?->id ?? null);
+        }
+
+        $selectedSemester = $semesters->firstWhere('id', (int) $selectedSemesterId) ?? Semester::find($selectedSemesterId);
+        $selectedSubjectId = $request->get('subject_id');
+        $printMode = $request->get('mode', 'auto'); // 'auto', 'summary', 'blank'
+
+        $classroom = null;
+        $subjects = collect();
+        $dataPerSubject = collect();
+
+        if ($selectedClassroomId) {
+            $classroom = $classrooms->firstWhere('id', (int) $selectedClassroomId) ?? Classroom::with(['school', 'school.principal'])->find($selectedClassroomId);
+            if ($classroom) {
+                if (!$classroom->relationLoaded('school')) {
+                    $classroom->load(['school', 'school.principal']);
+                }
+
+                $isHomeroom = $this->isHomeroomTeacher($teacher, $classroom->id);
+                $availableSubjects = $this->getTeacherSubjects($teacher, $classroom->id);
+
+                if ($selectedSubjectId) {
+                    $subjects = $availableSubjects->where('id', (int) $selectedSubjectId);
+                    if ($subjects->isEmpty()) {
+                        $subjObj = Subject::find($selectedSubjectId);
+                        if ($subjObj) $subjects = collect([$subjObj]);
+                    }
+                } else {
+                    $subjects = $availableSubjects;
+                }
+
+                // If still empty (teacher has no schedule registered yet for this class), fallback to school subjects
+                if ($subjects->isEmpty()) {
+                    $schoolId = $classroom->school_id ?? $teacher->school_id;
+                    $fallbackSubject = Subject::where('school_id', $schoolId)->first();
+                    if ($fallbackSubject) {
+                        $subjects = collect([$fallbackSubject]);
+                    } else {
+                        $placeholder = new Subject();
+                        $placeholder->id = 0;
+                        $placeholder->subject_name = 'Mata Pelajaran';
+                        $placeholder->kkm = 75;
+                        $subjects = collect([$placeholder]);
+                    }
+                }
+
+                // Get all active students in classroom
+                $studentsQuery = Student::whereHas('studentClasses', function ($q) use ($classroom, $activeYear) {
+                    $q->where('classroom_id', $classroom->id)
+                      ->whereIn('status', ['aktif', 'enrolled', 'active']);
+                    if ($activeYear) {
+                        $q->where('academic_year_id', $activeYear->id);
+                    }
+                })->orderBy('full_name');
+
+                $allClassStudents = $studentsQuery->get();
+
+                // Grade weights for this school
+                $schoolId = $classroom->school_id ?? $teacher->school_id;
+                $gradeWeight = $schoolId ? GradeWeight::getForSchool($schoolId) : null;
+                $weights = $gradeWeight ? $gradeWeight->getWeightsAsDecimal() : [
+                    'tugas' => 0.20, 'pts' => 0.30, 'pas' => 0.40, 'sikap' => 0.10,
+                ];
+
+                // For each subject, prepare students and grades
+                foreach ($subjects as $subject) {
+                    // Filter students if this is a vocational subject in SMK
+                    $targetStudents = $allClassStudents;
+                    $subjName = $subject->subject_name ?? $subject->name ?? '';
+                    $subjCode = $subject->subject_code ?? $subject->code ?? '';
+                    $vocKeywords = VocationalMajorFilterService::getSubjectMajorKeywords($subjName, $subjCode);
+                    if (!$isHomeroom && $vocKeywords) {
+                        $targetStudents = $targetStudents->filter(function ($student) use ($vocKeywords, $classroom) {
+                            return VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $classroom);
+                        })->values();
+                    }
+
+                    $kkm = $subject->kkm ?? 75;
+                    $studentIds = $targetStudents->pluck('id')->toArray();
+
+                    // Query grades for this subject, semester, and students
+                    $grades = collect();
+                    if ($subject->id > 0 && !empty($studentIds) && $selectedSemesterId) {
+                        $grades = Grade::where('subject_id', $subject->id)
+                            ->where('semester_id', $selectedSemesterId)
+                            ->whereIn('student_id', $studentIds)
+                            ->get();
+                    }
+
+                    $studentRows = collect();
+                    $hasAnyGrade = $grades->isNotEmpty();
+
+                    foreach ($targetStudents as $student) {
+                        $stGrades = $grades->where('student_id', $student->id);
+                        
+                        $tugasItems = $stGrades->where('grade_type', 'tugas');
+                        $ptsItems = $stGrades->where('grade_type', 'uts');
+                        $pasItems = $stGrades->where('grade_type', 'uas');
+                        $sikapItems = $stGrades->where('grade_type', 'sikap');
+
+                        $tugasAvg = $tugasItems->isNotEmpty() ? round($tugasItems->avg('score'), 1) : null;
+                        $ptsAvg = $ptsItems->isNotEmpty() ? round($ptsItems->avg('score'), 1) : null;
+                        $pasAvg = $pasItems->isNotEmpty() ? round($pasItems->avg('score'), 1) : null;
+                        $sikapAvg = $sikapItems->isNotEmpty() ? round($sikapItems->avg('score'), 1) : null;
+
+                        $finalScore = null;
+                        $hasScore = ($tugasAvg !== null || $ptsAvg !== null || $pasAvg !== null || $sikapAvg !== null);
+                        if ($hasScore) {
+                            $finalScore = round(
+                                ($tugasAvg ?? 0) * $weights['tugas'] +
+                                ($ptsAvg ?? 0) * $weights['pts'] +
+                                ($pasAvg ?? 0) * $weights['pas'] +
+                                ($sikapAvg ?? 0) * $weights['sikap'],
+                                1
+                            );
+                        }
+
+                        $gradeLevel = $classroom->grade_level ?? 10;
+                        $predicate = $finalScore !== null ? FinalGrade::scoreToPredicate($finalScore, $kkm, $gradeLevel) : '-';
+                        $isPassed = $finalScore !== null ? ($finalScore >= $kkm) : null;
+
+                        $studentRows->push([
+                            'student' => $student,
+                            'tugas_grades' => $tugasItems,
+                            'tugas_avg' => $tugasAvg,
+                            'pts_score' => $ptsAvg,
+                            'pas_score' => $pasAvg,
+                            'sikap_score' => $sikapAvg,
+                            'final_score' => $finalScore,
+                            'predicate' => $predicate,
+                            'is_passed' => $isPassed,
+                        ]);
+                    }
+
+                    // Compute statistics
+                    $completedRows = $studentRows->whereNotNull('final_score');
+                    $avgClass = $completedRows->isNotEmpty() ? round($completedRows->avg('final_score'), 1) : 0;
+                    $maxScore = $completedRows->isNotEmpty() ? $completedRows->max('final_score') : 0;
+                    $minScore = $completedRows->isNotEmpty() ? $completedRows->min('final_score') : 0;
+                    $passedCount = $completedRows->where('is_passed', true)->count();
+                    $notPassedCount = $completedRows->where('is_passed', false)->count();
+
+                    $dataPerSubject->push([
+                        'subject' => $subject,
+                        'students' => $studentRows,
+                        'has_grades' => $hasAnyGrade,
+                        'stats' => [
+                            'total_students' => $studentRows->count(),
+                            'graded_students' => $completedRows->count(),
+                            'average' => $avgClass,
+                            'max' => $maxScore,
+                            'min' => $minScore,
+                            'passed_count' => $passedCount,
+                            'not_passed_count' => $notPassedCount,
+                        ]
+                    ]);
+                }
+            }
+        }
+
+        return view('guru.nilai-print', compact(
+            'teacher', 'classrooms', 'classroom', 'selectedClassroomId',
+            'semesters', 'selectedSemester', 'selectedSemesterId',
+            'subjects', 'selectedSubjectId', 'dataPerSubject',
+            'gradeWeight', 'activeYear', 'printMode'
         ));
     }
 

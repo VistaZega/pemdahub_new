@@ -43,6 +43,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
     });
     Route::get('/nilai', [App\Http\Controllers\Guru\DashboardController::class, 'nilai'])->name('nilai');
     Route::get('/nilai/details', [App\Http\Controllers\Guru\DashboardController::class, 'gradeDetails'])->name('nilai.details');
+    Route::get('/nilai/print', [App\Http\Controllers\Guru\NilaiController::class, 'print'])->name('nilai.print');
     
     // Nilai Input (Bulk Grade Entry)
     Route::get('/nilai/input', [App\Http\Controllers\Guru\NilaiController::class, 'inputForm'])->name('nilai.input');

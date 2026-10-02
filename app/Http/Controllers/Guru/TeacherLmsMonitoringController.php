@@ -38,6 +38,7 @@ class TeacherLmsMonitoringController extends Controller
         }
 
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
+        $activeYearId = $activeYear?->id;
 
         // 1. Ambil seluruh kursus LMS yang diajarkan oleh Guru ini
         $myCourses = LmsCourse::where('teacher_id', $teacher->id)
@@ -56,7 +57,10 @@ class TeacherLmsMonitoringController extends Controller
 
         // 2. Filter Kursus & Rombel
         $selectedCourseId = $request->query('course_id', 'all');
-        $selectedClassroomId = $request->query('classroom_id');
+        $selectedRombel = $request->query('rombel', $request->query('origin_class', $request->query('classroom_id', 'all')));
+        if ($selectedRombel === '' || $selectedRombel === null) {
+            $selectedRombel = 'all';
+        }
 
         $isAllCourses = ($selectedCourseId === 'all');
         $activeCourses = $isAllCourses ? $myCourses : $myCourses->where('id', $selectedCourseId);
@@ -72,12 +76,8 @@ class TeacherLmsMonitoringController extends Controller
         // Ambil daftar semua rombel yang terkait dengan kursus yang aktif difilter
         $classrooms = $activeCourses->flatMap(fn($c) => $c->lmsClasses->map(fn($lc) => $lc->classroom))->filter()->unique('id')->values();
 
-        // 3. Ambil seluruh enrollment siswa
-        $lmsClassQuery = \App\Models\LmsClass::whereIn('course_id', $activeCourses->pluck('id'));
-        if ($selectedClassroomId) {
-            $lmsClassQuery->where('classroom_id', $selectedClassroomId);
-        }
-        $lmsClassIds = $lmsClassQuery->pluck('id')->toArray();
+        // 3. Ambil seluruh enrollment siswa pada kursus aktif
+        $lmsClassIds = \App\Models\LmsClass::whereIn('course_id', $activeCourses->pluck('id'))->pluck('id')->toArray();
 
         $enrollments = LmsEnrollment::whereIn('lms_class_id', $lmsClassIds)
             ->with(['student.user', 'student.classrooms', 'student.parents', 'lmsClass.classroom', 'lmsClass.course.subject'])
@@ -203,6 +203,8 @@ class TeacherLmsMonitoringController extends Controller
                 'course' => $c,
                 'course_name' => $c->course_name,
                 'subject_name' => $c->subject?->name ?? $c->subject?->subject_name ?? $c->course_name,
+                'classroom_id' => $lmsClass?->id,
+                'actual_classroom_id' => $activeClass?->id ?? $lmsClass?->id,
                 'class_name' => $className,
                 'block_class_name' => $lmsClass?->class_name ?? $className,
                 'is_block_class' => ($lmsClass && $activeClass && $lmsClass->id !== $activeClass->id),
@@ -211,6 +213,7 @@ class TeacherLmsMonitoringController extends Controller
                 'material_pct' => $matPct,
                 'submitted_assignments' => $submittedAssigns,
                 'total_assignments' => $totalAssigns,
+                'pending_grading_assignments' => $stSub->whereIn('assignment_id', $cAssignIds)->where('status', 'submitted')->count(),
                 'assignment_pct' => $assignPct,
                 'avg_assignment_grade' => $avgAssignGrade ? round($avgAssignGrade, 1) : null,
                 'completed_quizzes' => $completedQuizzes,
@@ -226,14 +229,76 @@ class TeacherLmsMonitoringController extends Controller
             ];
         }
 
-        // Filtering & Searching
+        // 5. Bangun Opsi Rombel / Kelas (Untuk Pengecekan Saat Guru Masuk Kelas)
+        $originClasses = collect($studentList)->pluck('class_name')->filter(fn($c) => !empty($c) && $c !== '-')->unique()->sort()->values();
+        $blockClasses = collect($studentList)->where('is_block_class', true)->pluck('block_class_name')->filter(fn($c) => !empty($c) && $c !== '-')->unique()->sort()->values();
+
+        $rombelOptions = collect();
+
+        // Kelas Reguler / Rombel Asli Siswa
+        foreach ($originClasses as $clsName) {
+            $count = collect($studentList)->where('class_name', $clsName)->count();
+            if ($count > 0) {
+                $rombelOptions->push([
+                    'key' => $clsName,
+                    'label' => $clsName,
+                    'count' => $count,
+                    'is_block' => false,
+                ]);
+            }
+        }
+
+        // Kelas Blok / Gabungan (jika ada rombel blok terdaftar)
+        foreach ($blockClasses as $blkName) {
+            if (!$rombelOptions->contains('key', $blkName)) {
+                $count = collect($studentList)->where('block_class_name', $blkName)->count();
+                if ($count > 0) {
+                    $rombelOptions->push([
+                        'key' => $blkName,
+                        'label' => $blkName . ' (Gabungan)',
+                        'count' => $count,
+                        'is_block' => true,
+                    ]);
+                }
+            }
+        }
+
+        // Rombel dari LMS Class jika ada kelas tanpa siswa namun terhubung ke kursus
+        foreach ($classrooms as $cr) {
+            if (!$rombelOptions->contains('key', $cr->class_name)) {
+                $count = collect($studentList)->filter(fn($i) => $i['class_name'] === $cr->class_name || $i['block_class_name'] === $cr->class_name)->count();
+                $rombelOptions->push([
+                    'key' => $cr->class_name,
+                    'label' => $cr->class_name,
+                    'count' => $count,
+                    'is_block' => false,
+                ]);
+            }
+        }
+
+        // Urutkan rombel options: kelas reguler lebih dahulu, baru kelas gabungan
+        $rombelOptions = $rombelOptions->sortBy(function ($r) {
+            return ($r['is_block'] ? '1_' : '0_') . $r['label'];
+        })->values();
+
+        // 6. Filter Siswa Berdasarkan Rombel Terpilih
+        if (!empty($selectedRombel) && $selectedRombel !== 'all') {
+            $rombelStudents = collect($studentList)->filter(function ($item) use ($selectedRombel) {
+                return $item['class_name'] === $selectedRombel
+                    || $item['block_class_name'] === $selectedRombel
+                    || (string)($item['classroom_id'] ?? '') === (string)$selectedRombel
+                    || (string)($item['actual_classroom_id'] ?? '') === (string)$selectedRombel;
+            })->values();
+        } else {
+            $selectedRombel = 'all';
+            $rombelStudents = collect($studentList);
+        }
+
+        // 7. Filtering Tab & Searching dalam Rombel Terpilih
         $filterTab = $request->query('filter', 'all');
         $search = strtolower(trim($request->query('search', '')));
-        $selectedOriginClass = $request->query('origin_class');
 
-        $originClasses = collect($studentList)->pluck('class_name')->filter(fn($c) => !empty($c) && $c !== '-')->unique()->sort()->values();
-
-        $filteredStudents = collect($studentList)->filter(function ($item) use ($filterTab, $search, $selectedOriginClass) {
+        $filteredStudents = $rombelStudents->filter(function ($item) use ($filterTab, $search) {
             if ($filterTab === 'at_risk' && !$item['is_at_risk']) {
                 return false;
             }
@@ -241,9 +306,6 @@ class TeacherLmsMonitoringController extends Controller
                 return false;
             }
             if ($filterTab === 'completed' && $item['overall_pct'] < 100) {
-                return false;
-            }
-            if (!empty($selectedOriginClass) && $item['class_name'] !== $selectedOriginClass) {
                 return false;
             }
             if (!empty($search)) {
@@ -257,15 +319,16 @@ class TeacherLmsMonitoringController extends Controller
             return true;
         })->values();
 
-        // 5. KPI Ringkasan
+        // 8. KPI Ringkasan (Disesuaikan dengan cakupan Rombel aktif)
         $kpi = [
             'total_courses_count' => $activeCourses->count(),
-            'total_enrolled_students' => count($studentList),
-            'avg_material_completion' => count($studentList) > 0 ? round(collect($studentList)->avg('material_pct')) : 0,
-            'total_submissions_count' => LmsSubmission::whereIn('assignment_id', $allAssignIds)->count(),
-            'pending_grading_count' => LmsSubmission::whereIn('assignment_id', $allAssignIds)->where('status', 'submitted')->count(),
-            'at_risk_count' => collect($studentList)->where('is_at_risk', true)->count(),
-            'missing_task_count' => collect($studentList)->filter(fn($i) => $i['total_assignments'] > 0 && $i['submitted_assignments'] < $i['total_assignments'])->count(),
+            'total_enrolled_students' => $rombelStudents->count(),
+            'avg_material_completion' => $rombelStudents->count() > 0 ? round($rombelStudents->avg('material_pct')) : 0,
+            'total_submissions_count' => $rombelStudents->sum('submitted_assignments'),
+            'pending_grading_count' => $rombelStudents->sum('pending_grading_assignments'),
+            'at_risk_count' => $rombelStudents->where('is_at_risk', true)->count(),
+            'missing_task_count' => $rombelStudents->filter(fn($i) => $i['total_assignments'] > 0 && $i['submitted_assignments'] < $i['total_assignments'])->count(),
+            'completed_count' => $rombelStudents->where('overall_pct', 100)->count(),
         ];
 
         return view('guru.lms.monitoring', compact(
@@ -275,11 +338,11 @@ class TeacherLmsMonitoringController extends Controller
             'isAllCourses',
             'selectedCourseId',
             'classrooms',
-            'selectedClassroomId',
-            'originClasses',
-            'selectedOriginClass',
+            'rombelOptions',
+            'selectedRombel',
             'filteredStudents',
             'studentList',
+            'rombelStudents',
             'kpi',
             'filterTab',
             'search'
@@ -428,6 +491,10 @@ class TeacherLmsMonitoringController extends Controller
     {
         $teacher = $this->getTeacher();
         $courseId = $request->query('course_id', 'all');
+        $selectedRombel = $request->query('rombel', $request->query('origin_class', $request->query('classroom_id', 'all')));
+        if ($selectedRombel === '' || $selectedRombel === null) {
+            $selectedRombel = 'all';
+        }
 
         $isAll = ($courseId === 'all');
         $coursesQuery = LmsCourse::where('teacher_id', $teacher->id)
@@ -464,19 +531,19 @@ class TeacherLmsMonitoringController extends Controller
             ->get()
             ->groupBy('student_id');
 
-        $filename = $isAll 
-            ? 'Rekap_Progres_LMS_Semua_Mapel_' . date('Ymd_His') . '.csv'
-            : 'Rekap_Progres_LMS_' . str_replace(' ', '_', $courses->first()->course_name) . '_' . date('Ymd_His') . '.csv';
+        $coursePart = $isAll ? 'Semua_Mapel' : preg_replace('/[^A-Za-z0-9_\-]/', '_', $courses->first()->course_name);
+        $rombelPart = ($selectedRombel && $selectedRombel !== 'all') ? '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $selectedRombel) : '';
+        $filename = 'Rekap_Progres_LMS_' . $coursePart . $rombelPart . '_' . date('Ymd_His') . '.csv';
 
-        return response()->streamDownload(function () use ($enrollments, $courses, $isAll, $materialProgresses, $submissions, $quizAttempts) {
+        return response()->streamDownload(function () use ($enrollments, $courses, $isAll, $selectedRombel, $materialProgresses, $submissions, $quizAttempts) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
 
             // Header info
             fputcsv($handle, ['REKAPITULASI PROGRES PEMBELAJARAN LMS GURU']);
-            fputcsv($handle, ['Cakupan', $isAll ? 'Semua Mata Pelajaran & Kelas yang Diajar' : $courses->first()->course_name]);
+            fputcsv($handle, ['Cakupan Kursus', $isAll ? 'Semua Mata Pelajaran & Kelas yang Diajar' : $courses->first()->course_name]);
+            fputcsv($handle, ['Filter Rombel', ($selectedRombel && $selectedRombel !== 'all') ? $selectedRombel : 'Semua Rombel']);
             fputcsv($handle, ['Total Kursus', $courses->count()]);
-            fputcsv($handle, ['Total Siswa Terdaftar', $enrollments->count()]);
             fputcsv($handle, ['Tanggal Ekspor', date('d/m/Y H:i')]);
             fputcsv($handle, []);
 
@@ -522,6 +589,26 @@ class TeacherLmsMonitoringController extends Controller
                     continue;
                 }
 
+                $courseYearId = $c->academic_year_id ?? $lmsClass?->academic_year_id;
+                $activeClass = $st->classrooms
+                    ->where('academic_year_id', $courseYearId)
+                    ->where('is_active', true)
+                    ->first() ?? $lmsClass ?? $st->classrooms->first();
+
+                $className = $activeClass?->class_name ?? $lmsClass?->class_name ?? '-';
+                $blockClassName = $lmsClass?->class_name ?? $className;
+
+                // Filter per rombel jika aktif
+                if ($selectedRombel && $selectedRombel !== 'all') {
+                    $matchesClass = ($className === $selectedRombel 
+                        || $blockClassName === $selectedRombel
+                        || (string)($lmsClass?->id ?? '') === (string)$selectedRombel
+                        || (string)($activeClass?->id ?? '') === (string)$selectedRombel);
+                    if (!$matchesClass) {
+                        continue;
+                    }
+                }
+
                 $cMatIds = $c->materials->pluck('id')->toArray();
                 $cAssignIds = $c->assignments->pluck('id')->toArray();
                 $cQuizIds = $c->quizzes->pluck('id')->toArray();
@@ -547,13 +634,6 @@ class TeacherLmsMonitoringController extends Controller
                 $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
                 $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
 
-                $courseYearId = $c->academic_year_id ?? $lmsClass?->academic_year_id;
-                $activeClass = $st->classrooms
-                    ->where('academic_year_id', $courseYearId)
-                    ->where('is_active', true)
-                    ->first() ?? $lmsClass ?? $st->classrooms->first();
-
-                $className = $activeClass?->class_name ?? $lmsClass?->class_name ?? '-';
                 $status = ($overallPct < 40 || ($totalAssigns > 1 && $submittedAssigns === 0)) ? 'Perlu Perhatian' : ($overallPct >= 85 ? 'Sangat Aktif' : 'On Track');
 
                 fputcsv($handle, [

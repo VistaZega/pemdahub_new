@@ -22,6 +22,9 @@
                 <a href="{{ route('guru.nilai.summary', ['classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-sky-400 hover:bg-sky-300 text-black text-xs font-black uppercase tracking-wider rounded-2xl border-2 border-black shadow-md transition-all">
                     <i class="fas fa-table text-black"></i> Rekap
                 </a>
+                <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'semester_id' => $selectedSemesterId]) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-400 text-white text-xs font-black uppercase tracking-wider rounded-2xl border-2 border-black shadow-md transition-all" style="color: #ffffff !important;">
+                    <i class="fas fa-print text-white"></i> Cetak
+                </a>
                 <form method="GET" class="flex items-center gap-2">
                     @if($classrooms->count() > 0)
                     <select name="classroom_id" onchange="this.form.submit()" class="text-xs font-black border-2 border-black bg-white rounded-2xl px-4 py-2.5 shadow-sm outline-none cursor-pointer" style="color: #000000 !important; background-color: #ffffff !important;">
@@ -154,18 +157,24 @@
                             <input type="text" placeholder="Cari nama atau NISN siswa..." oninput="filterTable(this)" class="w-full pl-9 pr-4 py-1.5 bg-white text-gray-800 border border-gray-250 rounded-xl text-xs focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none transition shadow-sm font-medium">
                         </div>
                         
-                        <!-- Classroom Select Filter -->
-                        @if($classrooms->count() > 0)
-                        <div class="flex items-center gap-1.5 w-full sm:w-auto">
-                            <span class="text-xs text-gray-700 font-bold whitespace-nowrap">Filter Kelas:</span>
-                            <select onchange="filterClassroom(this)" class="text-xs border border-gray-250 bg-white text-gray-800 rounded-xl px-2.5 py-1.5 focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 transition outline-none w-full sm:w-auto font-bold shadow-sm">
-                                <option value="" class="text-gray-800 font-bold">Semua Kelas</option>
-                                @foreach($classrooms as $cls)
-                                    <option value="{{ $cls->class_name }}" class="text-gray-800 font-bold">{{ $cls->class_name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                            <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'subject_id' => $sg['subject']->id, 'semester_id' => $selectedSemesterId]) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-300 rounded-xl text-xs font-bold transition shadow-sm" title="Cetak nilai mata pelajaran ini">
+                                <i class="fas fa-print text-rose-500"></i> Cetak Mapel Ini
+                            </a>
+
+                            <!-- Classroom Select Filter -->
+                            @if($classrooms->count() > 0)
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-gray-700 font-bold whitespace-nowrap">Filter Kelas:</span>
+                                <select onchange="filterClassroom(this)" class="text-xs border border-gray-250 bg-white text-gray-800 rounded-xl px-2.5 py-1.5 focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 transition outline-none font-bold shadow-sm">
+                                    <option value="" class="text-gray-800 font-bold">Semua Kelas</option>
+                                    @foreach($classrooms as $cls)
+                                        <option value="{{ $cls->class_name }}" class="text-gray-800 font-bold">{{ $cls->class_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
                         </div>
-                        @endif
                     </div>
 
                     <div class="overflow-x-auto">
@@ -368,10 +377,17 @@
                     <i class="fas fa-clipboard-list text-2xl text-gray-300"></i>
                 </div>
                 <h3 class="text-gray-600 font-semibold mb-1">Belum Ada Nilai</h3>
-                <p class="text-gray-400 text-sm mb-4">Mulai input nilai siswa untuk semester ini.</p>
-                <a href="{{ route('guru.nilai.input', ['classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-emerald-700 transition">
-                    <i class="fas fa-plus-circle"></i> Input Nilai Sekarang
-                </a>
+                <p class="text-gray-400 text-sm mb-4">Mulai input nilai siswa untuk semester ini atau cetak format lembar penilaian.</p>
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                    <a href="{{ route('guru.nilai.input', ['classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-emerald-700 transition">
+                        <i class="fas fa-plus-circle"></i> Input Nilai Sekarang
+                    </a>
+                    @if($selectedClassroomId)
+                    <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'semester_id' => $selectedSemesterId, 'mode' => 'blank']) }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-300 text-slate-800 hover:bg-slate-50 text-sm font-bold rounded-xl shadow-sm transition">
+                        <i class="fas fa-print text-rose-500"></i> Cetak Format Penilaian
+                    </a>
+                    @endif
+                </div>
             </div>
         @endif
     @endif

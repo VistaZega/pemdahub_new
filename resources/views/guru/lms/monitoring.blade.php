@@ -23,7 +23,7 @@
     <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-                <div class="flex items-center gap-2 mb-2">
+                <div class="flex items-center flex-wrap gap-2 mb-2">
                     <span class="px-3 py-1 bg-amber-400 text-black font-black text-[11px] rounded-xl border border-black uppercase tracking-wider shadow-xs">
                         <i class="fas fa-chart-line mr-1"></i> Pantauan Progres Siswa
                     </span>
@@ -35,6 +35,16 @@
                         <span class="px-3 py-1 bg-emerald-100 text-emerald-950 font-black text-[11px] rounded-xl border border-black uppercase tracking-wider">
                             {{ $course->subject?->name ?? $course->subject?->subject_name ?? 'Mata Pelajaran' }}
                         </span>
+                    @endif
+                    @if($selectedRombel !== 'all')
+                        <span class="px-3 py-1 bg-amber-300 text-amber-950 font-black text-[11px] rounded-xl border border-black uppercase tracking-wider shadow-xs flex items-center gap-1">
+                            <i class="fas fa-door-open"></i> Rombel: {{ $selectedRombel }}
+                        </span>
+                        <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId]) }}" 
+                           class="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 font-black text-[10px] rounded-xl border border-black transition" 
+                           title="Kembali ke semua rombel">
+                            ✕ Reset Rombel
+                        </a>
                     @endif
                 </div>
                 <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight flex items-center gap-2.5">
@@ -54,13 +64,13 @@
                 </p>
             </div>
 
-            {{-- Selector Kursus / Mapel & Export --}}
+            {{-- Selector Kursus / Mapel, Rombel & Export --}}
             <div class="flex flex-wrap items-center gap-3 shrink-0">
                 <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" id="filterCourseForm" class="flex flex-wrap items-center gap-2">
-                    {{-- Dropdown Tunggal: Nama Mapel - Kelas --}}
+                    {{-- Dropdown Kursus: Nama Mapel - Kelas --}}
                     <div class="relative">
-                        <select name="course_id" onchange="document.getElementById('filterCourseForm').submit()" 
-                                class="bg-slate-100 text-black font-black text-xs pl-4 pr-10 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer max-w-[320px] md:max-w-[420px]">
+                        <select name="course_id" id="courseSelect" onchange="handleCourseChange()" 
+                                class="bg-slate-100 hover:bg-slate-200 text-black font-black text-xs pl-4 pr-10 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer max-w-[280px] md:max-w-[360px] transition">
                             <option value="all" {{ $selectedCourseId === 'all' ? 'selected' : '' }}>
                                 🌐 Semua Mata Pelajaran & Kelas ({{ $myCourses->count() }} Kursus)
                             </option>
@@ -76,16 +86,97 @@
                             </optgroup>
                         </select>
                     </div>
+
+                    {{-- Dropdown Filter Rombel / Kelas --}}
+                    <div class="relative">
+                        <select name="rombel" id="rombelSelect" onchange="document.getElementById('filterCourseForm').submit()" 
+                                class="{{ $selectedRombel !== 'all' ? 'bg-amber-400 text-black' : 'bg-slate-100 hover:bg-slate-200 text-black' }} font-black text-xs pl-4 pr-10 py-3 rounded-2xl border-2 border-black shadow-sm outline-none cursor-pointer max-w-[220px] md:max-w-[280px] transition">
+                            <option value="all" {{ $selectedRombel === 'all' ? 'selected' : '' }}>
+                                🏫 Semua Rombel ({{ count($studentList) }} Siswa)
+                            </option>
+                            @if($rombelOptions->isNotEmpty())
+                                <optgroup label="Pilih Rombel / Kelas:">
+                                    @foreach($rombelOptions as $r)
+                                        <option value="{{ $r['key'] }}" {{ $selectedRombel === $r['key'] ? 'selected' : '' }}>
+                                            {{ $r['label'] }} ({{ $r['count'] }} Siswa)
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                        </select>
+                    </div>
                 </form>
 
                 {{-- Tombol Export Excel / CSV --}}
-                <a href="{{ route('guru.lms.monitoring.export', ['course_id' => $selectedCourseId]) }}" 
+                <a href="{{ route('guru.lms.monitoring.export', ['course_id' => $selectedCourseId, 'rombel' => $selectedRombel]) }}" 
                    class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition shadow-md border-2 border-black">
                     <i class="fas fa-file-excel"></i> Ekspor Excel / CSV
                 </a>
             </div>
         </div>
     </div>
+
+    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- BARIS FILTER CEPAT ROMBEL (MASUK KELAS) --}}
+    {{-- ═══════════════════════════════════════════════ --}}
+    @if($rombelOptions->count() > 1 || $selectedRombel !== 'all')
+    <div class="bg-white rounded-3xl p-4 md:p-5 border-2 border-black shadow-md space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-black font-black text-sm shadow-xs shrink-0">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-black text-xs md:text-sm tracking-tight flex items-center gap-2">
+                        PILIH ROMBEL SAAT MASUK KELAS
+                        @if($selectedRombel !== 'all')
+                            <span class="px-2 py-0.5 bg-amber-400 text-black text-[10px] rounded-lg border border-black font-black">
+                                Aktif: {{ $selectedRombel }}
+                            </span>
+                        @endif
+                    </h3>
+                    <p class="text-[11px] font-bold text-slate-500">
+                        Klik rombel di bawah untuk langsung mengecek progres dan presensi tugas siswa di kelas yang sedang Anda ajar:
+                    </p>
+                </div>
+            </div>
+            @if($selectedRombel !== 'all')
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => 'all', 'filter' => $filterTab, 'search' => $search]) }}" 
+                   class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs rounded-xl border border-black transition flex items-center gap-1 shadow-2xs">
+                    <i class="fas fa-layer-group text-slate-600"></i> Tampilkan Semua Rombel
+                </a>
+            @endif
+        </div>
+
+        {{-- Horizontal Scrollable Pill Buttons --}}
+        <div class="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 scrollbar-thin">
+            {{-- Tombol Semua Rombel --}}
+            <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => 'all', 'filter' => $filterTab, 'search' => $search]) }}"
+               class="px-4 py-2.5 rounded-2xl text-xs font-black transition border-2 border-black whitespace-nowrap flex items-center gap-2 shrink-0 {{ $selectedRombel === 'all' ? 'bg-black text-amber-400 shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                <i class="fas fa-layer-group text-xs"></i>
+                <span>Semua Rombel</span>
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-black {{ $selectedRombel === 'all' ? 'bg-amber-400 text-black' : 'bg-white text-slate-700 border border-slate-300' }}">
+                    {{ count($studentList) }} Siswa
+                </span>
+            </a>
+
+            {{-- Tombol Tiap Rombel --}}
+            @foreach($rombelOptions as $r)
+                @php
+                    $isActive = ($selectedRombel === $r['key']);
+                @endphp
+                <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => $r['key'], 'filter' => $filterTab, 'search' => $search]) }}"
+                   class="px-4 py-2.5 rounded-2xl text-xs font-black transition border-2 border-black whitespace-nowrap flex items-center gap-2 shrink-0 {{ $isActive ? 'bg-amber-400 text-black shadow-md scale-102' : 'bg-white hover:bg-amber-50 text-slate-800 hover:border-black' }}">
+                    <i class="fas {{ $r['is_block'] ? 'fa-object-group text-purple-700' : 'fa-users text-amber-600' }}"></i>
+                    <span>{{ $r['label'] }}</span>
+                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black {{ $isActive ? 'bg-black text-amber-400' : 'bg-slate-100 text-slate-700 border border-slate-300' }}">
+                        {{ $r['count'] }} Siswa
+                    </span>
+                </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     {{-- ═══════════════════════════════════════════════ --}}
     {{-- 2. KPI SUMMARY CARDS --}}
@@ -103,7 +194,13 @@
                 </div>
             </div>
             <p class="text-[11px] font-bold text-slate-600 mt-2">
-                {{ $kpi['total_courses_count'] }} Kursus • {{ $classrooms->count() }} Rombel Aktif
+                @if($selectedRombel !== 'all')
+                    <span class="text-amber-700 font-extrabold flex items-center gap-1">
+                        <i class="fas fa-door-open"></i> Rombel: {{ $selectedRombel }}
+                    </span>
+                @else
+                    {{ $kpi['total_courses_count'] }} Kursus • {{ $rombelOptions->count() }} Rombel Aktif
+                @endif
             </p>
         </div>
 
@@ -170,27 +267,28 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 {{-- Tabs --}}
                 <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'all', 'search' => $search]) }}"
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => $selectedRombel, 'filter' => 'all', 'search' => $search]) }}"
                        class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'all' ? 'bg-black text-amber-400 shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
-                        Semua ({{ count($studentList) }})
+                        Semua ({{ $rombelStudents->count() }})
                     </a>
-                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'at_risk', 'search' => $search]) }}"
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => $selectedRombel, 'filter' => 'at_risk', 'search' => $search]) }}"
                        class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'at_risk' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-800 hover:bg-rose-100' }}">
                         ⚠️ Perlu Perhatian ({{ $kpi['at_risk_count'] }})
                     </a>
-                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'missing_task', 'search' => $search]) }}"
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => $selectedRombel, 'filter' => 'missing_task', 'search' => $search]) }}"
                        class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'missing_task' ? 'bg-amber-400 text-black shadow-sm' : 'bg-amber-50 text-amber-900 hover:bg-amber-100' }}">
                         📝 Belum Kumpul Tugas ({{ $kpi['missing_task_count'] }})
                     </a>
-                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => 'completed', 'search' => $search]) }}"
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => $selectedRombel, 'filter' => 'completed', 'search' => $search]) }}"
                        class="px-4 py-2 rounded-xl text-xs font-black transition border border-black whitespace-nowrap {{ $filterTab === 'completed' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100' }}">
-                        🌟 Tuntas 100%
+                        🌟 Tuntas 100% ({{ $kpi['completed_count'] }})
                     </a>
                 </div>
 
                 {{-- Search Bar --}}
                 <form method="GET" action="{{ route('guru.lms.monitoring.index') }}" class="flex items-center gap-2">
                     <input type="hidden" name="course_id" value="{{ $selectedCourseId }}">
+                    <input type="hidden" name="rombel" value="{{ $selectedRombel }}">
                     <input type="hidden" name="filter" value="{{ $filterTab }}">
                     <div class="relative w-full md:w-72 flex items-center">
                         <i class="fas fa-search absolute left-4 text-slate-400 text-xs pointer-events-none"></i>
@@ -198,7 +296,7 @@
                                class="w-full bg-slate-50 border-2 border-black rounded-2xl pl-11 pr-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white transition shadow-2xs">
                     </div>
                     @if(!empty($search))
-                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'filter' => $filterTab]) }}"
+                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => $selectedRombel, 'filter' => $filterTab]) }}"
                        class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-black text-slate-700 border border-black" title="Reset pencarian">✕</a>
                     @endif
                 </form>
@@ -244,9 +342,13 @@
                                         {{ $st->full_name }}
                                     </div>
                                     <p class="text-[10px] text-slate-500 font-bold flex items-center flex-wrap gap-1 mt-0.5">
-                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-900 border border-blue-200 rounded font-black text-[10px]">{{ $item['class_name'] }}</span>
+                                        <span class="px-1.5 py-0.5 {{ ($selectedRombel === $item['class_name']) ? 'bg-amber-400 text-black border-black font-black shadow-2xs' : 'bg-blue-50 text-blue-900 border-blue-200 font-black' }} border rounded text-[10px]">
+                                            {{ $item['class_name'] }}
+                                        </span>
                                         @if($item['is_block_class'])
-                                            <span class="px-1.5 py-0.5 bg-amber-50 text-amber-900 border border-amber-200 rounded font-bold text-[9px]">Blok: {{ $item['block_class_name'] }}</span>
+                                            <span class="px-1.5 py-0.5 {{ ($selectedRombel === $item['block_class_name']) ? 'bg-amber-400 text-black border-black font-black shadow-2xs' : 'bg-amber-50 text-amber-900 border-amber-200 font-bold' }} border rounded text-[9px]">
+                                                Blok: {{ $item['block_class_name'] }}
+                                            </span>
                                         @endif
                                         <span class="text-slate-400">NISN: {{ $st->nisn ?? '-' }}</span>
                                     </p>
@@ -324,8 +426,8 @@
                             <div class="flex items-center justify-center gap-1.5">
                                 {{-- Tombol Detail --}}
                                 <button onclick="openCourseStudentDetail({{ $st->id }}, {{ $c->id }})" 
-                                        class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl border border-black shadow-xs transition"
-                                        title="Lihat Detail Capaian">
+                                         class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl border border-black shadow-xs transition"
+                                         title="Lihat Detail Capaian">
                                     <i class="fas fa-eye text-xs"></i>
                                 </button>
 
@@ -346,9 +448,24 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ $isAllCourses ? '9' : '8' }}" class="text-center py-10 text-slate-400 font-bold">
-                            <i class="fas fa-user-slash text-3xl mb-2 text-slate-300"></i>
-                            <p>Tidak ada data siswa yang cocok dengan filter.</p>
+                        <td colspan="{{ $isAllCourses ? '9' : '8' }}" class="text-center py-12 text-slate-400 font-bold">
+                            <i class="fas fa-user-slash text-4xl mb-3 text-slate-300"></i>
+                            <p class="text-slate-600 font-black text-sm">Tidak ada siswa yang cocok dengan filter atau rombel ini.</p>
+                            <p class="text-slate-400 text-xs mt-0.5">Coba ganti filter tab status, kata kunci pencarian, atau tampilkan semua rombel.</p>
+                            @if($selectedRombel !== 'all' || $filterTab !== 'all' || !empty($search))
+                                <div class="mt-4 flex items-center justify-center gap-2">
+                                    @if($selectedRombel !== 'all')
+                                        <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId, 'rombel' => 'all', 'filter' => $filterTab, 'search' => $search]) }}" 
+                                           class="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-black font-black text-xs rounded-xl border border-black shadow-xs transition flex items-center gap-1.5">
+                                            <i class="fas fa-layer-group"></i> Buka Semua Rombel
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('guru.lms.monitoring.index', ['course_id' => $selectedCourseId]) }}" 
+                                       class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs rounded-xl border border-black shadow-xs transition">
+                                        Reset Semua Filter
+                                    </a>
+                                </div>
+                            @endif
                         </td>
                     </tr>
                     @endforelse
@@ -441,6 +558,15 @@
 
 @push('scripts')
 <script>
+    // 0. HANDLE PERGANTIAN KURSUS
+    function handleCourseChange() {
+        const rombelSelect = document.getElementById('rombelSelect');
+        if (rombelSelect) {
+            rombelSelect.value = 'all';
+        }
+        document.getElementById('filterCourseForm').submit();
+    }
+
     // 1. DETAIL SISWA PADA KURSUS INI
     function openCourseStudentDetail(studentId, courseId) {
         const modal = document.getElementById('courseStudentModal');
