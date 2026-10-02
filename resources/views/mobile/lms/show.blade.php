@@ -8,7 +8,7 @@
                  auth()->user()?->isGuru() || 
                  $isTeacher;
 @endphp
-<div class="space-y-4" x-data="{ tab: 'modul', showAddModule: false, showAddMaterial: false, showAddAssignment: false, showAddQuiz: false }">
+<div class="space-y-4" x-data="{ tab: '{{ request('tab', 'modul') }}', showAddModule: false, showAddMaterial: false, showAddAssignment: false, showAddQuiz: false }">
     <!-- Back Link -->
     <a href="{{ route('mobile.lms.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-slate-500 hover:text-slate-900 transition">
         <i class="fa-solid fa-arrow-left"></i> Kembali ke LMS
@@ -325,18 +325,37 @@
         @endif
 
         @forelse($course->assignments as $assignment)
-            @php $sub = $submissionMap[$assignment->id] ?? null; @endphp
+            @php 
+                $sub = $submissionMap[$assignment->id] ?? null; 
+                $myGroup = $studentGroupMap[$assignment->id] ?? null;
+                $isGroupWork = $assignment->isGroupAssignment();
+                $isLeader = $myGroup && $student && $myGroup->isLeader($student->id);
+            @endphp
             <div class="clay-card p-5 space-y-3" x-data="{ openForm: false, showEdit: false }">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-yellow">Tugas</span>
-                        <h4 class="text-xs font-black text-slate-900 mt-1">{{ $assignment->title }}</h4>
-                        <p class="text-[10px] text-slate-500 font-bold mt-0.5"><i class="fa-regular fa-clock text-yellow-600 mr-1"></i>Batas Waktu: {{ $assignment->deadline ? \Carbon\Carbon::parse($assignment->deadline)->translatedFormat('d M Y H:i') : ($assignment->due_date ?? '-') }}</p>
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black clay-yellow">Tugas</span>
+                            @if($isGroupWork)
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-300 uppercase flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-users text-[8px]"></i> Tugas Kelompok
+                                </span>
+                            @endif
+                            @if($assignment->allow_resubmit)
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-blue-100 text-blue-800 border border-blue-200 uppercase shadow-2xs">
+                                    Revisi OK
+                                </span>
+                            @endif
+                        </div>
+                        <h4 class="text-xs font-black text-slate-900 mt-1 leading-snug">{{ $assignment->title }}</h4>
+                        <p class="text-[10px] text-slate-500 font-bold mt-0.5">
+                            <i class="fa-regular fa-clock text-yellow-600 mr-1"></i>Batas Waktu: {{ $assignment->deadline ? \Carbon\Carbon::parse($assignment->deadline)->translatedFormat('d M Y H:i') : ($assignment->due_date ?? '-') }}
+                        </p>
                     </div>
 
                     <!-- Submission Status Badge for Student / Maker Badge for Teacher -->
                     @if($isTeacher)
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-1.5 shrink-0">
                             <button type="button" @click="showEdit = !showEdit" 
                                     class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 text-[10px] font-black border border-amber-300 hover:bg-amber-100 transition flex items-center gap-1">
                                 <i class="fa-solid fa-pen-to-square"></i> Edit
@@ -348,18 +367,144 @@
                             </a>
                         </div>
                     @else
-                        @if($sub)
-                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
-                                {{ $sub->status === 'graded' ? 'clay-green' : ($sub->status === 'late' ? 'clay-pink' : 'clay-blue') }}">
-                                {{ $sub->status === 'graded' ? 'Nilai: ' . $sub->score : ($sub->status === 'late' ? 'Terlambat' : 'Terkumpul') }}
-                            </span>
-                        @else
-                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
-                                Belum Ada
-                            </span>
-                        @endif
+                        <div class="shrink-0">
+                            @if($sub)
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase inline-block
+                                    {{ $sub->status === 'graded' ? 'clay-green' : ($sub->status === 'late' ? 'clay-pink' : 'clay-blue') }}">
+                                    {{ $sub->status === 'graded' ? 'Nilai: ' . $sub->score : ($sub->status === 'late' ? 'Terlambat' : 'Terkumpul') }}
+                                </span>
+                            @else
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200 inline-block">
+                                    Belum Ada
+                                </span>
+                            @endif
+                        </div>
                     @endif
                 </div>
+
+                {{-- Status Pipeline on Mobile (Mirrored from Desktop for better UX) --}}
+                @if(!$isTeacher)
+                    @php
+                        $pipelineStep = 0;
+                        if($sub && $sub->status !== 'draft') $pipelineStep = 1;
+                        if($sub && ($sub->status === 'graded' || $sub->score !== null)) $pipelineStep = 2;
+                    @endphp
+                    <div class="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-xl border border-slate-200 text-[10px] font-black">
+                        <div class="flex items-center gap-1.5 {{ $pipelineStep === 0 ? 'text-amber-600' : 'text-emerald-600' }}">
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold {{ $pipelineStep === 0 ? 'bg-amber-500 text-white shadow-xs' : 'bg-emerald-500 text-white' }}">
+                                @if($pipelineStep > 0)<i class="fa-solid fa-check text-[8px]"></i>@else 1 @endif
+                            </span>
+                            <span>Belum</span>
+                        </div>
+                        <div class="flex-1 h-0.5 mx-2 {{ $pipelineStep >= 1 ? 'bg-emerald-400' : 'bg-slate-200' }}"></div>
+                        <div class="flex items-center gap-1.5 {{ $pipelineStep === 1 ? 'text-blue-600' : ($pipelineStep > 1 ? 'text-emerald-600' : 'text-slate-400') }}">
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold {{ $pipelineStep === 1 ? 'bg-blue-500 text-white shadow-xs' : ($pipelineStep > 1 ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500') }}">
+                                @if($pipelineStep > 1)<i class="fa-solid fa-check text-[8px]"></i>@else 2 @endif
+                            </span>
+                            <span>Dikumpulkan</span>
+                        </div>
+                        <div class="flex-1 h-0.5 mx-2 {{ $pipelineStep >= 2 ? 'bg-emerald-400' : 'bg-slate-200' }}"></div>
+                        <div class="flex items-center gap-1.5 {{ $pipelineStep >= 2 ? 'text-emerald-600' : 'text-slate-400' }}">
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold {{ $pipelineStep >= 2 ? 'bg-emerald-500 text-white shadow-xs' : 'bg-slate-200 text-slate-500' }}">
+                                @if($pipelineStep >= 2)<i class="fa-solid fa-check text-[8px]"></i>@else 3 @endif
+                            </span>
+                            <span>Dinilai</span>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Group Assignment Info Card on Mobile --}}
+                @if($isGroupWork)
+                    @if(!$isTeacher)
+                        @if($myGroup)
+                            <div class="p-3.5 rounded-2xl border-2 border-purple-200 bg-purple-50/90 space-y-2.5">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <div class="flex items-center gap-1.5 font-black text-purple-950 text-xs">
+                                        <i class="fa-solid fa-users text-purple-600"></i>
+                                        <span>{{ $myGroup->name }}</span>
+                                        @if($isLeader)
+                                            <span class="bg-amber-400 text-slate-950 text-[9px] px-2 py-0.5 rounded-full border border-black uppercase font-black shadow-2xs">👑 Anda Ketua</span>
+                                        @else
+                                            <span class="bg-purple-200 text-purple-800 text-[9px] px-2 py-0.5 rounded-full uppercase font-black">Anggota</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-[11px] font-bold text-slate-600">
+                                        Ketua Kelompok: <strong class="text-slate-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Belum Ditunjuk' }}</strong>
+                                    </div>
+                                </div>
+
+                                @if(!empty($myGroup->theme))
+                                    <div class="text-[11px] font-bold text-purple-950 bg-white/95 border border-purple-200 rounded-xl px-2.5 py-1.5 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-lightbulb text-amber-500 shrink-0"></i>
+                                        <span><strong class="text-purple-700 uppercase text-[9px]">Tema / Proyek:</strong> {{ $myGroup->theme }}</span>
+                                    </div>
+                                @endif
+
+                                <div class="text-[11px] text-slate-700 bg-white/80 p-2.5 rounded-xl border border-purple-100">
+                                    <span class="font-black text-purple-900">Daftar Anggota Kelompok:</span>
+                                    <span class="text-slate-800 font-bold ml-1">
+                                        {{ $myGroup->members->pluck('user.name')->filter()->implode(', ') ?: ($myGroup->members->pluck('full_name')->filter()->implode(', ') ?: '—') }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Group Submission Notice --}}
+                            @if($sub && $sub->status !== 'draft')
+                                <div class="p-3 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 text-[11px] font-medium flex items-start gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm mt-0.5 shrink-0"></i>
+                                    <div>
+                                        <p class="font-black text-emerald-950">Tugas Kelompok Telah Terkumpul</p>
+                                        <p class="text-emerald-800 mt-0.5 leading-snug">
+                                            Sudah dikumpulkan oleh <strong class="text-slate-900">{{ $sub->student?->user?->name ?? $sub->student?->full_name ?? 'Anggota Kelompok' }}</strong>. Nilai dan feedback guru berlaku untuk seluruh anggota kelompok.
+                                        </p>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="p-3 rounded-2xl border border-purple-200 bg-purple-50/60 text-purple-900 text-[11px] font-medium flex items-start gap-2">
+                                    <i class="fa-solid fa-circle-info text-purple-600 text-sm mt-0.5 shrink-0"></i>
+                                    <div>
+                                        <p class="font-black text-purple-950">Info Pengumpulan Tugas Kelompok</p>
+                                        <p class="text-purple-800 mt-0.5 leading-snug">
+                                            Dapat dikumpulkan oleh Ketua Kelompok (<strong class="text-slate-900">{{ $myGroup->leader?->user?->name ?? $myGroup->leader?->full_name ?? 'Ketua' }}</strong>) atau anggota manapun. Cukup 1 siswa yang mengunggah tugas untuk seluruh kelompok.
+                                        </p>
+                                    </div>
+                                </div>
+                            @endif
+                        @else
+                            <div class="p-3.5 rounded-2xl border border-amber-300 bg-amber-50 text-amber-900 text-[11px] font-bold flex items-start gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base shrink-0 mt-0.5"></i>
+                                <span>Tugas ini diset sebagai Tugas Kelompok, namun Anda belum dimasukkan ke dalam kelompok oleh Guru. Anda tetap dapat mengumpulkan tugas secara mandiri melalui form di bawah.</span>
+                            </div>
+                        @endif
+                    @else
+                        {{-- Teacher overview for group assignment on mobile --}}
+                        @if($assignment->groups && $assignment->groups->count() > 0)
+                            <div x-data="{ showGroupsMobile: false }" class="space-y-2">
+                                <button type="button" @click="showGroupsMobile = !showGroupsMobile" class="w-full py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 rounded-xl text-[11px] font-black flex items-center justify-between transition">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-users text-purple-600"></i> Daftar Kelompok ({{ $assignment->groups->count() }} Kelompok)</span>
+                                    <i class="fa-solid text-xs" :class="showGroupsMobile ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                </button>
+                                <div x-show="showGroupsMobile" x-collapse class="space-y-2 pt-1">
+                                    @foreach($assignment->groups as $grp)
+                                        <div class="p-3 bg-white rounded-xl border border-purple-200 text-[11px] space-y-1">
+                                            <div class="flex items-center justify-between font-black text-purple-950">
+                                                <span>{{ $grp->name }}</span>
+                                                <span class="text-[10px] text-slate-500 font-bold">Ketua: {{ $grp->leader?->user?->name ?? $grp->leader?->full_name ?? 'Belum Ditunjuk' }}</span>
+                                            </div>
+                                            @if(!empty($grp->theme))
+                                                <div class="text-[10px] font-bold text-amber-700">Tema: {{ $grp->theme }}</div>
+                                            @endif
+                                            <div class="text-[10px] text-slate-600">
+                                                <strong class="text-purple-900">Anggota:</strong>
+                                                {{ $grp->members->pluck('user.name')->filter()->implode(', ') ?: ($grp->members->pluck('full_name')->filter()->implode(', ') ?: '—') }}
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+                @endif
 
                 @if($assignment->description)
                     <div class="text-[11px] text-slate-700 font-medium bg-slate-50 p-3 rounded-2xl border border-slate-200 leading-relaxed">
@@ -406,9 +551,52 @@
                 <!-- Submission Details / Feedback if graded for Student -->
                 @if(!$isTeacher && $sub && $sub->score !== null)
                     <div class="p-3 bg-emerald-50 rounded-2xl border-2 border-emerald-200 text-xs space-y-1">
-                        <span class="font-black text-emerald-900 block">✨ Nilai Tugas: {{ $sub->score }}/100</span>
+                        <span class="font-black text-emerald-900 block">✨ Nilai {{ $isGroupWork ? 'Kelompok' : 'Tugas' }}: {{ $sub->score }}/100</span>
                         @if($sub->feedback)
                             <p class="text-[11px] text-emerald-800 font-bold">Catatan Guru: "{{ $sub->feedback }}"</p>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- Submitted files/text preview --}}
+                @if(!$isTeacher && $sub && ($sub->submission_text || count($sub->file_list ?? [])))
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2">
+                        <div class="flex items-center justify-between text-[11px] font-black text-slate-700">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-paperclip text-purple-600"></i> {{ $isGroupWork ? 'Berkas / Jawaban Kelompok' : 'Berkas / Jawaban Anda' }}</span>
+                            @if($isGroupWork && $sub->student)
+                                <span class="text-[10px] text-purple-700 font-bold">(Oleh: {{ $sub->student->user->name ?? $sub->student->full_name }})</span>
+                            @endif
+                        </div>
+                        @if($sub->submission_text)
+                            <div class="p-2.5 bg-white rounded-xl border border-slate-200 text-slate-800 font-medium text-[11px] whitespace-pre-wrap leading-relaxed">
+                                {{ $sub->submission_text }}
+                            </div>
+                        @endif
+                        @if(count($sub->file_list ?? []) > 0)
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                @foreach($sub->file_list as $fIdx => $fPath)
+                                    @php 
+                                        $isImg = \App\Models\LmsSubmission::isImagePath($fPath);
+                                        $fUrl = Storage::disk('public')->url($fPath);
+                                    @endphp
+                                    <div class="p-2 bg-white rounded-xl border border-slate-200 flex flex-col items-center justify-between text-center gap-1.5">
+                                        @if($isImg)
+                                            <div class="w-full h-20 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center cursor-pointer" onclick="window.open('{{ $fUrl }}', '_blank')">
+                                                <img src="{{ $fUrl }}" class="max-h-full max-w-full object-contain" alt="Berkas">
+                                            </div>
+                                            <span class="text-[10px] font-bold text-slate-700 truncate w-full">Foto {{ $fIdx + 1 }}</span>
+                                        @else
+                                            <div class="w-full h-20 rounded-lg bg-rose-50 flex items-center justify-center border border-rose-100">
+                                                <i class="fa-solid fa-file-pdf text-2xl text-rose-600"></i>
+                                            </div>
+                                            <span class="text-[10px] font-bold text-rose-700 truncate w-full">Dokumen PDF</span>
+                                        @endif
+                                        <a href="{{ $fUrl }}" target="_blank" class="w-full py-1 text-center rounded-lg bg-slate-100 text-blue-600 font-bold text-[10px] hover:bg-blue-50 transition">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
                         @endif
                     </div>
                 @endif
@@ -472,11 +660,24 @@
                     <!-- Toggle Submit Form Button for Student -->
                     <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
                         <span class="text-[10px] text-slate-500 font-bold">
-                            {{ $sub ? 'Terkumpul: ' . \Carbon\Carbon::parse($sub->submitted_at)->diffForHumans() : 'Belum dikirim' }}
+                            @if($sub)
+                                Terkumpul: {{ \Carbon\Carbon::parse($sub->submitted_at)->diffForHumans() }}
+                                @if($isGroupWork && $sub->student)
+                                    (oleh {{ explode(' ', trim($sub->student->user->name ?? $sub->student->full_name))[0] }})
+                                @endif
+                            @else
+                                Belum dikirim
+                            @endif
                         </span>
-                        <button @click="openForm = !openForm" class="clay-btn py-2 px-3.5 text-xs font-black text-white shadow-sm">
-                            <span x-text="openForm ? 'Tutup Form' : '{{ $sub ? '📤 Kumpul Ulang' : '✏️ Kirim Jawaban' }}'"></span>
-                        </button>
+                        @if(!$sub || $assignment->allow_resubmit)
+                            <button @click="openForm = !openForm" class="clay-btn py-2 px-3.5 text-xs font-black text-white shadow-sm">
+                                <span x-text="openForm ? 'Tutup Form' : '{{ $sub ? '📤 Kumpul Ulang' : '✏️ Kirim Jawaban' }}'"></span>
+                            </button>
+                        @else
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-bold border border-slate-200">
+                                🔒 Selesai
+                            </span>
+                        @endif
                     </div>
 
                     <!-- SUBMISSION FORM FOR STUDENT (FLEXIBLE TYPES) -->

@@ -284,6 +284,7 @@ class MobileLmsController extends Controller
         $submissionMap = collect();
         $attemptMap = collect();
         $completedMaterialIds = [];
+        $studentGroupMap = [];
 
         if ($student) {
             // Cek otorisasi sekolah: Siswa tidak boleh melihat kursus sekolah lain
@@ -300,6 +301,25 @@ class MobileLmsController extends Controller
                 ->get()
                 ->keyBy('assignment_id');
 
+            // Map student groups and group submissions for group assignments
+            foreach ($course->assignments as $assignment) {
+                if ($assignment->isGroupAssignment()) {
+                    $group = $assignment->getStudentGroup($student->id);
+                    if ($group) {
+                        $group->loadMissing(['leader.user', 'members.user']);
+                        $studentGroupMap[$assignment->id] = $group;
+                        // Ambil submission kelompok jika ada
+                        $groupSub = LmsSubmission::where('assignment_id', $assignment->id)
+                            ->where('group_id', $group->id)
+                            ->with('student.user')
+                            ->first();
+                        if ($groupSub) {
+                            $submissionMap[$assignment->id] = $groupSub;
+                        }
+                    }
+                }
+            }
+
             $attemptMap = LmsQuizAttempt::where('student_id', $student->id)
                 ->whereIn('quiz_id', $course->quizzes->pluck('id'))
                 ->get()
@@ -313,6 +333,10 @@ class MobileLmsController extends Controller
         $user = Auth::user();
         $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
         $isTeacher = $teacher && ($course->teacher_id == $teacher->id);
+
+        if ($isTeacher) {
+            $course->assignments->loadMissing(['groups.leader.user', 'groups.members.user']);
+        }
 
         $questionBanks = collect();
         if (class_exists('\App\Models\CbtQuestionBank')) {
@@ -334,7 +358,7 @@ class MobileLmsController extends Controller
             }
         }
 
-        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'attemptMap', 'questionBanks', 'completedMaterialIds', 'isTeacher'));
+        return view('mobile.lms.show', compact('course', 'student', 'submissionMap', 'studentGroupMap', 'attemptMap', 'questionBanks', 'completedMaterialIds', 'isTeacher'));
     }
 
     public function material($id)
