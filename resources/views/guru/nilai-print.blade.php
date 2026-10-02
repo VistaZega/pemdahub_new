@@ -318,7 +318,7 @@
         $school = $classroom?->school ?? $teacher->school;
         $activeYearName = $activeYear->year ?? date('Y');
         $semesterLabel = $selectedSemester->semester_name ?? ('Semester ' . ($selectedSemester->semester_number ?? '1'));
-        $showMode = request('mode', ($dataPerSubject->contains('has_grades', true) ? 'rekap' : 'blank'));
+        $showMode = request('mode', $printMode ?? ($dataPerSubject->contains('has_grades', true) ? 'rekap' : 'blank'));
     @endphp
 
     {{-- INTERACTIVE TOP TOOLBAR (SCREEN ONLY) --}}
