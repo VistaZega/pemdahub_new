@@ -701,15 +701,64 @@
 
                             @if(in_array($assignment->assignment_type, ['file', 'file_text', null, '']))
                                 <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block text-xs font-black text-slate-800">Unggah Berkas PDF / Foto {{ $assignment->assignment_type === 'file' ? '*' : '(Opsional)' }}</label>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-black text-slate-800">Unggah Berkas Tugas {{ $assignment->assignment_type === 'file' ? '*' : '(Opsional)' }}</label>
                                         <span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">PDF / Foto</span>
                                     </div>
-                                    <input type="file" name="files[]" multiple accept=".pdf,image/jpeg,image/png,image/jpg,image/webp,image/heic,capture=camera" onchange="validateMobileLmsFiles(this)" {{ ($assignment->assignment_type === 'file' && !($sub && count($sub->file_list))) ? 'required' : '' }}
-                                           class="w-full text-xs font-bold text-slate-600 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-purple-600 file:text-white">
-                                    <p class="text-[10px] text-purple-700 font-bold mt-1.5 flex items-center gap-1">
-                                        <i class="fa-solid fa-camera"></i> Anda dapat memilih berkas PDF atau memfoto beberapa lembar tugas sekaligus dari HP.
-                                    </p>
+
+                                    <div class="mobile-lms-file-wrapper space-y-2 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl p-3"
+                                         data-assignment-id="{{ $assignment->id }}"
+                                         data-file-required="{{ $assignment->assignment_type === 'file' ? '1' : '0' }}"
+                                         data-has-existing="{{ ($sub && count($sub->file_list)) ? '1' : '0' }}">
+                                        
+                                        {{-- Hidden input for final form submit --}}
+                                        <input type="file" name="files[]" class="mobile-lms-main-file hidden" multiple>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            {{-- PDF Picker (Triggers File Manager directly) --}}
+                                            <label class="p-2.5 rounded-xl bg-white border border-rose-200 text-rose-700 font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition">
+                                                <i class="fa-solid fa-file-pdf text-rose-600"></i>
+                                                <span>Pilih PDF</span>
+                                                <input type="file" multiple accept="application/pdf,.pdf" onchange="handleMobileFileSelection(this)" class="hidden">
+                                            </label>
+
+                                            {{-- Gallery Picker (Triggers Album / Photos) --}}
+                                            <label class="p-2.5 rounded-xl bg-white border border-purple-200 text-purple-700 font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition">
+                                                <i class="fa-solid fa-images text-purple-600"></i>
+                                                <span>Pilih Galeri</span>
+                                                <input type="file" multiple accept="image/*" onchange="handleMobileFileSelection(this)" class="hidden">
+                                            </label>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            {{-- Native Camera --}}
+                                            <label class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition">
+                                                <i class="fa-solid fa-camera text-emerald-600"></i>
+                                                <span>Kamera HP</span>
+                                                <input type="file" accept="image/*" capture="environment" onchange="handleMobileFileSelection(this)" class="hidden">
+                                            </label>
+
+                                            {{-- All Files / File Manager --}}
+                                            <label class="p-2.5 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition">
+                                                <i class="fa-solid fa-folder-open text-slate-600"></i>
+                                                <span>Semua Berkas</span>
+                                                <input type="file" multiple accept="*/*" onchange="handleMobileFileSelection(this)" class="hidden">
+                                            </label>
+                                        </div>
+
+                                        {{-- Queue preview container --}}
+                                        <div class="mobile-queue-container hidden space-y-1.5 pt-2 border-t border-slate-200">
+                                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                                                <span>Berkas Dipilih (<span class="mobile-queue-count text-purple-700 font-black">0</span>):</span>
+                                                <button type="button" onclick="clearMobileFiles(this)" class="text-[10px] text-rose-600 hover:underline font-bold">Hapus Semua</button>
+                                            </div>
+                                            <div class="mobile-queue-list grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
+                                        </div>
+
+                                        <p class="text-[10px] text-purple-700 font-bold flex items-center gap-1">
+                                            <i class="fa-solid fa-circle-info"></i> Gunakan tombol <strong>Pilih PDF</strong> untuk membuka File Manager HP, atau <strong>Pilih Galeri</strong> untuk foto.
+                                        </p>
+                                    </div>
                                 </div>
                             @endif
 
@@ -877,32 +926,131 @@
 
 @push('scripts')
 <script>
-function validateMobileLmsFiles(input) {
-    if (input && input.files) {
-        const allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
-        for (let i = 0; i < input.files.length; i++) {
-            const file = input.files[i];
-            const ext = (file.name.split('.').pop() || '').toLowerCase();
+function getMobileWrapper(el) {
+    if (!el) return document.querySelector('.mobile-lms-file-wrapper');
+    return el.closest('.mobile-lms-file-wrapper') || document.querySelector('.mobile-lms-file-wrapper');
+}
 
-            if (!allowed.includes(ext)) {
-                alert('⚠️ FORMAT BERKAS DITOLAK!\n\nBerkas "' + file.name + '" berekstensi .' + ext + ' tidak diizinkan.\nHarap pilih berkas PDF atau Gambar (JPG, PNG, WEBP).');
-                input.value = '';
-                return false;
-            }
+function getMobileStore(wrapper) {
+    if (!wrapper) return { files: [] };
+    if (!wrapper._filesStore) {
+        wrapper._filesStore = { files: [] };
+    }
+    return wrapper._filesStore;
+}
 
-            const maxBytes = 15 * 1024 * 1024;
-            if (file.size > maxBytes) {
-                const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-                alert('⚠️ UKURAN BERKAS TERLALU BESAR!\n\nUkuran berkas "' + file.name + '" (' + sizeMB + ' MB) melebihi batas maksimal 15 MB.');
-                input.value = '';
-                return false;
-            }
+function handleMobileFileSelection(input) {
+    if (!input || !input.files) return;
+    const wrapper = getMobileWrapper(input);
+    if (!wrapper) return;
+    const store = getMobileStore(wrapper);
+
+    const allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+    for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+
+        if (!allowed.includes(ext)) {
+            alert('⚠️ FORMAT BERKAS DITOLAK!\n\nBerkas "' + file.name + '" berekstensi .' + ext + ' tidak diizinkan.\nHarap pilih berkas PDF atau Gambar (JPG, PNG, WEBP).');
+            continue;
+        }
+
+        const maxBytes = 25 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+            alert('⚠️ UKURAN BERKAS TERLALU BESAR!\n\nUkuran berkas "' + file.name + '" (' + sizeMB + ' MB) melebihi batas maksimal 25 MB.');
+            continue;
+        }
+
+        const isDuplicate = store.files.some(f => f.name === file.name && f.size === file.size);
+        if (!isDuplicate) {
+            store.files.push(file);
         }
     }
-    return true;
+    input.value = '';
+    renderMobileQueue(wrapper);
+}
+
+function removeMobileFile(btn, index) {
+    const wrapper = getMobileWrapper(btn);
+    if (!wrapper) return;
+    const store = getMobileStore(wrapper);
+    store.files.splice(index, 1);
+    renderMobileQueue(wrapper);
+}
+
+function clearMobileFiles(btn) {
+    const wrapper = getMobileWrapper(btn);
+    if (!wrapper) return;
+    const store = getMobileStore(wrapper);
+    store.files = [];
+    renderMobileQueue(wrapper);
+}
+
+function renderMobileQueue(wrapper) {
+    if (!wrapper) return;
+    const store = getMobileStore(wrapper);
+    const container = wrapper.querySelector('.mobile-queue-container');
+    const list = wrapper.querySelector('.mobile-queue-list');
+    const count = wrapper.querySelector('.mobile-queue-count');
+
+    if (!container || !list || !count) return;
+
+    count.innerText = store.files.length;
+    list.innerHTML = '';
+
+    if (store.files.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+    container.classList.remove('hidden');
+
+    store.files.forEach((file, idx) => {
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const isImg = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'].includes(ext);
+        const card = document.createElement('div');
+        card.className = 'bg-white p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-1 shadow-2xs';
+
+        const sizeKB = (file.size / 1024).toFixed(0);
+        const sizeText = file.size > 1024 * 1024 ? (file.size / (1024 * 1024)).toFixed(1) + 'MB' : sizeKB + 'KB';
+
+        card.innerHTML = `
+            <div class="flex items-center gap-1.5 min-w-0">
+                <i class="fa-solid ${isImg ? 'fa-image text-purple-600' : 'fa-file-pdf text-rose-600'} text-sm shrink-0"></i>
+                <div class="truncate">
+                    <p class="text-[10px] font-bold text-slate-800 truncate" title="${file.name}">${file.name}</p>
+                    <span class="text-[9px] text-slate-400 font-semibold">${sizeText}</span>
+                </div>
+            </div>
+            <button type="button" onclick="removeMobileFile(this, ${idx})" class="text-[10px] text-rose-500 font-extrabold hover:text-rose-700 px-1">✕</button>
+        `;
+        list.appendChild(card);
+    });
 }
 
 function handleMobileAssignmentSubmit(form) {
+    const wrapper = form.querySelector('.mobile-lms-file-wrapper');
+    if (wrapper) {
+        const store = getMobileStore(wrapper);
+        const mainInput = wrapper.querySelector('.mobile-lms-main-file');
+        if (store.files.length > 0 && mainInput) {
+            try {
+                const dt = new DataTransfer();
+                store.files.forEach(f => dt.items.add(f));
+                mainInput.files = dt.files;
+            } catch (e) {
+                console.warn('DataTransfer error:', e);
+            }
+        }
+
+        const isRequired = wrapper.dataset.fileRequired === '1';
+        const hasExisting = wrapper.dataset.hasExisting === '1';
+        if (isRequired && store.files.length === 0 && !hasExisting) {
+            alert('⚠️ Anda belum memilih berkas jawaban!\n\nSilakan pilih Dokumen PDF atau Foto tugas terlebih dahulu.');
+            return false;
+        }
+    }
+
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) {
         submitBtn.disabled = true;
@@ -912,9 +1060,8 @@ function handleMobileAssignmentSubmit(form) {
     return true;
 }
 
-// Alias backward compatibility
-function validateMobileLmsPdf(input) {
-    return validateMobileLmsFiles(input);
-}
+// Backward compatibility alias
+function validateMobileLmsFiles(input) { return handleMobileFileSelection(input); }
+function validateMobileLmsPdf(input) { return handleMobileFileSelection(input); }
 </script>
 @endpush

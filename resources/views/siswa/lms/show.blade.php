@@ -1123,34 +1123,73 @@ if (!function_exists('balanceHtmlTags')) {
                             </span>
                         </div>
 
-                        <div class="bg-white border-2 border-dashed border-indigo-200 rounded-2xl p-4 space-y-3">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                {{-- Button 1: Live Camera Modal Trigger --}}
-                                <button type="button" onclick="openLmsCameraModal()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2">
-                                    <i class="fas fa-camera text-base"></i> Ambil Foto Langsung (Kamera)
+                        <div class="lms-file-wrapper bg-white border-2 border-dashed border-indigo-200 rounded-2xl p-4 space-y-3.5"
+                             data-assignment-id="{{ $assignment->id }}"
+                             data-file-required="{{ in_array($aType, ['file', 'file_text']) ? '1' : '0' }}"
+                             data-has-existing="{{ ($sub && count($sub->file_list)) ? '1' : '0' }}">
+                            
+                            {{-- Hidden Main File Input for Form Submission --}}
+                            <input type="file" name="files[]" class="lms-main-file-input hidden" multiple>
+
+                            {{-- 3 Main Action Buttons --}}
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                {{-- Button 1: Dokumen PDF (Membuka File Manager / Berkas HP) --}}
+                                <label class="w-full py-3 px-3 rounded-xl bg-rose-50 border-2 border-rose-200 text-rose-800 hover:bg-rose-100 hover:border-rose-300 font-extrabold text-xs shadow-xs transition flex items-center gap-2.5 cursor-pointer text-left group">
+                                    <div class="w-9 h-9 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                        <i class="fas fa-file-pdf text-xl"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-black text-rose-900 leading-tight">Pilih Dokumen PDF</div>
+                                        <div class="text-[10px] font-semibold text-rose-600 truncate">Buka File Manager / Berkas</div>
+                                    </div>
+                                    <input type="file" multiple accept="application/pdf,.pdf" onchange="handleLmsFileSelection(this)" class="hidden">
+                                </label>
+
+                                {{-- Button 2: Galeri Foto (Membuka Album / Galeri HP) --}}
+                                <label class="w-full py-3 px-3 rounded-xl bg-indigo-50 border-2 border-indigo-200 text-indigo-800 hover:bg-indigo-100 hover:border-indigo-300 font-extrabold text-xs shadow-xs transition flex items-center gap-2.5 cursor-pointer text-left group">
+                                    <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                        <i class="fas fa-images text-lg"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-black text-indigo-900 leading-tight">Pilih Foto dari Galeri</div>
+                                        <div class="text-[10px] font-semibold text-indigo-600 truncate">Buka Album / Galeri HP</div>
+                                    </div>
+                                    <input type="file" multiple accept="image/*" onchange="handleLmsFileSelection(this)" class="hidden">
+                                </label>
+
+                                {{-- Button 3: Live Camera Trigger --}}
+                                <button type="button" onclick="openLmsCameraModal(this)" class="w-full py-3 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-2.5 text-left group">
+                                    <div class="w-9 h-9 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                        <i class="fas fa-camera text-lg"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-black text-white leading-tight">Ambil Foto Kamera</div>
+                                        <div class="text-[10px] font-semibold text-emerald-100 truncate">Kamera HP / Langsung</div>
+                                    </div>
                                 </button>
-                                
-                                {{-- Button 2: Multi File Picker --}}
-                                <label class="w-full py-3 px-4 rounded-xl bg-indigo-50 border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-extrabold text-xs shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
-                                    <i class="fas fa-folder-open text-base text-indigo-600"></i> Pilih Berkas (Gambar / PDF)
-                                    <input type="file" name="files[]" id="lmsFileInput" multiple accept=".pdf,image/jpeg,image/png,image/jpg,image/webp,image/heic" onchange="handleLmsFileSelection(this)" class="hidden">
+                            </div>
+
+                            {{-- Info and Fallback for All File Manager --}}
+                            <div class="flex flex-wrap items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100 gap-2">
+                                <span class="flex items-center gap-1.5 font-medium">
+                                    <i class="fas fa-info-circle text-indigo-500"></i>
+                                    <span>Bisa mengunggah dokumen <strong>PDF</strong> atau <strong>beberapa foto</strong> lembar jawaban sekaligus.</span>
+                                </span>
+                                <label class="text-indigo-600 hover:text-indigo-800 font-bold underline cursor-pointer inline-flex items-center gap-1 text-[11px]">
+                                    <i class="fas fa-folder-open"></i> Buka Pengelola File Umum
+                                    <input type="file" multiple accept="*/*" onchange="handleLmsFileSelection(this)" class="hidden">
                                 </label>
                             </div>
 
-                            <p class="text-[11px] text-gray-500 font-medium leading-relaxed">
-                                <i class="fas fa-info-circle text-indigo-500 mr-1"></i>
-                                Anda bisa mengunggah dokumen PDF atau mengambil <strong>beberapa foto lembar jawaban</strong> sekaligus.
-                            </p>
-
                             {{-- Queue Container for selected files / camera snapshots --}}
-                            <div id="lmsSubmissionQueue" class="hidden space-y-2 pt-2 border-t border-gray-100">
+                            <div class="lms-queue-container hidden space-y-2 pt-2 border-t border-gray-100">
                                 <div class="flex items-center justify-between text-xs font-bold text-gray-700">
-                                    <span>Daftar Berkas Terpilih (<span id="lmsQueueCount">0</span>):</span>
-                                    <button type="button" onclick="clearAllLmsFiles()" class="text-[11px] text-rose-600 hover:underline">Hapus Semua</button>
+                                    <span>Daftar Berkas Terpilih (<span class="lms-queue-count font-black text-indigo-600">0</span>):</span>
+                                    <button type="button" onclick="clearAllLmsFiles(this)" class="text-[11px] text-rose-600 hover:underline font-bold">Hapus Semua</button>
                                 </div>
-                                <div id="lmsQueueList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5"></div>
+                                <div class="lms-queue-list grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5"></div>
                             </div>
-                            <div id="lmsCameraPhotosHidden"></div>
+                            <div class="lms-camera-hidden"></div>
                         </div>
                     </div>
                     @endif
@@ -1457,16 +1496,39 @@ function reactMaterial(materialId, type, event) {
                 <i class="fas fa-check"></i> ✔️ Gunakan Foto Ini
             </button>
         </div>
+
+        <div class="pt-2 border-t border-gray-100 text-center">
+            <label class="text-xs font-bold text-gray-600 hover:text-emerald-700 cursor-pointer inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition">
+                <i class="fas fa-mobile-screen text-emerald-600"></i> Buka Aplikasi Kamera Bawaan HP
+                <input type="file" accept="image/*" capture="environment" onchange="handleLmsFileSelection(this); closeLmsCameraModal();" class="hidden">
+            </label>
+        </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
-let lmsCapturedPhotos = [];
-let lmsSelectedFiles = [];
+let activeLmsWrapper = null;
 let lmsMediaStream = null;
 
-function openLmsCameraModal() {
+function getAssignmentWrapper(el) {
+    if (!el) return document.querySelector('.lms-file-wrapper');
+    return el.closest('.lms-file-wrapper') || document.querySelector('.lms-file-wrapper');
+}
+
+function getStore(wrapper) {
+    if (!wrapper) return { files: [], photos: [] };
+    if (!wrapper._lmsStore) {
+        wrapper._lmsStore = {
+            files: [],
+            photos: []
+        };
+    }
+    return wrapper._lmsStore;
+}
+
+function openLmsCameraModal(btn) {
+    activeLmsWrapper = getAssignmentWrapper(btn);
     const modal = document.getElementById('lmsCameraModal');
     if (!modal) return;
     modal.classList.remove('hidden');
@@ -1490,12 +1552,8 @@ function openLmsCameraModal() {
                 video.srcObject = stream;
             })
             .catch(err => {
-                alert('Tidak dapat mengakses kamera: ' + err.message + '\n\nPastikan izin kamera sudah diaktifkan pada browser Anda.');
-                closeLmsCameraModal();
+                console.warn('getUserMedia camera error:', err);
             });
-    } else {
-        alert('Browser Anda belum mendukung akses kamera langsung. Silakan gunakan tombol "Pilih Berkas" untuk mengambil foto dari galeri/kamera hp.');
-        closeLmsCameraModal();
     }
 }
 
@@ -1549,55 +1607,79 @@ function retakeLmsPhoto() {
 
 function useLmsCapturedPhoto() {
     const preview = document.getElementById('lmsCameraPreview');
-    if (!preview || !preview.src) return;
+    if (!preview || !preview.src || !activeLmsWrapper) return;
     
-    lmsCapturedPhotos.push(preview.src);
-    renderLmsQueue();
+    const store = getStore(activeLmsWrapper);
+    store.photos.push(preview.src);
+    renderLmsQueue(activeLmsWrapper);
     closeLmsCameraModal();
 }
 
 function handleLmsFileSelection(input) {
     if (!input || !input.files) return;
+    const wrapper = getAssignmentWrapper(input);
+    if (!wrapper) return;
+    const store = getStore(wrapper);
+
     const allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
     for (let i = 0; i < input.files.length; i++) {
         const f = input.files[i];
         const ext = (f.name.split('.').pop() || '').toLowerCase();
         if (!allowed.includes(ext)) {
-            alert('⚠️ Berkas "' + f.name + '" berekstensi .' + ext + ' tidak diizinkan.\nHarap pilih berkas PDF atau Gambar (JPG, PNG, WEBP).');
+            alert('⚠️ FORMAT BERKAS DITOLAK!\n\nBerkas "' + f.name + '" berekstensi .' + ext + ' tidak diizinkan.\nHarap pilih berkas PDF atau Foto/Gambar (JPG, PNG, WEBP).');
             continue;
         }
-        lmsSelectedFiles.push(f);
+        const maxBytes = 25 * 1024 * 1024;
+        if (f.size > maxBytes) {
+            const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
+            alert('⚠️ BERKAS TERLALU BESAR!\n\nBerkas "' + f.name + '" berukuran ' + sizeMB + ' MB. Batas maksimal per berkas adalah 25 MB.');
+            continue;
+        }
+        const isDuplicate = store.files.some(existing => existing.name === f.name && existing.size === f.size);
+        if (!isDuplicate) {
+            store.files.push(f);
+        }
     }
-    renderLmsQueue();
+    input.value = '';
+    renderLmsQueue(wrapper);
 }
 
-function removeLmsPhoto(index) {
-    lmsCapturedPhotos.splice(index, 1);
-    renderLmsQueue();
+function removeLmsFile(btn, index) {
+    const wrapper = getAssignmentWrapper(btn);
+    if (!wrapper) return;
+    const store = getStore(wrapper);
+    store.files.splice(index, 1);
+    renderLmsQueue(wrapper);
 }
 
-function removeLmsFile(index) {
-    lmsSelectedFiles.splice(index, 1);
-    renderLmsQueue();
+function removeLmsPhoto(btn, index) {
+    const wrapper = getAssignmentWrapper(btn);
+    if (!wrapper) return;
+    const store = getStore(wrapper);
+    store.photos.splice(index, 1);
+    renderLmsQueue(wrapper);
 }
 
-function clearAllLmsFiles() {
-    lmsCapturedPhotos = [];
-    lmsSelectedFiles = [];
-    const fileInput = document.getElementById('lmsFileInput');
-    if (fileInput) fileInput.value = '';
-    renderLmsQueue();
+function clearAllLmsFiles(btn) {
+    const wrapper = getAssignmentWrapper(btn);
+    if (!wrapper) return;
+    const store = getStore(wrapper);
+    store.files = [];
+    store.photos = [];
+    renderLmsQueue(wrapper);
 }
 
-function renderLmsQueue() {
-    const queueContainer = document.getElementById('lmsSubmissionQueue');
-    const queueList = document.getElementById('lmsQueueList');
-    const queueCount = document.getElementById('lmsQueueCount');
-    const hiddenInputs = document.getElementById('lmsCameraPhotosHidden');
+function renderLmsQueue(wrapper) {
+    if (!wrapper) return;
+    const store = getStore(wrapper);
+    const queueContainer = wrapper.querySelector('.lms-queue-container');
+    const queueList = wrapper.querySelector('.lms-queue-list');
+    const queueCount = wrapper.querySelector('.lms-queue-count');
+    const hiddenInputs = wrapper.querySelector('.lms-camera-hidden');
     
     if (!queueContainer || !queueList || !queueCount || !hiddenInputs) return;
 
-    const total = lmsCapturedPhotos.length + lmsSelectedFiles.length;
+    const total = store.photos.length + store.files.length;
     queueCount.innerText = total;
     hiddenInputs.innerHTML = '';
     queueList.innerHTML = '';
@@ -1608,8 +1690,8 @@ function renderLmsQueue() {
     }
     queueContainer.classList.remove('hidden');
 
-    // Render Camera Snapshots
-    lmsCapturedPhotos.forEach((src, idx) => {
+    // 1. Render Camera Snapshots
+    store.photos.forEach((src, idx) => {
         const hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.name = 'camera_photos[]';
@@ -1617,36 +1699,42 @@ function renderLmsQueue() {
         hiddenInputs.appendChild(hidden);
 
         const card = document.createElement('div');
-        card.className = 'relative bg-slate-900 rounded-xl overflow-hidden p-1 border border-emerald-300 flex flex-col items-center justify-between text-center shadow-xs';
+        card.className = 'relative bg-slate-900 rounded-xl overflow-hidden p-1.5 border border-emerald-400 flex flex-col items-center justify-between text-center shadow-xs';
         card.innerHTML = `
             <img src="${src}" class="w-full h-20 object-contain rounded-lg">
             <span class="text-[10px] font-bold text-white mt-1 truncate w-full">Foto Kamera ${idx + 1}</span>
-            <button type="button" onclick="removeLmsPhoto(${idx})" class="mt-1 text-[10px] font-extrabold text-rose-400 hover:text-rose-200">❌ Hapus</button>
+            <button type="button" onclick="removeLmsPhoto(this, ${idx})" class="mt-1 text-[10px] font-extrabold text-rose-400 hover:text-rose-200">❌ Hapus</button>
         `;
         queueList.appendChild(card);
     });
 
-    // Render Selected Files
-    lmsSelectedFiles.forEach((file, idx) => {
+    // 2. Render Selected Files
+    store.files.forEach((file, idx) => {
         const ext = (file.name.split('.').pop() || '').toLowerCase();
-        const isImg = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+        const isImg = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'].includes(ext);
         const card = document.createElement('div');
-        card.className = 'relative bg-gray-50 rounded-xl overflow-hidden p-1.5 border border-indigo-200 flex flex-col items-center justify-between text-center shadow-xs';
+        card.className = 'relative bg-white rounded-xl overflow-hidden p-2 border-2 ' + (isImg ? 'border-indigo-200' : 'border-rose-200') + ' flex flex-col items-center justify-between text-center shadow-xs';
         
+        const sizeKB = (file.size / 1024).toFixed(0);
+        const sizeText = file.size > 1024 * 1024 ? (file.size / (1024 * 1024)).toFixed(1) + ' MB' : sizeKB + ' KB';
+
         if (isImg) {
             const url = URL.createObjectURL(file);
             card.innerHTML = `
-                <img src="${url}" class="w-full h-20 object-contain rounded-lg bg-slate-900">
-                <span class="text-[10px] font-bold text-gray-700 mt-1 truncate w-full">${file.name}</span>
-                <button type="button" onclick="removeLmsFile(${idx})" class="mt-1 text-[10px] font-extrabold text-rose-600 hover:text-rose-800">❌ Hapus</button>
+                <img src="${url}" class="w-full h-20 object-contain rounded-lg bg-slate-800">
+                <span class="text-[10px] font-bold text-gray-800 mt-1 truncate w-full" title="${file.name}">${file.name}</span>
+                <span class="text-[9px] text-gray-400 font-semibold">${sizeText}</span>
+                <button type="button" onclick="removeLmsFile(this, ${idx})" class="mt-1 text-[10px] font-extrabold text-rose-600 hover:text-rose-800">❌ Hapus</button>
             `;
         } else {
             card.innerHTML = `
-                <div class="w-full h-20 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center">
-                    <i class="fas fa-file-pdf text-3xl text-rose-600"></i>
+                <div class="w-full h-20 rounded-lg bg-rose-50 border border-rose-200 flex flex-col items-center justify-center p-1">
+                    <i class="fas fa-file-pdf text-3xl text-rose-600 mb-1"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">PDF</span>
                 </div>
-                <span class="text-[10px] font-bold text-rose-700 mt-1 truncate w-full">${file.name}</span>
-                <button type="button" onclick="removeLmsFile(${idx})" class="mt-1 text-[10px] font-extrabold text-rose-600 hover:text-rose-800">❌ Hapus</button>
+                <span class="text-[10px] font-bold text-rose-800 mt-1 truncate w-full" title="${file.name}">${file.name}</span>
+                <span class="text-[9px] text-gray-400 font-semibold">${sizeText}</span>
+                <button type="button" onclick="removeLmsFile(this, ${idx})" class="mt-1 text-[10px] font-extrabold text-rose-600 hover:text-rose-800">❌ Hapus</button>
             `;
         }
         queueList.appendChild(card);
@@ -1654,12 +1742,31 @@ function renderLmsQueue() {
 }
 
 function handleLmsAssignmentSubmit(form) {
-    // Sync selected files to DataTransfer if any
-    if (lmsSelectedFiles.length > 0) {
-        const dt = new DataTransfer();
-        lmsSelectedFiles.forEach(file => dt.items.add(file));
-        const fileInput = document.getElementById('lmsFileInput');
-        if (fileInput) fileInput.files = dt.files;
+    const wrapper = form.querySelector('.lms-file-wrapper');
+    if (wrapper) {
+        const store = getStore(wrapper);
+        const fileInput = wrapper.querySelector('.lms-main-file-input');
+        
+        // Sync selected files to DataTransfer if any
+        if (store.files.length > 0 && fileInput) {
+            try {
+                const dt = new DataTransfer();
+                store.files.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+            } catch (e) {
+                console.warn('DataTransfer error:', e);
+            }
+        }
+
+        // Validate if file required
+        const totalFiles = store.files.length + store.photos.length;
+        const isRequired = wrapper.dataset.fileRequired === '1';
+        const hasExisting = wrapper.dataset.hasExisting === '1';
+
+        if (isRequired && totalFiles === 0 && !hasExisting) {
+            alert('⚠️ Anda belum memilih berkas jawaban!\n\nSilakan pilih Dokumen PDF atau Foto lembar jawaban terlebih dahulu sebelum mengirim.');
+            return false;
+        }
     }
 
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -1672,11 +1779,7 @@ function handleLmsAssignmentSubmit(form) {
 }
 
 // Backward compatibility alias
-function validateLmsPdfFile(input) {
-    return handleLmsFileSelection(input);
-}
-function validateLmsFileSize(input) {
-    return handleLmsFileSelection(input);
-}
+function validateLmsPdfFile(input) { return handleLmsFileSelection(input); }
+function validateLmsFileSize(input) { return handleLmsFileSelection(input); }
 </script>
 @endpush
