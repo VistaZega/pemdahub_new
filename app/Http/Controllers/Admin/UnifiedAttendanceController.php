@@ -640,24 +640,19 @@ class UnifiedAttendanceController extends Controller
             foreach ($request->attendance as $studentId => $data) {
                 if (empty($data['status'])) continue;
 
-                $status = $data['status'];
-                $timeIn = !empty($data['time_in']) ? $data['time_in'] : ($isToday && in_array($status, ['hadir', 'terlambat']) ? $currentTime : null);
-                $timeOut = !empty($data['time_out']) ? $data['time_out'] : null;
+                $officialEntryTime = $classroom?->entry_time ? $classroom->entry_time . ':00' : '07:00:00';
+                $defaultPresentTime = ($isToday && $classroom && !$classroom->isLate($currentTime)) ? $currentTime : $officialEntryTime;
 
-                // KETENTUAN: Bila melebihi batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
-                // Pilihan izin, sakit, dan alpha tetap dihormati (KECUALI siswa aktif PKL)
-                $isStudentPkl = isset($activePklStudentIds[$studentId]);
-                if ($status === 'hadir' && !$isStudentPkl) {
-                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
-                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
-                        $status = 'terlambat';
-                    }
-                }
+                $timeIn = !empty($data['time_in']) ? $data['time_in'] : (
+                    $status === 'hadir' ? $defaultPresentTime : ($status === 'terlambat' ? ($isToday ? $currentTime : $officialEntryTime) : null)
+                );
+                $timeOut = !empty($data['time_out']) ? $data['time_out'] : null;
 
                 $attendance = Attendance::updateOrCreate(
                     [
                         'student_id'   => $studentId,
                         'classroom_id' => $classroomId,
+                        'schedule_id'  => null,
                         'date'         => $date,
                     ],
                     [
@@ -840,9 +835,9 @@ class UnifiedAttendanceController extends Controller
         $userId = auth()->id();
 
         if ($status === 'belum') {
-            // Delete attendance record if set back to 'belum'
+            // Delete daily attendance record if set back to 'belum'
             if ($group === 'siswa') {
-                Attendance::where('student_id', $personId)->where('date', $date)->delete();
+                Attendance::where('student_id', $personId)->where('date', $date)->whereNull('schedule_id')->delete();
             } else {
                 EmployeeAttendance::where('employee_id', $personId)->where('date', $date)->delete();
             }
@@ -863,33 +858,18 @@ class UnifiedAttendanceController extends Controller
             $isToday = ($date === date('Y-m-d'));
             $currentTime = now()->format('H:i:s');
 
-            $timeIn = $timeIn ?: ($isToday && in_array($status, ['hadir', 'terlambat']) ? $currentTime : ($classroom?->entry_time ? $classroom->entry_time . ':00' : '07:30:00'));
+            $officialEntryTime = $classroom?->entry_time ? $classroom->entry_time . ':00' : '07:00:00';
+            $defaultPresentTime = ($isToday && $classroom && !$classroom->isLate($currentTime)) ? $currentTime : $officialEntryTime;
 
-            // KETENTUAN: Bila melebihi toleransi keterlambatan, status otomatis menjadi 'terlambat'
-            // KECUALI siswa yang sedang aktif PKL
-            if ($status === 'hadir') {
-                $isStudentPkl = \App\Models\PklPlacement::where('student_id', $personId)
-                    ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-                    ->where(function($q) use ($date) {
-                        $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
-                    })
-                    ->where(function($q) use ($date) {
-                        $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
-                    })
-                    ->exists();
-
-                if (!$isStudentPkl) {
-                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
-                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
-                        $status = 'terlambat';
-                    }
-                }
-            }
+            $timeIn = $timeIn ?: (
+                $status === 'hadir' ? $defaultPresentTime : ($status === 'terlambat' ? ($isToday ? $currentTime : $officialEntryTime) : null)
+            );
 
             Attendance::updateOrCreate(
                 [
-                    'student_id' => $personId,
-                    'date'       => $date,
+                    'student_id'   => $personId,
+                    'schedule_id'  => null,
+                    'date'         => $date,
                 ],
                 [
                     'classroom_id' => $classroomId,

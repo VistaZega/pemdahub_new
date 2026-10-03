@@ -9,10 +9,16 @@
                  $isTeacher;
 @endphp
 <div class="space-y-4" x-data="{ tab: '{{ request('tab', 'modul') }}', showAddModule: false, showAddMaterial: false, showAddAssignment: false, showAddQuiz: false }">
-    <!-- Back Link -->
-    <a href="{{ route('mobile.lms.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-slate-500 hover:text-slate-900 transition">
-        <i class="fa-solid fa-arrow-left"></i> Kembali ke LMS
-    </a>
+    <!-- Back Link & Mode Web Switcher -->
+    <div class="flex items-center justify-between">
+        <a href="{{ route('mobile.lms.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-slate-500 hover:text-slate-900 transition">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke LMS
+        </a>
+        <a href="{{ route('siswa.lms.show', ['course' => $course->id, 'switch_mode' => 'desktop']) }}" 
+           class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-xl text-[11px] font-black shadow-xs hover:bg-blue-50 transition">
+            <i class="fa-solid fa-desktop text-xs"></i> Buka Mode Web
+        </a>
+    </div>
 
     <!-- Course Banner Clay Card -->
     <div class="clay-purple p-6 relative overflow-hidden">
@@ -835,6 +841,11 @@
                 @else
                     <!-- Student Action View -->
                     <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                        @php
+                            $canAttemptQuiz = $student ? $quiz->canAttempt($student->id) : true;
+                            $hasActiveAttempt = $student && $attempts->whereNull('finished_at')->isNotEmpty();
+                        @endphp
+
                         @if($latestFinished)
                             <a href="{{ route('mobile.lms.quiz.result', $latestFinished->id) }}" class="px-3 py-2 bg-slate-100 text-slate-800 text-xs font-black rounded-xl border border-slate-200">
                                 📊 Lihat Hasil
@@ -843,9 +854,15 @@
                             <span class="text-[10px] text-slate-500 font-bold">Belum dikerjakan</span>
                         @endif
 
-                        <a href="{{ route('mobile.lms.quiz.start', $quiz->id) }}" class="clay-btn py-2.5 px-4 text-xs font-black text-white shadow-md">
-                            <i class="fa-solid fa-pen-nib mr-1"></i> {{ $latestFinished ? 'Ulangi Kuis' : 'Mulai Kerjakan Kuis' }}
-                        </a>
+                        @if($canAttemptQuiz || $hasActiveAttempt)
+                            <a href="{{ route('mobile.lms.quiz.start', $quiz->id) }}" class="clay-btn py-2.5 px-4 text-xs font-black text-white shadow-md">
+                                <i class="fa-solid fa-pen-nib mr-1"></i> {{ $hasActiveAttempt ? 'Lanjutkan Kuis' : ($latestFinished ? 'Ulangi Kuis' : 'Mulai Kerjakan Kuis') }}
+                            </a>
+                        @else
+                            <span class="px-3 py-2 bg-slate-100 text-slate-500 text-xs font-black rounded-xl border border-slate-200">
+                                <i class="fa-solid fa-lock mr-1"></i> Batas Percobaan Habis
+                            </span>
+                        @endif
                     </div>
                 @endif
             </div>

@@ -422,29 +422,22 @@ class MobileTeacherController extends Controller
                     continue;
                 }
 
-                // Jika status 'hadir' dicatat melewati batas toleransi kehadiran kelas, otomatis menjadi 'terlambat'
-                // KECUALI siswa PKL yang memiliki jam kerja fleksibel di tempat industri / DUDI
-                $isStudentPkl = isset($activePklStudentIds[$studentId]);
-                if ($status === 'hadir' && $isLateTime && !$isStudentPkl) {
-                    $status = 'terlambat';
-                }
-
+                // Catatan: Pilihan guru KBM dihormati sepenuhnya.
+                // KBM tidak di-override terlambat karena jam pelajaran berlangsung sepanjang hari.
                 $timeIn = in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : null) : null;
 
-                // Cari record yang ada terlebih dahulu untuk menghindari bentrokan index unik (student_id, schedule_id, date)
+                // Cari record KBM yang sesuai
                 $attendance = null;
                 if ($scheduleId) {
                     $attendance = Attendance::where('student_id', $studentId)
                         ->where('schedule_id', $scheduleId)
                         ->whereDate('date', $date)
                         ->first();
-                }
-
-                if (!$attendance) {
+                } else {
                     $attendance = Attendance::where('student_id', $studentId)
                         ->where('classroom_id', $classroomId)
+                        ->whereNull('schedule_id')
                         ->whereDate('date', $date)
-                        ->where('created_by', Auth::id())
                         ->first();
                 }
 
@@ -478,13 +471,16 @@ class MobileTeacherController extends Controller
                     ->first();
 
                 if (!$existingDaily) {
+                    $officialEntryTime = $classroomModel?->entry_time ? $classroomModel->entry_time . ':00' : '07:00:00';
+                    $dailyTimeIn = ($status === 'hadir') ? $officialEntryTime : ($status === 'terlambat' ? $timeIn : null);
+
                     Attendance::create([
                         'student_id'   => $studentId,
                         'classroom_id' => $classroomId,
                         'date'         => $date,
                         'schedule_id'  => null,
                         'status'       => $status,
-                        'time_in'      => $timeIn,
+                        'time_in'      => $dailyTimeIn,
                         'recorded_via' => 'manual',
                         'created_by'   => Auth::id(),
                     ]);

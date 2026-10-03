@@ -240,32 +240,24 @@ class AttendanceController extends Controller
                     continue;
                 }
 
-                // Jika status 'hadir' dicatat melewati batas toleransi kelas, otomatis menjadi 'terlambat'
-                // Pilihan izin, sakit, dan alpha tetap dihormati (KECUALI siswa aktif PKL)
-                $isStudentPkl = isset($activePklStudentIds[$studentId]);
-                if ($status === 'hadir' && !$isStudentPkl) {
-                    $checkTime = $isToday ? $currentTime : null;
-                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
-                        $status = 'terlambat';
-                    }
-                }
-
+                // Catatan: Pilihan status guru KBM dihormati sepenuhnya.
+                // KBM tidak di-override terlambat karena jam pelajaran berlangsung sepanjang hari.
                 $note = $request->notes[$studentId] ?? null;
                 $timeIn = in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : null) : null;
 
                 $attendance = Attendance::updateOrCreate(
                     [
-                        'student_id' => $studentId,
+                        'student_id'   => $studentId,
                         'classroom_id' => $request->classroom_id,
-                        'date' => $request->date,
-                        'created_by' => Auth::id(), // Pisahkan absensi milik guru ini dari absensi hadir harian
+                        'schedule_id'  => $scheduleId,
+                        'date'         => $request->date,
                     ],
                     [
-                        'schedule_id' => $scheduleId,
-                        'status' => $status,
-                        'time_in' => $timeIn,
-                        'notes' => $note,
+                        'status'       => $status,
+                        'time_in'      => $timeIn,
+                        'notes'        => $note,
                         'recorded_via' => 'manual',
+                        'created_by'   => Auth::id(),
                     ]
                 );
 
@@ -276,16 +268,19 @@ class AttendanceController extends Controller
                     ->first();
 
                 if (!$existingDaily) {
+                    $officialEntryTime = $classroom?->entry_time ? $classroom->entry_time . ':00' : '07:00:00';
+                    $dailyTimeIn = ($status === 'hadir') ? $officialEntryTime : ($status === 'terlambat' ? $timeIn : null);
+
                     Attendance::create([
-                        'student_id' => $studentId,
+                        'student_id'   => $studentId,
                         'classroom_id' => $request->classroom_id,
-                        'date' => $request->date,
-                        'schedule_id' => null,
-                        'status' => $status,
-                        'time_in' => $timeIn,
-                        'notes' => $note,
+                        'date'         => $request->date,
+                        'schedule_id'  => null,
+                        'status'       => $status,
+                        'time_in'      => $dailyTimeIn,
+                        'notes'        => $note,
                         'recorded_via' => 'manual',
-                        'created_by' => Auth::id(),
+                        'created_by'   => Auth::id(),
                     ]);
                 }
 
@@ -415,18 +410,15 @@ class AttendanceController extends Controller
                     continue;
                 }
 
-                // Tentukan time_in
-                $timeIn = $existing?->time_in ?? (in_array($status, ['hadir', 'terlambat']) ? ($isToday ? $currentTime : ($classroom->entry_time ? $classroom->entry_time . ':00' : '07:30:00')) : null);
+                // Tentukan time_in:
+                // Hormati pilihan Wali Kelas. Jangan meng-override status 'hadir' menjadi 'terlambat'
+                // Bila hadir tepat waktu namun input web dilakukan setelah jam masuk, catat time_in pada jam masuk resmi kelas
+                $officialEntryTime = $classroom?->entry_time ? $classroom->entry_time . ':00' : '07:00:00';
+                $defaultPresentTime = ($isToday && $classroom && !$classroom->isLate($currentTime)) ? $currentTime : $officialEntryTime;
 
-                // KETENTUAN: Bila waktu pencatatan/kehadiran melebihi batas toleransi kelas, secara default status menjadi 'terlambat'
-                // Pilihan izin, sakit, dan alpha tetap dihormati (KECUALI siswa aktif PKL)
-                $isStudentPkl = isset($activePklStudentIds[$studentId]) || ($existing && $existing->recorded_via === 'gps_pkl');
-                if ($status === 'hadir' && !$isStudentPkl) {
-                    $checkTime = $timeIn ?: ($isToday ? $currentTime : null);
-                    if ($checkTime && $classroom && $classroom->isLate($checkTime)) {
-                        $status = 'terlambat';
-                    }
-                }
+                $timeIn = $existing?->time_in ?? (
+                    $status === 'hadir' ? $defaultPresentTime : ($status === 'terlambat' ? ($isToday ? $currentTime : $officialEntryTime) : null)
+                );
 
                 $attendance = Attendance::updateOrCreate(
                     [

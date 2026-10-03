@@ -33,12 +33,10 @@ class LmsController extends Controller
      */
     public function index()
     {
-        $userAgent = request()->userAgent() ?? '';
-        $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
-        $isMobilePhone = $secChUaMobile || (bool) preg_match('/Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i', $userAgent);
-
-        if ($isMobilePhone && !session('prefer_desktop')) {
-            return redirect()->route('mobile.lms.index');
+        if (request('switch_mode') === 'desktop') {
+            session(['prefer_desktop' => true]);
+            cookie()->queue('prefer_desktop', '1', 60 * 24 * 365);
+            cookie()->queue(cookie()->forget('app_mode'));
         }
 
         $student = $this->getStudent();
@@ -215,12 +213,10 @@ class LmsController extends Controller
      */
     public function show(LmsCourse $course)
     {
-        $userAgent = request()->userAgent() ?? '';
-        $secChUaMobile = request()->header('sec-ch-ua-mobile') === '?1';
-        $isMobilePhone = $secChUaMobile || (bool) preg_match('/Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i', $userAgent);
-
-        if ($isMobilePhone && !session('prefer_desktop')) {
-            return redirect()->route('mobile.lms.show', $course->id);
+        if (request('switch_mode') === 'desktop') {
+            session(['prefer_desktop' => true]);
+            cookie()->queue('prefer_desktop', '1', 60 * 24 * 365);
+            cookie()->queue(cookie()->forget('app_mode'));
         }
 
         $student = $this->getStudent();

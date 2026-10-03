@@ -180,4 +180,10 @@
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white"><i class="fas fa-user text-[10px]"></i></div>
         <span>Profil Saya</span>
     </a>
+
+    <!-- Mode Mobile App Switcher -->
+    <a href="{{ route('mobile.dashboard', ['switch_mode' => 'mobile']) }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-purple-700 bg-purple-50/70 hover:bg-purple-100 border border-purple-200 font-bold transition">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-mobile-screen-button text-[10px]"></i></div>
+        <span>Beralih ke Versi Mobile</span>
+    </a>
 @endsection

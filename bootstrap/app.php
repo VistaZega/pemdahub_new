@@ -55,15 +55,21 @@ return Application::configure(basePath: dirname(__DIR__))
             $userAgent = $request->userAgent() ?? '';
             $secChUaMobile = $request->header('sec-ch-ua-mobile') === '?1';
 
-            $isMobileRequest = $request->is('m/*') 
+            $preferDesktop = session('prefer_desktop') 
+                || $request->cookie('prefer_desktop') === '1'
+                || $request->query('switch_mode') === 'desktop';
+
+            $isMobileRequest = !$preferDesktop && (
+                $request->is('m/*') 
                 || $request->is('m')
-                || str_contains($referer, '/m/') 
+                || (str_contains($referer, '/m/') && !$request->has('switch_mode'))
                 || $request->cookie('app_mode') === 'mobile' 
                 || session('is_mobile_app')
                 || $secChUaMobile 
-                || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
+                || preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent)
+            );
 
-            if ($isMobileRequest && !session('prefer_desktop')) {
+            if ($isMobileRequest) {
                 return route('mobile.login');
             }
 

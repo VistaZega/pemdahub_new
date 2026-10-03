@@ -10,6 +10,13 @@
     $initRemSec = $initSec % 60;
     $initFormatted = sprintf('%02d:%02d', $initMin, $initRemSec);
     $effectivePoints = $quiz->getEffectivePointsPerQuestion(count($questions));
+
+    $initialAnswers = [];
+    foreach ($questions as $q) {
+        if (isset($answerMap[$q->id]) && $answerMap[$q->id]->answer !== null && $answerMap[$q->id]->answer !== '') {
+            $initialAnswers[(string)$q->id] = (string)$answerMap[$q->id]->answer;
+        }
+    }
 @endphp
 
 <div x-data="mobileQuizApp()" x-init="init()" class="space-y-4 pb-28">
@@ -19,6 +26,9 @@
         <div class="flex items-center justify-between gap-2">
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 text-[10px] font-black text-purple-700 uppercase tracking-wider truncate">
+                    <a href="{{ route('mobile.lms.show', ['course' => $quiz->course_id, 'tab' => 'kuis']) }}" class="text-slate-500 hover:text-slate-800 mr-1" title="Kembali">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
                     <span>{{ $quiz->course->course_name ?? 'Kuis LMS' }}</span>
                 </div>
                 <div class="text-xs font-black text-slate-900 truncate">
@@ -153,19 +163,19 @@
                             @php 
                                 $alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
                                 $isAssoc = is_array($opt) && isset($opt['key']);
-                                $optVal = $isAssoc ? $opt['key'] : (string)$optIdx;
+                                $optVal = (string)($isAssoc ? $opt['key'] : $optIdx);
                                 $optLabel = $isAssoc ? $opt['key'] : ($alphabet[$optIdx] ?? (is_numeric($optIdx) ? chr(65 + $optIdx) : strtoupper($optIdx)));
                                 $optText = $isAssoc ? $opt['text'] : $opt;
                                 $isChecked = ((string)$prevAns === (string)$optVal);
                             @endphp
                             <label class="p-3.5 rounded-2xl flex items-center space-x-3 cursor-pointer transition border-2"
-                                   :class="answers['{{ $q->id }}'] == '{{ $optVal }}' ? 'clay-purple text-white font-black scale-[1.01]' : 'bg-[#f4f7fc] text-slate-800 border-slate-200/80 font-bold hover:border-purple-300'">
+                                   :class="answers['{{ $q->id }}'] == {{ json_encode($optVal) }} ? 'clay-purple text-white font-black scale-[1.01]' : 'bg-[#f4f7fc] text-slate-800 border-slate-200/80 font-bold hover:border-purple-300'">
                                 <input type="radio" name="answers[{{ $q->id }}]" value="{{ $optVal }}"
-                                       @change="setAnswer('{{ $q->id }}', '{{ $optVal }}')"
-                                       :checked="answers['{{ $q->id }}'] == '{{ $optVal }}'"
-                                       class="hidden">
+                                       @change="setAnswer('{{ $q->id }}', {{ json_encode($optVal) }})"
+                                       :checked="answers['{{ $q->id }}'] == {{ json_encode($optVal) }}"
+                                       class="sr-only">
                                 <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black border border-current shadow-sm flex-shrink-0"
-                                     :class="answers['{{ $q->id }}'] == '{{ $optVal }}' ? 'bg-white text-purple-700' : 'bg-white text-slate-700'">
+                                     :class="answers['{{ $q->id }}'] == {{ json_encode($optVal) }} ? 'bg-white text-purple-700' : 'bg-white text-slate-700'">
                                     {{ $optLabel }}
                                 </div>
                                 <span class="text-xs flex-1 leading-snug">{{ $optText }}</span>
@@ -181,7 +191,7 @@
                             <input type="radio" name="answers[{{ $q->id }}]" value="true"
                                    @change="setAnswer('{{ $q->id }}', 'true')"
                                    :checked="answers['{{ $q->id }}'] == 'true'"
-                                   class="hidden">
+                                   class="sr-only">
                             <i class="fa-solid fa-circle-check text-sm"></i>
                             <span class="text-xs">BENAR</span>
                         </label>
@@ -191,7 +201,7 @@
                             <input type="radio" name="answers[{{ $q->id }}]" value="false"
                                    @change="setAnswer('{{ $q->id }}', 'false')"
                                    :checked="answers['{{ $q->id }}'] == 'false'"
-                                   class="hidden">
+                                   class="sr-only">
                             <i class="fa-solid fa-circle-xmark text-sm"></i>
                             <span class="text-xs">SALAH</span>
                         </label>
@@ -291,15 +301,9 @@
 
 @push('scripts')
 <script>
-function mobileQuizApp() {
+window.mobileQuizApp = function() {
     return {
-        answers: {
-            @foreach($questions as $q)
-                @if(isset($answerMap[$q->id]) && $answerMap[$q->id]->answer !== null && $answerMap[$q->id]->answer !== '')
-                    '{{ $q->id }}': '{{ addslashes($answerMap[$q->id]->answer) }}',
-                @endif
-            @endforeach
-        },
+        answers: {!! json_encode((object)$initialAnswers) !!},
 
         get answeredCount() {
             let count = 0;
@@ -329,6 +333,14 @@ function mobileQuizApp() {
             });
         }
     };
+};
+
+if (typeof Alpine !== 'undefined') {
+    Alpine.data('mobileQuizApp', window.mobileQuizApp);
+} else {
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('mobileQuizApp', window.mobileQuizApp);
+    });
 }
 
 @if($quiz->time_limit)

@@ -595,17 +595,17 @@ class MobileLmsController extends Controller
         $quiz = LmsQuiz::with(['course'])->findOrFail($quizId);
         $student = $this->getStudent();
         if (!$student) {
-            return redirect()->route('mobile.lms.show', $quiz->course_id)->with('error', 'Data siswa tidak ditemukan.');
+            return redirect()->route('mobile.lms.show', ['course' => $quiz->course_id, 'tab' => 'kuis'])->with('error', 'Data siswa tidak ditemukan.');
         }
 
         if (!$quiz->isAvailable()) {
-            return redirect()->route('mobile.lms.show', $quiz->course_id)
+            return redirect()->route('mobile.lms.show', ['course' => $quiz->course_id, 'tab' => 'kuis'])
                 ->with('error', 'Kuis ini belum tersedia atau sudah berakhir.');
         }
 
         // Check if student can still attempt
         if (!$quiz->canAttempt($student->id)) {
-            return redirect()->route('mobile.lms.show', $quiz->course_id)
+            return redirect()->route('mobile.lms.show', ['course' => $quiz->course_id, 'tab' => 'kuis'])
                 ->with('error', 'Anda sudah mencapai batas percobaan untuk kuis ini.');
         }
 
@@ -626,6 +626,11 @@ class MobileLmsController extends Controller
         $elapsedSeconds = $attempt->started_at ? abs((int)now()->diffInSeconds($attempt->started_at)) : 0;
         $totalSeconds = $quiz->time_limit ? ($quiz->time_limit * 60) : null;
         $remainingSeconds = $totalSeconds !== null ? max(0, $totalSeconds - $elapsedSeconds) : null;
+
+        if ($totalSeconds !== null && $remainingSeconds <= 0 && !$attempt->finished_at) {
+            $attempt->update(['finished_at' => now()]);
+            return redirect()->route('mobile.lms.quiz.result', $attempt->id)->with('info', 'Waktu pengerjaan kuis telah habis.');
+        }
 
         // Load questions (optionally shuffled or sampled randomly, seeded by attempt id)
         $questionsQuery = $quiz->questions();

@@ -210,6 +210,14 @@
                 </button>
             @endif
 
+            <!-- Mode Web Desktop Switcher Button -->
+            <a href="{{ url('/?switch_mode=desktop') }}" 
+               title="Beralih ke Tampilan Web (Desktop)"
+               class="px-2.5 py-1.5 text-xs font-black bg-white text-slate-700 border-2 border-slate-200 rounded-2xl hover:bg-slate-50 flex items-center gap-1.5 transition shadow-sm active:scale-95">
+                <i class="fa-solid fa-desktop text-blue-600 text-xs"></i>
+                <span>Web</span>
+            </a>
+
             <!-- Quick Logout Header Button -->
             <form action="{{ route('mobile.logout') }}" method="POST" class="inline">
                 @csrf

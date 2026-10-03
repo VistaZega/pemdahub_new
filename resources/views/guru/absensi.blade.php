@@ -256,9 +256,9 @@
                                     $isPassedLateThresh = ($selectedDailyDate === date('Y-m-d')) && now()->format('H:i:s') > $lateThresh;
                                 @endphp
                                 @if($isPassedLateThresh)
-                                    <div class="mt-2 px-3 py-1.5 bg-amber-100 border border-amber-300 rounded-xl text-amber-900 text-xs font-bold flex items-center gap-2">
-                                        <i class="fas fa-clock text-amber-700"></i>
-                                        <span>Batas Masuk Kelas ({{ substr($selectedClassroom->entry_time ?? '07:30', 0, 5) }} + {{ $selectedClassroom->late_tolerance ?? 15 }}m = <strong>{{ substr($lateThresh, 0, 5) }} WIB</strong>) telah lewat. Input 'Hadir' otomatis tercatat sebagai <strong>Terlambat</strong>.</span>
+                                    <div class="mt-2 px-3 py-1.5 bg-purple-100 border border-purple-300 rounded-xl text-purple-900 text-xs font-bold flex items-center gap-2">
+                                        <i class="fas fa-info-circle text-purple-700"></i>
+                                        <span>Batas Masuk Kelas: <strong>{{ substr($lateThresh, 0, 5) }} WIB</strong> (toleransi {{ $selectedClassroom->late_tolerance ?? 15 }} menit). Tandai <strong>Terlambat</strong> bila siswa datang melewati batas waktu, atau <strong>Hadir</strong> bila siswa tiba tepat waktu sebelum jam masuk.</span>
                                     </div>
                                 @endif
                             </div>

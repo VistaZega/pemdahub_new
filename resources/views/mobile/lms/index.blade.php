@@ -45,6 +45,12 @@
                 <i class="fa-solid fa-compass text-purple-600"></i>
                 <span>Katalog</span>
             </a>
+            <a href="{{ route('siswa.lms.index', ['switch_mode' => 'desktop']) }}" 
+               title="Beralih ke Versi Web Desktop"
+               class="px-2.5 py-2 rounded-xl bg-blue-50 border-2 border-blue-200 text-blue-700 text-xs font-black hover:bg-blue-100 active:scale-95 transition flex items-center gap-1.5 shadow-2xs">
+                <i class="fa-solid fa-desktop text-blue-600"></i>
+                <span>Mode Web</span>
+            </a>
         </div>
     </div>
 

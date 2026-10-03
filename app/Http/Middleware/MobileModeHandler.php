@@ -24,17 +24,29 @@ class MobileModeHandler
                 session(['prefer_desktop' => true]);
                 session()->forget('is_mobile_app');
                 cookie()->queue(cookie()->forget('app_mode'));
+                cookie()->queue('prefer_desktop', '1', 60 * 24 * 365);
             } elseif ($mode === 'mobile') {
                 session(['is_mobile_app' => true]);
                 session()->forget('prefer_desktop');
+                cookie()->queue(cookie()->forget('prefer_desktop'));
                 cookie()->queue('app_mode', 'mobile', 60 * 24 * 365);
             }
         }
 
+        // Restore prefer_desktop from persistent cookie if on web routes
+        $hasDesktopCookie = $request->cookie('prefer_desktop') === '1';
+        if ($hasDesktopCookie && !$request->is('m/*') && !$request->is('m')) {
+            session(['prefer_desktop' => true]);
+            session()->forget('is_mobile_app');
+        }
+
         // 2. If request is to /m/* or /m on mobile phone, auto-remember mobile mode
-        if ($request->is('m/*') || $request->is('m')) {
+        if (($request->is('m/*') || $request->is('m')) && $request->query('switch_mode') !== 'desktop') {
             session(['is_mobile_app' => true]);
-            session()->forget('prefer_desktop');
+            if ($request->query('switch_mode') === 'mobile') {
+                session()->forget('prefer_desktop');
+                cookie()->queue(cookie()->forget('prefer_desktop'));
+            }
         } elseif (!$isMobilePhone && !$request->is('m/*')) {
             // Pada PC / Desktop saat membuka rute desktop normal: pastikan mode desktop aktif
             if ($request->hasCookie('app_mode')) {
