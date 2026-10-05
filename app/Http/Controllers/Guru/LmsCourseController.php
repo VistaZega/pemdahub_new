@@ -1310,6 +1310,12 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
             ->get()
             ->groupBy('student_id');
 
+        $quizAttempts = \App\Models\LmsQuizAttempt::whereIn('student_id', $studentIds)
+            ->whereIn('quiz_id', $quizIds)
+            ->whereNotNull('finished_at')
+            ->get()
+            ->groupBy('student_id');
+
         $studentStats = [];
         $atRiskStudents = [];
         $classesMap = [];
@@ -1344,26 +1350,27 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
                 }
             }
 
-            // Hitung statistik progres
+            // Hitung statistik progres (Materi + Tugas + Kuis = 100%)
             $stMat = $materialProgresses->get($student->id, collect());
             $stSub = $submissions->get($student->id, collect());
+            $stQuiz = $quizAttempts->get($student->id, collect());
 
             $completedMaterials = $stMat->where('status', 'completed')->count();
-            $submissionsCount = $stSub->whereIn('status', ['submitted', 'graded'])->count();
+            $submissionsCount = $stSub->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->count();
             if ($submissionsCount === 0 && $totalAssignments > 0) {
                 $submissionsCount = $stSub->count();
             }
+            $completedQuizzes = $stQuiz->pluck('quiz_id')->unique()->count();
 
-            // Progres gabungan: 50% materi + 50% tugas (jika ada tugas), atau 100% materi saja
-            $matPct    = $totalMaterials    > 0 ? ($completedMaterials / $totalMaterials)    * 100 : 100;
-            $assignPct = $totalAssignments  > 0 ? ($submissionsCount   / $totalAssignments)  * 100 : 100;
-            if ($totalAssignments > 0 && $totalMaterials > 0) {
-                $progress = (int) round(($matPct * 0.5) + ($assignPct * 0.5));
-            } elseif ($totalMaterials > 0) {
-                $progress = (int) round($matPct);
-            } else {
-                $progress = (int) round($assignPct);
-            }
+            $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
+                $totalMaterials,
+                $completedMaterials,
+                $totalAssignments,
+                $submissionsCount,
+                $totalQuizzes,
+                $completedQuizzes
+            );
+            $progress = $breakdown['overall'];
 
             // At-risk: progres gabungan < 40%, atau belum kumpul sama sekali,
             // atau tugas yang dikumpulkan belum lengkap (< total tugas)
@@ -1575,7 +1582,18 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
 
                 $stMat = $materialProgresses->get($student->id, collect());
                 $completedMats = $stMat->where('status', 'completed')->count();
-                $progress = $totalMaterials > 0 ? round(($completedMats / $totalMaterials) * 100) : 0;
+                $submittedTasks = $stSub->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->count();
+                $completedQuizzes = $stQuiz->pluck('quiz_id')->unique()->count();
+
+                $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
+                    $totalMaterials,
+                    $completedMats,
+                    $totalAssignments,
+                    $submittedTasks,
+                    $totalQuizzes,
+                    $completedQuizzes
+                );
+                $progress = $breakdown['overall'];
                 $row[] = $progress . '%';
 
                 fputcsv($file, $row);

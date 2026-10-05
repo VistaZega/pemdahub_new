@@ -64,10 +64,12 @@ class LmsController extends Controller
 
         $courses = $enrollments->map(fn($e) => $e->lmsClass->course)->filter()->unique('id');
 
-        // Calculate progress per course
+        // Calculate progress per course (Materi + Tugas + Kuis = 100%)
+        $progressService = app(\App\Services\LmsProgressService::class);
+        $courseProgressDetails = $progressService->getMultipleCoursesProgressDetailsForStudent($courses, $student->id);
         $courseProgress = [];
         foreach ($courses as $course) {
-            $courseProgress[$course->id] = LmsMaterialProgress::getProgressForCourse($course->id, $student->id);
+            $courseProgress[$course->id] = $courseProgressDetails[$course->id]['overall'] ?? 0;
         }
 
         // Calculate upcoming deadlines (Assignments & Quizzes in next 7 days)
@@ -94,7 +96,7 @@ class LmsController extends Controller
             ->limit(5)
             ->get();
 
-        return view('siswa.lms.index', compact('student', 'courses', 'courseProgress', 'upcomingAssignments', 'upcomingQuizzes', 'leaderboard'));
+        return view('siswa.lms.index', compact('student', 'courses', 'courseProgress', 'courseProgressDetails', 'upcomingAssignments', 'upcomingQuizzes', 'leaderboard'));
     }
 
     /**
@@ -297,8 +299,9 @@ class LmsController extends Controller
             ->pluck('material_id')
             ->toArray();
 
-        // Course overall progress
-        $courseProgress = LmsMaterialProgress::getProgressForCourse($course->id, $student->id);
+        // Course overall progress (Materi + Tugas + Kuis = 100%)
+        $progressBreakdown = app(\App\Services\LmsProgressService::class)->getDetailedCourseProgress($course, $student->id);
+        $courseProgress = $progressBreakdown['overall'] ?? 0;
 
         // Discussion count
         $discussionCount = $course->discussions()->count();
@@ -320,7 +323,7 @@ class LmsController extends Controller
 
         return view('siswa.lms.show', compact(
             'student', 'course', 'submissionMap', 'studentGroupMap', 'attemptMap', 'gameAttemptMap',
-            'materialProgressMap', 'courseProgress', 'discussionCount',
+            'materialProgressMap', 'courseProgress', 'progressBreakdown', 'discussionCount',
             'reactionsMap', 'completedMaterialIds', 'unassignedMaterials'
         ));
     }

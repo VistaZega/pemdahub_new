@@ -182,8 +182,43 @@ if (!function_exists('balanceHtmlTags')) {
                     <div>
                         <div class="text-[10px] font-black uppercase tracking-widest text-black">Progress Belajar</div>
                         <div class="text-sm font-black text-black">{{ $courseProgress >= 80 ? 'Hampir Selesai!' : ($courseProgress >= 40 ? 'Lanjutkan Belajar!' : ($courseProgress > 0 ? 'Baru Mulai' : 'Mulai Belajar')) }}</div>
+                        <div class="text-[9px] font-bold text-blue-900 mt-0.5">Materi · Tugas · Kuis</div>
                     </div>
                 </div>
+
+                @if(isset($progressBreakdown))
+                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2.5 flex items-center gap-3 shadow-md">
+                    <div class="flex items-center gap-2" title="Materi Dibaca">
+                        <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-black border border-black shrink-0">
+                            <i class="fas fa-file-alt"></i>
+                        </span>
+                        <div>
+                            <div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Materi</div>
+                            <div class="text-xs font-black text-black">{{ $progressBreakdown['materials']['completed'] }}/{{ $progressBreakdown['materials']['total'] }}</div>
+                        </div>
+                    </div>
+                    <span class="text-slate-300">|</span>
+                    <div class="flex items-center gap-2" title="Tugas Dikumpulkan">
+                        <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-black border border-black shrink-0">
+                            <i class="fas fa-tasks"></i>
+                        </span>
+                        <div>
+                            <div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Tugas</div>
+                            <div class="text-xs font-black text-black">{{ $progressBreakdown['assignments']['completed'] }}/{{ $progressBreakdown['assignments']['total'] }}</div>
+                        </div>
+                    </div>
+                    <span class="text-slate-300">|</span>
+                    <div class="flex items-center gap-2" title="Kuis Diselesaikan">
+                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center text-xs font-black border border-black shrink-0">
+                            <i class="fas fa-question-circle"></i>
+                        </span>
+                        <div>
+                            <div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Kuis</div>
+                            <div class="text-xs font-black text-black">{{ $progressBreakdown['quizzes']['completed'] }}/{{ $progressBreakdown['quizzes']['total'] }}</div>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <div class="bg-white border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md">
                     <div class="text-xl font-black leading-none text-black">{{ $course->modules->count() }}</div>

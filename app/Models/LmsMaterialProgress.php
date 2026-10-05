@@ -94,6 +94,11 @@ class LmsMaterialProgress extends Model
 
     public static function getProgressForCourse($courseId, $studentId)
     {
+        return app(\App\Services\LmsProgressService::class)->calculateCourseProgress($courseId, $studentId);
+    }
+
+    public static function getMaterialOnlyProgressForCourse($courseId, $studentId)
+    {
         $totalMaterials = LmsMaterial::where('course_id', $courseId)->where('is_published', true)->count();
         if ($totalMaterials === 0) return 0;
 

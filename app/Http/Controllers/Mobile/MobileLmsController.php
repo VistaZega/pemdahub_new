@@ -83,24 +83,10 @@ class MobileLmsController extends Controller
                 ->get();
         }
 
-        // Hitung persentase progress penyelesaian materi untuk siswa
+        // Hitung persentase progress kursus (Materi + Tugas + Kuis = 100%)
         $courseProgress = [];
         if ($student) {
-            $completedMaterials = \App\Models\LmsMaterialProgress::where('student_id', $student->id)
-                ->pluck('material_id')
-                ->toArray();
-
-            foreach ($enrolledCourses as $c) {
-                $totalMat = $c->materials_count;
-                if ($totalMat > 0) {
-                    $matIds = \App\Models\LmsMaterial::where('course_id', $c->id)->pluck('id')->toArray();
-                    $completedCount = count(array_intersect($matIds, $completedMaterials));
-                    $pct = round(($completedCount / $totalMat) * 100);
-                    $courseProgress[$c->id] = min(100, $pct);
-                } else {
-                    $courseProgress[$c->id] = 0;
-                }
-            }
+            $courseProgress = app(\App\Services\LmsProgressService::class)->calculateMultipleCoursesProgressForStudent($enrolledCourses, $student->id);
         }
 
         $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();

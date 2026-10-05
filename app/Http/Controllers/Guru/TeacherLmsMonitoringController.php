@@ -159,11 +159,15 @@ class TeacherLmsMonitoringController extends Controller
             $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded'])->count();
             $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
 
-            $matPct = $totalMats > 0 ? round(($completedMats / $totalMats) * 100) : 100;
-            $assignPct = $totalAssigns > 0 ? round(($submittedAssigns / $totalAssigns) * 100) : 100;
-            $quizPct = $totalQuizzes > 0 ? round(($completedQuizzes / $totalQuizzes) * 100) : 100;
-
-            $overallPct = round(($matPct * 0.5) + ($assignPct * 0.3) + ($quizPct * 0.2));
+            $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
+                $totalMats,
+                $completedMats,
+                $totalAssigns,
+                $submittedAssigns,
+                $totalQuizzes,
+                $completedQuizzes
+            );
+            $overallPct = $breakdown['overall'];
 
             // Nilai rata-rata tugas & kuis pada kursus ini
             $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
@@ -625,11 +629,15 @@ class TeacherLmsMonitoringController extends Controller
                 $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded'])->count();
                 $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
 
-                $matPct = $totalMats > 0 ? round(($completedMats / $totalMats) * 100) : 100;
-                $assignPct = $totalAssigns > 0 ? round(($submittedAssigns / $totalAssigns) * 100) : 100;
-                $quizPct = $totalQuizzes > 0 ? round(($completedQuizzes / $totalQuizzes) * 100) : 100;
-
-                $overallPct = round(($matPct * 0.5) + ($assignPct * 0.3) + ($quizPct * 0.2));
+                $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
+                    $totalMats,
+                    $completedMats,
+                    $totalAssigns,
+                    $submittedAssigns,
+                    $totalQuizzes,
+                    $completedQuizzes
+                );
+                $overallPct = $breakdown['overall'];
 
                 $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
                 $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');

@@ -266,10 +266,7 @@ class DashboardController extends Controller
             
         $courses = $enrollments->map(fn($e) => $e->lmsClass->course)->filter()->unique('id')->take(4);
         
-        $courseProgress = [];
-        foreach ($courses as $course) {
-            $courseProgress[$course->id] = \App\Models\LmsMaterialProgress::getProgressForCourse($course->id, $student->id);
-        }
+        $courseProgress = app(\App\Services\LmsProgressService::class)->calculateMultipleCoursesProgressForStudent($courses, $student->id);
 
         // Reputation & Elite standing
         $reputation = $student->user->reputation ?? \App\Models\Reputation::firstOrCreate(

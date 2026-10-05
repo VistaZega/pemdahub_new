@@ -157,27 +157,15 @@ class HomeroomLmsController extends Controller
                 $cAssignSubmitted = $stSubmissions->whereIn('assignment_id', $cAssignIds)->count();
                 $cQuizAttempted = $stQuizzes->whereIn('quiz_id', $cQuizIds)->count();
 
-                // Bobot kursus: 50% materi, 30% tugas, 20% kuis (atau proporsional terhadap komponen yang ada)
-                $itemsCount = 0;
-                $sumPct = 0;
-
-                if ($cMatTotal > 0) {
-                    $matPct = ($cMatCompleted / $cMatTotal) * 100;
-                    $sumPct += $matPct;
-                    $itemsCount++;
-                }
-                if ($cAssignTotal > 0) {
-                    $assignPct = ($cAssignSubmitted / $cAssignTotal) * 100;
-                    $sumPct += $assignPct;
-                    $itemsCount++;
-                }
-                if ($cQuizTotal > 0) {
-                    $quizPct = ($cQuizAttempted / $cQuizTotal) * 100;
-                    $sumPct += $quizPct;
-                    $itemsCount++;
-                }
-
-                $coursePct = $itemsCount > 0 ? round($sumPct / $itemsCount) : 0;
+                $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
+                    $cMatTotal,
+                    $cMatCompleted,
+                    $cAssignTotal,
+                    $cAssignSubmitted,
+                    $cQuizTotal,
+                    $cQuizAttempted
+                );
+                $coursePct = $breakdown['overall'];
                 $coursePercentages[] = $coursePct;
 
                 $courseBreakdown[] = [
@@ -361,11 +349,15 @@ class HomeroomLmsController extends Controller
                 ->get()
                 ->groupBy('quiz_id');
 
-            $matPct = $allMats->count() > 0 ? round((count($completedMatIds) / $allMats->count()) * 100) : 100;
-            $assignPct = $course->assignments->count() > 0 ? round(($submissions->count() / $course->assignments->count()) * 100) : 100;
-            $quizPct = $course->quizzes->count() > 0 ? round(($quizAttempts->count() / $course->quizzes->count()) * 100) : 100;
-
-            $overall = round(($matPct * 0.5) + ($assignPct * 0.3) + ($quizPct * 0.2));
+            $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
+                $allMats->count(),
+                count($completedMatIds),
+                $course->assignments->count(),
+                $submissions->count(),
+                $course->quizzes->count(),
+                $quizAttempts->count()
+            );
+            $overall = $breakdown['overall'];
 
             $courseDetails[] = [
                 'id' => $course->id,
@@ -608,11 +600,15 @@ class HomeroomLmsController extends Controller
             $totalTasks = count($allAssignmentIds);
             $totalQuizzes = count($allQuizIds);
 
-            $matPct = $totalMats > 0 ? ($stMats / $totalMats) * 100 : 100;
-            $taskPct = $totalTasks > 0 ? ($stTasks / $totalTasks) * 100 : 100;
-            $quizPct = $totalQuizzes > 0 ? ($stQuizzes / $totalQuizzes) * 100 : 100;
-
-            $overallPct = round(($matPct * 0.5) + ($taskPct * 0.3) + ($quizPct * 0.2));
+            $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
+                $totalMats,
+                $stMats,
+                $totalTasks,
+                $stTasks,
+                $totalQuizzes,
+                $stQuizzes
+            );
+            $overallPct = $breakdown['overall'];
 
             $rekapData[] = [
                 'student' => $st,

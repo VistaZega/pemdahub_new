@@ -325,6 +325,9 @@
                         <span class="flex items-center gap-1"><i class="fas fa-tasks text-black"></i> {{ $course->assignments_count ?? 0 }} Tugas</span>
                     </div>
 
+                    @php
+                        $cDetail = $courseProgressDetails[$course->id] ?? null;
+                    @endphp
                     {{-- Progress --}}
                     <div class="mb-4">
                         <div class="flex justify-between text-xs mb-1.5 font-black uppercase tracking-wider text-black">
@@ -336,6 +339,13 @@
                         <div class="w-full bg-slate-200 border-2 border-black rounded-full h-3 overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-1000 ease-out border-r border-black" style="background-color: #059669 !important; width: {{ $progress }}%"></div>
                         </div>
+                        @if($cDetail)
+                        <div class="flex items-center justify-between text-[10px] text-slate-700 font-bold mt-2 px-1">
+                            <span title="Materi Selesai Dibaca"><i class="fas fa-file-alt text-blue-600 mr-1"></i> Materi {{ $cDetail['materials']['completed'] }}/{{ $cDetail['materials']['total'] }}</span>
+                            <span title="Tugas Dikumpulkan"><i class="fas fa-tasks text-amber-600 mr-1"></i> Tugas {{ $cDetail['assignments']['completed'] }}/{{ $cDetail['assignments']['total'] }}</span>
+                            <span title="Kuis Diselesaikan"><i class="fas fa-question-circle text-purple-600 mr-1"></i> Kuis {{ $cDetail['quizzes']['completed'] }}/{{ $cDetail['quizzes']['total'] }}</span>
+                        </div>
+                        @endif
                     </div>
 
                     {{-- CTA --}}
