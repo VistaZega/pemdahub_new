@@ -156,7 +156,7 @@ class TeacherLmsMonitoringController extends Controller
             $stQuiz = $quizAttempts->get($st->id, collect());
 
             $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->count();
-            $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded'])->count();
+            $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->count();
             $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
 
             $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
@@ -168,6 +168,9 @@ class TeacherLmsMonitoringController extends Controller
                 $completedQuizzes
             );
             $overallPct = $breakdown['overall'];
+            $matPct = $breakdown['materials']['percent'];
+            $assignPct = $breakdown['assignments']['percent'];
+            $quizPct = $breakdown['quizzes']['percent'];
 
             // Nilai rata-rata tugas & kuis pada kursus ini
             $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
@@ -217,7 +220,7 @@ class TeacherLmsMonitoringController extends Controller
                 'material_pct' => $matPct,
                 'submitted_assignments' => $submittedAssigns,
                 'total_assignments' => $totalAssigns,
-                'pending_grading_assignments' => $stSub->whereIn('assignment_id', $cAssignIds)->where('status', 'submitted')->count(),
+                'pending_grading_assignments' => $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'late'])->count(),
                 'assignment_pct' => $assignPct,
                 'avg_assignment_grade' => $avgAssignGrade ? round($avgAssignGrade, 1) : null,
                 'completed_quizzes' => $completedQuizzes,
@@ -456,7 +459,21 @@ class TeacherLmsMonitoringController extends Controller
 
         $waUrl = null;
         if (!empty($request->target_phone)) {
-            $phone = preg_replace('/[^0-9]/', '', $request->target_phone);
+            $cleanDigits = preg_replace('/[^0-9]/', '', $request->target_phone);
+            if (strlen($cleanDigits) >= 9) {
+                $toUpdate = [];
+                if (empty($student->parent_phone) || $student->parent_phone !== $cleanDigits) {
+                    $toUpdate['parent_phone'] = $cleanDigits;
+                }
+                if (empty($student->guardian_phone)) {
+                    $toUpdate['guardian_phone'] = $cleanDigits;
+                }
+                if (!empty($toUpdate)) {
+                    $student->update($toUpdate);
+                }
+            }
+
+            $phone = $cleanDigits;
             if (str_starts_with($phone, '0')) {
                 $phone = '62' . substr($phone, 1);
             }
@@ -626,7 +643,7 @@ class TeacherLmsMonitoringController extends Controller
                 $stQuiz = $quizAttempts->get($st->id, collect());
 
                 $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->count();
-                $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded'])->count();
+                $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->count();
                 $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
 
                 $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
@@ -638,6 +655,9 @@ class TeacherLmsMonitoringController extends Controller
                     $completedQuizzes
                 );
                 $overallPct = $breakdown['overall'];
+                $matPct = $breakdown['materials']['percent'];
+                $assignPct = $breakdown['assignments']['percent'];
+                $quizPct = $breakdown['quizzes']['percent'];
 
                 $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
                 $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
