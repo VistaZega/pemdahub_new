@@ -120,11 +120,20 @@ class CbtService
                     }
                 }
 
+                // Resolve competition team if in team mode
+                $competitionTeamId = null;
+                if ($exam->participation_mode === 'team') {
+                    $competitionTeamId = \App\Models\CbtCompetitionTeam::where('exam_id', $exam->id)
+                        ->whereHas('members', fn($m) => $m->where('student_id', $student->id)->where('is_operator', true))
+                        ->value('id');
+                }
+
                 // Create session
                 $session = CbtExamSession::create([
                     'exam_id' => $exam->id,
                     'student_id' => $student->id,
                     'classroom_id' => $classroomId,
+                    'competition_team_id' => $competitionTeamId,
                     'attempt_number' => $attemptCount + 1,
                     'started_at' => now(),
                     'deadline_at' => now()->addMinutes($exam->duration_minutes),

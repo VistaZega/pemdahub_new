@@ -83,7 +83,14 @@
                 </div>
                 <div>
                     <h1 class="text-sm font-bold text-slate-800 leading-tight">{{ $exam->exam_title }}</h1>
-                    <p class="text-xs text-slate-500">{{ $exam->subject->subject_name ?? $exam->subject->name ?? '-' }} &middot; {{ $exam->duration_minutes }} menit</p>
+                    <p class="text-xs text-slate-500">
+                        {{ $exam->subject->subject_name ?? $exam->subject->name ?? '-' }} &middot; {{ $exam->duration_minutes }} menit
+                        @if($exam->scoring_mode === 'competition')
+                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                            ⚡ Benar +{{ $exam->correct_points }} &bull; Salah -{{ $exam->wrong_penalty }} &bull; Kosong 0
+                        </span>
+                        @endif
+                    </p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -256,12 +263,22 @@
                 </div>
 
                 {{-- Navigation --}}
-                <div class="flex justify-between mt-4">
+                <div class="flex items-center justify-between mt-4 gap-2">
                     <button @click="prevQuestion()" x-show="currentIndex > 0"
                         class="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition text-sm font-medium shadow-sm">
                         <i class="fas fa-chevron-left mr-1"></i> Sebelumnya
                     </button>
                     <div x-show="currentIndex === 0"></div>
+
+                    {{-- Tombol Kosongkan Jawaban (Penting untuk mode kompetisi agar tidak kena penalti -1) --}}
+                    <button type="button" @click="clearAnswer({{ $question->id }})"
+                        x-show="selectedAnswers[{{ $question->id }}] || textAnswers[{{ $question->id }}]"
+                        class="px-4 py-2.5 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl hover:bg-amber-100 transition text-xs md:text-sm font-semibold shadow-sm flex items-center gap-1.5"
+                        title="Kosongkan jawaban soal ini agar tidak mendapat penalti nilai">
+                        <i class="fas fa-undo text-amber-600"></i>
+                        <span>Kosongkan / Lewati</span>
+                    </button>
+
                     <button @click="nextQuestion()" x-show="currentIndex < totalQuestions - 1"
                         class="px-5 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 transition text-sm font-medium shadow-sm">
                         Selanjutnya <i class="fas fa-chevron-right ml-1"></i>
@@ -545,9 +562,21 @@ function examApp() {
         toggleFlag(qid) { this.flaggedQuestions[qid] = !this.flaggedQuestions[qid]; },
 
         selectAnswer(questionId, value) {
+            // Toggle deselect if same option is clicked again
+            if (this.selectedAnswers[questionId] === value) {
+                this.clearAnswer(questionId);
+                return;
+            }
             this.selectedAnswers[questionId] = value;
             this.answeredQuestions[questionId] = true;
             this.saveToServer(questionId, value, null);
+        },
+
+        clearAnswer(questionId) {
+            delete this.selectedAnswers[questionId];
+            delete this.textAnswers[questionId];
+            this.answeredQuestions[questionId] = false;
+            this.saveToServer(questionId, null, null);
         },
 
         saveTextAnswer(questionId) {

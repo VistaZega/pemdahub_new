@@ -94,7 +94,13 @@ class CbtController extends Controller
         }
 
         $availableExams = CbtExam::whereIn('status', ['published', 'active'])
-            ->whereHas('participants', fn($q) => $q->whereIn('classroom_id', $classroomIds))
+            ->where(function ($q) use ($classroomIds, $student) {
+                $q->whereHas('participants', fn($p) => $p->whereIn('classroom_id', $classroomIds))
+                  ->orWhere(function ($sub) use ($student) {
+                      $sub->where('participation_mode', 'team')
+                          ->whereHas('competitionTeams.members', fn($m) => $m->where('student_id', $student->id)->where('is_operator', true));
+                  });
+            })
             ->with(['subject', 'teacher'])
             ->orderBy('start_time')
             ->get();
@@ -147,10 +153,17 @@ class CbtController extends Controller
 
         abort_if(empty($classroomIds), 422, 'Anda belum terdaftar di kelas aktif.');
 
-        // Cek apakah siswa eligible (salah satu kelas aktifnya ada di participants ujian)
-        $isEligible = $exam->participants()
-            ->whereIn('classroom_id', $classroomIds)
-            ->exists();
+        // Cek apakah siswa eligible (melalui kelas reguler atau operator tim lomba)
+        $isEligible = false;
+        if ($exam->participation_mode === 'team') {
+            $isEligible = $exam->competitionTeams()
+                ->whereHas('members', fn($m) => $m->where('student_id', $student->id)->where('is_operator', true))
+                ->exists();
+        } else {
+            $isEligible = $exam->participants()
+                ->whereIn('classroom_id', $classroomIds)
+                ->exists();
+        }
 
         if (!$isEligible) {
             abort(403, 'Anda tidak terdaftar untuk ujian ini.');
@@ -209,12 +222,23 @@ class CbtController extends Controller
 
         abort_if(empty($classroomIds), 422, 'Anda belum terdaftar di kelas aktif.');
 
-        // Verify eligibility: student's classroom must be in exam participants
-        $matchingParticipant = $exam->participants()
-            ->whereIn('classroom_id', $classroomIds)
-            ->first();
+        // Verify eligibility & resolve classroom
+        $classroomId = null;
+        if ($exam->participation_mode === 'team') {
+            $competitionTeam = $exam->competitionTeams()
+                ->whereHas('members', fn($m) => $m->where('student_id', $student->id)->where('is_operator', true))
+                ->first();
 
-        abort_unless($matchingParticipant, 403, 'Anda tidak terdaftar untuk ujian ini.');
+            abort_unless($competitionTeam, 403, 'Anda tidak terdaftar sebagai operator tim untuk lomba ini.');
+            $classroomId = $competitionTeam->classroom_id ?? $this->getActiveClassroomId($student);
+        } else {
+            $matchingParticipant = $exam->participants()
+                ->whereIn('classroom_id', $classroomIds)
+                ->first();
+
+            abort_unless($matchingParticipant, 403, 'Anda tidak terdaftar untuk ujian ini.');
+            $classroomId = $matchingParticipant->classroom_id;
+        }
 
         // Verify compliance uang sekolah
         $compliance = $this->complianceService->checkStudentCompliance($exam, $student);
@@ -237,7 +261,7 @@ class CbtController extends Controller
 
         if (!$session) {
             // Mulai session baru dengan classroom_id peserta yang cocok
-            $session = $this->cbtService->startExamSession($exam, $student, $matchingParticipant->classroom_id);
+            $session = $this->cbtService->startExamSession($exam, $student, $classroomId);
         }
 
         // Cek apakah sudah melewati deadline

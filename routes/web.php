@@ -2853,6 +2853,26 @@ Route::get('/run-migrations', function () {
     return response($output);
 });
 
+Route::get('/seed-numerasi', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized secret key');
+    }
+
+    $output = "<h2>🚀 PembdaHUB Numerasi Competition Seeder</h2>";
+    try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\NumerasiCompetitionSeeder',
+            '--force' => true,
+        ]);
+        $output .= "<h3>Seeder Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+        $output .= "<p style='color:green;font-weight:bold;'>✔ 40 Soal Lomba Numerasi berhasil dimasukkan ke Bank Soal CBT.</p>";
+    } catch (\Throwable $e) {
+        $output .= "<h3>Seeder Error:</h3><pre style='color:red;background:#fff0f0;padding:12px;border:1px solid #f99;'>" . $e->getMessage() . "</pre>";
+    }
+
+    return response($output);
+});
+
 // ── CBT Livescore Publik (Proyektor — tidak perlu login) ──────────────────
 Route::get('/cbt/{exam}/livescore', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'livescore'])
     ->name('admin.cbt.competition.livescore');

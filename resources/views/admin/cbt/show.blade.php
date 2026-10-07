@@ -32,6 +32,14 @@
                     <i class="fas fa-edit mr-2"></i>Edit Ujian
                 </a>
                 @endif
+                @if($exam->participation_mode === 'team')
+                <a href="{{ route('admin.cbt.competition.teams', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition shadow-lg text-sm">
+                    <i class="fas fa-users-cog mr-2"></i>Kelola Tim ({{ $exam->competitionTeams()->count() }})
+                </a>
+                @endif
+                <a href="{{ route('admin.cbt.competition.livescore', $exam) }}" target="_blank" class="inline-flex items-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition shadow-lg text-sm">
+                    <i class="fas fa-tv mr-2"></i>Livescore Proyektor
+                </a>
                 <a href="{{ route('admin.cbt.results', $exam) }}" class="inline-flex items-center px-5 py-2.5 bg-white text-violet-700 rounded-xl font-semibold hover:bg-violet-50 transition shadow-lg shadow-violet-900/20 text-sm">
                     <i class="fas fa-chart-bar mr-2"></i>Lihat Hasil
                 </a>
