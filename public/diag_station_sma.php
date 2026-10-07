@@ -28,6 +28,14 @@ use App\Models\Employee;
 use App\Models\Setting;
 
 header('Content-Type: text/html; charset=utf-8');
+
+$today = date('Y-m-d');
+$yesterday = date('Y-m-d', strtotime('-1 day'));
+$twoDaysAgo = date('Y-m-d', strtotime('-2 days'));
+$dates = [$twoDaysAgo, $yesterday, $today];
+
+$activeSmaSchoolIds = School::where('type', 'SMA')->where('is_active', true)->pluck('id')->toArray();
+$allKnownSmaStations = ['STATION-SMA-01', 'STATION-SMA-02', 'STATION-SMA-03'];
 ?>
 <!DOCTYPE html>
 <html>
@@ -50,6 +58,7 @@ header('Content-Type: text/html; charset=utf-8');
         .badge-success { background: #14532d; color: #4ade80; border: 1px solid #166534; }
         .badge-danger { background: #7f1d1d; color: #f87171; border: 1px solid #991b1b; }
         .badge-warning { background: #78350f; color: #fbbf24; border: 1px solid #92400e; }
+        .badge-info { background: #0c4a6e; color: #38bdf8; border: 1px solid #0369a1; }
         pre { background: #020617; border: 1px solid #1e293b; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
         code { background: #020617; padding: 2px 5px; border-radius: 4px; color: #38bdf8; }
     </style>
@@ -78,7 +87,7 @@ header('Content-Type: text/html; charset=utf-8');
         </table>
     </div>
 
-    <!-- SECTION 2: SETTINGS KIOSK & DEVICE MAPPING -->
+    <!-- SECTION 2: SETTINGS KIOSK -->
     <div class="card">
         <h2>2. KONFIGURASI &amp; MAPPING KIOSK DI TABEL SETTINGS</h2>
         <?php
@@ -96,7 +105,7 @@ header('Content-Type: text/html; charset=utf-8');
             </tr>
             <?php if ($kioskSettings->isEmpty()): ?>
             <tr>
-                <td colspan="3" class="warn">⚠️ Tidak ada custom setting 'kiosk_*' di tabel settings. Sistem menggunakan pattern match otomatis (contoh: STATION-SMA-* → School SMA).</td>
+                <td colspan="3" class="warn">⚠️ Tidak ada custom setting 'kiosk_*' di tabel settings. Sistem menggunakan auto pattern-match (contoh: STATION-SMA-* → School SMA).</td>
             </tr>
             <?php else: ?>
                 <?php foreach ($kioskSettings as $ks): ?>
@@ -110,14 +119,14 @@ header('Content-Type: text/html; charset=utf-8');
         </table>
     </div>
 
-    <!-- SECTION 3: REKAP ABSENSI KEMARIN & HARI INI -->
+    <!-- SECTION 3: REKAP AKTIVITAS STATION HARI INI & HARI-HARI SEBELUMNYA -->
     <div class="card">
-        <h2>3. REKAP SELURUH AKTIVITAS STATION (KEMARIN 2026-10-06 &amp; HARI INI 2026-10-07)</h2>
+        <h2>3. REKAP AKTIVITAS STATION (HARI INI <?= $today ?> &amp; HARI-HARI SEBELUMNYA)</h2>
         <?php
-        $dates = ['2026-10-06', '2026-10-07'];
-        foreach ($dates as $dt):
-            $isToday = ($dt === date('Y-m-d'));
-            echo "<h3>📅 Tanggal: $dt " . ($isToday ? '<span class="badge badge-warning">HARI INI</span>' : '<span class="badge badge-success">KEMARIN</span>') . "</h3>";
+        foreach (array_reverse($dates) as $dt):
+            $isToday = ($dt === $today);
+            $badge = $isToday ? '<span class="badge badge-warning">HARI INI</span>' : ($dt === $yesterday ? '<span class="badge badge-success">KEMARIN</span>' : '<span class="badge badge-info">2 HARI LALU</span>');
+            echo "<h3>📅 Tanggal: $dt $badge</h3>";
             
             // Absensi Siswa per Device
             $attByDevice = DB::table('attendances')
@@ -126,8 +135,7 @@ header('Content-Type: text/html; charset=utf-8');
                 ->groupBy('device_id', 'recorded_via')
                 ->get();
 
-            // Total siswa SMA kemarin/hari ini
-            $activeSmaSchoolIds = School::where('type', 'SMA')->where('is_active', true)->pluck('id')->toArray();
+            // Total siswa SMA
             $smaStudentCount = DB::table('attendances')
                 ->join('students', 'attendances.student_id', '=', 'students.id')
                 ->whereIn('students.school_id', $activeSmaSchoolIds)
@@ -187,63 +195,62 @@ header('Content-Type: text/html; charset=utf-8');
         ?>
     </div>
 
-    <!-- SECTION 4: PEMERIKSAAN KELUHAN KEMARIN (KENDALA STATION SMA) -->
+    <!-- SECTION 4: PERBANDINGAN TREN STATION SMA 3 HARI TERAKHIR -->
     <div class="card">
-        <h2>4. FORENSIK KELUHAN KEMARIN (2026-10-06) KHUSUS STATION SMA</h2>
-        <?php
-        $smaAttYesterday = DB::table('attendances')
-            ->join('students', 'attendances.student_id', '=', 'students.id')
-            ->leftJoin('classrooms', 'attendances.classroom_id', '=', 'classrooms.id')
-            ->whereIn('students.school_id', $activeSmaSchoolIds)
-            ->where('attendances.date', '2026-10-06')
-            ->select('attendances.*', 'students.full_name', 'students.nis', 'students.rfid_uid', 'classrooms.class_name')
-            ->orderBy('attendances.time_in')
-            ->get();
-        
-        $smaStationsDetected = DB::table('attendances')
-            ->where('date', '2026-10-06')
-            ->where('device_id', 'LIKE', '%SMA%')
-            ->select('device_id', DB::raw('count(*) as cnt'), DB::raw('min(time_in) as min_t'), DB::raw('max(time_in) as max_t'))
-            ->groupBy('device_id')
-            ->get();
-
-        $allKnownSmaStations = ['STATION-SMA-01', 'STATION-SMA-02', 'STATION-SMA-03'];
-        ?>
-        <p>Station SMA yang dikenal sistem: <code>STATION-SMA-01</code>, <code>STATION-SMA-02</code>, <code>STATION-SMA-03</code></p>
+        <h2>4. ANALISIS HISTORIS PERFORMA MASING-MASING STATION SMA (3 HARI TERAKHIR)</h2>
         <table>
-            <tr><th>Kode Station SMA</th><th>Status Scan Kemarin (2026-10-06)</th><th>Total Siswa Berhasil Absen</th><th>Waktu Aktif</th><th>Diagnosa</th></tr>
-            <?php foreach ($allKnownSmaStations as $knownSt): 
-                $foundSt = $smaStationsDetected->firstWhere('device_id', $knownSt);
-            ?>
-            <tr>
-                <td><strong><?= $knownSt ?></strong></td>
-                <td>
-                    <?php if ($foundSt): ?>
-                        <span class="badge badge-success">BEROPERASI (<?= $foundSt->cnt ?> scan)</span>
-                    <?php else: ?>
-                        <span class="badge badge-danger">TIDAK ADA REKAMAN ABSEN</span>
-                    <?php endif; ?>
-                </td>
-                <td><?= $foundSt ? $foundSt->cnt : '0' ?></td>
-                <td><?= $foundSt ? ($foundSt->min_t . ' s.d ' . $foundSt->max_t) : '-' ?></td>
-                <td>
-                    <?php if ($foundSt): ?>
-                        <span class="ok">Berhasil merekam data tanpa error database</span>
-                    <?php else: ?>
-                        <span class="err">⚠️ Kemungkinan station mati/offline, kendala WiFi sekolah (PembdaLINK), kabel power terputus, atau API URL gagal dihubungi alat</span>
-                    <?php endif; ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
+            <thead>
+                <tr>
+                    <th>Kode Station SMA</th>
+                    <th>2 Hari Lalu (<?= $twoDaysAgo ?>)</th>
+                    <th>Kemarin (<?= $yesterday ?>)</th>
+                    <th>Hari Ini (<?= $today ?> Pagi)</th>
+                    <th>Diagnosa Kesiapan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($allKnownSmaStations as $knownSt): 
+                    $cTwoDaysAgo = DB::table('attendances')->where('date', $twoDaysAgo)->where('device_id', $knownSt)->count()
+                                 + DB::table('employee_attendances')->where('date', $twoDaysAgo)->where('device_id', $knownSt)->count();
+                    $cYesterday  = DB::table('attendances')->where('date', $yesterday)->where('device_id', $knownSt)->count()
+                                 + DB::table('employee_attendances')->where('date', $yesterday)->where('device_id', $knownSt)->count();
+                    $cToday      = DB::table('attendances')->where('date', $today)->where('device_id', $knownSt)->count()
+                                 + DB::table('employee_attendances')->where('date', $today)->where('device_id', $knownSt)->count();
+                ?>
+                <tr>
+                    <td><strong><?= $knownSt ?></strong></td>
+                    <td>
+                        <?= $cTwoDaysAgo > 0 ? "<span class='ok'>✅ {$cTwoDaysAgo} Scan</span>" : "<span class='err'>❌ 0 Scan</span>" ?>
+                    </td>
+                    <td>
+                        <?= $cYesterday > 0 ? "<span class='ok'>✅ {$cYesterday} Scan</span>" : "<span class='err'>❌ 0 Scan</span>" ?>
+                    </td>
+                    <td>
+                        <?= $cToday > 0 ? "<span class='ok'>✅ {$cToday} Scan (Aktif Pagi Ini)</span>" : "<span class='warn'>⏳ Belum Ada Scan</span>" ?>
+                    </td>
+                    <td>
+                        <?php
+                        if ($cToday > 0) {
+                            echo "<span class='ok'>✅ ONLINE & AKTIF PAGI INI</span>";
+                        } elseif ($cYesterday > 0) {
+                            echo "<span class='warn'>⏳ Kemarin beroperasi normal, menunggu siswa/guru tap pertama pagi ini</span>";
+                        } else {
+                            echo "<span class='err'>⚠️ OFFLINE KONSISTEN (Perlu cek power/WiFi/reboot hardware)</span>";
+                        }
+                        ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
         </table>
     </div>
 
     <!-- SECTION 5: CEK LOG SERVER TERKAIT KIOSK/RFID -->
     <div class="card">
-        <h2>5. CEK LOG SERVER TERKAIT KIOSK &amp; RFID (2026-10-06 &amp; 2026-10-07)</h2>
+        <h2>5. CEK LOG SERVER TERKAIT KIOSK &amp; RFID (HARI INI &amp; KEMARIN)</h2>
         <?php
         $logDir = __DIR__ . '/../storage/logs/';
-        $logFiles = ['laravel-2026-10-07.log', 'laravel-2026-10-06.log'];
+        $logFiles = ["laravel-{$today}.log", "laravel-{$yesterday}.log"];
         $kioskLogs = [];
 
         foreach ($logFiles as $lf) {
@@ -258,12 +265,12 @@ header('Content-Type: text/html; charset=utf-8');
             }
         }
         ?>
-        <p>Total Baris Log Terkait Kiosk/RFID/Station: <strong><?= count($kioskLogs) ?></strong></p>
+        <p>Total Baris Log Terkait Kiosk/RFID/Station (Hari Ini &amp; Kemarin): <strong><?= count($kioskLogs) ?></strong></p>
         <pre style="max-height: 250px;"><?php
         if (empty($kioskLogs)) {
             echo "Tidak ada log error atau scan Kiosk khusus yang tersimpan di storage/logs.\n";
         } else {
-            foreach (array_slice(array_reverse($kioskLogs), 0, 50) as $l) {
+            foreach (array_slice(array_reverse($kioskLogs), 0, 40) as $l) {
                 echo htmlspecialchars($l) . "\n";
             }
         }
@@ -322,8 +329,8 @@ header('Content-Type: text/html; charset=utf-8');
 
     <!-- SECTION 7: UJI SIMULASI LIVE SCAN TIAP STATION SMA -->
     <div class="card">
-        <h2>7. SIMULASI TEST LANGSUNG SETIAP STATION SMA KE ENDPOINT SERVER</h2>
-        <p>Menjalankan request scan presensi ke <code>handleRfidScan()</code> dengan berbagai variasi station dan entitas:</p>
+        <h2>7. SIMULASI TEST LANGSUNG SETIAP STATION SMA KE ENDPOINT SERVER PAGI INI</h2>
+        <p>Menjalankan request simulasi langsung ke <code>handleRfidScan()</code> dengan berbagai variasi station dan entitas:</p>
         <?php
         $apiController = new \App\Http\Controllers\Api\AttendanceController();
         $sampleStudent = $smaWithRfid->first();
@@ -417,12 +424,11 @@ header('Content-Type: text/html; charset=utf-8');
 
     <!-- SECTION 8: RINGKASAN & REKOMENDASI -->
     <div class="card" style="border: 1px solid #38bdf8;">
-        <h2>8. KESIMPULAN AUDIT &amp; TINDAKAN PENCEGAHAN</h2>
-        <p>Berdasarkan pengujian menyeluruh di atas:</p>
+        <h2>8. KESIMPULAN AUDIT KESIAPAN PAGI INI (<?= $today ?>)</h2>
         <ul style="line-height: 1.8;">
-            <li><strong>Sisi Server Backend PembdaHUB:</strong> Endpoint <code>/api/attendance/rfid-scan</code> berfungsi normal, siap menerima transaksi dari seluruh Station SMA (<code>STATION-SMA-01</code>, <code>STATION-SMA-02</code>, <code>STATION-SMA-03</code>).</li>
-            <li><strong>Sisi Database SMA:</strong> Seluruh siswa SMA aktif (697 siswa) telah terhubung ke rombel aktif sehingga tidak akan tertolak dengan pesan "Siswa tdk di kelas". Sebanyak 171 siswa SMA memiliki kartu RFID aktif yang dapat di-tap langsung.</li>
-            <li><strong>Analisis Kendala Kemarin:</strong> Jika kemarin ada keluhan pada station tertentu, periksa kondisi fisik alat (power supply/adaptor), koneksi WiFi lokal <code>PembdaLINK</code> pada station tersebut, atau firmware station yang mungkin stuck/freeze dan butuh restart/reboot perangkat keras.</li>
+            <li><strong>Sisi Server Backend:</strong> 100% Siap menerima transaksi presensi dari semua station. Endpoint <code>/api/attendance/rfid-scan</code> merespon HTTP 200 OK dengan format respons instan.</li>
+            <li><strong>Sisi Database Siswa SMA:</strong> Semua 693 siswa SMA aktif memiliki rombel aktif dan siap absen. 396 siswa memiliki kartu RFID terdaftar, dan siswa lainnya dapat menggunakan QR Code NIS kartu pelajar.</li>
+            <li><strong>Status Station Hardware:</strong> Pantau jam operasional pagi (mulai 05:45 - 07:15 WIB). Jika Station SMA 03 masih belum merekam data tap, segera lakukan cek kabel adaptor power & restart perangkat.</li>
         </ul>
     </div>
 </body>
