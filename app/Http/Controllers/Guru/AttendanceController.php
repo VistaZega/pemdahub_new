@@ -115,24 +115,34 @@ class AttendanceController extends Controller
             $selectedClassroom = $classrooms->firstWhere('id', (int) $selectedClassroomId);
             if ($selectedClassroom) {
                 
-                // Find the best matching schedule for this date
-                $dayOfWeek = strtolower(\Carbon\Carbon::parse($selectedDate)->format('l'));
-                $schedule = Schedule::with(['teachingAssignment.subject', 'teachingAssignment.classroom'])
-                    ->where('teacher_id', $teacher->id)
-                    ->where('classroom_id', $selectedClassroomId)
-                    ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
-                    ->where('day_of_week', $dayOfWeek)
-                    ->first();
-                    
-                if (!$schedule) {
-                     $schedule = Schedule::with(['teachingAssignment.subject', 'teachingAssignment.classroom'])
+                // Find the best matching schedule for this date or requested assignment
+                $assignment = null;
+                if ($request->filled('assignment_id')) {
+                    $assignment = \App\Models\TeachingAssignment::with(['subject', 'classroom'])
+                        ->where('teacher_id', $teacher->id)
+                        ->find($request->input('assignment_id'));
+                }
+
+                if (!$assignment) {
+                    $dayOfWeek = strtolower(\Carbon\Carbon::parse($selectedDate)->format('l'));
+                    $schedule = Schedule::with(['teachingAssignment.subject', 'teachingAssignment.classroom'])
                         ->where('teacher_id', $teacher->id)
                         ->where('classroom_id', $selectedClassroomId)
                         ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                        ->where('day_of_week', $dayOfWeek)
                         ->first();
+                        
+                    if (!$schedule) {
+                         $schedule = Schedule::with(['teachingAssignment.subject', 'teachingAssignment.classroom'])
+                            ->where('teacher_id', $teacher->id)
+                            ->where('classroom_id', $selectedClassroomId)
+                            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+                            ->first();
+                    }
+
+                    $assignment = $schedule?->teachingAssignment;
                 }
 
-                $assignment = $schedule?->teachingAssignment;
                 if (!$assignment) {
                     $assignment = \App\Models\TeachingAssignment::with(['subject', 'classroom'])
                         ->where('teacher_id', $teacher->id)
@@ -207,16 +217,14 @@ class AttendanceController extends Controller
 
             // Cari schedule_id yang paling sesuai untuk guru & kelas ini
             $dayOfWeek = strtolower(\Carbon\Carbon::parse($request->date)->format('l'));
-            $schedule = \App\Models\Schedule::where('teacher_id', $teacher->id)
-                ->where('classroom_id', $request->classroom_id)
-                ->where('day_of_week', $dayOfWeek)
-                ->first();
-                
-            if (!$schedule) {
-                 $schedule = \App\Models\Schedule::where('teacher_id', $teacher->id)
-                    ->where('classroom_id', $request->classroom_id)
-                    ->first();
+            $assignmentId = $request->input('assignment_id');
+            $scheduleQuery = \App\Models\Schedule::where('teacher_id', $teacher->id)
+                ->where('classroom_id', $request->classroom_id);
+            if ($assignmentId) {
+                $scheduleQuery->where('teaching_assignment_id', $assignmentId);
             }
+            $schedule = (clone $scheduleQuery)->where('day_of_week', $dayOfWeek)->first()
+                ?: $scheduleQuery->first();
             $scheduleId = $schedule ? $schedule->id : null;
 
             $isToday = ($request->date === date('Y-m-d'));
@@ -329,13 +337,14 @@ class AttendanceController extends Controller
             }
 
             $dateCarbon = \Carbon\Carbon::parse($request->date);
-            return redirect()->route('guru.absensi', [
+            return redirect()->route('guru.absensi', array_filter([
                 'classroom_id' => $request->classroom_id,
+                'assignment_id' => $assignmentId,
                 'input_date' => $request->date,
                 'month' => $dateCarbon->format('n'),
                 'year' => $dateCarbon->format('Y'),
                 'viewMode' => 'log',
-            ])->with('success', "Absensi berhasil disimpan untuk {$count} siswa.");
+            ]))->with('success', "Absensi berhasil disimpan untuk {$count} siswa.");
         } catch (\Exception $e) {
             Log::error('Guru gagal menyimpan absensi: ' . $e->getMessage());
             return back()->withErrors(['attendance' => 'Gagal menyimpan absensi. Silakan coba lagi.'])->withInput();

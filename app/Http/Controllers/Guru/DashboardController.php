@@ -732,6 +732,8 @@ class DashboardController extends Controller
         $dailySchoolAttendances = collect();
         $isHomeroom = false;
         $monthlySummary = ['present' => 0, 'sick' => 0, 'permission' => 0, 'absent' => 0, 'total' => 0, 'percentage' => 0];
+        $assignments = collect();
+        $selectedAssignment = null;
 
         if ($selectedClassroomId) {
             $selectedClassroom = $classrooms->firstWhere('id', (int) $selectedClassroomId) ?? \App\Models\Classroom::find($selectedClassroomId);
@@ -747,9 +749,10 @@ class DashboardController extends Controller
                     $studentsQuery->wherePivot('academic_year_id', $activeYear->id);
                 }
                 $classroomStudents = $studentsQuery->with(['applicant', 'user', 'classrooms'])->orderBy('full_name')->get();
+                $allClassroomStudents = $classroomStudents;
 
                 // Determine Students for Teacher in this Classroom
-                $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom'])
+                $assignments = \App\Models\TeachingAssignment::with(['subject', 'classroom', 'schedules'])
                     ->where('teacher_id', $teacher->id)
                     ->where(function($q) use ($selectedClassroomId, $activeYear) {
                         $q->where('classroom_id', $selectedClassroomId)
@@ -764,16 +767,66 @@ class DashboardController extends Controller
                     ->where('is_active', true)
                     ->get();
 
-                $primaryAssignment = $assignments->first();
+                // Cerdas menentukan primary assignment / selected assignment
+                $reqAssignmentId = $request->input('assignment_id');
+                $primaryAssignment = null;
+                if ($reqAssignmentId && $assignments->isNotEmpty()) {
+                    $primaryAssignment = $assignments->firstWhere('id', (int) $reqAssignmentId);
+                }
+
+                if (!$primaryAssignment && $assignments->isNotEmpty()) {
+                    // 1. Cek jadwal mengajar pada hari/tanggal terpilih (berdasarkan day_of_week)
+                    $inputDayOfWeek = strtolower(\Carbon\Carbon::parse($selectedInputDate)->format('l'));
+                    $primaryAssignment = $assignments->first(function($asg) use ($inputDayOfWeek, $selectedClassroomId) {
+                        return $asg->schedules->where('day_of_week', $inputDayOfWeek)->where('classroom_id', $selectedClassroomId)->isNotEmpty();
+                    });
+
+                    // 2. Jika tidak ada jadwal spesifik hari ini, pilih penugasan yang memiliki kecocokan siswa terbanyak di kelas ini
+                    if (!$primaryAssignment) {
+                        $bestScore = -1;
+                        foreach ($assignments as $asg) {
+                            $asgSubjName = $asg->subject?->name ?? $asg->subject?->subject_name;
+                            $asgSubjCode = $asg->subject?->code ?? $asg->subject?->subject_code;
+                            $asgKws = \App\Services\VocationalMajorFilterService::getSubjectMajorKeywords($asgSubjName, $asgSubjCode);
+
+                            if (!$asgKws) {
+                                $score = $allClassroomStudents->count();
+                            } else {
+                                $score = $allClassroomStudents->filter(function($st) use ($asgKws, $selectedClassroom) {
+                                    return \App\Services\VocationalMajorFilterService::isStudentMatchingVocationalSubject($st, $asgKws, $selectedClassroom);
+                                })->count();
+                            }
+
+                            if ($score > $bestScore) {
+                                $bestScore = $score;
+                                $primaryAssignment = $asg;
+                            }
+                        }
+                    }
+
+                    // 3. Fallback jika masih belum terpilih
+                    if (!$primaryAssignment) {
+                        $primaryAssignment = $assignments->first();
+                    }
+                }
+                $selectedAssignment = $primaryAssignment;
+
                 $subjectName = $primaryAssignment?->subject?->name ?? $primaryAssignment?->subject?->subject_name;
                 $subjectCode = $primaryAssignment?->subject?->code ?? $primaryAssignment?->subject?->subject_code;
                 $vocKeywords = \App\Services\VocationalMajorFilterService::getSubjectMajorKeywords($subjectName, $subjectCode);
 
                 // Jika guru adalah guru mapel kejuruan (bukan wali kelas), saring hanya siswa jurusan yang relevan
                 if (!$isHomeroom && $vocKeywords) {
-                    $classroomStudents = $classroomStudents->filter(function ($student) use ($vocKeywords, $selectedClassroom) {
+                    $filtered = $classroomStudents->filter(function ($student) use ($vocKeywords, $selectedClassroom) {
                         return \App\Services\VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $selectedClassroom);
                     })->values();
+
+                    // PENGAMAN KRITIS: Gunakan hasil filter jika terdapat siswa yang cocok (> 0).
+                    // Jika filter kejuruan menghasilkan 0 siswa (misal karena penugasan lintas rombel atau data jurusan belum lengkap),
+                    // JANGAN kosongkan daftar siswa! Tetap gunakan seluruh siswa aktif rombel agar guru tidak mengalami layar kosong.
+                    if ($filtered->isNotEmpty()) {
+                        $classroomStudents = $filtered;
+                    }
                 }
 
                 // Fetch monthly attendances for matrix grid (Daily School Attendance ONLY)
@@ -901,7 +954,6 @@ class DashboardController extends Controller
                 $rotation = $blockSchedule ? $blockSchedule->getActiveRotationForDate($selectedInputDate) : 'normal';
 
                 $targetGroup = null;
-                $primaryAssignment = $assignments->first();
                 if ($primaryAssignment && in_array($primaryAssignment->block_type, ['all', 'split'])) {
                     if ($primaryAssignment->block_type === 'split') {
                         // Mapel Praktik / Lab (Urutan pertama di Lab adalah Grup A)
@@ -925,19 +977,22 @@ class DashboardController extends Controller
                 }
 
                 // Buat Label Penugasan Mengajar
-                if ($assignments->isNotEmpty()) {
+                if ($selectedAssignment) {
+                    $subjName = $selectedAssignment->subject->name ?? 'Mata Pelajaran';
+                    if ($selectedAssignment->block_type === 'split') {
+                        $grpLabel = ($targetGroup === 'A') ? 'Grup A (Ruang Lab)' : 'Grup B (Ruang Lab)';
+                        $assignmentInfo = "{$subjName} (Blok Praktik - {$grpLabel})";
+                    } elseif ($selectedAssignment->block_type === 'all') {
+                        $grpLabel = ($targetGroup === 'A') ? 'Grup A (Ruang Kelas)' : 'Grup B (Ruang Kelas)';
+                        $assignmentInfo = "{$subjName} (Blok Teori - {$grpLabel})";
+                    } else {
+                        $assignmentInfo = $subjName;
+                    }
+                } elseif ($assignments->isNotEmpty()) {
                     $infoList = [];
                     foreach ($assignments as $assignment) {
                         $subjName = $assignment->subject->name ?? 'Mata Pelajaran';
-                        if ($assignment->block_type === 'split') {
-                            $grpLabel = ($targetGroup === 'A') ? 'Grup A (Ruang Lab)' : 'Grup B (Ruang Lab)';
-                            $infoList[] = "{$subjName} (Blok Praktik - {$grpLabel})";
-                        } elseif ($assignment->block_type === 'all') {
-                            $grpLabel = ($targetGroup === 'A') ? 'Grup A (Ruang Kelas)' : 'Grup B (Ruang Kelas)';
-                            $infoList[] = "{$subjName} (Blok Teori - {$grpLabel})";
-                        } else {
-                            $infoList[] = $subjName;
-                        }
+                        $infoList[] = $subjName;
                     }
                     $assignmentInfo = implode(' | ', array_unique($infoList));
                 } else {
@@ -1026,7 +1081,8 @@ class DashboardController extends Controller
             'lessonMatrixMap', 'lessonStudentStats', 'wajibStudentIds',
             'assignmentInfo', 'lessonDates', 'selectedInputDate', 'isTodayScheduled',
             'scheduledStudentIds', 'studentBlockGroups', 'targetGroup',
-            'dailySummary', 'dailySchoolAttendances', 'selectedDailyDate', 'isHomeroom', 'monthlySummary'
+            'dailySummary', 'dailySchoolAttendances', 'selectedDailyDate', 'isHomeroom', 'monthlySummary',
+            'assignments', 'selectedAssignment'
         ));
     }
 

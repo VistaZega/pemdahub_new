@@ -59,9 +59,16 @@ class TeachingAssignmentStudentFilterService
         $vocKeywords = VocationalMajorFilterService::getSubjectMajorKeywords($subjectName, $subjectCode);
 
         if ($vocKeywords) {
-            $students = $students->filter(function ($student) use ($vocKeywords, $classroom) {
+            $filtered = $students->filter(function ($student) use ($vocKeywords, $classroom) {
                 return VocationalMajorFilterService::isStudentMatchingVocationalSubject($student, $vocKeywords, $classroom);
             })->values();
+
+            // PENGAMAN KRITIS: Gunakan hasil filter jika terdapat siswa yang sesuai.
+            // Jika hasil filter kosong (0 siswa) padahal kelas memiliki siswa aktif, JANGAN hilangkan siswa!
+            // Kembalikan seluruh siswa aktif rombel agar guru tidak mengalami layar kosong dan tetap dapat mengabsen.
+            if ($filtered->isNotEmpty()) {
+                return $filtered;
+            }
         }
 
         return $students;

@@ -705,6 +705,9 @@
                 <form action="{{ route('guru.absensi.store') }}" method="POST" id="formInputAbsensi">
                     @csrf
                     <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
+                    @if(isset($selectedAssignment))
+                        <input type="hidden" name="assignment_id" value="{{ $selectedAssignment->id }}">
+                    @endif
 
                     <div class="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 bg-purple-50/50">
                         <div>
@@ -728,10 +731,24 @@
                             <div class="text-sm md:text-base font-black text-purple-900 bg-purple-100/90 border border-purple-200 px-4 py-1.5 rounded-xl mb-1 inline-block shadow-sm">
                                 {{ $selectedClassroom->class_name }} ({{ $monthsList[$selectedMonth] ?? '' }} {{ $selectedYear }})
                             </div>
-                            @if(isset($assignmentInfo))
-                            <div class="text-xs md:text-sm font-black text-purple-900 mt-0.5">
-                                {{ $assignmentInfo }}
-                            </div>
+                            @if(isset($assignments) && $assignments->count() > 1)
+                                <div class="mt-1 flex items-center justify-end gap-1.5 flex-wrap">
+                                    <label class="text-[11px] font-bold text-purple-900 flex items-center gap-1">
+                                        <i class="fas fa-book-open text-purple-600"></i> Mapel:
+                                    </label>
+                                    <select onchange="window.location.href='?classroom_id={{ $selectedClassroomId }}&month={{ $selectedMonth }}&year={{ $selectedYear }}&input_date={{ $selectedInputDate }}&viewMode=log&assignment_id=' + this.value" 
+                                        class="text-xs font-black bg-white text-purple-950 border-2 border-purple-300 rounded-xl px-2.5 py-1 shadow-xs cursor-pointer outline-none focus:border-purple-600">
+                                        @foreach($assignments as $asg)
+                                            <option value="{{ $asg->id }}" {{ (isset($selectedAssignment) && $selectedAssignment->id == $asg->id) ? 'selected' : '' }}>
+                                                {{ $asg->subject->name ?? $asg->subject->subject_name ?? 'Mata Pelajaran' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @elseif(isset($assignmentInfo))
+                                <div class="text-xs md:text-sm font-black text-purple-900 mt-0.5">
+                                    {{ $assignmentInfo }}
+                                </div>
                             @endif
                             @if(isset($targetGroup))
                             <div class="flex items-center justify-end gap-1.5 mt-1 flex-wrap">
@@ -758,7 +775,7 @@
                                 <i class="fas fa-edit text-purple-600"></i> Tanggal:
                             </span>
                             <input type="date" name="date" value="{{ $selectedInputDate }}" 
-                                onchange="window.location.href='?classroom_id={{ $selectedClassroomId }}&month={{ $selectedMonth }}&year={{ $selectedYear }}&input_date=' + this.value + '&viewMode=log'"
+                                onchange="window.location.href='?classroom_id={{ $selectedClassroomId }}&month={{ $selectedMonth }}&year={{ $selectedYear }}&input_date=' + this.value + '&viewMode=log' + ('{{ isset($selectedAssignment) ? '&assignment_id=' . $selectedAssignment->id : '' }}')"
                                 class="text-xs font-bold border-2 border-purple-300 rounded-xl px-3 py-1.5 bg-white text-purple-950 shadow-sm outline-none focus:border-purple-600 cursor-pointer">
                             <span class="text-[11px] font-bold text-purple-800 bg-purple-200/80 px-2.5 py-1 rounded-lg">
                                 Kolom Tgl {{ $inputDay }} Siap Diisi
