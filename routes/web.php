@@ -2852,3 +2852,9 @@ Route::get('/run-migrations', function () {
 
     return response($output);
 });
+
+// ── CBT Livescore Publik (Proyektor — tidak perlu login) ──────────────────
+Route::get('/cbt/{exam}/livescore', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'livescore'])
+    ->name('admin.cbt.competition.livescore');
+Route::get('/cbt/{exam}/livescore/data', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'livescoreData'])
+    ->name('admin.cbt.competition.livescore-data');

@@ -15,7 +15,7 @@ class CbtExamSession extends Model
     protected $table = 'cbt_exam_sessions';
 
     protected $fillable = [
-        'exam_id', 'student_id', 'classroom_id',
+        'exam_id', 'student_id', 'classroom_id', 'competition_team_id',
         'attempt_number', 'started_at', 'finished_at', 'deadline_at',
         'status', 'question_order', 'option_orders',
         'tab_switch_count', 'ip_address', 'user_agent',
@@ -43,6 +43,7 @@ class CbtExamSession extends Model
     public function exam(): BelongsTo { return $this->belongsTo(CbtExam::class, 'exam_id'); }
     public function student(): BelongsTo { return $this->belongsTo(Student::class); }
     public function classroom(): BelongsTo { return $this->belongsTo(Classroom::class); }
+    public function competitionTeam(): BelongsTo { return $this->belongsTo(CbtCompetitionTeam::class, 'competition_team_id'); }
 
     public function answers(): HasMany { return $this->hasMany(CbtAnswer::class, 'session_id'); }
 

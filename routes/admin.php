@@ -449,7 +449,16 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::post('/answers/{answer}/grade', [App\Http\Controllers\Admin\CbtManagementController::class, 'gradeEssayStore'])->name('answers.grade');
         Route::post('/{exam}/force-complete', [App\Http\Controllers\Admin\CbtManagementController::class, 'forceComplete'])->name('force-complete');
         Route::post('/{exam}/sync-grades', [App\Http\Controllers\Admin\CbtManagementController::class, 'syncGrades'])->name('sync-grades');
+
+        // ── Lomba / Kompetisi ─────────────────────────────────────
+        Route::get('/{exam}/competition/teams', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'teams'])->name('competition.teams');
+        Route::post('/{exam}/competition/teams', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'storeTeam'])->name('competition.teams.store');
+        Route::delete('/{exam}/competition/teams/{team}', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'destroyTeam'])->name('competition.teams.destroy');
+        Route::get('/competition/students-by-class', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'getStudentsByClassroom'])->name('competition.students-by-class');
     });
+
+    // Livescore publik (dalam grup admin agar pakai middleware, tapi accessible tanpa autentikasi lewat route terpisah di bawah)
+
 
     // LMS Monitoring (Admin)
     Route::prefix('lms')->name('lms.')->group(function () {

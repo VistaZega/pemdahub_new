@@ -25,6 +25,9 @@ class CbtExam extends Model
         'access_code', 'prevent_tab_switch', 'prevent_copy_paste',
         'auto_sync_grade', 'created_by', 'is_paused', 'paused_at',
         'requires_tuition_payment', 'tuition_month', 'tuition_year',
+        // Competition mode fields
+        'scoring_mode', 'participation_mode',
+        'correct_points', 'wrong_penalty', 'unanswered_points',
     ];
 
     protected $attributes = [
@@ -51,6 +54,10 @@ class CbtExam extends Model
         'requires_tuition_payment' => 'boolean',
         'tuition_month' => 'integer',
         'tuition_year' => 'integer',
+        // Competition
+        'correct_points' => 'float',
+        'wrong_penalty' => 'float',
+        'unanswered_points' => 'float',
     ];
 
     public const EXAM_TYPES = [
@@ -62,12 +69,13 @@ class CbtExam extends Model
         'tryout' => 'Try Out',
         'test_masuk' => 'Test Masuk',
         'ujian_khusus' => 'Ujian Khusus',
+        'lomba' => 'Lomba / Kompetisi',
     ];
 
     /**
      * Exam types that belong to school scope (Admin only)
      */
-    public const SCHOOL_SCOPE_TYPES = ['uas', 'uts', 'tryout', 'test_masuk', 'ujian_khusus'];
+    public const SCHOOL_SCOPE_TYPES = ['uas', 'uts', 'tryout', 'test_masuk', 'ujian_khusus', 'lomba'];
 
     /**
      * Exam types that belong to class scope (Guru)
@@ -77,6 +85,18 @@ class CbtExam extends Model
     public const EXAM_SCOPES = [
         'school' => 'Ujian Sekolah',
         'class' => 'Ujian Kelas',
+        'competition' => 'Lomba / Kompetisi',
+    ];
+
+    public const SCORING_MODES = [
+        'standard' => 'Standar (Benar/Salah)',
+        'competition' => 'Kompetisi (+Benar / -Salah / 0 Kosong)',
+    ];
+
+    public const PARTICIPATION_MODES = [
+        'class' => 'Per Kelas (Seluruh Siswa)',
+        'individual' => 'Individu (Pilih Siswa)',
+        'team' => 'Tim / Kelompok',
     ];
 
     public const STATUSES = [
@@ -97,6 +117,7 @@ class CbtExam extends Model
         'tryout' => 'tugas',
         'test_masuk' => 'tugas',
         'ujian_khusus' => 'uas',
+        'lomba' => 'lomba', // Not synced to academic grades
     ];
 
     // Relationships
@@ -126,6 +147,9 @@ class CbtExam extends Model
     public function sessions(): HasMany { return $this->hasMany(CbtExamSession::class, 'exam_id'); }
     public function results(): HasMany { return $this->hasMany(CbtExamResult::class, 'exam_id'); }
     public function dispensations(): HasMany { return $this->hasMany(CbtExamDispensation::class, 'cbt_exam_id'); }
+
+    // Competition relationships
+    public function competitionTeams(): HasMany { return $this->hasMany(CbtCompetitionTeam::class, 'exam_id'); }
 
     /**
      * Dapatkan periode bulan dan tahun evaluasi kepatuhan uang sekolah

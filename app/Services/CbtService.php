@@ -291,11 +291,19 @@ class CbtService
     }
 
     /**
-     * Auto-grade multiple choice and true/false questions
+     * Auto-grade multiple choice and true/false questions.
+     * Supports competition scoring mode: correct=+N, wrong=-N, unanswered=0
      */
     private function autoGradeSession(CbtExamSession $session): void
     {
         $answers = $session->answers()->with('question.options')->get();
+        $exam = $session->exam;
+
+        // Mode kompetisi: pakai poin kustom dari exam setting
+        $isCompetitionMode = $exam->scoring_mode === 'competition';
+        $correctPts   = $isCompetitionMode ? ($exam->correct_points ?? 4)   : null;
+        $wrongPenalty = $isCompetitionMode ? ($exam->wrong_penalty ?? 1)     : null;
+        $unansweredPts = $isCompetitionMode ? ($exam->unanswered_points ?? 0) : null;
 
         // Pre-load all exam questions for this exam to avoid N+1
         $examQuestions = CbtExamQuestion::where('exam_id', $session->exam_id)
@@ -308,41 +316,73 @@ class CbtService
             if (in_array($question->question_type, ['multiple_choice', 'true_false'])) {
                 // Find correct option
                 $correctOption = $question->options->where('is_correct', true)->first();
+                $hasAnswer = !is_null($answer->selected_option);
                 $isCorrect = $correctOption && $answer->selected_option === $correctOption->option_label;
 
-                $examQuestion = $examQuestions->get($question->id);
-                $points = $examQuestion?->points_override ?? $question->points ?? 1;
+                if ($isCompetitionMode) {
+                    // Mode kompetisi: +correctPts jika benar, -wrongPenalty jika salah, 0 jika kosong
+                    if (!$hasAnswer) {
+                        $scoreObtained = $unansweredPts; // 0
+                        $isCorrectFlag = null; // Tidak dianggap benar atau salah
+                    } elseif ($isCorrect) {
+                        $scoreObtained = $correctPts;
+                        $isCorrectFlag = true;
+                    } else {
+                        $scoreObtained = -$wrongPenalty; // Negatif
+                        $isCorrectFlag = false;
+                    }
+                } else {
+                    // Mode standar: poin sesuai konfigurasi soal, 0 jika salah
+                    $examQuestion = $examQuestions->get($question->id);
+                    $points = $examQuestion?->points_override ?? $question->points ?? 1;
+                    $scoreObtained = $isCorrect ? $points : 0;
+                    $isCorrectFlag = $hasAnswer ? $isCorrect : null;
+                }
 
                 $answer->update([
-                    'is_correct' => $isCorrect,
-                    'score_obtained' => $isCorrect ? $points : 0,
+                    'is_correct'      => $isCorrectFlag,
+                    'score_obtained'  => $scoreObtained,
                 ]);
             }
         }
     }
 
     /**
-     * Calculate and store exam result
+     * Calculate and store exam result.
+     * Competition mode: final_score = raw total_score (can be negative).
+     * Standard mode: final_score = percentage of max_score.
      */
     private function calculateResult(CbtExamSession $session): CbtExamResult
     {
         $answers = $session->answers()->get();
         $exam = $session->exam;
 
-        $totalQuestions = $answers->count();
+        $isCompetitionMode = $exam->scoring_mode === 'competition';
+
+        $totalQuestions   = $answers->count();
         $answeredQuestions = $answers->filter(fn($a) => $a->isAnswered())->count();
-        $correctAnswers = $answers->where('is_correct', true)->count();
-        $wrongAnswers = $answers->where('is_correct', false)->whereNotNull('is_correct')->count();
-        $unanswered = $totalQuestions - $answeredQuestions;
+        $correctAnswers   = $answers->where('is_correct', true)->count();
+        $wrongAnswers     = $answers->where('is_correct', false)->whereNotNull('is_correct')->count();
+        $unanswered       = $totalQuestions - $answeredQuestions;
 
         $totalScore = $answers->sum('score_obtained');
-        $maxScore = $this->getMaxScore($session);
-        $percentageScore = $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
-        $finalScore = round($percentageScore, 2);
 
-        $isPassed = $finalScore >= ($exam->passing_score ?? 75);
-        $kkm = (int)($exam->passing_score ?? 75);
-        $predicate = \App\Models\FinalGrade::scoreToPredicate($finalScore, $kkm);
+        if ($isCompetitionMode) {
+            // Mode kompetisi: final_score = total skor mentah (bisa negatif)
+            $maxScore        = ($exam->correct_points ?? 4) * $totalQuestions;
+            $percentageScore = $maxScore > 0 ? (($totalScore / $maxScore) * 100) : 0;
+            $finalScore      = round($totalScore, 2); // Skor mentah, bukan persentase
+            $isPassed        = false; // Lomba tidak ada konsep lulus/tidak
+        } else {
+            // Mode standar: final_score = persentase
+            $maxScore        = $this->getMaxScore($session);
+            $percentageScore = $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
+            $finalScore      = round($percentageScore, 2);
+            $isPassed        = $finalScore >= ($exam->passing_score ?? 75);
+        }
+
+        $kkm       = (int)($exam->passing_score ?? 75);
+        $predicate = \App\Models\FinalGrade::scoreToPredicate($isCompetitionMode ? $percentageScore : $finalScore, $kkm);
 
         $timeSpent = $session->started_at && $session->finished_at
             ? $session->started_at->diffInSeconds($session->finished_at)
