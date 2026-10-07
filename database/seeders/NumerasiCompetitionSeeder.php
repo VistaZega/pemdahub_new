@@ -67,7 +67,7 @@ class NumerasiCompetitionSeeder extends Seeder
                 'teacher_id'       => $teacher?->id,
                 'academic_year_id' => $academicYear?->id,
                 'description'      => 'Kumpulan 40 soal numerasi terapan lomba Industrial Math Challenge: Hitung Tepat, Kerja Akurat.',
-                'grade_level'      => 'all',
+                'grade_level'      => '10',
                 'total_questions'  => 40,
                 'is_active'        => true,
                 'is_shared'        => true,
