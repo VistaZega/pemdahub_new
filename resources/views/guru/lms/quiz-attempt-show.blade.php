@@ -27,19 +27,20 @@
             <form action="{{ route('guru.lms.quizzes.attempts.grade', $attempt->id) }}" method="POST">
                 @csrf
                 <div class="space-y-4">
-                    @foreach($quiz->questions as $i => $q)
+                    @foreach($questions as $i => $q)
                     @php
                         $ans = $answerMap->get($q->id);
                         $studentAns = $ans->answer ?? null;
                         $ansScore = $ans->score ?? 0;
                         $isCorrect = $ans ? $ans->is_correct : null;
                         $isPending = $ans === null || $ans->is_correct === null;
+                        $maxQScore = $isQuizLevelScoring ? $effectivePointsPerQuestion : $q->score;
                     @endphp
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-3">
                         <div class="flex justify-between items-start">
                             <div class="flex items-center gap-2">
                                 <span class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-bold">Soal {{ $i + 1 }}</span>
-                                <span class="text-xs text-gray-400 capitalize">{{ str_replace('_', ' ', $q->question_type) }} · Max {{ $q->score }} poin</span>
+                                <span class="text-xs text-gray-400 capitalize">{{ str_replace('_', ' ', $q->question_type) }} · Max {{ $maxQScore }} poin</span>
                             </div>
                             
                             {{-- Status Badge --}}
@@ -160,9 +161,9 @@
                                 <label class="text-xs text-gray-500 font-bold">Skor Diperoleh:</label>
                                 <input type="number" name="grades[{{ $q->id }}][score]" 
                                        value="{{ old("grades.{$q->id}.score", $ansScore) }}" 
-                                       min="0" max="{{ $q->score }}" step="0.5" required
+                                       min="0" max="{{ $maxQScore }}" step="0.01" required
                                        class="w-20 border rounded-lg px-2 py-1 text-xs text-center font-bold focus:ring-indigo-500">
-                                <span class="text-xs text-gray-400">/ {{ $q->score }}</span>
+                                <span class="text-xs text-gray-400">/ {{ $maxQScore }}</span>
                             </div>
                         </div>
                     </div>

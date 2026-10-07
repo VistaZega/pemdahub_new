@@ -885,12 +885,26 @@ class LmsQuizController extends Controller
         }
 
         $attempt->load(['student.user', 'answers.question']);
-        $quiz->load('questions');
+
+        // Ambil HANYA butir soal yang disajikan untuk attempt ini (misal 20 butir)
+        $questions = $attempt->getQuestions();
 
         // Map answers by question_id
         $answerMap = $attempt->answers->keyBy('question_id');
 
-        return view('guru.lms.quiz-attempt-show', compact('teacher', 'course', 'quiz', 'attempt', 'answerMap'));
+        $effectivePointsPerQuestion = $quiz->getEffectivePointsPerQuestion($questions->count());
+        $isQuizLevelScoring = ($quiz->points_per_question !== null || $quiz->question_sample_count !== null);
+
+        return view('guru.lms.quiz-attempt-show', compact(
+            'teacher',
+            'course',
+            'quiz',
+            'attempt',
+            'questions',
+            'answerMap',
+            'effectivePointsPerQuestion',
+            'isQuizLevelScoring'
+        ));
     }
 
     /**
@@ -911,26 +925,33 @@ class LmsQuizController extends Controller
             'grades.*.is_correct' => 'required|boolean',
         ]);
 
+        $questions = $attempt->getQuestions();
+        $effectivePointsPerQuestion = $quiz->getEffectivePointsPerQuestion($questions->count());
+        $isQuizLevelScoring = ($quiz->points_per_question !== null || $quiz->question_sample_count !== null);
+
         foreach ($request->grades as $questionId => $data) {
             $question = LmsQuizQuestion::find($questionId);
             if ($question && $question->quiz_id === $quiz->id) {
                 // Ensure score doesn't exceed question's max score
-                $score = min($data['score'], $question->score);
+                $maxAllowedScore = $isQuizLevelScoring ? $effectivePointsPerQuestion : $question->score;
+                $score = min((float)$data['score'], (float)$maxAllowedScore);
 
                 LmsQuizAnswer::updateOrCreate(
                     ['attempt_id' => $attempt->id, 'question_id' => $questionId],
                     [
                         'score' => $score,
-                        'is_correct' => $data['is_correct'],
+                        'is_correct' => (bool)$data['is_correct'],
                     ]
                 );
             }
         }
 
-        // Recalculate total score
+        // Recalculate total score based on questions assigned to this attempt
         $totalScore = $attempt->answers()->sum('score');
-        $maxScore = $quiz->questions()->sum('score');
-        $scorePercentage = $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
+        $maxScore = $isQuizLevelScoring
+            ? ($questions->count() * $effectivePointsPerQuestion)
+            : $questions->sum('score');
+        $scorePercentage = $maxScore > 0 ? min(100, ($totalScore / $maxScore) * 100) : 0;
 
         $attempt->update([
             'score' => $scorePercentage,

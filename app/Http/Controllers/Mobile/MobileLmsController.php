@@ -601,11 +601,36 @@ class MobileLmsController extends Controller
             ->first();
 
         if (!$attempt) {
+            $allQuestionIds = $quiz->questions()->reorder()->pluck('id')->toArray();
+            $selectedIds = $allQuestionIds;
+
+            if ($quiz->question_sample_count && $quiz->question_sample_count > 0 && $quiz->question_sample_count < count($allQuestionIds)) {
+                shuffle($allQuestionIds);
+                $selectedIds = array_slice($allQuestionIds, 0, $quiz->question_sample_count);
+            } elseif ($quiz->shuffle_questions) {
+                shuffle($allQuestionIds);
+                $selectedIds = $allQuestionIds;
+            }
+
             $attempt = LmsQuizAttempt::create([
                 'quiz_id' => $quiz->id,
                 'student_id' => $student->id,
+                'question_ids' => $selectedIds,
                 'started_at' => now(),
             ]);
+        } elseif (empty($attempt->question_ids)) {
+            $allQuestionIds = $quiz->questions()->reorder()->pluck('id')->toArray();
+            $selectedIds = $allQuestionIds;
+
+            if ($quiz->question_sample_count && $quiz->question_sample_count > 0 && $quiz->question_sample_count < count($allQuestionIds)) {
+                shuffle($allQuestionIds);
+                $selectedIds = array_slice($allQuestionIds, 0, $quiz->question_sample_count);
+            } elseif ($quiz->shuffle_questions) {
+                shuffle($allQuestionIds);
+                $selectedIds = $allQuestionIds;
+            }
+
+            $attempt->update(['question_ids' => $selectedIds]);
         }
 
         // Hitung sisa durasi pengerjaan kuis berdasarkan started_at
@@ -618,19 +643,7 @@ class MobileLmsController extends Controller
             return redirect()->route('mobile.lms.quiz.result', $attempt->id)->with('info', 'Waktu pengerjaan kuis telah habis.');
         }
 
-        // Load questions (optionally shuffled or sampled randomly, seeded by attempt id)
-        $questionsQuery = $quiz->questions();
-        if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
-            $questionsQuery->inRandomOrder($attempt->id);
-        } else {
-            $questionsQuery->orderBy('order_number');
-        }
-
-        if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
-            $questionsQuery->take($quiz->question_sample_count);
-        }
-
-        $questions = $questionsQuery->get();
+        $questions = $attempt->getQuestions();
 
         if ($questions->isEmpty() && $quiz->cbtQuestionBank) {
             $cbtQuestions = $quiz->cbtQuestionBank->questions;
@@ -707,18 +720,7 @@ class MobileLmsController extends Controller
         }
 
         $quiz = $attempt->quiz;
-        $questionsQuery = $quiz->questions();
-        if ($quiz->shuffle_questions || ($quiz->question_sample_count && $quiz->question_sample_count > 0)) {
-            $questionsQuery->inRandomOrder($attempt->id);
-        } else {
-            $questionsQuery->orderBy('order_number');
-        }
-
-        if ($quiz->question_sample_count && $quiz->question_sample_count > 0) {
-            $questionsQuery->take($quiz->question_sample_count);
-        }
-
-        $questions = $questionsQuery->get();
+        $questions = $attempt->getQuestions();
 
         if ($questions->isEmpty() && $quiz->cbtQuestionBank) {
             $cbtQuestions = $quiz->cbtQuestionBank->questions;
