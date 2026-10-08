@@ -2873,6 +2873,72 @@ Route::get('/seed-numerasi', function () {
     return response($output);
 });
 
+Route::get('/assign-panitia-cbt', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized secret key');
+    }
+
+    $name = request('name', 'Adis');
+    $teachers = \App\Models\Teacher::where(function($q) use ($name) {
+            $q->where('full_name', 'LIKE', "%{$name}%")
+              ->orWhereHas('user', fn($sub) => $sub->where('name', 'LIKE', "%{$name}%"))
+              ->orWhereHas('employee', fn($sub) => $sub->where('full_name', 'LIKE', "%{$name}%"));
+        })
+        ->with(['user', 'employee'])
+        ->get();
+
+    $output = "<div style='font-family:sans-serif;max-width:800px;margin:30px auto;padding:20px;border:1px solid #ddd;border-radius:12px;'>";
+    $output .= "<h2>🔍 Pencarian Guru & Akun: '{$name}'</h2>";
+
+    if ($teachers->isEmpty()) {
+        $users = \App\Models\User::where('name', 'LIKE', "%{$name}%")
+            ->orWhere('username', 'LIKE', "%{$name}%")
+            ->get();
+        $output .= "<h3>Ditemukan di Tabel Users:</h3><pre style='background:#f4f4f4;padding:12px;border-radius:6px;'>" . json_encode($users, JSON_PRETTY_PRINT) . "</pre>";
+    } else {
+        foreach ($teachers as $t) {
+            $user = $t->user;
+            $output .= "<div style='border:1px solid #bbf7d0;background:#f0fdf4;padding:16px;border-radius:8px;margin-bottom:16px;'>";
+            $output .= "<h3 style='margin:0 0 10px;color:#166534;'>👨‍🏫 Guru: {$t->full_name}</h3>";
+            $output .= "<b>ID Guru:</b> {$t->id} | <b>Position Saat Ini:</b> " . ($t->position ?: '<i>(kosong)</i>') . "<br>";
+            
+            if ($user) {
+                $isPanitia = $user->isPanitiaCbt();
+                $output .= "<b>User ID:</b> {$user->id} | <b>Username:</b> <code style='background:#e2e8f0;padding:2px 6px;border-radius:4px;'>{$user->username}</code> | <b>Role:</b> {$user->role}<br>";
+                $output .= "<b>Status Akses Panitia CBT:</b> " . ($isPanitia ? "<span style='color:green;font-weight:bold;'>✔ SUDAH AKTIF</span>" : "<span style='color:red;font-weight:bold;'>✖ BELUM AKTIF</span>") . "<br><br>";
+                
+                if (request('do_assign') == '1') {
+                    // Update position di teacher
+                    $oldPos = $t->position ?? '';
+                    if (!str_contains(strtolower($oldPos), 'panitia cbt')) {
+                        $newPos = trim($oldPos . ' / Panitia CBT', ' /');
+                        $t->update(['position' => $newPos]);
+                    }
+                    if ($t->employee) {
+                        $empPos = $t->employee->position ?? '';
+                        if (!str_contains(strtolower($empPos), 'panitia cbt')) {
+                            $t->employee->update(['position' => trim($empPos . ' / Panitia CBT', ' /')]);
+                        }
+                    }
+                    $user->refresh();
+                    $output .= "<div style='background:#dcfce7;border:1px solid #86efac;color:#166534;padding:10px;border-radius:6px;font-weight:bold;'>";
+                    $output .= "🎉 Berhasil memberikan hak akses Panitia CBT kepada {$t->full_name}!<br>";
+                    $output .= "Status sekarang: " . ($user->isPanitiaCbt() ? "AKTIF (Dapat mengelola CBT & Lomba)" : "Gagal update");
+                    $output .= "</div>";
+                } else {
+                    $output .= "<a href='?secret=pembda99&name=" . urlencode($name) . "&do_assign=1' style='background:#15803d;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;'>⚡ Berikan Akses Panitia CBT Sekarang ➔</a>";
+                }
+            } else {
+                $output .= "<p style='color:red;'>⚠️ Guru ini belum terhubung ke akun User login.</p>";
+            }
+            $output .= "</div>";
+        }
+    }
+    $output .= "</div>";
+
+    return response($output);
+});
+
 // ── CBT Livescore Publik (Proyektor — tidak perlu login) ──────────────────
 Route::get('/cbt/{exam}/livescore', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'livescore'])
     ->name('admin.cbt.competition.livescore');

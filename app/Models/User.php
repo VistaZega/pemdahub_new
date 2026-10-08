@@ -522,6 +522,13 @@ class User extends Authenticatable
             }
         }
 
+        if ($this->employee) {
+            $pos = strtolower($this->employee->position ?? '');
+            if (str_contains($pos, 'panitia cbt') || str_contains($pos, 'pokja cbt') || str_contains($pos, 'koordinator cbt') || str_contains($pos, 'pan-cbt')) {
+                return true;
+            }
+        }
+
         return false;
     }
 
