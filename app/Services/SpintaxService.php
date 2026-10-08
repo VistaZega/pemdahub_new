@@ -144,12 +144,12 @@ class SpintaxService
     public static function spinReplyRequest(): string
     {
         $requests = [
-            "📢 *Pemberitahuan:* Ini adalah nomor admin baru Perguruan Pembda. Mohon bantuannya untuk *membalas pesan ini* (cukup ketik \"OK\" / \"Terima kasih\") agar sistem WhatsApp mengenali bahwa pesan ini bukan spam. Terima kasih atas kerja samanya! 🙏",
-            "📌 *Info Penting:* Nomor ini adalah nomor admin resmi yang baru. Demi kelancaran layanan notifikasi sekolah, mohon *balas pesan ini dengan satu kata* (misal: \"Siap\" / \"Diterima\") agar WhatsApp tidak menandai pesan kami sebagai pesan otomatis. Terima kasih! 🙏",
-            "💬 *Mohon Konfirmasi:* Agar rekapitulasi ini terus terkirim lancar, mohon kiranya Bapak/Ibu *berkenan membalas singkat* pesan ini (contoh: \"OK\" / \"Noted\"). Balasan Anda membantu sistem mengenali bahwa pesan ini diterima oleh orang yang tepat dan bukan spam. Salam hormat! 🙏",
-            "📲 *Perhatian:* Nomor WhatsApp admin sekolah telah diperbarui. Mohon *balas pesan ini* dengan kata singkat (misal: \"Terima kasih\" / \"Sudah dibaca\") untuk memastikan nomor ini tersimpan dan tidak terblokir oleh sistem anti-spam WhatsApp. Terima kasih banyak! 🙏",
-            "🔔 *Catatan Admin:* Ini adalah nomor baru layanan notifikasi Perguruan Pembda. Agar WhatsApp tidak memblokir pengiriman rekapitulasi ini, mohon *balas dengan kata singkat* seperti \"Diterima\" atau \"OK\". Satu balasan Anda sangat membantu kelancaran sistem informasi sekolah kita. 🙏",
-            "✉️ *Himbauan:* Demi keberlangsungan layanan informasi kehadiran harian ini, mohon Bapak/Ibu *berkenan mengirim balasan singkat* (contoh: \"Siap\" / \"Terima kasih\"). Hal ini penting agar WhatsApp mendeteksi komunikasi dua arah dan tidak menganggap pesan ini sebagai spam. Salam! 🙏",
+            "📢 *Pemberitahuan:* Mohon berkenan menyimpan nomor ini di kontak HP Bapak/Ibu sebagai *\"Admin PembdaHUB\"* dan membalas pesan ini (cukup ketik \"OK\" / \"Siap\") agar sistem WhatsApp mengenali nomor resmi sekolah kita. Terima kasih! 🙏",
+            "📌 *Info Penting:* Ini adalah nomor resmi baru kami. Mohon simpan kontak ini dengan nama *\"Admin PembdaHUB\"*, serta balas pesan ini dengan satu kata singkat (misal: \"Siap\" / \"Diterima\") demi kelancaran informasi sekolah. Salam hormat! 🙏",
+            "💬 *Himbauan Admin:* Agar informasi jadwal dan rekap KBM selalu terkirim lancar, mohon simpan nomor ini sebagai *\"Admin PembdaHUB\"* di HP Bapak/Ibu, lalu berkenan membalas singkat (contoh: \"OK\" / \"Noted\"). Terima kasih atas kerja samanya! 🙏",
+            "📲 *Perhatian:* Mohon simpan kontak nomor ini dengan nama *\"Admin PembdaHUB\"* di HP Bapak/Ibu. Mohon juga balas pesan ini secara singkat (misal: \"Terima kasih\" / \"Sudah dibaca\") untuk memastikan nomor resmi sekolah tidak terblokir sistem anti-spam. 🙏",
+            "🔔 *Catatan Penting:* Mohon bantuannya untuk menyimpan nomor ini di buku telepon HP Anda sebagai *\"Admin PembdaHUB\"* dan membalas singkat pesan ini (\"Diterima\" / \"OK\"). Satu simpanan kontak & balasan Anda sangat mendukung kelancaran SIM sekolah kita. 🙏",
+            "✉️ *Konfirmasi Kontak:* Demi kelancaran komunikasi dinas dan akademik, mohon simpan nomor ini sebagai *\"Admin PembdaHUB\"* dan kirimkan balasan singkat (contoh: \"Siap\" / \"Terima kasih\"). Salam sukses dan selamat bertugas! 🙏",
         ];
 
         return $requests[array_rand($requests)];
