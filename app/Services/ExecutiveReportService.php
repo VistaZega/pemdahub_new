@@ -524,8 +524,8 @@ class ExecutiveReportService
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolFilter = $options['school'] ?? $options['school_id'] ?? null;
-        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_teaching_delay_min', 20);
-        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_teaching_delay_max', 35);
+        $delayMin = $options['delay_min'] ?? (int)Setting::getValue('wa_teaching_delay_min', 60);
+        $delayMax = $options['delay_max'] ?? (int)Setting::getValue('wa_teaching_delay_max', 90);
         $logger = $options['logger'] ?? null;
 
         if (!$targetPhone && !$dryRun && (!$this->whatsappService->isEnabled() || !Setting::getValue('wa_digest_enabled', true))) {
@@ -658,6 +658,7 @@ class ExecutiveReportService
             $greeting = SpintaxService::spinGreeting($teacher->full_name, 'Bapak/Ibu');
             $closing = SpintaxService::spinClosing();
             $motto = SpintaxService::spinMottoLine();
+            $replyRequest = SpintaxService::spinReplyRequest();
             $footer = SpintaxService::spinFooter();
 
             $message = "{⏰|📋|🔔|📚|🗓️} *{PENGINGAT JADWAL MENGAJAR HARI INI|AGENDA MENGAJAR KBM HARI INI|INFORMASI JADWAL MENGAJAR GURU|JADWAL KBM & TUGAS MENGAJAR ANDA|PENGINGAT SESI MENGAJAR HARI INI}*\n"
@@ -668,6 +669,7 @@ class ExecutiveReportService
                 . "{$jadwalText}\n\n"
                 . "{$closing}\n\n"
                 . "{$motto}\n\n"
+                . "{$replyRequest}\n\n"
                 . "{$footer}";
 
             if ($logger) {

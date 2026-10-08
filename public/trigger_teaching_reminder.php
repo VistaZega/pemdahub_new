@@ -56,9 +56,9 @@ $dayNames = [
 $dayIndo = $dayNames[$dayOfWeek] ?? ucfirst($dayOfWeek);
 $dateFormatted = Carbon::now()->translatedFormat('d F Y');
 
-// Jeda aman anti-ban (default 20 - 35 detik)
-$delayMin = isset($_GET['delay_min']) ? (int)$_GET['delay_min'] : (int)Setting::getValue('wa_teaching_delay_min', 20);
-$delayMax = isset($_GET['delay_max']) ? (int)$_GET['delay_max'] : (int)Setting::getValue('wa_teaching_delay_max', 35);
+// Jeda aman anti-ban (default 60 - 90 detik)
+$delayMin = isset($_GET['delay_min']) ? (int)$_GET['delay_min'] : (int)Setting::getValue('wa_teaching_delay_min', 60);
+$delayMax = isset($_GET['delay_max']) ? (int)$_GET['delay_max'] : (int)Setting::getValue('wa_teaching_delay_max', 90);
 
 // JIKA BELUM ADA AKSI (TAMPILKAN CONTROL PANEL)
 if (!$run && !$dryRun && !$testPhone) {
@@ -80,10 +80,10 @@ if (!$run && !$dryRun && !$testPhone) {
 
         $typeKey = strtolower($sc->type);
         $timeSlot = match($typeKey) {
-            'smp' => '06:15 WIB',
-            'sma' => '06:30 WIB',
-            'smk' => '06:45 WIB',
-            default => '06:45 WIB'
+            'smp' => '05:00 WIB',
+            'sma' => '05:40 WIB',
+            'smk' => '06:30 WIB',
+            default => '06:30 WIB'
         };
 
         $schoolStats[$sc->id] = [
@@ -133,7 +133,7 @@ if (!$run && !$dryRun && !$testPhone) {
     
     echo "<div class='alert-box'>";
     echo "🛡️ <strong>Sistem Proteksi Ganda Anti-Banned Aktif:</strong><br>";
-    echo "1. <strong>Gelombang Bertahap (Staggered Batching):</strong> Dipecah per unit sekolah (SMP 06:15, SMA 06:30, SMK 06:45 WIB) dengan jeda aman <strong>{$delayMin} - {$delayMax} detik</strong>.<br>";
+    echo "1. <strong>Gelombang Bertahap (Staggered Batching):</strong> Dipecah per unit sekolah (SMP 05:00, SMA 05:40, SMK 06:30 WIB) dengan jeda aman <strong>{$delayMin} - {$delayMax} detik</strong>.<br>";
     echo "2. <strong>Mesin Spin Teks Acak (Polymorphic Spintax & Motto):</strong> Setiap guru menerima salam, judul, susunan kalimat, motto institusi secara acak ('Keep Moving Forward', 'Maju Terus Pantang Mundur', 'Semangat', 'Stop Ask Just Action', 'Progresive In Harmony'), dan doa penutup yang selalu unik dan dinamis.";
     echo "</div>";
 

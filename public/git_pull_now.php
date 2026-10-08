@@ -460,19 +460,19 @@ try {
         \App\Models\Setting::setValue('wa_enabled', true, 'boolean', 'whatsapp');
         \App\Models\Setting::setValue('wa_digest_enabled', true, 'boolean', 'whatsapp');
 
-        // ⚠️ MODE AMAN: Hanya 2 Notifikasi Rekap yang AKTIF (anti-banned)
+        // ⚠️ MODE AMAN: 3 Notifikasi yang AKTIF (Kepsek, Wali Kelas, & Pengingat Jadwal KBM Bertahap)
         $enabledKeys = [
             'wa_send_principal_attendance',     // 1. Rekap Kehadiran Harian ke Kepala Sekolah (3 pesan/hari)
             'wa_send_homeroom_attendance',      // 2. Rekap Kehadiran Kelas ke Wali Kelas (~30 pesan/hari)
+            'wa_send_teaching_reminder',        // 3. Pengingat Jadwal Mengajar Guru (Bertahap: SMP 05:00, SMA 05:40, SMK 06:30)
         ];
 
         foreach ($enabledKeys as $ek) {
             \App\Models\Setting::setValue($ek, true, 'boolean', 'whatsapp');
         }
 
-        // MATIKAN tap guru & pengingat jadwal mengajar
+        // Tap hadir perorangan guru/pegawai TETAP DIMATIKAN
         \App\Models\Setting::setValue('wa_send_teacher_attendance', false, 'boolean', 'whatsapp');
-        \App\Models\Setting::setValue('wa_send_teaching_reminder', false, 'boolean', 'whatsapp');
 
         // Pengaturan Jeda ULTRA-AMAN: Seperti manusia mengetik manual satu per satu
         // Digest Rekap (Kepsek & Wali Kelas): 2-3 menit per pesan
@@ -480,9 +480,9 @@ try {
         \App\Models\Setting::setValue('wa_digest_delay_max', 180, 'integer', 'whatsapp');
         // Jeda antar-batch (Kepsek → Wali Kelas): 5 menit pendinginan
         \App\Models\Setting::setValue('wa_digest_batch_pause', 300, 'integer', 'whatsapp');
-        // Teaching delay tetap tersimpan tapi tidak aktif saat ini
-        \App\Models\Setting::setValue('wa_teaching_delay_min', 30, 'integer', 'whatsapp');
-        \App\Models\Setting::setValue('wa_teaching_delay_max', 60, 'integer', 'whatsapp');
+        // Teaching reminder delay: 60 - 90 detik per guru
+        \App\Models\Setting::setValue('wa_teaching_delay_min', 60, 'integer', 'whatsapp');
+        \App\Models\Setting::setValue('wa_teaching_delay_max', 90, 'integer', 'whatsapp');
 
         // Seluruh notifikasi lainnya tetap DIMATIKAN (OFF)
         $disabledKeys = [
@@ -551,7 +551,7 @@ try {
 
         $deletedCount = \Illuminate\Support\Facades\DB::table('jobs')->delete();
         echo "<span class='ok'>✔ Provider WhatsApp: FONNTE (Cloud API) diaktifkan.</span>\n";
-        echo "<span class='ok'>✔ ⚠️ MODE AMAN: Hanya 2 Notifikasi Rekap (Kepsek & Wali Kelas) AKTIF (ON). Jeda per pesan: 2-3 Menit, Jeda Batch: 5 Menit.</span>\n";
+        echo "<span class='ok'>✔ ⚠️ MODE AMAN: 3 Notifikasi AKTIF (Rekap Kepsek, Rekap Wali Kelas, & Pengingat Jadwal Mengajar Guru). Jeda per pesan: 60-90s (Jadwal) & 2-3 Menit (Rekap).</span>\n";
         echo "<span class='warn'>🔒 Notifikasi lainnya tetap DIMATIKAN (OFF) & {$deletedCount} antrean dibersihkan.</span>\n";
 
         // 8c. Auto-fix: Pastikan presensi siswa PKL di DUDI tidak pernah berstatus 'terlambat'
