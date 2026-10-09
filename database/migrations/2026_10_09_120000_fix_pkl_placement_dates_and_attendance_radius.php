@@ -15,10 +15,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Perbarui batas radius presensi Kompleks Pembda menjadi 350 meter
-        //    (Mencakup seluruh gedung SMK, bengkel kejuruan, serta deviasi GPS ponsel siswa di ruang kelas/beratap seng)
+        // 1. Perbarui batas radius presensi Kompleks Pembda menjadi standar ketat 90 meter
+        //    (Mencakup petak sekolah 75x75m dan toleransi gerbang/halaman, mencegah absen dari warung/luar sekolah)
         try {
-            Setting::setValue('attendance_max_radius', 350, 'integer', 'features');
+            Setting::setValue('attendance_max_radius', 90, 'integer', 'features');
             Setting::setValue('school_latitude', '1.28127778', 'string', 'features');
             Setting::setValue('school_longitude', '97.62566667', 'string', 'features');
         } catch (\Throwable $e) {}

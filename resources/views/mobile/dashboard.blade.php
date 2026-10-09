@@ -176,7 +176,7 @@
                     @endif
                 </div>
                 <p class="text-[10px] text-slate-500 font-bold truncate">
-                    {{ empty($todayAttendance) ? 'Konfirmasi kehadiran GPS sekarang' : 'Jangan lupa presensi pulang nanti' }}
+                    {{ empty($todayAttendance) ? 'Berada di teras/lapangan sekolah agar GPS akurat' : 'Jangan lupa presensi pulang nanti' }}
                 </p>
             </div>
         </div>
@@ -1225,8 +1225,9 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Presensi Belum Berhasil ⚠️',
-                            text: data.message || 'Terjadi kendala saat memverifikasi lokasi.',
+                            html: `<div class="text-left text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl border border-slate-200 mt-2">${(data.message || 'Terjadi kendala saat memverifikasi lokasi.').replace(/\n/g, '<br>')}</div>`,
                             confirmButtonColor: '#e11d48',
+                            confirmButtonText: 'Saya Mengerti'
                         });
                     }
                 })

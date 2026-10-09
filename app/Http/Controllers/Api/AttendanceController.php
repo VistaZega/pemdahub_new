@@ -603,9 +603,11 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        // Toleransi radius presensi: gunakan setting atau minimal 350 meter untuk mencakup seluruh area Kompleks Pembda & deviasi GPS kelas/bengkel
-        $configuredRadius = (int) \App\Models\Setting::getValue('attendance_max_radius', 350);
-        $maxRadiusMeters = max(350, $configuredRadius);
+        // Toleransi radius presensi: standar ketat lingkungan sekolah (default 90 meter sesuai luas kompleks 75x75m)
+        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 90);
+        if ($maxRadiusMeters <= 0) {
+            $maxRadiusMeters = 90;
+        }
 
         // Identitas sekolah siswa (Mencegah salah target nama sekolah antara SMK, SMA, SMP)
         $primarySchool = $student->school;
@@ -666,12 +668,12 @@ class AttendanceController extends Controller
         $dudiName = $activePkl ? ($activePkl->dudi->name ?? ($activePkl->company_name ?? 'Mitra DUDI')) : null;
 
         // Jika BUKAN siswa PKL aktif dan berada di luar radius sekolah, TOLAK SEGERA!
-        // Selalu tampilkan nama sekolah siswa itu sendiri agar tidak membingungkan (misal anak SMK tidak disebut dari SMA)
+        // Berikan petunjuk edukatif agar siswa melangkah ke teras/lapangan/luar kelas untuk mengunci GPS satelit presisi
         if (!$isPklActive && $minDistance > $maxRadiusMeters) {
             $formattedDist = number_format($minDistance, 0, ',', '.');
             return response()->json([
                 'success' => false,
-                'message' => "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$studentSchoolName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}",
+                'message' => "⛔ Presensi Ditolak! Lokasi Anda berada di luar area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$studentSchoolName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n\n💡 Petunjuk: Pastikan Anda berada dalam lingkungan sekolah (di teras kelas, lapangan, atau di luar kelas) dan fitur Akurasi Lokasi HP aktif agar GPS satelit dapat mengunci posisi Anda secara presisi.",
                 'distance' => round($minDistance),
                 'max_radius' => $maxRadiusMeters
             ], 403);

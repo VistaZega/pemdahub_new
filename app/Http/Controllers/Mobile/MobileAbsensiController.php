@@ -120,9 +120,11 @@ class MobileAbsensiController extends Controller
                 );
             }
 
-            // Dapatkan Radius Geofencing (Toleransi Kompleks Perguruan Pembda & deviasi GPS ruang kelas)
-            $configuredRadius = (int) \App\Models\Setting::getValue('attendance_max_radius', 350);
-            $maxRadiusMeters = max(350, $configuredRadius);
+            // Dapatkan Radius Geofencing (Standar ketat lingkungan sekolah, default 90 meter)
+            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 90);
+            if ($maxRadiusMeters <= 0) {
+                $maxRadiusMeters = 90;
+            }
 
             // Kumpulkan seluruh titik koordinat unit sekolah dalam Kompleks Perguruan Pembda
             $targetLocations = [];
@@ -174,7 +176,7 @@ class MobileAbsensiController extends Controller
             $formattedDist = number_format($minDistance, 0, ',', '.');
 
             if ($minDistance > $maxRadiusMeters) {
-                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$schoolTargetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}";
+                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$schoolTargetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n\n💡 Petunjuk: Pastikan Anda berada dalam lingkungan sekolah (di teras, lapangan, atau di luar ruangan) dan fitur Akurasi Lokasi HP aktif agar GPS dapat mengunci posisi Anda secara presisi.";
                 return $wantsJson
                     ? response()->json(['success' => false, 'message' => $msg, 'distance' => round($minDistance), 'max_radius' => $maxRadiusMeters], 403)
                     : back()->with('error', $msg);

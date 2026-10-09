@@ -106,7 +106,7 @@
         <p class="text-xs text-emerald-100 mb-4 max-w-xs mx-auto font-medium">
             {{ isset($activePkl) && $activePkl 
                 ? 'Presensi kehadiran langsung dari lokasi industri/kantor PKL Anda.' 
-                : 'Pastikan Anda berada di area lokasi sekolah sebelum menekan tombol di bawah.' }}
+                : 'Pastikan Anda berada di lingkungan sekolah (di teras kelas, lapangan, atau luar kelas) agar GPS satelit mengunci lokasi dengan akurat.' }}
         </p>
 
         @if($todayAttendance)
