@@ -673,7 +673,7 @@ class AttendanceController extends Controller
             $formattedDist = number_format($minDistance, 0, ',', '.');
             return response()->json([
                 'success' => false,
-                'message' => "⛔ Presensi Ditolak! Lokasi Anda berada di luar area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$studentSchoolName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n\n💡 Petunjuk: Pastikan Anda berada dalam lingkungan sekolah (di teras kelas, lapangan, atau di luar kelas) dan fitur Akurasi Lokasi HP aktif agar GPS satelit dapat mengunci posisi Anda secara presisi.\n\n📌 Solusi Alternatif: Bila tetap gagal juga, silakan lakukan presensi melalui Scan Kartu RFID / QR Code di pos gerbang atau konfirmasi presensi manual melalui Wali Kelas.",
+                'message' => "⛔ Presensi Ditolak! Lokasi Anda berada di luar area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$studentSchoolName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n\n💡 Petunjuk: Pastikan Anda berada dalam lingkungan sekolah (lapangan upacara, selasar, atau di teras kelas) dan fitur Akurasi Lokasi HP aktif agar GPS satelit dapat mengunci posisi Anda secara presisi.\n\n📌 Solusi Alternatif: Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.",
                 'distance' => round($minDistance),
                 'max_radius' => $maxRadiusMeters
             ], 403);

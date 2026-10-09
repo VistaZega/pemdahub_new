@@ -176,7 +176,7 @@
                     @endif
                 </div>
                 <p class="text-[10px] text-slate-500 font-bold truncate">
-                    {{ empty($todayAttendance) ? 'Berada di teras/lapangan sekolah agar GPS akurat' : 'Jangan lupa presensi pulang nanti' }}
+                    {{ empty($todayAttendance) ? 'Berada di lapangan upacara, selasar, atau teras kelas' : 'Jangan lupa presensi pulang nanti' }}
                 </p>
             </div>
         </div>
@@ -1250,13 +1250,13 @@
                     btnElement.disabled = false;
                     btnElement.innerHTML = origHtml;
                 }
-                let errText = 'Gagal mengakses lokasi GPS. Pastikan GPS aktif dan izin lokasi diizinkan pada browser/HP Anda.<br><br>💡 <em>Bila tetap terkendala, silakan presensi via Scan Kartu RFID/QR Code atau melalui Wali Kelas.</em>';
+                let errText = 'Gagal mengakses lokasi GPS. Pastikan GPS aktif dan berada di lapangan upacara, selasar, atau di teras kelas.<br><br>💡 <em>Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.</em>';
                 if (err.code === 1) {
-                    errText = 'Izin lokasi ditolak. Harap izinkan akses lokasi (GPS) pada browser/aplikasi Anda.<br><br>💡 <em>Atau silakan presensi via Scan Kartu RFID/QR Code atau melalui Wali Kelas.</em>';
+                    errText = 'Izin lokasi ditolak. Harap izinkan akses lokasi (GPS) pada browser/aplikasi Anda.<br><br>💡 <em>Silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.</em>';
                 } else if (err.code === 2) {
-                    errText = 'Posisi GPS tidak dapat ditentukan. Pastikan Anda berada di area dengan sinyal GPS baik (teras/lapangan).<br><br>💡 <em>Bila tetap terkendala, silakan presensi via Scan Kartu RFID/QR Code atau melalui Wali Kelas.</em>';
+                    errText = 'Posisi GPS tidak dapat ditentukan. Pastikan Anda berada di lapangan upacara, selasar, atau di teras kelas.<br><br>💡 <em>Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.</em>';
                 } else if (err.code === 3) {
-                    errText = 'Waktu permintaan lokasi habis (timeout). Silakan coba lagi atau lakukan presensi via Scan Kartu RFID/QR Code / Wali Kelas.';
+                    errText = 'Waktu permintaan lokasi habis (timeout). Silakan coba lagi di lapangan upacara, selasar, atau teras kelas, atau absen via Scan RFID / QR Code / Manual melalui Wali Kelas.';
                 }
                 Swal.fire({
                     icon: 'warning',

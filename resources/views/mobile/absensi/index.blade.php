@@ -136,12 +136,12 @@
         <p class="text-xs text-emerald-100 mb-3 max-w-xs mx-auto font-medium">
             {{ isset($activePkl) && $activePkl 
                 ? 'Presensi kehadiran langsung dari lokasi industri/kantor PKL Anda.' 
-                : 'Pastikan Anda berada di lingkungan sekolah (di teras kelas, lapangan, atau luar kelas) agar GPS satelit mengunci lokasi dengan akurat.' }}
+                : 'Pastikan Anda berada di lingkungan sekolah (lapangan upacara, selasar, atau di teras kelas) agar GPS satelit mengunci lokasi dengan akurat.' }}
         </p>
 
         @if(!isset($activePkl) || !$activePkl)
-            <div class="mb-4 px-3 py-2 rounded-2xl bg-white/15 border border-white/25 text-white text-[11px] text-center font-medium leading-relaxed backdrop-blur-md">
-                💡 <strong>Kendala GPS?</strong> Bila tetap gagal, silakan absen via <strong>Scan RFID / QR Code</strong> atau <strong>Manual melalui Wali Kelas</strong>.
+            <div class="mb-4 px-3.5 py-2.5 rounded-2xl bg-white/15 border border-white/25 text-white text-[11px] text-center font-medium leading-relaxed backdrop-blur-md">
+                💡 Pastikan berada di <strong>lapangan upacara, selasar, atau di teras kelas</strong>. Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via <strong>Scan RFID / QR Code</strong> atau <strong>Manual melalui Wali Kelas</strong>.
             </div>
         @endif
 
