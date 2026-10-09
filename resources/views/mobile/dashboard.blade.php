@@ -1250,19 +1250,21 @@
                     btnElement.disabled = false;
                     btnElement.innerHTML = origHtml;
                 }
-                let errText = 'Gagal mengakses lokasi GPS. Pastikan GPS aktif dan izin lokasi diizinkan pada browser/HP Anda.';
+                let errText = 'Gagal mengakses lokasi GPS. Pastikan GPS aktif dan izin lokasi diizinkan pada browser/HP Anda.<br><br>💡 <em>Bila tetap terkendala, silakan presensi via Scan Kartu RFID/QR Code atau melalui Wali Kelas.</em>';
                 if (err.code === 1) {
-                    errText = 'Izin lokasi ditolak. Harap izinkan akses lokasi (GPS) pada browser/aplikasi Anda.';
+                    errText = 'Izin lokasi ditolak. Harap izinkan akses lokasi (GPS) pada browser/aplikasi Anda.<br><br>💡 <em>Atau silakan presensi via Scan Kartu RFID/QR Code atau melalui Wali Kelas.</em>';
                 } else if (err.code === 2) {
-                    errText = 'Posisi GPS tidak dapat ditentukan. Pastikan Anda berada di area dengan sinyal GPS baik.';
+                    errText = 'Posisi GPS tidak dapat ditentukan. Pastikan Anda berada di area dengan sinyal GPS baik (teras/lapangan).<br><br>💡 <em>Bila tetap terkendala, silakan presensi via Scan Kartu RFID/QR Code atau melalui Wali Kelas.</em>';
                 } else if (err.code === 3) {
-                    errText = 'Waktu permintaan lokasi habis (timeout). Silakan coba lagi.';
+                    errText = 'Waktu permintaan lokasi habis (timeout). Silakan coba lagi atau lakukan presensi via Scan Kartu RFID/QR Code / Wali Kelas.';
                 }
                 Swal.fire({
                     icon: 'warning',
                     title: 'Akses Lokasi Diperlukan',
-                    text: errText,
+                    html: `<div class="text-left text-xs text-slate-700 leading-relaxed font-medium bg-amber-50 p-3 rounded-xl border border-amber-200 mt-2">${errText}</div>`,
                     confirmButtonColor: '#e11d48',
+                    confirmButtonText: 'Saya Mengerti'
+                });
                 });
             },
             {

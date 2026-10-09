@@ -64,17 +64,47 @@
                         })
                         .then(data => {
                             this.loading = false;
-                            alert(data.message || 'Presensi GPS berhasil dikirim!');
-                            window.location.reload();
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Presensi Berhasil! 🎉',
+                                    text: data.message || 'Presensi GPS berhasil dikirim!',
+                                    confirmButtonColor: '#059669'
+                                }).then(() => window.location.reload());
+                            } else {
+                                alert(data.message || 'Presensi GPS berhasil dikirim!');
+                                window.location.reload();
+                            }
                         })
                         .catch(err => {
                             this.loading = false;
-                            alert(err.message || 'Gagal melakukan presensi.');
+                            const errorMsg = err.message || 'Gagal melakukan presensi.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Presensi Belum Berhasil ⚠️',
+                                    html: `<div class="text-left text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl border border-slate-200 mt-2">${errorMsg.replace(/\n/g, '<br>')}</div>`,
+                                    confirmButtonColor: '#e11d48',
+                                    confirmButtonText: 'Saya Mengerti'
+                                });
+                            } else {
+                                alert(errorMsg);
+                            }
                         });
                     },
                     (err) => {
                         this.loading = false;
-                        alert('Gagal mendapatkan lokasi GPS: ' + err.message + '. Harap aktifkan GPS HP Anda.');
+                        const msg = 'Gagal mendapatkan lokasi GPS: ' + err.message + '. Harap aktifkan GPS dan Akurasi Lokasi HP Anda.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'GPS Tidak Aktif',
+                                text: msg,
+                                confirmButtonColor: '#d97706'
+                            });
+                        } else {
+                            alert(msg);
+                        }
                     },
                     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
                 );
@@ -103,11 +133,17 @@
         <h3 class="text-base font-black text-white mb-1">
             {{ isset($activePkl) && $activePkl ? 'Presensi Mandiri PKL (DUDI)' : 'Presensi Mandiri GPS' }}
         </h3>
-        <p class="text-xs text-emerald-100 mb-4 max-w-xs mx-auto font-medium">
+        <p class="text-xs text-emerald-100 mb-3 max-w-xs mx-auto font-medium">
             {{ isset($activePkl) && $activePkl 
                 ? 'Presensi kehadiran langsung dari lokasi industri/kantor PKL Anda.' 
                 : 'Pastikan Anda berada di lingkungan sekolah (di teras kelas, lapangan, atau luar kelas) agar GPS satelit mengunci lokasi dengan akurat.' }}
         </p>
+
+        @if(!isset($activePkl) || !$activePkl)
+            <div class="mb-4 px-3 py-2 rounded-2xl bg-white/15 border border-white/25 text-white text-[11px] text-center font-medium leading-relaxed backdrop-blur-md">
+                💡 <strong>Kendala GPS?</strong> Bila tetap gagal, silakan absen via <strong>Scan RFID / QR Code</strong> atau <strong>Manual melalui Wali Kelas</strong>.
+            </div>
+        @endif
 
         @if($todayAttendance)
             <div class="p-3.5 rounded-2xl bg-white/20 border border-white/30 text-white text-xs font-black inline-flex items-center gap-2 mb-1 backdrop-blur-md shadow">
@@ -166,3 +202,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endpush

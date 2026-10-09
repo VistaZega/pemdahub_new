@@ -176,7 +176,7 @@ class MobileAbsensiController extends Controller
             $formattedDist = number_format($minDistance, 0, ',', '.');
 
             if ($minDistance > $maxRadiusMeters) {
-                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$schoolTargetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n\n💡 Petunjuk: Pastikan Anda berada dalam lingkungan sekolah (di teras, lapangan, atau di luar ruangan) dan fitur Akurasi Lokasi HP aktif agar GPS dapat mengunci posisi Anda secara presisi.";
+                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$schoolTargetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n\n💡 Petunjuk: Pastikan Anda berada dalam lingkungan sekolah (di teras, lapangan, atau di luar ruangan) dan fitur Akurasi Lokasi HP aktif agar GPS dapat mengunci posisi Anda secara presisi.\n\n📌 Solusi Alternatif: Bila tetap gagal juga, silakan lakukan presensi melalui Scan Kartu RFID / QR Code di pos gerbang atau konfirmasi presensi manual melalui Wali Kelas / Guru Piket.";
                 return $wantsJson
                     ? response()->json(['success' => false, 'message' => $msg, 'distance' => round($minDistance), 'max_radius' => $maxRadiusMeters], 403)
                     : back()->with('error', $msg);
