@@ -37,15 +37,9 @@ class MobileAbsensiController extends Controller
                 ->first();
 
             $todayDate = now()->format('Y-m-d');
-            $activePkl = \App\Models\PklPlacement::with('dudi')
+            $activePkl = \App\Models\PklPlacement::activeOnDate($todayDate)
+                ->with('dudi')
                 ->where('student_id', $student->id)
-                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-                ->where(function($q) use ($todayDate) {
-                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $todayDate);
-                })
-                ->where(function($q) use ($todayDate) {
-                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $todayDate);
-                })
                 ->first();
         }
 
@@ -126,16 +120,16 @@ class MobileAbsensiController extends Controller
                 );
             }
 
-            // Dapatkan Radius Geofencing (Default 175 meter sesuai konfigurasi kompleks sekolah)
-            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 175);
-            if ($maxRadiusMeters <= 0) {
-                $maxRadiusMeters = 175;
-            }
+            // Dapatkan Radius Geofencing (Toleransi Kompleks Perguruan Pembda & deviasi GPS ruang kelas)
+            $configuredRadius = (int) \App\Models\Setting::getValue('attendance_max_radius', 350);
+            $maxRadiusMeters = max(350, $configuredRadius);
 
             // Kumpulkan seluruh titik koordinat unit sekolah dalam Kompleks Perguruan Pembda
             $targetLocations = [];
 
             $primarySchool = $employee ? $employee->school : ($user->school ?? null);
+            $schoolTargetName = $primarySchool?->name ?? 'Kompleks Perguruan Pembda';
+
             if ($primarySchool && (float)$primarySchool->latitude != 0.0 && (float)$primarySchool->longitude != 0.0) {
                 $targetLocations[] = [
                     'name' => $primarySchool->name,
@@ -166,7 +160,7 @@ class MobileAbsensiController extends Controller
                 'lng' => $globalLng,
             ];
 
-            // Cari jarak terdekat ke salah satu titik unit sekolah Pembda
+            // Cari jarak terdekat ke salah satu titik fasilitas Kompleks Pembda
             $minDistance = null;
             $closestTarget = null;
             foreach ($targetLocations as $loc) {
@@ -180,7 +174,7 @@ class MobileAbsensiController extends Controller
             $formattedDist = number_format($minDistance, 0, ',', '.');
 
             if ($minDistance > $maxRadiusMeters) {
-                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n🏫 Titik Acuan: {$closestTarget['name']} ({$closestTarget['lat']}, {$closestTarget['lng']})";
+                $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$schoolTargetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}";
                 return $wantsJson
                     ? response()->json(['success' => false, 'message' => $msg, 'distance' => round($minDistance), 'max_radius' => $maxRadiusMeters], 403)
                     : back()->with('error', $msg);

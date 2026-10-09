@@ -231,17 +231,12 @@ class AttendanceController extends Controller
             $currentTime = now()->format('H:i:s');
 
             // Preload status PKL aktif untuk semua siswa di input ini (pengecualian jam masuk)
-            $activePklStudentIds = \App\Models\PklPlacement::whereIn('student_id', array_keys($request->statuses))
-                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-                ->where(function($q) use ($request) {
-                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $request->date);
-                })
-                ->where(function($q) use ($request) {
-                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $request->date);
-                })
+            $activePklStudentIds = \App\Models\PklPlacement::activeOnDate($request->date)
+                ->whereIn('student_id', array_keys($request->statuses))
                 ->pluck('student_id')
                 ->flip()
                 ->toArray();
+
 
             foreach ($request->statuses as $studentId => $status) {
                 if (empty($status) || !in_array($status, ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'])) {
@@ -390,17 +385,12 @@ class AttendanceController extends Controller
             $currentTime = now()->format('H:i:s');
 
             // Preload status PKL aktif untuk semua siswa di input ini (pengecualian jam masuk)
-            $activePklStudentIds = \App\Models\PklPlacement::whereIn('student_id', array_keys($request->statuses))
-                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-                ->where(function($q) use ($date) {
-                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
-                })
-                ->where(function($q) use ($date) {
-                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
-                })
+            $activePklStudentIds = \App\Models\PklPlacement::activeOnDate($date)
+                ->whereIn('student_id', array_keys($request->statuses))
                 ->pluck('student_id')
                 ->flip()
                 ->toArray();
+
 
             foreach ($request->statuses as $studentId => $status) {
                 $note = $request->notes[$studentId] ?? null;

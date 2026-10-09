@@ -603,14 +603,16 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 175); // Default 175 meter radius
-        if ($maxRadiusMeters <= 0) {
-            $maxRadiusMeters = 175;
-        }
+        // Toleransi radius presensi: gunakan setting atau minimal 350 meter untuk mencakup seluruh area Kompleks Pembda & deviasi GPS kelas/bengkel
+        $configuredRadius = (int) \App\Models\Setting::getValue('attendance_max_radius', 350);
+        $maxRadiusMeters = max(350, $configuredRadius);
+
+        // Identitas sekolah siswa (Mencegah salah target nama sekolah antara SMK, SMA, SMP)
+        $primarySchool = $student->school;
+        $studentSchoolName = $primarySchool?->name ?? 'Sekolah';
 
         // Kumpulkan seluruh titik koordinat unit sekolah dalam Kompleks Perguruan Pembda
         $targetLocations = [];
-        $primarySchool = $student->school;
         if ($primarySchool && (float)$primarySchool->latitude != 0.0 && (float)$primarySchool->longitude != 0.0) {
             $targetLocations[] = [
                 'name' => $primarySchool->name,
@@ -641,7 +643,7 @@ class AttendanceController extends Controller
             'lng' => $globalLng,
         ];
 
-        // Cari jarak terdekat ke salah satu titik unit sekolah Pembda
+        // Cari jarak terdekat ke salah satu titik fasilitas unit sekolah Kompleks Pembda
         $minDistance = null;
         $closestTarget = null;
         foreach ($targetLocations as $loc) {
@@ -654,36 +656,27 @@ class AttendanceController extends Controller
 
         $todayDate = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
 
-        // Cek apakah siswa SEDANG AKTIF PKL di Industri / DUDI
-        $activePkl = \App\Models\PklPlacement::with('dudi')
+        // Cek apakah siswa SEDANG AKTIF PKL di Industri / DUDI (dengan grace period penarikan/administrasi DUDI)
+        $activePkl = \App\Models\PklPlacement::activeOnDate($todayDate)
+            ->with('dudi')
             ->where('student_id', $student->id)
-            ->where(function($q) {
-                $q->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan']);
-            })
-            ->where(function($q) use ($todayDate) {
-                $q->whereNull('start_date')
-                  ->orWhereDate('start_date', '<=', $todayDate);
-            })
-            ->where(function($q) use ($todayDate) {
-                $q->whereNull('end_date')
-                  ->orWhereDate('end_date', '>=', $todayDate);
-            })
             ->first();
 
         $isPklActive = !empty($activePkl);
         $dudiName = $activePkl ? ($activePkl->dudi->name ?? ($activePkl->company_name ?? 'Mitra DUDI')) : null;
 
         // Jika BUKAN siswa PKL aktif dan berada di luar radius sekolah, TOLAK SEGERA!
+        // Selalu tampilkan nama sekolah siswa itu sendiri agar tidak membingungkan (misal anak SMK tidak disebut dari SMA)
         if (!$isPklActive && $minDistance > $maxRadiusMeters) {
             $formattedDist = number_format($minDistance, 0, ',', '.');
-            $targetName = $closestTarget['name'] ?? 'Sekolah';
             return response()->json([
                 'success' => false,
-                'message' => "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$targetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}",
+                'message' => "⛔ Presensi Ditolak! Lokasi Anda berada di luar radius area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$studentSchoolName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}",
                 'distance' => round($minDistance),
                 'max_radius' => $maxRadiusMeters
             ], 403);
         }
+
 
         $studentClass = $student->studentClasses()
             ->where('status', 'aktif')

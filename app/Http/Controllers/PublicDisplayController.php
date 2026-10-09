@@ -187,16 +187,11 @@ class PublicDisplayController extends Controller
         $activeAcademicYearId = \App\Models\AcademicYear::where('is_active', true)->value('id');
 
         // Ambil daftar student_id yang aktif PKL (DUDI) hari ini untuk pengecualian jam masuk (O(1) flip lookup)
-        $activePklStudentIds = \App\Models\PklPlacement::whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-            ->where(function($q) use ($today) {
-                $q->whereNull('start_date')->orWhereDate('start_date', '<=', $today);
-            })
-            ->where(function($q) use ($today) {
-                $q->whereNull('end_date')->orWhereDate('end_date', '>=', $today);
-            })
+        $activePklStudentIds = \App\Models\PklPlacement::activeOnDate($today)
             ->pluck('student_id')
             ->flip()
             ->toArray();
+
         
         $rekapUnit = [];
         

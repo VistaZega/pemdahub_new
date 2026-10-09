@@ -405,17 +405,12 @@ class MobileTeacherController extends Controller
             $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
 
             // Preload status PKL aktif untuk semua siswa di input ini (pengecualian jam masuk)
-            $activePklStudentIds = \App\Models\PklPlacement::whereIn('student_id', $studentIds)
-                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-                ->where(function($q) use ($date) {
-                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
-                })
-                ->where(function($q) use ($date) {
-                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
-                })
+            $activePklStudentIds = \App\Models\PklPlacement::activeOnDate($date)
+                ->whereIn('student_id', $studentIds)
                 ->pluck('student_id')
                 ->flip()
                 ->toArray();
+
 
             foreach ($attendancesInput as $studentId => $status) {
                 if (empty($status) || !in_array($status, ['hadir', 'terlambat', 'izin', 'sakit', 'alpha'])) {

@@ -1889,11 +1889,11 @@ Route::get('/fix-attendance', function () {
     echo "<h2 style='color:#4ade80;'>=== SINKRONISASI RELASI PEGAWAI GURU & RADIUS GEOFENCING ===</h2>\n";
 
     try {
-        // 1. Update Radius Presensi ke 175 Meter & Koordinat Real Kompleks Perguruan Pembda (Jl. Pelita No. 09)
-        \App\Models\Setting::setValue('attendance_max_radius', '175', 'integer', 'features');
+        // 1. Update Radius Presensi ke 350 Meter & Koordinat Real Kompleks Perguruan Pembda (Jl. Pelita No. 09)
+        \App\Models\Setting::setValue('attendance_max_radius', 350, 'integer', 'features');
         \App\Models\Setting::setValue('school_latitude', '1.28127778', 'string', 'features');
         \App\Models\Setting::setValue('school_longitude', '97.62566667', 'string', 'features');
-        echo "✅ Radius Geofencing GPS diset ke <b>175 meter</b> (Toleransi Area Sekolah & Deviasi Ruangan).\n";
+        echo "✅ Radius Geofencing GPS diset ke <b>350 meter</b> (Toleransi Area Sekolah Kompleks Pembda & Deviasi Ruangan).\n";
 
         // 2. Sinkronisasi Sekolah ke Koordinat Real Kompleks Perguruan Pembda
         $schools = \App\Models\School::all();
@@ -1901,6 +1901,14 @@ Route::get('/fix-attendance', function () {
             $sc->update(['latitude' => 1.28127778, 'longitude' => 97.62566667]);
             echo "🏫 Set koordinat Kampus Perguruan Pembda (1.28127778, 97.62566667) untuk sekolah: {$sc->name}\n";
         }
+
+        // 2b. Perpanjang Tanggal PKL Aktif yang Berakhir 8 Oktober ke Akhir Oktober (Masa Transisi Penarikan DUDI)
+        $extendedPkl = \App\Models\PklPlacement::where('status', 'active')
+            ->whereDate('end_date', '<=', '2026-10-08')
+            ->whereDate('end_date', '>=', '2026-09-01')
+            ->update(['end_date' => '2026-10-31 00:00:00']);
+        echo "💼 Memperpanjang masa transisi PKL aktif untuk <b>{$extendedPkl} siswa</b> hingga 31 Oktober 2026.\n";
+
 
         // 3. Sinkronisasi Relasi Guru & Pegawai
         $guruUsers = \App\Models\User::whereIn('role', ['guru', 'pegawai', 'kepala_sekolah'])->get();

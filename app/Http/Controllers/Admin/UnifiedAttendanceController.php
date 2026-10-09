@@ -625,17 +625,12 @@ class UnifiedAttendanceController extends Controller
             $currentTime = now()->format('H:i:s');
 
             // Preload status PKL aktif untuk semua siswa di kelas ini (pengecualian jam masuk)
-            $activePklStudentIds = \App\Models\PklPlacement::whereIn('student_id', array_keys($request->attendance))
-                ->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
-                ->where(function($q) use ($date) {
-                    $q->whereNull('start_date')->orWhereDate('start_date', '<=', $date);
-                })
-                ->where(function($q) use ($date) {
-                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date);
-                })
+            $activePklStudentIds = \App\Models\PklPlacement::activeOnDate($date)
+                ->whereIn('student_id', array_keys($request->attendance))
                 ->pluck('student_id')
                 ->flip()
                 ->toArray();
+
 
             foreach ($request->attendance as $studentId => $data) {
                 if (empty($data['status'])) continue;
