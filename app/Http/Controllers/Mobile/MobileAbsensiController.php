@@ -120,10 +120,10 @@ class MobileAbsensiController extends Controller
                 );
             }
 
-            // Dapatkan Radius Geofencing (Standar ketat lingkungan sekolah, default 90 meter)
-            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 90);
+            // Dapatkan Radius Geofencing (Toleransi Kompleks Perguruan Pembda, default 175 meter)
+            $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 175);
             if ($maxRadiusMeters <= 0) {
-                $maxRadiusMeters = 90;
+                $maxRadiusMeters = 175;
             }
 
             // Kumpulkan seluruh titik koordinat unit sekolah dalam Kompleks Perguruan Pembda

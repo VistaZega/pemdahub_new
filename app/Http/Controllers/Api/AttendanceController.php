@@ -603,10 +603,10 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        // Toleransi radius presensi: standar ketat lingkungan sekolah (default 90 meter sesuai luas kompleks 75x75m)
-        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 90);
+        // Toleransi radius presensi: standar toleransi area Kompleks Perguruan Pembda (175 meter)
+        $maxRadiusMeters = (int) \App\Models\Setting::getValue('attendance_max_radius', 175);
         if ($maxRadiusMeters <= 0) {
-            $maxRadiusMeters = 90;
+            $maxRadiusMeters = 175;
         }
 
         // Identitas sekolah siswa (Mencegah salah target nama sekolah antara SMK, SMA, SMP)

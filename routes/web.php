@@ -1889,11 +1889,11 @@ Route::get('/fix-attendance', function () {
     echo "<h2 style='color:#4ade80;'>=== SINKRONISASI RELASI PEGAWAI GURU & RADIUS GEOFENCING ===</h2>\n";
 
     try {
-        // 1. Update Radius Presensi ke 90 Meter & Koordinat Real Kompleks Perguruan Pembda (Jl. Pelita No. 09)
-        \App\Models\Setting::setValue('attendance_max_radius', 90, 'integer', 'features');
+        // 1. Update Radius Presensi ke 175 Meter & Koordinat Real Kompleks Perguruan Pembda (Jl. Pelita No. 09)
+        \App\Models\Setting::setValue('attendance_max_radius', 175, 'integer', 'features');
         \App\Models\Setting::setValue('school_latitude', '1.28127778', 'string', 'features');
         \App\Models\Setting::setValue('school_longitude', '97.62566667', 'string', 'features');
-        echo "✅ Radius Geofencing GPS diset ke <b>90 meter</b> (Batas Presisi Kompleks Sekolah Pembda 75m x 75m).\n";
+        echo "✅ Radius Geofencing GPS diset ke <b>175 meter</b> (Toleransi Area Kompleks Sekolah Pembda & Deviasi Ruang Kelas).\n";
 
         // 2. Sinkronisasi Sekolah ke Koordinat Real Kompleks Perguruan Pembda
         $schools = \App\Models\School::all();
