@@ -69,23 +69,23 @@ class PklPlacement extends Model
     }
 
     /**
-     * Scope query penempatan PKL aktif pada tanggal tertentu.
-     * Memberikan kelonggaran/grace period hingga 30 hari pasca end_date selama status
-     * penempatan di sistem masih 'active' (belum diubah menjadi 'completed' atau 'selesai').
+     * Scope query penempatan PKL aktif pada tanggal tertentu (Opsi A - Tanpa Batasan Waktu Selesai).
+     * Selama tanggal mulai PKL sudah tiba (start_date <= targetDate), siswa memiliki lokasi DUDI,
+     * dan statusnya masih 'active' (belum diubah menjadi 'completed' atau 'selesai' oleh sekolah),
+     * siswa bebas melakukan presensi di lokasi PKL tanpa dibatasi oleh tanggal selesai (end_date).
      */
     public function scopeActiveOnDate($query, $date = null)
     {
         $targetDate = $date ? \Carbon\Carbon::parse($date)->toDateString() : now('Asia/Jakarta')->toDateString();
-        $graceDate = \Carbon\Carbon::parse($targetDate)->subDays(30)->toDateString();
 
         return $query->whereIn('status', ['active', 'aktif', 'approved', 'ongoing', 'berjalan'])
+            ->where(function ($q) {
+                $q->whereNotNull('dudi_id')
+                  ->orWhereNotNull('company_name');
+            })
             ->where(function ($q) use ($targetDate) {
                 $q->whereNull('start_date')
                   ->orWhereDate('start_date', '<=', $targetDate);
-            })
-            ->where(function ($q) use ($graceDate) {
-                $q->whereNull('end_date')
-                  ->orWhereDate('end_date', '>=', $graceDate);
             });
     }
 }
