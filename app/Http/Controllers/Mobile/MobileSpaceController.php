@@ -178,25 +178,32 @@ class MobileSpaceController extends Controller
             }
         }
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('space_group_post:' . $user->id, 1)) {
+        $isPrivileged = ($user->isSuperAdmin() || $user->isAdminSekolah() || $user->isGuru());
+
+        if (!$isPrivileged && \Illuminate\Support\Facades\RateLimiter::tooManyAttempts('space_group_post:' . $user->id, 2)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('space_group_post:' . $user->id);
             return back()->withInput()->with('error', "Anda mengirim postingan terlalu cepat. Harap tunggu {$seconds} detik lagi untuk mencegah spam.");
         }
 
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'content' => 'required|string|min:15',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'content' => 'required|string|min:3',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
             'voice_note' => 'nullable|file|mimes:mp3,wav,m4a,ogg,webm|max:10240',
             'poll_question' => 'nullable|string|max:255',
             'poll_options' => 'nullable|array',
             'poll_options.*' => 'nullable|string|max:255',
         ], [
-            'content.min' => 'Isi postingan minimal 15 karakter.',
+            'content.required' => 'Isi postingan tidak boleh kosong.',
+            'content.min' => 'Isi postingan minimal 3 karakter.',
+            'image.max' => 'Ukuran foto maksimal 10 MB.',
+            'attachment.max' => 'Ukuran berkas lampiran maksimal 10 MB.',
         ]);
 
-        \Illuminate\Support\Facades\RateLimiter::hit('space_group_post:' . $user->id, 300); // 5 menit cooldown
+        if (!$isPrivileged) {
+            \Illuminate\Support\Facades\RateLimiter::hit('space_group_post:' . $user->id, 30); // 30 detik cooldown untuk siswa
+        }
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -330,24 +337,35 @@ class MobileSpaceController extends Controller
     {
         $user = Auth::user();
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_post:' . $user->id, 1)) {
+        $isPrivileged = ($user->isSuperAdmin() || $user->isAdminSekolah() || $user->isGuru());
+
+        if (!$isPrivileged && \Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_post:' . $user->id, 2)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('forum_post:' . $user->id);
             return back()->withInput()->with('error', "Anda membuat postingan terlalu cepat. Harap tunggu {$seconds} detik lagi untuk mencegah spam.");
         }
 
+        $allowedCategories = array_keys(ForumThread::CATEGORIES);
+        if (!$isPrivileged) {
+            $allowedCategories = array_diff($allowedCategories, ['info']);
+        }
+
         $validated = $request->validate([
-            'title' => 'required|string|min:15|max:255',
-            'content' => 'required|string|min:15',
+            'title' => 'nullable|string|max:255',
+            'content' => 'required|string|min:3',
             'category' => 'nullable|string',
             'group_id' => 'nullable|integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
         ], [
-            'title.min' => 'Judul postingan minimal 15 karakter.',
-            'content.min' => 'Isi postingan minimal 15 karakter.',
+            'content.required' => 'Isi postingan tidak boleh kosong.',
+            'content.min' => 'Isi postingan minimal 3 karakter.',
+            'image.max' => 'Ukuran foto maksimal 10 MB.',
+            'attachment.max' => 'Ukuran berkas lampiran maksimal 10 MB.',
         ]);
 
-        \Illuminate\Support\Facades\RateLimiter::hit('forum_post:' . $user->id, 300); // 5 menit cooldown
+        if (!$isPrivileged) {
+            \Illuminate\Support\Facades\RateLimiter::hit('forum_post:' . $user->id, 30); // 30 detik cooldown untuk siswa
+        }
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -362,20 +380,35 @@ class MobileSpaceController extends Controller
             $attachmentPath = $file->store('forum/attachments', 'public');
         }
 
+        $category = (!empty($validated['category']) && in_array($validated['category'], $allowedCategories)) 
+            ? $validated['category'] 
+            : 'diskusi';
+
+        $title = !empty($validated['title']) 
+            ? trim($validated['title']) 
+            : Str::limit(strip_tags($validated['content']), 60, '...');
+        if (empty($title)) {
+            $title = 'Postingan Pembda Space #' . rand(100, 999);
+        }
+
         $thread = ForumThread::create([
             'user_id' => $user->id,
             'group_id' => $validated['group_id'] ?? null,
-            'title' => $validated['title'],
+            'title' => $title,
             'content' => $validated['content'],
-            'category' => $validated['category'] ?? 'diskusi',
+            'category' => $category,
             'image_path' => $imagePath,
             'attachment_path' => $attachmentPath,
             'attachment_name' => $attachmentName,
             'views_count' => 0,
         ]);
 
-        // Gamification: +15 Poin Reputasi
-        \App\Models\ReputationLog::log($user->id, 15, 'forum', "Membuat postingan Pembda Space: {$thread->title}", $thread);
+        // Gamification: +15 Poin Reputasi (non-blocking)
+        try {
+            \App\Models\ReputationLog::log($user->id, 15, 'forum', "Membuat postingan Pembda Space: {$thread->title}", $thread);
+        } catch (\Throwable $th) {
+            \Log::warning("Reputation log error for thread {$thread->id}: " . $th->getMessage());
+        }
 
         return redirect()->route('mobile.space.show', $thread->id)
             ->with('success', 'Postingan berhasil dibuat di Pembda Space! (+15 Poin Reputasi)');

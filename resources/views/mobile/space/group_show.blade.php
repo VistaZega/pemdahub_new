@@ -280,6 +280,25 @@
     <!-- Chat Input Form Card -->
     @if(!$group->only_admin_can_post || ($membership && $membership->role === 'admin'))
         <div class="clay-card p-4 bg-white border-2 border-purple-200 sticky bottom-4 shadow-xl space-y-2.5" x-data="{ showPollForm: false }">
+            @if($errors->any())
+                <div class="p-3 rounded-2xl bg-rose-500 text-white text-xs font-black shadow-md border-2 border-white">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                    {{ $errors->first() }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="p-3 rounded-2xl bg-rose-500 text-white text-xs font-black shadow-md border-2 border-white">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
+            @if(session('success'))
+                <div class="p-3 rounded-2xl bg-emerald-500 text-white text-xs font-black shadow-md border-2 border-white">
+                    <i class="fa-solid fa-circle-check mr-1"></i>
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <!-- Mention Shortcut Chips -->
             <div class="flex items-center space-x-1.5 overflow-x-auto pb-2 mb-2 text-[9px] font-black no-scrollbar border-b border-purple-100">
                 <span class="text-slate-400 uppercase tracking-wider shrink-0">Tag:</span>
@@ -311,7 +330,7 @@
                     </button>
 
                     <div class="flex-1 min-w-0">
-                        <textarea id="groupChatInput" name="content" rows="2" required
+                        <textarea id="groupChatInput" name="content" rows="2" required minlength="3"
                                   placeholder="Ketik pesan ke {{ $group->name }}... (Gunakan @SemuaSiswa)" 
                                   oninput="this.style.height = ''; this.style.height = Math.min(Math.max(this.scrollHeight, 52), 160) + 'px'"
                                   class="w-full py-2.5 px-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-purple-600 transition resize-y min-h-[52px] max-h-40 leading-relaxed"></textarea>

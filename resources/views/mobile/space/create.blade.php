@@ -14,6 +14,24 @@
         <h2 class="text-base font-black text-slate-900 mb-1">Buat Topik Diskusi Baru 💬</h2>
         <p class="text-xs text-slate-500 font-bold mb-4">Bagikan pertanyaan, ide, atau info kepada komunitas PembdaHUB.</p>
 
+        @if(session('error'))
+            <div class="mb-4 p-3.5 rounded-2xl bg-rose-500 text-white text-xs font-black shadow-md border-2 border-white flex items-center justify-between">
+                <div>
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                    {{ session('error') }}
+                </div>
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div class="mb-4 p-3.5 rounded-2xl bg-emerald-500 text-white text-xs font-black shadow-md border-2 border-white flex items-center justify-between">
+                <div>
+                    <i class="fa-solid fa-circle-check mr-1"></i>
+                    {{ session('success') }}
+                </div>
+            </div>
+        @endif
+
         @if($errors->any())
             <div class="mb-4 p-3.5 rounded-2xl bg-rose-500 text-white text-xs font-black shadow-md border-2 border-white">
                 <i class="fa-solid fa-circle-exclamation mr-1"></i>
@@ -29,27 +47,28 @@
                 <label for="category" class="block text-xs font-black text-slate-800 mb-1.5">Pilih Saluran (Channel)</label>
                 <select id="category" name="category" required
                         class="w-full px-4 py-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold focus:outline-none focus:border-blue-500 transition">
-                    <option value="diskusi">💬 Obrolan Umum</option>
-                    <option value="tanya_jawab">📚 Tanya Jawab Akademik</option>
-                    <option value="project_idea">🤝 Ide Proyek & Kolaborasi</option>
-                    <option value="gaming">🎮 Gaming & Hangout</option>
-                    <option value="art_gallery">🎨 Galeri Karya & Bakat</option>
+                    @foreach(\App\Models\ForumThread::CATEGORIES as $key => $label)
+                        @if($key === 'info' && !(auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru()))
+                            @continue
+                        @endif
+                        <option value="{{ $key }}" {{ old('category', 'diskusi') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
 
             <!-- Title -->
             <div>
-                <label for="title" class="block text-xs font-black text-slate-800 mb-1.5">Judul Topik</label>
-                <input type="text" id="title" name="title" value="{{ old('title') }}" required
-                       placeholder="Tulis judul yang jelas & singkat..." 
+                <label for="title" class="block text-xs font-black text-slate-800 mb-1.5">Judul Topik <span class="text-[10px] text-slate-400 font-bold">(Opsional)</span></label>
+                <input type="text" id="title" name="title" value="{{ old('title') }}"
+                       placeholder="Tulis judul (opsional, otomatis dibuat jika kosong)..." 
                        class="w-full px-4 py-3 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
             </div>
 
             <!-- Content -->
             <div>
-                <label for="content" class="block text-xs font-black text-slate-800 mb-1.5">Isi Postingan</label>
-                <textarea id="content" name="content" rows="4" required
-                          placeholder="Jelaskan topik diskusi Anda secara detail..." 
+                <label for="content" class="block text-xs font-black text-slate-800 mb-1.5">Isi Postingan <span class="text-rose-600">*</span></label>
+                <textarea id="content" name="content" rows="4" required minlength="3"
+                          placeholder="Jelaskan topik diskusi atau info Anda di sini..." 
                           class="w-full p-4 bg-[#f4f7fc] border-2 border-slate-200 rounded-2xl text-slate-900 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-blue-500 transition resize-none">{{ old('content') }}</textarea>
             </div>
 
@@ -62,7 +81,7 @@
                         <input type="file" name="image" accept="image/*" class="hidden" 
                                @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => imagePreview = e.target.result; reader.readAsDataURL(file); }">
                     </label>
-                    <span class="text-[10px] text-slate-400 font-bold">Maks. 5 MB (JPG, PNG, WebP)</span>
+                    <span class="text-[10px] text-slate-400 font-bold">Maks. 10 MB (JPG, PNG, WebP)</span>
                 </div>
                 
                 <template x-if="imagePreview">

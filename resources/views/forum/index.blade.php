@@ -398,6 +398,22 @@
                         </div>
                     </div>
                 </div>
+            @if(session('error'))
+                <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-700 flex items-center justify-between shadow-xs">
+                    <div class="flex items-center gap-3">
+                        <i class="ph-bold ph-warning-circle text-2xl text-rose-600 shrink-0"></i>
+                        <span class="text-sm font-bold">{{ session('error') }}</span>
+                    </div>
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-700 flex items-center justify-between shadow-xs">
+                    <div class="flex items-center gap-3">
+                        <i class="ph-bold ph-check-circle text-2xl text-emerald-600 shrink-0"></i>
+                        <span class="text-sm font-bold">{{ session('success') }}</span>
+                    </div>
+                </div>
             @endif
 
             <!-- Header & Search -->

@@ -161,18 +161,20 @@ class ForumController extends Controller
     {
         $user = Auth::user();
         
+        $isPrivileged = ($user->isSuperAdmin() || $user->isAdminSekolah() || $user->isGuru());
+
         // Info/Announcement category is restricted to teachers/admins
         $allowedCategories = array_keys(ForumThread::CATEGORIES);
-        if (!$user->isSuperAdmin() && !$user->isAdminSekolah() && !$user->isGuru()) {
+        if (!$isPrivileged) {
             $allowedCategories = array_diff($allowedCategories, ['info']);
         }
 
         $rules = [
-            'title' => 'required|string|min:15|max:255',
-            'content' => 'required|string|min:15',
-            'category' => 'required|string|in:' . implode(',', $allowedCategories),
+            'title' => 'nullable|string|max:255',
+            'content' => 'required|string|min:3',
+            'category' => 'nullable|string',
             'group_id' => 'nullable|exists:forum_groups,id',
-            'image' => 'nullable|image|max:5120', // 5MB limit
+            'image' => 'nullable|image|max:10240', // 10MB limit
             'attachment' => 'nullable|file|max:10240', // 10MB limit
             
             // Collaboration & Charity Specifics
@@ -184,27 +186,46 @@ class ForumController extends Controller
         ];
 
         $messages = [
-            'title.min' => 'Judul topik terlalu singkat. Masukkan minimal 15 karakter.',
-            'content.min' => 'Isi topik terlalu singkat. Masukkan minimal 15 karakter.',
+            'content.required' => 'Isi postingan tidak boleh kosong.',
+            'content.min' => 'Isi postingan terlalu singkat. Masukkan minimal 3 karakter.',
+            'image.max' => 'Ukuran foto maksimal 10 MB.',
+            'attachment.max' => 'Ukuran berkas lampiran maksimal 10 MB.',
         ];
 
         $validated = $request->validate($rules, $messages);
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_post:' . $user->id, 1)) {
+        // Anti-spam cooldown (hanya untuk siswa/alumni, dibebaskan untuk Guru & Admin)
+        if (!$isPrivileged && \Illuminate\Support\Facades\RateLimiter::tooManyAttempts('forum_post:' . $user->id, 2)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('forum_post:' . $user->id);
             return back()->withInput()->with('error', "Anda membuat topik terlalu cepat. Harap tunggu {$seconds} detik lagi untuk mencegah spam.");
         }
 
+        // Tentukan kategori yang valid dengan fallback aman ke 'diskusi'
+        $category = (!empty($validated['category']) && in_array($validated['category'], $allowedCategories)) 
+            ? $validated['category'] 
+            : 'diskusi';
+
+        // Judul otomatis jika dikosongkan
+        $title = !empty($validated['title']) 
+            ? trim($validated['title']) 
+            : \Illuminate\Support\Str::limit(strip_tags($validated['content']), 60, '...');
+        if (empty($title)) {
+            $title = 'Topik Diskusi #' . rand(100, 999);
+        }
+
         DB::beginTransaction();
         try {
-            \Illuminate\Support\Facades\RateLimiter::hit('forum_post:' . $user->id, 300); // 5 menit cooldown
+            if (!$isPrivileged) {
+                \Illuminate\Support\Facades\RateLimiter::hit('forum_post:' . $user->id, 30); // 30 detik cooldown untuk siswa
+            }
+
             $threadData = [
                 'user_id' => $user->id,
                 'group_id' => $validated['group_id'] ?? null,
-                'title' => $validated['title'],
+                'title' => $title,
                 'content' => $validated['content'],
-                'category' => $validated['category'],
-                'status' => ($validated['category'] === 'project_idea' || $validated['category'] === 'committee' || $validated['category'] === 'charity')
+                'category' => $category,
+                'status' => in_array($category, ['project_idea', 'committee', 'charity'])
                     ? 'seeking_members' 
                     : 'seeking_members',
             ];
@@ -224,7 +245,7 @@ class ForumController extends Controller
 
             // Reference linking (Badges / Grades for visual & portfolio categories)
             $perfCategories = ['performance', 'art_gallery', 'talent', 'portfolio'];
-            if (in_array($validated['category'], $perfCategories) && !empty($validated['reference_type']) && !empty($validated['reference_id'])) {
+            if (in_array($category, $perfCategories) && !empty($validated['reference_type']) && !empty($validated['reference_id'])) {
                 if ($validated['reference_type'] === 'badge') {
                     $threadData['reference_type'] = Badge::class;
                     $threadData['reference_id'] = $validated['reference_id'];
@@ -235,18 +256,18 @@ class ForumController extends Controller
             }
 
             // Gaming data
-            if ($validated['category'] === 'gaming') {
+            if ($category === 'gaming') {
                 $threadData['game_name'] = $request->input('game_name');
                 $threadData['game_room_code'] = $request->input('game_room_code');
             }
 
             // Sharing / Bank File category data
-            if ($validated['category'] === 'sharing') {
+            if ($category === 'sharing') {
                 $threadData['file_category'] = $request->input('file_category');
             }
 
             // Charity data
-            if ($validated['category'] === 'charity') {
+            if ($category === 'charity') {
                 $threadData['charity_target_amount'] = $validated['charity_target_amount'] ?? null;
                 $threadData['charity_target_volunteers'] = $validated['charity_target_volunteers'] ?? null;
                 $threadData['charity_current_amount'] = 0;
@@ -254,8 +275,12 @@ class ForumController extends Controller
 
             $thread = ForumThread::create($threadData);
 
-            // Gamification hook: +15 points for creating thread
-            ReputationLog::log($user->id, 15, 'forum', "Membuat thread forum: {$thread->title}", $thread);
+            // Gamification hook: +15 points for creating thread (non-blocking)
+            try {
+                ReputationLog::log($user->id, 15, 'forum', "Membuat thread forum: {$thread->title}", $thread);
+            } catch (\Throwable $th) {
+                \Log::warning("Reputation log error for thread {$thread->id}: " . $th->getMessage());
+            }
 
             DB::commit();
 

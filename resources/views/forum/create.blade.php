@@ -6,7 +6,7 @@
 <!-- Dynamic Google Fonts & Phosphor Icons -->
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;650;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+{{-- Alpine.js dimuat oleh master layout --}}
 
 <!-- PWA Manifest & App Shell Meta Tags -->
 <link rel="manifest" href="/manifest.json">
@@ -65,6 +65,20 @@
         </div>
     </div>
 
+    @if(session('error'))
+        <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-700 flex items-center gap-3 shadow-xs">
+            <i class="ph-bold ph-warning-circle text-2xl text-rose-600 shrink-0"></i>
+            <div class="text-sm font-bold">{{ session('error') }}</div>
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-700 flex items-center gap-3 shadow-xs">
+            <i class="ph-bold ph-check-circle text-2xl text-emerald-600 shrink-0"></i>
+            <div class="text-sm font-bold">{{ session('success') }}</div>
+        </div>
+    @endif
+
     @if($errors->any())
         <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-600">
             <div class="font-bold mb-2 flex items-center gap-2"><i class="ph-bold ph-warning"></i> Ada kesalahan:</div>
@@ -101,7 +115,7 @@
         <!-- Category Selection -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Pilih Saluran <span class="text-rose-600">*</span></label>
-            <input type="hidden" name="category" :value="category">
+            <input type="hidden" name="category" id="forumCategoryInput" :value="category" value="{{ old('category', 'diskusi') }}">
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 @foreach(\App\Models\ForumThread::CATEGORIES as $key => $label)
@@ -122,7 +136,7 @@
                         };
                     @endphp
                     
-                    <button type="button" @click="category = '{{ $key }}'" 
+                    <button type="button" @click="category = '{{ $key }}'; if(document.getElementById('forumCategoryInput')) document.getElementById('forumCategoryInput').value = '{{ $key }}';" 
                             :class="category === '{{ $key }}' ? 'border-{{ $color }}-500 bg-{{ $color }}-50 ring-2 ring-{{ $color }}-400' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'"
                             class="flex items-center gap-3.5 p-3.5 rounded-xl border transition-all text-left group">
                         <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 transition-colors"
@@ -141,18 +155,18 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
             <!-- Judul -->
             <div>
-                <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-2">Judul Obrolan <span class="text-rose-600">*</span></label>
+                <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-2">Judul Obrolan <span class="text-xs font-normal text-slate-400">(Opsional - otomatis dipotong dari isi jika kosong)</span></label>
                 <input type="text" name="title" value="{{ old('title') }}" 
-                       class="w-full px-4 py-3 bg-slate-50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-slate-900 placeholder-slate-900 font-medium outline-none transition" 
-                       placeholder="Contoh: Ada yang tau cara ngerjain soal matdis bab 3?" required>
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-slate-900 placeholder-slate-400 font-medium outline-none transition" 
+                       placeholder="Contoh: Sosialisasi Dinas / Seputar Ujian (Boleh dikosongkan)">
             </div>
 
             <!-- Konten -->
             <div>
                 <label class="block text-xs font-bold text-slate-900 uppercase tracking-widest mb-2">Pesan Utama <span class="text-rose-600">*</span></label>
-                <textarea name="content" rows="6" 
-                          class="w-full px-4 py-3 bg-slate-50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-slate-900 placeholder-slate-900 font-medium outline-none transition resize-y" 
-                          placeholder="Ceritain detailnya di sini..." required>{{ old('content') }}</textarea>
+                <textarea name="content" rows="6" minlength="3"
+                          class="w-full px-4 py-3 bg-slate-50 border border-slate-300 focus:bg-white focus:border-indigo-600 rounded-xl text-slate-900 placeholder-slate-400 font-medium outline-none transition resize-y" 
+                          placeholder="Ceritain detail topik atau bagikan info di sini..." required>{{ old('content') }}</textarea>
             </div>
         </div>
 
@@ -332,7 +346,7 @@
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2"><i class="ph-bold ph-image text-indigo-500 mr-1"></i> Gambar Utama</label>
                 <input type="file" name="image" accept="image/*" @change="fileChosen" 
                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl text-sm text-slate-600 file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-100 file:text-indigo-700 file:font-bold cursor-pointer transition">
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Format JPG/PNG, Maks 5MB</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Format JPG/PNG/WebP, Maks 10MB</p>
                 
                 <template x-if="imageUrl">
                     <div class="mt-3 relative inline-block rounded-xl overflow-hidden border border-slate-200 shadow-sm">

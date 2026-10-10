@@ -146,15 +146,17 @@ class SpaceController extends Controller
             return response()->json(['message' => 'Only admins can post in this group'], 403);
         }
 
-        if (RateLimiter::tooManyAttempts('space_group_post:' . $user->id, 1)) {
+        $isPrivileged = ($user->isSuperAdmin() || $user->isAdminSekolah() || $user->isGuru());
+
+        if (!$isPrivileged && RateLimiter::tooManyAttempts('space_group_post:' . $user->id, 2)) {
             $seconds = RateLimiter::availableIn('space_group_post:' . $user->id);
             return response()->json(['message' => "Too many requests. Please wait {$seconds} seconds."], 429);
         }
 
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'content' => 'required|string|min:15',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'content' => 'required|string|min:3',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip|max:10240',
             'voice_note' => 'nullable|file|mimes:mp3,wav,m4a,ogg,webm|max:10240',
             'poll_question' => 'nullable|string|max:255',
@@ -162,7 +164,9 @@ class SpaceController extends Controller
             'poll_options.*' => 'nullable|string|max:255',
         ]);
 
-        RateLimiter::hit('space_group_post:' . $user->id, 300);
+        if (!$isPrivileged) {
+            RateLimiter::hit('space_group_post:' . $user->id, 30);
+        }
 
         $imagePath = null;
         if ($request->hasFile('image')) {
