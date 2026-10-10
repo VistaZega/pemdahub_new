@@ -612,13 +612,20 @@ class DashboardController extends Controller
                 $finalScore = null;
                 $hasAnyScore = $tugasAvg !== null || $utsAvg !== null || $uasAvg !== null || $sikapAvg !== null;
                 if ($hasAnyScore) {
-                    $finalScore = round(
-                        ($tugasAvg ?? 0) * $weights['tugas'] +
-                        ($utsAvg ?? 0) * $weights['pts'] +
-                        ($uasAvg ?? 0) * $weights['pas'] +
-                        ($sikapAvg ?? 0) * $weights['sikap'],
-                        1
-                    );
+                    $activeWeightSum = ($tugasAvg !== null ? $weights['tugas'] : 0) +
+                                       ($utsAvg !== null ? $weights['pts'] : 0) +
+                                       ($uasAvg !== null ? $weights['pas'] : 0) +
+                                       ($sikapAvg !== null ? $weights['sikap'] : 0);
+
+                    if ($activeWeightSum > 0) {
+                        $finalScore = round(
+                            (($tugasAvg !== null ? $tugasAvg * $weights['tugas'] : 0) +
+                             ($utsAvg !== null ? $utsAvg * $weights['pts'] : 0) +
+                             ($uasAvg !== null ? $uasAvg * $weights['pas'] : 0) +
+                             ($sikapAvg !== null ? $sikapAvg * $weights['sikap'] : 0)) / $activeWeightSum,
+                            1
+                        );
+                    }
                 }
 
                 return [

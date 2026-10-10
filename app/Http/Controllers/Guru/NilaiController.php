@@ -572,13 +572,20 @@ class NilaiController extends Controller
                         $finalScore = null;
                         $hasScore = ($tugasAvg !== null || $ptsAvg !== null || $pasAvg !== null || $sikapAvg !== null);
                         if ($hasScore) {
-                            $finalScore = round(
-                                ($tugasAvg ?? 0) * $weights['tugas'] +
-                                ($ptsAvg ?? 0) * $weights['pts'] +
-                                ($pasAvg ?? 0) * $weights['pas'] +
-                                ($sikapAvg ?? 0) * $weights['sikap'],
-                                1
-                            );
+                            $activeWeightSum = ($tugasAvg !== null ? $weights['tugas'] : 0) +
+                                               ($ptsAvg !== null ? $weights['pts'] : 0) +
+                                               ($pasAvg !== null ? $weights['pas'] : 0) +
+                                               ($sikapAvg !== null ? $weights['sikap'] : 0);
+
+                            if ($activeWeightSum > 0) {
+                                $finalScore = round(
+                                    (($tugasAvg !== null ? $tugasAvg * $weights['tugas'] : 0) +
+                                     ($ptsAvg !== null ? $ptsAvg * $weights['pts'] : 0) +
+                                     ($pasAvg !== null ? $pasAvg * $weights['pas'] : 0) +
+                                     ($sikapAvg !== null ? $sikapAvg * $weights['sikap'] : 0)) / $activeWeightSum,
+                                    1
+                                );
+                            }
                         }
 
                         $gradeLevel = $classroom->grade_level ?? 10;

@@ -243,21 +243,66 @@
                                         </td>
                                         {{-- Tugas --}}
                                         <td class="px-4 py-4 text-center">
-                                            @if($row['tugas_grades']->count() > 0)
-                                                <div class="flex flex-wrap gap-1.5 justify-start">
-                                                    @foreach($row['tugas_grades'] as $tg)
-                                                        @php
-                                                            $tgLms = $tg->isFromLms();
-                                                            $tugasTooltip = ($tg->notes ?: 'Tugas/Harian') . ' (' . ($tg->created_at ? $tg->created_at->format('d/m/Y') : '-') . ')' . ($tgLms ? ' [LMS]' : '');
-                                                        @endphp
-                                                         <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $tg->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-rose-50 text-rose-700 border-rose-150' }}" 
-                                                              title="{{ $tugasTooltip }}"
-                                                              onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
-                                                            {{ $tg->score }}
-                                                            @if($tgLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
-                                                        </span>
-                                                    @endforeach
-                                                </div>
+                                            @php
+                                                $tCount = $row['tugas_grades']->count();
+                                            @endphp
+                                            @if($tCount > 0)
+                                                @if($tCount > 3)
+                                                    {{-- Mode Smart Summary (> 3 nilai) --}}
+                                                    <div class="flex flex-col items-start gap-1.5 min-w-[150px] max-w-[280px]">
+                                                        {{-- Rerata Badge Header --}}
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black border shadow-2xs {{ $row['tugas_avg'] >= $kkm ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-rose-50 text-rose-800 border-rose-300' }}"
+                                                                  title="Rata-rata {{ $tCount }} Nilai Tugas: {{ $row['tugas_avg'] }}">
+                                                                <i class="fas fa-calculator text-[10px] opacity-70"></i>
+                                                                <span>Rerata: {{ $row['tugas_avg'] }}</span>
+                                                            </span>
+                                                            <span class="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-lg border border-slate-200">
+                                                                {{ $tCount }} nilai
+                                                            </span>
+                                                        </div>
+
+                                                        {{-- 3 Pill Sampel + Tombol +N Lainnya --}}
+                                                        <div class="flex flex-wrap items-center gap-1">
+                                                            @foreach($row['tugas_grades']->take(3) as $tg)
+                                                                @php
+                                                                    $tgLms = $tg->isFromLms();
+                                                                    $tugasTooltip = ($tg->notes ?: 'Tugas/Harian') . ' (' . ($tg->created_at ? $tg->created_at->format('d/m/Y') : '-') . ')' . ($tgLms ? ' [LMS]' : '');
+                                                                @endphp
+                                                                <span class="inline-block px-2 py-0.5 rounded-lg font-bold text-xs border cursor-pointer shadow-2xs transition hover:scale-105 {{ $tg->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}" 
+                                                                      title="{{ $tugasTooltip }}"
+                                                                      onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                    {{ $tg->score % 1 === 0 ? (int)$tg->score : $tg->score }}
+                                                                    @if($tgLms)<i class="fas fa-laptop text-[9px] ml-0.5 text-purple-600"></i>@endif
+                                                                </span>
+                                                            @endforeach
+
+                                                            <button type="button" 
+                                                                    onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')"
+                                                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-950 border border-slate-300 hover:border-amber-400 transition cursor-pointer shadow-2xs"
+                                                                    title="Klik untuk membuka rincian lengkap {{ $tCount }} nilai tugas/kuis">
+                                                                <span>+{{ $tCount - 3 }} lainnya</span>
+                                                                <i class="fas fa-chevron-right text-[8px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    {{-- Mode Normal (1 - 3 nilai) --}}
+                                                    <div class="flex flex-wrap gap-1.5 justify-start">
+                                                        @foreach($row['tugas_grades'] as $tg)
+                                                            @php
+                                                                $tgLms = $tg->isFromLms();
+                                                                $tugasTooltip = ($tg->notes ?: 'Tugas/Harian') . ' (' . ($tg->created_at ? $tg->created_at->format('d/m/Y') : '-') . ')' . ($tgLms ? ' [LMS]' : '');
+                                                            @endphp
+                                                            <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $tg->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-rose-50 text-rose-700 border-rose-150' }}" 
+                                                                  title="{{ $tugasTooltip }}"
+                                                                  onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                {{ $tg->score % 1 === 0 ? (int)$tg->score : $tg->score }}
+                                                                @if($tgLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             @else
                                                 <span class="text-gray-300 text-sm">&mdash;</span>
                                             @endif
@@ -266,23 +311,58 @@
                                         <td class="px-4 py-4 text-center">
                                             @php
                                                 $utsGrades = $row['all_grades']->where('grade_type', 'uts');
+                                                $uCount = $utsGrades->count();
                                             @endphp
-                                            @if($utsGrades->count() > 0)
-                                                <div class="flex flex-wrap gap-1.5 justify-start">
-                                                    @foreach($utsGrades as $ug)
-                                                        @php
-                                                            $ugLms = $ug->isFromLms();
-                                                            $utsTooltip = ($ug->notes ?: 'UTS') . ' (' . ($ug->created_at ? $ug->created_at->format('d/m/Y') : '-') . ')' . ($ugLms ? ' [LMS]' : '');
-                                                        @endphp
-                                                         <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $ug->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-rose-50 text-rose-700 border-rose-150' }}" 
-                                                              title="{{ $utsTooltip }}"
-                                                              onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
-                                                            {{ $ug->score }}
-                                                            @if($ug->is_remedial) <span class="text-[9px] text-orange-550 font-bold">(R)</span> @endif
-                                                            @if($ugLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
-                                                        </span>
-                                                    @endforeach
-                                                </div>
+                                            @if($uCount > 0)
+                                                @if($uCount > 3)
+                                                    <div class="flex flex-col items-start gap-1.5 min-w-[130px]">
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black border shadow-2xs {{ $row['uts_avg'] >= $kkm ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-rose-50 text-rose-800 border-rose-300' }}">
+                                                                <span>Rerata: {{ $row['uts_avg'] }}</span>
+                                                            </span>
+                                                            <span class="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-lg border border-slate-200">
+                                                                {{ $uCount }} nilai
+                                                            </span>
+                                                        </div>
+                                                        <div class="flex flex-wrap items-center gap-1">
+                                                            @foreach($utsGrades->take(3) as $ug)
+                                                                @php
+                                                                    $ugLms = $ug->isFromLms();
+                                                                    $utsTooltip = ($ug->notes ?: 'UTS') . ' (' . ($ug->created_at ? $ug->created_at->format('d/m/Y') : '-') . ')' . ($ugLms ? ' [LMS]' : '');
+                                                                @endphp
+                                                                <span class="inline-block px-2 py-0.5 rounded-lg font-bold text-xs border cursor-pointer shadow-2xs transition hover:scale-105 {{ $ug->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}" 
+                                                                      title="{{ $utsTooltip }}"
+                                                                      onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                    {{ $ug->score % 1 === 0 ? (int)$ug->score : $ug->score }}
+                                                                    @if($ug->is_remedial) <span class="text-[9px] text-orange-550 font-bold">(R)</span> @endif
+                                                                    @if($ugLms)<i class="fas fa-laptop text-[9px] ml-0.5 text-purple-650"></i>@endif
+                                                                </span>
+                                                            @endforeach
+                                                            <button type="button" 
+                                                                    onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')"
+                                                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-950 border border-slate-300 transition cursor-pointer shadow-2xs">
+                                                                <span>+{{ $uCount - 3 }}</span>
+                                                                <i class="fas fa-chevron-right text-[8px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="flex flex-wrap gap-1.5 justify-start">
+                                                        @foreach($utsGrades as $ug)
+                                                            @php
+                                                                $ugLms = $ug->isFromLms();
+                                                                $utsTooltip = ($ug->notes ?: 'UTS') . ' (' . ($ug->created_at ? $ug->created_at->format('d/m/Y') : '-') . ')' . ($ugLms ? ' [LMS]' : '');
+                                                            @endphp
+                                                             <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $ug->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-rose-50 text-rose-700 border-rose-150' }}" 
+                                                                 title="{{ $utsTooltip }}"
+                                                                 onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                {{ $ug->score % 1 === 0 ? (int)$ug->score : $ug->score }}
+                                                                @if($ug->is_remedial) <span class="text-[9px] text-orange-550 font-bold">(R)</span> @endif
+                                                                @if($ugLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             @else
                                                 <span class="text-gray-300 text-sm">&mdash;</span>
                                             @endif
@@ -291,23 +371,58 @@
                                         <td class="px-4 py-4 text-center">
                                             @php
                                                 $uasGrades = $row['all_grades']->where('grade_type', 'uas');
+                                                $uaCount = $uasGrades->count();
                                             @endphp
-                                            @if($uasGrades->count() > 0)
-                                                <div class="flex flex-wrap gap-1.5 justify-start">
-                                                    @foreach($uasGrades as $uag)
-                                                        @php
-                                                            $uagLms = $uag->isFromLms();
-                                                            $uasTooltip = ($uag->notes ?: 'UAS') . ' (' . ($uag->created_at ? $uag->created_at->format('d/m/Y') : '-') . ')' . ($uagLms ? ' [LMS]' : '');
-                                                        @endphp
-                                                         <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $uag->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-rose-50 text-rose-700 border-rose-150' }}" 
-                                                              title="{{ $uasTooltip }}"
-                                                              onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
-                                                            {{ $uag->score }}
-                                                            @if($uag->is_remedial) <span class="text-[9px] text-orange-550 font-bold">(R)</span> @endif
-                                                            @if($uagLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
-                                                        </span>
-                                                    @endforeach
-                                                </div>
+                                            @if($uaCount > 0)
+                                                @if($uaCount > 3)
+                                                    <div class="flex flex-col items-start gap-1.5 min-w-[130px]">
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black border shadow-2xs {{ $row['uas_avg'] >= $kkm ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-rose-50 text-rose-800 border-rose-300' }}">
+                                                                <span>Rerata: {{ $row['uas_avg'] }}</span>
+                                                            </span>
+                                                            <span class="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-lg border border-slate-200">
+                                                                {{ $uaCount }} nilai
+                                                            </span>
+                                                        </div>
+                                                        <div class="flex flex-wrap items-center gap-1">
+                                                            @foreach($uasGrades->take(3) as $uag)
+                                                                @php
+                                                                    $uagLms = $uag->isFromLms();
+                                                                    $uasTooltip = ($uag->notes ?: 'UAS') . ' (' . ($uag->created_at ? $uag->created_at->format('d/m/Y') : '-') . ')' . ($uagLms ? ' [LMS]' : '');
+                                                                @endphp
+                                                                <span class="inline-block px-2 py-0.5 rounded-lg font-bold text-xs border cursor-pointer shadow-2xs transition hover:scale-105 {{ $uag->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}" 
+                                                                      title="{{ $uasTooltip }}"
+                                                                      onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                    {{ $uag->score % 1 === 0 ? (int)$uag->score : $uag->score }}
+                                                                    @if($uag->is_remedial) <span class="text-[9px] text-orange-550 font-bold">(R)</span> @endif
+                                                                    @if($uagLms)<i class="fas fa-laptop text-[9px] ml-0.5 text-purple-650"></i>@endif
+                                                                </span>
+                                                            @endforeach
+                                                            <button type="button" 
+                                                                    onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')"
+                                                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-950 border border-slate-300 transition cursor-pointer shadow-2xs">
+                                                                <span>+{{ $uaCount - 3 }}</span>
+                                                                <i class="fas fa-chevron-right text-[8px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="flex flex-wrap gap-1.5 justify-start">
+                                                        @foreach($uasGrades as $uag)
+                                                            @php
+                                                                $uagLms = $uag->isFromLms();
+                                                                $uasTooltip = ($uag->notes ?: 'UAS') . ' (' . ($uag->created_at ? $uag->created_at->format('d/m/Y') : '-') . ')' . ($uagLms ? ' [LMS]' : '');
+                                                            @endphp
+                                                             <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $uag->score >= $kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-rose-50 text-rose-700 border-rose-150' }}" 
+                                                                 title="{{ $uasTooltip }}"
+                                                                 onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                {{ $uag->score % 1 === 0 ? (int)$uag->score : $uag->score }}
+                                                                @if($uag->is_remedial) <span class="text-[9px] text-orange-550 font-bold">(R)</span> @endif
+                                                                @if($uagLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             @else
                                                 <span class="text-gray-300 text-sm">&mdash;</span>
                                             @endif
@@ -316,22 +431,56 @@
                                         <td class="px-4 py-4 text-center">
                                             @php
                                                 $sikapGrades = $row['all_grades']->where('grade_type', 'sikap');
+                                                $skCount = $sikapGrades->count();
                                             @endphp
-                                            @if($sikapGrades->count() > 0)
-                                                <div class="flex flex-wrap gap-1.5 justify-start">
-                                                    @foreach($sikapGrades as $sgItem)
-                                                        @php
-                                                            $sgLms = $sgItem->isFromLms();
-                                                            $sikapTooltip = ($sgItem->notes ?: 'Penilaian Sikap') . ' (' . ($sgItem->created_at ? $sgItem->created_at->format('d/m/Y') : '-') . ')' . ($sgLms ? ' [LMS]' : '');
-                                                        @endphp
-                                                         <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $sgItem->score >= 75 ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : ($sgItem->score >= 60 ? 'bg-amber-50 text-amber-700 border-amber-150' : 'bg-rose-50 text-rose-700 border-rose-150') }}" 
-                                                              title="{{ $sikapTooltip }}"
-                                                              onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
-                                                            {{ $sgItem->score }}
-                                                            @if($sgLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
-                                                        </span>
-                                                    @endforeach
-                                                </div>
+                                            @if($skCount > 0)
+                                                @if($skCount > 3)
+                                                    <div class="flex flex-col items-start gap-1.5 min-w-[130px]">
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black border shadow-2xs {{ $row['sikap_avg'] >= 75 ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300' }}">
+                                                                <span>Rerata: {{ $row['sikap_avg'] }}</span>
+                                                            </span>
+                                                            <span class="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-lg border border-slate-200">
+                                                                {{ $skCount }} nilai
+                                                            </span>
+                                                        </div>
+                                                        <div class="flex flex-wrap items-center gap-1">
+                                                            @foreach($sikapGrades->take(3) as $sgItem)
+                                                                @php
+                                                                    $sgLms = $sgItem->isFromLms();
+                                                                    $sikapTooltip = ($sgItem->notes ?: 'Penilaian Sikap') . ' (' . ($sgItem->created_at ? $sgItem->created_at->format('d/m/Y') : '-') . ')' . ($sgLms ? ' [LMS]' : '');
+                                                                @endphp
+                                                                <span class="inline-block px-2 py-0.5 rounded-lg font-bold text-xs border cursor-pointer shadow-2xs transition hover:scale-105 {{ $sgItem->score >= 75 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($sgItem->score >= 60 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200') }}" 
+                                                                      title="{{ $sikapTooltip }}"
+                                                                      onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                    {{ $sgItem->score % 1 === 0 ? (int)$sgItem->score : $sgItem->score }}
+                                                                    @if($sgLms)<i class="fas fa-laptop text-[9px] ml-0.5 text-purple-650"></i>@endif
+                                                                </span>
+                                                            @endforeach
+                                                            <button type="button" 
+                                                                    onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')"
+                                                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-950 border border-slate-300 transition cursor-pointer shadow-2xs">
+                                                                <span>+{{ $skCount - 3 }}</span>
+                                                                <i class="fas fa-chevron-right text-[8px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="flex flex-wrap gap-1.5 justify-start">
+                                                        @foreach($sikapGrades as $sgItem)
+                                                            @php
+                                                                $sgLms = $sgItem->isFromLms();
+                                                                $sikapTooltip = ($sgItem->notes ?: 'Penilaian Sikap') . ' (' . ($sgItem->created_at ? $sgItem->created_at->format('d/m/Y') : '-') . ')' . ($sgLms ? ' [LMS]' : '');
+                                                            @endphp
+                                                             <span class="inline-block px-3 py-1.5 rounded-xl font-bold text-sm border cursor-pointer shadow-sm transition hover:scale-105 {{ $sgItem->score >= 75 ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : ($sgItem->score >= 60 ? 'bg-amber-50 text-amber-700 border-amber-150' : 'bg-rose-50 text-rose-700 border-rose-150') }}" 
+                                                                 title="{{ $sikapTooltip }}"
+                                                                 onclick="openDetailModal({{ $studentId }}, {{ $subjectId }}, '{{ addslashes($studentName) }}', '{{ addslashes($subjectName) }}')">
+                                                                {{ $sgItem->score % 1 === 0 ? (int)$sgItem->score : $sgItem->score }}
+                                                                @if($sgLms)<i class="fas fa-laptop text-[10px] ml-0.5 text-purple-650"></i>@endif
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             @else
                                                 <span class="text-gray-300 text-sm">&mdash;</span>
                                             @endif
@@ -339,7 +488,8 @@
                                         {{-- Rerata Akhir --}}
                                         <td class="px-4 py-4 text-center">
                                             @if($row['final_score'] !== null)
-                                                <span class="inline-block px-4 py-2 rounded-xl font-extrabold text-sm sm:text-base shadow border {{ $row['final_score'] >= $kkm ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-transparent' : 'bg-gradient-to-br from-rose-500 to-red-600 text-white border-transparent' }}">
+                                                <span class="inline-block px-4 py-2 rounded-xl font-extrabold text-sm sm:text-base shadow border {{ $row['final_score'] >= $kkm ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-transparent' : 'bg-gradient-to-br from-rose-500 to-red-600 text-white border-transparent' }}"
+                                                      title="Rerata Akhir Berjalan: {{ number_format($row['final_score'], 1) }} (KKM: {{ $kkm }})">
                                                     {{ number_format($row['final_score'], 1) }}
                                                 </span>
                                             @else
