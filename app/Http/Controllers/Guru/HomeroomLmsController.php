@@ -136,9 +136,9 @@ class HomeroomLmsController extends Controller
             $stSubmissions = $submissions->get($st->id, collect());
             $stQuizzes = $quizAttempts->get($st->id, collect());
 
-            $completedMats = $stMatProgress->where('status', 'completed')->count();
-            $submittedTasks = $stSubmissions->count();
-            $completedQuizzes = $stQuizzes->count();
+            $completedMats = $stMatProgress->where('status', 'completed')->pluck('material_id')->unique()->count();
+            $submittedTasks = $stSubmissions->pluck('assignment_id')->unique()->count();
+            $completedQuizzes = $stQuizzes->pluck('quiz_id')->unique()->count();
 
             // Kalkulasi per mata pelajaran
             $courseBreakdown = [];
@@ -153,9 +153,9 @@ class HomeroomLmsController extends Controller
                 $cAssignTotal = count($cAssignIds);
                 $cQuizTotal = count($cQuizIds);
 
-                $cMatCompleted = $stMatProgress->whereIn('material_id', $cMatIds)->where('status', 'completed')->count();
-                $cAssignSubmitted = $stSubmissions->whereIn('assignment_id', $cAssignIds)->count();
-                $cQuizAttempted = $stQuizzes->whereIn('quiz_id', $cQuizIds)->count();
+                $cMatCompleted = $stMatProgress->whereIn('material_id', $cMatIds)->where('status', 'completed')->pluck('material_id')->unique()->count();
+                $cAssignSubmitted = $stSubmissions->whereIn('assignment_id', $cAssignIds)->pluck('assignment_id')->unique()->count();
+                $cQuizAttempted = $stQuizzes->whereIn('quiz_id', $cQuizIds)->pluck('quiz_id')->unique()->count();
 
                 $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
                     $cMatTotal,
@@ -592,9 +592,9 @@ class HomeroomLmsController extends Controller
 
         $rekapData = [];
         foreach ($students as $st) {
-            $stMats = $materialProgresses->get($st->id, collect())->count();
-            $stTasks = $submissions->get($st->id, collect())->count();
-            $stQuizzes = $quizAttempts->get($st->id, collect())->count();
+            $stMats = $materialProgresses->get($st->id, collect())->where('status', 'completed')->pluck('material_id')->unique()->count();
+            $stTasks = $submissions->get($st->id, collect())->pluck('assignment_id')->unique()->count();
+            $stQuizzes = $quizAttempts->get($st->id, collect())->pluck('quiz_id')->unique()->count();
 
             $totalMats = count($allMaterialIds);
             $totalTasks = count($allAssignmentIds);

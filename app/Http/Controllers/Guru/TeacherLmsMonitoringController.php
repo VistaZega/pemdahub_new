@@ -155,9 +155,9 @@ class TeacherLmsMonitoringController extends Controller
             $stSub = $submissions->get($st->id, collect());
             $stQuiz = $quizAttempts->get($st->id, collect());
 
-            $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->count();
-            $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->count();
-            $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
+            $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->pluck('material_id')->unique()->count();
+            $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->pluck('assignment_id')->unique()->count();
+            $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->pluck('quiz_id')->unique()->count();
 
             $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
                 $totalMats,
@@ -172,9 +172,9 @@ class TeacherLmsMonitoringController extends Controller
             $assignPct = $breakdown['assignments']['percent'];
             $quizPct = $breakdown['quizzes']['percent'];
 
-            // Nilai rata-rata tugas & kuis pada kursus ini
-            $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
-            $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
+            // Nilai rata-rata tugas & kuis pada kursus ini (ambil nilai terbaik per komponen)
+            $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->groupBy('assignment_id')->map(fn($subs) => $subs->max('grade'))->avg();
+            $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->groupBy('quiz_id')->map(fn($attempts) => $attempts->max('score'))->avg();
 
             // Status & Risiko
             $isAtRisk = false;
@@ -200,6 +200,7 @@ class TeacherLmsMonitoringController extends Controller
             $activeClass = $st->classrooms
                 ->where('academic_year_id', $courseYearId)
                 ->where('is_active', true)
+                ->sortBy(fn($cl) => ($cl->is_combined || $cl->class_type === 'gabungan') ? 1 : 0)
                 ->first() ?? $lmsClass ?? $st->classrooms->first();
 
             $className = $activeClass?->class_name ?? $lmsClass?->class_name ?? '-';
@@ -642,9 +643,9 @@ class TeacherLmsMonitoringController extends Controller
                 $stSub = $submissions->get($st->id, collect());
                 $stQuiz = $quizAttempts->get($st->id, collect());
 
-                $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->count();
-                $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->count();
-                $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->count();
+                $completedMats = $stMat->whereIn('material_id', $cMatIds)->where('status', 'completed')->pluck('material_id')->unique()->count();
+                $submittedAssigns = $stSub->whereIn('assignment_id', $cAssignIds)->whereIn('status', ['submitted', 'graded', 'late', 'revision_requested'])->pluck('assignment_id')->unique()->count();
+                $completedQuizzes = $stQuiz->whereIn('quiz_id', $cQuizIds)->pluck('quiz_id')->unique()->count();
 
                 $breakdown = app(\App\Services\LmsProgressService::class)->computeProgressBreakdown(
                     $totalMats,
@@ -659,8 +660,8 @@ class TeacherLmsMonitoringController extends Controller
                 $assignPct = $breakdown['assignments']['percent'];
                 $quizPct = $breakdown['quizzes']['percent'];
 
-                $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->avg('grade');
-                $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->avg('score');
+                $avgAssignGrade = $stSub->whereIn('assignment_id', $cAssignIds)->whereNotNull('grade')->groupBy('assignment_id')->map(fn($subs) => $subs->max('grade'))->avg();
+                $avgQuizScore = $stQuiz->whereIn('quiz_id', $cQuizIds)->whereNotNull('score')->groupBy('quiz_id')->map(fn($attempts) => $attempts->max('score'))->avg();
 
                 $status = ($overallPct < 40 || ($totalAssigns > 1 && $submittedAssigns === 0)) ? 'Perlu Perhatian' : ($overallPct >= 85 ? 'Sangat Aktif' : 'On Track');
 
