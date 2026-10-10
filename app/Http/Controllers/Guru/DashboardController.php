@@ -591,11 +591,42 @@ class DashboardController extends Controller
         $gradeWeight = \App\Models\GradeWeight::getForSchool($teacher->school_id);
         $weights = $gradeWeight->getWeightsAsDecimal();
 
-        $subjectGrades = $grades->groupBy('subject_id')->map(function ($subjectItems, $subjId) use ($weights, $students, $subjects) {
+        // Preload LMS courses for these subjects taught by this teacher
+        $lmsCoursesBySubject = \App\Models\LmsCourse::where('teacher_id', $teacher->id)
+            ->whereIn('subject_id', $subjectIds)
+            ->where(function ($q) {
+                $q->where('is_published', true)
+                  ->orWhere('status', 'active')
+                  ->orWhere('is_active', true);
+            })
+            ->with([
+                'assignments' => fn($q) => $q->where('is_published', true),
+                'quizzes'     => fn($q) => $q->where('is_published', true),
+            ])
+            ->get()
+            ->groupBy('subject_id');
+
+        $subjectGrades = $grades->groupBy('subject_id')->map(function ($subjectItems, $subjId) use ($weights, $students, $subjects, $lmsCoursesBySubject) {
             $subject = $subjects->get($subjId);
             if (!$subject) return null;
 
-            $studentRows = $subjectItems->groupBy('student_id')->map(function ($studentGrades, $studId) use ($weights, $students) {
+            // Total tugas & kuis wajib yang harus dikerjakan siswa di mapel ini
+            $courses = $lmsCoursesBySubject->get($subjId, collect());
+            $lmsAssignCount = $courses->flatMap(fn($c) => $c->assignments)->unique('id')->count();
+            $lmsQuizCount = $courses->flatMap(fn($c) => $c->quizzes)->unique('id')->count();
+            $manualTasksCount = $subjectItems->where('grade_type', 'tugas')
+                ->whereNull('lms_source_type')
+                ->pluck('notes')
+                ->filter()
+                ->unique()
+                ->count();
+
+            $totalRequiredTasks = $lmsAssignCount + $lmsQuizCount + $manualTasksCount;
+            if ($totalRequiredTasks === 0) {
+                $totalRequiredTasks = max(1, $subjectItems->where('grade_type', 'tugas')->groupBy('student_id')->map->count()->max() ?? 1);
+            }
+
+            $studentRows = $subjectItems->groupBy('student_id')->map(function ($studentGrades, $studId) use ($weights, $students, $totalRequiredTasks) {
                 $student = $students->get($studId);
                 if (!$student) return null;
 
@@ -604,7 +635,29 @@ class DashboardController extends Controller
                 $uasItems = $studentGrades->where('grade_type', 'uas');
                 $sikapItems = $studentGrades->where('grade_type', 'sikap');
 
-                $tugasAvg = $tugas->count() > 0 ? round($tugas->avg('score'), 1) : null;
+                // Konsolidasikan nilai per tugas/kuis unik (ambil nilai terbaik per tugas/kuis)
+                $consolidatedTugas = $tugas->groupBy(function ($tg) {
+                    if ($tg->lms_source_type && $tg->notes) {
+                        return $tg->notes;
+                    }
+                    if ($tg->notes) {
+                        return $tg->notes;
+                    }
+                    return 'grade_' . $tg->id;
+                })->map(function ($items) {
+                    return $items->sortByDesc('score')->first();
+                })->values();
+
+                $completedTasksCount = $consolidatedTugas->count();
+                $totalEarnedScore = $consolidatedTugas->sum('score');
+
+                // Pembagi tugas adalah jumlah seluruh tugas & kuis wajib di mapel ini.
+                // Tugas yang belum dikerjakan otomatis bernilai 0 karena pembaginya adalah $effectiveTotalRequired.
+                $effectiveTotalRequired = max($totalRequiredTasks, $completedTasksCount);
+                $tugasAvg = $effectiveTotalRequired > 0 
+                    ? round($totalEarnedScore / $effectiveTotalRequired, 1) 
+                    : null;
+
                 $utsAvg = $utsItems->count() > 0 ? round($utsItems->avg('score'), 1) : null;
                 $uasAvg = $uasItems->count() > 0 ? round($uasItems->avg('score'), 1) : null;
                 $sikapAvg = $sikapItems->count() > 0 ? round($sikapItems->avg('score'), 1) : null;
@@ -629,17 +682,19 @@ class DashboardController extends Controller
                 }
 
                 return [
-                    'student'      => $student,
-                    'tugas_grades' => $tugas, // collection (bisa >1)
-                    'tugas_avg'    => $tugasAvg,
-                    'uts'          => $utsItems->first(),
-                    'uts_avg'      => $utsAvg,
-                    'uas'          => $uasItems->first(),
-                    'uas_avg'      => $uasAvg,
-                    'sikap'        => $sikapItems->first(),
-                    'sikap_avg'    => $sikapAvg,
-                    'final_score'  => $finalScore,
-                    'all_grades'   => $studentGrades, // for edit/delete
+                    'student'               => $student,
+                    'tugas_grades'          => $consolidatedTugas,
+                    'tugas_avg'             => $tugasAvg,
+                    'completed_tasks_count' => $completedTasksCount,
+                    'total_required_tasks'  => $effectiveTotalRequired,
+                    'uts'                   => $utsItems->first(),
+                    'uts_avg'               => $utsAvg,
+                    'uas'                   => $uasItems->first(),
+                    'uas_avg'               => $uasAvg,
+                    'sikap'                 => $sikapItems->first(),
+                    'sikap_avg'             => $sikapAvg,
+                    'final_score'           => $finalScore,
+                    'all_grades'            => $studentGrades, // for edit/delete
                 ];
             })->filter()->sortBy('student.full_name')->values();
 

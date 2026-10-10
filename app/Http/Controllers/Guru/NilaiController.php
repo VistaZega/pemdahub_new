@@ -553,6 +553,21 @@ class NilaiController extends Controller
                             ->get();
                     }
 
+                    // Total tugas & kuis wajib di mapel ini
+                    $courses = \App\Models\LmsCourse::where('subject_id', $subject->id)
+                        ->where(function ($q) {
+                            $q->where('is_published', true)->orWhere('status', 'active')->orWhere('is_active', true);
+                        })
+                        ->with(['assignments' => fn($q) => $q->where('is_published', true), 'quizzes' => fn($q) => $q->where('is_published', true)])
+                        ->get();
+                    $lmsAssignCount = $courses->flatMap(fn($c) => $c->assignments)->unique('id')->count();
+                    $lmsQuizCount = $courses->flatMap(fn($c) => $c->quizzes)->unique('id')->count();
+                    $manualTasksCount = $grades->where('grade_type', 'tugas')->whereNull('lms_source_type')->pluck('notes')->filter()->unique()->count();
+                    $totalRequiredTasks = $lmsAssignCount + $lmsQuizCount + $manualTasksCount;
+                    if ($totalRequiredTasks === 0) {
+                        $totalRequiredTasks = max(1, $grades->where('grade_type', 'tugas')->groupBy('student_id')->map->count()->max() ?? 1);
+                    }
+
                     $studentRows = collect();
                     $hasAnyGrade = $grades->isNotEmpty();
 
@@ -564,7 +579,17 @@ class NilaiController extends Controller
                         $pasItems = $stGrades->where('grade_type', 'uas');
                         $sikapItems = $stGrades->where('grade_type', 'sikap');
 
-                        $tugasAvg = $tugasItems->isNotEmpty() ? round($tugasItems->avg('score'), 1) : null;
+                        // Konsolidasikan nilai per tugas/kuis unik
+                        $consolidatedTugas = $tugasItems->groupBy(function ($tg) {
+                            if ($tg->lms_source_type && $tg->notes) return $tg->notes;
+                            if ($tg->notes) return $tg->notes;
+                            return 'grade_' . $tg->id;
+                        })->map(fn($items) => $items->sortByDesc('score')->first())->values();
+
+                        $effectiveTotalRequired = max($totalRequiredTasks, $consolidatedTugas->count());
+                        $tugasAvg = $effectiveTotalRequired > 0 
+                            ? round($consolidatedTugas->sum('score') / $effectiveTotalRequired, 1) 
+                            : null;
                         $ptsAvg = $ptsItems->isNotEmpty() ? round($ptsItems->avg('score'), 1) : null;
                         $pasAvg = $pasItems->isNotEmpty() ? round($pasItems->avg('score'), 1) : null;
                         $sikapAvg = $sikapItems->isNotEmpty() ? round($sikapItems->avg('score'), 1) : null;
