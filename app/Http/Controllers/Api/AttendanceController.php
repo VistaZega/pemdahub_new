@@ -1031,7 +1031,7 @@ class AttendanceController extends Controller
     public function handleHeartbeat(Request $request)
     {
         try {
-            $apiKey = $request->header('X-Kiosk-API-Key') ?? $request->input('api_key');
+            $apiKey = $request->header('X-Kiosk-API-Key') ?? $request->header('x-kiosk-api-key') ?? $request->input('api_key') ?? $request->input('kiosk_key');
             if ($apiKey !== config('services.kiosk.api_key', 'RAHASIA-PEMBDAHUB-12345')) {
                 return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
             }
