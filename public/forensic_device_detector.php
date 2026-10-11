@@ -256,24 +256,24 @@ foreach (['SMK' => 'SMK Swasta Pembda Nias', 'SMA' => 'SMAS Pembda 1 Gunungsitol
 if (Schema::hasTable('devices')) {
     echo "<h2>📋 DATA DARI TABEL `devices`</h2>";
     $rawDevices = DB::table('devices')->get();
-    echo "<table><thead><tr>
-        <th>ID</th><th>Device Code</th><th>Name</th><th>School ID</th><th>Type</th><th>Location</th><th>IP Address</th><th>RSSI</th><th>Status</th><th>Last Ping</th>
-    </tr></thead><tbody>";
-    foreach ($rawDevices as $rd) {
-        echo "<tr>
-            <td>{$rd->id}</td>
-            <td><strong><code>{$rd->device_code}</code></strong></td>
-            <td>{$rd->name}</td>
-            <td>{$rd->school_id}</td>
-            <td>{$rd->type}</td>
-            <td>{$rd->location}</td>
-            <td>{$rd->ip_address}</td>
-            <td>{$rd->rssi}</td>
-            <td>{$rd->status}</td>
-            <td>{$rd->last_ping}</td>
-        </tr>";
+    if ($rawDevices->isNotEmpty()) {
+        $firstItem = (array)$rawDevices->first();
+        echo "<table><thead><tr>";
+        foreach (array_keys($firstItem) as $colKey) {
+            echo "<th>" . htmlspecialchars($colKey) . "</th>";
+        }
+        echo "</tr></thead><tbody>";
+        foreach ($rawDevices as $rd) {
+            echo "<tr>";
+            foreach ((array)$rd as $colVal) {
+                echo "<td>" . htmlspecialchars((string)($colVal ?? '-')) . "</td>";
+            }
+            echo "</tr>";
+        }
+        echo "</tbody></table>";
+    } else {
+        echo "<p class='warn'>Tabel devices kosong.</p>";
     }
-    echo "</tbody></table>";
 }
 
 // 6. 25 Scan Absensi Siswa Terbaru
