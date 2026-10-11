@@ -168,8 +168,22 @@ if ($action === 'fix') {
         @chmod("{$deployDir}/maintenance-cloudflare.html", 0666);
     }
 
-    // Jalankan git checkout dan reset hard untuk folder deploy
+    // Langkah D: Memperbaiki izin folder firmware/ & file di dalamnya
+    echo "\n<span class='info'>[Langkah D] Menyelaraskan izin folder firmware/...</span>\n";
+    $firmwareDir = "{$root}/firmware";
+    if (is_dir($firmwareDir)) {
+        @chmod($firmwareDir, 0777);
+        @shell_exec("chmod -R 777 " . escapeshellarg($firmwareDir) . " 2>&1");
+        $stOld = "{$firmwareDir}/Station_NodeMCU_20x4_NoMP3/Station_NodeMCU_20x4_NoMP3.ino";
+        if (file_exists($stOld)) {
+            @chmod($stOld, 0777);
+            @unlink($stOld);
+        }
+    }
+
+    // Jalankan git checkout dan reset hard untuk folder deploy & firmware
     @shell_exec("git -C {$root} checkout -f origin/main -- deploy/ 2>&1");
+    @shell_exec("git -C {$root} checkout -f origin/main -- public/ 2>&1");
     $hardResetOut = @shell_exec("git -C {$root} reset --hard origin/main 2>&1");
     echo "<span class='info'>Status Sinkronisasi Kode:</span>\n" . htmlspecialchars($hardResetOut) . "\n";
     echo "</pre>";
