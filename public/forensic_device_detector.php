@@ -18,18 +18,23 @@ if ($secret !== 'pembda99') {
 header('Content-Type: text/html; charset=utf-8');
 
 // Bootstrap Laravel
-$root = realpath(__DIR__ . '/..');
-if (!$root || !file_exists("{$root}/vendor/autoload.php")) {
-    $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
-}
-if (!file_exists("{$root}/vendor/autoload.php")) {
-    $root = '/var/www/pembdahub';
-}
+try {
+    define('LARAVEL_START', microtime(true));
+    $root = realpath(__DIR__ . '/..');
+    if (!$root || !file_exists("{$root}/vendor/autoload.php")) {
+        $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
+    }
+    if (!file_exists("{$root}/vendor/autoload.php")) {
+        $root = '/var/www/pembdahub';
+    }
 
-require_once "{$root}/vendor/autoload.php";
-$app = require_once "{$root}/bootstrap/app.php";
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-$kernel->bootstrap();
+    require_once "{$root}/vendor/autoload.php";
+    $app = require_once "{$root}/bootstrap/app.php";
+    $kernel = $app->make(\Illuminate\Contracts\Http\Kernel::class);
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+} catch (\Throwable $bootEx) {
+    die("Bootstrap Error: " . $bootEx->getMessage() . " on line " . $bootEx->getLine());
+}
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
