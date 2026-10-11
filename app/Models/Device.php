@@ -16,6 +16,9 @@ class Device extends Model
         'type',
         'status',
         'last_seen_at',
+        'ip_address',
+        'rssi',
+        'free_heap',
     ];
 
     protected $casts = [

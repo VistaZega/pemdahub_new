@@ -43,6 +43,31 @@ class AttendanceController extends Controller
             $bufferFile = storage_path('app/rfid_scan_buffer.json');
             @file_put_contents($bufferFile, json_encode(['uid' => $rawUid, 'candidates' => $candidates, 'time' => time()]));
             
+            // Catat liveness device ke tabel devices
+            if ($request->filled('device_id')) {
+                try {
+                    $devCode = trim($request->input('device_id'));
+                    $devSchoolId = null;
+                    if (stripos($devCode, 'SMP') !== false) {
+                        $devSchoolId = \App\Models\School::where('type', 'SMP')->where('is_active', true)->value('id');
+                    } elseif (stripos($devCode, 'SMA') !== false) {
+                        $devSchoolId = \App\Models\School::where('type', 'SMA')->where('is_active', true)->value('id');
+                    } elseif (stripos($devCode, 'SMK') !== false || stripos($devCode, 'TEFA') !== false) {
+                        $devSchoolId = \App\Models\School::where('type', 'SMK')->where('is_active', true)->value('id');
+                    }
+                    \App\Models\Device::updateOrCreate(
+                        ['device_code' => $devCode],
+                        [
+                            'name'         => $devCode,
+                            'school_id'    => $devSchoolId,
+                            'status'       => 'active',
+                            'ip_address'   => $request->ip(),
+                            'last_seen_at' => now(),
+                        ]
+                    );
+                } catch (\Throwable $devEx) {}
+            }
+
             $today = now()->format('Y-m-d');
             $currentTime = now()->format('H:i:s');
 
@@ -997,6 +1022,60 @@ class AttendanceController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Endpoint Ping / Heartbeat Live Kiosk
+     * POST/GET /api/attendance/heartbeat
+     */
+    public function handleHeartbeat(Request $request)
+    {
+        try {
+            $apiKey = $request->header('X-Kiosk-API-Key') ?? $request->input('api_key');
+            if ($apiKey !== config('services.kiosk.api_key', 'RAHASIA-PEMBDAHUB-12345')) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+            }
+
+            $deviceId = trim($request->input('device_id', ''));
+            if (empty($deviceId)) {
+                return response()->json(['status' => 'error', 'message' => 'device_id required'], 400);
+            }
+
+            $schoolId = null;
+            if (stripos($deviceId, 'SMP') !== false) {
+                $schoolId = \App\Models\School::where('type', 'SMP')->where('is_active', true)->value('id');
+            } elseif (stripos($deviceId, 'SMA') !== false) {
+                $schoolId = \App\Models\School::where('type', 'SMA')->where('is_active', true)->value('id');
+            } elseif (stripos($deviceId, 'SMK') !== false || stripos($deviceId, 'TEFA') !== false) {
+                $schoolId = \App\Models\School::where('type', 'SMK')->where('is_active', true)->value('id');
+            }
+
+            $device = \App\Models\Device::updateOrCreate(
+                ['device_code' => $deviceId],
+                [
+                    'name'         => $deviceId,
+                    'school_id'    => $schoolId,
+                    'type'         => $request->input('type', 'NodeMCU/ESP32'),
+                    'status'       => 'active',
+                    'ip_address'   => $request->input('ip', $request->ip()),
+                    'rssi'         => $request->input('rssi'),
+                    'free_heap'    => $request->input('free_heap'),
+                    'last_seen_at' => now(),
+                ]
+            );
+
+            return response()->json([
+                'status'      => 'ok',
+                'device_id'   => $deviceId,
+                'server_time' => now()->format('Y-m-d H:i:s'),
+                'is_online'   => true,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
 

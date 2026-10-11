@@ -162,6 +162,10 @@ bool          isOnline          = false;
 unsigned long lastLanProbeTime  = 0;
 bool          isScanningLan     = false;
 
+// Heartbeat Liveness Ping (Live Device Health Monitoring)
+#define HEARTBEAT_INTERVAL_MS  45000
+unsigned long lastHeartbeatTime = 0;
+
 // Animasi & Smart Screensaver State
 unsigned long lastActivityTime  = 0;
 unsigned long lastAnimTime      = 0;
@@ -379,6 +383,12 @@ void loop() {
   // 4. Cek Scanner Barcode / QR
   handleQrScan();
 
+  // 5. Kirim Heartbeat Ping berkala ke Server agar terdeteksi ONLINE di dashboard
+  if (WiFi.status() == WL_CONNECTED && !isShowingResult && (now - lastHeartbeatTime >= HEARTBEAT_INTERVAL_MS || lastHeartbeatTime == 0)) {
+    lastHeartbeatTime = now;
+    sendHeartbeat();
+  }
+
   delay(10);
 }
 
@@ -480,6 +490,47 @@ String getActiveServerUrl() {
 
 String getActiveScanBufferUrl() {
   return isLanMode() ? String(SCAN_BUFFER_LOCAL) : String(SCAN_BUFFER_CLOUD);
+}
+
+String getActiveHeartbeatUrl() {
+  return isLanMode() ? "http://50.35.89.10/api/attendance/heartbeat" : "https://perguruanpembda.com/api/attendance/heartbeat";
+}
+
+// ============================================================
+//  HEARTBEAT PING (LIVENESS MONITORING DETIK PER DETIK)
+// ============================================================
+void sendHeartbeat() {
+  if (WiFi.status() != WL_CONNECTED || isShowingResult) return;
+
+  String pingUrl = getActiveHeartbeatUrl();
+  Serial.println(F("---------------------------------"));
+  Serial.print(F("[PING] Heartbeat -> ")); Serial.println(pingUrl);
+
+  HTTPClient http;
+  if (pingUrl.startsWith("https://")) {
+    http.begin(pingUrl);
+  } else {
+    WiFiClient client;
+    http.begin(client, pingUrl);
+  }
+
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
+  http.setTimeout(3500);
+
+  StaticJsonDocument<128> doc;
+  doc["device_id"] = DEVICE_ID;
+  doc["type"]      = "ESP32";
+  doc["ip"]        = WiFi.localIP().toString();
+  doc["rssi"]      = WiFi.RSSI();
+  doc["free_heap"] = ESP.getFreeHeap();
+
+  String payload;
+  serializeJson(doc, payload);
+
+  int httpCode = http.POST(payload);
+  Serial.print(F("[PING] Status: ")); Serial.println(httpCode);
+  http.end();
 }
 
 // ============================================================

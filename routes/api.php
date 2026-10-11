@@ -12,6 +12,9 @@ Route::post('/attendance/rfid-scan', [\App\Http\Controllers\Api\AttendanceContro
 // ==== ROUTING ABSENSI PEGAWAI KIOSK (RFID) ====
 Route::post('/attendance/employee-rfid-scan', [\App\Http\Controllers\Api\EmployeeAttendanceController::class, 'handleRfidScan']);
 
+// ==== ROUTING LIVE HEARTBEAT & MONITORING KIOSK ====
+Route::match(['GET', 'POST'], '/attendance/heartbeat', [\App\Http\Controllers\Api\AttendanceController::class, 'handleHeartbeat']);
+
 // ==== SCAN BUFFER (untuk registrasi kartu RFID via browser) ====
 Route::post('/rfid/scan-buffer', function (Request $request) {
     $apiKey = $request->header('X-Kiosk-API-Key') ?? $request->input('api_key');
