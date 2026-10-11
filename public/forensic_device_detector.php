@@ -57,23 +57,34 @@ echo "<h1>🔬 FORENSIK DETEKSI MIKROKONTROLER STATION (DATA REAL DATABASE & LOG
 echo "<p>Menelusuri absensi masuk sejak <b>{$startDate}</b> sampai hari ini (" . date('Y-m-d H:i:s') . " WIB)...</p>";
 
 // 1. Ambil seluruh device_id dari tabel attendances & employee_attendances
-$studentDevs = DB::table('attendances')
-    ->whereNotNull('device_id')
-    ->where('device_id', '!=', '')
-    ->where('date', '>=', $startDate)
-    ->select('device_id', DB::raw('COUNT(*) as total_scans'), DB::raw('MAX(date) as last_date'), DB::raw('MAX(created_at) as last_scan'))
-    ->groupBy('device_id')
-    ->get()
-    ->keyBy('device_id');
+$studentDevs = collect();
+$employeeDevs = collect();
 
-$employeeDevs = DB::table('employee_attendances')
-    ->whereNotNull('device_id')
-    ->where('device_id', '!=', '')
-    ->where('date', '>=', $startDate)
-    ->select('device_id', DB::raw('COUNT(*) as total_scans'), DB::raw('MAX(date) as last_date'), DB::raw('MAX(created_at) as last_scan'))
-    ->groupBy('device_id')
-    ->get()
-    ->keyBy('device_id');
+try {
+    $studentDevs = DB::table('attendances')
+        ->whereNotNull('device_id')
+        ->where('device_id', '!=', '')
+        ->where('date', '>=', $startDate)
+        ->select('device_id', DB::raw('COUNT(*) as total_scans'), DB::raw('MAX(date) as last_date'), DB::raw("MAX(CONCAT(date, ' ', COALESCE(time_in, '00:00:00'))) as last_scan"))
+        ->groupBy('device_id')
+        ->get()
+        ->keyBy('device_id');
+} catch (\Throwable $ex) {
+    echo "<p class='err'>Error query attendances: " . htmlspecialchars($ex->getMessage()) . "</p>";
+}
+
+try {
+    $employeeDevs = DB::table('employee_attendances')
+        ->whereNotNull('device_id')
+        ->where('device_id', '!=', '')
+        ->where('date', '>=', $startDate)
+        ->select('device_id', DB::raw('COUNT(*) as total_scans'), DB::raw('MAX(date) as last_date'), DB::raw("MAX(CONCAT(date, ' ', COALESCE(time_in, '00:00:00'))) as last_scan"))
+        ->groupBy('device_id')
+        ->get()
+        ->keyBy('device_id');
+} catch (\Throwable $ex) {
+    echo "<p class='err'>Error query employee_attendances: " . htmlspecialchars($ex->getMessage()) . "</p>";
+}
 
 // Gabungkan semua device_id unik
 $allDevIds = array_unique(array_merge($studentDevs->keys()->toArray(), $employeeDevs->keys()->toArray()));
@@ -267,25 +278,30 @@ if (Schema::hasTable('devices')) {
 
 // 6. 25 Scan Absensi Siswa Terbaru
 echo "<h2>⏱️ 25 SCAN ABSENSI SISWA TERBARU (SEMUA UNIT)</h2>";
-$recentScans = DB::table('attendances')
-    ->leftJoin('students', 'attendances.student_id', '=', 'students.id')
-    ->select('attendances.id', 'attendances.date', 'attendances.time_in', 'attendances.device_id', 'attendances.created_at', 'students.name as student_name')
-    ->orderByDesc('attendances.created_at')
-    ->limit(25)
-    ->get();
+try {
+    $recentScans = DB::table('attendances')
+        ->leftJoin('students', 'attendances.student_id', '=', 'students.id')
+        ->select('attendances.id', 'attendances.date', 'attendances.time_in', 'attendances.device_id', 'students.name as student_name')
+        ->orderByDesc('attendances.date')
+        ->orderByDesc('attendances.time_in')
+        ->orderByDesc('attendances.id')
+        ->limit(25)
+        ->get();
 
-echo "<table><thead><tr>
-    <th>ID</th><th>Waktu Created At</th><th>Tanggal & Jam</th><th>Device ID</th><th>Nama Siswa</th>
-</tr></thead><tbody>";
-foreach ($recentScans as $rs) {
-    echo "<tr>
-        <td>{$rs->id}</td>
-        <td><code>{$rs->created_at}</code></td>
-        <td>{$rs->date} {$rs->time_in}</td>
-        <td><strong><code>{$rs->device_id}</code></strong></td>
-        <td>{$rs->student_name}</td>
-    </tr>";
+    echo "<table><thead><tr>
+        <th>ID</th><th>Tanggal & Jam</th><th>Device ID</th><th>Nama Siswa</th>
+    </tr></thead><tbody>";
+    foreach ($recentScans as $rs) {
+        echo "<tr>
+            <td>{$rs->id}</td>
+            <td><code>{$rs->date} {$rs->time_in}</code></td>
+            <td><strong><code>{$rs->device_id}</code></strong></td>
+            <td>{$rs->student_name}</td>
+        </tr>";
+    }
+    echo "</tbody></table>";
+} catch (\Throwable $ex) {
+    echo "<p class='err'>Error query recent scans: " . htmlspecialchars($ex->getMessage()) . "</p>";
 }
-echo "</tbody></table>";
 
 echo "</body></html>";
