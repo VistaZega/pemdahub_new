@@ -12,26 +12,22 @@ if ($secret !== 'pembda99') {
     die('403 Forbidden: Gunakan ?secret=pembda99');
 }
 
-@set_time_limit(180);
-@ini_set('memory_limit', '512M');
+@ini_set('display_errors', '1');
+@ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
+@set_time_limit(60);
+@ini_set('memory_limit', '256M');
 
 header('Content-Type: text/html; charset=utf-8');
 
 // Bootstrap Laravel
 try {
     define('LARAVEL_START', microtime(true));
-    $root = realpath(__DIR__ . '/..');
-    if (!$root || !file_exists("{$root}/vendor/autoload.php")) {
-        $root = '/home/u474310197/domains/perguruanpembda.com/public_html/pembdahub';
-    }
-    if (!file_exists("{$root}/vendor/autoload.php")) {
-        $root = '/var/www/pembdahub';
-    }
-
-    require_once "{$root}/vendor/autoload.php";
-    $app = require_once "{$root}/bootstrap/app.php";
-    $kernel = $app->make(\Illuminate\Contracts\Http\Kernel::class);
-    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    require __DIR__ . '/../vendor/autoload.php';
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
 } catch (\Throwable $bootEx) {
     die("Bootstrap Error: " . $bootEx->getMessage() . " on line " . $bootEx->getLine());
 }
@@ -39,7 +35,7 @@ try {
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-$days = 14;
+$days = 30;
 $startDate = date('Y-m-d', strtotime("-{$days} days"));
 
 echo "<!DOCTYPE html><html><head><title>Forensik Mikrokontroler Station PembdaHUB</title>";
@@ -83,24 +79,27 @@ $employeeDevs = DB::table('employee_attendances')
 $allDevIds = array_unique(array_merge($studentDevs->keys()->toArray(), $employeeDevs->keys()->toArray()));
 sort($allDevIds);
 
-// 2. Baca log Laravel untuk mencari User-Agent dari setiap device_id
-$logDir = "{$root}/storage/logs";
-$logFiles = glob("{$logDir}/laravel*.log");
+// 2. Baca log Laravel dengan aman (hanya 200KB terakhir dari file log hari ini/kemarin)
 $deviceUserAgents = [];
 $deviceIps = [];
-
+$logFiles = glob(storage_path('logs/laravel*.log'));
 if ($logFiles) {
-    // Urutkan dari file log terbaru
     rsort($logFiles);
-    // Batasi membaca 5 log file terakhir
-    $recentLogs = array_slice($logFiles, 0, 5);
-    
+    $recentLogs = array_slice($logFiles, 0, 2);
     foreach ($recentLogs as $lf) {
+        $filesize = filesize($lf);
         $handle = @fopen($lf, "r");
         if ($handle) {
-            while (($line = fgets($handle)) !== false) {
+            $readBytes = min(200000, $filesize);
+            if ($filesize > $readBytes) {
+                fseek($handle, $filesize - $readBytes);
+            }
+            $content = fread($handle, $readBytes);
+            fclose($handle);
+
+            $lines = explode("\n", $content);
+            foreach ($lines as $line) {
                 if (str_contains($line, 'RFID Scan') || str_contains($line, 'rfid-scan') || str_contains($line, 'heartbeat') || str_contains($line, 'STATION-')) {
-                    // Coba tangkap device_id dan User-Agent
                     foreach ($allDevIds as $devId) {
                         if (str_contains($line, $devId)) {
                             if (!isset($deviceUserAgents[$devId])) {
@@ -119,7 +118,6 @@ if ($logFiles) {
                     }
                 }
             }
-            fclose($handle);
         }
     }
 }
@@ -242,5 +240,52 @@ foreach (['SMK' => 'SMK Swasta Pembda Nias', 'SMA' => 'SMAS Pembda 1 Gunungsitol
     }
     echo "</tbody></table>";
 }
+
+// 5. Dump Data Tabel Devices
+if (Schema::hasTable('devices')) {
+    echo "<h2>📋 DATA DARI TABEL `devices`</h2>";
+    $rawDevices = DB::table('devices')->get();
+    echo "<table><thead><tr>
+        <th>ID</th><th>Device Code</th><th>Name</th><th>School ID</th><th>Type</th><th>Location</th><th>IP Address</th><th>RSSI</th><th>Status</th><th>Last Ping</th>
+    </tr></thead><tbody>";
+    foreach ($rawDevices as $rd) {
+        echo "<tr>
+            <td>{$rd->id}</td>
+            <td><strong><code>{$rd->device_code}</code></strong></td>
+            <td>{$rd->name}</td>
+            <td>{$rd->school_id}</td>
+            <td>{$rd->type}</td>
+            <td>{$rd->location}</td>
+            <td>{$rd->ip_address}</td>
+            <td>{$rd->rssi}</td>
+            <td>{$rd->status}</td>
+            <td>{$rd->last_ping}</td>
+        </tr>";
+    }
+    echo "</tbody></table>";
+}
+
+// 6. 25 Scan Absensi Siswa Terbaru
+echo "<h2>⏱️ 25 SCAN ABSENSI SISWA TERBARU (SEMUA UNIT)</h2>";
+$recentScans = DB::table('attendances')
+    ->leftJoin('students', 'attendances.student_id', '=', 'students.id')
+    ->select('attendances.id', 'attendances.date', 'attendances.time_in', 'attendances.device_id', 'attendances.created_at', 'students.name as student_name')
+    ->orderByDesc('attendances.created_at')
+    ->limit(25)
+    ->get();
+
+echo "<table><thead><tr>
+    <th>ID</th><th>Waktu Created At</th><th>Tanggal & Jam</th><th>Device ID</th><th>Nama Siswa</th>
+</tr></thead><tbody>";
+foreach ($recentScans as $rs) {
+    echo "<tr>
+        <td>{$rs->id}</td>
+        <td><code>{$rs->created_at}</code></td>
+        <td>{$rs->date} {$rs->time_in}</td>
+        <td><strong><code>{$rs->device_id}</code></strong></td>
+        <td>{$rs->student_name}</td>
+    </tr>";
+}
+echo "</tbody></table>";
 
 echo "</body></html>";
