@@ -45,8 +45,8 @@ const char* SCAN_BUFFER_LOCAL   = "http://50.35.89.10/api/rfid/scan-buffer";
 
 // 2. Jaringan Alternatif (Internet Failover -> Server Production Cloud)
 // Digunakan secara otomatis apabila LAN PembdaLINK tidak ditemukan / padam
-const char* WIFI_ALT_SSID       = "TEFA";
-const char* WIFI_ALT_PASSWORD   = "PEMBDA2026";
+const char* WIFI_ALT_SSID       = "Black_Hole";
+const char* WIFI_ALT_PASSWORD   = "pelita31";
 
 const char* WIFI_ALT1_SSID      = "PembdaNET";
 const char* WIFI_ALT1_PASSWORD  = "pelita31";
@@ -58,7 +58,7 @@ const char* SCAN_BUFFER_CLOUD   = "https://perguruanpembda.com/api/rfid/scan-buf
 const char* KIOSK_API_KEY       = "RAHASIA-PEMBDAHUB-12345";
 
 // ── GANTI DEVICE_ID UNTUK SETIAP STATION! ──
-const char* DEVICE_ID           = "STATION-SMA-02";
+const char* DEVICE_ID           = "STATION-SMA-03";
 
 // ============================================================
 //  PIN DEFINITIONS - NodeMCU V3 (ESP-12F)
@@ -303,11 +303,10 @@ void loop() {
           else showReady();
         }
       }
-      // Prioritaskan koneksi kembali ke LAN Utama (PembdaLINK)
-      WiFi.begin(WIFI_LOCAL_SSID, WIFI_LOCAL_PASS);
-      delay(200);
+      // Coba koneksi ke Hotspot Alternatif / wifiMulti jika LAN tidak aktif
+      WiFi.begin(WIFI_ALT_SSID, WIFI_ALT_PASSWORD);
+      delay(300);
       if (WiFi.status() != WL_CONNECTED) {
-        // Jika LAN belum aktif, cari jaringan alternatif internet via wifiMulti
         wifiMulti.run();
       }
       if (WiFi.status() == WL_CONNECTED) {
@@ -732,26 +731,41 @@ void connectWiFi() {
     return;
   }
 
-  // --- TAHAP 2: LAN PembdaLINK Tidak Ditemukan -> Fallback ke Internet Cloud ---
-  Serial.println(F("\n[NET] LAN PembdaLINK tidak ditemukan! Mencoba WiFi Internet Alternatif..."));
+  // --- TAHAP 2: LAN PembdaLINK Tidak Ditemukan -> Fallback ke Hotspot / Internet Cloud ---
+  Serial.println(F("\n[NET] LAN PembdaLINK tidak ditemukan! Mencoba Hotspot / WiFi Alternatif..."));
   WiFi.disconnect();
   delay(100);
 
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("=== LAN TDK ADA ===="));
-  lcd.setCursor(0, 1); lcd.print(F("Mencari Internet... "));
-  lcd.setCursor(0, 2); lcd.print(F("Alt WiFi Scanning.. "));
+  lcd.setCursor(0, 1); lcd.print("Cari: " + String(WIFI_ALT_SSID).substring(0, 14));
+  lcd.setCursor(0, 2); lcd.print(F("Mencoba Hotspot...  "));
   lcd.setCursor(0, 3); lcd.print(F("Target: CLOUD PROD  "));
-  delay(1000);
+  delay(500);
+
+  // Coba hubungkan langsung ke SSID Alternatif utama (Black_Hole)
+  Serial.print(F("[NET] Menghubungkan langsung ke: "));
+  Serial.println(WIFI_ALT_SSID);
+  WiFi.begin(WIFI_ALT_SSID, WIFI_ALT_PASSWORD);
 
   attempt = 0;
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 16) { // Coba ~8 detik
+  while (WiFi.status() != WL_CONNECTED && attempt < 24) { // Coba ~12 detik
     delay(500);
     Serial.print(F("*"));
     String dots = "";
     for (int i = 0; i < (attempt % 5) + 1; i++) dots += "*";
     lcd.setCursor(0, 2); lcd.print("Hubungkan Alt" + dots + "    ");
     attempt++;
+  }
+
+  // Jika belum terhubung, coba via wifiMulti untuk SSID cadangan lainnya
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println(F("\n[NET] Mencoba multi-scan SSID cadangan..."));
+    attempt = 0;
+    while (wifiMulti.run() != WL_CONNECTED && attempt < 16) {
+      delay(500);
+      attempt++;
+    }
   }
 
   if (WiFi.status() == WL_CONNECTED) {
