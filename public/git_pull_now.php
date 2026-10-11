@@ -251,10 +251,12 @@ if ($fetchStatus === 0) {
 
     $resetStatus = execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
 
-    // Jika reset hard awal terkendala permission pada file/folder deploy
+    // Jika reset hard awal terkendala permission pada file/folder deploy atau firmware
     if ($resetStatus !== 0 && (strpos($lastCmdError, 'Permission denied') !== false || strpos($lastCmdOutput, 'Permission denied') !== false)) {
         echo "<div class='notice-box' style='border-color:#d29922;'><span class='warn'>⚠ Menyesuaikan file terkunci dan mencoba ulang reset...</span></div>";
         @shell_exec("chmod -R 777 " . escapeshellarg($deployDir) . " 2>/dev/null");
+        @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/firmware") . " 2>/dev/null");
+        @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/public") . " 2>/dev/null");
         @unlink("{$deployDir}/maintenance-cloudflare.html");
         @shell_exec("git -C {$root} checkout -f origin/main 2>/dev/null");
         $retryStatus = execCmd("git -C {$root} reset --hard origin/main", "5b. Percobaan Ulang Git Reset Hard");
@@ -413,6 +415,26 @@ if ($fetchStatus !== 0) {
 
 // 6. Status Commit Setelah Update
 execCmd("git -C {$root} log -3 --oneline", "6. Commit Server Terbaru (Sesudah Update)");
+
+// 6b. Sinkronisasi File Standalone dari pembdahub/public ke public_html (Web Root)
+if (realpath(__DIR__) !== realpath("{$root}/public") && is_dir("{$root}/public")) {
+    echo "<h2>▶ 6b. Sinkronisasi Web Root (public_html)</h2><pre>";
+    $publicFiles = @scandir("{$root}/public");
+    $syncedToWebRoot = 0;
+    if ($publicFiles) {
+        foreach ($publicFiles as $pf) {
+            if ($pf === '.' || $pf === '..' || is_dir("{$root}/public/{$pf}")) continue;
+            if (pathinfo($pf, PATHINFO_EXTENSION) === 'php' || file_exists(__DIR__ . "/{$pf}")) {
+                @copy("{$root}/public/{$pf}", __DIR__ . "/{$pf}");
+                echo "<span class='ok'>✔ File disinkronkan ke public_html: {$pf}</span>\n";
+                $syncedToWebRoot++;
+            }
+        }
+    }
+    echo "<span class='ok'>✔ Total {$syncedToWebRoot} file web root diperbarui secara sinkron.</span>\n";
+    echo "</pre>";
+    flush();
+}
 
 // 7. Reset OPcache & Bersihkan Cache File Laravel
 echo "<h2>▶ 7. Pembersihan Cache Aplikasi & OPcache</h2><pre>";
