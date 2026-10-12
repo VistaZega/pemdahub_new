@@ -1052,9 +1052,12 @@ class AttendanceController extends Controller
 
             $ssid = trim($request->input('ssid', ''));
             $uptime = $request->input('uptime');
+            $fwVersion = trim($request->input('fw_version', ''));
             $typeStr = $request->input('type', 'NodeMCU/ESP32');
             if ($ssid !== '') {
-                $typeStr = 'SSID:' . $ssid . ($uptime !== null ? '|UP:' . (int)$uptime : '');
+                $typeStr = 'SSID:' . $ssid
+                    . ($uptime !== null ? '|UP:' . (int)$uptime : '')
+                    . ($fwVersion !== '' ? '|FW:' . $fwVersion : '');
             }
 
             $device = \App\Models\Device::updateOrCreate(
@@ -1071,12 +1074,41 @@ class AttendanceController extends Controller
                 ]
             );
 
+            // Cek apakah ada antrean Cloud OTA Firmware untuk station ini
+            $otaUpdate = false;
+            $otaUrl = '';
+            $otaVersion = '';
+            $manifestPath = storage_path('app/ota_manifest.json');
+            if (file_exists($manifestPath)) {
+                $manifest = json_decode(@file_get_contents($manifestPath), true) ?: [];
+                if (!empty($manifest[$deviceId]['pending']) && !empty($manifest[$deviceId]['bin_url'])) {
+                    $otaUpdate = true;
+                    $otaUrl = $manifest[$deviceId]['bin_url'];
+                    $otaVersion = $manifest[$deviceId]['version'] ?? 'latest';
+
+                    // Tandai sudah dikirim agar tidak terjadi loop flash berulang
+                    $manifest[$deviceId]['pending'] = false;
+                    $manifest[$deviceId]['status'] = 'SENT_TO_DEVICE';
+                    $manifest[$deviceId]['sent_at'] = now()->format('Y-m-d H:i:s');
+                    @file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT));
+                } elseif (isset($manifest[$deviceId]) && ($manifest[$deviceId]['status'] ?? '') === 'SENT_TO_DEVICE') {
+                    $manifest[$deviceId]['status'] = 'COMPLETED';
+                    $manifest[$deviceId]['completed_at'] = now()->format('Y-m-d H:i:s');
+                    $manifest[$deviceId]['reported_fw'] = $fwVersion;
+                    @file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT));
+                }
+            }
+
             return response()->json([
                 'status'      => 'ok',
                 'device_id'   => $deviceId,
                 'ssid'        => $ssid,
+                'fw_version'  => $fwVersion,
                 'server_time' => now()->format('Y-m-d H:i:s'),
                 'is_online'   => true,
+                'ota_update'  => $otaUpdate,
+                'ota_url'     => $otaUrl,
+                'ota_version' => $otaVersion,
             ]);
         } catch (\Throwable $e) {
             return response()->json([

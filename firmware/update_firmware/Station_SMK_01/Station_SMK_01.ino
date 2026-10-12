@@ -23,6 +23,8 @@
 #include <ArduinoJson.h>
 #include <WiFiClientSecure.h>
 #include <ESP8266WiFiMulti.h>
+#include <ArduinoOTA.h>
+#include <ESP8266httpUpdate.h>
 #include <SoftwareSerial.h>
 
 // ==============================================================================
@@ -31,6 +33,8 @@
 const char* DEVICE_ID           = "STATION-SMK-01";
 const char* UNIT_NAME           = "SMKS Pembda Nias";
 const char* KIOSK_API_KEY       = "RAHASIA-PEMBDAHUB-12345";
+const char* FIRMWARE_VERSION    = "v2.6-OTA";
+const char* OTA_PASSWORD        = "pembda99";
 
 // Prioritas 1: Server Lokal LAN Sekolah (Respon kilat < 200ms)
 const char* SERVER_LOCAL_URL    = "http://50.35.89.10/api/attendance/rfid-scan";
@@ -110,6 +114,8 @@ void connectWiFiInitial();
 void handleRfidScan();
 void sendToServer(String uid, String type);
 void sendScanBuffer(String uid);
+void setupOTA();
+void performCloudOTA(String otaUrl);
 void sendHeartbeat();
 void parseAndDisplay(String json, String uid);
 void showError(String msg);
@@ -170,6 +176,7 @@ void setup() {
   wifiMulti.addAP(WIFI_ALT4_SSID, WIFI_ALT4_PASSWORD);
 
   connectWiFiInitial();
+  setupOTA();
 
   mp3Serial.begin(9600);
   delay(300);
@@ -187,6 +194,7 @@ void setup() {
 // ==============================================================================
 void loop() {
   unsigned long now = millis();
+  if (isOnline) ArduinoOTA.handle();
 
   // 1. Pemeriksaan Koneksi WiFi setiap 10 detik
   if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
@@ -285,6 +293,7 @@ void printRow(uint8_t row, const String& text) {
 void updateInPlaceAnim() {
   if (isShowingResult) return;
   unsigned long now = millis();
+  if (isOnline) ArduinoOTA.handle();
   if (now - lastInPlaceAnimTime < 1500) return;
   lastInPlaceAnimTime = now;
   inPlaceFrame = (inPlaceFrame + 1) % 2;
@@ -374,6 +383,7 @@ void handleRfidScan() {
 
   String uid = getRfidUID();
   unsigned long now = millis();
+  if (isOnline) ArduinoOTA.handle();
   if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
@@ -552,16 +562,75 @@ void sendScanBuffer(String uid) {
   http.end();
 }
 
+void setupOTA() {
+  ArduinoOTA.setHostname(DEVICE_ID);
+  ArduinoOTA.setPassword(OTA_PASSWORD);
+
+  ArduinoOTA.onStart([]() {
+    isShowingResult = true;
+    lcd.clear();
+    printCenter(0, "*UPDATE OTA LAN*");
+    printCenter(1, "Progress : 0%");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    int pct = (progress / (total / 100));
+    printCenter(1, "Progress : " + String(pct) + "%");
+  });
+
+  ArduinoOTA.onEnd([]() {
+    lcd.clear();
+    printCenter(0, "*UPDATE SELESAI*");
+    printCenter(1, "Restart Sistem..");
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    showError("OTA Error: " + String(error));
+  });
+
+  ArduinoOTA.begin();
+}
+
+void performCloudOTA(String otaUrl) {
+  if (otaUrl == "") return;
+  isShowingResult = true;
+  lcd.clear();
+  printCenter(0, "*CLOUD OTA SYNC*");
+  printCenter(1, "Mohon Tunggu....");
+  beep(2, 100);
+
+  ESPhttpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+  ESPhttpUpdate.rebootOnUpdate(true);
+
+  if (otaUrl.startsWith("https://")) {
+    BearSSL::WiFiClientSecure secureClient;
+    secureClient.setInsecure();
+    t_httpUpdate_return ret = ESPhttpUpdate.update(secureClient, otaUrl);
+    if (ret == HTTP_UPDATE_FAILED) {
+      showError("Cloud OTA Gagal!");
+    }
+  } else {
+    WiFiClient client;
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, otaUrl);
+    if (ret == HTTP_UPDATE_FAILED) {
+      showError("Local OTA Gagal!");
+    }
+  }
+}
+
 void sendHeartbeat() {
   StaticJsonDocument<256> doc;
-  doc["device_id"] = DEVICE_ID;
-  doc["ssid"]      = WiFi.SSID();
-  doc["ip"]        = WiFi.localIP().toString();
-  doc["rssi"]      = WiFi.RSSI();
-  doc["free_heap"] = ESP.getFreeHeap();
-  doc["uptime"]    = millis() / 1000;
+  doc["device_id"]  = DEVICE_ID;
+  doc["ssid"]       = WiFi.SSID();
+  doc["ip"]         = WiFi.localIP().toString();
+  doc["rssi"]       = WiFi.RSSI();
+  doc["free_heap"]  = ESP.getFreeHeap();
+  doc["uptime"]     = millis() / 1000;
+  doc["fw_version"] = FIRMWARE_VERSION;
   String body;
   serializeJson(doc, body);
+
+  String otaTargetUrl = "";
 
   if (WiFi.SSID() == WIFI_SSID) {
     WiFiClient client;
@@ -570,7 +639,15 @@ void sendHeartbeat() {
     httpLocal.addHeader("Content-Type", "application/json");
     httpLocal.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
     httpLocal.setTimeout(1500);
-    httpLocal.POST(body);
+    int codeL = httpLocal.POST(body);
+    if (codeL == 200) {
+      StaticJsonDocument<384> respDoc;
+      if (!deserializeJson(respDoc, httpLocal.getString())) {
+        if (respDoc["ota_update"] == true) {
+          otaTargetUrl = respDoc["ota_url"] | "";
+        }
+      }
+    }
     httpLocal.end();
   }
 
@@ -581,8 +658,20 @@ void sendHeartbeat() {
   http.addHeader("Content-Type", "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
   http.setTimeout(3000);
-  http.POST(body);
+  int codeC = http.POST(body);
+  if (codeC == 200 && otaTargetUrl == "") {
+    StaticJsonDocument<384> respDoc;
+    if (!deserializeJson(respDoc, http.getString())) {
+      if (respDoc["ota_update"] == true) {
+        otaTargetUrl = respDoc["ota_url"] | "";
+      }
+    }
+  }
   http.end();
+
+  if (otaTargetUrl != "") {
+    performCloudOTA(otaTargetUrl);
+  }
 }
 
 void showError(String msg) {
