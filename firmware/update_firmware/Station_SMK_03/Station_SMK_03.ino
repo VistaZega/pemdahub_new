@@ -34,16 +34,16 @@ const char* HEARTBEAT_CLOUD     = "https://perguruanpembda.com/api/attendance/he
 const char* WIFI_SSID           = "PembdaLINK";
 const char* WIFI_PASSWORD       = "PEMBDA2026";
 
-const char* WIFI_ALT1_SSID      = "Xspace";
-const char* WIFI_ALT1_PASSWORD  = "12345678starlink";
+const char* WIFI_ALT1_SSID      = "PembdaNET";
+const char* WIFI_ALT1_PASSWORD  = "pelita31";
 
-const char* WIFI_ALT2_SSID      = "TEFA";
-const char* WIFI_ALT2_PASSWORD  = "PEMBDA2026";
+const char* WIFI_ALT2_SSID      = "PembdaSTARGATE";
+const char* WIFI_ALT2_PASSWORD  = "";
 
 const char* WIFI_ALT3_SSID      = "VISTAFAMILY";
 const char* WIFI_ALT3_PASSWORD  = "pelita31";
 
-const char* WIFI_ALT4_SSID      = "PembdaNET";
+const char* WIFI_ALT4_SSID      = "Black_Hole";
 const char* WIFI_ALT4_PASSWORD  = "pelita31";
 
 #define RFID_SS_PIN     16      // D0 (GPIO16)

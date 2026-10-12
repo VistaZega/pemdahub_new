@@ -76,8 +76,8 @@ const char* WIFI_ALT4_PASSWORD  = "pelita31";
 #define QR_RX_PIN        0      // D3 (GPIO0)  - RX GM65 Barcode/QR Scanner
 
 #define LCD_ADDRESS   0x27      // Alamat I2C LCD (0x27 atau 0x3F)
-#define LCD_COLS        16      // 16 untuk LCD 16x2, ganti 20 jika pakai LCD 20x4
-#define LCD_ROWS         2      // 2 untuk LCD 16x2, ganti 4 jika pakai LCD 20x4
+#define LCD_COLS        20      // LCD 20x4: 20 Kolom Penuh (Kolom 0 s.d 19)
+#define LCD_ROWS         4      // LCD 20x4: 4 Baris Penuh (Baris 0 s.d 3)
 
 #define HTTP_TIMEOUT          8000
 #define DISPLAY_RESULT_MS     3500
@@ -153,10 +153,10 @@ void setup() {
 
   lcd.clear();
   #if LCD_ROWS == 2
-    printCenter(0, "PEMBDA PRESENSI");
+    printCenter(0, "PembdaHUB PRESENSI");
     printCenter(1, "Memulai...");
   #else
-    printCenter(0, "* PERGURUAN PEMBDA *");
+    printCenter(0, "PERGURUAN PEMBDA NIAS");
     printCenter(1, "Sistem Presensi RFID");
     printCenter(2, DEVICE_ID);
     printCenter(3, "Memulai Hardware...");
@@ -318,62 +318,115 @@ void updateInPlaceAnim() {
   lastInPlaceAnimTime = now;
   inPlaceFrame = (inPlaceFrame + 1) % 2;
 
-  if (currentSlide == 0) {
-    if (isOnline) {
-      if (inPlaceFrame == 0) printCenter(1, "> TEMPEL KARTU <");
-      else printCenter(1, "* SCAN QR CODE *");
+  #if LCD_ROWS == 2
+    if (currentSlide == 0) {
+      if (isOnline) {
+        if (inPlaceFrame == 0) printCenter(1, "> TEMPEL KARTU <");
+        else printCenter(1, "* SCAN QR CODE *");
+      }
+    } else if (currentSlide == 1) {
+      if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-06");
+      else printCenter(1, "PANTANG MUNDUR");
     }
-  } else if (currentSlide == 1) {
-    if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-06");
-    else printCenter(1, "PANTANG MUNDUR");
-  }
+  #else
+    if (currentSlide == 0) {
+      if (isOnline) {
+        if (inPlaceFrame == 0) printCenter(2, ">> TEMPEL KARTU <<");
+        else printCenter(2, ">> SCAN QR CODE <<");
+      }
+    } else if (currentSlide == 1) {
+      if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
+      else printCenter(2, "** PANTANG MUNDUR **");
+    }
+  #endif
 }
 
 void showSlide(int slideIndex) {
   if (isShowingResult) return;
 
-  switch (slideIndex) {
-    case 0:
-      // SIMETRIS TENGAH (Semua baris 16 karakter GENAP: Kiri 0, Kanan 0)
-      printCenter(0, "PERGURUAN PEMBDA");
-      if (isOnline) {
-        if (inPlaceFrame == 0) printCenter(1, "> TEMPEL KARTU <");
-        else printCenter(1, "* SCAN QR CODE *");
-      } else {
-        printCenter(1, "[ MODE OFFLINE ]");
-      }
-      break;
+  #if LCD_ROWS == 2
+    switch (slideIndex) {
+      case 0:
+        printCenter(0, "PERGURUAN PEMBDA");
+        if (isOnline) {
+          if (inPlaceFrame == 0) printCenter(1, "> TEMPEL KARTU <");
+          else printCenter(1, "* SCAN QR CODE *");
+        } else {
+          printCenter(1, "[ MODE OFFLINE ]");
+        }
+        break;
 
-    case 1:
-      // SIMETRIS TENGAH (Baris 0 = 16 char, Baris 1 = 14 char [Kiri 1, Kanan 1])
-      printCenter(0, "[SMK SW. PEMBDA]");
-      if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-06");
-      else printCenter(1, "PANTANG MUNDUR");
-      break;
+      case 1:
+        printCenter(0, "SMKS PEMBDA NIAS");
+        if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-06");
+        else printCenter(1, "PANTANG MUNDUR");
+        break;
 
-    case 2:
-      // RAPAT KIRI SEMUA (Titik dua sejajar lurus di kolom 2)
-      if (isOnline) {
-        String ssid = WiFi.SSID();
-        if (ssid.length() > 13) ssid = ssid.substring(0, 13);
-        printRow(0, "AP:" + ssid);
-        printRow(1, "IP:" + WiFi.localIP().toString().substring(0, 13));
-      } else {
-        printRow(0, "AP:TERPUTUS");
-        printRow(1, "ST:MENCARI WIFI");
-      }
-      break;
-  }
+      case 2:
+        if (isOnline) {
+          String ssid = WiFi.SSID();
+          if (ssid.length() > 13) ssid = ssid.substring(0, 13);
+          printRow(0, "AP:" + ssid);
+          printRow(1, "IP:" + WiFi.localIP().toString().substring(0, 13));
+        } else {
+          printRow(0, "AP:TERPUTUS");
+          printRow(1, "ST:MENCARI WIFI");
+        }
+        break;
+    }
+  #else
+    switch (slideIndex) {
+      case 0:
+        // SIMETRIS TENGAH 20 KOLOM x 4 BARIS PENUH
+        printCenter(0, "* PERGURUAN PEMBDA *");
+        printCenter(1, "====================");
+        if (isOnline) {
+          if (inPlaceFrame == 0) printCenter(2, ">> TEMPEL KARTU <<");
+          else printCenter(2, ">> SCAN QR CODE <<");
+        } else {
+          printCenter(2, "Status: MODE OFFLINE");
+        }
+        printCenter(3, "SISTEM PRESENSI RFID");
+        break;
+
+      case 1:
+        // SIMETRIS TENGAH 20 KOLOM x 4 BARIS PENUH
+        printCenter(0, "* SMKS PEMBDA NIAS *");
+        printCenter(1, "[  STATION-SMK-06  ]");
+        if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
+        else printCenter(2, "** PANTANG MUNDUR **");
+        printCenter(3, "Maju Terus - Sukses!");
+        break;
+
+      case 2:
+        // RAPAT KIRI SEMUA 20 KOLOM x 4 BARIS (Titik dua sejajar di kolom 4)
+        printRow(0, "ID  : " + String(DEVICE_ID));
+        if (isOnline) {
+          String ssid = WiFi.SSID();
+          if (ssid.length() > 14) ssid = ssid.substring(0, 14);
+          printRow(1, "AP  : " + ssid);
+          printRow(2, "IP  : " + WiFi.localIP().toString());
+          printRow(3, "Sig : " + String(WiFi.RSSI()) + " dBm [ON]");
+        } else {
+          printRow(1, "AP  : TERPUTUS");
+          printRow(2, "STAT: MENCARI WIFI..");
+          printRow(3, "MODE: OFFLINE SIAGA");
+        }
+        break;
+    }
+  #endif
 }
 
 void connectWiFiInitial() {
   lcd.clear();
   #if LCD_ROWS == 2
-    printCenter(0, "Koneksi WiFi...");
-    printCenter(1, "Mencari AP...");
+    printCenter(0, "KONEKSI WIFI....");
+    printCenter(1, "MENCARI SINYAL..");
   #else
-    printCenter(1, "Koneksi WiFi...");
-    printCenter(2, "Mencari AP...");
+    printCenter(0, "* PERGURUAN PEMBDA *");
+    printCenter(1, "====================");
+    printCenter(2, "KONEKSI WIFI........");
+    printCenter(3, "MENCARI JARINGAN....");
   #endif
   int attempt = 0;
   while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
@@ -404,11 +457,13 @@ void handleRfidScan() {
   isShowingResult = true;
   lcd.clear();
   #if LCD_ROWS == 2
-    printCenter(0, "MEMPROSES...");
-    printCenter(1, "UID: " + uid);
+    printCenter(0, "*MEMPROSES DATA*");
+    printCenter(1, "ID: " + uid);
   #else
-    printCenter(1, "MEMPROSES DATA...");
-    printCenter(2, "UID: " + uid);
+    printCenter(0, "** MEMPROSES DATA **");
+    printCenter(1, "--------------------");
+    printCenter(2, "UID : " + uid);
+    printCenter(3, "Menghubungi Server..");
   #endif
   beep(1, 100);
 
@@ -445,11 +500,13 @@ void handleQrScan() {
   isShowingResult = true;
   lcd.clear();
   #if LCD_ROWS == 2
-    printCenter(0, "MEMPROSES QR...");
+    printCenter(0, "*MEMPROSES QR..*");
     printCenter(1, qrData.substring(0, min((int)qrData.length(), 16)));
   #else
-    printCenter(1, "MEMPROSES QR...");
+    printCenter(0, "** MEMPROSES QR.. **");
+    printCenter(1, "--------------------");
     printCenter(2, qrData.substring(0, min((int)qrData.length(), 20)));
+    printCenter(3, "Menghubungi Server..");
   #endif
   beep(1, 100);
 
