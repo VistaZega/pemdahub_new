@@ -62,8 +62,8 @@ $allDetectedDevices = array_unique(array_merge($dbDevicesStudent, $dbDevicesEmpl
 // Daftar Standar Hardware Station
 $standardStations = [
     'SMP' => ['STATION-SMP-01', 'STATION-SMP-02', 'STATION-SMP-03'],
-    'SMA' => ['STATION-SMA-01', 'STATION-SMA-02', 'STATION-SMA-03'],
-    'SMK' => ['STATION-SMK-01', 'STATION-SMK-02', 'STATION-SMK-03', 'STATION-SMK-4', 'KIOSK-TEFA']
+    'SMA' => ['STATION-SMA-01', 'STATION-SMA-02', 'STATION-SMA-03', 'STATION-SMA-04'],
+    'SMK' => ['STATION-SMK-01', 'STATION-SMK-02', 'STATION-SMK-03', 'STATION-SMK-04', 'STATION-SMK-05', 'STATION-SMK-06', 'KIOSK-TEFA']
 ];
 
 // Gabungkan semua station yang harus diaudit
