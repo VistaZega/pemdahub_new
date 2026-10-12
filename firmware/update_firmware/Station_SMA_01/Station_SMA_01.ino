@@ -236,9 +236,9 @@ void showSlide(int slideIndex) {
       break;
     case 1:
       printCenter(0, UNIT_NAME);
-      printCenter(1, "Inovasi & Prestasi");
-      printCenter(2, "Maju Terus - Pantang");
-      printCenter(3, "Mundur! Semangat");
+      printCenter(1, "--------------------");
+      printCenter(2, "Keep Moving Forward!");
+      printCenter(3, "Maju Terus - Sukses!");
       break;
     case 2:
       printCenter(0, "--- STATUS SISTEM --");
@@ -402,37 +402,47 @@ void parseAndDisplay(String json, String uid) {
   String status      = doc["status"] | "";
   String message     = doc["message"] | "";
   String action_code = doc["action_code"] | "";
-  const char* rawNama = doc["data"]["nama"];
-  if (!rawNama) rawNama = doc["data"]["name"];
-  String nama        = rawNama ? rawNama : "";
 
-  const char* rawWaktu = doc["data"]["waktu"];
+  const char* rawNama = doc["nama"];
+  if (!rawNama) rawNama = doc["data"]["nama"];
+  if (!rawNama) rawNama = doc["data"]["name"];
+  String nama = rawNama ? rawNama : "";
+
+  const char* rawKelas = doc["kelas"];
+  if (!rawKelas) rawKelas = doc["data"]["kelas"];
+  String kelas = rawKelas ? rawKelas : "";
+
+  const char* rawWaktu = doc["waktu"];
+  if (!rawWaktu) rawWaktu = doc["data"]["waktu"];
   if (!rawWaktu) rawWaktu = doc["data"]["time"];
-  String waktu       = rawWaktu ? rawWaktu : "";
-  String kelas       = doc["data"]["kelas"] | "";
+  String waktu = rawWaktu ? rawWaktu : "";
 
   lcd.clear();
   if (status == "success" || status == "info") {
     if (action_code == "CHECK_IN") {
-      printCenter(0, "* PRESENSI MASUK *");
-      printCenter(1, nama);
-      printCenter(2, kelas != "" ? kelas : "Siswa / Guru");
-      printCenter(3, "Waktu: " + waktu.substring(0, 8));
-      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) playAudio(1, 5);
-      else playAudio(1, 2);
+      printCenter(0, nama != "" ? nama : "* PRESENSI MASUK *");
+      printCenter(1, kelas != "" ? kelas : "Siswa / Guru");
+      printCenter(2, "MASUK PADA: " + waktu.substring(0, 8));
+      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0 || kelas.indexOf("Staff") >= 0) {
+        printCenter(3, "Selamat Bertugas!");
+        playAudio(1, 5);
+      } else {
+        printCenter(3, "Selamat Belajar!");
+        playAudio(1, 2);
+      }
       beep(1, 120);
     } else if (action_code == "CHECK_OUT") {
-      printCenter(0, "* PRESENSI PULANG *");
-      printCenter(1, nama);
-      printCenter(2, "Sampai Jumpa Besok!");
-      printCenter(3, "Waktu: " + waktu.substring(0, 8));
+      printCenter(0, nama != "" ? nama : "* PRESENSI PULANG *");
+      printCenter(1, kelas != "" ? kelas : "Siswa / Guru");
+      printCenter(2, "PULANG PADA: " + waktu.substring(0, 8));
+      printCenter(3, "Hati-hati di jalan!");
       playAudio(1, 3);
       beep(2, 80);
     } else if (action_code == "COOLDOWN") {
-      printCenter(0, "* SUDAH TERCATAT *");
-      printCenter(1, nama);
-      printCenter(2, "Presensi Sebelumnya:");
-      printCenter(3, "Jam " + waktu.substring(0, 5) + " WIB");
+      printCenter(0, nama != "" ? nama : "* SUDAH PRESENSI *");
+      printCenter(1, kelas != "" ? kelas : "Siswa / Guru");
+      printCenter(2, "Sudah Absen Masuk!");
+      printCenter(3, "Jam: " + waktu.substring(0, 5) + " WIB");
       playAudio(1, 4);
       beep(1, 200);
     } else if (action_code == "NEW_CARD") {
@@ -440,22 +450,22 @@ void parseAndDisplay(String json, String uid) {
       printCenter(0, "** KARTU BARU **");
       printCenter(1, "UID: " + uid);
       printCenter(2, "Belum Terdaftar!");
-      printCenter(3, "Hubungi Admin Web");
+      printCenter(3, "Daftarkan di Admin");
       playAudio(1, 6);
       beep(3, 100);
     } else {
-      printCenter(0, "* BERHASIL *");
-      printCenter(1, nama);
+      printCenter(0, nama != "" ? nama : "* BERHASIL *");
+      printCenter(1, kelas != "" ? kelas : message);
       printCenter(2, message);
-      printCenter(3, waktu);
+      printCenter(3, waktu != "" ? ("Waktu: " + waktu.substring(0, 8)) : "");
       playAudio(1, 2);
       beep(1, 100);
     }
   } else {
     printCenter(0, "! PERINGATAN !");
-    printCenter(1, "--------------------");
+    printCenter(1, nama != "" ? nama : message);
     printCenter(2, message);
-    printCenter(3, "Periksa Status Kartu");
+    printCenter(3, "Silakan Coba Lagi");
     playAudio(1, 7);
     beep(2, 250);
   }

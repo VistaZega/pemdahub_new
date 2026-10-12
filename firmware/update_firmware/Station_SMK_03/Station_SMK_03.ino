@@ -354,11 +354,13 @@ void parseAndDisplay(String json, String uid) {
   String status      = doc["status"] | "";
   String message     = doc["message"] | "";
   String action_code = doc["action_code"] | "";
-  const char* rawNama = doc["data"]["nama"];
+  const char* rawNama = doc["nama"];
+  if (!rawNama) rawNama = doc["data"]["nama"];
   if (!rawNama) rawNama = doc["data"]["name"];
   String nama        = rawNama ? rawNama : "";
 
-  const char* rawWaktu = doc["data"]["waktu"];
+  const char* rawWaktu = doc["waktu"];
+  if (!rawWaktu) rawWaktu = doc["data"]["waktu"];
   if (!rawWaktu) rawWaktu = doc["data"]["time"];
   String waktu       = rawWaktu ? rawWaktu : "";
 
