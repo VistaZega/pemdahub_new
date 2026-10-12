@@ -16,7 +16,6 @@
 //  3. Heartbeat Otomatis (45s): Melaporkan IP, RSSI, status online ke server.
 //  4. Tampilan Simetris: Helper printCenter() & printRow() merapikan teks di LCD.
 //  5. Animasi Huruf Berganti In-Place: Berganti teks/panah tanpa running text buram.
-//  6. Smart Name Formatting: Mencegah nama terpotong di layar 16/20 kolom.
 //
 // ==============================================================================
 
@@ -114,7 +113,6 @@ void printCenter(uint8_t row, const String& text);
 void printRow(uint8_t row, const String& text);
 void showSlide(int slideIndex);
 void updateInPlaceAnim();
-String formatNama(String fullName, int maxLen);
 void connectWiFiInitial();
 void handleRfidScan();
 void handleQrScan();
@@ -245,41 +243,6 @@ void loop() {
   delay(20);
 }
 
-// ==============================================================================
-//  FORMAT NAMA CERDAS (Mencegah Nama Terpotong di Layar)
-// ==============================================================================
-String formatNama(String fullName, int maxLen) {
-  fullName.trim();
-  if (fullName.length() <= maxLen) return fullName;
-
-  int firstSpace = fullName.indexOf(' ');
-  if (firstSpace == -1) {
-    return fullName.substring(0, maxLen);
-  }
-
-  String firstName = fullName.substring(0, firstSpace);
-  if (firstName.length() >= maxLen) {
-    return firstName.substring(0, maxLen);
-  }
-
-  String result = firstName;
-  int curr = firstSpace;
-  while (curr != -1 && curr < fullName.length()) {
-    while (curr < fullName.length() && fullName.charAt(curr) == ' ') curr++;
-    if (curr < fullName.length()) {
-      char initial = fullName.charAt(curr);
-      if (result.length() + 3 <= maxLen) {
-        result += " ";
-        result += initial;
-        result += ".";
-      } else {
-        break;
-      }
-    }
-    curr = fullName.indexOf(' ', curr);
-  }
-  return result;
-}
 
 // ==============================================================================
 //  HELPER DISPLAY SIMETRIS & ANIMASI HURUF BERGANTI
@@ -609,24 +572,23 @@ void parseAndDisplay(String json, String uid) {
   if (!rawWaktu) rawWaktu = doc["data"]["time"];
   String waktu = rawWaktu ? rawWaktu : "";
 
-  String displayNama = formatNama(nama, LCD_COLS);
 
   lcd.clear();
   #if LCD_ROWS == 2
     if (status == "success" || status == "info") {
       if (action_code == "CHECK_IN") {
-        printCenter(0, displayNama != "" ? displayNama : "PRESENSI MASUK");
+        printCenter(0, nama != "" ? nama : "PRESENSI MASUK");
         printCenter(1, "MASUK: " + waktu.substring(0, 5) + " WIB");
         if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) playAudio(1, 5);
         else playAudio(1, 2);
         beep(1, 120);
       } else if (action_code == "CHECK_OUT") {
-        printCenter(0, displayNama != "" ? displayNama : "*ABSEN PULANG*");
+        printCenter(0, nama != "" ? nama : "*ABSEN PULANG*");
         printCenter(1, "PULANG " + waktu.substring(0, 5) + " WIB");
         playAudio(1, 3);
         beep(2, 80);
       } else if (action_code == "COOLDOWN") {
-        printCenter(0, displayNama != "" ? displayNama : "*SUDAH ABSEN!*");
+        printCenter(0, nama != "" ? nama : "*SUDAH ABSEN!*");
         printCenter(1, "ABSEN: " + waktu.substring(0, 5) + " WIB");
         playAudio(1, 4);
         beep(1, 200);
@@ -637,7 +599,7 @@ void parseAndDisplay(String json, String uid) {
         playAudio(1, 6);
         beep(3, 100);
       } else {
-        printCenter(0, displayNama != "" ? displayNama : "** BERHASIL **");
+        printCenter(0, nama != "" ? nama : "** BERHASIL **");
         printCenter(1, message.length() <= 16 ? message : message.substring(0, 16));
         playAudio(1, 2);
         beep(1, 100);
@@ -651,7 +613,7 @@ void parseAndDisplay(String json, String uid) {
   #else
     if (status == "success" || status == "info") {
       if (action_code == "CHECK_IN") {
-        printCenter(0, displayNama != "" ? displayNama : "* PRESENSI MASUK *");
+        printCenter(0, nama != "" ? nama : "* PRESENSI MASUK *");
         printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "SISWA / GURU");
         printCenter(2, "JAM MASUK: " + waktu.substring(0, 5) + " WIB");
         if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) {
@@ -663,14 +625,14 @@ void parseAndDisplay(String json, String uid) {
         }
         beep(1, 120);
       } else if (action_code == "CHECK_OUT") {
-        printCenter(0, displayNama != "" ? displayNama : "* PRESENSI PULANG *");
+        printCenter(0, nama != "" ? nama : "* PRESENSI PULANG *");
         printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "SISWA / GURU");
         printCenter(2, "JAM PULANG " + waktu.substring(0, 5) + " WIB");
         printCenter(3, "*HATI-HATI DI JALAN*");
         playAudio(1, 3);
         beep(2, 80);
       } else if (action_code == "COOLDOWN") {
-        printCenter(0, displayNama != "" ? displayNama : "** SUDAH ABSEN **");
+        printCenter(0, nama != "" ? nama : "** SUDAH ABSEN **");
         printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "SISWA / GURU");
         printCenter(2, "SUDAH ABSEN MASUK!");
         printCenter(3, "PUKUL: " + waktu.substring(0, 5) + " WIB");
@@ -685,7 +647,7 @@ void parseAndDisplay(String json, String uid) {
         playAudio(1, 6);
         beep(3, 100);
       } else {
-        printCenter(0, displayNama != "" ? displayNama : "** BERHASIL **");
+        printCenter(0, nama != "" ? nama : "** BERHASIL **");
         printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : message);
         printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
         printCenter(3, waktu != "" ? ("PUKUL: " + waktu.substring(0, 5) + " WIB") : "TERIMA KASIH");
@@ -694,7 +656,7 @@ void parseAndDisplay(String json, String uid) {
       }
     } else {
       printCenter(0, "! PERINGATAN !");
-      printCenter(1, displayNama != "" ? displayNama : "AKSES DITOLAK");
+      printCenter(1, nama != "" ? nama : "AKSES DITOLAK");
       printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
       printCenter(3, "SILAKAN COBA LAGI!");
       playAudio(1, 7);

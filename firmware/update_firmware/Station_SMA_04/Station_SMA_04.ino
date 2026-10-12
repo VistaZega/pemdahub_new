@@ -90,7 +90,6 @@ void printCenter(uint8_t row, const String& text);
 void printRow(uint8_t row, const String& text);
 void showSlide(int slideIndex);
 void updateInPlaceAnim();
-String formatNama(String fullName, int maxLen);
 void connectWiFiInitial();
 void handleRfidScan();
 void handleQrScan();
@@ -213,41 +212,6 @@ void loop() {
 }
 
 
-// ==============================================================================
-//  FORMAT NAMA CERDAS (Mencegah Nama Terpotong di Layar)
-// ==============================================================================
-String formatNama(String fullName, int maxLen) {
-  fullName.trim();
-  if (fullName.length() <= maxLen) return fullName;
-
-  int firstSpace = fullName.indexOf(' ');
-  if (firstSpace == -1) {
-    return fullName.substring(0, maxLen);
-  }
-
-  String firstName = fullName.substring(0, firstSpace);
-  if (firstName.length() >= maxLen) {
-    return firstName.substring(0, maxLen);
-  }
-
-  String result = firstName;
-  int curr = firstSpace;
-  while (curr != -1 && curr < fullName.length()) {
-    while (curr < fullName.length() && fullName.charAt(curr) == ' ') curr++;
-    if (curr < fullName.length()) {
-      char initial = fullName.charAt(curr);
-      if (result.length() + 3 <= maxLen) {
-        result += " ";
-        result += initial;
-        result += ".";
-      } else {
-        break;
-      }
-    }
-    curr = fullName.indexOf(' ', curr);
-  }
-  return result;
-}
 void printCenter(uint8_t row, const String& text) {
   lcd.setCursor(0, row);
   String trimmed = text;

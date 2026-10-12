@@ -87,7 +87,6 @@ void printCenter(uint8_t row, const String& text);
 void printRow(uint8_t row, const String& text);
 void showSlide(int slideIndex);
 void updateInPlaceAnim();
-String formatNama(String fullName, int maxLen);
 void connectWiFiInitial();
 void handleRfidScan();
 void handleQrScan();
@@ -202,41 +201,6 @@ void loop() {
 }
 
 
-// ==============================================================================
-//  FORMAT NAMA CERDAS (Mencegah Nama Terpotong di Layar)
-// ==============================================================================
-String formatNama(String fullName, int maxLen) {
-  fullName.trim();
-  if (fullName.length() <= maxLen) return fullName;
-
-  int firstSpace = fullName.indexOf(' ');
-  if (firstSpace == -1) {
-    return fullName.substring(0, maxLen);
-  }
-
-  String firstName = fullName.substring(0, firstSpace);
-  if (firstName.length() >= maxLen) {
-    return firstName.substring(0, maxLen);
-  }
-
-  String result = firstName;
-  int curr = firstSpace;
-  while (curr != -1 && curr < fullName.length()) {
-    while (curr < fullName.length() && fullName.charAt(curr) == ' ') curr++;
-    if (curr < fullName.length()) {
-      char initial = fullName.charAt(curr);
-      if (result.length() + 3 <= maxLen) {
-        result += " ";
-        result += initial;
-        result += ".";
-      } else {
-        break;
-      }
-    }
-    curr = fullName.indexOf(' ', curr);
-  }
-  return result;
-}
 void printCenter(uint8_t row, const String& text) {
   lcd.setCursor(0, row);
   String trimmed = text;
@@ -482,12 +446,11 @@ void parseAndDisplay(String json, String uid) {
   if (!rawWaktu) rawWaktu = doc["data"]["time"];
   String waktu = rawWaktu ? rawWaktu : "";
 
-  String displayNama = formatNama(nama, LCD_COLS);
 
   lcd.clear();
   if (status == "success" || status == "info") {
     if (action_code == "CHECK_IN") {
-      printCenter(0, displayNama != "" ? displayNama : "* PRESENSI MASUK *");
+      printCenter(0, nama != "" ? nama : "* PRESENSI MASUK *");
       printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "Siswa / Guru");
       printCenter(2, "MASUK: " + waktu.substring(0, 5) + " WIB");
       if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0 || kelas.indexOf("Staff") >= 0) {
@@ -497,13 +460,13 @@ void parseAndDisplay(String json, String uid) {
       }
       beep(1, 120);
     } else if (action_code == "CHECK_OUT") {
-      printCenter(0, displayNama != "" ? displayNama : "* PRESENSI PULANG *");
+      printCenter(0, nama != "" ? nama : "* PRESENSI PULANG *");
       printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "Siswa / Guru");
       printCenter(2, "PULANG: " + waktu.substring(0, 5) + " WIB");
       printCenter(3, "Hati-hati di jalan!");
       beep(2, 80);
     } else if (action_code == "COOLDOWN") {
-      printCenter(0, displayNama != "" ? displayNama : "* SUDAH ABSEN *");
+      printCenter(0, nama != "" ? nama : "* SUDAH ABSEN *");
       printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "Siswa / Guru");
       printCenter(2, "Sudah Absen Masuk!");
       printCenter(3, "Jam: " + waktu.substring(0, 5) + " WIB");
@@ -516,7 +479,7 @@ void parseAndDisplay(String json, String uid) {
       printCenter(3, "Daftarkan di Admin");
       beep(3, 100);
     } else {
-      printCenter(0, displayNama != "" ? displayNama : "* BERHASIL *");
+      printCenter(0, nama != "" ? nama : "* BERHASIL *");
       printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : message);
       printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
       printCenter(3, waktu != "" ? ("Waktu: " + waktu.substring(0, 5) + " WIB") : "");
@@ -524,7 +487,7 @@ void parseAndDisplay(String json, String uid) {
     }
   } else {
     printCenter(0, "! PERINGATAN !");
-    printCenter(1, displayNama != "" ? displayNama : message);
+    printCenter(1, nama != "" ? nama : message);
     printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
     printCenter(3, "Silakan Coba Lagi");
     beep(2, 250);
