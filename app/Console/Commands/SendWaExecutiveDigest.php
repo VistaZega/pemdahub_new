@@ -79,9 +79,14 @@ class SendWaExecutiveDigest extends Command
                 $this->info("✅ " . ($res1['message'] ?? 'Done Kepsek') . " | " . ($res2['message'] ?? 'Done Wali Kelas'));
                 break;
 
+            case 'lms-principal':
+                $res = $reportService->sendPrincipalWeeklyLmsDigest($options);
+                $this->info("🏁 " . ($res['message'] ?? 'Done Rekap LMS Kepsek'));
+                break;
+
             case 'lms-weekly':
-                $res1 = $reportService->sendPrincipalWeeklyLmsDigest();
-                $res2 = $reportService->sendHomeroomWeeklyLmsDigest();
+                $res1 = $reportService->sendPrincipalWeeklyLmsDigest($options);
+                $res2 = $reportService->sendHomeroomWeeklyLmsDigest($options);
                 $this->info("✅ " . ($res1['message'] ?? 'Done Kepsek') . " | " . ($res2['message'] ?? 'Done Wali Kelas'));
                 break;
 

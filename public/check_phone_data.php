@@ -86,6 +86,7 @@ if (isset($_GET['clear_today_locks']) && $_GET['clear_today_locks'] === 'yes') {
     $schools = School::schoolsOnly()->get();
     foreach ($schools as $s) {
         $reportService->clearDigestSentToday('principal', $s->id, $dateToday);
+        $reportService->clearDigestSentToday('lms_principal', $s->id, $dateToday);
     }
     if ($activeYear) {
         $classes = Classroom::where('academic_year_id', $activeYear->id)->get();
@@ -121,6 +122,12 @@ if ($testAction === 'single_test') {
                     'res_homeroom' => ['sent' => 53, 'skipped' => 0, 'errors' => []],
                     'duration_seconds' => 745,
                 ]);
+            } elseif ($testType === 'principal_lms') {
+                $res = $reportService->sendPrincipalWeeklyLmsDigest([
+                    'target_phone' => $testPhone,
+                    'dry_run' => false,
+                    'logger' => function($msg) use (&$streamLogs) { $streamLogs[] = $msg; },
+                ]);
             } elseif ($testType === 'principal') {
                 $res = $reportService->sendPrincipalDailyAttendanceDigest([
                     'target_phone' => $testPhone,
@@ -143,8 +150,8 @@ if ($testAction === 'single_test') {
 
 // 4. Batch Execution (Per Unit Sekolah / Semua / Workflow Terpadu)
 $action = $_GET['action'] ?? '';
-if (in_array($action, ['send_principal', 'send_homeroom', 'dry_run_all', 'send_all_workflow', 'dry_run_workflow'])) {
-    $isDryRun = ($action === 'dry_run_all' || $action === 'dry_run_workflow');
+if (in_array($action, ['send_principal', 'send_principal_lms', 'dry_run_principal_lms', 'send_homeroom', 'dry_run_all', 'send_all_workflow', 'dry_run_workflow'])) {
+    $isDryRun = ($action === 'dry_run_all' || $action === 'dry_run_workflow' || $action === 'dry_run_principal_lms');
     $schoolId = !empty($_GET['school_id']) ? (int)$_GET['school_id'] : null;
     $force = isset($_GET['force']) && $_GET['force'] === '1';
 
@@ -165,6 +172,9 @@ if (in_array($action, ['send_principal', 'send_homeroom', 'dry_run_all', 'send_a
         if ($action === 'send_all_workflow' || $action === 'dry_run_workflow') {
             $resW = $reportService->sendDailyAttendanceDigestWorkflow($opts);
             $alertMessage = '<div style="background:#dbeafe; border:1px solid #3b82f6; color:#1e40af; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">🏁 Workflow Pengiriman Terpadu Selesai! Pesan laporan akhir telah dikirim ke WhatsApp Admin.</div>';
+        } elseif ($action === 'send_principal_lms' || $action === 'dry_run_principal_lms') {
+            $resLms = $reportService->sendPrincipalWeeklyLmsDigest($opts);
+            $alertMessage = '<div style="background:#dbeafe; border:1px solid #3b82f6; color:#1e40af; padding:15px 20px; border-radius:8px; margin-bottom:20px; font-weight:bold;">📚 ' . htmlspecialchars($resLms['message'] ?? 'Rekap Penggunaan LMS Kepsek Selesai!') . '</div>';
         } else {
             if ($action === 'send_principal' || $isDryRun) {
                 $resP = $reportService->sendPrincipalDailyAttendanceDigest($opts);
@@ -293,10 +303,11 @@ $configuredAdminPhone = Setting::getValue('wa_digest_admin_phone') ?: Setting::g
         <div>
             <label style="font-size: 12px; font-weight: bold; color: #166534; display: block; margin-bottom: 4px;">Tipe Laporan Uji Coba:</label>
             <select name="test_type" style="padding: 8px 12px; border: 1px solid #86efac; border-radius: 6px; font-size: 14px;">
+                <option value="principal_lms" selected>📚 Rekap Penggunaan & Pemetaan LMS ke Kepsek (1 Sampel Unit)</option>
+                <option value="principal">🏫 Rekap Kehadiran Kepala Sekolah (1 Sampel Unit)</option>
+                <option value="homeroom">👩‍🏫 Rekap Kehadiran Wali Kelas (1 Sampel Kelas)</option>
                 <option value="admin_start">📢 Berita Mulai ke Admin (Sampel Notifikasi Awal)</option>
                 <option value="admin_completed">🏁 Laporan Akhir ke Admin (Sampel Rekap Keterkiriman)</option>
-                <option value="principal">🏫 Rekap Kepala Sekolah (1 Sampel Unit)</option>
-                <option value="homeroom" selected>👩‍🏫 Rekap Wali Kelas (1 Sampel Kelas)</option>
             </select>
         </div>
         <div style="padding-top: 20px;">
@@ -312,10 +323,28 @@ $configuredAdminPhone = Setting::getValue('wa_digest_admin_phone') ?: Setting::g
         Sistem menerapkan <b>Jeda Acak (10–18 detik per pesan)</b>, <b>Jeda Istirahat Antar Unit (45 detik)</b>, dan <b>Kunci Idempotensi Harian</b> (mencegah pesan ganda).
     </p>
 
+    <!-- Tombol Rekap Penggunaan LMS Kepala Sekolah -->
+    <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 14px; margin: 15px 0;">
+        <div style="font-weight: bold; color: #065f46; margin-bottom: 6px; font-size: 14px;">
+            📚 Eksekusi Rekap Penggunaan & Pemetaan LMS Guru ke Kepala Sekolah (3 Unit Sekolah):
+        </div>
+        <div style="font-size: 12px; color: #166534; margin-bottom: 12px;">
+            Mengirimkan rincian pemanfaatan LMS seluruh guru (Course, Modul, Materi, Tugas, Kuis) beserta 4 poin panduan analisis Kelas Pilot langsung ke WhatsApp masing-masing Kepala Sekolah (SMA, SMK, SMP).
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <a href="?secret=pembda99&action=send_principal_lms&force=1" class="btn btn-green" onclick="return confirm('Kirim Rekap Penggunaan LMS Guru ke 3 Kepala Sekolah sekarang?')">
+                📚 Kirim Rekap LMS ke 3 Kepala Sekolah Sekarang
+            </a>
+            <a href="?secret=pembda99&action=dry_run_principal_lms&force=1" class="btn btn-amber">
+                🔍 Simulasi Rekap LMS Kepsek (Dry-Run)
+            </a>
+        </div>
+    </div>
+
     <!-- Tombol Alur Terpadu Penuh -->
     <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin: 15px 0;">
         <div style="font-weight: bold; color: #1e40af; margin-bottom: 8px; font-size: 14px;">
-            ⚡ Eksekusi Alur Otomasi Lengkap (Seperti Cron Job 08:00 WIB):
+            ⚡ Eksekusi Alur Otomasi Kehadiran Lengkap (Seperti Cron Job 08:00 WIB):
         </div>
         <div style="font-size: 12px; color: #475569; margin-bottom: 12px;">
             Urutan alur: <b>1. Berita Mulai ke Admin ➔ 2. Rekap 3 Kepala Sekolah ➔ 3. Jeda Santai ➔ 4. Rekap 53 Wali Kelas ➔ 5. Laporan Akhir Keterkiriman ke Admin.</b>
@@ -334,8 +363,8 @@ $configuredAdminPhone = Setting::getValue('wa_digest_admin_phone') ?: Setting::g
         Atau Eksekusi Parsial Per Kategori / Unit Sekolah:
     </div>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-        <a href="?secret=pembda99&action=send_principal" class="btn btn-blue" onclick="return confirm('Kirim rekap ke 3 Kepala Sekolah sekarang?')">
-            🏫 Kirim Rekap Kepala Sekolah (3 Orang)
+        <a href="?secret=pembda99&action=send_principal" class="btn btn-blue" onclick="return confirm('Kirim rekap kehadiran ke 3 Kepala Sekolah sekarang?')">
+            🏫 Kirim Rekap Kehadiran Kepsek (3 Orang)
         </a>
         <a href="?secret=pembda99&action=send_homeroom&school_id=9" class="btn btn-blue" onclick="return confirm('Kirim rekap Wali Kelas SMPS Pembda 2 (11 kelas)? Proses butuh ~3 menit.')">
             🔵 Kirim Wali Kelas SMPS Pembda 2

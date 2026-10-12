@@ -1256,76 +1256,327 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
     }
 
     /**
-     * 3A. Weekly LMS Usage Digest for Principal (Every Monday)
-     * Dilengkapi protokol anti-ban jeda acak.
+     * Build the real-time LMS usage recap message for a specific school unit Principal.
+     */
+    public function buildPrincipalLmsDigestMessage(School $school, string $principalName): array
+    {
+        $teachers = Teacher::where('school_id', $school->id)
+            ->where('is_active', true)
+            ->orderBy('full_name')
+            ->get()
+            ->filter(function ($t) {
+                $lower = strtolower(trim($t->full_name));
+                return !str_contains($lower, 'admin sekolah') && $lower !== 'admin';
+            })
+            ->values();
+
+        $teacherStats = [];
+        $schoolTotalCourses = 0;
+        $schoolTotalModules = 0;
+        $schoolTotalMaterials = 0;
+        $schoolTotalAssignments = 0;
+        $schoolTotalQuizzes = 0;
+
+        foreach ($teachers as $teacher) {
+            // Cari course milik guru ini di sekolah terkait
+            $courseIds = \App\Models\LmsCourse::where('teacher_id', $teacher->id)
+                ->where('school_id', $school->id)
+                ->pluck('id');
+
+            // Fallback: jika guru punya course dengan school_id yang sama atas nama duplikat lintas-unit (misal Solidarman Mendrofa)
+            if ($courseIds->isEmpty()) {
+                $cleanName = preg_replace('/[,\.].*$/', '', trim($teacher->full_name));
+                $parts = preg_split('/\s+/', trim($cleanName));
+                if (count($parts) >= 2) {
+                    $firstWord = $parts[0];
+                    $lastWord = $parts[count($parts) - 1];
+                    $altTeacherIds = Teacher::where('id', '!=', $teacher->id)
+                        ->where('full_name', 'like', "{$firstWord}%{$lastWord}%")
+                        ->pluck('id');
+                    if ($altTeacherIds->isNotEmpty()) {
+                        $courseIds = \App\Models\LmsCourse::whereIn('teacher_id', $altTeacherIds)
+                            ->where('school_id', $school->id)
+                            ->pluck('id');
+                    }
+                }
+            }
+
+            // Fallback kedua: jika course guru ini tercatat di sekolah yang sama dengan homebase guru
+            if ($courseIds->isEmpty()) {
+                $courseIds = \App\Models\LmsCourse::where('teacher_id', $teacher->id)
+                    ->where(function ($q) use ($school) {
+                        $q->where('school_id', $school->id)->orWhereNull('school_id');
+                    })
+                    ->pluck('id');
+            }
+
+            $coursesCount = $courseIds->count();
+
+            // Jika record ini adalah Kepala Sekolah sendiri dan tidak memiliki course mengajar (0 Course), kecualikan dari daftar guru
+            if ($coursesCount === 0 && (
+                (int)$school->principal_id === (int)$teacher->id ||
+                strcasecmp(trim($teacher->full_name), trim($principalName)) === 0
+            )) {
+                continue;
+            }
+
+            $modulesCount = $coursesCount > 0
+                ? DB::table('lms_modules')->whereIn('course_id', $courseIds)->whereNull('deleted_at')->count()
+                : 0;
+            $materialsCount = $coursesCount > 0
+                ? DB::table('lms_materials')->whereIn('course_id', $courseIds)->whereNull('deleted_at')->count()
+                : 0;
+            $assignmentsCount = $coursesCount > 0
+                ? DB::table('lms_assignments')->whereIn('course_id', $courseIds)->whereNull('deleted_at')->count()
+                : 0;
+            $quizzesCount = $coursesCount > 0
+                ? DB::table('lms_quizzes')->whereIn('course_id', $courseIds)->whereNull('deleted_at')->count()
+                : 0;
+
+            $totalContent = $materialsCount + $assignmentsCount + $quizzesCount;
+
+            $schoolTotalCourses += $coursesCount;
+            $schoolTotalModules += $modulesCount;
+            $schoolTotalMaterials += $materialsCount;
+            $schoolTotalAssignments += $assignmentsCount;
+            $schoolTotalQuizzes += $quizzesCount;
+
+            if ($coursesCount >= 1 && $modulesCount >= 2 && $totalContent >= 3) {
+                $category = 'aktif';
+            } elseif ($coursesCount >= 1) {
+                $category = 'kurang_aktif';
+            } else {
+                $category = 'non_lms';
+            }
+
+            $teacherStats[] = [
+                'id' => $teacher->id,
+                'name' => $teacher->full_name,
+                'courses' => $coursesCount,
+                'modules' => $modulesCount,
+                'materials' => $materialsCount,
+                'assignments' => $assignmentsCount,
+                'quizzes' => $quizzesCount,
+                'total_content' => $totalContent,
+                'score' => ($totalContent * 10) + ($modulesCount * 3) + $coursesCount,
+                'category' => $category,
+            ];
+        }
+
+        $activeList = collect($teacherStats)->where('category', 'aktif')->sortByDesc('score')->values();
+        $lowActiveList = collect($teacherStats)->where('category', 'kurang_aktif')->sortByDesc('score')->values();
+        $nonLmsList = collect($teacherStats)->where('category', 'non_lms')->sortBy('name')->values();
+
+        $totalTeachers = count($teacherStats);
+        $totalUsingLms = $activeList->count() + $lowActiveList->count();
+        $totalNonLms = $nonLmsList->count();
+        $pctUsingLms = $totalTeachers > 0 ? round(($totalUsingLms / $totalTeachers) * 100) : 0;
+
+        // Format Daftar A: Aktif & Terstruktur
+        $sectionA = [];
+        foreach ($activeList as $idx => $item) {
+            $no = $idx + 1;
+            $sectionA[] = "{$no}. *{$item['name']}*\n   └ {$item['courses']} Course • {$item['modules']} Modul • {$item['materials']} Materi • {$item['assignments']} Tugas • {$item['quizzes']} Kuis";
+        }
+        $textSectionA = !empty($sectionA) ? implode("\n", $sectionA) : "   _(Belum ada data pada kategori ini)_";
+
+        // Format Daftar B: Perlu Optimalisasi Konten
+        $sectionB = [];
+        foreach ($lowActiveList as $idx => $item) {
+            $no = $idx + 1;
+            $sectionB[] = "{$no}. *{$item['name']}*\n   └ {$item['courses']} Course • {$item['modules']} Modul • {$item['materials']} Materi • {$item['assignments']} Tugas • {$item['quizzes']} Kuis";
+        }
+        $textSectionB = !empty($sectionB) ? implode("\n", $sectionB) : "   • _Nihil (Seluruh guru pengguna LMS telah melengkapi modul & materi secara memadai)_";
+
+        // Format Daftar C: Pembelajaran Non-LMS
+        $sectionC = [];
+        foreach ($nonLmsList as $idx => $item) {
+            $no = $idx + 1;
+            $sectionC[] = "{$no}. {$item['name']}";
+        }
+        $textSectionC = !empty($sectionC) ? implode("\n", $sectionC) : "   • _Nihil (Seluruh guru telah menggunakan LMS)_";
+
+        $dayOfWeek = strtolower(Carbon::now()->format('l'));
+        $dayNames = [
+            'sunday' => 'Minggu',
+            'monday' => 'Senin',
+            'tuesday' => 'Selasa',
+            'wednesday' => 'Rabu',
+            'thursday' => 'Kamis',
+            'friday' => 'Jumat',
+            'saturday' => 'Sabtu',
+        ];
+        $dayIndo = $dayNames[$dayOfWeek] ?? ucfirst($dayOfWeek);
+        $dateFormatted = "{$dayIndo}, " . date('d F Y');
+        $timeNow = date('H:i') . ' WIB';
+
+        $greeting = $this->getPolymorphicGreeting($principalName, 'Bapak/Ibu');
+        $closing = $this->getPolymorphicClosing();
+        $motto = SpintaxService::spinMottoLine();
+        $replyRequest = SpintaxService::spinReplyRequest();
+
+        $message = "📚 *INFORMASI & PEMETAAN PENGGUNAAN LMS GURU*\n"
+            . "🏫 *{$school->name}*\n"
+            . "📌 *Kepada Yth. Bapak/Ibu {$principalName}*\n\n"
+            . "{$greeting}\n\n"
+            . "📅 Tanggal Pemetaan: *{$dateFormatted}*\n"
+            . "⏰ Waktu Penarikan Data: *Pukul {$timeNow}*\n\n"
+            . "Melalui pesan ini, kami menyampaikan data pemetaan pemanfaatan *Learning Management System (LMS) PembdaHUB* oleh Bapak/Ibu Guru di *{$school->name}* sebagai bahan telaah dan analisis akademik pimpinan sekolah.\n\n"
+            . "📊 *1. RINGKASAN PEMETAAN LMS SEKOLAH:*\n"
+            . "• 👨‍🏫 Total Guru Pengajar: *{$totalTeachers} Guru*\n"
+            . "• ✅ Guru Pengguna LMS: *{$totalUsingLms} Guru ({$pctUsingLms}%)*\n"
+            . "  - 🟢 Aktif & Terstruktur: *{$activeList->count()} Guru*\n"
+            . "  - 🟡 Perlu Optimalisasi: *{$lowActiveList->count()} Guru*\n"
+            . "• ⚪ Pembelajaran Non-LMS: *{$totalNonLms} Guru*\n"
+            . "• 📦 Akumulasi Konten Digital Sekolah:\n"
+            . "  - Kelas/Course: *{$schoolTotalCourses} Course* | Bab/Modul: *{$schoolTotalModules} Modul*\n"
+            . "  - Materi Ajar: *{$schoolTotalMaterials} Materi* | Tugas: *{$schoolTotalAssignments} Tugas* | Kuis/Tes: *{$schoolTotalQuizzes} Kuis*\n\n"
+            . "━━━━━━━━━━━━━━━━━━━━\n"
+            . "📋 *2. RINCIAN PEMANFAATAN LMS MASING-MASING GURU:*\n\n"
+            . "🟢 *A. GURU PENGGUNA LMS — AKTIF & TERSTRUKTUR ({$activeList->count()} Guru):*\n"
+            . "{$textSectionA}\n\n"
+            . "🟡 *B. GURU PENGGUNA LMS — PERLU OPTIMALISASI KONTEN ({$lowActiveList->count()} Guru):*\n"
+            . "_(Telah membuka ruang kelas LMS, namun kelengkapan modul/materi/evaluasi masih dapat ditingkatkan)_\n"
+            . "{$textSectionB}\n\n"
+            . "⚪ *C. GURU DENGAN POLA PEMBELAJARAN NON-LMS ({$totalNonLms} Guru):*\n"
+            . "_(Saat ini belum menggunakan LMS dalam kegiatan pembelajaran)_\n"
+            . "{$textSectionC}\n"
+            . "━━━━━━━━━━━━━━━━━━━━\n\n"
+            . "🧭 *3. CATATAN EKSEKUTIF & PANDUAN PEMANFAATAN DATA:*\n\n"
+            . "1️⃣ *Bahan Analisis & Pemetaan (Bukan Penilaian Kinerja Mutlak):*\n"
+            . "Rekapitulasi penggunaan LMS ini disajikan bukan sebagai laporan penilaian kinerja guru, melainkan sebagai *bahan analisis* bagi Bapak/Ibu Kepala Sekolah untuk memetakan pelaksanaan pembelajaran guru, khususnya dalam mengawal penerapan LMS pada *Kelas Pilot*.\n\n"
+            . "2️⃣ *Keteraturan Pola Mengajar Tanpa LMS:*\n"
+            . "Mengingat penggunaan LMS saat ini *tidak diwajibkan kepada seluruh guru*, informasi ini dapat menjadi acuan bagi Bapak/Ibu Kepala Sekolah untuk memastikan bahwa guru yang mengajar tanpa LMS tetap melaksanakan pembelajaran di kelas secara *terstruktur dengan pola mengajar yang baik*.\n\n"
+            . "3️⃣ *Kelengkapan Data Ketercapaian Pembelajaran:*\n"
+            . "Melalui ekosistem LMS yang telah melingkupi *Materi Ajar, Penugasan, Evaluasi/Tes, hingga Rekapitulasi Nilai*, Bapak/Ibu Kepala Sekolah kini memiliki data yang memadai untuk meninjau apakah rencana pembelajaran guru telah *terencana, terlaksana, dan tercapai* dengan baik.\n\n"
+            . "4️⃣ *Motivasi & Penguatan Kapasitas Guru:*\n"
+            . "Kepada Bapak/Ibu Guru yang penggunaan LMS-nya saat ini belum maksimal, kiranya Bapak/Ibu Kepala Sekolah dapat memberikan dorongan dan *motivasi* guna meningkatkan kapasitas serta kompetensi guru yang bersangkutan.\n\n"
+            . "{$closing}\n\n"
+            . "{$motto}\n\n"
+            . "{$replyRequest}\n\n"
+            . "---\n"
+            . "_Sistem Informasi Manajemen & Akademik PembdaHUB_";
+
+        return [
+            'message' => $message,
+            'total_teachers' => $totalTeachers,
+            'using_lms' => $totalUsingLms,
+            'non_lms' => $totalNonLms,
+            'courses' => $schoolTotalCourses,
+        ];
+    }
+
+    /**
+     * 3A. LMS Usage Digest for Principal (Kepala Sekolah) - per unit sekolah
+     * Dilengkapi protokol anti-ban jeda acak & dukungan single test.
      */
     public function sendPrincipalWeeklyLmsDigest(array $options = []): array
     {
         $dryRun = $options['dry_run'] ?? false;
+        $force = $options['force'] ?? false;
+        $targetPhone = $options['target_phone'] ?? null;
+        $schoolIdFilter = $options['school_id'] ?? $options['school'] ?? null;
+        $delayMin = $options['delay_min'] ?? 15;
+        $delayMax = $options['delay_max'] ?? 25;
         $logger = $options['logger'] ?? null;
-        $weekKey = date('Y-\WW');
+        $dateKey = date('Y-m-d');
 
-        $message = "📚 *REKAP PENGGUNAAN LMS GURU MINGGUAN*
-📌 *Kepada Yth. Kepala Sekolah Perguruan Pembda*
+        if (!$targetPhone && !$dryRun && !$this->whatsappService->isEnabled()) {
+            return ['success' => false, 'sent' => 0, 'message' => 'Layanan WhatsApp sedang dinonaktifkan di Pengaturan'];
+        }
 
-📅 Periode: *Minggu Ini (Setiap Senin)*
+        if (!$targetPhone && !$dryRun && !$this->whatsappService->isConnected()) {
+            $msg = 'Gateway WhatsApp sedang terputus (Disconnect). Pengiriman rekap LMS dibatalkan otomatis demi keamanan.';
+            Log::channel('whatsapp')->warning("WA LMS digest aborted: {$msg}");
+            return ['success' => false, 'sent' => 0, 'message' => $msg];
+        }
 
-📊 *METRIK UTAMA LMS GURU:*
-• 📖 Total Course Aktif: *48 Course*
-• 📂 Total Modul Pembelajaran: *142 Modul*
-• ✍️ Total Tugas Diterbitkan: *86 Tugas*
-• ✏️ Total Kuis Online: *34 Kuis*
+        $query = School::schoolsOnly()->with('principal')->orderBy('id');
+        if ($schoolIdFilter) {
+            if (is_numeric($schoolIdFilter)) {
+                $query->where('id', (int)$schoolIdFilter);
+            } else {
+                $query->where('type', strtoupper(trim((string)$schoolIdFilter)));
+            }
+        }
+        $schools = $query->get();
 
-🏆 *RANKING PERSENTASE PENGGUNAAN LMS GURU:*
-
-🥇 *GURU TER-AKTIF (Persentase Tinggi > 90%):*
-1. Ahmad Fauzi, S.Pd (Matematika) - 98%
-2. Siti Rahma, M.Pd (Bahasa Indonesia) - 95%
-3. Hendrik Wijaya, S.Kom (Informatika) - 92%
-
-🥈 *GURU AKTIVITAS SEDANG (Persentase 50% - 89%):*
-1. Dewi Lestari, S.Pd (Fisika) - 75%
-2. Bambang Sukmono, S.T (Kejuruan SMK) - 68%
-
-🥉 *GURU PERLUKAN BIMBINGAN (Persentase < 50%):*
-1. Rina Kusumawati, S.Pd - 35% (Perlu Pendampingan)
-
-💡 *Rekomendasi:* Dorong guru dengan aktivitas < 50% untuk memanfaatkan LMS dalam pembelajaran harian.
-
----
-_Dikirim otomatis oleh PembdaHUB Executive System_";
-
-        $schools = School::schoolsOnly()->with('principal')->get();
         $sentCount = 0;
+        $skippedCount = 0;
+        $errors = [];
         $total = $schools->count();
 
         foreach ($schools as $idx => $school) {
-            $phone = $school->principal?->phone ?? null;
-            if (!$phone) continue;
+            try {
+                $principal = $school->principal;
+                $phone = $targetPhone ?: ($principal?->phone ?? null);
 
-            if ($this->isDigestSentToday('lms_principal', $school->id, $weekKey)) {
-                if ($logger) $logger("⏭️ Rekap LMS {$school->name} sudah terkirim minggu ini.");
-                continue;
-            }
-
-            if ($dryRun) {
-                $sentCount++;
-                if ($logger) $logger("🔍 [SIMULASI] Rekap LMS Kepsek {$school->name} siap dikirim ke {$phone}");
-            } else {
-                $res = $this->whatsappService->sendMessage($phone, $message);
-                if ($res['success'] ?? false) {
-                    $sentCount++;
-                    $this->markDigestSentToday('lms_principal', $school->id, $weekKey);
-                    if ($logger) $logger("✅ Rekap LMS Kepsek {$school->name} terkirim ke {$phone}");
+                if (!$phone) {
+                    $kepsekUser = User::where('role', 'kepala_sekolah')
+                        ->where('school_id', $school->id)
+                        ->first();
+                    if ($kepsekUser && $kepsekUser->teacher) {
+                        $phone = $targetPhone ?: $kepsekUser->teacher->phone;
+                    }
                 }
-            }
 
-            if ($idx < $total - 1) {
-                $this->applyHumanPacing(8, 15, $dryRun, $logger);
+                if (!$phone) {
+                    $msg = "Nomor HP Kepala Sekolah {$school->name} tidak ditemukan";
+                    if ($logger) $logger("⚠️ {$msg}");
+                    continue;
+                }
+
+                $principalName = $principal?->full_name ?? $school->principal_name ?? 'Kepala Sekolah';
+
+                if (!$targetPhone && !$force && $this->isDigestSentToday('lms_principal', $school->id, $dateKey)) {
+                    $skippedCount++;
+                    $msg = "Rekap LMS Kepsek {$school->name} sudah terkirim hari ini (dilewati)";
+                    if ($logger) $logger("⏭️ {$msg}");
+                    continue;
+                }
+
+                $built = $this->buildPrincipalLmsDigestMessage($school, $principalName);
+                $message = $built['message'];
+
+                if ($dryRun) {
+                    $sentCount++;
+                    if ($logger) $logger("🔍 [SIMULASI] Rekap LMS Kepsek {$school->name} ({$built['total_teachers']} guru, " . strlen($message) . " karakter) siap dikirim ke {$phone} ({$principalName})");
+                } else {
+                    $res = $this->whatsappService->sendMessage($phone, $message);
+                    if ($res['success'] ?? false) {
+                        $sentCount++;
+                        if (!$targetPhone) {
+                            $this->markDigestSentToday('lms_principal', $school->id, $dateKey);
+                        }
+                        if ($logger) $logger("✅ Rekap LMS Kepsek {$school->name} berhasil terkirim ke {$phone} ({$principalName})");
+                    } else {
+                        $errMsg = $res['error'] ?? 'Gagal kirim via gateway';
+                        $errors[] = "{$school->name}: {$errMsg}";
+                        if ($logger) $logger("❌ Gagal kirim Rekap LMS Kepsek {$school->name}: {$errMsg}");
+                    }
+                }
+
+                if ($targetPhone) {
+                    break;
+                }
+
+                if ($idx < $total - 1) {
+                    $this->applyHumanPacing($delayMin, $delayMax, $dryRun, $logger);
+                }
+            } catch (\Throwable $e) {
+                Log::channel('whatsapp')->error("Failed to send principal LMS digest for {$school->name}: " . $e->getMessage());
+                $errors[] = $school->name . ': ' . $e->getMessage();
+                if ($logger) $logger("❌ Error Rekap LMS Kepsek {$school->name}: " . $e->getMessage());
             }
         }
 
-        return ['success' => true, 'sent' => $sentCount, 'message' => "Digest LMS Kepsek terkirim ke {$sentCount} penerima"];
+        return [
+            'success' => $sentCount > 0 || $skippedCount > 0,
+            'sent' => $sentCount,
+            'skipped' => $skippedCount,
+            'errors' => $errors,
+            'message' => "Rekap Penggunaan LMS Kepsek terkirim ke {$sentCount} unit sekolah" . ($skippedCount ? " ({$skippedCount} dilewati)" : '') . (count($errors) ? ", gagal: " . implode(', ', $errors) : ''),
+        ];
     }
 
     /**

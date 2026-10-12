@@ -886,10 +886,10 @@ class SettingsController extends Controller
                 $res = $reportService->sendHomeroomMonthlySppDigest();
                 break;
             case 'principal_lms':
-                $res = $reportService->sendPrincipalWeeklyLmsDigest();
+                $res = $reportService->sendPrincipalWeeklyLmsDigest($options);
                 break;
             case 'homeroom_lms':
-                $res = $reportService->sendHomeroomWeeklyLmsDigest();
+                $res = $reportService->sendHomeroomWeeklyLmsDigest($options);
                 break;
             case 'points_weekly':
                 $res = $reportService->sendWeeklyStudentPointsDigest();
