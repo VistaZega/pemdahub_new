@@ -236,7 +236,7 @@ class AttendanceController extends Controller
                 if ($inactiveStudent) {
                     return response()->json([
                         'status' => 'error',
-                        'nama' => substr($inactiveStudent->full_name, 0, 16),
+                        'nama' => $inactiveStudent->full_name,
                         'message' => 'Status: ' . strtoupper($inactiveStudent->status ?? 'NON-AKTIF'),
                         'action_code' => 'INACTIVE_STUDENT',
                         'uid' => $rawUid,
@@ -265,7 +265,7 @@ class AttendanceController extends Controller
 
                 if (!$studentClass) {
                     return response()->json([
-                        'status' => 'error', 'nama' => substr($student->full_name, 0, 16),
+                        'status' => 'error', 'nama' => $student->full_name,
                         'message' => 'Siswa tdk di kelas'
                     ], 200);
                 }
@@ -273,7 +273,7 @@ class AttendanceController extends Controller
                 $classroom = $studentClass->classroom;
                 if (!$classroom || !$classroom->is_active) {
                     return response()->json([
-                        'status' => 'error', 'nama' => substr($student->full_name, 0, 16),
+                        'status' => 'error', 'nama' => $student->full_name,
                         'message' => 'Rombel tdk aktif'
                     ], 200);
                 }
@@ -293,20 +293,20 @@ class AttendanceController extends Controller
                          $cooldown = config('services.kiosk.cooldown_seconds', 300);
                          if ($diffSeconds >= 0 && $diffSeconds < $cooldown) {
                              return response()->json([
-                                 'status' => 'info', 'nama' => substr($student->full_name, 0, 16),
+                                 'status' => 'info', 'nama' => $student->full_name,
                                  'message' => 'Sdh Masuk ' . $lastScan->format('H:i'),
                                  'action_code' => 'COOLDOWN'
                              ], 200);
                          }
                          $existingAttendance->update(['time_out' => $currentTime]);
                          return response()->json([
-                             'status' => 'success', 'nama' => substr($student->full_name, 0, 16),
-                             'kelas' => substr($studentClass->classroom->class_name, 0, 16), 'waktu' => date('H:i', strtotime($currentTime)),
+                             'status' => 'success', 'nama' => $student->full_name,
+                             'kelas' => $studentClass->classroom->class_name, 'waktu' => date('H:i', strtotime($currentTime)),
                              'message' => 'Berhasil Pulang', 'action_code' => 'CHECK_OUT'
                          ], 200);
                     }
                     return response()->json([
-                        'status' => 'error', 'nama' => substr($student->full_name, 0, 16),
+                        'status' => 'error', 'nama' => $student->full_name,
                         'message' => 'Sudah Absen!', 'action_code' => 'ALREADY_ATTENDED'
                     ], 200);
                 }
@@ -341,8 +341,8 @@ class AttendanceController extends Controller
                 }
 
                 return response()->json([
-                    'status' => 'success', 'nama' => substr($student->full_name, 0, 16),
-                    'kelas' => substr($studentClass->classroom->class_name, 0, 16), 'waktu' => date('H:i', strtotime($currentTime)),
+                    'status' => 'success', 'nama' => $student->full_name,
+                    'kelas' => $studentClass->classroom->class_name, 'waktu' => date('H:i', strtotime($currentTime)),
                     'message' => $status === 'terlambat' ? 'Terlambat' : 'Berhasil Masuk', 'action_code' => 'CHECK_IN'
                 ], 200);
             }
@@ -366,20 +366,20 @@ class AttendanceController extends Controller
                          $cooldown = config('services.kiosk.cooldown_seconds', 300);
                          if ($diffSeconds >= 0 && $diffSeconds < $cooldown) {
                              return response()->json([
-                                 'status' => 'info', 'nama' => substr($employee->full_name, 0, 16),
+                                 'status' => 'info', 'nama' => $employee->full_name,
                                  'message' => 'Sdh Masuk ' . $lastScan->format('H:i'),
                                  'action_code' => 'COOLDOWN'
                              ], 200);
                          }
                          $existingAttendance->update(['time_out' => $currentTime]);
                          return response()->json([
-                             'status' => 'success', 'nama' => substr($employee->full_name, 0, 16),
-                             'kelas' => substr($jabatan, 0, 16), 'waktu' => date('H:i', strtotime($currentTime)),
+                             'status' => 'success', 'nama' => $employee->full_name,
+                             'kelas' => $jabatan, 'waktu' => date('H:i', strtotime($currentTime)),
                              'message' => 'Berhasil Pulang', 'action_code' => 'CHECK_OUT'
                          ], 200);
                     }
                     return response()->json([
-                        'status' => 'error', 'nama' => substr($employee->full_name, 0, 16),
+                        'status' => 'error', 'nama' => $employee->full_name,
                         'message' => 'Sudah Absen!', 'action_code' => 'ALREADY_ATTENDED'
                     ], 200);
                 }
@@ -488,8 +488,8 @@ class AttendanceController extends Controller
                 }
 
                 return response()->json([
-                    'status' => 'success', 'nama' => substr($employee->full_name, 0, 16),
-                    'kelas' => substr($jabatan, 0, 16), 'waktu' => date('H:i', strtotime($currentTime)),
+                    'status' => 'success', 'nama' => $employee->full_name,
+                    'kelas' => $jabatan, 'waktu' => date('H:i', strtotime($currentTime)),
                     'message' => $displayMsg, 'action_code' => 'CHECK_IN'
                 ], 200);
             }

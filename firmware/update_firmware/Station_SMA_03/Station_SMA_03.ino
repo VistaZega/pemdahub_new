@@ -35,12 +35,16 @@ const char* HEARTBEAT_CLOUD     = "https://perguruanpembda.com/api/attendance/he
 
 const char* WIFI_SSID           = "PembdaLINK";
 const char* WIFI_PASSWORD       = "PEMBDA2026";
+
 const char* WIFI_ALT1_SSID      = "Xspace";
 const char* WIFI_ALT1_PASSWORD  = "12345678starlink";
+
 const char* WIFI_ALT2_SSID      = "TEFA";
 const char* WIFI_ALT2_PASSWORD  = "PEMBDA2026";
+
 const char* WIFI_ALT3_SSID      = "VISTAFAMILY";
 const char* WIFI_ALT3_PASSWORD  = "pelita31";
+
 const char* WIFI_ALT4_SSID      = "PembdaNET";
 const char* WIFI_ALT4_PASSWORD  = "pelita31";
 
@@ -76,10 +80,14 @@ unsigned long wifiDisconnectedSince = 0;
 bool isOnline        = false;
 bool isShowingResult = false;
 int  currentSlide    = 0;
+unsigned long lastInPlaceAnimTime = 0;
+int  inPlaceFrame        = 0;
 
 void printCenter(uint8_t row, const String& text);
 void printRow(uint8_t row, const String& text);
 void showSlide(int slideIndex);
+void updateInPlaceAnim();
+String formatNama(String fullName, int maxLen);
 void connectWiFiInitial();
 void handleRfidScan();
 void handleQrScan();
@@ -183,6 +191,8 @@ void loop() {
       lastSlideChangeTime = now;
       currentSlide = (currentSlide + 1) % 3;
       showSlide(currentSlide);
+    } else {
+      updateInPlaceAnim();
     }
   }
 
@@ -191,6 +201,42 @@ void loop() {
   delay(20);
 }
 
+
+// ==============================================================================
+//  FORMAT NAMA CERDAS (Mencegah Nama Terpotong di Layar)
+// ==============================================================================
+String formatNama(String fullName, int maxLen) {
+  fullName.trim();
+  if (fullName.length() <= maxLen) return fullName;
+
+  int firstSpace = fullName.indexOf(' ');
+  if (firstSpace == -1) {
+    return fullName.substring(0, maxLen);
+  }
+
+  String firstName = fullName.substring(0, firstSpace);
+  if (firstName.length() >= maxLen) {
+    return firstName.substring(0, maxLen);
+  }
+
+  String result = firstName;
+  int curr = firstSpace;
+  while (curr != -1 && curr < fullName.length()) {
+    while (curr < fullName.length() && fullName.charAt(curr) == ' ') curr++;
+    if (curr < fullName.length()) {
+      char initial = fullName.charAt(curr);
+      if (result.length() + 3 <= maxLen) {
+        result += " ";
+        result += initial;
+        result += ".";
+      } else {
+        break;
+      }
+    }
+    curr = fullName.indexOf(' ', curr);
+  }
+  return result;
+}
 void printCenter(uint8_t row, const String& text) {
   lcd.setCursor(0, row);
   String trimmed = text;
@@ -214,31 +260,64 @@ void printRow(uint8_t row, const String& text) {
   lcd.print(line);
 }
 
+
+
+void updateInPlaceAnim() {
+  if (isShowingResult) return;
+  unsigned long now = millis();
+  if (now - lastInPlaceAnimTime < 1500) return;
+  lastInPlaceAnimTime = now;
+  inPlaceFrame = (inPlaceFrame + 1) % 2;
+
+  if (currentSlide == 0) {
+    if (isOnline) {
+      if (inPlaceFrame == 0) printCenter(2, ">> TEMPEL KARTU <<");
+      else printCenter(2, ">> SCAN QR CODE <<");
+    }
+  } else if (currentSlide == 1) {
+    if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
+    else printCenter(2, "** PANTANG MUNDUR **");
+  }
+}
+
 void showSlide(int slideIndex) {
   if (isShowingResult) return;
   switch (slideIndex) {
     case 0:
+      // SIMETRIS TENGAH (Semua baris berjumlah karakter GENAP: 20, 20, 18, 20)
       printCenter(0, "* PERGURUAN PEMBDA *");
-      printCenter(1, "--------------------");
-      printCenter(2, "TEMPEL KARTU RFID");
-      printCenter(3, "ATAU SCAN QR CODE");
-      break;
-    case 1:
-      printCenter(0, UNIT_NAME);
-      printCenter(1, "Inovasi & Prestasi");
-      printCenter(2, "Maju Terus - Pantang");
-      printCenter(3, "Mundur! Semangat");
-      break;
-    case 2:
-      printCenter(0, "--- STATUS SISTEM --");
+      printCenter(1, "====================");
       if (isOnline) {
-        printRow(1, "WiFi: " + WiFi.SSID().substring(0, 14));
-        printRow(2, "IP  : " + WiFi.localIP().toString());
-        printRow(3, "Sig : " + String(WiFi.RSSI()) + " dBm [ONLINE]");
+        if (inPlaceFrame == 0) printCenter(2, ">> TEMPEL KARTU <<");
+        else printCenter(2, ">> SCAN QR CODE <<");
       } else {
-        printCenter(1, "MENCARI JARINGAN...");
-        printCenter(2, "WiFi Tidak Aktif");
-        printCenter(3, "[MODE OFFLINE]");
+        printCenter(2, "[  MODE OFFLINE  ]");
+      }
+      printCenter(3, "SISTEM PRESENSI RFID");
+      break;
+
+    case 1:
+      // SIMETRIS TENGAH (Identitas Unit & Station: 20, 18, 20, 20)
+      printCenter(0, "* SMAS PEMBDA NIAS *");
+      printCenter(1, "[ STATION-SMA-03 ]");
+      if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
+      else printCenter(2, "** PANTANG MUNDUR **");
+      printCenter(3, "Maju Terus - Sukses!");
+      break;
+
+    case 2:
+      // RAPAT KIRI SEMUA (Titik dua sejajar lurus di kolom 4)
+      printRow(0, "ID  : " + String(DEVICE_ID));
+      if (isOnline) {
+        String ssid = WiFi.SSID();
+        if (ssid.length() > 14) ssid = ssid.substring(0, 14);
+        printRow(1, "WiFi: " + ssid);
+        printRow(2, "IP  : " + WiFi.localIP().toString());
+        printRow(3, "Sig : " + String(WiFi.RSSI()) + " dBm [ON]");
+      } else {
+        printRow(1, "WiFi: TERPUTUS");
+        printRow(2, "Stat: MENCARI AP...");
+        printRow(3, "Mode: OFFLINE SIAGA");
       }
       break;
   }
@@ -388,6 +467,7 @@ void parseAndDisplay(String json, String uid) {
   String status      = doc["status"] | "";
   String message     = doc["message"] | "";
   String action_code = doc["action_code"] | "";
+
   const char* rawNama = doc["nama"];
   if (!rawNama) rawNama = doc["data"]["nama"];
   if (!rawNama) rawNama = doc["data"]["name"];
@@ -402,45 +482,51 @@ void parseAndDisplay(String json, String uid) {
   if (!rawWaktu) rawWaktu = doc["data"]["time"];
   String waktu = rawWaktu ? rawWaktu : "";
 
+  String displayNama = formatNama(nama, LCD_COLS);
+
   lcd.clear();
   if (status == "success" || status == "info") {
     if (action_code == "CHECK_IN") {
-      printCenter(0, "* PRESENSI MASUK *");
-      printCenter(1, nama);
-      printCenter(2, kelas != "" ? kelas : "Siswa / Guru");
-      printCenter(3, "Waktu: " + waktu.substring(0, 8));
-      beep(1, 150);
+      printCenter(0, displayNama != "" ? displayNama : "* PRESENSI MASUK *");
+      printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "Siswa / Guru");
+      printCenter(2, "MASUK: " + waktu.substring(0, 5) + " WIB");
+      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0 || kelas.indexOf("Staff") >= 0) {
+        printCenter(3, "Selamat Bertugas!");
+      } else {
+        printCenter(3, "Selamat Belajar!");
+      }
+      beep(1, 120);
     } else if (action_code == "CHECK_OUT") {
-      printCenter(0, "* PRESENSI PULANG *");
-      printCenter(1, nama);
-      printCenter(2, "Sampai Jumpa Besok!");
-      printCenter(3, "Waktu: " + waktu.substring(0, 8));
-      beep(2, 100);
+      printCenter(0, displayNama != "" ? displayNama : "* PRESENSI PULANG *");
+      printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "Siswa / Guru");
+      printCenter(2, "PULANG: " + waktu.substring(0, 5) + " WIB");
+      printCenter(3, "Hati-hati di jalan!");
+      beep(2, 80);
     } else if (action_code == "COOLDOWN") {
-      printCenter(0, "* SUDAH TERCATAT *");
-      printCenter(1, nama);
-      printCenter(2, "Presensi Sebelumnya:");
-      printCenter(3, "Jam " + waktu.substring(0, 5) + " WIB");
-      beep(1, 250);
+      printCenter(0, displayNama != "" ? displayNama : "* SUDAH ABSEN *");
+      printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "Siswa / Guru");
+      printCenter(2, "Sudah Absen Masuk!");
+      printCenter(3, "Jam: " + waktu.substring(0, 5) + " WIB");
+      beep(1, 200);
     } else if (action_code == "NEW_CARD") {
       sendScanBuffer(uid);
       printCenter(0, "** KARTU BARU **");
       printCenter(1, "UID: " + uid);
       printCenter(2, "Belum Terdaftar!");
-      printCenter(3, "Hubungi Admin Web");
+      printCenter(3, "Daftarkan di Admin");
       beep(3, 100);
     } else {
-      printCenter(0, "* BERHASIL *");
-      printCenter(1, nama);
-      printCenter(2, message);
-      printCenter(3, waktu);
+      printCenter(0, displayNama != "" ? displayNama : "* BERHASIL *");
+      printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : message);
+      printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
+      printCenter(3, waktu != "" ? ("Waktu: " + waktu.substring(0, 5) + " WIB") : "");
       beep(1, 100);
     }
   } else {
     printCenter(0, "! PERINGATAN !");
-    printCenter(1, "--------------------");
-    printCenter(2, message);
-    printCenter(3, "Periksa Status Kartu");
+    printCenter(1, displayNama != "" ? displayNama : message);
+    printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
+    printCenter(3, "Silakan Coba Lagi");
     beep(2, 250);
   }
 
