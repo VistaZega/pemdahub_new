@@ -1050,12 +1050,19 @@ class AttendanceController extends Controller
                 $schoolId = \App\Models\School::where('type', 'SMK')->where('is_active', true)->value('id');
             }
 
+            $ssid = trim($request->input('ssid', ''));
+            $uptime = $request->input('uptime');
+            $typeStr = $request->input('type', 'NodeMCU/ESP32');
+            if ($ssid !== '') {
+                $typeStr = 'SSID:' . $ssid . ($uptime !== null ? '|UP:' . (int)$uptime : '');
+            }
+
             $device = \App\Models\Device::updateOrCreate(
                 ['device_code' => $deviceId],
                 [
                     'name'         => $deviceId,
                     'school_id'    => $schoolId,
-                    'type'         => $request->input('type', 'NodeMCU/ESP32'),
+                    'type'         => $typeStr,
                     'status'       => 'active',
                     'ip_address'   => $request->input('ip', $request->ip()),
                     'rssi'         => $request->input('rssi'),
@@ -1067,6 +1074,7 @@ class AttendanceController extends Controller
             return response()->json([
                 'status'      => 'ok',
                 'device_id'   => $deviceId,
+                'ssid'        => $ssid,
                 'server_time' => now()->format('Y-m-d H:i:s'),
                 'is_online'   => true,
             ]);

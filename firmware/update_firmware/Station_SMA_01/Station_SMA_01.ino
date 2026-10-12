@@ -577,12 +577,26 @@ void sendScanBuffer(String uid) {
 }
 
 void sendHeartbeat() {
-  StaticJsonDocument<128> doc;
+  StaticJsonDocument<256> doc;
   doc["device_id"] = DEVICE_ID;
+  doc["ssid"]      = WiFi.SSID();
+  doc["ip"]        = WiFi.localIP().toString();
   doc["rssi"]      = WiFi.RSSI();
   doc["free_heap"] = ESP.getFreeHeap();
+  doc["uptime"]    = millis() / 1000;
   String body;
   serializeJson(doc, body);
+
+  if (WiFi.SSID() == WIFI_SSID) {
+    WiFiClient client;
+    HTTPClient httpLocal;
+    httpLocal.begin(client, HEARTBEAT_LOCAL);
+    httpLocal.addHeader("Content-Type", "application/json");
+    httpLocal.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
+    httpLocal.setTimeout(1500);
+    httpLocal.POST(body);
+    httpLocal.end();
+  }
 
   BearSSL::WiFiClientSecure secureClient;
   secureClient.setInsecure();
@@ -590,7 +604,7 @@ void sendHeartbeat() {
   http.begin(secureClient, HEARTBEAT_CLOUD);
   http.addHeader("Content-Type", "application/json");
   http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
-  http.setTimeout(2500);
+  http.setTimeout(3000);
   http.POST(body);
   http.end();
 }

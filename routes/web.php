@@ -87,6 +87,16 @@ Route::prefix('display')->name('display.')->group(function () {
 });
 
 // ============================================================
+//  PUBLIC LIVE STATION READINESS MONITOR (/stations)
+//  Akses: https://perguruanpembda.com/stations
+// ============================================================
+Route::get('/stations', function () {
+    ob_start();
+    require public_path('diag_all_stations.php');
+    return response(ob_get_clean());
+})->name('public.stations');
+
+// ============================================================
 //  SHARED YAYASAN VIEW (Public dengan Token)
 // ============================================================
 Route::get('/yayasan/progress-input/shared', [App\Http\Controllers\Yayasan\ProgressInputController::class, 'indexShared'])->name('shared.progress-input');
