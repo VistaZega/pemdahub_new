@@ -1,4 +1,4 @@
-﻿// ==============================================================================
+// ==============================================================================
 //  PEMBDAHUB ATTENDANCE STATION - FIRMWARE UPDATE 2026
 //  STATION ID      : STATION-SMK-03
 //  UNIT SEKOLAH    : SMK Swasta Pembda
@@ -354,8 +354,13 @@ void parseAndDisplay(String json, String uid) {
   String status      = doc["status"] | "";
   String message     = doc["message"] | "";
   String action_code = doc["action_code"] | "";
-  String nama        = doc["data"]["nama"] | doc["data"]["name"] | "";
-  String waktu       = doc["data"]["waktu"] | doc["data"]["time"] | "";
+  const char* rawNama = doc["data"]["nama"];
+  if (!rawNama) rawNama = doc["data"]["name"];
+  String nama        = rawNama ? rawNama : "";
+
+  const char* rawWaktu = doc["data"]["waktu"];
+  if (!rawWaktu) rawWaktu = doc["data"]["time"];
+  String waktu       = rawWaktu ? rawWaktu : "";
 
   lcd.clear();
   if (status == "success" || status == "info") {

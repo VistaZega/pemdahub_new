@@ -18,6 +18,7 @@ Setiap station memiliki **1 folder dan 1 file firmware `.ino` tersendiri** denga
 | **`Station_SMA_01`** | `STATION-SMA-01` | SMAS Pembda 1 | NodeMCU V3 (ESP8266) | **LCD 20x4** | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |
 | **`Station_SMA_02`** | `STATION-SMA-02` | SMAS Pembda 1 | NodeMCU V3 (ESP8266) | **LCD 20x4** | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |
 | **`Station_SMA_03`** | `STATION-SMA-03` | SMAS Pembda 1 | NodeMCU V3 (ESP8266) | **LCD 20x4** | Buzzer (D8) *(Pin D4 untuk Hardware Reset RC522, No MP3)* | RFID RC522 + QR GM65 (D3) |
+| **`Station_SMA_04`** | `STATION-SMA-04` | SMAS Pembda 1 | NodeMCU V3 (ESP8266) | **LCD 20x4** | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |
 | **`Station_SMP_01`** | `STATION-SMP-01` | SMPS Pembda 2 | NodeMCU V3 (ESP8266) | **LCD 20x4** | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |
 | **`Station_SMP_02`** | `STATION-SMP-02` | SMPS Pembda 2 | ESP32 DevKit V1 | **LCD 20x4** | DFPlayer MP3 (TX2=17) + Buzzer (2) + 2 LED (13, 15) | RFID RC522 + QR GM65 (RX2=16) |
 | **`Station_SMP_03`** | `STATION-SMP-03` | SMPS Pembda 2 | NodeMCU V3 (ESP8266) | **LCD 20x4** | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |
