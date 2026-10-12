@@ -82,6 +82,7 @@ unsigned long lastHeartbeatTime     = 0;
 unsigned long lastSlideChangeTime   = 0;
 unsigned long lastActivityTime      = 0;
 unsigned long wifiDisconnectedSince = 0;
+unsigned long lastPrimaryLanCheck   = 0;
 
 bool isOnline        = false;
 bool isShowingResult = false;
@@ -187,6 +188,26 @@ void loop() {
     }
   }
 
+    // 1B. Auto-Switchback ke Prioritas Utama LAN (PembdaLINK) setiap 90 detik jika sedang di WiFi Cadangan
+  if (isOnline && !isShowingResult && WiFi.SSID() != WIFI_SSID && (now - lastPrimaryLanCheck >= 90000)) {
+    lastPrimaryLanCheck = now;
+    int n = WiFi.scanNetworks(false, false);
+    for (int i = 0; i < n; i++) {
+      if (WiFi.SSID(i) == WIFI_SSID && WiFi.RSSI(i) > -85) {
+        WiFi.disconnect();
+        delay(50);
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        int waitLan = 0;
+        while (WiFi.status() != WL_CONNECTED && waitLan < 15) {
+          delay(250);
+          waitLan++;
+        }
+        if (!isShowingResult) showSlide(currentSlide);
+        break;
+      }
+    }
+    WiFi.scanDelete();
+  }
   if (isOnline && (now - lastHeartbeatTime >= HEARTBEAT_INTERVAL || lastHeartbeatTime == 0)) {
     lastHeartbeatTime = now;
     sendHeartbeat();

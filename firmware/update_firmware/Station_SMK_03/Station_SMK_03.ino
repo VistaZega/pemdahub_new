@@ -74,6 +74,7 @@ unsigned long lastHeartbeatTime     = 0;
 unsigned long lastSlideChangeTime   = 0;
 unsigned long lastActivityTime      = 0;
 unsigned long wifiDisconnectedSince = 0;
+unsigned long lastPrimaryLanCheck   = 0;
 
 bool isOnline        = false;
 bool isShowingResult = false;
@@ -176,6 +177,26 @@ void loop() {
     }
   }
 
+    // 1B. Auto-Switchback ke Prioritas Utama LAN (PembdaLINK) setiap 90 detik jika sedang di WiFi Cadangan
+  if (isOnline && !isShowingResult && WiFi.SSID() != WIFI_SSID && (now - lastPrimaryLanCheck >= 90000)) {
+    lastPrimaryLanCheck = now;
+    int n = WiFi.scanNetworks(false, false);
+    for (int i = 0; i < n; i++) {
+      if (WiFi.SSID(i) == WIFI_SSID && WiFi.RSSI(i) > -85) {
+        WiFi.disconnect();
+        delay(50);
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        int waitLan = 0;
+        while (WiFi.status() != WL_CONNECTED && waitLan < 15) {
+          delay(250);
+          waitLan++;
+        }
+        if (!isShowingResult) showSlide(currentSlide);
+        break;
+      }
+    }
+    WiFi.scanDelete();
+  }
   if (isOnline && (now - lastHeartbeatTime >= HEARTBEAT_INTERVAL || lastHeartbeatTime == 0)) {
     lastHeartbeatTime = now;
     sendHeartbeat();
@@ -278,15 +299,27 @@ void showSlide(int slideIndex) {
 
 void connectWiFiInitial() {
   lcd.clear();
-  printCenter(0, "Koneksi WiFi...");
-  printCenter(1, "Mencari AP...");
+  printCenter(0, "PRIORITAS LAN...");
+  printCenter(1, "AP: PembdaLINK");
+
+  // PRIORITAS 1 MUTLAK: Konek langsung ke PembdaLINK (LAN Lokal) terlebih dahulu
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   int attempt = 0;
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempt < 20) {
     delay(300);
-    digitalWrite(LED_GREEN_PIN, !digitalRead(LED_GREEN_PIN));
     attempt++;
   }
-  digitalWrite(LED_GREEN_PIN, LOW);
+
+  // PRIORITAS 2 (FAILOVER): Hanya jika PembdaLINK tidak terjangkau, cari AP Alternatif
+  if (WiFi.status() != WL_CONNECTED) {
+    printCenter(0, "CARI WIFI ALT...");
+    printCenter(1, "Multi-AP Siaga");
+    attempt = 0;
+    while (wifiMulti.run() != WL_CONNECTED && attempt < 15) {
+      delay(300);
+      attempt++;
+    }
+  }
   isOnline = (WiFi.status() == WL_CONNECTED);
 }
 

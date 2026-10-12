@@ -76,6 +76,7 @@ unsigned long lastHeartbeatTime     = 0;
 unsigned long lastSlideChangeTime   = 0;
 unsigned long lastActivityTime      = 0;
 unsigned long wifiDisconnectedSince = 0;
+unsigned long lastPrimaryLanCheck   = 0;
 
 bool isOnline        = false;
 bool isShowingResult = false;
@@ -180,6 +181,26 @@ void loop() {
     }
   }
 
+    // 1B. Auto-Switchback ke Prioritas Utama LAN (PembdaLINK) setiap 90 detik jika sedang di WiFi Cadangan
+  if (isOnline && !isShowingResult && WiFi.SSID() != WIFI_SSID && (now - lastPrimaryLanCheck >= 90000)) {
+    lastPrimaryLanCheck = now;
+    int n = WiFi.scanNetworks(false, false);
+    for (int i = 0; i < n; i++) {
+      if (WiFi.SSID(i) == WIFI_SSID && WiFi.RSSI(i) > -85) {
+        WiFi.disconnect();
+        delay(50);
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        int waitLan = 0;
+        while (WiFi.status() != WL_CONNECTED && waitLan < 15) {
+          delay(250);
+          waitLan++;
+        }
+        if (!isShowingResult) showSlide(currentSlide);
+        break;
+      }
+    }
+    WiFi.scanDelete();
+  }
   if (isOnline && (now - lastHeartbeatTime >= HEARTBEAT_INTERVAL || lastHeartbeatTime == 0)) {
     lastHeartbeatTime = now;
     sendHeartbeat();
@@ -289,12 +310,28 @@ void showSlide(int slideIndex) {
 
 void connectWiFiInitial() {
   lcd.clear();
-  printCenter(1, "Koneksi WiFi...");
-  printCenter(2, "Mencari Jaringan..");
+  printCenter(0, "* PERGURUAN PEMBDA *");
+  printCenter(1, "====================");
+  printCenter(2, "PRIORITAS LAN UTAMA:");
+  printCenter(3, ">> PembdaLINK <<");
+
+  // PRIORITAS 1 MUTLAK: Konek langsung ke PembdaLINK (LAN Lokal) terlebih dahulu
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   int attempt = 0;
-  while (wifiMulti.run() != WL_CONNECTED && attempt < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempt < 20) {
     delay(300);
     attempt++;
+  }
+
+  // PRIORITAS 2 (FAILOVER): Hanya jika PembdaLINK tidak terjangkau, cari AP Alternatif
+  if (WiFi.status() != WL_CONNECTED) {
+    printCenter(2, "MENCARI WIFI ALT....");
+    printCenter(3, "Failover Cadangan...");
+    attempt = 0;
+    while (wifiMulti.run() != WL_CONNECTED && attempt < 15) {
+      delay(300);
+      attempt++;
+    }
   }
   isOnline = (WiFi.status() == WL_CONNECTED);
 }
