@@ -1,12 +1,17 @@
 // ==============================================================================
-//  PEMBDAHUB ATTENDANCE STATION - FIRMWARE UPDATE 2026
+//  PEMBDAHUB ATTENDANCE STATION - FIRMWARE RESMI TERSTANDARISASI 2026
 //  STATION ID      : STATION-SMK-04
-//  UNIT SEKOLAH    : SMK Swasta Pembda
+//  UNIT SEKOLAH    : SMKS Pembda Nias
 //  MIKROKONTROLER  : ESP32 DevKit V1 (WROOM-32)
-//  LAYAR           : LCD 16x2 I2C (SDA=GPIO21, SCL=GPIO22)
-//  AUDIO / SUARA   : DFPlayer Mini MP3 (HardwareSerial Serial2: TX2=GPIO17)
-//  INDIKATOR LED   : LED Hijau (GPIO15), LED Merah (GPIO13), Buzzer (GPIO2)
-//  PEMINDAI        : RFID RC522 (VSPI: SS=5, SCK=18, MOSI=23, MISO=19, RST=4)
+//  LAYAR           : LCD 16x2 I2C (Alamat 0x27 / 0x3F)
+//  AUDIO / SUARA   : DFPlayer Mini MP3 Player + Buzzer Aktif
+//  PEMINDAI        : RFID RC522 (13.56 MHz)
+// ==============================================================================
+//  STANDAR FITUR PEMBDAHUB:
+//  1. Prioritas Mutlak LAN: Konek ke PembdaLINK dahulu + Auto-Switchback 90s.
+//  2. Dual-Heartbeat (45s): Lapor SSID, IP, RSSI, RAM, Uptime ke /stations.
+//  3. Tampilan Simetris Penuh: Menggunakan seluruh 2 baris x 16 kolom.
+//  4. Animasi In-Place: Teks berganti di tempat (tanpa running text buram).
 // ==============================================================================
 
 #include <SPI.h>
@@ -18,18 +23,24 @@
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 
+// ==============================================================================
+//  KONFIGURASI IDENTITAS & JARINGAN
+// ==============================================================================
 const char* DEVICE_ID           = "STATION-SMK-04";
-const char* UNIT_NAME           = "SMK Swasta Pembda";
+const char* UNIT_NAME           = "SMKS Pembda Nias";
 const char* KIOSK_API_KEY       = "RAHASIA-PEMBDAHUB-12345";
 
+// Prioritas 1: Server Lokal LAN Sekolah (Respon kilat < 200ms)
 const char* SERVER_LOCAL_URL    = "http://50.35.89.10/api/attendance/rfid-scan";
 const char* SCAN_BUFFER_LOCAL   = "http://50.35.89.10/api/rfid/scan-buffer";
 const char* HEARTBEAT_LOCAL     = "http://50.35.89.10/api/attendance/heartbeat";
 
+// Prioritas 2: Server Cloud Production (Failover Internet / Hosting)
 const char* SERVER_CLOUD_URL    = "https://perguruanpembda.com/api/attendance/rfid-scan";
 const char* SCAN_BUFFER_CLOUD   = "https://perguruanpembda.com/api/rfid/scan-buffer";
 const char* HEARTBEAT_CLOUD     = "https://perguruanpembda.com/api/attendance/heartbeat";
 
+// Profil WiFi Multi-AP Resmi (Prioritas 1: LAN PembdaLINK)
 const char* WIFI_SSID           = "PembdaLINK";
 const char* WIFI_PASSWORD       = "PEMBDA2026";
 
@@ -45,33 +56,37 @@ const char* WIFI_ALT3_PASSWORD  = "pelita31";
 const char* WIFI_ALT4_SSID      = "Black_Hole";
 const char* WIFI_ALT4_PASSWORD  = "pelita31";
 
-#define RFID_SS_PIN      5
-#define RFID_SCK_PIN    18
-#define RFID_MOSI_PIN   23
-#define RFID_MISO_PIN   19
-#define RFID_RST_PIN     4
+// ==============================================================================
+//  PIN DEFINITIONS & HARDWARE MAPPING (ESP32 DevKit V1 (WROOM-32))
+// ==============================================================================
+#define RFID_SS_PIN      5      // VSPI CS
+#define RFID_SCK_PIN    18      // VSPI SCK
+#define RFID_MOSI_PIN   23      // VSPI MOSI
+#define RFID_MISO_PIN   19      // VSPI MISO
+#define RFID_RST_PIN     4      // Reset RC522
+#define I2C_SDA_PIN     21      // I2C SDA
+#define I2C_SCL_PIN     22      // I2C SCL
+#define MP3_TX_PIN      17      // UART2 TX2 -> RX DFPlayer
+#define QR_RX_PIN       16      // UART2 RX2 <- TX GM65
+#define MP3_VOLUME      30      // Volume Speaker DFPlayer (0 - 30)
+#define BUZZER_PIN       2      // Buzzer Aktif
+#define LED_GREEN_PIN   15      // LED Hijau Sukses
+#define LED_RED_PIN     13      // LED Merah Gagal
 
-#define I2C_SDA_PIN     21
-#define I2C_SCL_PIN     22
 #define LCD_ADDRESS   0x27
 #define LCD_COLS        16
 #define LCD_ROWS         2
 
-#define MP3_TX_PIN      17
-#define MP3_RX_PIN      16
-#define MP3_VOLUME      30
-
-#define BUZZER_PIN       2
-#define LED_GREEN_PIN   15
-#define LED_RED_PIN     13
-
 #define HTTP_TIMEOUT          8000
 #define DISPLAY_RESULT_MS     3500
 #define SCAN_COOLDOWN_MS      3000
-#define WATCHDOG_TIMEOUT_MS 180000
-#define HEARTBEAT_INTERVAL   45000
-#define SLIDE_INTERVAL        5000
+#define WATCHDOG_TIMEOUT_MS 180000  // 3 Menit WiFi putus -> Auto-Reboot
+#define HEARTBEAT_INTERVAL   45000  // 45 Detik kirim telemetri ke /stations
+#define SLIDE_INTERVAL        5000  // 5 Detik per halaman carousel
 
+// ==============================================================================
+//  GLOBAL OBJECTS & STATE
+// ==============================================================================
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
 
@@ -80,21 +95,22 @@ unsigned long lastTapTime           = 0;
 unsigned long lastWiFiCheck         = 0;
 unsigned long lastHeartbeatTime     = 0;
 unsigned long lastSlideChangeTime   = 0;
-unsigned long lastActivityTime      = 0;
+unsigned long lastInPlaceAnimTime   = 0;
 unsigned long wifiDisconnectedSince = 0;
 unsigned long lastPrimaryLanCheck   = 0;
 
 bool isOnline        = false;
 bool isShowingResult = false;
 int  currentSlide    = 0;
-unsigned long lastInPlaceAnimTime = 0;
-int  inPlaceFrame        = 0;
+int  inPlaceFrame    = 0;
 
+// Prototype Fungsi
 void printCenter(uint8_t row, const String& text);
 void printRow(uint8_t row, const String& text);
 void showSlide(int slideIndex);
 void updateInPlaceAnim();
-void connectWiFiMulti();
+void connectWiFiInitial();
+void connectWiFiFailover();
 void handleRfidScan();
 void sendToServer(String uid, String type);
 void sendScanBuffer(String uid);
@@ -106,21 +122,24 @@ void playAudio(uint8_t folder, uint8_t track);
 void setMp3Volume(uint8_t vol);
 String getRfidUID();
 
+// ==============================================================================
+//  SETUP
+// ==============================================================================
 void setup() {
   Serial.begin(115200);
-  delay(500);
+  delay(300);
 
   Serial.println(F("\n========================================================"));
   Serial.print  (F("  STATION ID   : ")); Serial.println(DEVICE_ID);
-  Serial.print  (F("  UNIT         : ")); Serial.println(UNIT_NAME);
+  Serial.print  (F("  UNIT SEKOLAH : ")); Serial.println(UNIT_NAME);
   Serial.println(F("========================================================"));
 
-  pinMode(BUZZER_PIN,    OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
   pinMode(LED_GREEN_PIN, OUTPUT);
-  pinMode(LED_RED_PIN,   OUTPUT);
-  digitalWrite(BUZZER_PIN,    LOW);
+  pinMode(LED_RED_PIN, OUTPUT);
   digitalWrite(LED_GREEN_PIN, LOW);
-  digitalWrite(LED_RED_PIN,   LOW);
+  digitalWrite(LED_RED_PIN, LOW);
 
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
   Wire.setClock(400000);
@@ -131,8 +150,9 @@ void setup() {
 #endif
   lcd.backlight();
 
-  printCenter(0, "PEMBDA PRESENSI");
-  printCenter(1, DEVICE_ID);
+  lcd.clear();
+  printCenter(0, "SMKS PEMBDA NIAS");
+  printCenter(1, "[STATION-SMK-04]");
   beep(1, 100);
   delay(1200);
 
@@ -144,27 +164,30 @@ void setup() {
   rfid.PCD_AntennaOn();
 
   WiFi.mode(WIFI_STA);
-  WiFi.setSleep(false); // Nonaktifkan power saving WiFi pada ESP32
+  WiFi.setSleep(false);
   WiFi.persistent(false);
   WiFi.setAutoReconnect(true);
 
-  connectWiFiMulti();
+  connectWiFiInitial();
 
-  Serial2.begin(9600, SERIAL_8N1, MP3_RX_PIN, MP3_TX_PIN);
+  Serial2.begin(9600, SERIAL_8N1, QR_RX_PIN, MP3_TX_PIN);
   delay(300);
   while (Serial2.available()) Serial2.read();
   setMp3Volume(MP3_VOLUME);
   delay(100);
   playAudio(1, 1);
 
-  lastActivityTime    = millis();
   lastSlideChangeTime = millis();
   showSlide(0);
 }
 
+// ==============================================================================
+//  LOOP UTAMA
+// ==============================================================================
 void loop() {
   unsigned long now = millis();
 
+  // 1. Pemeriksaan Koneksi WiFi setiap 10 detik
   if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
     if (WiFi.status() == WL_CONNECTED) {
@@ -175,12 +198,12 @@ void loop() {
       }
     } else {
       if (isOnline) isOnline = false;
-      connectWiFiMulti();
+      connectWiFiFailover();
       if (wifiDisconnectedSince == 0) {
         wifiDisconnectedSince = now;
       } else if (now - wifiDisconnectedSince >= WATCHDOG_TIMEOUT_MS) {
         lcd.clear();
-        printCenter(0, "REBOOT WATCHDOG");
+        printCenter(0, "WATCHDOG REBOOT!");
         printCenter(1, "Restart Sistem..");
         delay(1500);
         ESP.restart();
@@ -188,7 +211,7 @@ void loop() {
     }
   }
 
-    // 1B. Auto-Switchback ke Prioritas Utama LAN (PembdaLINK) setiap 90 detik jika sedang di WiFi Cadangan
+  // 2. Auto-Switchback ke Prioritas Utama LAN (PembdaLINK) setiap 90 detik jika sedang di WiFi Cadangan
   if (isOnline && !isShowingResult && WiFi.SSID() != WIFI_SSID && (now - lastPrimaryLanCheck >= 90000)) {
     lastPrimaryLanCheck = now;
     int n = WiFi.scanNetworks(false, false);
@@ -198,7 +221,7 @@ void loop() {
         delay(50);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         int waitLan = 0;
-        while (WiFi.status() != WL_CONNECTED && waitLan < 15) {
+        while (WiFi.status() != WL_CONNECTED && waitLan < 20) {
           delay(250);
           waitLan++;
         }
@@ -208,11 +231,14 @@ void loop() {
     }
     WiFi.scanDelete();
   }
+
+  // 3. Heartbeat Telemetri IoT setiap 45 detik (Lokal + Cloud /stations)
   if (isOnline && (now - lastHeartbeatTime >= HEARTBEAT_INTERVAL || lastHeartbeatTime == 0)) {
     lastHeartbeatTime = now;
     sendHeartbeat();
   }
 
+  // 4. Carousel Layar Siaga (5 detik) & Animasi Huruf Berganti In-Place (1.5 detik)
   if (!isShowingResult) {
     if (now - lastSlideChangeTime >= SLIDE_INTERVAL) {
       lastSlideChangeTime = now;
@@ -223,12 +249,16 @@ void loop() {
     }
   }
 
+  // 5. Deteksi Pemindaian RFID & QR Code
   handleRfidScan();
   delay(20);
 }
 
-
+// ==============================================================================
+//  HELPER DISPLAY SIMETRIS & ANIMASI IN-PLACE (LCD 16x2)
+// ==============================================================================
 void printCenter(uint8_t row, const String& text) {
+  if (row >= LCD_ROWS) return;
   lcd.setCursor(0, row);
   String trimmed = text;
   if (trimmed.length() > LCD_COLS) trimmed = trimmed.substring(0, LCD_COLS);
@@ -242,6 +272,7 @@ void printCenter(uint8_t row, const String& text) {
 }
 
 void printRow(uint8_t row, const String& text) {
+  if (row >= LCD_ROWS) return;
   lcd.setCursor(0, row);
   String trimmed = text;
   if (trimmed.length() > LCD_COLS) trimmed = trimmed.substring(0, LCD_COLS);
@@ -250,8 +281,6 @@ void printRow(uint8_t row, const String& text) {
   for (int i = 0; i < padRight; i++) line += " ";
   lcd.print(line);
 }
-
-
 
 void updateInPlaceAnim() {
   if (isShowingResult) return;
@@ -266,17 +295,16 @@ void updateInPlaceAnim() {
       else printCenter(1, "* SILAKAN SCAN *");
     }
   } else if (currentSlide == 1) {
-    if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-04");
-    else printCenter(1, "PANTANG MUNDUR");
+    if (inPlaceFrame == 0) printCenter(1, "[STATION-SMK-04]");
+    else printCenter(1, "*PANTANG MUNDUR*");
   }
 }
 
 void showSlide(int slideIndex) {
   if (isShowingResult) return;
-
   switch (slideIndex) {
     case 0:
-      // SIMETRIS TENGAH (Semua baris 16 karakter GENAP: Kiri 0, Kanan 0)
+      // SIMETRIS TENGAH 16 KOLOM x 2 BARIS PENUH (Kiri = Kanan)
       printCenter(0, "PERGURUAN PEMBDA");
       if (isOnline) {
         if (inPlaceFrame == 0) printCenter(1, "> TEMPEL KARTU <");
@@ -287,14 +315,14 @@ void showSlide(int slideIndex) {
       break;
 
     case 1:
-      // SIMETRIS TENGAH (Baris 0 = 16 char, Baris 1 = 14 char [Kiri 1, Kanan 1])
-      printCenter(0, "[SMK SW. PEMBDA]");
-      if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-04");
-      else printCenter(1, "PANTANG MUNDUR");
+      // SIMETRIS TENGAH 16 KOLOM x 2 BARIS PENUH (Identitas Unit & Station)
+      printCenter(0, "SMKS PEMBDA NIAS");
+      if (inPlaceFrame == 0) printCenter(1, "[STATION-SMK-04]");
+      else printCenter(1, "*PANTANG MUNDUR*");
       break;
 
     case 2:
-      // RAPAT KIRI SEMUA (Titik dua sejajar lurus di kolom 2)
+      // RAPAT KIRI SEMUA 16 KOLOM x 2 BARIS (Titik dua sejajar lurus di kolom 2)
       if (isOnline) {
         String ssid = WiFi.SSID();
         if (ssid.length() > 13) ssid = ssid.substring(0, 13);
@@ -308,7 +336,7 @@ void showSlide(int slideIndex) {
   }
 }
 
-void connectWiFiMulti() {
+void connectWiFiFailover() {
   if (WiFi.status() == WL_CONNECTED) return;
   const char* ssids[] = { WIFI_SSID, WIFI_ALT1_SSID, WIFI_ALT2_SSID, WIFI_ALT3_SSID, WIFI_ALT4_SSID };
   const char* pwds[]  = { WIFI_PASSWORD, WIFI_ALT1_PASSWORD, WIFI_ALT2_PASSWORD, WIFI_ALT3_PASSWORD, WIFI_ALT4_PASSWORD };
@@ -316,8 +344,9 @@ void connectWiFiMulti() {
   for (int i = 0; i < 5; i++) {
     WiFi.begin(ssids[i], pwds[i]);
     unsigned long st = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - st < 3000) {
-      delay(100);
+    unsigned long waitLimit = (i == 0) ? 5000 : 3000; // Prioritas ekstra untuk PembdaLINK (i == 0)
+    while (WiFi.status() != WL_CONNECTED && millis() - st < waitLimit) {
+      delay(150);
     }
     if (WiFi.status() == WL_CONNECTED) {
       isOnline = true;
@@ -328,6 +357,31 @@ void connectWiFiMulti() {
   isOnline = false;
 }
 
+void connectWiFiInitial() {
+  lcd.clear();
+  printCenter(0, "PRIORITAS LAN...");
+  printCenter(1, ">> PembdaLINK <<");
+
+  // PRIORITAS 1 MUTLAK: Konek langsung ke PembdaLINK (LAN Lokal) terlebih dahulu (6 detik)
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  int attempt = 0;
+  while (WiFi.status() != WL_CONNECTED && attempt < 20) {
+    delay(300);
+    attempt++;
+  }
+
+  // PRIORITAS 2 (FAILOVER): Hanya jika PembdaLINK tidak terjangkau, cari AP Alternatif
+  if (WiFi.status() != WL_CONNECTED) {
+    printCenter(0, "CARI WIFI ALT...");
+    printCenter(1, "[MULTI-AP SIAGA]");
+    connectWiFiFailover();
+  }
+  isOnline = (WiFi.status() == WL_CONNECTED);
+}
+
+// ==============================================================================
+//  LOGIKA PEMINDAIAN & KOMUNIKASI SERVER
+// ==============================================================================
 void handleRfidScan() {
   if (!rfid.PICC_IsNewCardPresent()) return;
   if (!rfid.PICC_ReadCardSerial()) {
@@ -353,12 +407,13 @@ void handleRfidScan() {
   beep(1, 80);
 
   lcd.clear();
-  printCenter(0, "MEMPROSES...");
+  printCenter(0, "*MEMPROSES DATA*");
   printCenter(1, uid);
 
   sendToServer(uid, "rfid");
   digitalWrite(LED_GREEN_PIN, LOW);
 }
+
 
 void sendToServer(String uid, String type) {
   if (WiFi.status() != WL_CONNECTED) {
@@ -380,7 +435,8 @@ void sendToServer(String uid, String type) {
   String payload = "";
   int httpCode = 0;
 
-  {
+  // 1. Prioritas Utama: Server Lokal LAN (ketika terhubung ke PembdaLINK)
+  if (WiFi.SSID() == WIFI_SSID) {
     HTTPClient http;
     http.begin(SERVER_LOCAL_URL);
     http.addHeader("Content-Type", "application/json");
@@ -395,6 +451,7 @@ void sendToServer(String uid, String type) {
     http.end();
   }
 
+  // 2. Failover Otomatis: Server Cloud HTTPS (perguruanpembda.com)
   if (!success) {
     WiFiClientSecure secureClient;
     secureClient.setInsecure();
@@ -422,7 +479,7 @@ void sendToServer(String uid, String type) {
   } else {
     digitalWrite(LED_RED_PIN, HIGH);
     playAudio(1, 7);
-    showError("Server Error " + String(httpCode));
+    showError("Server Err " + String(httpCode));
     digitalWrite(LED_RED_PIN, LOW);
   }
 }
@@ -431,7 +488,7 @@ void parseAndDisplay(String json, String uid) {
   StaticJsonDocument<512> doc;
   DeserializationError err = deserializeJson(doc, json);
   if (err) {
-    showError("Format Err");
+    showError("Format Data Err");
     return;
   }
 
@@ -453,14 +510,16 @@ void parseAndDisplay(String json, String uid) {
   if (!rawWaktu) rawWaktu = doc["data"]["time"];
   String waktu = rawWaktu ? rawWaktu : "";
 
-
   lcd.clear();
   if (status == "success" || status == "info") {
     if (action_code == "CHECK_IN") {
       printCenter(0, nama != "" ? nama : "PRESENSI MASUK");
       printCenter(1, "MASUK: " + waktu.substring(0, 5) + " WIB");
-      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) playAudio(1, 5);
-      else playAudio(1, 2);
+      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0 || kelas.indexOf("Staff") >= 0) {
+        playAudio(1, 5);
+      } else {
+        playAudio(1, 2);
+      }
       beep(1, 120);
     } else if (action_code == "CHECK_OUT") {
       printCenter(0, nama != "" ? nama : "*ABSEN PULANG*");
@@ -480,15 +539,15 @@ void parseAndDisplay(String json, String uid) {
       beep(3, 100);
     } else {
       printCenter(0, nama != "" ? nama : "** BERHASIL **");
-      printCenter(1, message.length() <= 16 ? message : message.substring(0, 16));
+      printCenter(1, message);
       playAudio(1, 2);
       beep(1, 100);
     }
   } else {
     printCenter(0, "! PERINGATAN !");
-    printCenter(1, message.length() <= 16 ? message : message.substring(0, 16));
+    printCenter(1, message);
     playAudio(1, 7);
-      beep(2, 250);
+    beep(2, 250);
   }
 
   delay(DISPLAY_RESULT_MS);
@@ -550,7 +609,7 @@ void sendHeartbeat() {
 
 void showError(String msg) {
   lcd.clear();
-  printCenter(0, "! GAGAL !");
+  printCenter(0, "!! GAGAL SCAN !!");
   printCenter(1, msg);
   beep(3, 120);
   delay(2500);

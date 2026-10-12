@@ -1,22 +1,17 @@
 // ==============================================================================
-//  PEMBDAHUB ATTENDANCE STATION - FIRMWARE UPDATE 2026
+//  PEMBDAHUB ATTENDANCE STATION - FIRMWARE RESMI TERSTANDARISASI 2026
 //  STATION ID      : STATION-SMK-06
-//  UNIT SEKOLAH    : SMK Swasta Pembda
+//  UNIT SEKOLAH    : SMKS Pembda Nias
 //  MIKROKONTROLER  : NodeMCU V3 (ESP8266 ESP-12F)
-//  LAYAR           : LCD 16x2 I2C (Alamat 0x27 / 0x3F) - Bisa diubah ke 20x4
-//  AUDIO / SUARA   : DFPlayer Mini MP3 Player (SoftwareSerial TX=D4/GPIO2)
-//  PEMINDAI QR     : GM65 Barcode/QR Scanner (SoftwareSerial RX=D3/GPIO0)
-//  PEMINDAI RFID   : RFID RC522 (HSPI NodeMCU: D0=CS, D5=SCK, D7=MOSI, D6=MISO)
-//  INDIKATOR       : Buzzer Aktif (D8/GPIO15)
+//  LAYAR           : LCD 20x4 I2C (Alamat 0x27 / 0x3F)
+//  AUDIO / SUARA   : DFPlayer Mini MP3 Player + Buzzer Aktif
+//  PEMINDAI        : RFID RC522 + GM65 Barcode/QR Scanner
 // ==============================================================================
-//
-//  PENINGKATAN FITUR (UPDATE 2026):
-//  1. WiFi Anti-Sleep: WiFi.setSleepMode(WIFI_NONE_SLEEP) - Cegah koneksi drop.
-//  2. Auto-Reboot Watchdog: Jika WiFi putus > 3 menit, sistem auto-restart.
-//  3. Heartbeat Otomatis (45s): Melaporkan IP, RSSI, status online ke server.
-//  4. Tampilan Simetris: Helper printCenter() & printRow() merapikan teks di LCD.
-//  5. Animasi Huruf Berganti In-Place: Berganti teks/panah tanpa running text buram.
-//
+//  STANDAR FITUR PEMBDAHUB:
+//  1. Prioritas Mutlak LAN: Konek ke PembdaLINK dahulu + Auto-Switchback 90s.
+//  2. Dual-Heartbeat (45s): Lapor SSID, IP, RSSI, RAM, Uptime ke /stations.
+//  3. Tampilan Simetris Penuh: Menggunakan seluruh 4 baris x 20 kolom.
+//  4. Animasi In-Place: Teks berganti di tempat (tanpa running text buram).
 // ==============================================================================
 
 #include <SPI.h>
@@ -34,7 +29,7 @@
 //  KONFIGURASI IDENTITAS & JARINGAN
 // ==============================================================================
 const char* DEVICE_ID           = "STATION-SMK-06";
-const char* UNIT_NAME           = "SMK Swasta Pembda";
+const char* UNIT_NAME           = "SMKS Pembda Nias";
 const char* KIOSK_API_KEY       = "RAHASIA-PEMBDAHUB-12345";
 
 // Prioritas 1: Server Lokal LAN Sekolah (Respon kilat < 200ms)
@@ -47,7 +42,7 @@ const char* SERVER_CLOUD_URL    = "https://perguruanpembda.com/api/attendance/rf
 const char* SCAN_BUFFER_CLOUD   = "https://perguruanpembda.com/api/rfid/scan-buffer";
 const char* HEARTBEAT_CLOUD     = "https://perguruanpembda.com/api/attendance/heartbeat";
 
-// Profil WiFi Multi-AP Default / Utama (Standar Resmi Seluruh Station)
+// Profil WiFi Multi-AP Resmi (Prioritas 1: LAN PembdaLINK)
 const char* WIFI_SSID           = "PembdaLINK";
 const char* WIFI_PASSWORD       = "PEMBDA2026";
 
@@ -64,27 +59,25 @@ const char* WIFI_ALT4_SSID      = "Black_Hole";
 const char* WIFI_ALT4_PASSWORD  = "pelita31";
 
 // ==============================================================================
-//  PIN DEFINITIONS & HARDWARE MAPPING (NodeMCU ESP8266)
+//  PIN DEFINITIONS & HARDWARE MAPPING (NodeMCU V3 (ESP8266 ESP-12F))
 // ==============================================================================
 #define RFID_SS_PIN     16      // D0 (GPIO16) - Chip Select RC522
-#define RFID_RST_PIN   255      // Reset terhubung langsung ke 3.3V
+#define RFID_RST_PIN   255      // Reset terhubung ke 3.3V
 #define MP3_TX_PIN       2      // D4 (GPIO2)  - TX NodeMCU -> RX DFPlayer via 1k Ohm
 #define MP3_VOLUME      30      // Volume Speaker DFPlayer (0 - 30)
-
 #define BUZZER_PIN      15      // D8 (GPIO15) - Buzzer Aktif
 #define QR_RX_PIN        0      // D3 (GPIO0)  - RX GM65 Barcode/QR Scanner
 
-#define LCD_ADDRESS   0x27      // Alamat I2C LCD (0x27 atau 0x3F)
-#define LCD_COLS        20      // LCD 20x4: 20 Kolom Penuh (Kolom 0 s.d 19)
-#define LCD_ROWS         4      // LCD 20x4: 4 Baris Penuh (Baris 0 s.d 3)
+#define LCD_ADDRESS   0x27
+#define LCD_COLS        20
+#define LCD_ROWS         4
 
 #define HTTP_TIMEOUT          8000
 #define DISPLAY_RESULT_MS     3500
 #define SCAN_COOLDOWN_MS      3000
-#define WATCHDOG_TIMEOUT_MS 180000  // 3 Menit WiFi putus -> ESP.restart()
-#define HEARTBEAT_INTERVAL   45000  // 45 Detik kirim denyut jantung
+#define WATCHDOG_TIMEOUT_MS 180000  // 3 Menit WiFi putus -> Auto-Reboot
+#define HEARTBEAT_INTERVAL   45000  // 45 Detik kirim telemetri ke /stations
 #define SLIDE_INTERVAL        5000  // 5 Detik per halaman carousel
-#define ANIM_INTERVAL         1500  // 1.5 Detik animasi huruf berganti in-place
 
 // ==============================================================================
 //  GLOBAL OBJECTS & STATE
@@ -132,49 +125,47 @@ String getRfidUID();
 // ==============================================================================
 void setup() {
   Serial.begin(115200);
-  delay(100);
-  Serial.println(F("\n=============================================="));
-  Serial.print(F("PEMBDAHUB STATION STARTING: "));
-  Serial.println(DEVICE_ID);
-  Serial.println(F("=============================================="));
+  delay(300);
+
+  Serial.println(F("\n========================================================"));
+  Serial.print  (F("  STATION ID   : ")); Serial.println(DEVICE_ID);
+  Serial.print  (F("  UNIT SEKOLAH : ")); Serial.println(UNIT_NAME);
+  Serial.println(F("========================================================"));
 
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);
 
-  mp3Serial.begin(9600);
-  qrSerial.begin(9600);
-  delay(200);
-  setMp3Volume(MP3_VOLUME);
-
-  Wire.begin(4, 5);
+  Wire.begin(4, 5); // D2=SDA, D1=SCL
+  Wire.setClock(400000);
+#ifdef FDB_LIQUID_CRYSTAL_I2C_H
+  lcd.begin();
+#else
   lcd.init();
+#endif
   lcd.backlight();
 
   lcd.clear();
-  #if LCD_ROWS == 2
-    printCenter(0, "PembdaHUB PRESENSI");
-    printCenter(1, "Memulai...");
-  #else
-    printCenter(0, "PERGURUAN PEMBDA NIAS");
-    printCenter(1, "Sistem Presensi RFID");
-    printCenter(2, DEVICE_ID);
-    printCenter(3, "Memulai Hardware...");
-  #endif
-  beep(1, 80);
+  printCenter(0, "* PERGURUAN PEMBDA *");
+  printCenter(1, "====================");
+  printCenter(2, "* SMKS PEMBDA NIAS *");
+  printCenter(3, "[  STATION-SMK-06  ]");
+  beep(1, 100);
+  delay(1200);
 
   SPI.begin();
-  rfid.PCD_Init();
-  delay(50);
-  rfid.PCD_Reset();
+  SPI.setFrequency(1000000);
   delay(50);
   rfid.PCD_Init();
   delay(50);
+  rfid.PCD_SetAntennaGain(rfid.RxGain_max);
+  rfid.PCD_AntennaOn();
 
   WiFi.mode(WIFI_STA);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  WiFi.persistent(false);
   WiFi.setAutoReconnect(true);
 
-  wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
+  wifiMulti.addAP(WIFI_SSID,      WIFI_PASSWORD);
   wifiMulti.addAP(WIFI_ALT1_SSID, WIFI_ALT1_PASSWORD);
   wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
   wifiMulti.addAP(WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD);
@@ -182,18 +173,26 @@ void setup() {
 
   connectWiFiInitial();
 
+  qrSerial.begin(9600);
+  mp3Serial.begin(9600);
+  delay(300);
+  while (mp3Serial.available()) mp3Serial.read();
+  setMp3Volume(MP3_VOLUME);
+  delay(100);
+  playAudio(1, 1);
+
   lastSlideChangeTime = millis();
   showSlide(0);
 }
 
 // ==============================================================================
-//  LOOP
+//  LOOP UTAMA
 // ==============================================================================
 void loop() {
   unsigned long now = millis();
 
-  // 1. Pemeriksaan WiFi Non-Blocking (Setiap 5 detik)
-  if (now - lastWiFiCheck >= 5000) {
+  // 1. Pemeriksaan Koneksi WiFi setiap 10 detik
+  if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
     if (wifiMulti.run() == WL_CONNECTED) {
       if (!isOnline) {
@@ -207,21 +206,15 @@ void loop() {
         wifiDisconnectedSince = now;
       } else if (now - wifiDisconnectedSince >= WATCHDOG_TIMEOUT_MS) {
         lcd.clear();
-        printCenter(0, "WATCHDOG REBOOT");
-        #if LCD_ROWS == 2
-          printCenter(1, "Restart...");
-        #else
-          printCenter(1, "WiFi Terputus >3 Mnt");
-          printCenter(2, "Restart Sistem...");
-        #endif
+        printCenter(1, "* WATCHDOG REBOOT *");
+        printCenter(2, "Restart Sistem......");
         delay(1500);
         ESP.restart();
       }
     }
   }
 
-  // 2. Heartbeat IoT setiap 45 detik
-    // 1B. Auto-Switchback ke Prioritas Utama LAN (PembdaLINK) setiap 90 detik jika sedang di WiFi Cadangan
+  // 2. Auto-Switchback ke Prioritas Utama LAN (PembdaLINK) setiap 90 detik jika sedang di WiFi Cadangan
   if (isOnline && !isShowingResult && WiFi.SSID() != WIFI_SSID && (now - lastPrimaryLanCheck >= 90000)) {
     lastPrimaryLanCheck = now;
     int n = WiFi.scanNetworks(false, false);
@@ -231,7 +224,7 @@ void loop() {
         delay(50);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         int waitLan = 0;
-        while (WiFi.status() != WL_CONNECTED && waitLan < 15) {
+        while (WiFi.status() != WL_CONNECTED && waitLan < 20) {
           delay(250);
           waitLan++;
         }
@@ -241,12 +234,14 @@ void loop() {
     }
     WiFi.scanDelete();
   }
+
+  // 3. Heartbeat Telemetri IoT setiap 45 detik (Lokal + Cloud /stations)
   if (isOnline && (now - lastHeartbeatTime >= HEARTBEAT_INTERVAL || lastHeartbeatTime == 0)) {
     lastHeartbeatTime = now;
     sendHeartbeat();
   }
 
-  // 3. Carousel Siaga Berganti (Slide Carousel 5s) & Animasi Huruf Berganti In-Place
+  // 4. Carousel Layar Siaga (5 detik) & Animasi Huruf Berganti In-Place (1.5 detik)
   if (!isShowingResult) {
     if (now - lastSlideChangeTime >= SLIDE_INTERVAL) {
       lastSlideChangeTime = now;
@@ -257,16 +252,14 @@ void loop() {
     }
   }
 
-  // 4. Deteksi Pemindaian RFID & QR Code
+  // 5. Deteksi Pemindaian RFID & QR Code
   handleRfidScan();
   handleQrScan();
-
   delay(20);
 }
 
-
 // ==============================================================================
-//  HELPER DISPLAY SIMETRIS & ANIMASI HURUF BERGANTI
+//  HELPER DISPLAY SIMETRIS & ANIMASI IN-PLACE (LCD 20x4)
 // ==============================================================================
 void printCenter(uint8_t row, const String& text) {
   if (row >= LCD_ROWS) return;
@@ -293,8 +286,6 @@ void printRow(uint8_t row, const String& text) {
   lcd.print(line);
 }
 
-
-
 void updateInPlaceAnim() {
   if (isShowingResult) return;
   unsigned long now = millis();
@@ -302,118 +293,68 @@ void updateInPlaceAnim() {
   lastInPlaceAnimTime = now;
   inPlaceFrame = (inPlaceFrame + 1) % 2;
 
-  #if LCD_ROWS == 2
-    if (currentSlide == 0) {
-      if (isOnline) {
-        if (inPlaceFrame == 0) printCenter(1, "> TEMPEL KARTU <");
-        else printCenter(1, "* SCAN QR CODE *");
-      }
-    } else if (currentSlide == 1) {
-      if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-06");
-      else printCenter(1, "PANTANG MUNDUR");
+  if (currentSlide == 0) {
+    if (isOnline) {
+      if (inPlaceFrame == 0) printCenter(2, ">>  TEMPEL KARTU  <<");
+      else printCenter(2, ">>  SCAN QR CODE  <<");
     }
-  #else
-    if (currentSlide == 0) {
-      if (isOnline) {
-        if (inPlaceFrame == 0) printCenter(2, ">> TEMPEL KARTU <<");
-        else printCenter(2, ">> SCAN QR CODE <<");
-      }
-    } else if (currentSlide == 1) {
-      if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
-      else printCenter(2, "** PANTANG MUNDUR **");
-    }
-  #endif
+  } else if (currentSlide == 1) {
+    if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
+    else printCenter(2, "** PANTANG MUNDUR **");
+  }
 }
 
 void showSlide(int slideIndex) {
   if (isShowingResult) return;
+  switch (slideIndex) {
+    case 0:
+      // SIMETRIS TENGAH 20 KOLOM x 4 BARIS PENUH (Kiri = Kanan)
+      printCenter(0, "* PERGURUAN PEMBDA *");
+      printCenter(1, "====================");
+      if (isOnline) {
+        if (inPlaceFrame == 0) printCenter(2, ">>  TEMPEL KARTU  <<");
+        else printCenter(2, ">>  SCAN QR CODE  <<");
+      } else {
+        printCenter(2, "[   MODE OFFLINE   ]");
+      }
+      printCenter(3, "SISTEM PRESENSI RFID");
+      break;
 
-  #if LCD_ROWS == 2
-    switch (slideIndex) {
-      case 0:
-        printCenter(0, "PERGURUAN PEMBDA");
-        if (isOnline) {
-          if (inPlaceFrame == 0) printCenter(1, "> TEMPEL KARTU <");
-          else printCenter(1, "* SCAN QR CODE *");
-        } else {
-          printCenter(1, "[ MODE OFFLINE ]");
-        }
-        break;
+    case 1:
+      // SIMETRIS TENGAH 20 KOLOM x 4 BARIS PENUH (Identitas Unit & Station)
+      printCenter(0, "* SMKS PEMBDA NIAS *");
+      printCenter(1, "[  STATION-SMK-06  ]");
+      if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
+      else printCenter(2, "** PANTANG MUNDUR **");
+      printCenter(3, "Maju Terus - Sukses!");
+      break;
 
-      case 1:
-        printCenter(0, "SMKS PEMBDA NIAS");
-        if (inPlaceFrame == 0) printCenter(1, "STATION-SMK-06");
-        else printCenter(1, "PANTANG MUNDUR");
-        break;
-
-      case 2:
-        if (isOnline) {
-          String ssid = WiFi.SSID();
-          if (ssid.length() > 13) ssid = ssid.substring(0, 13);
-          printRow(0, "AP:" + ssid);
-          printRow(1, "IP:" + WiFi.localIP().toString().substring(0, 13));
-        } else {
-          printRow(0, "AP:TERPUTUS");
-          printRow(1, "ST:MENCARI WIFI");
-        }
-        break;
-    }
-  #else
-    switch (slideIndex) {
-      case 0:
-        // SIMETRIS TENGAH 20 KOLOM x 4 BARIS PENUH
-        printCenter(0, "* PERGURUAN PEMBDA *");
-        printCenter(1, "====================");
-        if (isOnline) {
-          if (inPlaceFrame == 0) printCenter(2, ">> TEMPEL KARTU <<");
-          else printCenter(2, ">> SCAN QR CODE <<");
-        } else {
-          printCenter(2, "Status: MODE OFFLINE");
-        }
-        printCenter(3, "SISTEM PRESENSI RFID");
-        break;
-
-      case 1:
-        // SIMETRIS TENGAH 20 KOLOM x 4 BARIS PENUH
-        printCenter(0, "* SMKS PEMBDA NIAS *");
-        printCenter(1, "[  STATION-SMK-06  ]");
-        if (inPlaceFrame == 0) printCenter(2, "Keep Moving Forward!");
-        else printCenter(2, "** PANTANG MUNDUR **");
-        printCenter(3, "Maju Terus - Sukses!");
-        break;
-
-      case 2:
-        // RAPAT KIRI SEMUA 20 KOLOM x 4 BARIS (Titik dua sejajar di kolom 4)
-        printRow(0, "ID  : " + String(DEVICE_ID));
-        if (isOnline) {
-          String ssid = WiFi.SSID();
-          if (ssid.length() > 14) ssid = ssid.substring(0, 14);
-          printRow(1, "AP  : " + ssid);
-          printRow(2, "IP  : " + WiFi.localIP().toString());
-          printRow(3, "Sig : " + String(WiFi.RSSI()) + " dBm [ON]");
-        } else {
-          printRow(1, "AP  : TERPUTUS");
-          printRow(2, "STAT: MENCARI WIFI..");
-          printRow(3, "MODE: OFFLINE SIAGA");
-        }
-        break;
-    }
-  #endif
+    case 2:
+      // RAPAT KIRI SEMUA 20 KOLOM x 4 BARIS (Titik dua sejajar lurus di kolom 4)
+      printRow(0, "ID  : " + String(DEVICE_ID));
+      if (isOnline) {
+        String ssid = WiFi.SSID();
+        if (ssid.length() > 14) ssid = ssid.substring(0, 14);
+        printRow(1, "AP  : " + ssid);
+        printRow(2, "IP  : " + WiFi.localIP().toString());
+        printRow(3, "Sig : " + String(WiFi.RSSI()) + " dBm [ON]");
+      } else {
+        printRow(1, "AP  : TERPUTUS");
+        printRow(2, "STAT: MENCARI WIFI..");
+        printRow(3, "MODE: OFFLINE SIAGA");
+      }
+      break;
+  }
 }
 
 void connectWiFiInitial() {
   lcd.clear();
-  #if LCD_ROWS == 2
-    printCenter(0, "PRIORITAS LAN...");
-    printCenter(1, "AP: PembdaLINK");
-  #else
-    printCenter(0, "* PERGURUAN PEMBDA *");
-    printCenter(1, "====================");
-    printCenter(2, "PRIORITAS LAN UTAMA:");
-    printCenter(3, ">> PembdaLINK <<");
-  #endif
+  printCenter(0, "* PERGURUAN PEMBDA *");
+  printCenter(1, "====================");
+  printCenter(2, "PRIORITAS LAN UTAMA:");
+  printCenter(3, ">>   PembdaLINK   <<");
 
-  // PRIORITAS 1 MUTLAK: Konek langsung ke PembdaLINK (LAN Lokal) terlebih dahulu
+  // PRIORITAS 1 MUTLAK: Konek langsung ke PembdaLINK (LAN Lokal) terlebih dahulu (6 detik)
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   int attempt = 0;
   while (WiFi.status() != WL_CONNECTED && attempt < 20) {
@@ -423,13 +364,8 @@ void connectWiFiInitial() {
 
   // PRIORITAS 2 (FAILOVER): Hanya jika PembdaLINK tidak terjangkau, cari AP Alternatif
   if (WiFi.status() != WL_CONNECTED) {
-    #if LCD_ROWS == 2
-      printCenter(0, "CARI WIFI ALT...");
-      printCenter(1, "Multi-AP Siaga");
-    #else
-      printCenter(2, "MENCARI WIFI ALT....");
-      printCenter(3, "Failover Cadangan...");
-    #endif
+    printCenter(2, "MENCARI WIFI ALT....");
+    printCenter(3, "Failover Cadangan...");
     attempt = 0;
     while (wifiMulti.run() != WL_CONNECTED && attempt < 15) {
       delay(300);
@@ -440,124 +376,107 @@ void connectWiFiInitial() {
 }
 
 // ==============================================================================
-//  PEMINDAIAN RFID & QR CODE
+//  LOGIKA PEMINDAIAN & KOMUNIKASI SERVER
 // ==============================================================================
 void handleRfidScan() {
-  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) return;
+  if (!rfid.PICC_IsNewCardPresent()) return;
+  if (!rfid.PICC_ReadCardSerial()) {
+    delay(10);
+    if (!rfid.PICC_ReadCardSerial()) return;
+  }
 
   String uid = getRfidUID();
+  unsigned long now = millis();
+  if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+    return;
+  }
+  lastUID     = uid;
+  lastTapTime = now;
+
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 
-  if (uid == "") return;
-
-  unsigned long now = millis();
-  if (uid == lastUID && (now - lastTapTime < SCAN_COOLDOWN_MS)) return;
-
-  lastUID = uid;
-  lastTapTime = now;
-
   isShowingResult = true;
+  beep(1, 80);
+
   lcd.clear();
-  #if LCD_ROWS == 2
-    printCenter(0, "*MEMPROSES DATA*");
-    printCenter(1, "ID: " + uid);
-  #else
-    printCenter(0, "** MEMPROSES DATA **");
-    printCenter(1, "--------------------");
-    printCenter(2, "UID : " + uid);
-    printCenter(3, "Menghubungi Server..");
-  #endif
-  beep(1, 100);
+  printCenter(0, "** MEMPROSES DATA **");
+  printCenter(1, "====================");
+  printCenter(2, "UID: " + uid);
+  printCenter(3, "Menghubungi Server..");
 
   sendToServer(uid, "rfid");
 }
 
 void handleQrScan() {
   if (!qrSerial.available()) return;
-
-  String qrData = "";
+  String qrCode = "";
   unsigned long startWait = millis();
-  while (millis() - startWait < 150) {
+  while (millis() - startWait < 120) {
     while (qrSerial.available()) {
       char c = qrSerial.read();
-      if (c == '\r' || c == '\n') {
-        if (qrData.length() >= 3) break;
-      } else if (c >= 32 && c <= 126) {
-        qrData += c;
-      }
-      delay(2);
+      if (c != '\r' && c != '\n' && c >= 32 && c <= 126) qrCode += c;
     }
-    if (qrData.length() >= 3 && !qrSerial.available()) break;
+    delay(2);
   }
-  qrData.trim();
-
-  if (qrData.length() < 3) return;
+  qrCode.trim();
+  if (qrCode.length() < 3) return;
 
   unsigned long now = millis();
-  if (qrData == lastUID && (now - lastTapTime < SCAN_COOLDOWN_MS)) return;
-
-  lastUID = qrData;
+  if (qrCode == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) return;
+  lastUID     = qrCode;
   lastTapTime = now;
 
   isShowingResult = true;
+  beep(1, 80);
+
   lcd.clear();
-  #if LCD_ROWS == 2
-    printCenter(0, "*MEMPROSES QR..*");
-    printCenter(1, qrData.substring(0, min((int)qrData.length(), 16)));
-  #else
-    printCenter(0, "** MEMPROSES QR.. **");
-    printCenter(1, "--------------------");
-    printCenter(2, qrData.substring(0, min((int)qrData.length(), 20)));
-    printCenter(3, "Menghubungi Server..");
-  #endif
-  beep(1, 100);
+  printCenter(0, "** MEMPROSES QR.. **");
+  printCenter(1, "====================");
+  printCenter(2, qrCode.substring(0, 20));
+  printCenter(3, "Menghubungi Server..");
 
-  sendToServer(qrData, "qr");
+  sendToServer(qrCode, "qr");
 }
 
-String getRfidUID() {
-  String uid = "";
-  for (byte i = 0; i < rfid.uid.size; i++) {
-    if (rfid.uid.uidByte[i] < 0x10) uid += "0";
-    uid += String(rfid.uid.uidByte[i], HEX);
-  }
-  uid.toUpperCase();
-  return uid;
-}
-
-// ==============================================================================
-//  KOMUNIKASI SERVER & PARSING HASIL
-// ==============================================================================
 void sendToServer(String uid, String type) {
-  StaticJsonDocument<256> reqDoc;
-  reqDoc["uid"]       = uid;
-  reqDoc["device_id"] = DEVICE_ID;
-  reqDoc["type"]      = type;
+  if (WiFi.status() != WL_CONNECTED) {
+    playAudio(1, 7);
+    showError("WiFi Terputus!");
+    return;
+  }
 
+  StaticJsonDocument<128> doc;
+  doc["uid"]       = uid;
+  doc["type"]      = type;
+  doc["device_id"] = DEVICE_ID;
   String body;
-  serializeJson(reqDoc, body);
+  serializeJson(doc, body);
 
   bool success = false;
   String payload = "";
-  int httpCode = -1;
+  int httpCode = 0;
 
+  // 1. Prioritas Utama: Server Lokal LAN (ketika terhubung ke PembdaLINK)
   if (WiFi.SSID() == WIFI_SSID) {
     WiFiClient client;
     HTTPClient http;
     http.begin(client, SERVER_LOCAL_URL);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
-    http.setTimeout(3000); // Timeout cepat untuk LAN Lokal
-
+    http.addHeader("Accept", "application/json");
+    http.setTimeout(2500);
     httpCode = http.POST(body);
-    if (httpCode > 0) {
+    if (httpCode == 200 || httpCode == 201) {
       payload = http.getString();
       success = true;
     }
     http.end();
   }
 
+  // 2. Failover Otomatis: Server Cloud HTTPS (perguruanpembda.com)
   if (!success) {
     BearSSL::WiFiClientSecure secureClient;
     secureClient.setInsecure();
@@ -565,10 +484,10 @@ void sendToServer(String uid, String type) {
     http.begin(secureClient, SERVER_CLOUD_URL);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
+    http.addHeader("Accept", "application/json");
     http.setTimeout(HTTP_TIMEOUT);
-
     httpCode = http.POST(body);
-    if (httpCode > 0) {
+    if (httpCode == 200 || httpCode == 201) {
       payload = http.getString();
       success = true;
     }
@@ -579,7 +498,7 @@ void sendToServer(String uid, String type) {
     parseAndDisplay(payload, uid);
   } else if (httpCode == 404) {
     playAudio(1, 6);
-    showError("Tdk Terdaftar");
+    showError("Kartu Tdk Drftr");
   } else {
     playAudio(1, 7);
     showError("Server Err " + String(httpCode));
@@ -590,7 +509,7 @@ void parseAndDisplay(String json, String uid) {
   StaticJsonDocument<512> doc;
   DeserializationError err = deserializeJson(doc, json);
   if (err) {
-    showError("Format Err");
+    showError("Format Data Err");
     return;
   }
 
@@ -612,97 +531,58 @@ void parseAndDisplay(String json, String uid) {
   if (!rawWaktu) rawWaktu = doc["data"]["time"];
   String waktu = rawWaktu ? rawWaktu : "";
 
-
   lcd.clear();
-  #if LCD_ROWS == 2
-    if (status == "success" || status == "info") {
-      if (action_code == "CHECK_IN") {
-        printCenter(0, nama != "" ? nama : "PRESENSI MASUK");
-        printCenter(1, "MASUK: " + waktu.substring(0, 5) + " WIB");
-        if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) playAudio(1, 5);
-        else playAudio(1, 2);
-        beep(1, 120);
-      } else if (action_code == "CHECK_OUT") {
-        printCenter(0, nama != "" ? nama : "*ABSEN PULANG*");
-        printCenter(1, "PULANG " + waktu.substring(0, 5) + " WIB");
-        playAudio(1, 3);
-        beep(2, 80);
-      } else if (action_code == "COOLDOWN") {
-        printCenter(0, nama != "" ? nama : "*SUDAH ABSEN!*");
-        printCenter(1, "ABSEN: " + waktu.substring(0, 5) + " WIB");
-        playAudio(1, 4);
-        beep(1, 200);
-      } else if (action_code == "NEW_CARD") {
-        sendScanBuffer(uid);
-        printCenter(0, "* KARTU BARU ! *");
-        printCenter(1, "DAFTAR DI ADMIN!");
-        playAudio(1, 6);
-        beep(3, 100);
+  if (status == "success" || status == "info") {
+    if (action_code == "CHECK_IN") {
+      printCenter(0, nama != "" ? nama : "* PRESENSI MASUK *");
+      printCenter(1, kelas != "" ? kelas : "SISWA / GURU");
+      printCenter(2, "JAM MASUK: " + waktu.substring(0, 5) + " WIB");
+      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0 || kelas.indexOf("Staff") >= 0) {
+        printCenter(3, ">>SELAMAT BERTUGAS<<");
+        playAudio(1, 5);
       } else {
-        printCenter(0, nama != "" ? nama : "** BERHASIL **");
-        printCenter(1, message.length() <= 16 ? message : message.substring(0, 16));
+        printCenter(3, "* SELAMAT BELAJAR! *");
         playAudio(1, 2);
-        beep(1, 100);
       }
+      beep(1, 120);
+    } else if (action_code == "CHECK_OUT") {
+      printCenter(0, nama != "" ? nama : "* PRESENSI PULANG *");
+      printCenter(1, kelas != "" ? kelas : "SISWA / GURU");
+      printCenter(2, "JAM PULANG " + waktu.substring(0, 5) + " WIB");
+      printCenter(3, "*HATI-HATI DI JALAN*");
+      playAudio(1, 3);
+      beep(2, 80);
+    } else if (action_code == "COOLDOWN") {
+      printCenter(0, nama != "" ? nama : "** SUDAH ABSEN **");
+      printCenter(1, kelas != "" ? kelas : "SISWA / GURU");
+      printCenter(2, "SUDAH ABSEN MASUK!");
+      printCenter(3, "TERCATAT : " + waktu.substring(0, 5) + " WIB");
+      playAudio(1, 4);
+      beep(1, 200);
+    } else if (action_code == "NEW_CARD") {
+      sendScanBuffer(uid);
+      printCenter(0, "** KARTU BARU **");
+      printCenter(1, "UID: " + uid);
+      printCenter(2, "BELUM TERDAFTAR!");
+      printCenter(3, "DAFTARKAN DI ADMIN");
+      playAudio(1, 6);
+      beep(3, 100);
     } else {
-      printCenter(0, "! PERINGATAN !");
-      printCenter(1, message.length() <= 16 ? message : message.substring(0, 16));
-      playAudio(1, 7);
-      beep(2, 250);
+      printCenter(0, nama != "" ? nama : "** BERHASIL **");
+      printCenter(1, kelas != "" ? kelas : message);
+      printCenter(2, message);
+      printCenter(3, waktu != "" ? ("TERCATAT : " + waktu.substring(0, 5) + " WIB") : "TERIMA KASIH");
+      playAudio(1, 2);
+      beep(1, 100);
     }
-  #else
-    if (status == "success" || status == "info") {
-      if (action_code == "CHECK_IN") {
-        printCenter(0, nama != "" ? nama : "* PRESENSI MASUK *");
-        printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "SISWA / GURU");
-        printCenter(2, "JAM MASUK: " + waktu.substring(0, 5) + " WIB");
-        if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) {
-          printCenter(3, ">>SELAMAT BERTUGAS<<");
-          playAudio(1, 5);
-        } else {
-          printCenter(3, "* SELAMAT BELAJAR! *");
-          playAudio(1, 2);
-        }
-        beep(1, 120);
-      } else if (action_code == "CHECK_OUT") {
-        printCenter(0, nama != "" ? nama : "* PRESENSI PULANG *");
-        printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "SISWA / GURU");
-        printCenter(2, "JAM PULANG " + waktu.substring(0, 5) + " WIB");
-        printCenter(3, "*HATI-HATI DI JALAN*");
-        playAudio(1, 3);
-        beep(2, 80);
-      } else if (action_code == "COOLDOWN") {
-        printCenter(0, nama != "" ? nama : "** SUDAH ABSEN **");
-        printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : "SISWA / GURU");
-        printCenter(2, "SUDAH ABSEN MASUK!");
-        printCenter(3, "PUKUL: " + waktu.substring(0, 5) + " WIB");
-        playAudio(1, 4);
-        beep(1, 200);
-      } else if (action_code == "NEW_CARD") {
-        sendScanBuffer(uid);
-        printCenter(0, "** KARTU BARU **");
-        printCenter(1, "ID: " + uid);
-        printCenter(2, "BELUM TERDAFTAR!");
-        printCenter(3, "DAFTARKAN DI ADMIN");
-        playAudio(1, 6);
-        beep(3, 100);
-      } else {
-        printCenter(0, nama != "" ? nama : "** BERHASIL **");
-        printCenter(1, kelas != "" ? (kelas.length() <= 20 ? kelas : kelas.substring(0, 20)) : message);
-        printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
-        printCenter(3, waktu != "" ? ("PUKUL: " + waktu.substring(0, 5) + " WIB") : "TERIMA KASIH");
-        playAudio(1, 2);
-        beep(1, 100);
-      }
-    } else {
-      printCenter(0, "! PERINGATAN !");
-      printCenter(1, nama != "" ? nama : "AKSES DITOLAK");
-      printCenter(2, message.length() <= 20 ? message : message.substring(0, 20));
-      printCenter(3, "SILAKAN COBA LAGI!");
-      playAudio(1, 7);
-      beep(2, 250);
-    }
-  #endif
+  } else {
+    printCenter(0, "!! PERINGATAN !!");
+    printCenter(1, nama != "" ? nama : "AKSES DITOLAK");
+    printCenter(2, message);
+    printCenter(3, "SILAKAN COBA LAGI!");
+    playAudio(1, 7);
+    beep(2, 250);
+  }
 
   delay(DISPLAY_RESULT_MS);
   isShowingResult = false;
@@ -763,10 +643,12 @@ void sendHeartbeat() {
 
 void showError(String msg) {
   lcd.clear();
-  printCenter(0, "! GAGAL !");
-  printCenter(1, msg.length() <= LCD_COLS ? msg : msg.substring(0, LCD_COLS));
-  beep(3, 150);
-  delay(DISPLAY_RESULT_MS);
+  printCenter(0, "!! KENDALA SISTEM !!");
+  printCenter(1, "====================");
+  printCenter(2, msg);
+  printCenter(3, "Silakan Coba Lagi...");
+  beep(3, 120);
+  delay(2500);
   isShowingResult = false;
   lastSlideChangeTime = millis();
   showSlide(currentSlide);
@@ -781,23 +663,31 @@ void beep(int count, int duration) {
   }
 }
 
+void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
+  uint8_t pkt[10] = {0x7E, 0xFF, 0x06, cmd, 0x00, para1, para2, 0x00, 0x00, 0xEF};
+  uint16_t sum = 0;
+  for (int i = 1; i < 7; i++) sum += pkt[i];
+  sum = -sum;
+  pkt[7] = (uint8_t)(sum >> 8);
+  pkt[8] = (uint8_t)(sum & 0xFF);
+  for (int i = 0; i < 10; i++) mp3Serial.write(pkt[i]);
+}
+
 void playAudio(uint8_t folder, uint8_t track) {
-  byte cmd[10] = { 0x7E, 0xFF, 0x06, 0x0F, 0x00, folder, track, 0x00, 0x00, 0xEF };
-  uint16_t checksum = 0;
-  for (int i = 1; i < 7; i++) checksum += cmd[i];
-  checksum = -checksum;
-  cmd[7] = (byte)(checksum >> 8);
-  cmd[8] = (byte)(checksum & 0xFF);
-  for (int i = 0; i < 10; i++) mp3Serial.write(cmd[i]);
+  sendMp3Command(0x0F, folder, track);
 }
 
 void setMp3Volume(uint8_t vol) {
   if (vol > 30) vol = 30;
-  byte cmd[10] = { 0x7E, 0xFF, 0x06, 0x06, 0x00, 0x00, vol, 0x00, 0x00, 0xEF };
-  uint16_t checksum = 0;
-  for (int i = 1; i < 7; i++) checksum += cmd[i];
-  checksum = -checksum;
-  cmd[7] = (byte)(checksum >> 8);
-  cmd[8] = (byte)(checksum & 0xFF);
-  for (int i = 0; i < 10; i++) mp3Serial.write(cmd[i]);
+  sendMp3Command(0x06, 0, vol);
+}
+
+String getRfidUID() {
+  String uid = "";
+  for (int8_t i = rfid.uid.size - 1; i >= 0; i--) {
+    if (rfid.uid.uidByte[i] < 0x10) uid += "0";
+    uid += String(rfid.uid.uidByte[i], HEX);
+  }
+  uid.toUpperCase();
+  return uid;
 }
