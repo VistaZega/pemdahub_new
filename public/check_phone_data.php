@@ -151,16 +151,21 @@ if ($testAction === 'single_test') {
 // 4. Batch Execution (Per Unit Sekolah / Semua / Workflow Terpadu)
 $action = $_GET['action'] ?? '';
 if (in_array($action, ['send_principal', 'send_principal_lms', 'dry_run_principal_lms', 'send_homeroom', 'dry_run_all', 'send_all_workflow', 'dry_run_workflow'])) {
+    set_time_limit(3600);
     $isDryRun = ($action === 'dry_run_all' || $action === 'dry_run_workflow' || $action === 'dry_run_principal_lms');
     $schoolId = !empty($_GET['school_id']) ? (int)$_GET['school_id'] : null;
     $force = isset($_GET['force']) && $_GET['force'] === '1';
+
+    $isLmsAction = ($action === 'send_principal_lms' || $action === 'dry_run_principal_lms');
 
     $opts = [
         'dry_run' => $isDryRun,
         'force' => $force,
         'school_id' => $schoolId,
-        'delay_min' => 10,
-        'delay_max' => 18,
+        'delay_min' => $isLmsAction ? 300 : 10,
+        'delay_max' => $isLmsAction ? 300 : 18,
+        'lms_delay_min' => 300,
+        'lms_delay_max' => 300,
         'batch_pause' => 45,
         'logger' => function($msg) use (&$streamLogs) {
             $time = date('H:i:s');

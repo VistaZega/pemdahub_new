@@ -942,6 +942,7 @@ class ExecutiveReportService
 
         $resP = $summary['res_principal'] ?? [];
         $resH = $summary['res_homeroom'] ?? [];
+        $resLms = $summary['res_lms'] ?? null;
 
         $pSent = $resP['sent'] ?? 0;
         $pSkipped = $resP['skipped'] ?? 0;
@@ -955,9 +956,15 @@ class ExecutiveReportService
         $hErrCount = count($hErrors);
         $hErrStr = $hErrCount > 0 ? " (" . implode(', ', array_slice($hErrors, 0, 5)) . ($hErrCount > 5 ? ' & lainnya' : '') . ")" : "";
 
-        $totalSent = $pSent + $hSent;
-        $totalSkipped = $pSkipped + $hSkipped;
-        $totalErrors = $pErrCount + $hErrCount;
+        $lSent = $resLms['sent'] ?? 0;
+        $lSkipped = $resLms['skipped'] ?? 0;
+        $lErrors = $resLms['errors'] ?? [];
+        $lErrCount = count($lErrors);
+        $lErrStr = $lErrCount > 0 ? " (" . implode(', ', $lErrors) . ")" : "";
+
+        $totalSent = $pSent + $hSent + $lSent;
+        $totalSkipped = $pSkipped + $hSkipped + $lSkipped;
+        $totalErrors = $pErrCount + $hErrCount + $lErrCount;
 
         $durationSec = $summary['duration_seconds'] ?? 0;
         $durationMins = floor($durationSec / 60);
@@ -968,26 +975,35 @@ class ExecutiveReportService
         $statusBadge = ($totalErrors === 0) ? "✅ SELURUH REKAP SUKSES TERKIRIM" : "⚠️ TERDAPAT KENDALA ({$totalErrors} Gagal)";
         $motto = SpintaxService::spinMottoLine();
 
-        $message = "🏁 *LAPORAN AKHIR REKAPITULASI ABSENSI*\n" .
+        $lmsSection = "";
+        if ($resLms !== null) {
+            $lmsSection = "3️⃣ *Rekap Pemetaan LMS Kepala Sekolah (Jeda 5 Menit):*\n" .
+                          "   • ✅ Berhasil Terkirim: *{$lSent} unit*\n" .
+                          "   • ⏭️ Dilewati (Sudah ada): *{$lSkipped} unit*\n" .
+                          "   • ❌ Gagal: *{$lErrCount} unit*{$lErrStr}\n\n";
+        }
+
+        $message = "🏁 *LAPORAN AKHIR REKAPITULASI EKSEKUTIF*\n" .
                    "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
                    "Halo Admin PembdaHUB,\n\n" .
-                   "Pengiriman rekapitulasi kehadiran harian telah *SELESAI* diproses pada pukul *{$nowTime} WIB*.\n" .
+                   "Pengiriman rekapitulasi harian telah *SELESAI* diproses pada pukul *{$nowTime} WIB*.\n" .
                    "⏱️ Total Waktu: *{$durationFormatted}*\n\n" .
                    "📊 *REKAP STATUS PENGIRIMAN:*\n" .
-                   "1️⃣ *Kepala Sekolah:*\n" .
+                   "1️⃣ *Absensi Kepala Sekolah:*\n" .
                    "   • ✅ Berhasil Terkirim: *{$pSent} unit*\n" .
                    "   • ⏭️ Dilewati (Sudah ada): *{$pSkipped} unit*\n" .
                    "   • ❌ Gagal: *{$pErrCount} unit*{$pErrStr}\n\n" .
-                   "2️⃣ *Wali Kelas:*\n" .
+                   "2️⃣ *Absensi Wali Kelas:*\n" .
                    "   • ✅ Berhasil Terkirim: *{$hSent} kelas*\n" .
                    "   • ⏭️ Dilewati (Sudah ada): *{$hSkipped} kelas*\n" .
                    "   • ❌ Gagal: *{$hErrCount} kelas*{$hErrStr}\n\n" .
+                   $lmsSection .
                    "📈 *Ringkasan Keseluruhan:*\n" .
                    "• Total Pesan Terkirim: *{$totalSent} Pesan*\n" .
                    "• Total Dilewati: *{$totalSkipped}*\n" .
                    "• Status Akhir: *{$statusBadge}*\n\n" .
                    "{$motto}\n\n" .
-                   "_Data kehadiran dan log pengiriman dapat dicek melalui portal PembdaHUB._ 🙏\n" .
+                   "_Data kehadiran, pemetaan LMS, dan log pengiriman dapat dicek melalui portal PembdaHUB._ 🙏\n" .
                    "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" .
                    "_Sistem Otomasi Eksekutif PembdaHUB_";
 
@@ -1013,7 +1029,8 @@ class ExecutiveReportService
     }
 
     /**
-     * Unified daily attendance digest workflow with admin start notice and completion report.
+     * Unified daily attendance digest workflow with admin start notice, completion report,
+     * and follow-up Principal LMS Usage Mapping Digest (5-minute interval between Principals).
      */
     public function sendDailyAttendanceDigestWorkflow(array $options = []): array
     {
@@ -1046,7 +1063,7 @@ class ExecutiveReportService
         }
 
         // 2. Eksekusi pengiriman rekap Kepala Sekolah
-        if ($logger) $logger("🏫 1. Memproses Rekap Kepala Sekolah...");
+        if ($logger) $logger("🏫 1. Memproses Rekap Kehadiran Kepala Sekolah...");
         $resP = $this->sendPrincipalDailyAttendanceDigest($options);
         if ($logger) $logger("   " . ($resP['message'] ?? 'Selesai Kepsek'));
 
@@ -1059,17 +1076,33 @@ class ExecutiveReportService
         }
 
         // 4. Eksekusi pengiriman rekap Wali Kelas
-        if ($logger) $logger("👩‍🏫 2. Memproses Rekap Wali Kelas...");
+        if ($logger) $logger("👩‍🏫 2. Memproses Rekap Kehadiran Wali Kelas...");
         $resH = $this->sendHomeroomDailyAttendanceDigest($options);
         if ($logger) $logger("   " . ($resH['message'] ?? 'Selesai Wali Kelas'));
 
+        // 5. Setelah pengiriman rekap absensi selesai, lanjut kirim Rekap Penggunaan LMS Guru ke Kepala Sekolah (Jeda 5 Menit)
+        if (!$isSingleTest && !$dryRun && (($resP['sent'] ?? 0) > 0 || ($resH['sent'] ?? 0) > 0)) {
+            $lmsTransitionPause = 300; // 5 menit setelah rekap absensi selesai
+            if ($logger) $logger("☕ Jeda 5 menit (300 detik) pasca Rekap Absensi sebelum mengirim Rekap Penggunaan LMS ke Kepala Sekolah...");
+            sleep($lmsTransitionPause);
+        }
+
+        if ($logger) $logger("📚 3. Memproses Rekap Penggunaan & Pemetaan LMS ke Kepala Sekolah (Jeda 5 Menit Antar Kepsek)...");
+        $lmsOptions = array_merge($options, [
+            'lms_delay_min' => 300,
+            'lms_delay_max' => 300,
+        ]);
+        $resLms = $this->sendPrincipalWeeklyLmsDigest($lmsOptions);
+        if ($logger) $logger("   " . ($resLms['message'] ?? 'Selesai Rekap LMS Kepsek'));
+
         $durationSeconds = (int)round(microtime(true) - $startTime);
 
-        // 5. Kirim laporan akhir ke Admin (kecuali single test)
+        // 6. Kirim laporan akhir ke Admin (kecuali single test)
         if (!$isSingleTest) {
             $summary = array_merge($options, [
                 'res_principal' => $resP,
                 'res_homeroom' => $resH,
+                'res_lms' => $resLms,
                 'duration_seconds' => $durationSeconds,
             ]);
             $this->notifyAdminDigestCompleted($summary);
@@ -1079,8 +1112,9 @@ class ExecutiveReportService
             'success' => true,
             'principal' => $resP,
             'homeroom' => $resH,
+            'principal_lms' => $resLms,
             'duration_seconds' => $durationSeconds,
-            'message' => "Workflow Rekap Selesai dalam {$durationSeconds} detik (Kepsek: {$resP['sent']} terkirim, Wali Kelas: {$resH['sent']} terkirim)",
+            'message' => "Workflow Rekap Selesai dalam {$durationSeconds} detik (Absensi Kepsek: {$resP['sent']}, Wali Kelas: {$resH['sent']}, LMS Kepsek: {$resLms['sent']} terkirim)",
         ];
     }
 
@@ -1476,8 +1510,8 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
         $force = $options['force'] ?? false;
         $targetPhone = $options['target_phone'] ?? null;
         $schoolIdFilter = $options['school_id'] ?? $options['school'] ?? null;
-        $delayMin = $options['delay_min'] ?? 15;
-        $delayMax = $options['delay_max'] ?? 25;
+        $delayMin = $options['lms_delay_min'] ?? $options['delay_min'] ?? 300;
+        $delayMax = $options['lms_delay_max'] ?? $options['delay_max'] ?? 300;
         $logger = $options['logger'] ?? null;
         $dateKey = date('Y-m-d');
 
