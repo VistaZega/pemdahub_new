@@ -1265,7 +1265,6 @@
                     confirmButtonColor: '#e11d48',
                     confirmButtonText: 'Saya Mengerti'
                 });
-                });
             },
             {
                 enableHighAccuracy: true,

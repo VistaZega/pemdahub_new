@@ -28,88 +28,7 @@
 
     <!-- GPS Presensi Card (UI/UX Pro Max Emerald Gradient Card) -->
     <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-5 text-white shadow-lg shadow-emerald-500/25 text-center relative overflow-hidden"
-         x-data="{ 
-            loading: false, 
-            statusMsg: '',
-            doGpsScan() {
-                if (!navigator.geolocation) {
-                    alert('Browser Anda tidak mendukung GPS Geolocation.');
-                    return;
-                }
-                this.loading = true;
-                this.statusMsg = 'Mengambil koordinat GPS...';
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        this.statusMsg = 'Mengirim data presensi...';
-                        fetch('{{ route('mobile.absensi.scan') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                latitude: pos.coords.latitude,
-                                longitude: pos.coords.longitude,
-                                device_id: navigator.userAgent
-                            })
-                        })
-                        .then(async (res) => {
-                            const data = await res.json().catch(() => ({}));
-                            if (!res.ok || data.success === false) {
-                                throw new Error(data.message || 'Presensi gagal diproses.');
-                            }
-                            return data;
-                        })
-                        .then(data => {
-                            this.loading = false;
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Presensi Berhasil! 🎉',
-                                    text: data.message || 'Presensi GPS berhasil dikirim!',
-                                    confirmButtonColor: '#059669'
-                                }).then(() => window.location.reload());
-                            } else {
-                                alert(data.message || 'Presensi GPS berhasil dikirim!');
-                                window.location.reload();
-                            }
-                        })
-                        .catch(err => {
-                            this.loading = false;
-                            const errorMsg = err.message || 'Gagal melakukan presensi.';
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Presensi Belum Berhasil ⚠️',
-                                    html: `<div class="text-left text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl border border-slate-200 mt-2">${errorMsg.replace(/\n/g, '<br>')}</div>`,
-                                    confirmButtonColor: '#e11d48',
-                                    confirmButtonText: 'Saya Mengerti'
-                                });
-                            } else {
-                                alert(errorMsg);
-                            }
-                        });
-                    },
-                    (err) => {
-                        this.loading = false;
-                        const msg = 'Gagal mendapatkan lokasi GPS: ' + err.message + '. Harap aktifkan GPS dan Akurasi Lokasi HP Anda.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'GPS Tidak Aktif',
-                                text: msg,
-                                confirmButtonColor: '#d97706'
-                            });
-                        } else {
-                            alert(msg);
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                );
-            }
-         }">
+         x-data="mobileAbsensiGpsCard()">
         @if(isset($activePkl) && $activePkl)
             <div class="mb-3 p-3 rounded-2xl bg-amber-400/20 border border-amber-300/40 text-amber-100 text-left flex items-start gap-2.5 backdrop-blur-md">
                 <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center shrink-0 font-black text-sm shadow">
@@ -146,10 +65,29 @@
         @endif
 
         @if($todayAttendance)
-            <div class="p-3.5 rounded-2xl bg-white/20 border border-white/30 text-white text-xs font-black inline-flex items-center gap-2 mb-1 backdrop-blur-md shadow">
+            @php
+                $isNotCheckedOut = empty($todayAttendance->time_out) || in_array($todayAttendance->time_out, ['00:00:00', '00:00']);
+            @endphp
+            <div class="p-3.5 rounded-2xl bg-white/20 border border-white/30 text-white text-xs font-black inline-flex flex-wrap items-center justify-center gap-2 mb-3 backdrop-blur-md shadow">
                 <i class="fa-solid fa-circle-check text-emerald-300 text-sm"></i>
                 <span>Sudah Absen Masuk: {{ $todayAttendance->time_in }} ({{ strtoupper($todayAttendance->status) }}{{ isset($activePkl) && $activePkl ? ' - PKL' : '' }})</span>
+                @if(!$isNotCheckedOut)
+                    <span>• Pulang: {{ $todayAttendance->time_out }}</span>
+                @endif
             </div>
+
+            @if($isNotCheckedOut)
+                <button @click="doGpsScan()" :disabled="loading"
+                        class="w-full py-3.5 px-6 bg-white text-emerald-800 font-black text-xs rounded-2xl shadow-xl hover:bg-emerald-50 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <template x-if="loading">
+                        <i class="fa-solid fa-spinner animate-spin text-sm"></i>
+                    </template>
+                    <template x-if="!loading">
+                        <i class="fa-solid fa-right-from-bracket text-blue-600 text-base"></i>
+                    </template>
+                    <span x-text="loading ? statusMsg : '{{ isset($activePkl) && $activePkl ? 'KIRIM PRESENSI PULANG PKL' : 'KIRIM PRESENSI PULANG SEKARANG' }}'"></span>
+                </button>
+            @endif
         @else
             <button @click="doGpsScan()" :disabled="loading"
                     class="w-full py-3.5 px-6 bg-white text-emerald-800 font-black text-xs rounded-2xl shadow-xl hover:bg-emerald-50 transition transform active:scale-95 flex items-center justify-center gap-2">
@@ -205,4 +143,115 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function mobileAbsensiGpsCard() {
+        return {
+            loading: false,
+            statusMsg: '',
+            doGpsScan() {
+                if (!navigator.geolocation) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'GPS Tidak Didukung',
+                            text: 'Browser Anda tidak mendukung fitur lokasi (GPS). Gunakan browser Chrome atau izinkan akses lokasi.',
+                            confirmButtonColor: '#2563eb'
+                        });
+                    } else {
+                        alert('Browser Anda tidak mendukung GPS Geolocation.');
+                    }
+                    return;
+                }
+
+                this.loading = true;
+                this.statusMsg = 'Mengambil koordinat GPS...';
+
+                let deviceId = localStorage.getItem('pembdahub_device_id');
+                if (!deviceId) {
+                    deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('pembdahub_device_id', deviceId);
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        this.statusMsg = 'Mengirim data presensi...';
+                        fetch('{{ route('mobile.absensi.scan') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                latitude: pos.coords.latitude,
+                                longitude: pos.coords.longitude,
+                                device_id: deviceId
+                            })
+                        })
+                        .then(async (res) => {
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok || data.success === false) {
+                                throw new Error(data.message || 'Presensi gagal diproses.');
+                            }
+                            return data;
+                        })
+                        .then(data => {
+                            this.loading = false;
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Presensi Berhasil! 🎉',
+                                    text: data.message || 'Presensi GPS berhasil dikirim!',
+                                    confirmButtonColor: '#059669'
+                                }).then(() => window.location.reload());
+                            } else {
+                                alert(data.message || 'Presensi GPS berhasil dikirim!');
+                                window.location.reload();
+                            }
+                        })
+                        .catch(err => {
+                            this.loading = false;
+                            const errorMsg = err.message || 'Gagal melakukan presensi.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Presensi Belum Berhasil ⚠️',
+                                    html: `<div class="text-left text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl border border-slate-200 mt-2">${errorMsg.replace(/\n/g, '<br>')}</div>`,
+                                    confirmButtonColor: '#e11d48',
+                                    confirmButtonText: 'Saya Mengerti'
+                                });
+                            } else {
+                                alert(errorMsg);
+                            }
+                        });
+                    },
+                    (err) => {
+                        this.loading = false;
+                        let errText = 'Gagal mengakses lokasi GPS. Pastikan GPS aktif dan berada di lapangan upacara, selasar, atau di teras kelas.<br><br>💡 <em>Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.</em>';
+                        if (err.code === 1) {
+                            errText = 'Izin lokasi ditolak. Harap izinkan akses lokasi (GPS) pada browser/aplikasi Anda.<br><br>💡 <em>Silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.</em>';
+                        } else if (err.code === 2) {
+                            errText = 'Posisi GPS tidak dapat ditentukan. Pastikan Anda berada di lapangan upacara, selasar, atau di teras kelas.<br><br>💡 <em>Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.</em>';
+                        } else if (err.code === 3) {
+                            errText = 'Waktu permintaan lokasi habis (timeout). Silakan coba lagi di lapangan upacara, selasar, atau teras kelas, atau absen via Scan RFID / QR Code / Manual melalui Wali Kelas.';
+                        }
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Akses Lokasi Diperlukan',
+                                html: `<div class="text-left text-xs text-slate-700 leading-relaxed font-medium bg-amber-50 p-3 rounded-xl border border-amber-200 mt-2">${errText}</div>`,
+                                confirmButtonColor: '#d97706',
+                                confirmButtonText: 'Saya Mengerti'
+                            });
+                        } else {
+                            alert('Gagal mendapatkan lokasi GPS: ' + err.message + '. Harap aktifkan GPS dan Akurasi Lokasi HP Anda.');
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            }
+        };
+    }
+</script>
 @endpush
