@@ -253,13 +253,18 @@ if ($fetchStatus === 0) {
 
     // Jika reset hard awal terkendala permission pada file/folder deploy atau firmware
     if ($resetStatus !== 0 && (strpos($lastCmdError, 'Permission denied') !== false || strpos($lastCmdOutput, 'Permission denied') !== false)) {
-        echo "<div class='notice-box' style='border-color:#d29922;'><span class='warn'>⚠ Menyesuaikan file terkunci dan mencoba ulang reset...</span></div>";
+        echo "<div class='notice-box' style='border-color:#d29922;'><span class='warn'>⚠ Menyesuaikan file terkunci (firmware/deploy) dan menerapkan update pada direktori utama Laravel...</span></div>";
         @shell_exec("chmod -R 777 " . escapeshellarg($deployDir) . " 2>/dev/null");
         @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/firmware") . " 2>/dev/null");
         @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/public") . " 2>/dev/null");
         @unlink("{$deployDir}/maintenance-cloudflare.html");
-        @shell_exec("git -C {$root} checkout -f origin/main 2>/dev/null");
-        $retryStatus = execCmd("git -C {$root} reset --hard origin/main", "5b. Percobaan Ulang Git Reset Hard");
+
+        // Bypass file firmware yang terkunci permission root: majukan HEAD ke origin/main lalu checkout seluruh folder aplikasi Laravel
+        @shell_exec("git -C {$root} reset --soft origin/main 2>/dev/null");
+        $retryStatus = execCmd(
+            "git -C {$root} checkout -f origin/main -- app bootstrap config database public resources routes",
+            "5b. Checkout Langsung Direktori Utama Aplikasi (Bypass File Firmware Terkunci)"
+        );
         if ($retryStatus !== 0) {
             $fetchStatus = 1; // Pemicu untuk fallback direct sync jika masih gagal
         }
@@ -271,7 +276,10 @@ if ($fetchStatus !== 0) {
     echo "<span class='info'>Menjalankan sinkronisasi langsung file terbaru dari GitHub (branch main)...</span>\n";
     
     $fallbackFiles = [
+        'public/git_pull_now.php',
         'public/fix_git_perm.php',
+        'resources/views/mobile/absensi/index.blade.php',
+        'resources/views/mobile/dashboard.blade.php',
         // CBT SPP Tuition Compliance & Dispensations (2026-09-17)
         'app/Http/Controllers/Guru/CbtDispensationController.php',
         'app/Models/CbtExamDispensation.php',
