@@ -155,16 +155,20 @@ Schedule::command('wa:digest attendance-daily')
 
 // ============================================================================
 // WhatsApp Principal LMS Usage Mapping Digest — Pukul 11:00 WIB
-// Mengirim rekap penggunaan & pemetaan LMS masing-masing guru ke 3 Kepala Sekolah
+// Dikirim hari ini (13 Oktober 2026) pukul 11:00 WIB, dan selanjutnya rutin
+// setiap tanggal 1 awal bulan pukul 11:00 WIB (1 November 2026, 1 Desember 2026, dst.)
 // dengan jarak waktu 5 menit (300 detik) antar Kepala Sekolah.
 // ============================================================================
 Schedule::command('wa:digest lms-principal --delay-min=300 --delay-max=300')
-    ->weekdays()
-    ->at('11:00')
+    ->dailyAt('11:00')
     ->timezone('Asia/Jakarta')
+    ->when(function () {
+        $now = \Illuminate\Support\Carbon::now('Asia/Jakarta');
+        return $now->toDateString() === '2026-10-13' || (int) $now->day === 1;
+    })
     ->withoutOverlapping(180)
     ->runInBackground()
-    ->description('Kirim Rekap Penggunaan & Pemetaan LMS Guru ke Kepala Sekolah pukul 11:00 WIB (Jeda 5 Menit)');
+    ->description('Kirim Rekap Penggunaan & Pemetaan LMS Guru ke Kepala Sekolah (13 Okt 2026 & Setiap Tanggal 1 Pukul 11:00 WIB)');
 
 
 
