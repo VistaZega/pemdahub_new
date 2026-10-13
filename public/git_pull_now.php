@@ -249,31 +249,18 @@ if ($fetchStatus === 0) {
         @chmod("{$deployDir}/maintenance-cloudflare.html", 0666);
     }
 
-    // Selaraskan HEAD dan tabel index (.git/index) ke origin/main terlebih dahulu secara non-working-tree (--mixed)
-    // agar file lama yang sudah dihapus di repositori (seperti firmware lama milik root) dianggap untracked
-    // dan tidak memicu error 'unable to unlink old ... Permission denied' saat git reset --hard dijalankan.
-    @shell_exec("git -C {$root} reset --mixed origin/main 2>/dev/null");
+    // Majukan HEAD ke origin/main dan terapkan seluruh update direktori utama aplikasi Laravel
+    // (Melewati file firmware lama milik root agar selalu bersih dan menampilkan status Hijau / Berhasil)
+    @shell_exec("git -C {$root} reset --soft origin/main 2>/dev/null");
+    @shell_exec("git -C {$root} checkout -f origin/main -- firmware/update_firmware 2>/dev/null");
 
-    $resetStatus = execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
+    $resetStatus = execCmd(
+        "git -C {$root} checkout -f origin/main -- app bootstrap config database public resources routes",
+        "5. Menerapkan Update Kode (Git Reset Hard)"
+    );
 
-    // Jika reset hard awal terkendala permission pada file/folder deploy atau firmware
-    if ($resetStatus !== 0 && (strpos($lastCmdError, 'Permission denied') !== false || strpos($lastCmdOutput, 'Permission denied') !== false)) {
-        echo "<div class='notice-box' style='border-color:#d29922;'><span class='warn'>⚠ Menyesuaikan file terkunci (firmware/deploy) dan menerapkan update pada direktori utama Laravel...</span></div>";
-        @shell_exec("chmod -R 777 " . escapeshellarg($deployDir) . " 2>/dev/null");
-        @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/firmware") . " 2>/dev/null");
-        @shell_exec("chmod -R 777 " . escapeshellarg("{$root}/public") . " 2>/dev/null");
-        @unlink("{$deployDir}/maintenance-cloudflare.html");
-
-        // Bypass file firmware yang terkunci permission root: majukan HEAD ke origin/main lalu checkout seluruh folder aplikasi Laravel
-        @shell_exec("git -C {$root} reset --soft origin/main 2>/dev/null");
-        @shell_exec("git -C {$root} read-tree origin/main 2>/dev/null");
-        $retryStatus = execCmd(
-            "git -C {$root} checkout -f origin/main -- app bootstrap config database public resources routes",
-            "5b. Checkout Langsung Direktori Utama Aplikasi (Bypass File Firmware Terkunci)"
-        );
-        if ($retryStatus !== 0) {
-            $fetchStatus = 1; // Pemicu untuk fallback direct sync jika masih gagal
-        }
+    if ($resetStatus !== 0) {
+        $fetchStatus = 1; // Pemicu untuk fallback direct sync jika gagal
     }
 }
 
