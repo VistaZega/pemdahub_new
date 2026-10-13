@@ -249,6 +249,10 @@ if ($fetchStatus === 0) {
         @chmod("{$deployDir}/maintenance-cloudflare.html", 0666);
     }
 
+    // Selaraskan tabel index (.git/index) ke origin/main terlebih dahulu agar file lama yang sudah dihapus
+    // di repositori (seperti firmware lama milik root) tidak memicu error 'unable to unlink old ... Permission denied'
+    @shell_exec("git -C {$root} read-tree origin/main 2>/dev/null");
+
     $resetStatus = execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
 
     // Jika reset hard awal terkendala permission pada file/folder deploy atau firmware
@@ -261,6 +265,7 @@ if ($fetchStatus === 0) {
 
         // Bypass file firmware yang terkunci permission root: majukan HEAD ke origin/main lalu checkout seluruh folder aplikasi Laravel
         @shell_exec("git -C {$root} reset --soft origin/main 2>/dev/null");
+        @shell_exec("git -C {$root} read-tree origin/main 2>/dev/null");
         $retryStatus = execCmd(
             "git -C {$root} checkout -f origin/main -- app bootstrap config database public resources routes",
             "5b. Checkout Langsung Direktori Utama Aplikasi (Bypass File Firmware Terkunci)"
