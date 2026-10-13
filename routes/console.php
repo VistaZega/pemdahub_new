@@ -153,4 +153,18 @@ Schedule::command('wa:digest attendance-daily')
     ->runInBackground()
     ->description('Kirim Rekap Kehadiran Harian ke Kepala Sekolah & Wali Kelas via WhatsApp');
 
+// ============================================================================
+// WhatsApp Principal LMS Usage Mapping Digest — Pukul 11:00 WIB
+// Mengirim rekap penggunaan & pemetaan LMS masing-masing guru ke 3 Kepala Sekolah
+// dengan jarak waktu 5 menit (300 detik) antar Kepala Sekolah.
+// ============================================================================
+Schedule::command('wa:digest lms-principal --delay-min=300 --delay-max=300')
+    ->weekdays()
+    ->at('11:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping(180)
+    ->runInBackground()
+    ->description('Kirim Rekap Penggunaan & Pemetaan LMS Guru ke Kepala Sekolah pukul 11:00 WIB (Jeda 5 Menit)');
+
+
 

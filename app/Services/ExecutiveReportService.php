@@ -1080,29 +1080,13 @@ class ExecutiveReportService
         $resH = $this->sendHomeroomDailyAttendanceDigest($options);
         if ($logger) $logger("   " . ($resH['message'] ?? 'Selesai Wali Kelas'));
 
-        // 5. Setelah pengiriman rekap absensi selesai, lanjut kirim Rekap Penggunaan LMS Guru ke Kepala Sekolah (Jeda 5 Menit)
-        if (!$isSingleTest && !$dryRun && (($resP['sent'] ?? 0) > 0 || ($resH['sent'] ?? 0) > 0)) {
-            $lmsTransitionPause = 300; // 5 menit setelah rekap absensi selesai
-            if ($logger) $logger("☕ Jeda 5 menit (300 detik) pasca Rekap Absensi sebelum mengirim Rekap Penggunaan LMS ke Kepala Sekolah...");
-            sleep($lmsTransitionPause);
-        }
-
-        if ($logger) $logger("📚 3. Memproses Rekap Penggunaan & Pemetaan LMS ke Kepala Sekolah (Jeda 5 Menit Antar Kepsek)...");
-        $lmsOptions = array_merge($options, [
-            'lms_delay_min' => 300,
-            'lms_delay_max' => 300,
-        ]);
-        $resLms = $this->sendPrincipalWeeklyLmsDigest($lmsOptions);
-        if ($logger) $logger("   " . ($resLms['message'] ?? 'Selesai Rekap LMS Kepsek'));
-
         $durationSeconds = (int)round(microtime(true) - $startTime);
 
-        // 6. Kirim laporan akhir ke Admin (kecuali single test)
+        // 5. Kirim laporan akhir ke Admin (kecuali single test)
         if (!$isSingleTest) {
             $summary = array_merge($options, [
                 'res_principal' => $resP,
                 'res_homeroom' => $resH,
-                'res_lms' => $resLms,
                 'duration_seconds' => $durationSeconds,
             ]);
             $this->notifyAdminDigestCompleted($summary);
@@ -1112,9 +1096,8 @@ class ExecutiveReportService
             'success' => true,
             'principal' => $resP,
             'homeroom' => $resH,
-            'principal_lms' => $resLms,
             'duration_seconds' => $durationSeconds,
-            'message' => "Workflow Rekap Selesai dalam {$durationSeconds} detik (Absensi Kepsek: {$resP['sent']}, Wali Kelas: {$resH['sent']}, LMS Kepsek: {$resLms['sent']} terkirim)",
+            'message' => "Workflow Rekap Selesai dalam {$durationSeconds} detik (Kepsek: {$resP['sent']} terkirim, Wali Kelas: {$resH['sent']} terkirim)",
         ];
     }
 
@@ -1601,6 +1584,28 @@ _Dikirim otomatis oleh PembdaHUB Executive System_";
                 Log::channel('whatsapp')->error("Failed to send principal LMS digest for {$school->name}: " . $e->getMessage());
                 $errors[] = $school->name . ': ' . $e->getMessage();
                 if ($logger) $logger("❌ Error Rekap LMS Kepsek {$school->name}: " . $e->getMessage());
+            }
+        }
+
+        if (!$targetPhone && !$dryRun && $sentCount > 0 && Setting::getValue('wa_notify_admin_digest', true)) {
+            $nowTime = date('H:i');
+            $errCount = count($errors);
+            $errStr = $errCount > 0 ? " (" . implode(', ', $errors) . ")" : "";
+            $adminMsg = "📚 *LAPORAN PENGIRIMAN REKAP LMS KEPALA SEKOLAH*\n"
+                . "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                . "Halo Admin PembdaHUB,\n\n"
+                . "Pengiriman *Rekap Penggunaan & Pemetaan LMS Guru* kepada Kepala Sekolah telah *SELESAI* diproses pada pukul *{$nowTime} WIB*.\n\n"
+                . "📊 *Status Pengiriman:*\n"
+                . "• ✅ Berhasil Terkirim: *{$sentCount} Kepala Sekolah*\n"
+                . "• ⏭️ Dilewati: *{$skippedCount} unit*\n"
+                . "• ❌ Gagal: *{$errCount} unit*{$errStr}\n"
+                . "• ⏱️ Jeda Antar Kepsek: *5 Menit (300 Detik)*\n\n"
+                . SpintaxService::spinMottoLine() . "\n"
+                . "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                . "_Sistem Otomasi Eksekutif PembdaHUB_";
+
+            foreach ($this->getAdminRecipients() as $admPhone => $admName) {
+                $this->whatsappService->sendMessage($admPhone, $adminMsg);
             }
         }
 
