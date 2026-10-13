@@ -249,9 +249,10 @@ if ($fetchStatus === 0) {
         @chmod("{$deployDir}/maintenance-cloudflare.html", 0666);
     }
 
-    // Selaraskan tabel index (.git/index) ke origin/main terlebih dahulu agar file lama yang sudah dihapus
-    // di repositori (seperti firmware lama milik root) tidak memicu error 'unable to unlink old ... Permission denied'
-    @shell_exec("git -C {$root} read-tree origin/main 2>/dev/null");
+    // Selaraskan HEAD dan tabel index (.git/index) ke origin/main terlebih dahulu secara non-working-tree (--mixed)
+    // agar file lama yang sudah dihapus di repositori (seperti firmware lama milik root) dianggap untracked
+    // dan tidak memicu error 'unable to unlink old ... Permission denied' saat git reset --hard dijalankan.
+    @shell_exec("git -C {$root} reset --mixed origin/main 2>/dev/null");
 
     $resetStatus = execCmd("git -C {$root} reset --hard origin/main", "5. Menerapkan Update Kode (Git Reset Hard)");
 
