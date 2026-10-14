@@ -37,21 +37,33 @@ class RunningTextService
         $isTerlambat = stripos($statusStr, 'terlambat') !== false;
         
         $statusLabel = $isMasuk ? ($isTerlambat ? 'TERLAMBAT' : 'HADIR') : 'PULANG';
-        $statusColor = $isMasuk ? ($isTerlambat ? 'red' : 'green') : 'cyan';
+        // Sesuai aturan: Ambil HANYA KATA PERTAMA untuk nama panggilan siswa/guru agar tampil gagah dan pas di layar
+        $words = preg_split('/\s+/', $cleanName);
+        $firstName = strtoupper($words[0] ?? $cleanName);
 
-        // BARIS 1: NAMA BESAR (Mengisi area atas layar secara penuh)
-        $line1 = strtoupper($cleanName);
+        // Pisahkan kelas dan unit jika formatnya "Kelas (Unit)"
+        $className = $cleanSubtext ?: 'Siswa';
+        $unitName = 'PEMBDA';
+        if (preg_match('/^(.*?)\s*\((.*?)\)$/', $cleanSubtext, $matches)) {
+            $className = trim($matches[1]);
+            $unitName = trim($matches[2]);
+        }
+
+        // BARIS 1: NAMA PANGGILAN BESAR (Kata Pertama Saja)
+        $line1 = $firstName;
 
         // BARIS 2: KELAS/UNIT • JAM TAP MASUK • KETERANGAN (HADIR / TERLAMBAT)
-        $subtextFormatted = $cleanSubtext ?: 'PEMBDA';
-        $line2 = sprintf("%s  •  %s WIB  •  %s", $subtextFormatted, $timeStr, $statusLabel);
+        $line2 = sprintf("%s (%s)  •  %s WIB  •  %s", $className, $unitName, $timeStr, $statusLabel);
 
         // Format Teks Tunggal Gabungan (untuk fallback raw marquee)
         $displayText = sprintf("%s   |   %s", $line1, $line2);
 
         $data = [
             'name'             => $cleanName,
+            'first_name'       => $firstName,
             'subtext'          => $cleanSubtext,
+            'class_name'       => $className,
+            'unit_name'        => $unitName,
             'action'           => $isMasuk ? 'MASUK' : 'PULANG',
             'time'             => $timeStr,
             'status'           => $statusLabel,
