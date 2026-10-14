@@ -299,6 +299,18 @@ class AttendanceController extends Controller
                              ], 200);
                          }
                          $existingAttendance->update(['time_out' => $currentTime]);
+
+                         // TRIGGER RUNNING TEXT INTERRUPT (SAPAWAN PULANG)
+                         try {
+                             \App\Services\RunningTextService::recordInterrupt(
+                                 $student->full_name,
+                                 $studentClass->classroom->class_name ?? '',
+                                 'PULANG',
+                                 date('H:i', strtotime($currentTime)),
+                                 'Berhasil Pulang'
+                             );
+                         } catch (\Throwable $ignEx) {}
+
                          return response()->json([
                              'status' => 'success', 'nama' => $student->full_name,
                              'kelas' => $studentClass->classroom->class_name, 'waktu' => date('H:i', strtotime($currentTime)),
@@ -340,6 +352,17 @@ class AttendanceController extends Controller
                     \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
                 }
 
+                // TRIGGER RUNNING TEXT INTERRUPT (SAPAWAN MASUK)
+                try {
+                    \App\Services\RunningTextService::recordInterrupt(
+                        $student->full_name,
+                        $studentClass->classroom->class_name ?? '',
+                        'MASUK',
+                        date('H:i', strtotime($currentTime)),
+                        $status === 'terlambat' ? 'Terlambat' : 'Tepat Waktu'
+                    );
+                } catch (\Throwable $ignEx) {}
+
                 return response()->json([
                     'status' => 'success', 'nama' => $student->full_name,
                     'kelas' => $studentClass->classroom->class_name, 'waktu' => date('H:i', strtotime($currentTime)),
@@ -372,6 +395,18 @@ class AttendanceController extends Controller
                              ], 200);
                          }
                          $existingAttendance->update(['time_out' => $currentTime]);
+
+                         // TRIGGER RUNNING TEXT INTERRUPT (SAPAWAN PULANG PEGAWAI/GURU)
+                         try {
+                             \App\Services\RunningTextService::recordInterrupt(
+                                 $employee->full_name,
+                                 $jabatan,
+                                 'PULANG',
+                                 date('H:i', strtotime($currentTime)),
+                                 'Berhasil Pulang'
+                             );
+                         } catch (\Throwable $ignEx) {}
+
                          return response()->json([
                              'status' => 'success', 'nama' => $employee->full_name,
                              'kelas' => $jabatan, 'waktu' => date('H:i', strtotime($currentTime)),
@@ -486,6 +521,17 @@ class AttendanceController extends Controller
                         }
                     }
                 }
+
+                // TRIGGER RUNNING TEXT INTERRUPT (SAPAWAN MASUK PEGAWAI/GURU)
+                try {
+                    \App\Services\RunningTextService::recordInterrupt(
+                        $employee->full_name,
+                        $jabatan,
+                        'MASUK',
+                        date('H:i', strtotime($currentTime)),
+                        $displayMsg
+                    );
+                } catch (\Throwable $ignEx) {}
 
                 return response()->json([
                     'status' => 'success', 'nama' => $employee->full_name,

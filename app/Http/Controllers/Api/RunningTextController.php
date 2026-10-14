@@ -7,31 +7,31 @@ use App\Models\AlumniDirectory;
 use App\Models\Reputation;
 use App\Models\StudentAchievement;
 use App\Models\StudentDevelopmentNote;
+use App\Services\RunningTextService;
 use Illuminate\Http\Request;
 
 class RunningTextController extends Controller
 {
     /**
      * Live Feed API for Running Text (HD-WF2 / ESP32)
-     * Data Sources:
-     * 1. Pesan dan Kesan Alumni
-     * 2. Hall Of Fame (Reputasi & Prestasi Tertinggi)
-     * 3. Catatan Perkembangan Siswa (Prestasi & Catatan Positif)
+     * Menampilkan 7 kategori playlist informasi berjalan + real-time interrupt sapaan absensi RFID
      */
     public function getLiveFeed(Request $request)
     {
         $type = strtolower($request->input('type', 'all'));
         $format = strtolower($request->input('format', 'json'));
         $separator = $request->input('separator', '   ***   ');
-        $limit = min((int) $request->input('limit', 10), 30);
+        $limit = min((int) $request->input('limit', 3), 10);
         $schoolId = $request->input('school_id');
+
+        // Cek apakah ada selaan / interupsi tap absensi dalam 5 detik terakhir
+        $activeInterrupt = RunningTextService::getActiveInterrupt();
+        $hasInterrupt = !empty($activeInterrupt);
 
         $allFormattedItems = [];
 
-        // =====================================================================
-        // 1. PESAN DAN KESAN ALUMNI
-        // =====================================================================
-        if (in_array($type, ['all', 'alumni', 'pesan'])) {
+        // Jika meminta jenis spesifik legacy
+        if ($type === 'alumni' || $type === 'pesan') {
             $alumniQuery = AlumniDirectory::with('school')
                 ->where('is_approved', true)
                 ->whereNotNull('message')
@@ -42,35 +42,28 @@ class RunningTextController extends Controller
                 $alumniQuery->where('school_id', $schoolId);
             }
 
-            $alumnis = $alumniQuery->take($limit)->get();
+            $alumnis = $alumniQuery->take($limit * 3)->get();
             foreach ($alumnis as $alumni) {
                 $schoolName = $alumni->school ? $alumni->school->name : 'PEMBDA';
                 $cleanMsg = trim(preg_replace('/\s+/', ' ', $alumni->message));
 
                 $allFormattedItems[] = sprintf(
-                    "[ 🎓 PESAN ALUMNI - %s (%s - %s) : \"%s\" ]",
+                    "[ 🎓 PESAN ALUMNI - %s (%s '%s) : \"%s\" ]",
                     $alumni->full_name,
                     $schoolName,
                     $alumni->graduation_year,
                     $cleanMsg
                 );
             }
-        }
-
-        // =====================================================================
-        // 2. HALL OF FAME (REPUTASI TERBAIK SISWA & GURU)
-        // =====================================================================
-        if (in_array($type, ['all', 'hall_of_fame', 'hof', 'reputasi'])) {
+        } elseif ($type === 'hall_of_fame' || $type === 'hof' || $type === 'reputasi') {
             $hofQuery = Reputation::with(['user.school', 'user.student', 'user.teacher'])
                 ->orderByDesc('total_points');
 
             if ($schoolId) {
-                $hofQuery->whereHas('user', function ($q) use ($schoolId) {
-                    $q->where('school_id', $schoolId);
-                });
+                $hofQuery->whereHas('user', fn($q) => $q->where('school_id', $schoolId));
             }
 
-            $hofList = $hofQuery->take($limit)->get();
+            $hofList = $hofQuery->take($limit * 3)->get();
             foreach ($hofList as $index => $rep) {
                 $u = $rep->user;
                 if (!$u) continue;
@@ -90,85 +83,60 @@ class RunningTextController extends Controller
                     $rep->total_points
                 );
             }
-        }
-
-        // =====================================================================
-        // 3. CATATAN PERKEMBANGAN SISWA (PRESTASI & OBSERVASI POSITIF)
-        // =====================================================================
-        if (in_array($type, ['all', 'prestasi', 'development', 'catatan'])) {
-            // A. Prestasi Resmi (StudentAchievement)
-            $achievementsQuery = StudentAchievement::with(['student.school'])
-                ->latest('achievement_date');
-
-            if ($schoolId) {
-                $achievementsQuery->whereHas('student', function ($q) use ($schoolId) {
-                    $q->where('school_id', $schoolId);
-                });
-            }
-
-            $achievements = $achievementsQuery->take($limit)->get();
-            foreach ($achievements as $ach) {
-                $studentName = $ach->student ? $ach->student->full_name : 'Siswa';
-                $schoolName = $ach->student && $ach->student->school ? $ach->student->school->name : 'PEMBDA';
-                $rankStr = $ach->rank_label != '-' ? $ach->rank_label : 'Prestasi';
-                $levelStr = $ach->level_label != '-' ? 'Tingkat ' . $ach->level_label : '';
-                $cleanTitle = trim(preg_replace('/\s+/', ' ', $ach->title));
-
-                $allFormattedItems[] = sprintf(
-                    "[ ⭐ PRESTASI SISWA - %s (%s) : %s %s - %s ]",
-                    $studentName,
-                    $schoolName,
-                    $rankStr,
-                    $cleanTitle,
-                    $levelStr
-                );
-            }
-
-            // B. Catatan Perkembangan Siswa (StudentDevelopmentNote)
-            $devNotesQuery = StudentDevelopmentNote::with(['student.school'])
-                ->latest('created_at');
-
-            if ($schoolId) {
-                $devNotesQuery->where('school_id', $schoolId);
-            }
-
-            $devNotes = $devNotesQuery->take($limit)->get();
-            foreach ($devNotes as $note) {
-                $studentName = $note->student ? $note->student->full_name : 'Siswa';
-                $schoolName = $note->school ? $note->school->name : 'PEMBDA';
-                $aspectStr = ucfirst($note->aspect);
-                $cleanObs = trim(preg_replace('/\s+/', ' ', $note->observation));
-
-                $allFormattedItems[] = sprintf(
-                    "[ 📈 CATATAN PERKEMBANGAN SISWA - %s (%s - Aspect %s) : \"%s\" ]",
-                    $studentName,
-                    $schoolName,
-                    $aspectStr,
-                    $cleanObs
-                );
+        } else {
+            // Mode Default 'all': Menghimpun 7 Kategori Lengkap
+            // 1. Berita & Pengumuman
+            // 2. Prestasi Siswa
+            // 3. Agenda Kegiatan Hari Ini
+            // 4. Pojok Literasi & Motivasi
+            // 5. Judul Penelitian Akhir SMA
+            // 6. Judul Project Kejuruan SMK
+            // 7. Pesan dan Kesan Alumni
+            $playlistObjects = RunningTextService::getContinuousPlaylist($limit, $schoolId);
+            foreach ($playlistObjects as $p) {
+                $allFormattedItems[] = $p['text'];
             }
         }
 
-        // Fallback default message if empty
         if (empty($allFormattedItems)) {
-            $allFormattedItems[] = "[ *** SELAMAT DATANG DI PERGURUAN PEMBDA *** ]";
+            $allFormattedItems[] = "[ *** SELAMAT DATANG DI PERGURUAN PEMBDA NIAS *** ]";
         }
 
         $fullRunningTextString = implode($separator, $allFormattedItems);
 
-        // Return raw plain text if requested (for microcontrollers like ESP32)
+        // Jika ada interupsi aktif, teks tampilan layar yang diprioritaskan adalah interupsi absensi
+        $activeDisplayText = $hasInterrupt ? $activeInterrupt['display_text'] : $fullRunningTextString;
+
+        // Return raw plain text (ideal untuk microcontroller ESP32 atau bridge Huidu)
         if ($format === 'raw' || $format === 'text' || $request->is('*/raw')) {
-            return response($fullRunningTextString, 200)
+            return response($activeDisplayText, 200)
                 ->header('Content-Type', 'text/plain; charset=utf-8');
         }
 
         return response()->json([
-            'status' => 'success',
-            'type' => $type,
-            'total_items' => count($allFormattedItems),
-            'separator' => $separator,
-            'running_text' => $fullRunningTextString,
-            'items' => $allFormattedItems,
+            'status'         => 'success',
+            'has_interrupt'  => $hasInterrupt,
+            'interrupt'      => $activeInterrupt,
+            'display_text'   => $activeDisplayText,
+            'running_text'   => $fullRunningTextString,
+            'total_items'    => count($allFormattedItems),
+            'separator'      => $separator,
+            'items'          => $allFormattedItems,
+        ]);
+    }
+
+    /**
+     * Endpoint khusus untuk mengecek event selaan / interupsi tap RFID saja
+     * GET /api/running-text/interrupt
+     */
+    public function getInterrupt(Request $request)
+    {
+        $activeInterrupt = RunningTextService::getActiveInterrupt();
+
+        return response()->json([
+            'status'        => 'success',
+            'has_interrupt' => !empty($activeInterrupt),
+            'interrupt'     => $activeInterrupt,
         ]);
     }
 

@@ -47,7 +47,7 @@ class NewsController extends Controller
             'title'         => 'required|string|max:255',
             'excerpt'       => 'nullable|string|max:500',
             'content'       => 'nullable|string',
-            'category'      => 'required|in:prestasi,kegiatan,kerjasama,pengumuman',
+            'category'      => 'required|in:prestasi,kegiatan,kerjasama,pengumuman,motivasi',
             'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
             'icon'          => 'nullable|string|max:100',
             'gradient_from' => 'nullable|string|max:20',
@@ -73,6 +73,7 @@ class NewsController extends Controller
                 'kegiatan'   => 'fa-solid fa-users',
                 'kerjasama'  => 'fa-solid fa-handshake',
                 'pengumuman' => 'fa-solid fa-bullhorn',
+                'motivasi'   => 'fa-solid fa-lightbulb',
                 default      => 'fa-solid fa-newspaper',
             };
         }
@@ -83,6 +84,7 @@ class NewsController extends Controller
                 'kegiatan'   => '#059669',
                 'kerjasama'  => '#d97706',
                 'pengumuman' => '#7c3aed',
+                'motivasi'   => '#e11d48',
                 default      => '#2563eb',
             };
             $validated['gradient_to'] = match ($validated['category']) {
@@ -90,6 +92,7 @@ class NewsController extends Controller
                 'kegiatan'   => '#34d399',
                 'kerjasama'  => '#fbbf24',
                 'pengumuman' => '#a78bfa',
+                'motivasi'   => '#fb7185',
                 default      => '#60a5fa',
             };
         }
@@ -111,7 +114,7 @@ class NewsController extends Controller
             'title'         => 'required|string|max:255',
             'excerpt'       => 'nullable|string|max:500',
             'content'       => 'nullable|string',
-            'category'      => 'required|in:prestasi,kegiatan,kerjasama,pengumuman',
+            'category'      => 'required|in:prestasi,kegiatan,kerjasama,pengumuman,motivasi',
             'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
             'icon'          => 'nullable|string|max:100',
             'gradient_from' => 'nullable|string|max:20',

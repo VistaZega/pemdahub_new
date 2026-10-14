@@ -102,6 +102,7 @@
                             <option value="prestasi" {{ old('category', $news->category) == 'prestasi' ? 'selected' : '' }}>Prestasi</option>
                             <option value="kerjasama" {{ old('category', $news->category) == 'kerjasama' ? 'selected' : '' }}>Kerjasama</option>
                             <option value="pengumuman" {{ old('category', $news->category) == 'pengumuman' ? 'selected' : '' }}>Pengumuman</option>
+                            <option value="motivasi" {{ old('category', $news->category) == 'motivasi' ? 'selected' : '' }}>Motivasi & Literasi</option>
                         </select>
                     </div>
 
