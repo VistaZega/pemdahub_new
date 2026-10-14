@@ -10,7 +10,7 @@ Setiap station memiliki **1 folder dan 1 file firmware `.ino` tersendiri** denga
 
 | Nama Folder & File | Device ID | Unit Sekolah | Mikrokontroler | Layar LCD | Audio & Indikator | Pemindai Tambahan |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`Station_SMK_01`** | `STATION-SMK-01` | SMK Swasta Pembda | NodeMCU V3 (ESP8266) | **LCD 16x2** | DFPlayer MP3 (D4) + Buzzer (D8) + LED (D3) | RFID RC522 |
+| **`Station_SMK_01`** | `STATION-SMK-01` | SMK Swasta Pembda | ESP32 DevKit V1 | **LCD 16x2** | DFPlayer MP3 (TX2=17) + Buzzer (2) + 2 LED (15, 13) | RFID RC522 |
 | **`Station_SMK_02`** | `STATION-SMK-02` | SMK Swasta Pembda | NodeMCU V3 (ESP8266) | **LCD 16x2** | DFPlayer MP3 (D4) + Buzzer (D8) + LED (D3) | RFID RC522 |
 | **`Station_SMK_03`** | `STATION-SMK-03` | SMK Swasta Pembda | NodeMCU V3 (ESP8266) | **LCD 16x2** | Buzzer (D8) + 2 LED (Hijau D3, Merah D4) *(No MP3)* | RFID RC522 |
 | **`Station_SMK_04`** | `STATION-SMK-04` | SMK Swasta Pembda | ESP32 DevKit V1 | **LCD 16x2** | DFPlayer MP3 (TX2=17) + Buzzer (2) + 2 LED (15, 13) | RFID RC522 |

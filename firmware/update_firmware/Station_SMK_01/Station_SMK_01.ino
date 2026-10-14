@@ -2,14 +2,14 @@
 //  PEMBDAHUB ATTENDANCE STATION - FIRMWARE RESMI TERSTANDARISASI 2026
 //  STATION ID      : STATION-SMK-01
 //  UNIT SEKOLAH    : SMKS Pembda Nias
-//  MIKROKONTROLER  : NodeMCU V3 (ESP8266 ESP-12F)
+//  MIKROKONTROLER  : ESP32 DevKit V1 (WROOM-32)
 //  LAYAR           : LCD 16x2 I2C (Alamat 0x27 / 0x3F)
 //  AUDIO / SUARA   : DFPlayer Mini MP3 Player + Buzzer Aktif
 //  PEMINDAI        : RFID RC522 (13.56 MHz)
 // ==============================================================================
 //  STANDAR FITUR PEMBDAHUB:
 //  1. Prioritas Mutlak LAN: Konek ke PembdaLINK dahulu + Auto-Switchback 90s.
-//  2. Dual-Heartbeat (45s): Lapor SSID, IP, RSSI, RAM, Uptime ke /stations.
+//  2. Dual-Heartbeat (45s): Lapor SSID, BSSID, IP, RSSI, RAM, Uptime ke /stations.
 //  3. Tampilan Simetris Penuh: Menggunakan seluruh 2 baris x 16 kolom.
 //  4. Animasi In-Place: Teks berganti di tempat (tanpa running text buram).
 // ==============================================================================
@@ -18,14 +18,12 @@
 #include <MFRC522.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include <ArduinoJson.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
 #include <WiFiClientSecure.h>
-#include <ESP8266WiFiMulti.h>
+#include <ArduinoJson.h>
 #include <ArduinoOTA.h>
-#include <ESP8266httpUpdate.h>
-#include <SoftwareSerial.h>
+#include <HTTPUpdate.h>
 
 // ==============================================================================
 //  KONFIGURASI IDENTITAS & JARINGAN
@@ -63,14 +61,21 @@ const char* WIFI_ALT4_SSID      = "Black_Hole";
 const char* WIFI_ALT4_PASSWORD  = "pelita31";
 
 // ==============================================================================
-//  PIN DEFINITIONS & HARDWARE MAPPING (NodeMCU V3 (ESP8266 ESP-12F))
+//  PIN DEFINITIONS & HARDWARE MAPPING (ESP32 DevKit V1 (WROOM-32))
 // ==============================================================================
-#define RFID_SS_PIN     16      // D0 (GPIO16) - Chip Select RC522
-#define RFID_RST_PIN   255      // Reset terhubung ke 3.3V
-#define MP3_TX_PIN       2      // D4 (GPIO2)  - TX NodeMCU -> RX DFPlayer via 1k Ohm
+#define RFID_SS_PIN      5      // VSPI CS
+#define RFID_SCK_PIN    18      // VSPI SCK
+#define RFID_MOSI_PIN   23      // VSPI MOSI
+#define RFID_MISO_PIN   19      // VSPI MISO
+#define RFID_RST_PIN     4      // Reset RC522
+#define I2C_SDA_PIN     21      // I2C SDA
+#define I2C_SCL_PIN     22      // I2C SCL
+#define MP3_TX_PIN      17      // UART2 TX2 -> RX DFPlayer
+#define QR_RX_PIN       16      // UART2 RX2 <- TX GM65
 #define MP3_VOLUME      30      // Volume Speaker DFPlayer (0 - 30)
-#define BUZZER_PIN      15      // D8 (GPIO15) - Buzzer Aktif
-#define LED_PIN          0      // D3 (GPIO0)  - LED Indikator
+#define BUZZER_PIN       2      // Buzzer Aktif
+#define LED_GREEN_PIN   15      // LED Hijau Sukses
+#define LED_RED_PIN     13      // LED Merah Gagal
 
 #define LCD_ADDRESS   0x27
 #define LCD_COLS        16
@@ -88,8 +93,6 @@ const char* WIFI_ALT4_PASSWORD  = "pelita31";
 // ==============================================================================
 MFRC522           rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
-ESP8266WiFiMulti  wifiMulti;
-SoftwareSerial    mp3Serial(-1, MP3_TX_PIN);
 
 String        lastUID               = "";
 unsigned long lastTapTime           = 0;
@@ -111,6 +114,7 @@ void printRow(uint8_t row, const String& text);
 void showSlide(int slideIndex);
 void updateInPlaceAnim();
 void connectWiFiInitial();
+void connectWiFiFailover();
 void handleRfidScan();
 void sendToServer(String uid, String type);
 void sendScanBuffer(String uid);
@@ -138,10 +142,12 @@ void setup() {
 
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  pinMode(LED_GREEN_PIN, OUTPUT);
+  pinMode(LED_RED_PIN, OUTPUT);
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(LED_RED_PIN, LOW);
 
-  Wire.begin(4, 5); // D2=SDA, D1=SCL
+  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
   Wire.setClock(400000);
 #ifdef FDB_LIQUID_CRYSTAL_I2C_H
   lcd.begin();
@@ -156,8 +162,7 @@ void setup() {
   beep(1, 100);
   delay(1200);
 
-  SPI.begin();
-  SPI.setFrequency(1000000);
+  SPI.begin(RFID_SCK_PIN, RFID_MISO_PIN, RFID_MOSI_PIN, RFID_SS_PIN);
   delay(50);
   rfid.PCD_Init();
   delay(50);
@@ -165,22 +170,16 @@ void setup() {
   rfid.PCD_AntennaOn();
 
   WiFi.mode(WIFI_STA);
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  WiFi.setSleep(false);
   WiFi.persistent(false);
   WiFi.setAutoReconnect(true);
-
-  wifiMulti.addAP(WIFI_SSID,      WIFI_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT1_SSID, WIFI_ALT1_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT2_SSID, WIFI_ALT2_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT3_SSID, WIFI_ALT3_PASSWORD);
-  wifiMulti.addAP(WIFI_ALT4_SSID, WIFI_ALT4_PASSWORD);
 
   connectWiFiInitial();
   setupOTA();
 
-  mp3Serial.begin(9600);
+  Serial2.begin(9600, SERIAL_8N1, QR_RX_PIN, MP3_TX_PIN);
   delay(300);
-  while (mp3Serial.available()) mp3Serial.read();
+  while (Serial2.available()) Serial2.read();
   setMp3Volume(MP3_VOLUME);
   delay(100);
   playAudio(1, 1);
@@ -199,7 +198,7 @@ void loop() {
   // 1. Pemeriksaan Koneksi WiFi setiap 10 detik
   if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
-    if (wifiMulti.run() == WL_CONNECTED) {
+    if (WiFi.status() == WL_CONNECTED) {
       if (!isOnline) {
         isOnline = true;
         wifiDisconnectedSince = 0;
@@ -207,6 +206,7 @@ void loop() {
       }
     } else {
       if (isOnline) isOnline = false;
+      connectWiFiFailover();
       if (wifiDisconnectedSince == 0) {
         wifiDisconnectedSince = now;
       } else if (now - wifiDisconnectedSince >= WATCHDOG_TIMEOUT_MS) {
@@ -345,6 +345,27 @@ void showSlide(int slideIndex) {
   }
 }
 
+void connectWiFiFailover() {
+  if (WiFi.status() == WL_CONNECTED) return;
+  const char* ssids[] = { WIFI_SSID, WIFI_ALT1_SSID, WIFI_ALT2_SSID, WIFI_ALT3_SSID, WIFI_ALT4_SSID };
+  const char* pwds[]  = { WIFI_PASSWORD, WIFI_ALT1_PASSWORD, WIFI_ALT2_PASSWORD, WIFI_ALT3_PASSWORD, WIFI_ALT4_PASSWORD };
+
+  for (int i = 0; i < 5; i++) {
+    WiFi.begin(ssids[i], pwds[i]);
+    unsigned long st = millis();
+    unsigned long waitLimit = (i == 0) ? 5000 : 3000; // Prioritas ekstra untuk PembdaLINK (i == 0)
+    while (WiFi.status() != WL_CONNECTED && millis() - st < waitLimit) {
+      delay(150);
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+      isOnline = true;
+      wifiDisconnectedSince = 0;
+      return;
+    }
+  }
+  isOnline = false;
+}
+
 void connectWiFiInitial() {
   lcd.clear();
   printCenter(0, "PRIORITAS LAN...");
@@ -362,11 +383,7 @@ void connectWiFiInitial() {
   if (WiFi.status() != WL_CONNECTED) {
     printCenter(0, "CARI WIFI ALT...");
     printCenter(1, "[MULTI-AP SIAGA]");
-    attempt = 0;
-    while (wifiMulti.run() != WL_CONNECTED && attempt < 15) {
-      delay(300);
-      attempt++;
-    }
+    connectWiFiFailover();
   }
   isOnline = (WiFi.status() == WL_CONNECTED);
 }
@@ -383,7 +400,6 @@ void handleRfidScan() {
 
   String uid = getRfidUID();
   unsigned long now = millis();
-  if (isOnline) ArduinoOTA.handle();
   if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
@@ -396,22 +412,23 @@ void handleRfidScan() {
   rfid.PCD_StopCrypto1();
 
   isShowingResult = true;
-  digitalWrite(LED_PIN, HIGH);
+  digitalWrite(LED_GREEN_PIN, HIGH);
   beep(1, 80);
 
   lcd.clear();
-  printCenter(0, "*MEMPROSES DATA*");
+  printCenter(0, "MEMPROSES...");
   printCenter(1, uid);
 
   sendToServer(uid, "rfid");
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, LOW);
 }
-
 
 void sendToServer(String uid, String type) {
   if (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(LED_RED_PIN, HIGH);
     playAudio(1, 7);
     showError("WiFi Terputus!");
+    digitalWrite(LED_RED_PIN, LOW);
     return;
   }
 
@@ -434,7 +451,7 @@ void sendToServer(String uid, String type) {
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
     http.addHeader("Accept", "application/json");
-    http.setTimeout(2500);
+    http.setTimeout(1800);
     httpCode = http.POST(body);
     if (httpCode == 200 || httpCode == 201) {
       payload = http.getString();
@@ -445,7 +462,7 @@ void sendToServer(String uid, String type) {
 
   // 2. Failover Otomatis: Server Cloud HTTPS (perguruanpembda.com)
   if (!success) {
-    BearSSL::WiFiClientSecure secureClient;
+    WiFiClientSecure secureClient;
     secureClient.setInsecure();
     HTTPClient http;
     http.begin(secureClient, SERVER_CLOUD_URL);
@@ -464,11 +481,15 @@ void sendToServer(String uid, String type) {
   if (success) {
     parseAndDisplay(payload, uid);
   } else if (httpCode == 404) {
+    digitalWrite(LED_RED_PIN, HIGH);
     playAudio(1, 6);
     showError("Kartu Tdk Drftr");
+    digitalWrite(LED_RED_PIN, LOW);
   } else {
+    digitalWrite(LED_RED_PIN, HIGH);
     playAudio(1, 7);
     showError("Server Err " + String(httpCode));
+    digitalWrite(LED_RED_PIN, LOW);
   }
 }
 
@@ -500,18 +521,16 @@ void parseAndDisplay(String json, String uid) {
 
   lcd.clear();
   if (status == "success" || status == "info") {
+    digitalWrite(LED_GREEN_PIN, HIGH);
     if (action_code == "CHECK_IN") {
-      printCenter(0, nama != "" ? nama : "PRESENSI MASUK");
+      printCenter(0, nama != "" ? nama : "** BERHASIL **");
       printCenter(1, "MASUK: " + waktu.substring(0, 5) + " WIB");
-      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0 || kelas.indexOf("Staff") >= 0) {
-        playAudio(1, 5);
-      } else {
-        playAudio(1, 2);
-      }
-      beep(1, 120);
+      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) playAudio(1, 5);
+      else playAudio(1, 2);
+      beep(1, 100);
     } else if (action_code == "CHECK_OUT") {
-      printCenter(0, nama != "" ? nama : "*ABSEN PULANG*");
-      printCenter(1, "PULANG " + waktu.substring(0, 5) + " WIB");
+      printCenter(0, nama != "" ? nama : "** BERHASIL **");
+      printCenter(1, "PULANG: " + waktu.substring(0, 5) + " WIB");
       playAudio(1, 3);
       beep(2, 80);
     } else if (action_code == "COOLDOWN") {
@@ -551,7 +570,7 @@ void sendScanBuffer(String uid) {
   String body;
   serializeJson(doc, body);
 
-  BearSSL::WiFiClientSecure secureClient;
+  WiFiClientSecure secureClient;
   secureClient.setInsecure();
   HTTPClient http;
   http.begin(secureClient, SCAN_BUFFER_CLOUD);
@@ -599,19 +618,19 @@ void performCloudOTA(String otaUrl) {
   printCenter(1, "Mohon Tunggu....");
   beep(2, 100);
 
-  ESPhttpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-  ESPhttpUpdate.rebootOnUpdate(true);
+  httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+  httpUpdate.rebootOnUpdate(true);
 
   if (otaUrl.startsWith("https://")) {
-    BearSSL::WiFiClientSecure secureClient;
+    WiFiClientSecure secureClient;
     secureClient.setInsecure();
-    t_httpUpdate_return ret = ESPhttpUpdate.update(secureClient, otaUrl);
+    t_httpUpdate_return ret = httpUpdate.update(secureClient, otaUrl);
     if (ret == HTTP_UPDATE_FAILED) {
       showError("Cloud OTA Gagal!");
     }
   } else {
     WiFiClient client;
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, otaUrl);
+    t_httpUpdate_return ret = httpUpdate.update(client, otaUrl);
     if (ret == HTTP_UPDATE_FAILED) {
       showError("Local OTA Gagal!");
     }
@@ -622,6 +641,7 @@ void sendHeartbeat() {
   StaticJsonDocument<256> doc;
   doc["device_id"]  = DEVICE_ID;
   doc["ssid"]       = WiFi.SSID();
+  doc["bssid"]      = WiFi.BSSIDstr();
   doc["ip"]         = WiFi.localIP().toString();
   doc["rssi"]       = WiFi.RSSI();
   doc["free_heap"]  = ESP.getFreeHeap();
@@ -651,7 +671,7 @@ void sendHeartbeat() {
     httpLocal.end();
   }
 
-  BearSSL::WiFiClientSecure secureClient;
+  WiFiClientSecure secureClient;
   secureClient.setInsecure();
   HTTPClient http;
   http.begin(secureClient, HEARTBEAT_CLOUD);
@@ -701,7 +721,7 @@ void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
   sum = -sum;
   pkt[7] = (uint8_t)(sum >> 8);
   pkt[8] = (uint8_t)(sum & 0xFF);
-  for (int i = 0; i < 10; i++) mp3Serial.write(pkt[i]);
+  for (int i = 0; i < 10; i++) Serial2.write(pkt[i]);
 }
 
 void playAudio(uint8_t folder, uint8_t track) {
