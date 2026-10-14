@@ -107,11 +107,76 @@ class RunningTextService
     }
 
     /**
+     * Dapatkan pengumuman darurat / kilat jika sedang aktif
+     */
+    public static function getEmergencyBroadcast(): ?array
+    {
+        $data = Cache::get('running_text_emergency');
+        if (!$data) {
+            $val = \App\Models\Setting::getValue('running_text_emergency', null);
+            if (is_string($val)) {
+                $data = json_decode($val, true);
+            } elseif (is_array($val)) {
+                $data = $val;
+            }
+        }
+
+        if (is_array($data) && !empty($data['text']) && ($data['expires_at'] ?? 0) > time()) {
+            $data['remaining_minutes'] = max(1, (int) round(($data['expires_at'] - time()) / 60));
+            return $data;
+        }
+
+        return null;
+    }
+
+    /**
+     * Pasang pengumuman darurat / kilat
+     */
+    public static function setEmergencyBroadcast(string $text, int $minutes = 15): array
+    {
+        $cleanText = trim(preg_replace('/\s+/', ' ', $text));
+        $expiresAt = time() + ($minutes * 60);
+        $data = [
+            'text'             => $cleanText,
+            'created_at'       => time(),
+            'expires_at'       => $expiresAt,
+            'duration_minutes' => $minutes,
+        ];
+
+        Cache::put('running_text_emergency', $data, $minutes * 60);
+        \App\Models\Setting::setValue('running_text_emergency', json_encode($data), 'string', 'running_text');
+
+        return $data;
+    }
+
+    /**
+     * Hapus pengumuman darurat
+     */
+    public static function clearEmergencyBroadcast(): void
+    {
+        Cache::forget('running_text_emergency');
+        \App\Models\Setting::setValue('running_text_emergency', '', 'string', 'running_text');
+    }
+
+    /**
      * Himpun seluruh 7 kategori playlist berjalan secara normal (Background Continuous Loop)
      */
     public static function getContinuousPlaylist(int $limitPerCategory = 3, ?int $schoolId = null): array
     {
         $playlist = [];
+
+        // ---------------------------------------------------------------------
+        // 0. PENGUMUMAN DARURAT / KILAT (JIKA AKTIF, SELALU DI URUTAN PERTAMA)
+        // ---------------------------------------------------------------------
+        $emergency = self::getEmergencyBroadcast();
+        if ($emergency) {
+            $playlist[] = [
+                'category' => 'emergency',
+                'icon'     => '🚨',
+                'tag'      => 'PENGUMUMAN MENDESAK',
+                'text'     => sprintf("[ 🚨 PENGUMUMAN MENDESAK : %s ]", $emergency['text']),
+            ];
+        }
 
         // ---------------------------------------------------------------------
         // 1. BERITA & PENGUMUMAN SEKOLAH

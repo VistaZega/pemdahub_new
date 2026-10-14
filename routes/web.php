@@ -97,6 +97,18 @@ Route::match(['get', 'post'], '/stations', function () {
 })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])->name('public.stations');
 
 // ============================================================
+//  PUSAT KONTROL & SIMULATOR RUNNING TEKS (/runteks)
+//  Akses: https://perguruanpembda.com/runteks
+// ============================================================
+Route::get('/runteks', [App\Http\Controllers\RunningTextWebController::class, 'index'])->name('runteks.index');
+Route::get('/runteks/live-status', [App\Http\Controllers\RunningTextWebController::class, 'getLiveStatus'])->name('runteks.live-status');
+Route::post('/runteks/simulate-tap', [App\Http\Controllers\RunningTextWebController::class, 'simulateTap'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])->name('runteks.simulate-tap');
+Route::post('/runteks/emergency', [App\Http\Controllers\RunningTextWebController::class, 'setEmergency'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])->name('runteks.emergency');
+Route::post('/runteks/clear-emergency', [App\Http\Controllers\RunningTextWebController::class, 'clearEmergency'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])->name('runteks.clear-emergency');
+Route::post('/runteks/settings', [App\Http\Controllers\RunningTextWebController::class, 'saveSettings'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])->name('runteks.settings');
+Route::post('/runteks/unlock', [App\Http\Controllers\RunningTextWebController::class, 'unlock'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])->name('runteks.unlock');
+
+// ============================================================
 //  SHARED YAYASAN VIEW (Public dengan Token)
 // ============================================================
 Route::get('/yayasan/progress-input/shared', [App\Http\Controllers\Yayasan\ProgressInputController::class, 'indexShared'])->name('shared.progress-input');
