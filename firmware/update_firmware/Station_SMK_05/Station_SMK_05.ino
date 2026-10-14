@@ -170,7 +170,10 @@ void setup() {
   rfid.PCD_AntennaOn();
 
   WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true);
+  delay(100);
   WiFi.setSleep(false);
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);
   WiFi.persistent(false);
   WiFi.setAutoReconnect(true);
 
@@ -195,8 +198,8 @@ void loop() {
   unsigned long now = millis();
   if (isOnline) ArduinoOTA.handle();
 
-  // 1. Pemeriksaan Koneksi WiFi setiap 10 detik
-  if (now - lastWiFiCheck >= 10000 || lastWiFiCheck == 0) {
+  // 1. Pemeriksaan Koneksi WiFi setiap 25 detik
+  if (now - lastWiFiCheck >= 25000 || lastWiFiCheck == 0) {
     lastWiFiCheck = now;
     if (WiFi.status() == WL_CONNECTED) {
       if (!isOnline) {
@@ -351,40 +354,83 @@ void connectWiFiFailover() {
   const char* pwds[]  = { WIFI_PASSWORD, WIFI_ALT1_PASSWORD, WIFI_ALT2_PASSWORD, WIFI_ALT3_PASSWORD, WIFI_ALT4_PASSWORD };
 
   for (int i = 0; i < 5; i++) {
+    if (ssids[i] == nullptr || strlen(ssids[i]) == 0) continue;
+    Serial.print(F("[WIFI] Mencoba AP: ")); Serial.print(ssids[i]);
+    WiFi.disconnect();
+    delay(50);
     WiFi.begin(ssids[i], pwds[i]);
     unsigned long st = millis();
-    unsigned long waitLimit = (i == 0) ? 5000 : 3000; // Prioritas ekstra untuk PembdaLINK (i == 0)
+    unsigned long waitLimit = (i == 0) ? 8000 : 6000; // 8 detik untuk PembdaLINK, 6 detik untuk cadangan
     while (WiFi.status() != WL_CONNECTED && millis() - st < waitLimit) {
-      delay(150);
+      delay(250);
+      Serial.print(F("."));
     }
     if (WiFi.status() == WL_CONNECTED) {
       isOnline = true;
       wifiDisconnectedSince = 0;
+      Serial.println(F(" [OK CONNECTED!]"));
+      Serial.print(F("[WIFI] SSID : ")); Serial.println(WiFi.SSID());
+      Serial.print(F("[WIFI] IP   : ")); Serial.println(WiFi.localIP());
+      Serial.print(F("[WIFI] RSSI : ")); Serial.print(WiFi.RSSI()); Serial.println(F(" dBm"));
       return;
     }
+    Serial.println(F(" [TIMEOUT/GAGAL]"));
   }
   isOnline = false;
+  Serial.println(F("[WIFI] Semua SSID cadangan belum berhasil terhubung."));
 }
 
 void connectWiFiInitial() {
+  Serial.println(F("\n========================================================"));
+  Serial.print  (F("[WIFI] Menghubungkan ke LAN Utama: ")); Serial.println(WIFI_SSID);
+  Serial.println(F("========================================================"));
   lcd.clear();
   printCenter(0, "PRIORITAS LAN...");
   printCenter(1, ">> PembdaLINK <<");
 
-  // PRIORITAS 1 MUTLAK: Konek langsung ke PembdaLINK (LAN Lokal) terlebih dahulu (6 detik)
+  // PRIORITAS 1 MUTLAK: Konek langsung ke PembdaLINK (LAN Lokal) dengan batas waktu 15 detik (50 x 300ms)
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   int attempt = 0;
-  while (WiFi.status() != WL_CONNECTED && attempt < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempt < 50) {
     delay(300);
     attempt++;
+    if (attempt % 3 == 0) {
+      Serial.print(F("."));
+      String dots = "";
+      int numDots = ((attempt / 3) % 4) + 1;
+      for (int d = 0; d < numDots; d++) dots += ".";
+      printCenter(1, ">> Konek" + dots + " <<");
+    }
   }
 
-  // PRIORITAS 2 (FAILOVER): Hanya jika PembdaLINK tidak terjangkau, cari AP Alternatif
-  if (WiFi.status() != WL_CONNECTED) {
-    printCenter(0, "CARI WIFI ALT...");
-    printCenter(1, "[MULTI-AP SIAGA]");
-    connectWiFiFailover();
+  if (WiFi.status() == WL_CONNECTED) {
+    isOnline = true;
+    Serial.println(F("\n[WIFI] BERHASIL Terhubung ke PembdaLINK!"));
+    Serial.print  (F("[WIFI] IP Address  : ")); Serial.println(WiFi.localIP());
+    Serial.print  (F("[WIFI] BSSID (AP)  : ")); Serial.println(WiFi.BSSIDstr());
+    Serial.print  (F("[WIFI] Sinyal RSSI : ")); Serial.print(WiFi.RSSI()); Serial.println(F(" dBm"));
+
+    lcd.clear();
+    printCenter(0, "LAN TERHUBUNG!  ");
+    printCenter(1, "IP:" + WiFi.localIP().toString());
+    beep(1, 150);
+    delay(1200);
+    return;
   }
+
+  // Jika belum terhubung, evaluasi status kegagalan
+  int stat = WiFi.status();
+  Serial.print(F("\n[WIFI] PembdaLINK belum tersambung (Status: "));
+  if (stat == WL_NO_SSID_AVAIL) Serial.println(F("SSID TIDAK DITEMUKAN / Diluar Jangkauan!)"));
+  else if (stat == WL_CONNECT_FAILED) Serial.println(F("PASSWORD SALAH / Ditolak AP!)"));
+  else if (stat == WL_DISCONNECTED) Serial.println(F("DISCONNECTED / Timeout DHCP!)"));
+  else { Serial.print(stat); Serial.println(F(")")); }
+
+  // PRIORITAS 2 (FAILOVER): Cari AP Alternatif jika PembdaLINK tidak terjangkau
+  printCenter(0, "CARI WIFI ALT...");
+  printCenter(1, "[MULTI-AP SIAGA]");
+  delay(800);
+  connectWiFiFailover();
   isOnline = (WiFi.status() == WL_CONNECTED);
 }
 
