@@ -34,32 +34,30 @@ class RunningTextService
         $cleanSubtext = trim(preg_replace('/\s+/', ' ', $subtext));
         
         $isMasuk = strtoupper($action) === 'MASUK' || stripos($action, 'IN') !== false;
+        $isTerlambat = stripos($statusStr, 'terlambat') !== false;
+        
+        $statusLabel = $isMasuk ? ($isTerlambat ? 'TERLAMBAT' : 'HADIR') : 'PULANG';
+        $statusColor = $isMasuk ? ($isTerlambat ? 'red' : 'green') : 'cyan';
 
-        if ($isMasuk) {
-            $greeting = date('H') < 11 ? 'SELAMAT PAGI' : (date('H') < 15 ? 'SELAMAT SIANG' : 'SELAMAT SORE');
-            $displayText = sprintf(
-                "[ 👋 %s ] %s%s • Masuk: %s WIB • %s",
-                $greeting,
-                $cleanName,
-                $cleanSubtext ? " ({$cleanSubtext})" : '',
-                $timeStr,
-                $statusStr
-            );
-        } else {
-            $displayText = sprintf(
-                "[ 👋 SAMPAI JUMPA ] %s%s • Pulang: %s WIB • Hati-hati di jalan!",
-                $cleanName,
-                $cleanSubtext ? " ({$cleanSubtext})" : '',
-                $timeStr
-            );
-        }
+        // BARIS 1: NAMA BESAR (Mengisi area atas layar secara penuh)
+        $line1 = strtoupper($cleanName);
+
+        // BARIS 2: KELAS/UNIT • JAM TAP MASUK • KETERANGAN (HADIR / TERLAMBAT)
+        $subtextFormatted = $cleanSubtext ?: 'PEMBDA';
+        $line2 = sprintf("%s  •  %s WIB  •  %s", $subtextFormatted, $timeStr, $statusLabel);
+
+        // Format Teks Tunggal Gabungan (untuk fallback raw marquee)
+        $displayText = sprintf("%s   |   %s", $line1, $line2);
 
         $data = [
             'name'             => $cleanName,
             'subtext'          => $cleanSubtext,
             'action'           => $isMasuk ? 'MASUK' : 'PULANG',
             'time'             => $timeStr,
-            'status'           => $statusStr,
+            'status'           => $statusLabel,
+            'status_color'     => $statusColor,
+            'line1'            => $line1,
+            'line2'            => $line2,
             'display_text'     => $displayText,
             'timestamp'        => $now,
             'duration_seconds' => self::INTERRUPT_DURATION_SECONDS,

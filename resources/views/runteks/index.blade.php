@@ -182,10 +182,20 @@
                                 [ SEDANG MEMUAT DATA FEED PEMBDAHUB... ]
                             </span>
                         </div>
-                        <div id="ledInterruptContainer" class="hidden w-full text-center">
-                            <span id="ledInterruptText" class="font-led text-2xl sm:text-4xl led-glow-green font-bold animate-pulse">
-                                [ 👋 SELAMAT PAGI ] BUDI SANTOSO (X TE) • 06:47 WIB • TEPAT WAKTU
-                            </span>
+                        <!-- TAMPILAN INTERUPSI 2-BARIS (MAKSIMAL 256x32 PIXEL) -->
+                        <div id="ledInterruptContainer" class="hidden w-full flex flex-col items-center justify-center py-0.5">
+                            <!-- BARIS 1: NAMA BESAR (Memanfaatkan layar maksimal) -->
+                            <div id="ledInterruptLine1" class="font-led text-3xl sm:text-5xl font-extrabold tracking-widest text-amber-300 led-glow-amber truncate uppercase leading-none drop-shadow w-full text-center">
+                                BUDI SANTOSO
+                            </div>
+                            <!-- BARIS 2: KELAS/UNIT • JAM TAP MASUK • KETERANGAN (HADIR / TERLAMBAT) -->
+                            <div id="ledInterruptLine2" class="font-led text-sm sm:text-2xl tracking-wider text-slate-200 mt-1 sm:mt-1.5 flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+                                <span id="ledInterruptClass" class="text-cyan-300 font-bold">X TE (SMKS PEMBDA)</span>
+                                <span class="text-slate-500">•</span>
+                                <span id="ledInterruptTime" class="text-white">06:47 WIB</span>
+                                <span class="text-slate-500">•</span>
+                                <span id="ledInterruptStatusBadge" class="px-2 py-0.5 rounded text-xs sm:text-lg font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">HADIR</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -200,44 +210,49 @@
                     <div class="flex items-center gap-2">
                         <span>FPS: <strong class="text-amber-400">60</strong></span>
                         <span>•</span>
-                        <span>Waktu Respons LAN: <strong class="text-emerald-400">&lt; 15ms</strong></span>
+                        <span>Tata Letak: <strong class="text-cyan-400">Nama Besar + Kelas/Jam/Status</strong></span>
                     </div>
                 </div>
             </div>
 
             <!-- INTERACTIVE ACTION BAR (UJI COBA LANGSUNG) -->
             <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <button onclick="triggerSimulateTap('BUDI SANTOSO', 'X TE - SMK', 'MASUK', 'Tepat Waktu')" 
+                <button onclick="triggerSimulateTap('BUDI SANTOSO', 'X TE (SMKS Pembda)', 'MASUK', 'Hadir')" 
                         class="p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-600/20 border border-slate-700 hover:border-emerald-500/50 text-left transition group">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">Tes Siswa Masuk</span>
-                        <i class="fas fa-sign-in-alt text-xs text-emerald-400"></i>
+                        <span class="text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">Tes Hadir (Tepat Waktu)</span>
+                        <i class="fas fa-check-circle text-xs text-emerald-400"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 truncate">Selaan: Budi Santoso (X TE)</p>
+                    <p class="text-[11px] text-slate-400 truncate">Budi Santoso • 06:47 • HADIR</p>
                 </button>
 
-                <button onclick="triggerSimulateTap('SITI RAHMA', 'XII DPIB - SMK', 'PULANG', 'Berhasil Pulang')" 
+                <button onclick="triggerSimulateTap('MICHAEL GEA', 'XI DPIB (SMKS Pembda)', 'MASUK', 'Terlambat')" 
+                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-rose-600/20 border border-slate-700 hover:border-rose-500/50 text-left transition group">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-semibold text-rose-400 group-hover:text-rose-300">Tes Masuk (Terlambat)</span>
+                        <i class="fas fa-exclamation-triangle text-xs text-rose-400"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 truncate">Michael Gea • 07:35 • TERLAMBAT</p>
+                </button>
+
+                <button onclick="triggerSimulateTap('SITI RAHMA', 'XII MIPA 1 (SMAS Pembda)', 'PULANG', 'Pulang')" 
                         class="p-3 rounded-xl bg-slate-800/80 hover:bg-cyan-600/20 border border-slate-700 hover:border-cyan-500/50 text-left transition group">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-xs font-semibold text-cyan-400 group-hover:text-cyan-300">Tes Siswa Pulang</span>
                         <i class="fas fa-sign-out-alt text-xs text-cyan-400"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 truncate">Selaan: Siti Rahma (XII DPIB)</p>
+                    <p class="text-[11px] text-slate-400 truncate">Siti Rahma • 14:05 • PULANG</p>
                 </button>
 
-                <button onclick="triggerSimulateTap('Drs. Y. ZEGA', 'Guru Produktif TE', 'MASUK', 'Hadir Mengajar')" 
+                <button onclick="triggerSimulateTap('Drs. Y. ZEGA', 'Guru Produktif (SMK)', 'MASUK', 'Hadir')" 
                         class="p-3 rounded-xl bg-slate-800/80 hover:bg-indigo-600/20 border border-slate-700 hover:border-indigo-500/50 text-left transition group">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300">Tes Guru / Staf</span>
                         <i class="fas fa-chalkboard-teacher text-xs text-indigo-400"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 truncate">Selaan: Drs. Y. Zega (Guru)</p>
+                    <p class="text-[11px] text-slate-400 truncate">Drs. Y. Zega • HADIR</p>
                 </button>
-
-                <button onclick="openEmergencyModal()" 
-                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-rose-600/20 border border-slate-700 hover:border-rose-500/50 text-left transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-rose-400 group-hover:text-rose-300">Kirim Breaking News</span>
+            </div>
                         <i class="fas fa-bullhorn text-xs text-rose-400"></i>
                     </div>
                     <p class="text-[11px] text-slate-400 truncate">Pasang pengumuman kilat</p>
@@ -606,12 +621,39 @@ while ($true) {
                 const modeBadge = document.getElementById('modeBadge');
 
                 if (data.has_interrupt && data.interrupt) {
-                    // Tampilkan selaan interupsi tap absen
+                    // Tampilkan selaan interupsi tap absen (2-Baris Maksimal 256x32)
                     normalContainer.classList.add('hidden');
                     interruptContainer.classList.remove('hidden');
-                    interruptText.textContent = data.interrupt.display_text;
+
+                    const it = data.interrupt;
+                    const line1El = document.getElementById('ledInterruptLine1');
+                    const classEl = document.getElementById('ledInterruptClass');
+                    const timeEl = document.getElementById('ledInterruptTime');
+                    const badgeEl = document.getElementById('ledInterruptStatusBadge');
+
+                    line1El.textContent = it.line1 || it.name.toUpperCase();
+                    classEl.textContent = it.subtext || 'PEMBDA';
+                    timeEl.textContent = `${it.time} WIB`;
+
+                    const isTerlambat = (it.status === 'TERLAMBAT' || it.status_color === 'red');
+                    const isPulang = (it.action === 'PULANG' || it.status === 'PULANG');
+
+                    if (isTerlambat) {
+                        badgeEl.textContent = 'TERLAMBAT';
+                        badgeEl.className = "px-2.5 py-0.5 rounded text-xs sm:text-base font-bold bg-rose-500/20 text-rose-300 border border-rose-500/50 animate-pulse";
+                        line1El.className = "font-led text-3xl sm:text-5xl font-extrabold tracking-widest text-rose-300 led-glow-red truncate uppercase leading-none drop-shadow w-full text-center";
+                    } else if (isPulang) {
+                        badgeEl.textContent = 'PULANG';
+                        badgeEl.className = "px-2.5 py-0.5 rounded text-xs sm:text-base font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/50";
+                        line1El.className = "font-led text-3xl sm:text-5xl font-extrabold tracking-widest text-cyan-300 led-glow-amber truncate uppercase leading-none drop-shadow w-full text-center";
+                    } else {
+                        badgeEl.textContent = 'HADIR';
+                        badgeEl.className = "px-2.5 py-0.5 rounded text-xs sm:text-base font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50";
+                        line1El.className = "font-led text-3xl sm:text-5xl font-extrabold tracking-widest text-amber-300 led-glow-amber truncate uppercase leading-none drop-shadow w-full text-center";
+                    }
+
                     modeBadge.className = "px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold animate-pulse";
-                    modeBadge.textContent = "⚡ INTERUPSI ABSENSI AKTIF (" + (data.interrupt.remaining_seconds || 4) + "s)";
+                    modeBadge.textContent = "⚡ INTERUPSI ABSENSI (" + (it.remaining_seconds || 4) + "s)";
                 } else if (data.has_emergency && data.emergency) {
                     // Tampilkan breaking news di depan
                     interruptContainer.classList.add('hidden');
