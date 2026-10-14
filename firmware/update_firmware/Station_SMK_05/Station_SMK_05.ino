@@ -2,14 +2,14 @@
 //  PEMBDAHUB ATTENDANCE STATION - FIRMWARE RESMI TERSTANDARISASI 2026
 //  STATION ID      : STATION-SMK-05
 //  UNIT SEKOLAH    : SMKS Pembda Nias
-//  MIKROKONTROLER  : ESP32-C3 SuperMini (RISC-V)
+//  MIKROKONTROLER  : ESP32 DevKit 38-Pin / NodeMCU-32S (WROOM-32)
 //  LAYAR           : LCD 16x2 I2C (Alamat 0x27 / 0x3F)
 //  AUDIO / SUARA   : DFPlayer Mini MP3 Player + Buzzer Aktif
 //  PEMINDAI        : RFID RC522 (13.56 MHz)
 // ==============================================================================
 //  STANDAR FITUR PEMBDAHUB:
 //  1. Prioritas Mutlak LAN: Konek ke PembdaLINK dahulu + Auto-Switchback 90s.
-//  2. Dual-Heartbeat (45s): Lapor SSID, IP, RSSI, RAM, Uptime ke /stations.
+//  2. Dual-Heartbeat (45s): Lapor SSID, BSSID, IP, RSSI, RAM, Uptime ke /stations.
 //  3. Tampilan Simetris Penuh: Menggunakan seluruh 2 baris x 16 kolom.
 //  4. Animasi In-Place: Teks berganti di tempat (tanpa running text buram).
 // ==============================================================================
@@ -61,21 +61,21 @@ const char* WIFI_ALT4_SSID      = "Black_Hole";
 const char* WIFI_ALT4_PASSWORD  = "pelita31";
 
 // ==============================================================================
-//  PIN DEFINITIONS & HARDWARE MAPPING (ESP32-C3 SuperMini (RISC-V))
+//  PIN DEFINITIONS & HARDWARE MAPPING (ESP32 DevKit 38-Pin / NodeMCU-32S)
 // ==============================================================================
-#define RFID_SS_PIN      7      // SPI CS
-#define RFID_SCK_PIN     4      // SPI SCK
-#define RFID_MOSI_PIN    6      // SPI MOSI
-#define RFID_MISO_PIN    5      // SPI MISO
-#define RFID_RST_PIN    10      // Reset RC522
-#define I2C_SDA_PIN      8      // I2C SDA
-#define I2C_SCL_PIN      9      // I2C SCL
-#define MP3_TX_PIN      21      // UART1 TX -> RX DFPlayer
-#define MP3_RX_PIN      20      // UART1 RX
+#define RFID_SS_PIN      5      // VSPI CS
+#define RFID_SCK_PIN    18      // VSPI SCK
+#define RFID_MOSI_PIN   23      // VSPI MOSI
+#define RFID_MISO_PIN   19      // VSPI MISO
+#define RFID_RST_PIN     4      // Reset RC522
+#define I2C_SDA_PIN     21      // I2C SDA (D21)
+#define I2C_SCL_PIN     22      // I2C SCL (D22)
+#define MP3_TX_PIN      17      // UART2 TX2 -> RX DFPlayer via 1k Ohm
+#define QR_RX_PIN       16      // UART2 RX2 <- TX GM65
 #define MP3_VOLUME      30      // Volume Speaker DFPlayer (0 - 30)
-#define BUZZER_PIN       2      // Buzzer Aktif
-#define LED_GREEN_PIN    0      // LED Hijau Sukses
-#define LED_RED_PIN      1      // LED Merah Gagal
+#define BUZZER_PIN       2      // Buzzer Aktif (D2)
+#define LED_GREEN_PIN   15      // LED Hijau Sukses (D15)
+#define LED_RED_PIN     13      // LED Merah Gagal (D13)
 
 #define LCD_ADDRESS   0x27
 #define LCD_COLS        16
@@ -177,9 +177,9 @@ void setup() {
   connectWiFiInitial();
   setupOTA();
 
-  Serial1.begin(9600, SERIAL_8N1, MP3_RX_PIN, MP3_TX_PIN);
+  Serial2.begin(9600, SERIAL_8N1, QR_RX_PIN, MP3_TX_PIN);
   delay(300);
-  while (Serial1.available()) Serial1.read();
+  while (Serial2.available()) Serial2.read();
   setMp3Volume(MP3_VOLUME);
   delay(100);
   playAudio(1, 1);
@@ -400,7 +400,6 @@ void handleRfidScan() {
 
   String uid = getRfidUID();
   unsigned long now = millis();
-  if (isOnline) ArduinoOTA.handle();
   if (uid == lastUID && (now - lastTapTime) < SCAN_COOLDOWN_MS) {
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
@@ -417,13 +416,12 @@ void handleRfidScan() {
   beep(1, 80);
 
   lcd.clear();
-  printCenter(0, "*MEMPROSES DATA*");
+  printCenter(0, "MEMPROSES...");
   printCenter(1, uid);
 
   sendToServer(uid, "rfid");
   digitalWrite(LED_GREEN_PIN, LOW);
 }
-
 
 void sendToServer(String uid, String type) {
   if (WiFi.status() != WL_CONNECTED) {
@@ -447,12 +445,13 @@ void sendToServer(String uid, String type) {
 
   // 1. Prioritas Utama: Server Lokal LAN (ketika terhubung ke PembdaLINK)
   if (WiFi.SSID() == WIFI_SSID) {
+    WiFiClient client;
     HTTPClient http;
-    http.begin(SERVER_LOCAL_URL);
+    http.begin(client, SERVER_LOCAL_URL);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Kiosk-API-Key", KIOSK_API_KEY);
     http.addHeader("Accept", "application/json");
-    http.setTimeout(2500);
+    http.setTimeout(1800);
     httpCode = http.POST(body);
     if (httpCode == 200 || httpCode == 201) {
       payload = http.getString();
@@ -522,18 +521,16 @@ void parseAndDisplay(String json, String uid) {
 
   lcd.clear();
   if (status == "success" || status == "info") {
+    digitalWrite(LED_GREEN_PIN, HIGH);
     if (action_code == "CHECK_IN") {
-      printCenter(0, nama != "" ? nama : "PRESENSI MASUK");
+      printCenter(0, nama != "" ? nama : "** BERHASIL **");
       printCenter(1, "MASUK: " + waktu.substring(0, 5) + " WIB");
-      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0 || kelas.indexOf("Staff") >= 0) {
-        playAudio(1, 5);
-      } else {
-        playAudio(1, 2);
-      }
-      beep(1, 120);
+      if (kelas.indexOf("Guru") >= 0 || kelas.indexOf("Staf") >= 0) playAudio(1, 5);
+      else playAudio(1, 2);
+      beep(1, 100);
     } else if (action_code == "CHECK_OUT") {
-      printCenter(0, nama != "" ? nama : "*ABSEN PULANG*");
-      printCenter(1, "PULANG " + waktu.substring(0, 5) + " WIB");
+      printCenter(0, nama != "" ? nama : "** BERHASIL **");
+      printCenter(1, "PULANG: " + waktu.substring(0, 5) + " WIB");
       playAudio(1, 3);
       beep(2, 80);
     } else if (action_code == "COOLDOWN") {
@@ -644,6 +641,7 @@ void sendHeartbeat() {
   StaticJsonDocument<256> doc;
   doc["device_id"]  = DEVICE_ID;
   doc["ssid"]       = WiFi.SSID();
+  doc["bssid"]      = WiFi.BSSIDstr();
   doc["ip"]         = WiFi.localIP().toString();
   doc["rssi"]       = WiFi.RSSI();
   doc["free_heap"]  = ESP.getFreeHeap();
@@ -723,7 +721,7 @@ void sendMp3Command(uint8_t cmd, uint8_t para1, uint8_t para2) {
   sum = -sum;
   pkt[7] = (uint8_t)(sum >> 8);
   pkt[8] = (uint8_t)(sum & 0xFF);
-  for (int i = 0; i < 10; i++) Serial1.write(pkt[i]);
+  for (int i = 0; i < 10; i++) Serial2.write(pkt[i]);
 }
 
 void playAudio(uint8_t folder, uint8_t track) {

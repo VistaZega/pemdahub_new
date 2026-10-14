@@ -14,7 +14,7 @@ Setiap station memiliki **1 folder dan 1 file firmware `.ino` tersendiri** denga
 | **`Station_SMK_02`** | `STATION-SMK-02` | SMK Swasta Pembda | NodeMCU V3 (ESP8266) | **LCD 16x2** | DFPlayer MP3 (D4) + Buzzer (D8) + LED (D3) | RFID RC522 |
 | **`Station_SMK_03`** | `STATION-SMK-03` | SMK Swasta Pembda | NodeMCU V3 (ESP8266) | **LCD 16x2** | Buzzer (D8) + 2 LED (Hijau D3, Merah D4) *(No MP3)* | RFID RC522 |
 | **`Station_SMK_04`** | `STATION-SMK-04` | SMK Swasta Pembda | ESP32 DevKit V1 | **LCD 16x2** | DFPlayer MP3 (TX2=17) + Buzzer (2) + 2 LED (15, 13) | RFID RC522 |
-| **`Station_SMK_05`** | `STATION-SMK-05` | SMK Swasta Pembda | ESP32-C3 SuperMini | **LCD 16x2** | DFPlayer MP3 (TX=21) + Buzzer (2) + 2 LED (0, 1) | RFID RC522 |
+| **`Station_SMK_05`** | `STATION-SMK-05` | SMK Swasta Pembda | ESP32 DevKit 38-Pin | **LCD 16x2** | DFPlayer MP3 (TX2=17) + Buzzer (2) + 2 LED (15, 13) | RFID RC522 |
 | **`Station_SMK_06`** | `STATION-SMK-06` | SMK Swasta Pembda | NodeMCU V3 (ESP8266) | **LCD 16x2** *(opsi 20x4)* | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |
 | **`Station_SMA_01`** | `STATION-SMA-01` | SMAS Pembda 1 | NodeMCU V3 (ESP8266) | **LCD 20x4** | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |
 | **`Station_SMA_02`** | `STATION-SMA-02` | SMAS Pembda 1 | NodeMCU V3 (ESP8266) | **LCD 20x4** | DFPlayer MP3 (D4) + Buzzer (D8) | RFID RC522 + QR GM65 (D3) |

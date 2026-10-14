@@ -30,7 +30,7 @@ $stationSpecs = [
     'STATION-SMK-02' => ['unit' => 'SMK', 'mcu' => 'NodeMCU ESP8266',    'lcd' => 'LCD 16x2', 'fitur' => 'RFID + MP3 + LED'],
     'STATION-SMK-03' => ['unit' => 'SMK', 'mcu' => 'NodeMCU ESP8266',    'lcd' => 'LCD 16x2', 'fitur' => 'RFID + Buzzer + 2 LED'],
     'STATION-SMK-04' => ['unit' => 'SMK', 'mcu' => 'ESP32 DevKit V1',    'lcd' => 'LCD 16x2', 'fitur' => 'RFID + MP3 + 2 LED'],
-    'STATION-SMK-05' => ['unit' => 'SMK', 'mcu' => 'ESP32-C3 SuperMini', 'lcd' => 'LCD 16x2', 'fitur' => 'RFID + MP3 + 2 LED'],
+    'STATION-SMK-05' => ['unit' => 'SMK', 'mcu' => 'ESP32 DevKit 38-Pin', 'lcd' => 'LCD 16x2', 'fitur' => 'RFID + MP3 + 2 LED'],
     'STATION-SMK-06' => ['unit' => 'SMK', 'mcu' => 'NodeMCU ESP8266',    'lcd' => 'LCD 20x4', 'fitur' => 'RFID + QR + MP3'],
     'STATION-SMP-01' => ['unit' => 'SMP', 'mcu' => 'NodeMCU ESP8266',    'lcd' => 'LCD 20x4', 'fitur' => 'RFID + QR + MP3'],
     'STATION-SMP-02' => ['unit' => 'SMP', 'mcu' => 'ESP32 DevKit V1',    'lcd' => 'LCD 20x4', 'fitur' => 'RFID + QR + MP3'],
