@@ -201,6 +201,18 @@ if (!function_exists('auditStationStatus')) {
             }
         }
 
+        // Cek Jadwal Timer Stop Kontak Khusus SMP & SMA (Hidup 05:00 - 17:00 WIB)
+        $unit = $spec['unit'] ?? '';
+        $isTimerUnit = in_array($unit, ['SMA', 'SMP']);
+        $currentHour = (int)date('G');
+        $isTimerOffHours = ($currentHour < 5 || $currentHour >= 17);
+
+        if ($liveStatus === 'OFFLINE' && $isTimerUnit && $isTimerOffHours) {
+            $liveStatus = 'STANDBY_TIMER';
+            $liveStatusLabel = '🌙 STANDBY TIMER (17:00-05:00)';
+            $liveStatusClass = 'badge-timer';
+        }
+
         // Scan Hari Ini
         $todaySiswa = DB::table('attendances')->where('device_id', $deviceId)->where('date', $today)->count();
         $todayGuru  = DB::table('employee_attendances')->where('device_id', $deviceId)->where('date', $today)->count();
@@ -255,6 +267,7 @@ $totalStations = 0;
 $liveOnline = 0;
 $liveIdle = 0;
 $liveOffline = 0;
+$timerStandby = 0;
 $lanConnected = 0;
 $totalScansToday = 0;
 
@@ -274,6 +287,8 @@ foreach ($stationsToAudit as $unit => $devList) {
             }
         } elseif ($res['live_status'] === 'IDLE') {
             $liveIdle++;
+        } elseif ($res['live_status'] === 'STANDBY_TIMER') {
+            $timerStandby++;
         } else {
             $liveOffline++;
         }
@@ -311,6 +326,7 @@ foreach ($stationsToAudit as $unit => $devList) {
         .badge-info { background: #0c4a6e; color: #38bdf8; border: 1px solid #0284c7; }
         .badge-lan { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #10b981; }
         .badge-failover { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+        .badge-timer { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid #6366f1; }
         .badge-hw { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; font-weight: 600; font-size: 10.5px; padding: 2px 7px; }
         .pulse-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #34d399; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
@@ -390,7 +406,7 @@ foreach ($stationsToAudit as $unit => $devList) {
         <div class="sum-card" style="border-left: 4px solid #f87171;">
             <div class="sum-title">PADAM / OFFLINE</div>
             <div class="sum-val" style="color: #f87171;"><?= $liveOffline ?> Station</div>
-            <div class="sum-sub">Adaptor mati / belum dinyalakan</div>
+            <div class="sum-sub"><?= $timerStandby > 0 ? "🌙 +{$timerStandby} Standby Timer (SMP/SMA)" : "Adaptor mati / belum dinyalakan" ?></div>
         </div>
         <div class="sum-card" style="border-left: 4px solid #a855f7;">
             <div class="sum-title">Total Tap/Scan Hari Ini</div>
@@ -404,16 +420,35 @@ foreach ($stationsToAudit as $unit => $devList) {
         $unitDevs = $auditResults[$unit] ?? [];
         $schoolModel = $schools->where('type', $unit)->first();
         $unitOnlineCount = collect($unitDevs)->where('live_status', 'ONLINE')->count();
+        $unitTimerCount = collect($unitDevs)->where('live_status', 'STANDBY_TIMER')->count();
+        $isUnitTimer = in_array($unit, ['SMA', 'SMP']);
+        $curHour = (int)date('G');
+        $isTimerOffNow = ($curHour < 5 || $curHour >= 17);
     ?>
     <div class="card">
         <div class="unit-header">
-            <div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <span class="unit-title <?= $titleClass ?>">UNIT <?= $unit ?> — <?= $schoolModel ? htmlspecialchars($schoolModel->name) : '' ?></span>
+                <?php if ($isUnitTimer): ?>
+                    <span class="badge badge-timer" title="Timer stop kontak otomatis aktif jam 05:00 - 17:00 WIB">
+                        ⏱️ Timer: 05:00 - 17:00 <?= $isTimerOffNow ? '(🌙 Standby Malam)' : '(⚡ Nyala Siang)' ?>
+                    </span>
+                <?php endif; ?>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
-                <span class="badge <?= $unitOnlineCount > 0 ? 'badge-success' : 'badge-danger' ?>">
-                    <?= $unitOnlineCount ?> / <?= count($unitDevs) ?> Online
-                </span>
+                <?php if ($unitOnlineCount > 0): ?>
+                    <span class="badge badge-success">
+                        <?= $unitOnlineCount ?> / <?= count($unitDevs) ?> Online
+                    </span>
+                <?php elseif ($isUnitTimer && $isTimerOffNow && $unitTimerCount > 0): ?>
+                    <span class="badge badge-timer">
+                        🌙 Standby Timer Malam (<?= $unitTimerCount ?> Unit)
+                    </span>
+                <?php else: ?>
+                    <span class="badge badge-danger">
+                        0 / <?= count($unitDevs) ?> Online
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
         <table>
