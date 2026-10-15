@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pusat Kontrol & Simulator Running Teks - Perguruan PEMBDA</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -683,15 +684,39 @@ while ($true) {
         pollInterval = setInterval(fetchLiveDisplayStatus, 2500);
         fetchLiveDisplayStatus();
 
+        const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || "{{ csrf_token() }}";
+
+        // Helper untuk POST request aman dengan CSRF dan JSON parsing handal
+        async function postApiJson(url, payload) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const text = await res.text();
+            let json = null;
+            try {
+                json = JSON.parse(text);
+            } catch (e) {
+                throw new Error(`Server status ${res.status}: Respons bukan JSON`);
+            }
+
+            if (!res.ok) {
+                throw new Error(json?.message || `Terjadi kesalahan (Kode ${res.status})`);
+            }
+
+            return json;
+        }
+
         // 3. Trigger Simulasi Tap RFID
         async function triggerSimulateTap(name, subtext, action, status, school = 'SMAS Pembda 1', time = '') {
             try {
-                const res = await fetch(API_SIMULATE_TAP, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, subtext, action, status, school, time })
-                });
-                const json = await res.json();
+                const json = await postApiJson(API_SIMULATE_TAP, { name, subtext, action, status, school, time });
                 if (json.status === 'success') {
                     // Langsung refresh simulator
                     fetchLiveDisplayStatus();
@@ -716,12 +741,7 @@ while ($true) {
                 return;
             }
             try {
-                const res = await fetch(API_EMERGENCY, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, duration })
-                });
-                const json = await res.json();
+                const json = await postApiJson(API_EMERGENCY, { text, duration });
                 if (json.status === 'success') {
                     closeEmergencyModal();
                     fetchLiveDisplayStatus();
@@ -737,12 +757,7 @@ while ($true) {
             const ip = document.getElementById('inputControllerIp').value.trim();
             if (!ip) return;
             try {
-                const res = await fetch(API_SETTINGS, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ controller_ip: ip })
-                });
-                const json = await res.json();
+                const json = await postApiJson(API_SETTINGS, { controller_ip: ip });
                 if (json.status === 'success') {
                     document.getElementById('lblControllerIp').textContent = ip;
                     alert("Alamat IP Controller berhasil disimpan!");
@@ -762,12 +777,7 @@ while ($true) {
         async function submitPinUnlock() {
             const pin = document.getElementById('inputPin').value.trim();
             try {
-                const res = await fetch(API_UNLOCK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pin })
-                });
-                const json = await res.json();
+                const json = await postApiJson(API_UNLOCK, { pin });
                 if (json.status === 'success') {
                     location.reload();
                 } else {

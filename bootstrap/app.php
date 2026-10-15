@@ -40,6 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
 
+        // Exclude specific public APIs and control endpoints from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'runteks/*',
+            'api/*',
+            'api/v1/*',
+        ]);
+
         $middleware->alias([
             'treasurer' => \App\Http\Middleware\TreasurerMiddleware::class,
             'yayasan' => \App\Http\Middleware\YayasanMiddleware::class,
