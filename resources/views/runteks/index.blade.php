@@ -63,6 +63,12 @@
             text-shadow: 0 0 6px rgba(74, 222, 128, 0.9), 0 0 16px rgba(34, 197, 94, 0.6);
         }
 
+        /* Efek teks menyala (Cyan Info LED) */
+        .led-glow-cyan {
+            color: #38bdf8;
+            text-shadow: 0 0 6px rgba(56, 189, 248, 0.9), 0 0 16px rgba(14, 165, 233, 0.6);
+        }
+
         /* Animasi Marquee Ticker */
         .marquee-wrapper {
             overflow: hidden;
@@ -165,7 +171,7 @@
             <!-- FISIK DISPLAY SIMULATOR -->
             <div class="led-panel-housing rounded-2xl p-4 sm:p-6 border-slate-800">
                 <!-- Bezel Panel P5 Lines -->
-                <div class="relative w-full h-24 sm:h-32 bg-black rounded-xl overflow-hidden flex items-center border border-slate-900 led-grid-pattern px-4">
+                <div class="relative w-full min-h-[105px] sm:min-h-[135px] py-2 bg-black rounded-xl overflow-hidden flex items-center justify-center border border-slate-900 led-grid-pattern px-3 sm:px-6">
                     
                     <!-- Sisi Grid Split Line (Menandai Batas 4 Panel Fisik 64px) -->
                     <div class="absolute inset-0 grid grid-cols-4 pointer-events-none opacity-20">
@@ -176,16 +182,28 @@
                     </div>
 
                     <!-- Container Teks Tampilan -->
-                    <div id="ledDisplayScreen" class="w-full text-center relative z-10">
+                    <div id="ledDisplayScreen" class="w-full text-center relative z-10 flex items-center justify-center">
+                        <!-- 1. Normal Loop Marquee -->
                         <div id="ledNormalContainer" class="marquee-wrapper w-full">
                             <span id="ledMarqueeText" class="marquee-content font-led text-2xl sm:text-4xl led-glow-amber">
                                 [ SEDANG MEMUAT DATA FEED PEMBDAHUB... ]
                             </span>
                         </div>
-                        <div id="ledInterruptContainer" class="hidden w-full text-center">
-                            <span id="ledInterruptText" class="font-led text-2xl sm:text-4xl led-glow-green font-bold animate-pulse">
-                                [ 👋 SELAMAT PAGI ] BUDI SANTOSO (X TE) • 06:47 WIB • TEPAT WAKTU
-                            </span>
+                        
+                        <!-- 2. Selaan Absensi Interupsi Real-Time (3 Baris Rapi) -->
+                        <div id="ledInterruptContainer" class="hidden w-full flex flex-col items-center justify-center text-center space-y-0.5 sm:space-y-1 py-1">
+                            <!-- Baris 1: Sapaan Ramah -->
+                            <div id="ledInterruptGreeting" class="font-led text-sm sm:text-lg text-emerald-400 font-semibold tracking-wider uppercase leading-none drop-shadow-[0_0_8px_rgba(52,211,153,0.85)]">
+                                Selamat Pagi
+                            </div>
+                            <!-- Baris 2: Nama Siswa / Guru (Huruf Lebih Besar, Menonjol & Amber Glow) -->
+                            <div id="ledInterruptName" class="font-led text-3xl sm:text-5xl md:text-6xl text-amber-300 font-bold tracking-wider uppercase leading-none my-0.5 drop-shadow-[0_0_20px_rgba(251,191,36,0.95)] truncate max-w-full px-2">
+                                Yulianus Zega
+                            </div>
+                            <!-- Baris 3: Jam, Keterangan, Kelas/Rombel, dan Unit Sekolah -->
+                            <div id="ledInterruptMeta" class="font-led text-xs sm:text-base text-cyan-300 tracking-wide font-medium leading-none drop-shadow-[0_0_8px_rgba(103,232,249,0.85)]">
+                                [07:10/Terlambat] | X - Budi Utomo | SMAS Pembda 1
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -207,40 +225,40 @@
 
             <!-- INTERACTIVE ACTION BAR (UJI COBA LANGSUNG) -->
             <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <button onclick="triggerSimulateTap('BUDI SANTOSO', 'X TE - SMK', 'MASUK', 'Tepat Waktu')" 
-                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-600/20 border border-slate-700 hover:border-emerald-500/50 text-left transition group">
+                <button onclick="triggerSimulateTap('Yulianus Zega', 'X - Budi Utomo', 'MASUK', 'Terlambat', 'SMAS Pembda 1', '07:10')" 
+                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-amber-600/20 border border-slate-700 hover:border-amber-500/50 text-left transition group">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">Tes Siswa Masuk</span>
-                        <i class="fas fa-sign-in-alt text-xs text-emerald-400"></i>
+                        <span class="text-xs font-semibold text-amber-400 group-hover:text-amber-300">Tes Siswa Terlambat</span>
+                        <i class="fas fa-user-clock text-xs text-amber-400"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 truncate">Selaan: Budi Santoso (X TE)</p>
+                    <p class="text-[11px] text-slate-400 truncate">Yulianus Zega [07:10/Terlambat]</p>
                 </button>
 
-                <button onclick="triggerSimulateTap('SITI RAHMA', 'XII DPIB - SMK', 'PULANG', 'Berhasil Pulang')" 
+                <button onclick="triggerSimulateTap('Budi Santoso', 'XI TE 1', 'MASUK', 'Hadir', 'SMKS Pembda', '06:55')" 
+                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-600/20 border border-slate-700 hover:border-emerald-500/50 text-left transition group">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">Tes Siswa Hadir</span>
+                        <i class="fas fa-sign-in-alt text-xs text-emerald-400"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 truncate">Budi Santoso [06:55/Hadir]</p>
+                </button>
+
+                <button onclick="triggerSimulateTap('Siti Rahma', 'XII DPIB', 'PULANG', 'Pulang', 'SMKS Pembda', '14:05')" 
                         class="p-3 rounded-xl bg-slate-800/80 hover:bg-cyan-600/20 border border-slate-700 hover:border-cyan-500/50 text-left transition group">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-xs font-semibold text-cyan-400 group-hover:text-cyan-300">Tes Siswa Pulang</span>
                         <i class="fas fa-sign-out-alt text-xs text-cyan-400"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 truncate">Selaan: Siti Rahma (XII DPIB)</p>
+                    <p class="text-[11px] text-slate-400 truncate">Siti Rahma [14:05/Pulang]</p>
                 </button>
 
-                <button onclick="triggerSimulateTap('Drs. Y. ZEGA', 'Guru Produktif TE', 'MASUK', 'Hadir Mengajar')" 
+                <button onclick="triggerSimulateTap('Drs. Y. Zega', 'Guru Produktif TE', 'MASUK', 'Hadir', 'SMKS Pembda', '07:05')" 
                         class="p-3 rounded-xl bg-slate-800/80 hover:bg-indigo-600/20 border border-slate-700 hover:border-indigo-500/50 text-left transition group">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300">Tes Guru / Staf</span>
+                        <span class="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300">Tes Guru / Pegawai</span>
                         <i class="fas fa-chalkboard-teacher text-xs text-indigo-400"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 truncate">Selaan: Drs. Y. Zega (Guru)</p>
-                </button>
-
-                <button onclick="openEmergencyModal()" 
-                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-rose-600/20 border border-slate-700 hover:border-rose-500/50 text-left transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-rose-400 group-hover:text-rose-300">Kirim Breaking News</span>
-                        <i class="fas fa-bullhorn text-xs text-rose-400"></i>
-                    </div>
-                    <p class="text-[11px] text-slate-400 truncate">Pasang pengumuman kilat</p>
+                    <p class="text-[11px] text-slate-400 truncate">Drs. Y. Zega [07:05/Hadir]</p>
                 </button>
             </div>
         </section>
@@ -414,7 +432,7 @@
                                 <i class="fas fa-bolt"></i> ⚡ Selaan Absensi
                             </span>
                             <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                                Real-Time 5s
+                                Real-Time 10s
                             </span>
                         </div>
                         <p class="text-xs text-emerald-200/80 line-clamp-2">
@@ -606,12 +624,42 @@ while ($true) {
                 const modeBadge = document.getElementById('modeBadge');
 
                 if (data.has_interrupt && data.interrupt) {
-                    // Tampilkan selaan interupsi tap absen
+                    // Tampilkan selaan interupsi tap absen (3 Baris: Sapaan, Nama Besar, Detail Info)
                     normalContainer.classList.add('hidden');
                     interruptContainer.classList.remove('hidden');
-                    interruptText.textContent = data.interrupt.display_text;
+
+                    const greetingEl = document.getElementById('ledInterruptGreeting');
+                    const nameEl = document.getElementById('ledInterruptName');
+                    const metaEl = document.getElementById('ledInterruptMeta');
+
+                    // Baris 1: Sapaan
+                    if (data.interrupt.greeting && greetingEl) {
+                        greetingEl.textContent = data.interrupt.greeting;
+                    } else if (greetingEl) {
+                        greetingEl.textContent = (data.interrupt.action === 'PULANG') ? 'Sampai Jumpa' : 'Selamat Pagi';
+                    }
+
+                    // Baris 2: Nama Siswa / Guru (Huruf Jumbo)
+                    if (nameEl) {
+                        nameEl.textContent = data.interrupt.name || 'SISWA PEMBDA';
+                    }
+
+                    // Baris 3: Jam, Keterangan, Kelas, dan Unit Sekolah
+                    if (data.interrupt.meta_line && metaEl) {
+                        metaEl.textContent = data.interrupt.meta_line;
+                    } else if (metaEl) {
+                        const t = data.interrupt.time || '--:--';
+                        const s = data.interrupt.status || 'Hadir';
+                        const sub = data.interrupt.subtext || '';
+                        const sch = data.interrupt.school || '';
+                        const parts = [`[${t}/${s}]`];
+                        if (sub) parts.push(sub);
+                        if (sch) parts.push(sch);
+                        metaEl.textContent = parts.join(' | ');
+                    }
+
                     modeBadge.className = "px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold animate-pulse";
-                    modeBadge.textContent = "⚡ INTERUPSI ABSENSI AKTIF (" + (data.interrupt.remaining_seconds || 4) + "s)";
+                    modeBadge.textContent = "⚡ INTERUPSI ABSENSI AKTIF (" + (data.interrupt.remaining_seconds || 10) + "s)";
                 } else if (data.has_emergency && data.emergency) {
                     // Tampilkan breaking news di depan
                     interruptContainer.classList.add('hidden');
@@ -636,12 +684,12 @@ while ($true) {
         fetchLiveDisplayStatus();
 
         // 3. Trigger Simulasi Tap RFID
-        async function triggerSimulateTap(name, subtext, action, status) {
+        async function triggerSimulateTap(name, subtext, action, status, school = 'SMAS Pembda 1', time = '') {
             try {
                 const res = await fetch(API_SIMULATE_TAP, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, subtext, action, status })
+                    body: JSON.stringify({ name, subtext, action, status, school, time })
                 });
                 const json = await res.json();
                 if (json.status === 'success') {

@@ -12,55 +12,89 @@ use Illuminate\Support\Facades\Log;
 
 class RunningTextService
 {
-    public const INTERRUPT_DURATION_SECONDS = 5;
+    public const INTERRUPT_DURATION_SECONDS = 10;
     public const CACHE_KEY_INTERRUPT = 'running_text_interrupt_data';
     public const BUFFER_FILE = 'running_text_interrupt.json';
 
     /**
      * Catat event selaan / interupsi tap RFID (Masuk atau Pulang)
+     * Format Tampilan 3 Baris:
+     * Baris 1: Sapaan (Selamat Pagi / Selamat Siang / Sampai Jumpa)
+     * Baris 2: Nama Siswa / Guru (Dengan ukuran font lebih besar)
+     * Baris 3: [Jam/Status] | Kelas/Jabatan | Unit Sekolah (Contoh: [07:10/Terlambat] | X - Budi Utomo | SMAS Pembda 1)
      */
     public static function recordInterrupt(
         string $name,
         string $subtext = '',
         string $action = 'MASUK',
         string $timeStr = '',
-        string $statusStr = 'Tepat Waktu'
+        string $statusStr = 'Hadir',
+        string $schoolName = ''
     ): array {
         $now = time();
         $timeStr = $timeStr ?: date('H:i');
 
-        // Bersihkan nama agar muat dan rapi di display
+        // Bersihkan nama agar rapi dan tidak terlalu panjang di LED matrix
         $cleanName = trim(preg_replace('/\s+/', ' ', $name));
-        $cleanSubtext = trim(preg_replace('/\s+/', ' ', $subtext));
-        
-        $isMasuk = strtoupper($action) === 'MASUK' || stripos($action, 'IN') !== false;
-
-        if ($isMasuk) {
-            $greeting = date('H') < 11 ? 'SELAMAT PAGI' : (date('H') < 15 ? 'SELAMAT SIANG' : 'SELAMAT SORE');
-            $displayText = sprintf(
-                "[ 👋 %s ] %s%s • Masuk: %s WIB • %s",
-                $greeting,
-                $cleanName,
-                $cleanSubtext ? " ({$cleanSubtext})" : '',
-                $timeStr,
-                $statusStr
-            );
+        $nameParts = explode(' ', $cleanName);
+        if (count($nameParts) > 2 && mb_strlen($cleanName) > 20) {
+            $displayName = $nameParts[0] . ' ' . $nameParts[1];
         } else {
-            $displayText = sprintf(
-                "[ 👋 SAMPAI JUMPA ] %s%s • Pulang: %s WIB • Hati-hati di jalan!",
-                $cleanName,
-                $cleanSubtext ? " ({$cleanSubtext})" : '',
-                $timeStr
-            );
+            $displayName = $cleanName;
         }
 
+        $cleanSubtext = trim(preg_replace('/\s+/', ' ', $subtext));
+        $cleanSchool = trim(preg_replace('/\s+/', ' ', $schoolName));
+
+        $isMasuk = strtoupper($action) === 'MASUK' || stripos($action, 'IN') !== false;
+
+        // Baris 1: Sapaan Ramah
+        if ($isMasuk) {
+            $hour = (int) ($timeStr ? substr($timeStr, 0, 2) : date('H'));
+            if ($hour < 11) {
+                $greeting = 'Selamat Pagi';
+            } elseif ($hour < 15) {
+                $greeting = 'Selamat Siang';
+            } else {
+                $greeting = 'Selamat Sore';
+            }
+        } else {
+            $greeting = 'Sampai Jumpa';
+        }
+
+        // Keterangan status rapi
+        $cleanStatus = trim(preg_replace('/\s+/', ' ', $statusStr));
+        if (empty($cleanStatus)) {
+            $cleanStatus = $isMasuk ? 'Hadir' : 'Pulang';
+        }
+
+        // Baris 3: [Jam/Keterangan] | Kelas | Unit Sekolah
+        $metaParts = [];
+        $metaParts[] = "[{$timeStr}/{$cleanStatus}]";
+        if (!empty($cleanSubtext)) {
+            $metaParts[] = $cleanSubtext;
+        }
+        if (!empty($cleanSchool)) {
+            $metaParts[] = $cleanSchool;
+        }
+        $metaLine = implode(' | ', $metaParts);
+
+        // Teks Tampilan Lengkap (Multi-Baris untuk LED Display & HD2020)
+        $displayText = "{$greeting}\n{$displayName}\n{$metaLine}";
+        $singleLineText = "{$greeting} - {$displayName} - {$metaLine}";
+
         $data = [
-            'name'             => $cleanName,
+            'greeting'         => $greeting,
+            'name'             => $displayName,
+            'full_name'        => $cleanName,
+            'meta_line'        => $metaLine,
             'subtext'          => $cleanSubtext,
+            'school'           => $cleanSchool,
             'action'           => $isMasuk ? 'MASUK' : 'PULANG',
             'time'             => $timeStr,
-            'status'           => $statusStr,
+            'status'           => $cleanStatus,
             'display_text'     => $displayText,
+            'single_line'      => $singleLineText,
             'timestamp'        => $now,
             'duration_seconds' => self::INTERRUPT_DURATION_SECONDS,
             'expires_at'       => $now + self::INTERRUPT_DURATION_SECONDS,

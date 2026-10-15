@@ -84,16 +84,19 @@ class RunningTextWebController extends Controller
         $request->validate([
             'name'      => 'required|string|max:100',
             'subtext'   => 'nullable|string|max:100',
+            'school'    => 'nullable|string|max:100',
             'action'    => 'required|in:MASUK,PULANG',
             'status'    => 'nullable|string|max:50',
+            'time'      => 'nullable|string|max:10',
         ]);
 
         $data = RunningTextService::recordInterrupt(
             $request->input('name'),
-            $request->input('subtext', 'SMK PEMBDA'),
-            $request->input('action'),
-            date('H:i'),
-            $request->input('status', 'Tepat Waktu')
+            $request->input('subtext', 'X - Budi Utomo'),
+            $request->input('action', 'MASUK'),
+            $request->input('time') ?: date('H:i'),
+            $request->input('status', 'Terlambat'),
+            $request->input('school', 'SMAS Pembda 1')
         );
 
         return response()->json([
