@@ -357,5 +357,83 @@ class StudentBillService
             ];
         });
     }
+
+    /**
+     * Bawa potongan / penyesuaian tarif ke bulan-bulan berikutnya di tahun ajaran yang sama.
+     *
+     * @param StudentBill $bill
+     * @param float $newAmount
+     * @param float $discountAmount
+     * @param string|null $discountReason
+     * @param string|null $notes
+     * @param int|null $userId
+     * @return int Jumlah tagihan berikutnya yang berhasil disesuaikan
+     */
+    public function carryOverDiscountToSubsequentMonths(
+        StudentBill $bill,
+        float $newAmount,
+        float $discountAmount = 0,
+        ?string $discountReason = null,
+        ?string $notes = null,
+        ?int $userId = null
+    ): int {
+        if (!$bill->month) {
+            return 0;
+        }
+
+        $academicMonthOrder = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+        $currentPos = array_search((int) $bill->month, $academicMonthOrder);
+
+        if ($currentPos === false) {
+            return 0;
+        }
+
+        $subsequentMonths = array_slice($academicMonthOrder, $currentPos + 1);
+
+        if (empty($subsequentMonths)) {
+            return 0;
+        }
+
+        $subsequentBills = StudentBill::where('student_id', $bill->student_id)
+            ->where('payment_type_id', $bill->payment_type_id)
+            ->where('academic_year_id', $bill->academic_year_id)
+            ->whereIn('month', $subsequentMonths)
+            ->where('paid_amount', 0)
+            ->whereDoesntHave('payments')
+            ->get();
+
+        $updatedCount = 0;
+        foreach ($subsequentBills as $subBill) {
+            $updateData = [
+                'amount' => $newAmount,
+                'discount_amount' => $discountAmount,
+            ];
+            if ($discountReason !== null) {
+                $updateData['discount_reason'] = $discountReason;
+            }
+            if ($notes !== null) {
+                $updateData['notes'] = $notes;
+            }
+            if ($newAmount <= 0) {
+                $updateData['status'] = 'lunas';
+            }
+
+            $subBill->update($updateData);
+            $updatedCount++;
+        }
+
+        if ($updatedCount > 0 && $userId) {
+            \App\Models\ActivityLog::create([
+                'user_id' => $userId,
+                'action' => 'update',
+                'description' => "Menyesuaikan potongan/nominal baru Rp " . number_format($newAmount, 0, ',', '.') . " ke {$updatedCount} tagihan bulan berikutnya untuk {$bill->student->full_name}.",
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'logged_at' => now(),
+            ]);
+        }
+
+        return $updatedCount;
+    }
 }
 

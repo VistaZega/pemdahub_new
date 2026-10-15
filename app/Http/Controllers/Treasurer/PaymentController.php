@@ -121,31 +121,62 @@ class PaymentController extends Controller
     public function store(StorePaymentRequest $request)
     {
         $validated = $request->validated();
+        if (empty($validated['bill_id'])) {
+            $validated['bill_id'] = null;
+        }
 
-        // Verify student belongs to treasurer's school
+        // Verify student belongs to treasurer's school (or user is superadmin/yayasan)
+        $user = auth()->user();
         $student = Student::findOrFail($validated['student_id']);
-        if ($student->school_id != auth()->user()->school_id) {
-            abort(403, 'Unauthorized');
+        if (!$user->isSuperAdmin() && !$user->isYayasan() && $user->school_id && $student->school_id != $user->school_id) {
+            abort(403, 'Unauthorized: Anda tidak memiliki akses ke data siswa sekolah ini.');
         }
 
         try {
-            return DB::transaction(function () use ($validated) {
+            return DB::transaction(function () use ($validated, $request, $student) {
+                // If applying discount carryover from Quick Pay / store form
+                if ($request->boolean('apply_discount_carryover') && !empty($validated['bill_id'])) {
+                    $targetBill = StudentBill::find($validated['bill_id']);
+                    if ($targetBill) {
+                        $newBillAmount = (float) $validated['amount_paid'];
+                        $discountAmount = max(0, (float)$targetBill->amount - $newBillAmount);
+                        $discountReason = $request->input('discount_reason', 'Penyesuaian Potongan Pembayaran');
+
+                        $targetBill->update([
+                            'amount' => $newBillAmount,
+                            'discount_amount' => $discountAmount,
+                            'discount_reason' => $discountReason,
+                        ]);
+
+                        $billService = app(\App\Services\StudentBillService::class);
+                        $billService->carryOverDiscountToSubsequentMonths(
+                            $targetBill,
+                            $newBillAmount,
+                            $discountAmount,
+                            $discountReason,
+                            $validated['notes'] ?? null,
+                            auth()->id()
+                        );
+                    }
+                }
+
                 // Lock bill for update if bill_id exists and verify status
                 if (!empty($validated['bill_id'])) {
                     $bill = StudentBill::where('id', $validated['bill_id'])->lockForUpdate()->first();
                     if ($bill) {
-                        if ($bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
+                        $totalOwed = max(0, (float)$bill->amount - (float)$bill->paid_amount) + (float)$bill->late_fee;
+                        if (!$request->boolean('apply_discount_carryover') && ($bill->status === 'lunas' || ($totalOwed <= 0 && $bill->paid_amount > 0))) {
                             return redirect()->route('treasurer.payments.index')
                                 ->with('warning', 'Tagihan ini sudah lunas.');
                         }
                     }
                 }
 
-                // Anti-Duplicate Window Check (30 seconds)
+                // Anti-Duplicate Window Check (10 seconds)
                 $recentDuplicate = Payment::where('student_id', $validated['student_id'])
                     ->when(!empty($validated['bill_id']), fn($q) => $q->where('bill_id', $validated['bill_id']))
                     ->where('amount_paid', $validated['amount_paid'])
-                    ->where('created_at', '>=', now()->subSeconds(30))
+                    ->where('created_at', '>=', now()->subSeconds(10))
                     ->first();
 
                 if ($recentDuplicate) {
@@ -153,10 +184,10 @@ class PaymentController extends Controller
                         ->with('warning', 'Pembayaran yang sama baru saja dicatat beberapa detik lalu (mencegah pembayaran ganda).');
                 }
 
-                $adminId = \App\Models\User::where('school_id', auth()->user()->school_id)
-                    ->where('role', 'admin')
+                $adminId = \App\Models\User::where('school_id', $student->school_id)
+                    ->whereIn('role', ['admin', 'admin_sekolah'])
                     ->where('is_active', true)
-                    ->first()?->id;
+                    ->first()?->id ?? auth()->id();
 
                 $validated['is_verified'] = true;
                 $validated['verified_by'] = $adminId;
@@ -168,19 +199,23 @@ class PaymentController extends Controller
 
                 if ($payment->bill_id) {
                     $bill = StudentBill::find($payment->bill_id);
-                    $totalPaid = Payment::where('bill_id', $bill->id)
-                        ->where('is_verified', true)
-                        ->sum('amount_paid');
+                    if ($bill) {
+                        $totalPaid = Payment::where('bill_id', $bill->id)
+                            ->where('is_verified', true)
+                            ->sum('amount_paid');
 
-                    $bill->paid_amount = $totalPaid;
+                        $bill->paid_amount = $totalPaid;
 
-                    if ($bill->paid_amount >= $bill->amount) {
-                        $bill->status = 'lunas';
-                    } elseif ($bill->paid_amount > 0) {
-                        $bill->status = 'cicilan';
+                        if ($bill->amount <= 0 || $bill->paid_amount >= $bill->amount) {
+                            $bill->status = 'lunas';
+                        } elseif ($bill->paid_amount > 0) {
+                            $bill->status = 'cicilan';
+                        } else {
+                            $bill->status = 'belum_bayar';
+                        }
+
+                        $bill->save();
                     }
-
-                    $bill->save();
                 }
 
                 return redirect()->route('treasurer.payments.index')
@@ -189,7 +224,7 @@ class PaymentController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('Gagal menyimpan pembayaran: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal menyimpan pembayaran. Silakan coba lagi.');
+            return back()->withInput()->with('error', 'Gagal menyimpan pembayaran: ' . $e->getMessage());
         }
     }
 
@@ -219,15 +254,16 @@ class PaymentController extends Controller
     public function fetchBills(Request $request)
     {
         try {
-            $schoolId = auth()->user()->school_id;
+            $user = auth()->user();
+            $schoolId = $user->school_id;
             $academicYearId = $request->academic_year_id;
             $classroomId = $request->classroom_id;
             $paymentTypeId = $request->payment_type_id;
             $month = $request->month;
 
-            // Verify classroom belongs to treasurer's school
+            // Verify classroom belongs to treasurer's school (unless superadmin/yayasan)
             $classroom = Classroom::findOrFail($classroomId);
-            if ($classroom->school_id != $schoolId) {
+            if (!$user->isSuperAdmin() && !$user->isYayasan() && $classroom->school_id != $schoolId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized access to classroom'
@@ -242,8 +278,10 @@ class PaymentController extends Controller
             // Build query for unpaid bills
             $query = StudentBill::with(['student', 'paymentType'])
                 ->whereIn('student_id', $studentIds)
-                ->whereHas('student', function ($q) use ($schoolId) {
-                    $q->where('school_id', $schoolId);
+                ->when(!$user->isSuperAdmin() && !$user->isYayasan(), function ($q) use ($schoolId) {
+                    $q->whereHas('student', function ($sq) use ($schoolId) {
+                        $sq->where('school_id', $schoolId);
+                    });
                 })
                 ->where('academic_year_id', $academicYearId)
                 ->where('payment_type_id', $paymentTypeId)
@@ -279,7 +317,8 @@ class PaymentController extends Controller
         $validated = $request->validated();
 
         try {
-            $schoolId = auth()->user()->school_id;
+            $user = auth()->user();
+            $schoolId = $user->school_id;
             DB::beginTransaction();
 
             $billIds = $validated['bill_ids'];
@@ -294,13 +333,13 @@ class PaymentController extends Controller
                 $bill = StudentBill::where('id', $billId)->lockForUpdate()->first();
                 
                 // Verify bill belongs to treasurer's school & not paid
-                if (!$bill || $bill->student->school_id != $schoolId || $bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
+                if (!$bill || (!$user->isSuperAdmin() && !$user->isYayasan() && $bill->student->school_id != $schoolId) || $bill->status === 'lunas' || ($bill->amount > 0 && $bill->paid_amount >= $bill->amount)) {
                     continue;
                 }
 
-                // Anti-duplicate check (30 sec window)
+                // Anti-duplicate check (10 sec window)
                 $recentDuplicate = Payment::where('bill_id', $bill->id)
-                    ->where('created_at', '>=', now()->subSeconds(30))
+                    ->where('created_at', '>=', now()->subSeconds(10))
                     ->exists();
 
                 if ($recentDuplicate) {
@@ -308,15 +347,15 @@ class PaymentController extends Controller
                 }
 
                 // Calculate amount to pay (remaining amount + late fee)
-                $remainingAmount = $bill->amount - $bill->paid_amount;
+                $remainingAmount = max(0, $bill->amount - $bill->paid_amount);
                 $lateFee = $bill->late_fee;
                 $totalAmount = $remainingAmount + $lateFee;
 
                 // Get admin for auto-verification
-                $adminId = \App\Models\User::where('school_id', $schoolId)
-                    ->where('role', 'admin')
+                $adminId = \App\Models\User::where('school_id', $bill->student->school_id)
+                    ->whereIn('role', ['admin', 'admin_sekolah'])
                     ->where('is_active', true)
-                    ->first()?->id;
+                    ->first()?->id ?? $userId;
 
                 // Create payment record (auto-verified)
                 $payment = Payment::create([
@@ -335,7 +374,7 @@ class PaymentController extends Controller
 
                 // Update bill status
                 $bill->paid_amount += $totalAmount;
-                if ($bill->paid_amount >= $bill->amount) {
+                if ($bill->amount <= 0 || $bill->paid_amount >= $bill->amount) {
                     $bill->status = 'lunas';
                 } else {
                     $bill->status = 'cicilan';
@@ -373,18 +412,21 @@ class PaymentController extends Controller
     {
         $validated = $request->validated();
 
-        $schoolId = auth()->user()->school_id;
+        $user = auth()->user();
+        $schoolId = $user->school_id;
 
-        // Verify student belongs to treasurer's school
+        // Verify student belongs to treasurer's school (unless superadmin/yayasan)
         $student = Student::findOrFail($validated['student_id']);
-        if ($student->school_id != $schoolId) {
-            abort(403, 'Unauthorized');
+        if (!$user->isSuperAdmin() && !$user->isYayasan() && $user->school_id && $student->school_id != $user->school_id) {
+            abort(403, 'Unauthorized: Anda tidak memiliki akses ke siswa sekolah ini.');
         }
 
         $billIds = explode(',', $validated['bill_ids']);
         $bills = StudentBill::whereIn('id', $billIds)
-            ->whereHas('student', function($q) use ($schoolId) {
-                $q->where('school_id', $schoolId);
+            ->when(!$user->isSuperAdmin() && !$user->isYayasan(), function($q) use ($schoolId) {
+                $q->whereHas('student', function($sq) use ($schoolId) {
+                    $sq->where('school_id', $schoolId);
+                });
             })
             ->get();
 
@@ -393,7 +435,7 @@ class PaymentController extends Controller
         }
 
         try {
-            return DB::transaction(function () use ($validated, $bills, $schoolId) {
+            return DB::transaction(function () use ($validated, $bills, $student) {
                 $successCount = 0;
                 $totalAmountPaid = 0;
                 $monthNames = [
@@ -402,20 +444,20 @@ class PaymentController extends Controller
                     9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
                 ];
 
-                $adminId = \App\Models\User::where('school_id', $schoolId)
-                    ->where('role', 'admin')
+                $adminId = \App\Models\User::where('school_id', $student->school_id)
+                    ->whereIn('role', ['admin', 'admin_sekolah'])
                     ->where('is_active', true)
-                    ->first()?->id;
+                    ->first()?->id ?? auth()->id();
 
                 foreach ($bills as $billItem) {
                     $bill = StudentBill::where('id', $billItem->id)->lockForUpdate()->first();
-                    if (!$bill || $bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
+                    if (!$bill || $bill->status === 'lunas' || ($bill->amount > 0 && $bill->paid_amount >= $bill->amount)) {
                         continue;
                     }
 
-                    // Anti-duplicate check (30 sec window)
+                    // Anti-duplicate check (10 sec window)
                     $recentDuplicate = Payment::where('bill_id', $bill->id)
-                        ->where('created_at', '>=', now()->subSeconds(30))
+                        ->where('created_at', '>=', now()->subSeconds(10))
                         ->exists();
 
                     if ($recentDuplicate) {
@@ -423,7 +465,7 @@ class PaymentController extends Controller
                     }
 
                     // Calculate amount to pay (remaining amount + late fee)
-                    $remainingAmount = $bill->amount - $bill->paid_amount;
+                    $remainingAmount = max(0, $bill->amount - $bill->paid_amount);
                     $lateFee = $bill->late_fee;
                     $totalBillAmount = $remainingAmount + $lateFee;
 
@@ -446,7 +488,7 @@ class PaymentController extends Controller
 
                     // Update bill status
                     $bill->paid_amount += $totalBillAmount;
-                    if ($bill->paid_amount >= $bill->amount) {
+                    if ($bill->amount <= 0 || $bill->paid_amount >= $bill->amount) {
                         $bill->status = 'lunas';
                     } else {
                         $bill->status = 'cicilan';

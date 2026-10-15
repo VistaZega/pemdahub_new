@@ -28,14 +28,22 @@
 
         <div>
             <span class="text-white/80 text-[11px] font-bold block uppercase tracking-wide">
-                Total Tunggakan s.d. Bulan Berkenaan
+                Status Kewajiban s.d. Bulan Berkenaan
             </span>
-            <h2 class="text-3xl font-black text-white leading-none mt-1">
-                Rp {{ number_format($totalDueOutstanding, 0, ',', '.') }}
+            <h2 class="text-2xl font-black text-white leading-tight mt-1 flex items-center gap-2">
+                @if($totalDueOutstanding <= 0)
+                    <span>Bebas Tunggakan (✓)</span>
+                @else
+                    <span>Belum Lunas (✕)</span>
+                @endif
             </h2>
             @if($totalDueOutstanding <= 0)
                 <p class="text-[11px] text-emerald-100 font-bold mt-1.5 flex items-center gap-1.5">
                     <i class="fa-solid fa-circle-check text-xs"></i> Seluruh kewajiban pembayaran telah lunas!
+                </p>
+            @else
+                <p class="text-[11px] text-rose-100 font-bold mt-1.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-exclamation text-xs"></i> Terdapat kewajiban pembayaran yang belum diselesaikan
                 </p>
             @endif
         </div>
@@ -44,15 +52,15 @@
         <div class="grid grid-cols-3 gap-2 pt-2.5 border-t border-white/20 text-xs">
             <div class="bg-white/10 p-2 rounded-xl text-center">
                 <span class="text-white/80 block text-[9px] font-bold uppercase">Wajib Bayar</span>
-                <span class="font-black text-white text-xs block truncate">Rp {{ number_format($totalDueAmount, 0, ',', '.') }}</span>
+                <span class="font-black text-white text-xs block truncate">{{ $dueBills->count() + $paidBills->where('is_due', true)->count() }} Tagihan</span>
             </div>
             <div class="bg-white/10 p-2 rounded-xl text-center">
-                <span class="text-white/80 block text-[9px] font-bold uppercase">Telah Dibayar</span>
-                <span class="font-black text-white text-xs block truncate">Rp {{ number_format($totalDuePaid, 0, ',', '.') }}</span>
+                <span class="text-white/80 block text-[9px] font-bold uppercase">Telah Lunas</span>
+                <span class="font-black text-white text-xs block truncate">{{ $paidBills->count() }} Lunas (✓)</span>
             </div>
             <div class="bg-white/10 p-2 rounded-xl text-center">
-                <span class="text-white/80 block text-[9px] font-bold uppercase">Sisa Tunggakan</span>
-                <span class="font-black text-white text-xs block truncate">Rp {{ number_format($totalDueOutstanding, 0, ',', '.') }}</span>
+                <span class="text-white/80 block text-[9px] font-bold uppercase">Status</span>
+                <span class="font-black text-white text-xs block truncate">{{ $totalDueOutstanding <= 0 ? '✓ LUNAS' : '✕ BELUM' }}</span>
             </div>
         </div>
     </div>
@@ -73,15 +81,15 @@
                 </span>
                 <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase
                     {{ $currentMonthStatus === 'lunas' ? 'bg-emerald-600 text-white' : ($currentMonthStatus === 'cicilan' ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white') }}">
-                    {{ $currentMonthStatus === 'lunas' ? 'LUNAS' : ($currentMonthStatus === 'cicilan' ? 'CICILAN' : 'BELUM BAYAR') }}
+                    {{ $currentMonthStatus === 'lunas' ? 'LUNAS (✓)' : ($currentMonthStatus === 'cicilan' ? 'CICILAN' : 'BELUM BAYAR (✕)') }}
                 </span>
             </div>
             <p class="text-xs font-extrabold mt-1
                 {{ $currentMonthStatus === 'lunas' ? 'text-emerald-950' : ($currentMonthStatus === 'cicilan' ? 'text-amber-950' : 'text-rose-950') }}">
                 @if($currentMonthStatus === 'lunas')
-                    ✅ Siswa telah membayar uang sekolah bulan berkenaan ({{ $currentPeriodLabel }}).
+                    ✅ Siswa telah menyelesaikan pembayaran uang sekolah bulan berkenaan ({{ $currentPeriodLabel }}).
                 @elseif($currentMonthStatus === 'cicilan')
-                    🟡 Siswa telah membayar sebagian uang sekolah bulan berkenaan (Sisa: Rp {{ number_format($currentMonthBill->sisa_tunggakan ?? 0, 0, ',', '.') }}).
+                    🟡 Siswa telah membayar sebagian uang sekolah bulan berkenaan (Cicilan).
                 @else
                     🔴 Siswa belum membayar uang sekolah bulan berkenaan ({{ $currentPeriodLabel }}).
                 @endif

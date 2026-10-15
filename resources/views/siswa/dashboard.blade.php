@@ -147,11 +147,11 @@
             </div>
             <div>
                 @if($totalOutstanding > 0)
-                <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Rp {{ number_format($totalOutstanding, 0, ',', '.') }}</p>
-                <p style="font-size: 0.75rem; font-weight: 700; color: #fbcfe8; margin-top: 0.6rem; line-height: 1.4;">Tunggakan s.d. Bulan Ini</p>
+                <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Belum Lunas (✕)</p>
+                <p style="font-size: 0.75rem; font-weight: 700; color: #fbcfe8; margin-top: 0.6rem; line-height: 1.4;">Terdapat tagihan tertunda s.d. bulan ini</p>
                 @else
-                <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Lunas s.d. Bulan Ini</p>
-                <p style="font-size: 0.75rem; font-weight: 700; color: #a7f3d0; margin-top: 0.6rem; line-height: 1.4;">Bebas tunggakan seluruh biaya (SPP, OSIS, dll.)</p>
+                <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Lunas (✓)</p>
+                <p style="font-size: 0.75rem; font-weight: 700; color: #a7f3d0; margin-top: 0.6rem; line-height: 1.4;">Bebas tunggakan seluruh biaya s.d. bulan ini</p>
                 @endif
             </div>
         </div>

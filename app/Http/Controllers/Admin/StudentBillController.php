@@ -362,7 +362,10 @@ class StudentBillController extends Controller
 
     public function edit(StudentBill $bill)
     {
-        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat mengubah atau menghapus data keuangan.');
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isAdminSekolah()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah data tagihan.');
+        }
         
         $students = Student::orderBy('full_name')->get();
         $schools = School::where('is_active', true)
@@ -378,19 +381,52 @@ class StudentBillController extends Controller
 
     public function update(Request $request, StudentBill $bill)
     {
-        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Hanya Super Admin yang dapat mengubah atau menghapus data keuangan.');
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isAdminSekolah()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah data tagihan.');
+        }
         
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'discount_reason' => 'nullable|string|max:255',
             'due_date' => 'nullable|date',
             'status' => 'required|in:belum_bayar,cicilan,lunas',
             'notes' => 'nullable|string',
+            'apply_to_subsequent_months' => 'nullable|boolean',
         ]);
 
-        $bill->update($validated);
+        $newAmount = (float) $validated['amount'];
+        $discountAmount = (float) ($validated['discount_amount'] ?? 0);
+        $discountReason = $validated['discount_reason'] ?? null;
+
+        $bill->update([
+            'amount' => $newAmount,
+            'discount_amount' => $discountAmount,
+            'discount_reason' => $discountReason,
+            'due_date' => $validated['due_date'] ?? $bill->due_date,
+            'status' => $newAmount <= 0 ? 'lunas' : $validated['status'],
+            'notes' => $validated['notes'] ?? $bill->notes,
+        ]);
+
+        $msg = 'Tagihan berhasil diperbarui.';
+        if ($request->boolean('apply_to_subsequent_months') && $bill->month) {
+            $carried = $this->billService->carryOverDiscountToSubsequentMonths(
+                $bill,
+                $newAmount,
+                $discountAmount,
+                $discountReason,
+                $validated['notes'] ?? null,
+                auth()->id()
+            );
+
+            if ($carried > 0) {
+                $msg .= " Potongan dan nominal baru otomatis diterapkan ke {$carried} tagihan bulan berikutnya s.d. akhir Tahun Pelajaran.";
+            }
+        }
 
         return redirect()->route('admin.bills.index')
-            ->with('success', 'Tagihan berhasil diperbarui.');
+            ->with('success', $msg);
     }
 
     public function destroy(StudentBill $bill)

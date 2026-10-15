@@ -804,24 +804,31 @@ class DashboardController extends Controller
             return null;
         };
 
-        // Tunggakan amount (Hanya s.d. bulan berkenaan / lewat jatuh tempo)
-        $tunggakanAmount = $bills->filter(function($b) use ($getDueDate) {
+        $tunggakanBills = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return true;
             $dueDate = $getDueDate($b);
             return $dueDate ? now()->isAfter($dueDate) : false;
-        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        });
+        $tunggakanAmount = $tunggakanBills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        $tunggakanCount = $tunggakanBills->count();
 
-        $upcomingAmount = $bills->filter(function($b) use ($getDueDate) {
+        $upcomingBills = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return false;
             $dueDate = $getDueDate($b);
             return $dueDate ? !now()->isAfter($dueDate) : true;
-        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        });
+        $upcomingAmount = $upcomingBills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        $upcomingCount = $upcomingBills->count();
+
+        $totalBillsCount = $bills->count();
+        $lunasCount = $bills->where('status', 'lunas')->count();
 
         return view('siswa.tagihan', compact(
             'student', 'bills', 'academicYears', 'selectedYearId',
             'totalTagihan', 'totalBayar', 'totalSisa',
+            'totalBillsCount', 'lunasCount', 'tunggakanCount', 'upcomingCount',
             'monthMap', 'recurringTypes', 'nonRecurringBills', 'months',
             'tunggakanAmount', 'upcomingAmount'
         ));

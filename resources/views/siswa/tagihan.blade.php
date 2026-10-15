@@ -34,46 +34,63 @@
                 <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center"><i class="fas fa-receipt text-blue-600"></i></div>
                 <span class="text-xs text-gray-500 font-medium">Total Beban</span>
             </div>
-            <p class="text-lg font-bold text-gray-800">Rp {{ number_format($totalTagihan, 0, ',', '.') }}</p>
+            <p class="text-lg font-bold text-gray-800">{{ $totalBillsCount ?? $bills->count() }} Tagihan</p>
+            <p class="text-[11px] text-gray-400 mt-0.5">Tahun Ajaran Terpilih</p>
         </div>
         <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center"><i class="fas fa-check-circle text-emerald-600"></i></div>
-                <span class="text-xs text-emerald-600 font-medium">Sudah Dibayar</span>
+                <span class="text-xs text-emerald-600 font-medium">Sudah Lunas</span>
             </div>
-            <p class="text-lg font-bold text-emerald-600">Rp {{ number_format($totalBayar, 0, ',', '.') }}</p>
+            <p class="text-lg font-bold text-emerald-600 flex items-center gap-1.5">
+                <span>{{ $lunasCount ?? $bills->where('status', 'lunas')->count() }} Bulan</span>
+                <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">✓ Lunas</span>
+            </p>
+            <p class="text-[11px] text-emerald-600/70 mt-0.5">Telah diverifikasi</p>
         </div>
         <div class="bg-white rounded-2xl shadow-sm border border-rose-100 p-5">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center"><i class="fas fa-exclamation-circle text-rose-600"></i></div>
                 <span class="text-xs text-rose-600 font-medium">Tunggakan</span>
             </div>
-            <p class="text-lg font-bold text-rose-600">Rp {{ number_format($tunggakanAmount, 0, ',', '.') }}</p>
+            <p class="text-lg font-bold text-rose-600 flex items-center gap-1.5">
+                <span>{{ $tunggakanCount ?? 0 }} Bulan</span>
+                @if(($tunggakanCount ?? 0) > 0)
+                <span class="text-[11px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">✕ Belum</span>
+                @else
+                <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">✓ Bebas</span>
+                @endif
+            </p>
+            <p class="text-[11px] text-rose-500/70 mt-0.5">s.d. bulan berkenaan</p>
         </div>
         <div class="bg-white rounded-2xl shadow-sm border border-amber-100 p-5">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center"><i class="fas fa-clock text-amber-600"></i></div>
                 <span class="text-xs text-amber-600 font-medium">Mendatang</span>
             </div>
-            <p class="text-lg font-bold text-amber-600">Rp {{ number_format($upcomingAmount, 0, ',', '.') }}</p>
+            <p class="text-lg font-bold text-amber-600 flex items-center gap-1.5">
+                <span>{{ $upcomingCount ?? 0 }} Bulan</span>
+                <span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">Mendatang</span>
+            </p>
+            <p class="text-[11px] text-amber-600/70 mt-0.5">Belum jatuh tempo</p>
         </div>
     </div>
 
     {{-- Legend --}}
     <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
         <div class="flex flex-wrap items-center gap-5 text-xs font-semibold">
-            <span class="text-gray-500 uppercase tracking-wider"><i class="fas fa-info-circle mr-1"></i> Keterangan:</span>
+            <span class="text-gray-500 uppercase tracking-wider"><i class="fas fa-info-circle mr-1"></i> Keterangan Status:</span>
             <span class="flex items-center gap-2">
                 <span class="w-5 h-5 rounded-md bg-emerald-500 inline-flex items-center justify-center text-white text-[10px]"><i class="fas fa-check"></i></span>
-                <span class="text-gray-700">Lunas</span>
+                <span class="text-gray-700">Sudah Lunas (✓)</span>
             </span>
             <span class="flex items-center gap-2">
                 <span class="w-5 h-5 rounded-md bg-rose-500 inline-flex items-center justify-center text-white text-[10px]"><i class="fas fa-times"></i></span>
-                <span class="text-gray-700">Menunggak</span>
+                <span class="text-gray-700">Belum Lunas (✕)</span>
             </span>
             <span class="flex items-center gap-2">
                 <span class="w-5 h-5 rounded-md bg-amber-400 inline-flex items-center justify-center text-white text-[10px]"><i class="fas fa-clock"></i></span>
-                <span class="text-gray-700">Belum Waktunya</span>
+                <span class="text-gray-700">Bulan Mendatang</span>
             </span>
             <span class="flex items-center gap-2">
                 <span class="w-5 h-5 rounded-md bg-gray-200 inline-flex items-center justify-center text-gray-400 text-[10px]"><i class="fas fa-minus"></i></span>
@@ -105,27 +122,22 @@
                             $cellBg = 'bg-gray-100 border-gray-200';
                             $iconHtml = '<i class="fas fa-minus text-gray-300 text-sm"></i>';
                             $tooltip = 'Tidak ada tagihan';
-                            $statusText = '';
-                            $amountText = '';
+                            $badgeHtml = '';
                         } elseif ($bill->status === 'lunas') {
-                            $cellBg = 'bg-emerald-500 border-emerald-600';
+                            $cellBg = 'bg-emerald-500 border-emerald-600 shadow-sm shadow-emerald-200';
                             $iconHtml = '<i class="fas fa-check text-white text-sm"></i>';
-                            $tooltip = 'Lunas';
-                            $statusText = 'Lunas';
-                            $amountText = 'Rp ' . number_format($bill->amount, 0, ',', '.');
+                            $tooltip = 'Lunas (✓)';
+                            $badgeHtml = '<span class="text-[9px] font-bold text-emerald-600 tracking-tight whitespace-nowrap mt-0.5">✓ Lunas</span>';
                         } elseif ($bill->isOverdue()) {
-                            $cellBg = 'bg-rose-500 border-rose-600';
+                            $cellBg = 'bg-rose-500 border-rose-600 shadow-sm shadow-rose-200';
                             $iconHtml = '<i class="fas fa-times text-white text-sm"></i>';
-                            $sisa = $bill->amount - $bill->paid_amount;
-                            $tooltip = 'Menunggak — Sisa: Rp ' . number_format($sisa, 0, ',', '.');
-                            $statusText = 'Menunggak';
-                            $amountText = 'Sisa: Rp ' . number_format($sisa, 0, ',', '.');
+                            $tooltip = 'Belum Lunas (✕)';
+                            $badgeHtml = '<span class="text-[9px] font-bold text-rose-600 tracking-tight whitespace-nowrap mt-0.5">✕ Belum</span>';
                         } else {
                             $cellBg = 'bg-amber-400 border-amber-500';
                             $iconHtml = '<i class="fas fa-clock text-white text-sm"></i>';
-                            $tooltip = 'Belum waktunya';
-                            $statusText = 'Mendatang';
-                            $amountText = 'Rp ' . number_format($bill->amount, 0, ',', '.');
+                            $tooltip = 'Bulan mendatang';
+                            $badgeHtml = '<span class="text-[9px] font-bold text-amber-600 tracking-tight whitespace-nowrap mt-0.5">Mendatang</span>';
                         }
                     @endphp
                     <div class="flex flex-col items-center gap-1 flex-1" title="{{ $tooltip }}">
@@ -134,11 +146,9 @@
                             {!! $iconHtml !!}
                         </div>
                         @if($bill && $bill->paid_amount > 0 && $bill->status !== 'lunas')
-                            <span class="text-[8px] font-bold text-emerald-600 leading-none">Cicilan</span>
+                            <span class="text-[8px] font-bold text-amber-600 leading-none">Cicilan</span>
                         @endif
-                        @if($amountText)
-                            <span class="text-[9px] font-bold text-gray-700 tracking-tight whitespace-nowrap mt-0.5">{{ $amountText }}</span>
-                        @endif
+                        {!! $badgeHtml !!}
                     </div>
                 @endforeach
             </div>
@@ -160,7 +170,7 @@
                     <div class="h-2.5 rounded-full transition-all {{ $typePct == 100 ? 'bg-emerald-500' : 'bg-amber-400' }}" style="width: {{ $typePct }}%"></div>
                 </div>
                 <span class="text-sm font-black {{ $typePct == 100 ? 'text-emerald-600' : ($typePct > 0 ? 'text-amber-600' : 'text-gray-400') }}">{{ $typePct }}%</span>
-                <span class="text-xs text-gray-400">({{ $typeLunas }}/{{ $typeTotal }} bulan lunas)</span>
+                <span class="text-xs text-gray-400">({{ $typeLunas }}/{{ $typeTotal }} bulan lunas ✓)</span>
             </div>
         </div>
     </div>
@@ -179,16 +189,15 @@
         <div class="p-5 space-y-3">
             @foreach($nonRecurringBills as $bill)
                 @php
-                    $sisa = $bill->amount - $bill->paid_amount;
                     if ($bill->status === 'lunas') {
                         $borderColor = 'border-l-emerald-500 bg-emerald-50/30';
-                        $statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700"><i class="fas fa-check-circle"></i> Lunas</span>';
+                        $statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"><i class="fas fa-check-circle text-emerald-600"></i> Sudah Lunas (✓)</span>';
                     } elseif ($bill->isOverdue()) {
                         $borderColor = 'border-l-rose-500 bg-rose-50/30';
-                        $statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700"><i class="fas fa-exclamation-circle"></i> Menunggak</span>';
+                        $statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800"><i class="fas fa-exclamation-circle text-rose-600"></i> Belum Lunas (✕)</span>';
                     } else {
                         $borderColor = 'border-l-amber-400 bg-amber-50/30';
-                        $statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700"><i class="far fa-clock"></i> Mendatang</span>';
+                        $statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800"><i class="far fa-clock text-amber-600"></i> Belum Waktunya</span>';
                     }
                 @endphp
                 <div class="border border-gray-200 border-l-4 {{ $borderColor }} rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -197,16 +206,6 @@
                         <p class="text-xs text-gray-400 mt-0.5">{{ $bill->academicYear->year ?? '' }}</p>
                     </div>
                     <div class="flex items-center gap-4">
-                        <div class="text-right">
-                            <p class="text-xs text-gray-400">Nominal</p>
-                            <p class="text-sm font-bold text-gray-800">Rp {{ number_format($bill->amount, 0, ',', '.') }}</p>
-                        </div>
-                        @if($sisa > 0 && $bill->paid_amount > 0)
-                        <div class="text-right">
-                            <p class="text-xs text-gray-400">Sisa</p>
-                            <p class="text-sm font-bold text-rose-600">Rp {{ number_format($sisa, 0, ',', '.') }}</p>
-                        </div>
-                        @endif
                         <div>{!! $statusBadge !!}</div>
                     </div>
                 </div>
@@ -223,7 +222,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
             <h2 class="font-bold text-gray-800 text-lg flex items-center gap-2">
-                <i class="fas fa-history text-amber-500"></i> Riwayat Pembayaran
+                <i class="fas fa-history text-amber-500"></i> Riwayat Pembayaran Terverifikasi
             </h2>
         </div>
         <div class="overflow-x-auto">
@@ -233,7 +232,7 @@
                         <th class="px-5 py-3 text-left">Tanggal</th>
                         <th class="px-5 py-3 text-left">Jenis Biaya</th>
                         <th class="px-5 py-3 text-center">Metode</th>
-                        <th class="px-5 py-3 text-right">Jumlah</th>
+                        <th class="px-5 py-3 text-center">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -256,7 +255,11 @@
                                     <p class="text-[10px] text-gray-400 mt-0.5">No. {{ $payment->receipt_number }}</p>
                                 @endif
                             </td>
-                            <td class="px-5 py-3 text-right font-bold text-emerald-600">Rp {{ number_format($payment->amount_paid, 0, ',', '.') }}</td>
+                            <td class="px-5 py-3 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                    <i class="fas fa-check-circle text-emerald-600"></i> Lunas Terverifikasi (✓)
+                                </span>
+                            </td>
                         </tr>
                         @endforeach
                     @endforeach

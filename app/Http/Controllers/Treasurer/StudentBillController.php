@@ -518,10 +518,8 @@ class StudentBillController extends Controller
 
     public function show(StudentBill $bill)
     {
-        $schoolId = auth()->user()->school_id;
-
-        // Verify bill belongs to treasurer's school
-        if ($bill->student->school_id != $schoolId) {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isYayasan() && $bill->student->school_id != $user->school_id) {
             abort(403, 'Unauthorized');
         }
 
@@ -532,8 +530,8 @@ class StudentBillController extends Controller
 
     public function edit(StudentBill $bill)
     {
-        $schoolId = auth()->user()->school_id;
-        if ($bill->student->school_id != $schoolId) {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isYayasan() && $bill->student->school_id != $user->school_id) {
             abort(403, 'Unauthorized');
         }
 
@@ -547,8 +545,8 @@ class StudentBillController extends Controller
 
     public function update(Request $request, StudentBill $bill)
     {
-        $schoolId = auth()->user()->school_id;
-        if ($bill->student->school_id != $schoolId) {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isYayasan() && $bill->student->school_id != $user->school_id) {
             abort(403, 'Unauthorized');
         }
 
@@ -558,20 +556,51 @@ class StudentBillController extends Controller
 
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'discount_reason' => 'nullable|string|max:255',
             'due_date' => 'nullable|date',
             'notes' => 'nullable|string',
+            'apply_to_subsequent_months' => 'nullable|boolean',
         ]);
 
-        $bill->update($validated);
+        $newAmount = (float) $validated['amount'];
+        $discountAmount = (float) ($validated['discount_amount'] ?? 0);
+        $discountReason = $validated['discount_reason'] ?? null;
+
+        $bill->update([
+            'amount' => $newAmount,
+            'discount_amount' => $discountAmount,
+            'discount_reason' => $discountReason,
+            'due_date' => $validated['due_date'] ?? $bill->due_date,
+            'notes' => $validated['notes'] ?? $bill->notes,
+            'status' => $newAmount <= 0 ? 'lunas' : $bill->status,
+        ]);
+
+        $msg = 'Tagihan berhasil diperbarui.';
+        if ($request->boolean('apply_to_subsequent_months') && $bill->month) {
+            $billService = app(\App\Services\StudentBillService::class);
+            $carried = $billService->carryOverDiscountToSubsequentMonths(
+                $bill,
+                $newAmount,
+                $discountAmount,
+                $discountReason,
+                $validated['notes'] ?? null,
+                auth()->id()
+            );
+
+            if ($carried > 0) {
+                $msg .= " Potongan dan nominal baru otomatis diterapkan ke {$carried} tagihan bulan berikutnya s.d. akhir Tahun Pelajaran.";
+            }
+        }
 
         return redirect()->route('treasurer.bills.index')
-            ->with('success', 'Tagihan berhasil diperbarui.');
+            ->with('success', $msg);
     }
 
     public function destroy(StudentBill $bill)
     {
-        $schoolId = auth()->user()->school_id;
-        if ($bill->student->school_id != $schoolId) {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->isYayasan() && $bill->student->school_id != $user->school_id) {
             abort(403, 'Unauthorized');
         }
 

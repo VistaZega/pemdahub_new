@@ -44,21 +44,17 @@
     </div>
 
     <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-bold space-y-1">
-        <div class="flex items-center justify-between text-slate-600">
-            <span>Nominal Tagihan:</span>
-            <span class="font-black text-slate-900">Rp {{ number_format($bill->amount, 0, ',', '.') }}</span>
+        <div class="flex items-center justify-between text-slate-700">
+            <span>Status Verifikasi:</span>
+            @if($isLunas)
+                <span class="font-black text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Sudah Lunas (✓)</span>
+            @elseif($isCicilan)
+                <span class="font-black text-amber-700 flex items-center gap-1"><i class="fa-solid fa-clock"></i> Dibayar Sebagian (Cicilan)</span>
+            @elseif($isFuture)
+                <span class="font-black text-blue-700 flex items-center gap-1"><i class="fa-solid fa-calendar"></i> Belum Jatuh Tempo</span>
+            @else
+                <span class="font-black text-rose-700 flex items-center gap-1"><i class="fa-solid fa-circle-xmark"></i> Belum Lunas (✕)</span>
+            @endif
         </div>
-
-        <div class="flex items-center justify-between text-slate-600">
-            <span>Sudah Dibayar:</span>
-            <span class="font-black text-emerald-700">Rp {{ number_format($bill->paid_amount, 0, ',', '.') }}</span>
-        </div>
-
-        @if($remaining > 0)
-            <div class="flex items-center justify-between pt-1 border-t border-slate-200 text-rose-700 font-black">
-                <span>Sisa Kewajiban:</span>
-                <span>Rp {{ number_format($remaining, 0, ',', '.') }}</span>
-            </div>
-        @endif
     </div>
 </div>

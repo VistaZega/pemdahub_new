@@ -22,6 +22,8 @@ class StudentBill extends Model
         'month',
         'year',
         'amount',
+        'discount_amount',
+        'discount_reason',
         'yayasan_share_amount',
         'paid_amount',
         'status',
@@ -34,6 +36,7 @@ class StudentBill extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
         'yayasan_share_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'month' => 'integer',
@@ -154,7 +157,7 @@ class StudentBill extends Model
 
         $this->paid_amount = $verifiedPaid;
 
-        if ($this->amount > 0 && $verifiedPaid >= (float) $this->amount) {
+        if ($this->amount <= 0 || $verifiedPaid >= (float) $this->amount) {
             $this->status = 'lunas';
         } elseif ($verifiedPaid > 0) {
             $this->status = 'cicilan';

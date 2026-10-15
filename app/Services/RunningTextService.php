@@ -34,14 +34,9 @@ class RunningTextService
         $now = time();
         $timeStr = $timeStr ?: date('H:i');
 
-        // Bersihkan nama agar rapi dan tidak terlalu panjang di LED matrix
+        // Bersihkan nama & format simetris proporsional sesuai kapasitas layar LED
         $cleanName = trim(preg_replace('/\s+/', ' ', $name));
-        $nameParts = explode(' ', $cleanName);
-        if (count($nameParts) > 2 && mb_strlen($cleanName) > 20) {
-            $displayName = $nameParts[0] . ' ' . $nameParts[1];
-        } else {
-            $displayName = $cleanName;
-        }
+        $displayName = self::formatDisplayName($cleanName, 20);
 
         $cleanSubtext = trim(preg_replace('/\s+/', ' ', $subtext));
         $cleanSchool = trim(preg_replace('/\s+/', ' ', $schoolName));
@@ -109,6 +104,91 @@ class RunningTextService
         }
 
         return $data;
+    }
+
+    /**
+     * Format penampilan nama agar proporsional, simetris dan pas di layar LED:
+     * - Jika nama muat (<= $maxLength karakter), tampil utuh.
+     * - Jika nama terlalu panjang (> $maxLength):
+     *   1. Ambil kata pertama utuh.
+     *   2. Singkat huruf pertama kata selanjutnya (tengah) + titik (contoh: "Anugerah" -> "A.").
+     *   3. Tambahkan marga (kata terakhir). Contoh: "Kristian Anugerah Harefa" -> "Kristian A. Harefa".
+     *   4. Bila marga masih terlalu panjang, teks marga yang muat saja ditampilkan + titik (contoh: "Bartholomeus Hutaga.").
+     * - Menjaga simetri visual dan kerapian display teks.
+     */
+    public static function formatDisplayName(string $name, int $maxLength = 20): string
+    {
+        $clean = trim(preg_replace('/\s+/', ' ', $name));
+        if (empty($clean)) {
+            return '';
+        }
+
+        // Jika panjang nama sudah muat, tampilkan apa adanya
+        if (mb_strlen($clean) <= $maxLength) {
+            return $clean;
+        }
+
+        $words = explode(' ', $clean);
+        $totalWords = count($words);
+
+        // Kasus 1: Nama hanya 1 kata yang sangat panjang
+        if ($totalWords === 1) {
+            return mb_substr($words[0], 0, max(1, $maxLength - 1)) . '.';
+        }
+
+        $firstName = $words[0];
+        $marga = $words[$totalWords - 1];
+        $middleWords = array_slice($words, 1, $totalWords - 2);
+
+        // Kasus 2: Ada kata di tengah (antara kata pertama dan marga)
+        if (!empty($middleWords)) {
+            // Coba dengan semua inisial tengah (misal: "A. B.")
+            $middleInitials = [];
+            foreach ($middleWords as $mw) {
+                if (!empty($mw)) {
+                    $middleInitials[] = mb_strtoupper(mb_substr($mw, 0, 1)) . '.';
+                }
+            }
+
+            $candidate = $firstName . ' ' . implode(' ', $middleInitials) . ' ' . $marga;
+            if (mb_strlen($candidate) <= $maxLength) {
+                return $candidate;
+            }
+
+            // Jika masih terlalu panjang, coba ambil 1 inisial tengah pertama saja
+            if (count($middleInitials) > 1) {
+                $candidate = $firstName . ' ' . $middleInitials[0] . ' ' . $marga;
+                if (mb_strlen($candidate) <= $maxLength) {
+                    return $candidate;
+                }
+            }
+
+            // Jika masih belum muat, potong marga sesuai sisa ruang yang muat + titik
+            $prefix = $firstName . ' ' . $middleInitials[0] . ' ';
+            $remainingForMarga = $maxLength - mb_strlen($prefix);
+
+            if ($remainingForMarga >= 3) {
+                $trimmedMarga = mb_substr($marga, 0, $remainingForMarga - 1) . '.';
+                return $prefix . $trimmedMarga;
+            }
+        }
+
+        // Kasus 3: 2 kata (First + Marga) atau fallback jika kata tengah tidak cukup ruang
+        $prefix = $firstName . ' ';
+        $remainingForMarga = $maxLength - mb_strlen($prefix);
+
+        if ($remainingForMarga >= 3 && mb_strlen($marga) > $remainingForMarga) {
+            $trimmedMarga = mb_substr($marga, 0, $remainingForMarga - 1) . '.';
+            return $prefix . $trimmedMarga;
+        }
+
+        if ($remainingForMarga >= mb_strlen($marga)) {
+            return $prefix . $marga;
+        }
+
+        // Fallback darurat bila kata pertama saja sudah sangat panjang
+        $avail = max(1, $maxLength - 1);
+        return mb_substr($clean, 0, $avail) . '.';
     }
 
     /**

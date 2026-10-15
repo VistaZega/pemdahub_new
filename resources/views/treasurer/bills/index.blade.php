@@ -542,6 +542,27 @@
                     <input type="text" name="reference_number" 
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
                 </div>
+
+                <!-- Opsi Bawa Potongan / Penyesuaian ke Bulan Berikutnya -->
+                <div id="quick_discount_carryover_container" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl hidden">
+                    <label class="flex items-start gap-2.5 cursor-pointer">
+                        <input type="checkbox" name="apply_discount_carryover" id="quick_apply_discount_carryover" value="1"
+                            class="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300">
+                        <span class="text-xs text-emerald-900 leading-snug">
+                            <strong>Bawa penyesuaian nominal ke bulan-bulan berikutnya</strong><br>
+                            Jika nominal bayar berbeda dari tarif awal (ada potongan/beasiswa), otomatis sesuaikan tagihan bulan-bulan berikutnya di tahun ajaran ini ke nominal yang sama.
+                        </span>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <a id="quick_edit_link" href="#" class="text-xs text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1.5 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        <span>Atur Rincian Potongan & Edit Tagihan Ini</span>
+                    </a>
+                </div>
             </div>
             
             <div class="mt-6 flex gap-3">
@@ -652,6 +673,25 @@ function openQuickPayModal(element) {
     } else {
         document.getElementById('quick_late_fee_display').classList.add('hidden');
         document.getElementById('quick_amount_note').textContent = monthName ? `Tagihan bulan ${monthName}` : 'Tagihan 1 Kali';
+    }
+    
+    // Configure discount carryover option and edit link
+    const carryoverBox = document.getElementById('quick_discount_carryover_container');
+    const carryoverCheck = document.getElementById('quick_apply_discount_carryover');
+    const editLink = document.getElementById('quick_edit_link');
+
+    if (carryoverBox) {
+        if (month) {
+            carryoverBox.classList.remove('hidden');
+            if (carryoverCheck) carryoverCheck.checked = false;
+        } else {
+            carryoverBox.classList.add('hidden');
+            if (carryoverCheck) carryoverCheck.checked = false;
+        }
+    }
+
+    if (editLink) {
+        editLink.href = `/treasurer/bills/${billId}/edit`;
     }
     
     document.getElementById('quickPayModal').classList.remove('hidden');
