@@ -224,43 +224,53 @@
                 </div>
             </div>
 
-            <!-- INTERACTIVE ACTION BAR (UJI COBA LANGSUNG) -->
-            <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <button onclick="triggerSimulateTap('Yulianus Zega', 'X - Budi Utomo', 'MASUK', 'Terlambat', 'SMAS Pembda 1', '07:10')" 
-                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-amber-600/20 border border-slate-700 hover:border-amber-500/50 text-left transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-amber-400 group-hover:text-amber-300">Tes Siswa Terlambat</span>
-                        <i class="fas fa-user-clock text-xs text-amber-400"></i>
-                    </div>
-                    <p class="text-[11px] text-slate-400 truncate">Yulianus Zega [07:10/Terlambat]</p>
-                </button>
+            <!-- INTERACTIVE ACTION BAR (UJI COBA LANGSUNG FORMAT NAMA & ABSENSI) -->
+            <div class="mt-5 space-y-2">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
+                    <span class="flex items-center gap-1.5"><i class="fas fa-flask text-amber-400"></i> Uji Coba Cepat Aturan Format Nama & Selaan Absensi:</span>
+                    <span class="text-[11px] text-slate-500 font-mono">Simetris • Kapasitas ~20 Karakter</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <button onclick="triggerSimulateTap('Yulianus Zega', 'X - Budi Utomo', 'MASUK', 'Terlambat', 'SMAS Pembda 1', '07:10')" 
+                            class="p-3 rounded-xl bg-slate-800/80 hover:bg-amber-600/20 border border-slate-700 hover:border-amber-500/50 text-left transition group">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-amber-400 group-hover:text-amber-300">1. Nama Normal (Utuh)</span>
+                            <i class="fas fa-check text-xs text-amber-400"></i>
+                        </div>
+                        <p class="text-[11px] text-slate-300 font-mono truncate">Yulianus Zega</p>
+                        <p class="text-[10px] text-slate-500 truncate">13 kar. &rarr; Tampil Utuh</p>
+                    </button>
 
-                <button onclick="triggerSimulateTap('Budi Santoso', 'XI TE 1', 'MASUK', 'Hadir', 'SMKS Pembda', '06:55')" 
-                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-600/20 border border-slate-700 hover:border-emerald-500/50 text-left transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">Tes Siswa Hadir</span>
-                        <i class="fas fa-sign-in-alt text-xs text-emerald-400"></i>
-                    </div>
-                    <p class="text-[11px] text-slate-400 truncate">Budi Santoso [06:55/Hadir]</p>
-                </button>
+                    <button onclick="triggerSimulateTap('Kristian Anugerah Harefa', 'XII DPIB', 'MASUK', 'Hadir', 'SMKS Pembda', '06:55')" 
+                            class="p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-600/20 border border-slate-700 hover:border-emerald-500/50 text-left transition group">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">2. Nama + Inisial + Marga</span>
+                            <i class="fas fa-font text-xs text-emerald-400"></i>
+                        </div>
+                        <p class="text-[11px] text-slate-300 font-mono truncate">Kristian Anugerah Harefa</p>
+                        <p class="text-[10px] text-emerald-400/80 truncate">&rarr; Kristian A. Harefa</p>
+                    </button>
 
-                <button onclick="triggerSimulateTap('Siti Rahma', 'XII DPIB', 'PULANG', 'Pulang', 'SMKS Pembda', '14:05')" 
-                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-cyan-600/20 border border-slate-700 hover:border-cyan-500/50 text-left transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-cyan-400 group-hover:text-cyan-300">Tes Siswa Pulang</span>
-                        <i class="fas fa-sign-out-alt text-xs text-cyan-400"></i>
-                    </div>
-                    <p class="text-[11px] text-slate-400 truncate">Siti Rahma [14:05/Pulang]</p>
-                </button>
+                    <button onclick="triggerSimulateTap('Muhammad Rizky Pratama Syahputra', 'XI TKR', 'MASUK', 'Hadir', 'SMKS Pembda', '07:00')" 
+                            class="p-3 rounded-xl bg-slate-800/80 hover:bg-cyan-600/20 border border-slate-700 hover:border-cyan-500/50 text-left transition group">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-cyan-400 group-hover:text-cyan-300">3. 4 Kata Sangat Panjang</span>
+                            <i class="fas fa-text-width text-xs text-cyan-400"></i>
+                        </div>
+                        <p class="text-[11px] text-slate-300 font-mono truncate">Muhammad R. P. Syahputra</p>
+                        <p class="text-[10px] text-cyan-400/80 truncate">&rarr; Muhammad R. Syahput.</p>
+                    </button>
 
-                <button onclick="triggerSimulateTap('Drs. Y. Zega', 'Guru Produktif TE', 'MASUK', 'Hadir', 'SMKS Pembda', '07:05')" 
-                        class="p-3 rounded-xl bg-slate-800/80 hover:bg-indigo-600/20 border border-slate-700 hover:border-indigo-500/50 text-left transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300">Tes Guru / Pegawai</span>
-                        <i class="fas fa-chalkboard-teacher text-xs text-indigo-400"></i>
-                    </div>
-                    <p class="text-[11px] text-slate-400 truncate">Drs. Y. Zega [07:05/Hadir]</p>
-                </button>
+                    <button onclick="triggerSimulateTap('Bartholomeus Hutagalung', 'Guru Kejuruan TE', 'MASUK', 'Hadir', 'SMKS Pembda', '06:58')" 
+                            class="p-3 rounded-xl bg-slate-800/80 hover:bg-indigo-600/20 border border-slate-700 hover:border-indigo-500/50 text-left transition group">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300">4. Marga Panjang (+Titik)</span>
+                            <i class="fas fa-cut text-xs text-indigo-400"></i>
+                        </div>
+                        <p class="text-[11px] text-slate-300 font-mono truncate">Bartholomeus Hutagalung</p>
+                        <p class="text-[10px] text-indigo-400/80 truncate">&rarr; Bartholomeus Hutaga.</p>
+                    </button>
+                </div>
             </div>
         </section>
 
