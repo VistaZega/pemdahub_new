@@ -26,14 +26,18 @@ class AttendanceController extends Controller
         if ($teacher) return $teacher;
 
         $employee = \App\Models\Employee::where('user_id', $userId)->first();
+        if (($employee && !$employee->isTeacher()) || $user->role === 'pegawai') {
+            abort(403, 'Akses dibatasi. Modul ini khusus untuk Guru Pengampu KBM.');
+        }
+
         if (!$employee) {
             $employee = \App\Models\Employee::create([
                 'school_id' => $user->school_id ?? 1,
                 'user_id' => $userId,
-                'employee_code' => 'PGW-'.$userId,
+                'employee_code' => 'TCH-'.$userId,
                 'full_name' => $user->name,
                 'gender' => 'L',
-                'employee_type' => 'other',
+                'employee_type' => 'guru',
                 'employment_status' => 'yayasan',
                 'is_active' => true,
             ]);
@@ -44,7 +48,7 @@ class AttendanceController extends Controller
             [
                 'employee_id' => $employee->id,
                 'school_id' => $employee->school_id ?? $user->school_id ?? 1,
-                'teacher_code' => $employee->employee_code ?? 'PGW-'.$userId,
+                'teacher_code' => $employee->employee_code ?? 'TCH-'.$userId,
                 'full_name' => $employee->full_name ?? $user->name,
                 'gender' => $employee->gender ?? 'L',
                 'birth_place' => $employee->birth_place ?? '-',

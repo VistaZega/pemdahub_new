@@ -42,6 +42,19 @@ class TeacherController extends Controller
             ->orderBy('teacher_code', 'asc')
             ->orderBy('full_name', 'asc');
 
+        // Pastikan hanya menampilkan guru yang valid (bukan pegawai/staf TU)
+        $query->where(function ($q) {
+            $q->whereDoesntHave('employee')
+              ->orWhereHas('employee', function ($eq) {
+                  $eq->where('employee_type', 'guru');
+              });
+        })->where(function ($q) {
+            $q->whereDoesntHave('user')
+              ->orWhereHas('user', function ($uq) {
+                  $uq->where('role', '!=', 'pegawai');
+              });
+        });
+
         // Auto-filter by school_id for non-superadmin
         if (!$user->isSuperAdmin()) {
             $query->where(function ($q) use ($user) {
@@ -345,29 +358,39 @@ class TeacherController extends Controller
 
         try {
             return DB::transaction(function () use ($teacher) {
-                // Delete photo
-                if ($teacher->photo) {
+                $employee = $teacher->employee_id ? \App\Models\Employee::find($teacher->employee_id) : null;
+                $user = $teacher->user_id ? User::find($teacher->user_id) : null;
+
+                // Safety Check: Jika data ini sebenarnya adalah Pegawai (staf TU / non-guru),
+                // JANGAN hapus data Employee, jabatan, atau akun User! Cukup hapus record Teacher saja!
+                $isPegawai = ($employee && $employee->employee_type !== 'guru') || ($user && $user->role === 'pegawai');
+
+                // Delete photo only if teacher has standalone photo not shared with employee
+                if ($teacher->photo && (!$employee || $employee->photo !== $teacher->photo)) {
                     Storage::disk('public')->delete($teacher->photo);
                 }
 
-                // Delete associated employee & employee positions
-                if ($teacher->employee_id) {
-                    $employee = \App\Models\Employee::find($teacher->employee_id);
+                if (!$isPegawai) {
+                    // Delete associated employee & employee positions for real teachers
                     if ($employee) {
                         $employee->employeePositions()->delete();
                         $employee->delete();
                     }
-                }
 
-                // Delete associated user account
-                if ($teacher->user_id) {
-                    User::find($teacher->user_id)?->delete();
+                    // Delete associated user account for real teachers
+                    if ($user) {
+                        $user->delete();
+                    }
                 }
 
                 $teacher->delete();
 
+                $msg = $isPegawai 
+                    ? "Profil guru untuk pegawai {$teacher->full_name} berhasil dilepas dari Data Guru. Data pegawai dan akun login tetap aman."
+                    : "Data guru berhasil dihapus.";
+
                 return redirect()->route('admin.teachers.index')
-                    ->with('success', 'Data guru berhasil dihapus.');
+                    ->with('success', $msg);
             });
         } catch (\Exception $e) {
             Log::error('Gagal menghapus guru: ' . $e->getMessage());

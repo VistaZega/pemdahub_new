@@ -33,14 +33,35 @@ class DashboardController extends Controller
         }
 
         $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+
+        // Safety: Jika pengguna adalah Pegawai (staf TU / non-guru) atau bertipe selain guru,
+        // JANGAN PERNAH membuat record di tabel teachers!
+        // Berikan objek Teacher in-memory agar tampilan dashboard tetap bisa dibaca tanpa mengotori tabel teachers.
+        if (($employee && $employee->employee_type !== 'guru') || $user->role === 'pegawai' || $user->hasRole('pegawai')) {
+            $mockTeacher = new Teacher([
+                'school_id' => $employee->school_id ?? $user->school_id ?? 1,
+                'employee_id' => $employee?->id,
+                'user_id' => $user->id,
+                'teacher_code' => $employee?->employee_code ?? ('PGW-' . $user->id),
+                'full_name' => $employee?->full_name ?? $user->name,
+                'gender' => $employee?->gender ?? 'L',
+                'birth_place' => $employee?->birth_place ?? '-',
+                'position' => $employee?->primary_position?->position_name ?? 'Staf Pegawai',
+                'is_active' => true,
+            ]);
+            $mockTeacher->setRelation('school', $employee?->school ?? \App\Models\School::find($user->school_id ?? 1));
+            $mockTeacher->setRelation('employee', $employee);
+            return $mockTeacher;
+        }
+
         if (!$employee) {
             $employee = \App\Models\Employee::create([
                 'school_id' => $user->school_id ?? 1,
                 'user_id' => $user->id,
-                'employee_code' => 'PGW-'.$user->id,
+                'employee_code' => 'TCH-'.$user->id,
                 'full_name' => $user->name,
                 'gender' => 'L',
-                'employee_type' => 'other',
+                'employee_type' => 'guru',
                 'employment_status' => 'yayasan',
                 'is_active' => true,
             ]);
@@ -51,7 +72,7 @@ class DashboardController extends Controller
             [
                 'employee_id' => $employee->id,
                 'school_id' => $employee->school_id ?? $user->school_id ?? 1,
-                'teacher_code' => $employee->employee_code ?? 'PGW-'.$user->id,
+                'teacher_code' => $employee->employee_code ?? 'TCH-'.$user->id,
                 'full_name' => $employee->full_name ?? $user->name,
                 'gender' => $employee->gender ?? 'L',
                 'birth_place' => $employee->birth_place ?? '-',
@@ -1165,8 +1186,12 @@ class DashboardController extends Controller
      */
     public function absensiSaya(Request $request)
     {
-        $teacher = $this->getTeacher();
-        $employee = $teacher->employee;
+        $user = Auth::user();
+        $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        if (!$employee && $teacher?->employee_id) {
+            $employee = \App\Models\Employee::find($teacher->employee_id);
+        }
 
         if (!$employee) {
             return redirect()->back()->with('error', 'Data pegawai tidak ditemukan.');
@@ -1177,13 +1202,16 @@ class DashboardController extends Controller
 
         $daysInMonth = \Carbon\Carbon::create($year, $month)->daysInMonth;
         
-        // Ambil jadwal hari mengajar guru di tahun ajaran aktif
+        // Ambil jadwal hari mengajar guru di tahun ajaran aktif (hanya jika record teacher ada di DB)
         $activeYearObj = \App\Models\AcademicYear::where('is_active', true)->first();
-        $teachingDays = $teacher->schedules()
-            ->when($activeYearObj, fn($q) => $q->where('academic_year_id', $activeYearObj->id))
-            ->pluck('day_of_week')
-            ->unique()
-            ->toArray();
+        $teachingDays = [];
+        if ($teacher && $teacher->exists) {
+            $teachingDays = $teacher->schedules()
+                ->when($activeYearObj, fn($q) => $q->where('academic_year_id', $activeYearObj->id))
+                ->pluck('day_of_week')
+                ->unique()
+                ->toArray();
+        }
 
         // Get attendances for this month
         $attendances = \App\Models\EmployeeAttendance::where('employee_id', $employee->id)

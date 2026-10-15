@@ -4,11 +4,17 @@
 
 @section('content')
 <div class="space-y-4">
+    @php
+        $isPegawaiUser = (auth()->user()?->isPegawai() && !auth()->user()?->hasRole('guru')) || (session('active_role') === 'pegawai');
+    @endphp
+
     <!-- Header Title & Role Dual Tabs -->
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-black text-slate-900">Absensi Saya 📌</h2>
-            <p class="text-[11px] text-slate-500 font-bold">Rekap Kehadiran Mengajar & Poin Reputasi Guru</p>
+            <p class="text-[11px] text-slate-500 font-bold">
+                {{ $isPegawaiUser ? 'Rekap Kehadiran Pegawai & Jam Kerja' : 'Rekap Kehadiran Mengajar & Poin Reputasi Guru' }}
+            </p>
         </div>
 
         <!-- Filter Month/Year -->
@@ -30,6 +36,7 @@
         </form>
     </div>
 
+    @if(!$isPegawaiUser)
     <!-- Dual Tab Navigation Bar (Absen Siswa vs Absen Saya) -->
     <div class="flex items-center space-x-2 border-b-2 border-slate-200/80 pb-2">
         <a href="{{ route('mobile.guru.absensi.input') }}" 
@@ -41,6 +48,7 @@
             📌 Absen Saya (Guru)
         </a>
     </div>
+    @endif
 
     <!-- Special 17 August Independence Day Card for Guru (HUT RI Merah-Putih) -->
     @if(date('m-d') === '08-17')
@@ -63,7 +71,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <span class="px-3 py-0.5 rounded-full text-[9px] font-black uppercase bg-white/30 text-white border border-white/40">
-                    Presensi GPS Guru Mandiri
+                    {{ $isPegawaiUser ? 'Presensi GPS Pegawai Mandiri' : 'Presensi GPS Guru Mandiri' }}
                 </span>
                 <h3 class="text-base font-black text-white mt-1 leading-tight">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</h3>
             </div>
@@ -86,7 +94,7 @@
                     <input type="hidden" name="longitude" id="lngInput">
                     <button type="button" onclick="handleGpsScan()" class="w-full py-3 bg-white text-purple-900 font-black text-xs rounded-2xl shadow-lg hover:bg-purple-50 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-location-dot text-rose-500 text-sm"></i>
-                        <span>📍 Presensi GPS Guru Sekarang</span>
+                        <span>📍 {{ $isPegawaiUser ? 'Presensi GPS Pegawai Sekarang' : 'Presensi GPS Guru Sekarang' }}</span>
                     </button>
                 </form>
             @endif
@@ -95,57 +103,103 @@
 
     <!-- Stats & Point Summary Grid (5 Cards) -->
     <div class="grid grid-cols-2 gap-2 text-center">
-        <!-- Rate Kehadiran Wajib -->
+        <!-- Rate Kehadiran Wajib / Kerja -->
         <div class="clay-card p-3.5 bg-gradient-to-br from-teal-500 to-emerald-600 text-white col-span-2 flex items-center justify-between">
             <div class="text-left">
-                <span class="text-[10px] font-black uppercase text-teal-100 block">Tingkat Kehadiran Wajib</span>
+                <span class="text-[10px] font-black uppercase text-teal-100 block">
+                    {{ $isPegawaiUser ? 'Tingkat Kehadiran Kerja' : 'Tingkat Kehadiran Wajib' }}
+                </span>
                 <h4 class="text-2xl font-black leading-none mt-1">{{ $pct }}%</h4>
-                <span class="text-[9px] text-teal-100 font-bold block mt-1">{{ $totals['present_on_scheduled'] }} / {{ $totals['total_scheduled'] }} Hari Terjadwal</span>
+                <span class="text-[9px] text-teal-100 font-bold block mt-1">
+                    {{ $totals['present_on_scheduled'] }} / {{ $totals['total_scheduled'] }} {{ $isPegawaiUser ? 'Hari Kerja Efektif' : 'Hari Terjadwal' }}
+                </span>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl">
                 📊
             </div>
         </div>
 
-        <!-- Hadir Mengajar (HM) -->
-        <div class="clay-green p-3 text-left">
-            <div class="flex items-center justify-between">
-                <span class="text-[9px] font-black uppercase text-emerald-100">Hadir Mengajar</span>
-                <span class="text-xs">👨‍🏫</span>
+        @if($isPegawaiUser)
+            <!-- Hadir Kerja -->
+            <div class="clay-green p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-emerald-100">Hadir Kerja</span>
+                    <span class="text-xs">💼</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['hadir_mengajar'] }} Hari</h4>
+                <span class="text-[8px] font-bold text-emerald-100 mt-1 block">Presensi Masuk & Pulang</span>
             </div>
-            <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['hadir_mengajar'] }} Hari</h4>
-            <span class="text-[8px] font-bold text-emerald-100 mt-1 block">Sesuai Jadwal</span>
-        </div>
 
-        <!-- Tugas Khusus (TK) -->
-        <div class="clay-purple p-3 text-left">
-            <div class="flex items-center justify-between">
-                <span class="text-[9px] font-black uppercase text-purple-100">Tugas Khusus</span>
-                <span class="text-xs">⭐</span>
+            <!-- Izin / Sakit -->
+            <div class="clay-purple p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-purple-100">Izin / Sakit</span>
+                    <span class="text-xs">📝</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['izin'] }} Hari</h4>
+                <span class="text-[8px] font-bold text-purple-100 mt-1 block">Tercatat di HRD</span>
             </div>
-            <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['tugas_khusus'] }} Hari</h4>
-            <span class="text-[8px] font-bold text-purple-100 mt-1 block">Hadir Luar Jadwal</span>
-        </div>
 
-        <!-- Poin Reputasi Didapat (+15 Pts/TK) -->
-        <div class="clay-yellow p-3 text-left">
-            <div class="flex items-center justify-between">
-                <span class="text-[9px] font-black uppercase text-amber-100">Poin Reputasi</span>
-                <span class="text-xs">🪙</span>
+            <!-- Poin Reputasi -->
+            <div class="clay-yellow p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-amber-100">Poin Reputasi</span>
+                    <span class="text-xs">🪙</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">+{{ $reputationPoints }} Pts</h4>
+                <span class="text-[8px] font-bold text-amber-100 mt-1 block">Dedikasi Kehadiran Pegawai</span>
             </div>
-            <h4 class="text-xl font-black text-white mt-1 leading-none">+{{ $reputationPoints }} Pts</h4>
-            <span class="text-[8px] font-bold text-amber-100 mt-1 block">+15 Pts tiap Tugas Khusus</span>
-        </div>
 
-        <!-- Alpha / Absen Wajib -->
-        <div class="clay-pink p-3 text-left">
-            <div class="flex items-center justify-between">
-                <span class="text-[9px] font-black uppercase text-rose-100">Absen Wajib (Alpha)</span>
-                <span class="text-xs">⚠️</span>
+            <!-- Alpha / Tidak Hadir -->
+            <div class="clay-pink p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-rose-100">Alpha / Terlewat</span>
+                    <span class="text-xs">⚠️</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['alpha'] }} Hari</h4>
+                <span class="text-[8px] font-bold text-rose-100 mt-1 block">Tanpa Keterangan</span>
             </div>
-            <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['alpha'] }} Hari</h4>
-            <span class="text-[8px] font-bold text-rose-100 mt-1 block">Tidak Hadir Mengajar</span>
-        </div>
+        @else
+            <!-- Hadir Mengajar (HM) -->
+            <div class="clay-green p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-emerald-100">Hadir Mengajar</span>
+                    <span class="text-xs">👨‍🏫</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['hadir_mengajar'] }} Hari</h4>
+                <span class="text-[8px] font-bold text-emerald-100 mt-1 block">Sesuai Jadwal</span>
+            </div>
+
+            <!-- Tugas Khusus (TK) -->
+            <div class="clay-purple p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-purple-100">Tugas Khusus</span>
+                    <span class="text-xs">⭐</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['tugas_khusus'] }} Hari</h4>
+                <span class="text-[8px] font-bold text-purple-100 mt-1 block">Hadir Luar Jadwal</span>
+            </div>
+
+            <!-- Poin Reputasi Didapat (+15 Pts/TK) -->
+            <div class="clay-yellow p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-amber-100">Poin Reputasi</span>
+                    <span class="text-xs">🪙</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">+{{ $reputationPoints }} Pts</h4>
+                <span class="text-[8px] font-bold text-amber-100 mt-1 block">+15 Pts tiap Tugas Khusus</span>
+            </div>
+
+            <!-- Alpha / Absen Wajib -->
+            <div class="clay-pink p-3 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase text-rose-100">Absen Wajib (Alpha)</span>
+                    <span class="text-xs">⚠️</span>
+                </div>
+                <h4 class="text-xl font-black text-white mt-1 leading-none">{{ $totals['alpha'] }} Hari</h4>
+                <span class="text-[8px] font-bold text-rose-100 mt-1 block">Tidak Hadir Mengajar</span>
+            </div>
+        @endif
     </div>
 
     <!-- Monthly Attendance Matrix Calendar -->
@@ -159,10 +213,17 @@
 
         <!-- Legend Badges -->
         <div class="flex flex-wrap gap-1.5 text-[9px] font-black">
-            <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">HM = Hadir Mengajar</span>
-            <span class="px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-200">TK = Tugas Khusus (+15)</span>
-            <span class="px-2 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-200">A = Alpha</span>
-            <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">- = Bebas Tugas</span>
+            @if($isPegawaiUser)
+                <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">H = Hadir Kerja</span>
+                <span class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-200">I / S = Izin / Sakit</span>
+                <span class="px-2 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-200">A = Alpha</span>
+                <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">L = Libur</span>
+            @else
+                <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">HM = Hadir Mengajar</span>
+                <span class="px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-200">TK = Tugas Khusus (+15)</span>
+                <span class="px-2 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-200">A = Alpha</span>
+                <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">- = Bebas Tugas</span>
+            @endif
         </div>
 
         <!-- Daily Grid (2 Columns on mobile) -->

@@ -395,6 +395,39 @@ if (isset($_GET['migrate']) && $_GET['migrate'] === 'yes') {
             }
         }
         echo "Total Guru yang disinkronkan: <b>{$syncedTeachers}</b>\n";
+
+        echo "\n<span class='info'>--- Step 4: Cleaning up bogus Teacher records for non-teaching Employees (Staff TU / Pegawai) ---</span>\n";
+        $bogusTeachers = \Illuminate\Support\Facades\DB::table('teachers')
+            ->leftJoin('employees', 'teachers.employee_id', '=', 'employees.id')
+            ->leftJoin('users', 'teachers.user_id', '=', 'users.id')
+            ->where(function ($q) {
+                $q->where(function ($eq) {
+                    $eq->whereNotNull('employees.employee_type')
+                       ->where('employees.employee_type', '!=', 'guru');
+                })
+                ->orWhere(function ($uq) {
+                    $uq->whereNotNull('users.role')
+                       ->where('users.role', '=', 'pegawai');
+                })
+                ->orWhere('teachers.teacher_code', 'LIKE', 'PEG%')
+                ->orWhere('teachers.teacher_code', 'LIKE', 'PGW%');
+            })
+            ->select('teachers.id as teacher_id', 'teachers.full_name', 'teachers.teacher_code')
+            ->get();
+
+        $cleanedBogus = 0;
+        foreach ($bogusTeachers as $bt) {
+            $hasSchedules = \Illuminate\Support\Facades\DB::table('schedules')->where('teacher_id', $bt->teacher_id)->exists();
+            $hasTeachingAssignments = \Illuminate\Support\Facades\DB::table('teaching_assignments')->where('teacher_id', $bt->teacher_id)->exists();
+            $hasGrades = \Illuminate\Support\Facades\DB::table('grades')->where('teacher_id', $bt->teacher_id)->exists();
+
+            if (!$hasSchedules && !$hasTeachingAssignments && !$hasGrades) {
+                \Illuminate\Support\Facades\DB::table('teachers')->where('id', $bt->teacher_id)->delete();
+                $cleanedBogus++;
+                echo "<span class='ok'>🧹 Cleaned bogus Teacher profile: " . htmlspecialchars($bt->full_name) . " ({$bt->teacher_code})</span>\n";
+            }
+        }
+        echo "Total profil guru pegawai palsu yang dibersihkan: <b>{$cleanedBogus}</b>\n";
     } catch (\Exception $e) {
         echo "<span class='err'>❌ Migration error: " . htmlspecialchars($e->getMessage()) . "</span>\n";
     }

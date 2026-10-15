@@ -15,8 +15,12 @@ class MobileAbsensiController extends Controller
         $user = Auth::user();
         $activeRole = session('active_role', $user->role);
 
-        if ($activeRole === 'guru' || $user->isGuru()) {
+        if ($activeRole === 'guru' || ($user->isGuru() && !$user->isPegawai())) {
             return redirect()->route('mobile.guru.absensi.input');
+        }
+
+        if ($activeRole === 'pegawai' || $user->isPegawai()) {
+            return redirect()->route('mobile.guru.absensi.saya');
         }
 
         $student = Student::where('user_id', $user->id)->first();
@@ -82,7 +86,8 @@ class MobileAbsensiController extends Controller
                 }
             }
 
-            if ($employee && !$teacher) {
+            // Hanya link Teacher jika pegawai bertipe guru
+            if ($employee && !$teacher && $employee->employee_type === 'guru') {
                 $teacher = \App\Models\Teacher::where('employee_id', $employee->id)->first();
                 if ($teacher && !$teacher->user_id) {
                     $teacher->update(['user_id' => $user->id]);
@@ -90,11 +95,11 @@ class MobileAbsensiController extends Controller
             }
 
             if (!$employee) {
-                $isGuru = $user->isGuru() || $activeRole === 'guru';
+                $isGuru = ($user->role === 'guru' || $activeRole === 'guru');
                 $employee = \App\Models\Employee::create([
                     'school_id' => $user->school_id ?? 1,
                     'user_id' => $user->id,
-                    'employee_code' => $teacher?->teacher_code ?? ('PGW-' . $user->id),
+                    'employee_code' => $teacher?->teacher_code ?? (($isGuru ? 'TCH-' : 'PGW-') . $user->id),
                     'full_name' => $teacher?->full_name ?? $user->name,
                     'gender' => $teacher?->gender ?? 'L',
                     'birth_place' => $teacher?->birth_place ?? '-',
@@ -105,13 +110,14 @@ class MobileAbsensiController extends Controller
                 ]);
             }
 
-            if ($employee && !$teacher && ($user->isGuru() || $activeRole === 'guru')) {
+            // HANYA buat record Teacher jika pegawai memang bertipe 'guru' dan role-nya guru (bukan staf pegawai/TU)
+            if ($employee && !$teacher && $employee->employee_type === 'guru' && ($user->role === 'guru' || $activeRole === 'guru')) {
                 $teacher = \App\Models\Teacher::firstOrCreate(
                     ['user_id' => $user->id],
                     [
                         'employee_id' => $employee->id,
                         'school_id' => $employee->school_id ?? $user->school_id ?? 1,
-                        'teacher_code' => $employee->employee_code ?? ('PGW-' . $user->id),
+                        'teacher_code' => $employee->employee_code ?? ('TCH-' . $user->id),
                         'full_name' => $employee->full_name ?? $user->name,
                         'gender' => $employee->gender ?? 'L',
                         'birth_place' => $employee->birth_place ?? '-',
@@ -183,7 +189,7 @@ class MobileAbsensiController extends Controller
             }
 
             // Tentukan status kehadiran (Hadir Mengajar vs Tugas Khusus)
-            $isTeacher = ($user->isGuru() || $activeRole === 'guru' || ($employee && $employee->isTeacher()));
+            $isTeacher = $employee ? $employee->isTeacher() : ($user->hasRole('guru') || $activeRole === 'guru');
             $hasScheduleToday = false;
             $notes = null;
 

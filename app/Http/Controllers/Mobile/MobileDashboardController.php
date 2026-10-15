@@ -29,7 +29,10 @@ class MobileDashboardController extends Controller
         // Active duty resolution
         $availableDutyKeys = collect($availableDuties)->pluck('key')->all();
         $activeDuty = session('active_duty');
-        if (!$activeDuty || (!in_array($activeDuty, $availableDutyKeys) && !in_array($activeDuty, ['pengampu']))) {
+        if ($activeRole === 'pegawai' || ($user->isPegawai() && !$user->hasRole('guru'))) {
+            $activeDuty = 'pegawai';
+            session(['active_duty' => 'pegawai']);
+        } elseif (!$activeDuty || (!in_array($activeDuty, $availableDutyKeys) && !in_array($activeDuty, ['pengampu']))) {
             $activeDuty = !empty($availableDutyKeys) ? $availableDutyKeys[0] : 'pengampu';
             session(['active_duty' => $activeDuty]);
         }

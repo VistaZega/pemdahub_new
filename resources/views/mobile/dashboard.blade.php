@@ -758,7 +758,49 @@
                     <span class="text-[10px] font-black text-slate-800 text-center leading-none">Prestasi</span>
                 </a>
 
-            {{-- 8. DEFAULT: GURU PENGAMPU / KBM --}}
+            {{-- 8. DUTY / ROLE: PEGAWAI / STAF NON-GURU --}}
+            @elseif($activeDuty === 'pegawai' || $activeRole === 'pegawai')
+                <!-- Presensi Mandiri Pegawai -->
+                <a href="{{ route('mobile.guru.absensi.saya') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-cyan flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📌
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Presensi Saya</span>
+                </a>
+
+                <!-- Surat Edaran & Pengumuman -->
+                <a href="{{ route('mobile.guru.edaran') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-yellow flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        📄
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Surat Edaran</span>
+                </a>
+
+                <!-- Hall of Fame / Prestasi -->
+                <a href="{{ route('mobile.hall-of-fame') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-pink flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        👑
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Prestasi</span>
+                </a>
+
+                <!-- Pembda Space -->
+                <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        🏛️
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Space</span>
+                </a>
+
+                <!-- Profil Pegawai -->
+                <a href="{{ route('mobile.profile') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full clay-blue flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        👤
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Profil</span>
+                </a>
+
+            {{-- 9. DEFAULT: GURU PENGAMPU / KBM --}}
             @else
                 <!-- Jadwal Mengajar -->
                 <a href="{{ route('mobile.guru.jadwal') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">

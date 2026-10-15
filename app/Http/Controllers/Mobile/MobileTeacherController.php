@@ -33,12 +33,19 @@ class MobileTeacherController extends Controller
 {
     private function getTeacher()
     {
-        $teacher = Teacher::where('user_id', Auth::id())->first();
+        $user = Auth::user();
+        if (!$user) return null;
+
+        // Pegawai / staf non-guru tidak boleh pernah dianggap sebagai guru
+        if ($user->role === 'pegawai' || ($user->employee && !$user->employee->isTeacher())) {
+            return null;
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
         if ($teacher) return $teacher;
 
-        // Fallback for Super Admin / Testers switching role to Guru
-        $user = Auth::user();
-        if ($user) {
+        // Fallback KHUSUS Super Admin / Yayasan yang berganti role ke Guru di mobile
+        if ($user->isOwnerOrSuperAdmin()) {
             $teacher = Teacher::when($user->school_id, fn($q) => $q->where('school_id', $user->school_id))
                 ->first();
         }
@@ -669,16 +676,19 @@ class MobileTeacherController extends Controller
 
         $calendarData = [];
 
+        $isPegawai = ($user->role === 'pegawai' || session('active_role') === 'pegawai' || ($employee && !$employee->isTeacher()));
+
         // Holidays from calendar
         $holidays = [];
-        if ($activeYearObj && $teacher) {
+        $targetSchoolId = $teacher?->school_id ?? $employee?->school_id ?? $user->school_id;
+        if ($activeYearObj && $targetSchoolId) {
             $holidayEvents = \App\Models\EducationalCalendar::where('academic_year_id', $activeYearObj->id)
                 ->where('is_holiday', true)
-                ->where(function ($query) use ($teacher) {
+                ->where(function ($query) use ($targetSchoolId) {
                     $query->where('level', 'yayasan')
-                          ->orWhere(function ($q) use ($teacher) {
+                          ->orWhere(function ($q) use ($targetSchoolId) {
                               $q->where('level', 'school')
-                                ->where('school_id', $teacher->school_id);
+                                ->where('school_id', $targetSchoolId);
                           });
                 })
                 ->get();
@@ -707,47 +717,88 @@ class MobileTeacherController extends Controller
             $statusLabel = 'Bebas Tugas';
             $colorClass = 'bg-slate-50 border-slate-200 text-slate-400';
 
-            if ($att) {
-                $attStatus = strtolower($att->status ?? 'hadir');
-                if (in_array($attStatus, ['hadir', 'present'])) {
-                    if ($isScheduled) {
-                        $status = 'HM';
-                        $statusLabel = 'Hadir Mengajar';
+            if ($isPegawai) {
+                // Hari kerja pegawai: Senin s/d Sabtu (bukan Minggu dan bukan Hari Libur Kalender)
+                $isWorkday = !$dateObj->isSunday() && !$isHoliday;
+                if ($isWorkday) {
+                    $totals['total_scheduled']++;
+                }
+
+                if ($att) {
+                    $attStatus = strtolower($att->status ?? 'hadir');
+                    if (in_array($attStatus, ['hadir', 'present'])) {
+                        $status = 'H';
+                        $statusLabel = 'Hadir Kerja';
                         $colorClass = 'bg-emerald-50 border-emerald-300 text-emerald-900';
                         $totals['hadir_mengajar']++;
                         $totals['present_on_scheduled']++;
+                    } elseif (in_array($attStatus, ['izin', 'sakit', 'cuti'])) {
+                        $status = strtoupper(substr($attStatus, 0, 1));
+                        $statusLabel = ucfirst($attStatus);
+                        $colorClass = 'bg-amber-50 border-amber-300 text-amber-900';
+                        $totals['izin']++;
                     } else {
-                        $status = 'TK';
-                        $statusLabel = 'Tugas Khusus';
-                        $colorClass = 'bg-indigo-50 border-indigo-300 text-indigo-900';
-                        $totals['tugas_khusus']++;
+                        $status = 'A';
+                        $statusLabel = 'Alpha';
+                        $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
+                        $totals['alpha']++;
                     }
-                } elseif (in_array($attStatus, ['izin', 'sakit', 'cuti'])) {
-                    $status = strtoupper(substr($attStatus, 0, 1));
-                    $statusLabel = ucfirst($attStatus);
-                    $colorClass = 'bg-amber-50 border-amber-300 text-amber-900';
-                    $totals['izin']++;
                 } else {
-                    $status = 'A';
-                    $statusLabel = 'Alpha';
-                    $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
-                    $totals['alpha']++;
+                    if ($isWorkday && $dateObj->isPast()) {
+                        $status = 'A';
+                        $statusLabel = 'Alpha';
+                        $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
+                        $totals['alpha']++;
+                    } elseif ($isHoliday || $dateObj->isSunday()) {
+                        $status = 'L';
+                        $statusLabel = 'Libur';
+                        $colorClass = 'bg-slate-100 border-slate-200 text-slate-500';
+                    }
                 }
             } else {
-                if ($isScheduled && !$isHoliday && $dateObj->isPast()) {
-                    $status = 'A';
-                    $statusLabel = 'Alpha (Terjadwal)';
-                    $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
-                    $totals['alpha']++;
-                } elseif ($isHoliday) {
-                    $status = 'H';
-                    $statusLabel = 'Libur Sekolah';
-                    $colorClass = 'bg-slate-100 border-slate-200 text-slate-500';
+                // Guru KBM
+                if ($isScheduled && !$isHoliday) {
+                    $totals['total_scheduled']++;
                 }
-            }
 
-            if ($isScheduled && !$isHoliday) {
-                $totals['total_scheduled']++;
+                if ($att) {
+                    $attStatus = strtolower($att->status ?? 'hadir');
+                    if (in_array($attStatus, ['hadir', 'present'])) {
+                        if ($isScheduled) {
+                            $status = 'HM';
+                            $statusLabel = 'Hadir Mengajar';
+                            $colorClass = 'bg-emerald-50 border-emerald-300 text-emerald-900';
+                            $totals['hadir_mengajar']++;
+                            $totals['present_on_scheduled']++;
+                        } else {
+                            $status = 'TK';
+                            $statusLabel = 'Tugas Khusus';
+                            $colorClass = 'bg-indigo-50 border-indigo-300 text-indigo-900';
+                            $totals['tugas_khusus']++;
+                        }
+                    } elseif (in_array($attStatus, ['izin', 'sakit', 'cuti'])) {
+                        $status = strtoupper(substr($attStatus, 0, 1));
+                        $statusLabel = ucfirst($attStatus);
+                        $colorClass = 'bg-amber-50 border-amber-300 text-amber-900';
+                        $totals['izin']++;
+                    } else {
+                        $status = 'A';
+                        $statusLabel = 'Alpha';
+                        $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
+                        $totals['alpha']++;
+                    }
+                } else {
+                    if ($isScheduled && !$isHoliday && $dateObj->isPast()) {
+                        $status = 'A';
+                        $statusLabel = 'Alpha (Terjadwal)';
+                        $colorClass = 'bg-rose-50 border-rose-300 text-rose-900';
+                        $totals['alpha']++;
+                    } elseif ($isHoliday) {
+                        $status = 'H';
+                        $statusLabel = 'Libur Sekolah';
+                        $colorClass = 'bg-slate-100 border-slate-200 text-slate-500';
+                    }
+                }
             }
 
             $calendarData[$d] = [

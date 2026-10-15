@@ -314,6 +314,10 @@ class User extends Authenticatable
      */
     public function isGuru(): bool
     {
+        if ($this->role === 'pegawai' || ($this->employee && !$this->employee->isTeacher())) {
+            return false;
+        }
+
         return $this->hasRole('guru') || session('active_role') === 'guru' || (bool) $this->teacher;
     }
 
@@ -424,6 +428,10 @@ class User extends Authenticatable
      */
     public function teacherIds(): array
     {
+        if ($this->role === 'pegawai' || ($this->employee && !$this->employee->isTeacher())) {
+            return [];
+        }
+
         $ids = Teacher::where('user_id', $this->id)->pluck('id')->toArray();
         $employee = $this->employee 
             ?? $this->teacher?->employee 
@@ -1052,8 +1060,9 @@ class User extends Authenticatable
             ];
         }
 
-        // 6. Guru / Tenaga Pendidik (Hanya jika role guru atau memiliki profil Guru di database / superadmin)
-        if ($this->role === 'guru' || $this->hasRole('guru') || $this->teacher !== null || $this->isOwnerOrSuperAdmin()) {
+        // 6. Guru / Tenaga Pendidik (Hanya jika role guru atau memiliki profil Guru bertipe guru / superadmin)
+        $isActualTeacher = ($this->role === 'guru' || $this->hasRole('guru') || ($this->teacher !== null && ($this->employee?->isTeacher() ?? true)));
+        if ($this->role !== 'pegawai' && ($isActualTeacher || $this->isOwnerOrSuperAdmin())) {
             $roles[] = [
                 'key' => 'guru',
                 'label' => 'Guru Pengampu',
@@ -1064,7 +1073,7 @@ class User extends Authenticatable
         }
 
         // 7. Pegawai / Staf TU (Hanya jika role pegawai, atau staf non-guru / superadmin)
-        if ($this->role === 'pegawai' || $this->hasRole('pegawai') || ($this->employee !== null && $this->teacher === null) || $this->isOwnerOrSuperAdmin()) {
+        if ($this->role === 'pegawai' || $this->hasRole('pegawai') || ($this->employee !== null && !$this->employee->isTeacher()) || $this->isOwnerOrSuperAdmin()) {
             $roles[] = [
                 'key' => 'pegawai',
                 'label' => 'Pegawai / Staf TU',

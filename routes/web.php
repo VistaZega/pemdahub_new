@@ -2873,9 +2873,10 @@ Route::get('/run-migrations', function () {
 
     $output = "<h2>🚀 PembdaHUB Database Migration Runner</h2>";
     try {
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $output .= "<h3>Migration Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
-        $output .= "<p style='color:green;font-weight:bold;'>✔ Migrasi selesai dieksekusi.</p>";
+        $output .= "<p style='color:green;font-weight:bold;'>✔ Migrasi selesai dieksekusi dan cache berhasil dibersihkan.</p>";
     } catch (\Throwable $e) {
         $output .= "<h3>Migration Error:</h3><pre style='color:red;background:#fff0f0;padding:12px;border:1px solid #f99;'>" . $e->getMessage() . "</pre>";
     }
