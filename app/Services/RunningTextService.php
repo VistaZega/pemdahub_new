@@ -34,42 +34,32 @@ class RunningTextService
         $cleanSubtext = trim(preg_replace('/\s+/', ' ', $subtext));
         
         $isMasuk = strtoupper($action) === 'MASUK' || stripos($action, 'IN') !== false;
-        $isTerlambat = stripos($statusStr, 'terlambat') !== false;
-        
-        $statusLabel = $isMasuk ? ($isTerlambat ? 'TERLAMBAT' : 'HADIR') : 'PULANG';
-        // Sesuai aturan: Ambil HANYA KATA PERTAMA untuk nama panggilan siswa/guru agar tampil gagah dan pas di layar
-        $words = preg_split('/\s+/', $cleanName);
-        $firstName = strtoupper($words[0] ?? $cleanName);
 
-        // Pisahkan kelas dan unit jika formatnya "Kelas (Unit)"
-        $className = $cleanSubtext ?: 'Siswa';
-        $unitName = 'PEMBDA';
-        if (preg_match('/^(.*?)\s*\((.*?)\)$/', $cleanSubtext, $matches)) {
-            $className = trim($matches[1]);
-            $unitName = trim($matches[2]);
+        if ($isMasuk) {
+            $greeting = date('H') < 11 ? 'SELAMAT PAGI' : (date('H') < 15 ? 'SELAMAT SIANG' : 'SELAMAT SORE');
+            $displayText = sprintf(
+                "[ 👋 %s ] %s%s • Masuk: %s WIB • %s",
+                $greeting,
+                $cleanName,
+                $cleanSubtext ? " ({$cleanSubtext})" : '',
+                $timeStr,
+                $statusStr
+            );
+        } else {
+            $displayText = sprintf(
+                "[ 👋 SAMPAI JUMPA ] %s%s • Pulang: %s WIB • Hati-hati di jalan!",
+                $cleanName,
+                $cleanSubtext ? " ({$cleanSubtext})" : '',
+                $timeStr
+            );
         }
-
-        // BARIS 1: NAMA PANGGILAN BESAR (Kata Pertama Saja)
-        $line1 = $firstName;
-
-        // BARIS 2: KELAS/UNIT • JAM TAP MASUK • KETERANGAN (HADIR / TERLAMBAT)
-        $line2 = sprintf("%s (%s)  •  %s WIB  •  %s", $className, $unitName, $timeStr, $statusLabel);
-
-        // Format Teks Tunggal Gabungan (untuk fallback raw marquee)
-        $displayText = sprintf("%s   |   %s", $line1, $line2);
 
         $data = [
             'name'             => $cleanName,
-            'first_name'       => $firstName,
             'subtext'          => $cleanSubtext,
-            'class_name'       => $className,
-            'unit_name'        => $unitName,
             'action'           => $isMasuk ? 'MASUK' : 'PULANG',
             'time'             => $timeStr,
-            'status'           => $statusLabel,
-            'status_color'     => $statusColor,
-            'line1'            => $line1,
-            'line2'            => $line2,
+            'status'           => $statusStr,
             'display_text'     => $displayText,
             'timestamp'        => $now,
             'duration_seconds' => self::INTERRUPT_DURATION_SECONDS,

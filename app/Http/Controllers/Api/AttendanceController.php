@@ -302,14 +302,12 @@ class AttendanceController extends Controller
 
                          // TRIGGER RUNNING TEXT INTERRUPT (SAPAWAN PULANG)
                          try {
-                             $schoolShort = $student->school ? $student->school->name : 'PEMBDA';
-                             $clsName = $studentClass->classroom->class_name ?? 'Siswa';
                              \App\Services\RunningTextService::recordInterrupt(
                                  $student->full_name,
-                                 "{$clsName} ({$schoolShort})",
+                                 $studentClass->classroom->class_name ?? '',
                                  'PULANG',
                                  date('H:i', strtotime($currentTime)),
-                                 'Pulang'
+                                 'Berhasil Pulang'
                              );
                          } catch (\Throwable $ignEx) {}
 
@@ -356,14 +354,12 @@ class AttendanceController extends Controller
 
                 // TRIGGER RUNNING TEXT INTERRUPT (SAPAWAN MASUK)
                 try {
-                    $schoolShort = $student->school ? $student->school->name : 'PEMBDA';
-                    $clsName = $studentClass->classroom->class_name ?? 'Siswa';
                     \App\Services\RunningTextService::recordInterrupt(
                         $student->full_name,
-                        "{$clsName} ({$schoolShort})",
+                        $studentClass->classroom->class_name ?? '',
                         'MASUK',
                         date('H:i', strtotime($currentTime)),
-                        $status === 'terlambat' ? 'Terlambat' : 'Hadir'
+                        $status === 'terlambat' ? 'Terlambat' : 'Tepat Waktu'
                     );
                 } catch (\Throwable $ignEx) {}
 
