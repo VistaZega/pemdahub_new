@@ -21,6 +21,15 @@ class FoundationLetterReaderController extends Controller
             ->paginate(10);
 
         $layout = $user->layout;
+        if (!$layout) {
+            $layout = match($user->role) {
+                'siswa' => 'layouts.siswa',
+                'guru', 'pegawai' => 'layouts.guru',
+                'ketua_yayasan' => 'layouts.yayasan',
+                'superadmin', 'admin_sekolah', 'kepala_sekolah' => 'layouts.admin',
+                default => 'layouts.app'
+            };
+        }
 
         return view('admin.letters.index', compact('letters', 'user', 'schoolId', 'layout'));
     }
@@ -50,6 +59,15 @@ class FoundationLetterReaderController extends Controller
         ]);
 
         $layout = $user->layout;
+        if (!$layout) {
+            $layout = match($user->role) {
+                'siswa' => 'layouts.siswa',
+                'guru', 'pegawai' => 'layouts.guru',
+                'ketua_yayasan' => 'layouts.yayasan',
+                'superadmin', 'admin_sekolah', 'kepala_sekolah' => 'layouts.admin',
+                default => 'layouts.app'
+            };
+        }
 
         return view('admin.letters.show', compact('letter', 'user', 'layout'));
     }

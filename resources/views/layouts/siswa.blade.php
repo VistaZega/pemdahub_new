@@ -35,6 +35,12 @@
         <span>Jadwal Pelajaran</span>
     </a>
 
+    <!-- Surat Edaran Yayasan -->
+    <a href="{{ route('admin.letters.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.letters.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-xs"><i class="fas fa-file-signature text-[10px]"></i></div>
+        <span class="font-bold text-slate-900">Surat Edaran Yayasan</span>
+    </a>
+
 
     <a href="{{ route('siswa.nilai') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.nilai') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white"><i class="fas fa-chart-bar text-[10px]"></i></div>

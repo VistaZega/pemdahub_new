@@ -1392,6 +1392,10 @@ Route::get('/run-migrations', function () {
         $hutRiSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'FoundationLetterHutRiSeeder', '--force' => true]);
         echo \Illuminate\Support\Facades\Artisan::output();
 
+        echo "<h1>=== RUNNING SURAT EDARAN KABUT ASAP PJJ SEEDER ===</h1>\n";
+        $kabutAsapSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'FoundationLetterKabutAsapSeeder', '--force' => true]);
+        echo \Illuminate\Support\Facades\Artisan::output();
+
         echo "<h1>=== RUNNING EXTRACURRICULAR SEEDER ===</h1>\n";
         $ekskulSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'ExtracurricularSeeder', '--force' => true]);
         echo \Illuminate\Support\Facades\Artisan::output();
@@ -2876,9 +2880,37 @@ Route::get('/run-migrations', function () {
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $output .= "<h3>Migration Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
-        $output .= "<p style='color:green;font-weight:bold;'>✔ Migrasi selesai dieksekusi dan cache berhasil dibersihkan.</p>";
+
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\FoundationLetterKabutAsapSeeder',
+            '--force' => true,
+        ]);
+        $output .= "<h3>Seeder Surat Edaran Kabut Asap Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+
+        $output .= "<p style='color:green;font-weight:bold;'>✔ Migrasi & Seeder Surat Edaran Kabut Asap berhasil dieksekusi dan cache dibersihkan.</p>";
     } catch (\Throwable $e) {
         $output .= "<h3>Migration Error:</h3><pre style='color:red;background:#fff0f0;padding:12px;border:1px solid #f99;'>" . $e->getMessage() . "</pre>";
+    }
+
+    return response($output);
+});
+
+Route::get('/seed-edaran-kabut-asap', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized secret key');
+    }
+
+    $output = "<h2>📜 PembdaHUB Surat Edaran Kabut Asap Seeder</h2>";
+    try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\FoundationLetterKabutAsapSeeder',
+            '--force' => true,
+        ]);
+        $output .= "<h3>Seeder Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+        $output .= "<p style='color:green;font-weight:bold;'>✔ Surat Edaran Tanggap Bencana Kabut Asap & PJJ berhasil diterbitkan dan ditandatangani secara elektronik!</p>";
+        $output .= "<p><a href='/yayasan/surat-edaran' style='display:inline-block;padding:8px 16px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;'>Buka Menu Surat Edaran Yayasan ➔</a></p>";
+    } catch (\Throwable $e) {
+        $output .= "<h3>Seeder Error:</h3><pre style='color:red;background:#fff0f0;padding:12px;border:1px solid #f99;'>" . $e->getMessage() . "</pre>";
     }
 
     return response($output);

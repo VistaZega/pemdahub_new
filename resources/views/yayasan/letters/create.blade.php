@@ -122,6 +122,9 @@
                     </label>
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-xs text-gray-500">Template Cepat:</span>
+                        <a href="{{ route('yayasan.letters.create', ['preset' => 'kabut_asap']) }}" class="text-xs font-semibold text-amber-900 hover:underline bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg">
+                            <i class="fas fa-smog mr-1 text-amber-600"></i> Antisipasi Kabut Asap & PJJ (15-21 Okt 2026)
+                        </a>
                         <a href="{{ route('yayasan.letters.create', ['preset' => 'hut_ri']) }}" class="text-xs font-semibold text-rose-700 hover:underline bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
                             <i class="fas fa-flag mr-1"></i> Peringatan HUT Ke-81 RI (17 Agt 2026)
                         </a>
