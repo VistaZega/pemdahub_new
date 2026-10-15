@@ -33,48 +33,55 @@ class FoundationLetterKabutAsapSeeder extends Seeder
 
 <p style="line-height: 1.35; margin-bottom: 8px;">Dengan hormat,</p>
 <p style="line-height: 1.35; margin-bottom: 12px; text-align: justify;">
-Menyikapi peningkatan intensitas sebaran kabut asap yang menyelimuti wilayah Provinsi Sumatera Utara, khususnya di wilayah Kepulauan Nias dan sekitarnya yang berpotensi menimbulkan gangguan kesehatan organ pernapasan (ISPA) serta menurunkan kualitas udara lingkungan belajar, serta sebagai tindak lanjut resmi atas <strong>Surat Kepala Dinas Pendidikan Provinsi Sumatera Utara Nomor: 400.3/106/DISDIK/2026</strong> dan <strong>Surat Kepala Cabang Dinas Pendidikan Wilayah XIII Nomor: 400.3/1729/CABDISDIK WIL. XIII/2026</strong> perihal <em>Antisipasi Dampak Kabut Asap di Satuan Pendidikan</em>, maka Pengurus Yayasan Perguruan PEMBDA Nias dengan ini menetapkan instruksi dan pedoman tindak lanjut sebagai berikut:
+Menyikapi peningkatan intensitas kabut asap di wilayah Provinsi Sumatera Utara, khususnya di wilayah Kepulauan Nias dan Kota Gunungsitoli yang berpotensi menimbulkan gangguan kesehatan organ pernapasan (ISPA) serta menurunkan kualitas udara lingkungan belajar, serta sebagai tindak lanjut resmi atas <strong>Surat Kepala Dinas Pendidikan Provinsi Sumatera Utara Nomor: 400.3/106/DISDIK/2026</strong> dan <strong>Surat Kepala Cabang Dinas Pendidikan Wilayah XIII Nomor: 400.3/1729/CABDISDIK WIL. XIII/2026</strong> perihal <em>Antisipasi Dampak Kabut Asap di Satuan Pendidikan</em>, maka Pengurus Yayasan Perguruan PEMBDA Nias dengan ini menetapkan instruksi dan pedoman penyesuaian kegiatan belajar sebagai berikut:
 </p>
 
 <ol style="list-style-type: decimal; padding-left: 24px; margin-top: 10px; margin-bottom: 15px; line-height: 1.35;">
     <li style="margin-bottom: 12px;">
-        <strong style="color: #92400e; text-transform: uppercase;">PENGALIHAN KBM TATAP MUKA MENJADI PEMBELAJARAN JARAK JAUH (PJJ)</strong>
+        <strong style="color: #92400e; text-transform: uppercase;">PEMBERLAKUAN SISTEM PEMBELAJARAN JARAK JAUH (PJJ) KHUSUS JENJANG SMA & SMK</strong>
         <p style="margin-top: 4px; text-align: justify;">
-        Terhitung mulai tanggal <strong>15 s.d. 21 Oktober 2026</strong>, seluruh Kegiatan Belajar Mengajar (KBM) tatap muka secara langsung di ruang kelas pada seluruh unit pendidikan di bawah naungan Yayasan Perguruan PEMBDA Nias (<strong>SMP Swasta Pembda 2 Gunungsitoli, SMA Swasta Pembda 1 Gunungsitoli, dan SMKS Swasta Pembda Nias</strong>) dialihkan pelaksanaannya dengan <strong>Sistem Pembelajaran Jarak Jauh (PJJ) / Belajar Dari Rumah (BDR)</strong> demi mengutamakan keselamatan dan perlindungan kesehatan seluruh peserta didik serta tenaga pendidik.
+        Terhitung mulai tanggal <strong>15 s.d. 21 Oktober 2026</strong>, Kegiatan Belajar Mengajar (KBM) tatap muka di ruang kelas dialihkan ke <strong>Sistem Pembelajaran Jarak Jauh (PJJ) / Belajar Dari Rumah (BDR)</strong> yang <strong>diberlakukan khusus untuk unit SMA Swasta Pembda 1 Gunungsitoli dan SMKS Swasta Pembda Nias</strong> demi mengutamakan keselamatan dan perlindungan kesehatan peserta didik serta guru dari risiko paparan kabut asap tebal.
         </p>
     </li>
 
     <li style="margin-bottom: 12px;">
-        <strong style="color: #92400e; text-transform: uppercase;">OPTIMALISASI PLATFORM DIGITAL LEARNING MANAGEMENT SYSTEM (LMS) PEMBDAHUB</strong>
+        <strong style="color: #92400e; text-transform: uppercase;">STATUS KHUSUS SMPS PEMBDA 2 GUNUNGSITOLI MENUNGGU PETUNJUK RESMI</strong>
         <p style="margin-top: 4px; text-align: justify;">
-        Penyelenggaraan Sistem Pembelajaran Jarak Jauh (PJJ) dimaksud wajib dilaksanakan secara terintegrasi dan terpantau dengan mendayagunakan platform <strong>Learning Management System (LMS) pada ekosistem digital PembdaHUB</strong> (<a href="https://perguruanpembda.com" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: bold;">perguruanpembda.com</a>):
+        Berhubung hingga saat ini belum ada petunjuk teknis atau surat edaran resmi dari instansi berwenang di tingkat daerah (Pemerintah Kota / Dinas Pendidikan Kota Gunungsitoli) bagi satuan pendidikan jenjang SMP, maka <strong>khusus untuk unit SMP Swasta Pembda 2 Gunungsitoli pelaksanaan PJJ menunggu petunjuk dan arahan lebih lanjut dari pihak yang berwenang</strong>. Untuk sementara, KBM di SMPS Pembda 2 tetap berjalan dengan mengedepankan prinsip kehati-hatian, pembatasan aktivitas fisik di luar kelas, pengetatan protokol kesehatan, serta kesiapsiagaan seluruh guru dan siswa memanfaatkan LMS PembdaHUB apabila sewaktu-waktu diterbitkan instruksi PJJ.
+        </p>
+    </li>
+
+    <li style="margin-bottom: 12px;">
+        <strong style="color: #92400e; text-transform: uppercase;">PELAKSANAAN PJJ BERBASIS LMS DIGITAL PADA APLIKASI PEMBDAHUB</strong>
+        <p style="margin-top: 4px; text-align: justify;">
+        Sistem Pembelajaran Jarak Jauh (PJJ) yang diberlakukan bagi unit sekolah di bawah naungan Yayasan Perguruan PEMBDA Nias dilaksanakan secara terpadu menggunakan platform <strong>Learning Management System (LMS) pada aplikasi digital PembdaHUB</strong> (<a href="https://perguruanpembda.com" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: bold;">perguruanpembda.com</a>):
         </p>
         <ul style="list-style-type: disc; padding-left: 20px; margin-top: 4px; line-height: 1.3;">
-            <li style="margin-bottom: 3px;"><strong>Bapak/Ibu Guru:</strong> Mengunggah modul pembelajaran digital, materi ajar (slide/video/dokumen PDF), penugasan terstruktur, serta kuis daring interaktif ke dalam Course LMS masing-masing mata pelajaran.</li>
-            <li style="margin-bottom: 3px;"><strong>Siswa/Siswi:</strong> Wajib login ke akun PembdaHUB untuk mempelajari materi, mengerjakan tugas, dan menyelesaikan kuis sesuai arahan guru.</li>
-            <li style="margin-bottom: 3px;"><strong>Presensi Daring:</strong> Rekapitulasi kehadiran KBM siswa tercatat dan termonitor secara otomatis melalui keaktifan pada LMS PembdaHUB.</li>
+            <li style="margin-bottom: 3px;"><strong>Bapak/Ibu Guru:</strong> Mengunggah materi ajar digital, modul KBM, tugas terstruktur, serta kuis/evaluasi daring ke menu Course LMS masing-masing mapel.</li>
+            <li style="margin-bottom: 3px;"><strong>Peserta Didik:</strong> Wajib login menggunakan akun PembdaHUB untuk mengakses bahan ajar, menyimak arahan guru, dan menyelesaikan penugasan harian.</li>
+            <li style="margin-bottom: 3px;"><strong>Rekapitulasi Presensi:</strong> Kehadiran siswa tercatat secara sistematis dan otomatis melalui interaksi pada LMS PembdaHUB.</li>
         </ul>
     </li>
 
     <li style="margin-bottom: 12px;">
         <strong style="color: #92400e; text-transform: uppercase;">OTONOMI & KEWENANGAN TEKNIS PENERAPAN PJJ OLEH UNIT SEKOLAH</strong>
         <p style="margin-top: 4px; text-align: justify;">
-        Teknis operasional penerapan PJJ menggunakan LMS PembdaHUB — termasuk pengaturan alokasi waktu sesi pembelajaran, penyesuaian jadwal harian, proporsi belajar asinkron/sinkron, serta mekanisme koordinasi wali kelas bersama orang tua/wali siswa — merupakan <strong>kewenangan dan tanggung jawab penuh masing-masing unit sekolah</strong> (Kepala Sekolah bersama jajaran Wakil Kepala Sekolah dan Dewan Guru), dengan tetap menjaga standar mutu kurikulum dan tidak membebani siswa secara berlebihan.
+        Teknis penerapan dan mekanisme operasional PJJ menggunakan LMS PembdaHUB merupakan <strong>kewenangan penuh masing-masing pimpinan unit sekolah</strong> (Kepala Sekolah beserta jajaran Dewan Guru), termasuk penyesuaian jadwal harian, proporsi pembelajaran sinkron/asinkron, serta jalur koordinasi wali kelas dengan orang tua/wali siswa.
         </p>
     </li>
 
     <li style="margin-bottom: 12px;">
-        <strong style="color: #92400e; text-transform: uppercase;">PROTOKOL KESEHATAN, MITIGASI MANDIRI & PETUNJUK LANJUTAN</strong>
+        <strong style="color: #92400e; text-transform: uppercase;">PROTOKOL KESEHATAN, MITIGASI MANDIRI & PENGAWASAN BERKELANJUTAN</strong>
         <ul style="list-style-type: disc; padding-left: 20px; margin-top: 4px; line-height: 1.3;">
-            <li style="margin-bottom: 3px;">Seluruh sivitas akademika diimbau untuk membatasi aktivitas fisik di luar ruangan (<em>outdoor</em>), mengenakan masker standar medis/filtrasi partikel debu apabila berada di luar rumah, menjaga hidrasi dengan memperbanyak minum air putih, dan segera memeriksakan diri ke fasilitas kesehatan jika mengalami gejala sesak napas atau iritasi mata.</li>
-            <li style="margin-bottom: 3px;">Kebijakan operasional KBM selanjutnya setelah tanggal 21 Oktober 2026 akan dievaluasi secara dinamis dengan <strong>menunggu petunjuk dan arahan resmi lebih lanjut dari pihak yang berwenang</strong> (Pemerintah Daerah, Dinas Pendidikan Provinsi Sumatera Utara, dan Cabang Dinas Wilayah XIII).</li>
+            <li style="margin-bottom: 3px;">Seluruh sivitas akademika diimbau untuk membatasi aktivitas fisik di luar ruangan (<em>outdoor</em>), selalu mengenakan masker medis/filtrasi partikel debu saat berada di luar rumah, menjaga hidrasi tubuh, dan segera memeriksakan diri bila mengalami gangguan pernapasan.</li>
+            <li style="margin-bottom: 3px;">Langkah antisipasi dampak kabut asap selanjutnya serta penentuan operasional KBM setelah tanggal 21 Oktober 2026 akan dievaluasi dengan <strong>menunggu petunjuk dan arahan resmi lebih lanjut dari pihak yang berwenang</strong>.</li>
         </ul>
     </li>
 </ol>
 
 <p style="margin-top: 14px; line-height: 1.35; text-align: justify;">
 <strong>PENUTUP:</strong><br>
-Demikian Surat Edaran ini disampaikan untuk menjadi pedoman bersama, ditaati, dan dilaksanakan dengan sebaik-baiknya dengan penuh rasa tanggung jawab demi keselamatan, kesehatan, dan kelangsungan pendidikan generasi emas di lingkungan Perguruan PEMBDA Nias. Atas perhatian, kesiapsiagaan, dan dedikasi Bapak/Ibu Kepala Sekolah, Guru, Pegawai, serta kerja sama seluruh Siswa dan Orang Tua, kami ucapkan terima kasih.
+Demikian Surat Edaran ini disampaikan untuk menjadi pedoman bersama dalam rangka antisipasi dampak bencana kabut asap di wilayah Provinsi Sumatera Utara, khususnya di lingkungan Yayasan Perguruan PEMBDA Nias. Atas perhatian, kerja sama, dan dedikasi Bapak/Ibu Kepala Sekolah, Guru, Pegawai, serta kerja sama seluruh Siswa dan Orang Tua, kami ucapkan terima kasih.
 </p>
 
 <div style="margin-top: 14px; padding: 10px; text-align: center; border-top: 2px dashed #f59e0b; border-bottom: 2px dashed #f59e0b; background-color: #fafafa; border-radius: 6px; line-height: 1.25;">
@@ -82,7 +89,7 @@ Demikian Surat Edaran ini disampaikan untuk menjadi pedoman bersama, ditaati, da
         YAYASAN PERGURUAN PEMBANGUNAN DAERAH NIAS (PEMBDA)
     </p>
     <p style="margin: 3px 0 0 0; font-weight: 800; color: #111827; font-size: 12px;">
-        <em>"Keep Moving Forward — Maju Terus Pantang Mundur Menjaga Kesehatan & Kualitas Pendidikan!"</em>
+        <em>"Maju Terus Menjaga Kesehatan Generasi & Mutu Pembelajaran Digital PembdaHUB!"</em>
     </p>
 </div>';
 
@@ -119,6 +126,8 @@ Demikian Surat Edaran ini disampaikan untuk menjadi pedoman bersama, ditaati, da
         ];
 
         if ($existingLetter) {
+            // Keep existing signature_hash so shared URLs remain valid
+            $data['signature_hash'] = $existingLetter->signature_hash;
             $existingLetter->update($data);
         } else {
             FoundationLetter::create($data);
