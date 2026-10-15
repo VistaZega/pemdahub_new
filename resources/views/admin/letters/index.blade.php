@@ -67,11 +67,20 @@
                             </span>
                         </td>
                         <td class="py-4 px-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <a href="{{ route('admin.letters.show', $letter->id) }}" class="bg-violet-600 hover:bg-violet-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1">
-                                    <i class="fas fa-book-open"></i> Baca Surat
+                            <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                                <button type="button" onclick="copyVerificationLink('{{ $letter->verification_url }}')" class="bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-2.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1 border border-teal-200" title="Salin Link Verifikasi Resmi">
+                                    <i class="fas fa-link text-[11px]"></i>
+                                    <span class="hidden sm:inline">Salin Link</span>
+                                </button>
+                                <a href="{{ $letter->wa_share_url }}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm" title="Bagikan ke WhatsApp">
+                                    <i class="fab fa-whatsapp text-xs"></i>
+                                    <span class="hidden sm:inline">Bagikan WA</span>
                                 </a>
-                                <a href="{{ route('admin.letters.print', $letter->id) }}" target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-2.5 py-1.5 rounded-lg text-xs transition-colors" title="Cetak PDF">
+                                <a href="{{ route('admin.letters.show', $letter->id) }}" class="bg-violet-600 hover:bg-violet-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1">
+                                    <i class="fas fa-book-open text-[11px]"></i>
+                                    <span>Baca</span>
+                                </a>
+                                <a href="{{ route('admin.letters.print', $letter->id) }}" target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200" title="Cetak PDF">
                                     <i class="fas fa-print"></i>
                                 </a>
                             </div>
@@ -87,4 +96,50 @@
         @endif
     </div>
 </div>
+
+<script>
+function showCopyToast(message) {
+    let toast = document.getElementById('letter-copy-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'letter-copy-toast';
+        toast.className = 'fixed bottom-5 right-5 z-50 bg-gray-950 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-500/60 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none text-xs md:text-sm font-semibold';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fas fa-check-circle text-emerald-400 text-base"></i> <span>${message}</span>`;
+    toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+    setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 2800);
+}
+
+function copyVerificationLink(url) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            showCopyToast('Link verifikasi surat resmi berhasil disalin!');
+        }).catch(() => fallbackCopy(url, 'Link verifikasi surat resmi berhasil disalin!'));
+    } else {
+        fallbackCopy(url, 'Link verifikasi surat resmi berhasil disalin!');
+    }
+}
+
+function fallbackCopy(text, msg) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+        document.execCommand('copy');
+        showCopyToast(msg);
+    } catch (err) {
+        alert(msg + '\n\n' + text);
+    }
+    document.body.removeChild(ta);
+}
+</script>
 @endsection

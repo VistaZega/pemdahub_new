@@ -127,22 +127,25 @@
                         </td>
                         <td class="py-4 px-4 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                <a href="{{ route('yayasan.letters.show', $letter->id) }}" class="p-2 text-violet-600 hover:bg-violet-100 rounded-lg transition-colors" title="Lihat Detail">
+                                <a href="{{ route('yayasan.letters.show', $letter->id) }}" class="p-2 text-violet-600 hover:bg-violet-100 rounded-lg transition-colors" title="Lihat Detail Surat">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 <a href="{{ route('yayasan.letters.edit', $letter->id) }}" class="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors" title="Edit Surat">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button onclick="copyLetterText({{ json_encode($letter->wa_text_content) }})" class="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-colors" title="Salin Teks Surat & Link WA (1-Klik)">
+                                <button type="button" onclick="copyVerificationLink('{{ $letter->verification_url }}')" class="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-colors" title="Salin Link Verifikasi Resmi">
+                                    <i class="fas fa-link text-base"></i>
+                                </button>
+                                <button type="button" onclick="copyLetterText({{ json_encode($letter->wa_text_content) }})" class="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors" title="Salin Seluruh Teks & Link WA (1-Klik)">
                                     <i class="fas fa-copy text-base"></i>
                                 </button>
-                                <a href="{{ $letter->wa_share_url }}" target="_blank" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Buka WhatsApp Web">
+                                <a href="{{ $letter->wa_share_url }}" target="_blank" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Buka & Kirim Langsung di WhatsApp">
                                     <i class="fab fa-whatsapp text-base"></i>
                                 </a>
-                                <a href="{{ route('yayasan.letters.print', $letter->id) }}" target="_blank" class="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors" title="Cetak / Pratinjau PDF">
+                                <a href="{{ route('yayasan.letters.print', $letter->id) }}" target="_blank" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Cetak / Pratinjau PDF">
                                     <i class="fas fa-print"></i>
                                 </a>
-                                <a href="{{ $letter->verification_url }}" target="_blank" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Uji QR Verifikasi">
+                                <a href="{{ $letter->verification_url }}" target="_blank" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors" title="Uji QR Verifikasi">
                                     <i class="fas fa-qrcode"></i>
                                 </a>
                                 <form action="{{ route('yayasan.letters.destroy', $letter->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat digital ini?')" class="inline">
@@ -168,12 +171,58 @@
 </div>
 
 <script>
+function showCopyToast(message) {
+    let toast = document.getElementById('letter-copy-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'letter-copy-toast';
+        toast.className = 'fixed bottom-5 right-5 z-50 bg-gray-950 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-500/60 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none text-xs md:text-sm font-semibold';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fas fa-check-circle text-emerald-400 text-base"></i> <span>${message}</span>`;
+    toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+    setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 2800);
+}
+
+function copyVerificationLink(url) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            showCopyToast('Link verifikasi surat resmi berhasil disalin!');
+        }).catch(() => fallbackCopy(url, 'Link verifikasi surat resmi berhasil disalin!'));
+    } else {
+        fallbackCopy(url, 'Link verifikasi surat resmi berhasil disalin!');
+    }
+}
+
 function copyLetterText(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert("✅ Teks Surat & Link Verifikasi Berhasil Disalin ke Clipboard!\n\nSilakan buka WhatsApp Aplikasi / Desktop di Windows Anda lalu tekan Ctrl + V (Paste) di grup WA.");
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-    });
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showCopyToast('Teks pengumuman & link WA berhasil disalin ke clipboard!');
+        }).catch(() => fallbackCopy(text, 'Teks pengumuman & link WA berhasil disalin!'));
+    } else {
+        fallbackCopy(text, 'Teks pengumuman & link WA berhasil disalin!');
+    }
+}
+
+function fallbackCopy(text, msg) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+        document.execCommand('copy');
+        showCopyToast(msg);
+    } catch (err) {
+        alert(msg + '\n\n' + text);
+    }
+    document.body.removeChild(ta);
 }
 </script>
 @endsection

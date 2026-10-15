@@ -4,13 +4,28 @@
 
 @section('content')
 <div class="space-y-6 max-w-4xl mx-auto">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <a href="{{ route('admin.letters.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-violet-700 transition-colors">
             <i class="fas fa-arrow-left"></i> Kembali ke Inboks Surat Masuk
         </a>
-        <a href="{{ route('admin.letters.print', $letter->id) }}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl shadow text-sm transition-all flex items-center gap-2">
-            <i class="fas fa-print"></i> Cetak / Pratinjau Dokumen
-        </a>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ $letter->wa_share_url }}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-xs md:text-sm" title="Bagikan Langsung ke WhatsApp">
+                <i class="fab fa-whatsapp text-sm md:text-base"></i>
+                <span>Bagikan WA</span>
+            </a>
+            <button type="button" onclick="copyVerificationLink('{{ $letter->verification_url }}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3.5 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-xs md:text-sm" title="Salin Link Verifikasi Resmi">
+                <i class="fas fa-link text-xs"></i>
+                <span>Salin Link</span>
+            </button>
+            <button type="button" onclick="copyLetterText({{ json_encode($letter->wa_text_content) }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-xs md:text-sm" title="Salin Teks Lengkap WA">
+                <i class="fas fa-copy text-xs"></i>
+                <span>Salin Teks WA</span>
+            </button>
+            <a href="{{ route('admin.letters.print', $letter->id) }}" target="_blank" class="bg-gray-800 hover:bg-gray-900 text-white font-bold px-3.5 py-2 rounded-xl shadow text-xs md:text-sm transition-all flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                <span>Cetak / PDF</span>
+            </a>
+        </div>
     </div>
 
     {{-- Main Letter View Card (A4: 210mm, Margin Kiri-Kanan 15mm) --}}
@@ -100,4 +115,60 @@
         </div>
     </div>
 </div>
+
+<script>
+function showCopyToast(message) {
+    let toast = document.getElementById('letter-copy-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'letter-copy-toast';
+        toast.className = 'fixed bottom-5 right-5 z-50 bg-gray-950 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-500/60 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none text-xs md:text-sm font-semibold';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fas fa-check-circle text-emerald-400 text-base"></i> <span>${message}</span>`;
+    toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+    setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 2800);
+}
+
+function copyVerificationLink(url) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            showCopyToast('Link verifikasi surat resmi berhasil disalin!');
+        }).catch(() => fallbackCopy(url, 'Link verifikasi surat resmi berhasil disalin!'));
+    } else {
+        fallbackCopy(url, 'Link verifikasi surat resmi berhasil disalin!');
+    }
+}
+
+function copyLetterText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showCopyToast('Teks pengumuman & link WA berhasil disalin!');
+        }).catch(() => fallbackCopy(text, 'Teks pengumuman & link WA berhasil disalin!'));
+    } else {
+        fallbackCopy(text, 'Teks pengumuman & link WA berhasil disalin!');
+    }
+}
+
+function fallbackCopy(text, msg) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+        document.execCommand('copy');
+        showCopyToast(msg);
+    } catch (err) {
+        alert(msg + '\n\n' + text);
+    }
+    document.body.removeChild(ta);
+}
+</script>
 @endsection

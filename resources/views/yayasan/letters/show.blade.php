@@ -10,11 +10,14 @@
             <i class="fas fa-arrow-left"></i> Kembali ke Daftar Surat
         </a>
         <div class="flex flex-wrap items-center gap-2">
-            <button onclick="copyWaContent()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm" title="Salin seluruh teks surat & link verifikasi untuk dikirim di WhatsApp">
-                <i class="fas fa-copy"></i> Salin Teks Surat WA (1-Klik)
+            <a href="{{ $letter->wa_share_url }}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm" title="Kirim langsung ke WhatsApp">
+                <i class="fab fa-whatsapp text-base"></i> Bagikan ke WA
+            </a>
+            <button onclick="copyWaContent()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm" title="Salin seluruh teks surat & link verifikasi untuk dikirim di WhatsApp">
+                <i class="fas fa-copy"></i> Salin Teks WA
             </button>
-            <button onclick="copyVerificationLink()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm" title="Salin hanya link verifikasi online">
-                <i class="fas fa-link"></i> Salin Link Verifikasi
+            <button onclick="copyVerificationLink()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm" title="Salin link verifikasi surat resmi">
+                <i class="fas fa-link"></i> Salin Link Surat
             </button>
             <a href="{{ route('yayasan.letters.edit', $letter->id) }}" class="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2 text-sm">
                 <i class="fas fa-edit"></i> Edit Surat
@@ -29,7 +32,7 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl shadow text-sm transition-all flex items-center gap-2">
-                    <i class="fas fa-trash-alt"></i> Hapus Surat
+                    <i class="fas fa-trash-alt"></i> Hapus
                 </button>
             </form>
         </div>
@@ -184,20 +187,65 @@
 </div>
 
 <script>
+function showToast(message, icon = 'fa-check-circle', color = 'emerald') {
+    let existing = document.getElementById('floating-share-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'floating-share-toast';
+    toast.className = `fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-white font-medium text-sm transition-all transform duration-300 translate-y-4 opacity-0 ${
+        color === 'emerald' ? 'bg-emerald-600 border border-emerald-400' : 'bg-sky-600 border border-sky-400'
+    }`;
+    toast.innerHTML = `<i class="fas ${icon} text-lg"></i> <span>${message}</span>`;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+    });
+
+    setTimeout(() => {
+        toast.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
 function copyWaContent() {
     const text = @json($letter->wa_text_content);
-    navigator.clipboard.writeText(text).then(() => {
-        alert("✅ Teks Surat & Link Verifikasi Berhasil Disalin ke Clipboard!\n\nSilakan buka WhatsApp (Aplikasi / Desktop) lalu tekan Ctrl + V (Paste) di grup WA.");
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-    });
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("Teks lengkap & link surat berhasil disalin!", "fa-copy", "emerald");
+        }).catch(() => fallbackCopy(text, "Teks surat berhasil disalin!"));
+    } else {
+        fallbackCopy(text, "Teks surat berhasil disalin!");
+    }
 }
 
 function copyVerificationLink() {
     const url = @json($letter->verification_url);
-    navigator.clipboard.writeText(url).then(() => {
-        alert("🔗 Link Verifikasi Dokumen Berhasil Disalin!");
-    });
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            showToast("Link verifikasi resmi berhasil disalin!", "fa-link", "sky");
+        }).catch(() => fallbackCopy(url, "Link verifikasi resmi berhasil disalin!"));
+    } else {
+        fallbackCopy(url, "Link verifikasi resmi berhasil disalin!");
+    }
+}
+
+function fallbackCopy(text, successMsg) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        showToast(successMsg, "fa-check-circle", "emerald");
+    } catch (err) {
+        prompt("Salin teks di bawah ini secara manual:", text);
+    }
+    document.body.removeChild(textArea);
 }
 </script>
 @endsection

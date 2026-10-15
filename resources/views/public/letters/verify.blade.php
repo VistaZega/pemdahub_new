@@ -26,9 +26,17 @@
                     <p class="text-xs text-emerald-100">Surat terdaftar secara otentik pada Server Resmi PembdaHUB</p>
                 </div>
             </div>
-            <a href="{{ route('public.letters.verify', $letter->signature_hash) }}" class="bg-white/10 hover:bg-white/20 text-white font-mono text-xs px-4 py-2 rounded-xl transition-all border border-white/20 flex items-center gap-2 shadow-sm">
-                <i class="fas fa-lock text-emerald-300"></i> SHA-256: {{ substr($letter->signature_hash, 0, 16) }}...
-            </a>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ $letter->wa_share_url }}" target="_blank" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5" title="Bagikan ke WhatsApp">
+                    <i class="fab fa-whatsapp text-sm"></i> Bagikan WA
+                </a>
+                <button onclick="copyCurrentUrl()" class="bg-white/20 hover:bg-white/30 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all border border-white/20 shadow-sm flex items-center gap-1.5" title="Salin link verifikasi">
+                    <i class="fas fa-link text-xs"></i> Salin Link
+                </button>
+                <a href="{{ route('public.letters.verify', $letter->signature_hash) }}" class="bg-white/10 hover:bg-white/20 text-white font-mono text-xs px-3 py-2 rounded-xl transition-all border border-white/20 flex items-center gap-2 shadow-sm">
+                    <i class="fas fa-lock text-emerald-300"></i> SHA-256: {{ substr($letter->signature_hash, 0, 16) }}...
+                </a>
+            </div>
         </div>
 
         {{-- Paper Container (A4: 210mm, Margin Kiri-Kanan 15mm) --}}
@@ -159,5 +167,55 @@
         </div>
 
     </div>
+
+    <script>
+    function showToast(message, icon = 'fa-check-circle') {
+        let existing = document.getElementById('floating-share-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'floating-share-toast';
+        toast.className = 'fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-white font-medium text-sm transition-all transform duration-300 translate-y-4 opacity-0 bg-emerald-600 border border-emerald-400';
+        toast.innerHTML = `<i class="fas ${icon} text-lg"></i> <span>${message}</span>`;
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-4', 'opacity-0');
+        });
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-4', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    function copyCurrentUrl() {
+        const url = window.location.href;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast("Link dokumen resmi berhasil disalin!", "fa-link");
+            }).catch(() => fallbackCopy(url, "Link dokumen resmi berhasil disalin!"));
+        } else {
+            fallbackCopy(url, "Link dokumen resmi berhasil disalin!");
+        }
+    }
+
+    function fallbackCopy(text, successMsg) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast(successMsg, "fa-check-circle");
+        } catch (err) {
+            prompt("Salin link di bawah ini secara manual:", text);
+        }
+        document.body.removeChild(textArea);
+    }
+    </script>
 </body>
 </html>
