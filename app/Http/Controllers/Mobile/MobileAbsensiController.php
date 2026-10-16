@@ -181,19 +181,24 @@ class MobileAbsensiController extends Controller
 
             $formattedDist = number_format($minDistance, 0, ',', '.');
 
-            if ($minDistance > $maxRadiusMeters) {
+            // Cek apakah unit sekolah guru/pegawai sedang dalam Mode PJJ
+            $isPjjTeacher = \App\Services\PjjEmergencyService::isPjjActiveForTeacher($employee, $today);
+
+            if (!$isPjjTeacher && $minDistance > $maxRadiusMeters) {
                 $msg = "⛔ Presensi Ditolak! Lokasi Anda berada di luar area sekolah.\n\n📍 Jarak Terdeteksi: {$formattedDist} meter dari {$schoolTargetName} (Batas Maksimal: {$maxRadiusMeters} meter)\n📌 Koordinat Anda: {$lat}, {$lng}\n\n💡 Petunjuk: Pastikan Anda berada dalam lingkungan sekolah (lapangan upacara, selasar, atau di teras kelas) dan fitur Akurasi Lokasi HP aktif agar GPS dapat mengunci posisi Anda secara presisi.\n\n📌 Solusi Alternatif: Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via Scan RFID / QR Code atau Manual melalui Wali Kelas.";
                 return $wantsJson
                     ? response()->json(['success' => false, 'message' => $msg, 'distance' => round($minDistance), 'max_radius' => $maxRadiusMeters], 403)
                     : back()->with('error', $msg);
             }
 
-            // Tentukan status kehadiran (Hadir Mengajar vs Tugas Khusus)
+            // Tentukan status kehadiran (Hadir Mengajar vs Tugas Khusus vs PJJ WFH)
             $isTeacher = $employee ? $employee->isTeacher() : ($user->hasRole('guru') || $activeRole === 'guru');
             $hasScheduleToday = false;
             $notes = null;
 
-            if ($isTeacher) {
+            if ($isPjjTeacher) {
+                $notes = 'pjj_wfh';
+            } elseif ($isTeacher) {
                 $dayOfWeekString = strtolower(now()->format('l'));
                 if ($teacher) {
                     $hasScheduleToday = \App\Models\Schedule::where('teacher_id', $teacher->id)
@@ -218,7 +223,7 @@ class MobileAbsensiController extends Controller
                     'time_in'      => $currentTime,
                     'status'       => 'hadir',
                     'notes'        => $notes,
-                    'recorded_via' => 'gps',
+                    'recorded_via' => $isPjjTeacher ? 'pjj_gps' : 'gps',
                     'device_id'    => $deviceId,
                     'recorded_by'  => $user->id,
                 ]
@@ -240,6 +245,8 @@ class MobileAbsensiController extends Controller
 
                 if ($isMerdekaDay) {
                     $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Masuk Upacara berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m dari sekolah).";
+                } elseif ($isPjjTeacher) {
+                    $msg = '📍 Presensi Masuk PJJ / Mengajar Daring berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB. Tetap jaga kesehatan! 😷✨";
                 } else {
                     $msg = '📍 Presensi Masuk berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak: {$formattedDist} m dari titik sekolah).";
                 }
@@ -266,6 +273,8 @@ class MobileAbsensiController extends Controller
                 $attendance->update(['time_out' => $currentTime]);
                 if ($isMerdekaDay) {
                     $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Presensi Pulang Upacara berhasil dicatat jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak GPS: {$formattedDist} m).";
+                } elseif ($isPjjTeacher) {
+                    $msg = '📍 Presensi Pulang PJJ berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB. Selamat beristirahat! 🏠✨";
                 } else {
                     $msg = '📍 Presensi Pulang berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB (Jarak: {$formattedDist} m).";
                 }

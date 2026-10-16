@@ -751,9 +751,12 @@ class AttendanceController extends Controller
         $isPklActive = !empty($activePkl);
         $dudiName = $activePkl ? ($activePkl->dudi->name ?? ($activePkl->company_name ?? 'Mitra DUDI')) : null;
 
-        // Jika BUKAN siswa PKL aktif dan berada di luar radius sekolah, TOLAK SEGERA!
+        // Cek apakah unit sekolah siswa sedang dalam Mode PJJ / Tanggap Darurat Bencana (Kabut Asap dsb)
+        $isPjjActive = \App\Services\PjjEmergencyService::isPjjActiveForStudent($student, $todayDate);
+
+        // Jika BUKAN siswa PKL aktif dan BUKAN dalam masa PJJ, dan berada di luar radius sekolah, TOLAK SEGERA!
         // Berikan petunjuk edukatif agar siswa melangkah ke teras/lapangan/luar kelas untuk mengunci GPS satelit presisi
-        if (!$isPklActive && $minDistance > $maxRadiusMeters) {
+        if (!$isPklActive && !$isPjjActive && $minDistance > $maxRadiusMeters) {
             $formattedDist = number_format($minDistance, 0, ',', '.');
             return response()->json([
                 'success' => false,
@@ -774,12 +777,15 @@ class AttendanceController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki Rombel yang aktif.'], 400);
         }
 
-        // Determine if late (Khusus Siswa PKL: Selalu dianggap HADIR / tidak terlambat sepanjang absen di hari itu)
+        // Determine if late (Khusus Siswa PKL & Siswa PJJ BDR: Selalu dianggap HADIR / tidak terlambat sepanjang absen di hari itu)
         $classroom = $studentClass->classroom;
         $entryTime = $classroom->entry_time ?? '07:30';
         $tolerance = $classroom->late_tolerance ?? 15;
         $lateLimit = date('H:i:s', strtotime("$entryTime +$tolerance minutes"));
-        $status = ($isPklActive || $currentTime <= $lateLimit) ? 'hadir' : 'terlambat';
+        $status = ($isPklActive || $isPjjActive || $currentTime <= $lateLimit) ? 'hadir' : 'terlambat';
+
+        $recordedVia = $isPklActive ? 'gps_pkl' : ($isPjjActive ? 'pjj_gps' : 'qr_gps');
+        $notes = $isPjjActive ? 'PJJ Belajar Dari Rumah (Tanggap Darurat Kabut Asap)' : null;
 
         // Catat Absen
         $attendance = \App\Models\Attendance::firstOrCreate(
@@ -787,10 +793,11 @@ class AttendanceController extends Controller
             [
                 'classroom_id' => $studentClass->classroom_id,
                 'status' => $status,
-                'recorded_via' => $isPklActive ? 'gps_pkl' : 'qr_gps',
+                'recorded_via' => $recordedVia,
                 'device_id' => $request->device_id, // KODE UNIK HP DISIMPAN
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
+                'notes' => $notes,
             ]
         );
 
@@ -806,7 +813,9 @@ class AttendanceController extends Controller
                 $classroomName = $studentClass->classroom ? $studentClass->classroom->class_name : 'Kelas';
                 $desc = $isPklActive 
                     ? "Presensi PKL di {$dudiName}" 
-                    : "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")";
+                    : ($isPjjActive 
+                        ? "Presensi PJJ (BDR) {$classroomName}"
+                        : "Kehadiran di kelas " . $classroomName . " (" . ucfirst($status) . ")");
                 \App\Models\ReputationLog::log($student->user_id, $points, 'attendance', $desc, $attendance);
             }
 
@@ -815,6 +824,8 @@ class AttendanceController extends Controller
                 $msg = '🇮🇩 DIRGAHAYU REPUBLIK INDONESIA! Merdeka! ✊ Selamat Hari Kemerdekaan RI! Presensi kehadiranmu hari ini berhasil dicatat. Tetap semangat belajar demi masa depan Bangsa! 🇮🇩✨';
             } elseif ($isPklActive) {
                 $msg = "📍 Presensi PKL Berhasil! Kehadiran Anda di {$dudiName} telah tercatat pada jam " . date('H:i', strtotime($currentTime)) . " dengan tag GPS. Selamat bertugas! 💼";
+            } elseif ($isPjjActive) {
+                $msg = '📍 Presensi PJJ (Belajar Dari Rumah) Berhasil! Kehadiran Anda tercatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB. Tetap jaga kesehatan dan semangat belajar mandiri via LMS PembdaHUB! 😷✨";
             } else {
                 $msg = '📍 Presensi Mandiri Sekolah berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
             }
@@ -822,7 +833,7 @@ class AttendanceController extends Controller
             return response()->json(['success' => true, 'message' => $msg]);
         } else {
             // Jika record sudah ada sebelumnya (misal dari jurnal KBM guru pagi hari),
-            // pastikan status kehadiran siswa PKL dipulihkan ke HADIR dan metode presensi ditandai sebagai Mobile PKL (DUDI)
+            // pastikan status kehadiran siswa PKL/PJJ dipulihkan ke HADIR dan metode presensi ditandai dengan tepat
             $wasTimeInSet = false;
             if ($isPklActive) {
                 $patchData = ['recorded_via' => 'gps_pkl'];
@@ -836,6 +847,21 @@ class AttendanceController extends Controller
                 if ($request->latitude) $patchData['latitude'] = $request->latitude;
                 if ($request->longitude) $patchData['longitude'] = $request->longitude;
                 if ($request->device_id) $patchData['device_id'] = $request->device_id;
+                
+                $attendance->update($patchData);
+            } elseif ($isPjjActive) {
+                $patchData = ['recorded_via' => 'pjj_gps'];
+                if ($attendance->status === 'terlambat') {
+                    $patchData['status'] = 'hadir';
+                }
+                if (empty($attendance->time_in) || in_array($attendance->time_in, ['00:00:00', '00:00'])) {
+                    $patchData['time_in'] = $currentTime;
+                    $wasTimeInSet = true;
+                }
+                if ($request->latitude) $patchData['latitude'] = $request->latitude;
+                if ($request->longitude) $patchData['longitude'] = $request->longitude;
+                if ($request->device_id) $patchData['device_id'] = $request->device_id;
+                if (!$attendance->notes) $patchData['notes'] = 'PJJ Belajar Dari Rumah (Tanggap Darurat Kabut Asap)';
                 
                 $attendance->update($patchData);
             } else {
@@ -852,9 +878,13 @@ class AttendanceController extends Controller
             }
 
             if ($wasTimeInSet) {
-                $msg = $isPklActive 
-                    ? "📍 Presensi PKL Berhasil! Kehadiran Anda di {$dudiName} telah tercatat pada jam " . date('H:i', strtotime($currentTime)) . " dengan tag GPS. Selamat bertugas! 💼"
-                    : '📍 Presensi Mandiri Sekolah berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                if ($isPklActive) {
+                    $msg = "📍 Presensi PKL Berhasil! Kehadiran Anda di {$dudiName} telah tercatat pada jam " . date('H:i', strtotime($currentTime)) . " dengan tag GPS. Selamat bertugas! 💼";
+                } elseif ($isPjjActive) {
+                    $msg = '📍 Presensi PJJ (Belajar Dari Rumah) Berhasil! Kehadiran Anda tercatat pada jam ' . date('H:i', strtotime($currentTime)) . " WIB. Tetap jaga kesehatan dan belajar giat di LMS! 😷✨";
+                } else {
+                    $msg = '📍 Presensi Mandiri Sekolah berhasil dicatat pada jam ' . date('H:i', strtotime($currentTime)) . '!';
+                }
                 return response()->json(['success' => true, 'message' => $msg]);
             }
         }

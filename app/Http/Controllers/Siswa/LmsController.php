@@ -47,6 +47,9 @@ class LmsController extends Controller
         // Auto-sync LMS enrollment siswa untuk rombel aktifnya
         app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
 
+        // Auto-record presensi PJJ bila siswa aktif membuka LMS (SE Yayasan Butir 3)
+        \App\Services\PjjEmergencyService::autoRecordLmsAttendance($student, 'portal_lms');
+
         $enrollments = LmsEnrollment::where('student_id', $student->id)
             ->whereIn('status', ['enrolled', 'in_progress'])
             ->whereHas('lmsClass.course', function($q) use ($student) {
@@ -233,6 +236,9 @@ class LmsController extends Controller
 
         // Auto-sync enrollment jika siswa berada di rombel course ini
         app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+
+        // Auto-record presensi PJJ bila siswa aktif membuka materi course
+        \App\Services\PjjEmergencyService::autoRecordLmsAttendance($student, 'course_' . $course->id);
 
         if (!$this->isEnrolled($student, $course)) {
             abort(403, 'Anda tidak terdaftar di course ini.');

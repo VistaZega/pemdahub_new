@@ -445,13 +445,14 @@ class MobileTeacherController extends Controller
 
                 if ($attendance) {
                     $isRecordedPkl = ($attendance->recorded_via === 'gps_pkl');
-                    $finalStatus = ($isStudentPkl || $isRecordedPkl) && $status === 'terlambat' ? 'hadir' : $status;
+                    $isRecordedPjj = in_array($attendance->recorded_via, ['pjj_gps', 'pjj_lms']);
+                    $finalStatus = ($isStudentPkl || $isRecordedPkl || $isRecordedPjj) && $status === 'terlambat' ? 'hadir' : $status;
                     $attendance->update([
                         'classroom_id' => $classroomId,
                         'schedule_id'  => $scheduleId,
                         'status'       => $finalStatus,
                         'time_in'      => $timeIn ?: $attendance->time_in,
-                        'recorded_via' => $isRecordedPkl ? 'gps_pkl' : 'manual',
+                        'recorded_via' => $isRecordedPkl ? 'gps_pkl' : ($isRecordedPjj ? $attendance->recorded_via : 'manual'),
                     ]);
                 } else {
                     $attendance = Attendance::create([

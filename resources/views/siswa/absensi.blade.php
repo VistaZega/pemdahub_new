@@ -3,6 +3,36 @@
 
 @section('content')
 <div class="space-y-6">
+    @php
+        $isPjjStudent = isset($student) && $student ? \App\Services\PjjEmergencyService::isPjjActiveForStudent($student) : false;
+        $pjjConfig = \App\Services\PjjEmergencyService::getPjjConfig();
+    @endphp
+
+    @if($isPjjStudent)
+        <!-- Banner Mode Tanggap Darurat PJJ BDR -->
+        <div class="p-4 md:p-5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                    <i class="fas fa-head-side-mask"></i>
+                </div>
+                <div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/25 text-[10px] font-black uppercase tracking-wider mb-1">
+                        <i class="fas fa-shield-virus"></i> Mode PJJ Tanggap Bencana Kabut Asap
+                    </div>
+                    <h3 class="text-base font-black leading-tight">{{ $pjjConfig['reason'] }}</h3>
+                    <p class="text-xs text-amber-100 mt-0.5">
+                        KBM tatap muka dialihkan ke <strong>Belajar Dari Rumah (BDR)</strong> via LMS PembdaHUB. Presensi dapat dikirim mandiri dari rumah (bebas radius) atau otomatis saat aktif di LMS.
+                    </p>
+                </div>
+            </div>
+            <div class="shrink-0 flex items-center gap-2">
+                <a href="{{ route('siswa.lms.index') }}" class="px-4 py-2.5 rounded-xl bg-white text-amber-900 font-black text-xs shadow-md hover:bg-amber-50 transition transform hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-laptop-code text-amber-600"></i> Buka Course LMS
+                </a>
+            </div>
+        </div>
+    @endif
+
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -14,22 +44,27 @@
             </p>
         </div>
         
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 rounded-xl shadow-lg text-white flex items-center gap-4">
+        <div class="bg-gradient-to-r {{ $isPjjStudent ? 'from-amber-600 via-orange-600 to-amber-700' : 'from-blue-500 to-indigo-600' }} p-4 rounded-xl shadow-lg text-white flex items-center gap-4">
             <div class="flex-none">
                 <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <i class="fas fa-map-marker-alt text-2xl"></i>
+                    <i class="fas {{ $isPjjStudent ? 'fa-house-laptop' : 'fa-map-marker-alt' }} text-2xl"></i>
                 </div>
             </div>
             <div class="flex-grow">
-                <h3 class="font-bold text-lg">Absensi Mandiri (GPS)</h3>
+                <h3 class="font-bold text-lg">{{ $isPjjStudent ? 'Absensi Mandiri PJJ (Dari Rumah)' : 'Absensi Mandiri (GPS)' }}</h3>
                 <div class="flex flex-wrap gap-2 mt-1">
-                    <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-bold"><i class="fas fa-clock mr-1"></i> Jam Masuk: {{ $classroom->entry_time ?? '07:30' }}</span>
-                    <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-bold"><i class="fas fa-hourglass-half mr-1"></i> Toleransi: {{ $classroom->late_tolerance ?? 15 }} Menit</span>
+                    @if($isPjjStudent)
+                        <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-bold"><i class="fas fa-house-user mr-1"></i> Belajar Dari Rumah</span>
+                        <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-bold"><i class="fas fa-shield-halved mr-1"></i> Bebas Radius Sekolah</span>
+                    @else
+                        <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-bold"><i class="fas fa-clock mr-1"></i> Jam Masuk: {{ $classroom->entry_time ?? '07:30' }}</span>
+                        <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-bold"><i class="fas fa-hourglass-half mr-1"></i> Toleransi: {{ $classroom->late_tolerance ?? 15 }} Menit</span>
+                    @endif
                 </div>
             </div>
             <div>
-                <button id="btnAbsenNow" class="bg-white text-indigo-600 font-bold py-2 px-4 rounded-lg shadow hover:bg-indigo-50 transition transform hover:scale-105 flex items-center gap-2">
-                    <i class="fas fa-fingerprint"></i> Absen Sekarang
+                <button id="btnAbsenNow" class="bg-white {{ $isPjjStudent ? 'text-amber-800' : 'text-indigo-600' }} font-bold py-2.5 px-4 rounded-lg shadow hover:bg-slate-50 transition transform hover:scale-105 flex items-center gap-2">
+                    <i class="fas {{ $isPjjStudent ? 'fa-house-laptop text-amber-600' : 'fa-fingerprint' }}"></i> {{ $isPjjStudent ? 'Absen PJJ Sekarang' : 'Absen Sekarang' }}
                 </button>
             </div>
         </div>

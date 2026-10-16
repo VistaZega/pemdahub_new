@@ -189,6 +189,131 @@
 
         </div>
 
+        <!-- KATEGORI: MODE TANGGAP DARURAT & PEMBELAJARAN JARAK JAUH (PJJ) -->
+        <div class="mt-8 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white rounded-2xl shadow-md border-2 border-amber-300 p-6 relative overflow-hidden">
+            <div class="absolute -right-8 -top-8 w-36 h-36 bg-amber-200/40 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-amber-200 pb-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-black text-amber-950 flex items-center gap-2.5">
+                        <span class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-sm">
+                            <i class="fas fa-head-side-mask"></i>
+                        </span>
+                        Mode Tanggap Darurat & Pembelajaran Jarak Jauh (PJJ)
+                    </h2>
+                    <p class="text-xs text-amber-800 font-medium mt-1">
+                        Sistem fleksibel untuk mengalihkan pembelajaran ke Belajar Dari Rumah (BDR) & membebaskan radius presensi GPS siswa per unit sekolah tanpa merusak pengaturan normal sebelumnya.
+                    </p>
+                </div>
+                <div>
+                    <label class="inline-flex items-center gap-3 cursor-pointer bg-white px-4 py-2 rounded-xl border border-amber-300 shadow-sm hover:border-amber-400 transition">
+                        <input type="checkbox" id="pjj_enabled" name="pjj_enabled" value="1" {{ ($settings['pjj_enabled'] ?? false) ? 'checked' : '' }} class="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500">
+                        <span class="text-sm font-black text-slate-800">
+                            {{ ($settings['pjj_enabled'] ?? false) ? '🚨 MODE PJJ SEDANG AKTIF' : '⚪ MODE PJJ NON-AKTIF' }}
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Unit Sekolah yang Diberlakukan PJJ -->
+                <div class="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-amber-200 space-y-3">
+                    <label class="block text-xs font-black uppercase text-slate-700 tracking-wider">
+                        Unit Sekolah yang Diberlakukan PJJ (Bebas Radius Geofence)
+                    </label>
+                    <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
+                        Centang unit yang melaksanakan Belajar Dari Rumah (BDR). Unit yang <strong>TIDAK dicentang</strong> tetap menjalankan aturan KBM Tatap Muka normal dan validasi Geofence (radius 175 meter) tetap aktif.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                        @php
+                            $selectedIds = (array) ($settings['pjj_school_ids'] ?? [2, 7]);
+                        @endphp
+                        @foreach($activeSchools as $school)
+                            @php
+                                $isChecked = in_array((int)$school->id, array_map('intval', $selectedIds), true);
+                            @endphp
+                            <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 transition cursor-pointer {{ $isChecked ? 'bg-amber-50/80 border-amber-400 text-amber-950 font-bold' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300' }}">
+                                <input type="checkbox" name="pjj_school_ids[]" value="{{ $school->id }}" {{ $isChecked ? 'checked' : '' }} class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 mt-0.5">
+                                <div class="text-xs">
+                                    <div class="font-bold text-slate-900">{{ $school->name }}</div>
+                                    <div class="text-[10px] text-slate-500 mt-0.5">
+                                        Jenjang: <span class="font-black text-indigo-600 uppercase">{{ $school->type }}</span>
+                                    </div>
+                                    <div class="mt-1">
+                                        @if($isChecked)
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-200 text-amber-900">
+                                                <i class="fas fa-house-laptop"></i> PJJ Aktif (Rumah)
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                                                <i class="fas fa-school"></i> Normal Tatap Muka
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Rentang Tanggal & Alasan Darurat -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Tanggal Mulai -->
+                    <div class="bg-white/80 p-4 rounded-xl border border-amber-200 space-y-1.5">
+                        <label for="pjj_start_date" class="block text-xs font-black uppercase text-slate-700">
+                            Tanggal Mulai PJJ
+                        </label>
+                        <input type="date" id="pjj_start_date" name="pjj_start_date" 
+                               value="{{ $settings['pjj_start_date'] ?? '2026-10-16' }}"
+                               class="w-full text-sm font-bold px-3 py-2 rounded-lg border-2 border-slate-300 focus:border-amber-500 outline-none bg-white">
+                        <p class="text-[10px] text-slate-500">Contoh: <code>16 Oktober 2026</code> (Sesuai SE Yayasan)</p>
+                    </div>
+
+                    <!-- Tanggal Selesai -->
+                    <div class="bg-white/80 p-4 rounded-xl border border-amber-200 space-y-1.5">
+                        <label for="pjj_end_date" class="block text-xs font-black uppercase text-slate-700">
+                            Tanggal Selesai PJJ (Auto-Expiry)
+                        </label>
+                        <input type="date" id="pjj_end_date" name="pjj_end_date" 
+                               value="{{ $settings['pjj_end_date'] ?? '2026-10-21' }}"
+                               class="w-full text-sm font-bold px-3 py-2 rounded-lg border-2 border-slate-300 focus:border-amber-500 outline-none bg-white">
+                        <p class="text-[10px] text-slate-500">Setelah tanggal ini, sistem otomatis kembali ke mode tatap muka.</p>
+                    </div>
+
+                    <!-- Alasan / Rujukan Surat Edaran -->
+                    <div class="bg-white/80 p-4 rounded-xl border border-amber-200 space-y-1.5">
+                        <label for="pjj_reason" class="block text-xs font-black uppercase text-slate-700">
+                            Rujukan / Keterangan Darurat
+                        </label>
+                        <input type="text" id="pjj_reason" name="pjj_reason" 
+                               value="{{ $settings['pjj_reason'] ?? 'Antisipasi Dampak Bencana Kabut Asap (Surat Edaran No. 07/SE/YP-PEMBDA/X/2026)' }}"
+                               class="w-full text-xs font-medium px-3 py-2 rounded-lg border-2 border-slate-300 focus:border-amber-500 outline-none bg-white">
+                        <p class="text-[10px] text-slate-500">Tercatat di log presensi dan rekap kehadiran.</p>
+                    </div>
+                </div>
+
+                <!-- Opsi Guru & Auto-LMS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-start gap-3 p-4 bg-white/90 rounded-xl border border-amber-200">
+                        <input type="checkbox" id="pjj_allow_teachers" name="pjj_allow_teachers" value="1" {{ ($settings['pjj_allow_teachers'] ?? true) ? 'checked' : '' }} class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 mt-1">
+                        <div>
+                            <label for="pjj_allow_teachers" class="text-xs font-bold text-slate-900">Izinkan Guru & Pegawai Presensi Daring (WFH)</label>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Bagi unit sekolah yang PJJ, Bapak/Ibu Guru dapat melakukan presensi mandiri dari rumah saat mengajar daring.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-white/90 rounded-xl border border-amber-200">
+                        <input type="checkbox" id="pjj_auto_lms_attendance" name="pjj_auto_lms_attendance" value="1" {{ ($settings['pjj_auto_lms_attendance'] ?? true) ? 'checked' : '' }} class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 mt-1">
+                        <div>
+                            <label for="pjj_auto_lms_attendance" class="text-xs font-bold text-slate-900">Auto-Presensi Interaksi LMS Siswa</label>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Kehadiran siswa tercatat otomatis saat membuka modul, mengerjakan tugas, atau join Live Class di LMS (Sesuai SE Yayasan Butir 3).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- KATEGORI: GEOFENCING & RADIUS PRESENSI GPS -->
         <div class="mt-8 bg-white rounded-2xl shadow-md border border-gray-100 p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 mb-6">

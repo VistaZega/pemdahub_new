@@ -199,9 +199,20 @@ class SettingsController extends Controller
             'wa_send_teaching_reminder' => Setting::getValue('wa_send_teaching_reminder', true),
             'wa_send_grade_published' => Setting::getValue('wa_send_grade_published', true),
             'wa_send_attendance_alert' => Setting::getValue('wa_send_attendance_alert', true),
+
+            // PJJ & Tanggap Darurat Bencana
+            'pjj_enabled' => (bool) Setting::getValue('pjj_enabled', true),
+            'pjj_school_ids' => (array) Setting::getValue('pjj_school_ids', [2, 7]),
+            'pjj_start_date' => Setting::getValue('pjj_start_date', '2026-10-16'),
+            'pjj_end_date' => Setting::getValue('pjj_end_date', '2026-10-21'),
+            'pjj_allow_teachers' => (bool) Setting::getValue('pjj_allow_teachers', true),
+            'pjj_auto_lms_attendance' => (bool) Setting::getValue('pjj_auto_lms_attendance', true),
+            'pjj_reason' => Setting::getValue('pjj_reason', 'Pemberlakuan PJJ Tanggap Darurat Bencana Kabut Asap (Surat Edaran No. 07/SE/YP-PEMBDA/X/2026)'),
         ];
 
-        return view('admin.settings.features', compact('settings'));
+        $activeSchools = \App\Models\School::schoolsOnly()->orderBy('id')->get();
+
+        return view('admin.settings.features', compact('settings', 'activeSchools'));
     }
 
     /**
@@ -241,6 +252,24 @@ class SettingsController extends Controller
 
         foreach ($featureKeys as $key) {
             Setting::setValue($key, $request->boolean($key), 'boolean', 'features');
+        }
+
+        // Simpan Konfigurasi Mode PJJ & Tanggap Darurat Bencana
+        Setting::setValue('pjj_enabled', $request->boolean('pjj_enabled'), 'boolean', 'features');
+        Setting::setValue('pjj_allow_teachers', $request->boolean('pjj_allow_teachers'), 'boolean', 'features');
+        Setting::setValue('pjj_auto_lms_attendance', $request->boolean('pjj_auto_lms_attendance'), 'boolean', 'features');
+
+        $selectedSchoolIds = array_map('intval', (array) $request->input('pjj_school_ids', []));
+        Setting::setValue('pjj_school_ids', $selectedSchoolIds, 'json', 'features');
+
+        if ($request->filled('pjj_start_date')) {
+            Setting::setValue('pjj_start_date', $request->input('pjj_start_date'), 'string', 'features');
+        }
+        if ($request->filled('pjj_end_date')) {
+            Setting::setValue('pjj_end_date', $request->input('pjj_end_date'), 'string', 'features');
+        }
+        if ($request->filled('pjj_reason')) {
+            Setting::setValue('pjj_reason', trim($request->input('pjj_reason')), 'string', 'features');
         }
 
         if ($request->filled('attendance_max_radius')) {

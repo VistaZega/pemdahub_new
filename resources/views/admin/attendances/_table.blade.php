@@ -52,6 +52,12 @@
             <span class="inline-flex items-center gap-1 px-2 py-0.5 {{ $isLastScanned ? 'bg-black/10 text-slate-900 border border-black/20' : 'bg-purple-100 text-purple-700' }} rounded-md text-[10px] font-black w-fit uppercase"><i class="fas fa-id-card"></i> RFID</span>
             @elseif($a->recorded_via == 'qr_gps')
             <span class="inline-flex items-center gap-1 px-2 py-0.5 {{ $isLastScanned ? 'bg-black/10 text-slate-900 border border-black/20' : 'bg-cyan-100 text-cyan-700' }} rounded-md text-[10px] font-black w-fit uppercase"><i class="fas fa-map-marker-alt"></i> GPS</span>
+            @elseif($a->recorded_via == 'gps_pkl')
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 {{ $isLastScanned ? 'bg-black/10 text-slate-900 border border-black/20' : 'bg-amber-100 text-amber-800' }} rounded-md text-[10px] font-black w-fit uppercase"><i class="fas fa-briefcase"></i> PKL</span>
+            @elseif($a->recorded_via == 'pjj_gps')
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 {{ $isLastScanned ? 'bg-black/10 text-slate-900 border border-black/20' : 'bg-amber-100 text-amber-900 border border-amber-300' }} rounded-md text-[10px] font-black w-fit uppercase"><i class="fas fa-house-laptop"></i> PJJ GPS</span>
+            @elseif($a->recorded_via == 'pjj_lms')
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 {{ $isLastScanned ? 'bg-black/10 text-slate-900 border border-black/20' : 'bg-blue-100 text-blue-900 border border-blue-300' }} rounded-md text-[10px] font-black w-fit uppercase"><i class="fas fa-laptop-code"></i> PJJ LMS</span>
             @elseif($a->recorded_via)
             <span class="inline-flex items-center gap-1 px-2 py-0.5 {{ $isLastScanned ? 'bg-black/10 text-slate-900 border border-black/20' : 'bg-gray-100 text-gray-600' }} rounded-md text-[10px] font-black w-fit uppercase"><i class="fas fa-pen"></i> Manual</span>
             @endif

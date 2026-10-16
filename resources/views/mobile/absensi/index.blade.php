@@ -26,8 +26,13 @@
         </div>
     @endif
 
-    <!-- GPS Presensi Card (UI/UX Pro Max Emerald Gradient Card) -->
-    <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-5 text-white shadow-lg shadow-emerald-500/25 text-center relative overflow-hidden"
+    @php
+        $isPjjStudent = isset($student) && $student ? \App\Services\PjjEmergencyService::isPjjActiveForStudent($student) : false;
+        $pjjConfig = \App\Services\PjjEmergencyService::getPjjConfig();
+    @endphp
+
+    <!-- GPS Presensi Card (UI/UX Pro Max Gradient Card) -->
+    <div class="bg-gradient-to-br {{ $isPjjStudent && (!isset($activePkl) || !$activePkl) ? 'from-amber-600 via-orange-600 to-amber-700 shadow-amber-500/25' : 'from-emerald-600 via-teal-600 to-emerald-700 shadow-emerald-500/25' }} rounded-3xl p-5 text-white shadow-lg text-center relative overflow-hidden"
          x-data="mobileAbsensiGpsCard()">
         @if(isset($activePkl) && $activePkl)
             <div class="mb-3 p-3 rounded-2xl bg-amber-400/20 border border-amber-300/40 text-amber-100 text-left flex items-start gap-2.5 backdrop-blur-md">
@@ -43,25 +48,46 @@
                     </p>
                 </div>
             </div>
+        @elseif($isPjjStudent)
+            <div class="mb-3 p-3 rounded-2xl bg-white/20 border border-white/30 text-amber-50 text-left flex items-start gap-2.5 backdrop-blur-md">
+                <div class="w-8 h-8 rounded-xl bg-white text-amber-800 flex items-center justify-center shrink-0 font-black text-sm shadow">
+                    <i class="fa-solid fa-head-side-mask"></i>
+                </div>
+                <div class="space-y-0.5">
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-amber-900 inline-block">Mode PJJ Tanggap Bencana</span>
+                    <h4 class="text-xs font-black text-white leading-tight">Belajar Dari Rumah (BDR)</h4>
+                    <p class="text-[10px] text-amber-100 font-medium leading-relaxed">
+                        ✨ Bebas batas radius sekolah. Anda dapat presensi langsung dari rumah atau otomatis tercatat saat aktif di modul LMS PembdaHUB.
+                    </p>
+                </div>
+            </div>
         @endif
 
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 text-white text-2xl mb-3 shadow-md border border-white/30 backdrop-blur-md">
-            <i class="fa-solid {{ isset($activePkl) && $activePkl ? 'fa-briefcase' : 'fa-location-dot' }}"></i>
+            <i class="fa-solid {{ isset($activePkl) && $activePkl ? 'fa-briefcase' : ($isPjjStudent ? 'fa-house-laptop' : 'fa-location-dot') }}"></i>
         </div>
 
         <h3 class="text-base font-black text-white mb-1">
-            {{ isset($activePkl) && $activePkl ? 'Presensi Mandiri PKL (DUDI)' : 'Presensi Mandiri GPS' }}
+            {{ isset($activePkl) && $activePkl ? 'Presensi Mandiri PKL (DUDI)' : ($isPjjStudent ? 'Presensi Mandiri PJJ (Dari Rumah)' : 'Presensi Mandiri GPS') }}
         </h3>
-        <p class="text-xs text-emerald-100 mb-3 max-w-xs mx-auto font-medium">
+        <p class="text-xs {{ $isPjjStudent ? 'text-amber-100' : 'text-emerald-100' }} mb-3 max-w-xs mx-auto font-medium">
             {{ isset($activePkl) && $activePkl 
                 ? 'Presensi kehadiran langsung dari lokasi industri/kantor PKL Anda.' 
-                : 'Pastikan Anda berada di lingkungan sekolah (lapangan upacara, selasar, atau di teras kelas) agar GPS satelit mengunci lokasi dengan akurat.' }}
+                : ($isPjjStudent 
+                    ? 'Presensi kehadiran dari rumah dalam rangka Tanggap Darurat Bencana Kabut Asap.'
+                    : 'Pastikan Anda berada di lingkungan sekolah (lapangan upacara, selasar, atau di teras kelas) agar GPS satelit mengunci lokasi dengan akurat.') }}
         </p>
 
         @if(!isset($activePkl) || !$activePkl)
-            <div class="mb-4 px-3.5 py-2.5 rounded-2xl bg-white/15 border border-white/25 text-white text-[11px] text-center font-medium leading-relaxed backdrop-blur-md">
-                💡 Pastikan berada di <strong>lapangan upacara, selasar, atau di teras kelas</strong>. Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via <strong>Scan RFID / QR Code</strong> atau <strong>Manual melalui Wali Kelas</strong>.
-            </div>
+            @if($isPjjStudent)
+                <div class="mb-4 px-3.5 py-2.5 rounded-2xl bg-white/15 border border-white/25 text-white text-[11px] text-center font-medium leading-relaxed backdrop-blur-md flex items-center justify-center gap-2">
+                    <span>🏠 Presensi mandiri dari rumah didukung tag GPS. Tetap semangat belajar di LMS!</span>
+                </div>
+            @else
+                <div class="mb-4 px-3.5 py-2.5 rounded-2xl bg-white/15 border border-white/25 text-white text-[11px] text-center font-medium leading-relaxed backdrop-blur-md">
+                    💡 Pastikan berada di <strong>lapangan upacara, selasar, atau di teras kelas</strong>. Kalau tetap tidak berhasil setelah sesuai dengan petunjuk ini, maka silakan absen via <strong>Scan RFID / QR Code</strong> atau <strong>Manual melalui Wali Kelas</strong>.
+                </div>
+            @endif
         @endif
 
         @if($todayAttendance)
@@ -70,7 +96,7 @@
             @endphp
             <div class="p-3.5 rounded-2xl bg-white/20 border border-white/30 text-white text-xs font-black inline-flex flex-wrap items-center justify-center gap-2 mb-3 backdrop-blur-md shadow">
                 <i class="fa-solid fa-circle-check text-emerald-300 text-sm"></i>
-                <span>Sudah Absen Masuk: {{ $todayAttendance->time_in }} ({{ strtoupper($todayAttendance->status) }}{{ isset($activePkl) && $activePkl ? ' - PKL' : '' }})</span>
+                <span>Sudah Absen Masuk: {{ $todayAttendance->time_in }} ({{ strtoupper($todayAttendance->status) }}{{ isset($activePkl) && $activePkl ? ' - PKL' : ($isPjjStudent ? ' - PJJ' : '') }})</span>
                 @if(!$isNotCheckedOut)
                     <span>• Pulang: {{ $todayAttendance->time_out }}</span>
                 @endif
@@ -78,26 +104,26 @@
 
             @if($isNotCheckedOut)
                 <button @click="doGpsScan()" :disabled="loading"
-                        class="w-full py-3.5 px-6 bg-white text-emerald-800 font-black text-xs rounded-2xl shadow-xl hover:bg-emerald-50 transition transform active:scale-95 flex items-center justify-center gap-2">
+                        class="w-full py-3.5 px-6 bg-white {{ $isPjjStudent ? 'text-amber-800' : 'text-emerald-800' }} font-black text-xs rounded-2xl shadow-xl hover:bg-emerald-50 transition transform active:scale-95 flex items-center justify-center gap-2">
                     <template x-if="loading">
                         <i class="fa-solid fa-spinner animate-spin text-sm"></i>
                     </template>
                     <template x-if="!loading">
                         <i class="fa-solid fa-right-from-bracket text-blue-600 text-base"></i>
                     </template>
-                    <span x-text="loading ? statusMsg : '{{ isset($activePkl) && $activePkl ? 'KIRIM PRESENSI PULANG PKL' : 'KIRIM PRESENSI PULANG SEKARANG' }}'"></span>
+                    <span x-text="loading ? statusMsg : '{{ isset($activePkl) && $activePkl ? 'KIRIM PRESENSI PULANG PKL' : ($isPjjStudent ? 'KIRIM PRESENSI SELESAI PJJ' : 'KIRIM PRESENSI PULANG SEKARANG') }}'"></span>
                 </button>
             @endif
         @else
             <button @click="doGpsScan()" :disabled="loading"
-                    class="w-full py-3.5 px-6 bg-white text-emerald-800 font-black text-xs rounded-2xl shadow-xl hover:bg-emerald-50 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    class="w-full py-3.5 px-6 bg-white {{ $isPjjStudent ? 'text-amber-800' : 'text-emerald-800' }} font-black text-xs rounded-2xl shadow-xl hover:bg-emerald-50 transition transform active:scale-95 flex items-center justify-center gap-2">
                 <template x-if="loading">
                     <i class="fa-solid fa-spinner animate-spin text-sm"></i>
                 </template>
                 <template x-if="!loading">
-                    <i class="fa-solid {{ isset($activePkl) && $activePkl ? 'fa-briefcase text-amber-600' : 'fa-fingerprint text-emerald-600' }} text-base"></i>
+                    <i class="fa-solid {{ isset($activePkl) && $activePkl ? 'fa-briefcase text-amber-600' : ($isPjjStudent ? 'fa-house-laptop text-amber-600' : 'fa-fingerprint text-emerald-600') }} text-base"></i>
                 </template>
-                <span x-text="loading ? statusMsg : '{{ isset($activePkl) && $activePkl ? 'KIRIM PRESENSI PKL SEKARANG' : 'KIRIM PRESENSI GPS SEKARANG' }}'"></span>
+                <span x-text="loading ? statusMsg : '{{ isset($activePkl) && $activePkl ? 'KIRIM PRESENSI PKL SEKARANG' : ($isPjjStudent ? 'KIRIM PRESENSI PJJ SEKARANG' : 'KIRIM PRESENSI GPS SEKARANG') }}'"></span>
             </button>
         @endif
     </div>

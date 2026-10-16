@@ -32,6 +32,9 @@ class MobileLmsController extends Controller
             // Auto sync pendaftaran LMS siswa untuk rombel aktifnya
             app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
 
+            // Auto-record presensi PJJ bila siswa aktif membuka LMS mobile
+            \App\Services\PjjEmergencyService::autoRecordLmsAttendance($student, 'mobile_lms');
+
             // Dapatkan ID rombel siswa
             $studentClassroomIds = \App\Models\StudentClass::where('student_id', $student->id)
                 ->where('status', 'aktif')
