@@ -232,10 +232,11 @@ class PublicDisplayController extends Controller
 
                 // Siswa dinyatakan terlambat jika terdapat rekam absensi terlambat di hari ini
                 // atau jam masuk pertama melewati batas toleransi masuk kelas
-                // KETENTUAN KHUSUS PKL: Siswa PKL (DUDI) memiliki jam kerja fleksibel industri sehingga tidak pernah dianggap terlambat
+                // KETENTUAN KHUSUS PKL & PJJ: Siswa PKL (DUDI) dan Siswa PJJ BDR tidak pernah dianggap terlambat
                 $sTerlambat = $uniqueStudentGroups->filter(function ($records, $studentId) use ($activePklStudentIds) {
                     $isPkl = isset($activePklStudentIds[$studentId]) || $records->contains('recorded_via', 'gps_pkl');
-                    if ($isPkl) {
+                    $isPjj = $records->contains('recorded_via', 'pjj_gps') || $records->contains('recorded_via', 'pjj_lms');
+                    if ($isPkl || $isPjj) {
                         return false;
                     }
                     if ($records->contains('status', 'terlambat')) {
@@ -378,7 +379,8 @@ class PublicDisplayController extends Controller
                 $hadirInClass = $classStudentGroups->count();
                 $lambatInClass = $classStudentGroups->filter(function($recs, $studentId) use ($cls, $activePklStudentIds) {
                     $isPkl = isset($activePklStudentIds[$studentId]) || $recs->contains('recorded_via', 'gps_pkl');
-                    if ($isPkl) {
+                    $isPjj = $recs->contains('recorded_via', 'pjj_gps') || $recs->contains('recorded_via', 'pjj_lms');
+                    if ($isPkl || $isPjj) {
                         return false;
                     }
                     if ($recs->contains('status', 'terlambat')) return true;
@@ -409,7 +411,7 @@ class PublicDisplayController extends Controller
         $studentFeedGroups = $studentAttendances->groupBy('student_id');
         foreach ($studentFeedGroups as $studentId => $records) {
             $bestAtt = $records->first(fn($r) => !empty($r->time_out) && !in_array($r->time_out, ['00:00:00', '00:00']))
-                ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']) && in_array($r->recorded_via, ['rfid', 'qr', 'qrcode', 'gps', 'qr_gps', 'gps_pkl']))
+                ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']) && in_array($r->recorded_via, ['rfid', 'qr', 'qrcode', 'gps', 'qr_gps', 'gps_pkl', 'pjj_gps', 'pjj_lms']))
                 ?? $records->first(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))
                 ?? $records->last();
 
@@ -418,16 +420,17 @@ class PublicDisplayController extends Controller
 
             $hasPulang = !empty($latestOut);
             $isPkl = isset($activePklStudentIds[$studentId]) || $records->contains('recorded_via', 'gps_pkl') || ($bestAtt->recorded_via === 'gps_pkl');
+            $isPjj = $records->contains('recorded_via', 'pjj_gps') || $records->contains('recorded_via', 'pjj_lms') || in_array($bestAtt->recorded_via, ['pjj_gps', 'pjj_lms']);
 
             $isTerlambat = false;
-            if (!$isPkl) {
+            if (!$isPkl && !$isPjj) {
                 $isTerlambat = $records->contains('status', 'terlambat');
                 if (!$isTerlambat && $earliestIn && $bestAtt->classroom && method_exists($bestAtt->classroom, 'isLate')) {
                     $isTerlambat = $bestAtt->classroom->isLate($earliestIn);
                 }
             }
             
-            $statusLabel = $hasPulang ? 'Pulang' : ($isTerlambat ? 'Terlambat' : ($isPkl ? 'Hadir' : 'Masuk'));
+            $statusLabel = $hasPulang ? 'Pulang' : ($isTerlambat ? 'Terlambat' : (($isPkl || $isPjj) ? 'Hadir' : 'Masuk'));
             $tipe = $hasPulang ? 'pulang' : ($isTerlambat ? 'terlambat' : 'masuk');
             
             $waktuMasuk = $earliestIn ? substr($earliestIn, 0, 5) : ($bestAtt->time_in ? substr($bestAtt->time_in, 0, 5) : '--:--');
@@ -549,6 +552,22 @@ class PublicDisplayController extends Controller
                 'label' => 'Mobile PKL (DUDI)',
                 'tipe'  => 'mobile_pkl',
                 'icon'  => 'fa-solid fa-briefcase',
+            ];
+        }
+
+        if ($via === 'pjj_gps') {
+            return [
+                'label' => 'PJJ (Rumah)',
+                'tipe'  => 'pjj_gps',
+                'icon'  => 'fa-solid fa-house-laptop',
+            ];
+        }
+
+        if ($via === 'pjj_lms') {
+            return [
+                'label' => 'PJJ (LMS)',
+                'tipe'  => 'pjj_lms',
+                'icon'  => 'fa-solid fa-laptop-code',
             ];
         }
 

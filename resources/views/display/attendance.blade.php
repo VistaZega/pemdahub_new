@@ -600,9 +600,27 @@
             color: #b45309 !important;
             border: 1.5px solid #fde68a !important;
         }
+        .method-mobile_pkl {
+            background: #fef3c7 !important;
+            color: #b45309 !important;
+            border: 1.5px solid #fde68a !important;
+        }
+        .method-pjj_gps {
+            background: #fff7ed !important;
+            color: #c2410c !important;
+            border: 1.5px solid #ffedd5 !important;
+        }
+        .method-pjj_lms {
+            background: #eff6ff !important;
+            color: #1d4ed8 !important;
+            border: 1.5px solid #bfdbfe !important;
+        }
         .feed-item-newest .method-rfid,
         .feed-item-newest .method-qr,
         .feed-item-newest .method-mobile,
+        .feed-item-newest .method-mobile_pkl,
+        .feed-item-newest .method-pjj_gps,
+        .feed-item-newest .method-pjj_lms,
         .feed-item-newest .method-manual {
             background: rgba(255,255,255,0.95) !important;
             border-color: rgba(0,0,0,0.15) !important;
