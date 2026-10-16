@@ -192,7 +192,23 @@
         @endif
 
         <!-- Section 2: Penugasan Baru -->
-        @if(isset($hasContract) && !$hasContract)
+        @if(!$selectedTeacher)
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 border-2 border-dashed border-gray-200">
+            <div class="px-6 py-4 bg-gradient-to-r from-gray-500 to-gray-600">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white font-bold">2</div>
+                    <h2 class="text-xl font-bold text-white">Penugasan Baru</h2>
+                </div>
+            </div>
+            <div class="p-10 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                    <i class="fas fa-arrow-up text-2xl animate-bounce"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-1">Silakan Pilih Guru Terlebih Dahulu</h3>
+                <p class="text-sm text-gray-500 max-w-md mx-auto">Pilih nama guru pada menu dropdown <b>Guru</b> di atas. Sistem akan secara otomatis memuat mata pelajaran yang diampu serta daftar kelas yang tersedia.</p>
+            </div>
+        </div>
+        @elseif(isset($hasContract) && !$hasContract)
         <div class="bg-red-50 border-l-4 border-red-500 p-5 mb-6 rounded-2xl shadow-sm">
             <div class="flex items-start gap-3">
                 <i class="fas fa-lock text-red-500 text-2xl mt-0.5"></i>
@@ -365,22 +381,44 @@ if (schoolFilter) {
     });
 }
 
-// Teacher select — reload with teacher_id
-document.getElementById('teacher_id').addEventListener('change', function() {
-    if (this.value) {
-        const params = new URLSearchParams(window.location.search);
-        params.set('teacher_id', this.value);
-        window.location.href = '{{ route("admin.assignments.teaching.create") }}?' + params.toString();
-    }
-});
-
-// AJAX: Dynamically update semester dropdown when academic year changes
+// Teacher select — reload with teacher_id, academic_year_id, and semester_id
+const teacherSelect = document.getElementById('teacher_id');
 const yearSelect = document.querySelector('select[name="academic_year_id"]');
 const semesterSelect = document.querySelector('select[name="semester_id"]');
+
+if (teacherSelect) {
+    teacherSelect.addEventListener('change', function() {
+        const params = new URLSearchParams(window.location.search);
+        if (this.value) {
+            params.set('teacher_id', this.value);
+        } else {
+            params.delete('teacher_id');
+        }
+        if (yearSelect && yearSelect.value) {
+            params.set('academic_year_id', yearSelect.value);
+        }
+        if (semesterSelect && semesterSelect.value) {
+            params.set('semester_id', semesterSelect.value);
+        }
+        window.location.href = '{{ route("admin.assignments.teaching.create") }}?' + params.toString();
+    });
+}
+
+// Academic year and semester change
 if (yearSelect && semesterSelect) {
     yearSelect.addEventListener('change', function() {
         const yearId = this.value;
         if (!yearId) return;
+
+        const teacherVal = teacherSelect ? teacherSelect.value : '';
+        if (teacherVal) {
+            const params = new URLSearchParams(window.location.search);
+            params.set('academic_year_id', yearId);
+            params.set('teacher_id', teacherVal);
+            params.delete('semester_id');
+            window.location.href = '{{ route("admin.assignments.teaching.create") }}?' + params.toString();
+            return;
+        }
         
         semesterSelect.innerHTML = '<option value="">Memuat...</option>';
         fetch('{{ url("admin/api/semesters-by-year") }}/' + yearId)
@@ -402,6 +440,17 @@ if (yearSelect && semesterSelect) {
             .catch(() => {
                 semesterSelect.innerHTML = '<option value="">-- Gagal memuat --</option>';
             });
+    });
+
+    semesterSelect.addEventListener('change', function() {
+        const teacherVal = teacherSelect ? teacherSelect.value : '';
+        if (teacherVal && this.value) {
+            const params = new URLSearchParams(window.location.search);
+            params.set('semester_id', this.value);
+            params.set('teacher_id', teacherVal);
+            if (yearSelect && yearSelect.value) params.set('academic_year_id', yearSelect.value);
+            window.location.href = '{{ route("admin.assignments.teaching.create") }}?' + params.toString();
+        }
     });
 }
 </script>

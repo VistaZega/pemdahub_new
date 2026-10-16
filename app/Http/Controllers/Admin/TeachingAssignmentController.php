@@ -165,7 +165,13 @@ class TeachingAssignmentController extends Controller
             ? $request->academic_year_id
             : ($currentYear ? $currentYear->id : $academicYears->first()?->id);
 
-        $selectedTeacher = null;
+        $teacherId = $request->get('teacher_id');
+        $selectedTeacher = $teacherId ? Teacher::with(['school', 'employee', 'additionalSchools'])->find($teacherId) : null;
+        if ($selectedTeacher && !$canAccessAllSchools && !$selectedTeacher->canAccessSchool($user->school_id)) {
+            $selectedTeacher = null;
+            $teacherId = null;
+        }
+
         $selectedSchoolId = $canAccessAllSchools
             ? $request->get('school_id')
             : $user->school_id;
@@ -187,21 +193,27 @@ class TeachingAssignmentController extends Controller
             ->orderBy('full_name');
 
         if (!$canAccessAllSchools) {
-            $teacherQuery->where(function ($q) use ($user) {
+            $teacherQuery->where(function ($q) use ($user, $selectedTeacher) {
                 $q->where('school_id', $user->school_id)
                   ->orWhere('school_id', 4) // Guru Yayasan
                   ->orWhereHas('additionalSchools', function ($q2) use ($user) {
                       $q2->where('schools.id', $user->school_id);
                   });
+                if ($selectedTeacher) {
+                    $q->orWhere('id', $selectedTeacher->id);
+                }
             });
         } elseif ($selectedSchoolId) {
             // Include Yayasan (4) + guru lintas unit in the selection list
-            $teacherQuery->where(function ($q) use ($selectedSchoolId) {
+            $teacherQuery->where(function ($q) use ($selectedSchoolId, $selectedTeacher) {
                 $q->where('school_id', $selectedSchoolId)
                   ->orWhere('school_id', 4)
                   ->orWhereHas('additionalSchools', function ($q2) use ($selectedSchoolId) {
                       $q2->where('schools.id', $selectedSchoolId);
                   });
+                if ($selectedTeacher) {
+                    $q->orWhere('id', $selectedTeacher->id);
+                }
             });
         }
 
@@ -261,7 +273,7 @@ class TeachingAssignmentController extends Controller
 
             // Existing teaching assignments
             if ($selectedAcademicYearId) {
-                $currentAssignments = TeachingAssignment::where('teacher_id', $teacherId)
+                $currentAssignments = TeachingAssignment::where('teacher_id', $selectedTeacher->id)
                     ->where('academic_year_id', $selectedAcademicYearId)
                     ->when($selectedSemesterId, fn ($q) => $q->where('semester_id', $selectedSemesterId))
                     ->with(['classroom', 'subject', 'semester'])
