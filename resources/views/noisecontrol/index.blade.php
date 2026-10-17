@@ -1411,7 +1411,7 @@ void setupI2S() {
         .bck_io_num = I2S_SCK_PIN,
         .ws_io_num = I2S_WS_PIN,
         .data_out_num = I2S_PIN_NO_CHANGE,
-        .data_in_io_num = I2S_SD_PIN
+        .data_in_num = I2S_SD_PIN
     };
     i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
     i2s_set_pin(I2S_PORT, &pin_config);
