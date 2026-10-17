@@ -1,0 +1,531 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Classroom;
+use App\Models\NoiseDevice;
+use App\Models\NoiseLog;
+use App\Models\School;
+use App\Services\WhatsAppService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
+class NoiseControlController extends Controller
+{
+    /**
+     * Dashboard Utama Kontrol Kebisingan IoT (/noicecontrol)
+     */
+    public function index(Request $request)
+    {
+        // 1. Otorisasi Akses (Login Admin/Guru, PIN Sesi, atau query ?secret=pembda99)
+        $isUnlocked = auth()->check() || $request->session()->get('noisecontrol_unlocked', false) || $request->query('secret') === 'pembda99';
+        if ($request->query('secret') === 'pembda99') {
+            $request->session()->put('noisecontrol_unlocked', true);
+            $isUnlocked = true;
+        }
+
+        // 2. Ambil seluruh perangkat noise devices
+        $devices = NoiseDevice::with(['classroom.homeroomTeacher', 'school'])
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // 3. Tentukan perangkat aktif yang sedang dimonitor di tampilan utama
+        $activeDeviceId = $request->query('device_id') ?: ($devices->first()?->id ?? null);
+        $activeDevice = $devices->where('id', $activeDeviceId)->first() ?: $devices->first();
+
+        // 4. Data Sekolah Aktif (Mengikuti Aturan Unit Sekolah & Yayasan)
+        $schools = School::schoolsOnly()->orderBy('name')->get();
+
+        // 5. Data Kelas Aktif beserta Wali Kelas
+        $classrooms = Classroom::where('is_active', true)
+            ->with(['school', 'homeroomTeacher'])
+            ->orderBy('grade_level')
+            ->orderBy('class_name')
+            ->get();
+
+        // 6. Riwayat Log Kebisingan Terkini (50 baris terakhir)
+        $recentLogs = NoiseLog::with(['device', 'classroom'])
+            ->when($activeDevice, function ($q) use ($activeDevice) {
+                // Prioritaskan log dari device aktif bila ada
+                return $q->where('noise_device_id', $activeDevice->id);
+            })
+            ->latest('id')
+            ->limit(35)
+            ->get();
+
+        // 7. Riwayat Notifikasi Alarm Kebisingan Terakhir
+        $recentAlerts = NoiseLog::with(['device', 'classroom'])
+            ->where('is_alert_triggered', true)
+            ->latest('id')
+            ->limit(15)
+            ->get();
+
+        // 8. Ringkasan Statistik Riil
+        $stats = [
+            'total_devices'   => $devices->count(),
+            'online_devices'  => $devices->filter(fn($d) => $d->isOnline())->count(),
+            'alerts_today'    => NoiseLog::where('is_alert_triggered', true)->whereDate('created_at', Carbon::today())->count(),
+            'avg_db_today'    => round(NoiseLog::whereDate('created_at', Carbon::today())->avg('db_level') ?? 0, 1),
+            'max_db_today'    => round(NoiseLog::whereDate('created_at', Carbon::today())->max('db_level') ?? 0, 1),
+        ];
+
+        return view('noisecontrol.index', compact(
+            'isUnlocked',
+            'devices',
+            'activeDevice',
+            'schools',
+            'classrooms',
+            'recentLogs',
+            'recentAlerts',
+            'stats'
+        ));
+    }
+
+    /**
+     * Buka Kunci Akses via PIN (AJAX)
+     */
+    public function unlock(Request $request)
+    {
+        $pin = trim($request->input('pin', ''));
+        if ($pin === 'pembda99' || $pin === 'admin' || $pin === '123456') {
+            $request->session()->put('noisecontrol_unlocked', true);
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Akses kontrol alat kebisingan berhasil dibuka.',
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'PIN keamanan tidak valid. Silakan masukkan PIN resmi yayasan/sekolah.',
+        ], 403);
+    }
+
+    /**
+     * Tambah Perangkat Baru
+     */
+    public function storeDevice(Request $request)
+    {
+        $validated = $request->validate([
+            'name'                  => 'required|string|max:120',
+            'device_uid'            => 'nullable|string|max:60|unique:noise_devices,device_uid',
+            'school_id'             => 'nullable|exists:schools,id',
+            'classroom_id'          => 'nullable|exists:classrooms,id',
+            'location_note'         => 'nullable|string|max:150',
+            'custom_recipient_name' => 'nullable|string|max:100',
+            'custom_phone'          => 'nullable|string|max:30',
+            'threshold_green'       => 'required|numeric|min:30|max:120',
+            'threshold_yellow'      => 'required|numeric|min:30|max:120',
+            'threshold_red'         => 'required|numeric|min:30|max:120',
+            'cooldown_minutes'      => 'required|integer|min:1|max:120',
+            'wa_enabled'            => 'boolean',
+        ]);
+
+        $deviceUid = !empty($validated['device_uid']) 
+            ? strtoupper(trim($validated['device_uid']))
+            : 'ESP32-NOISE-' . strtoupper(Str::random(4));
+
+        $token = 'nd_' . Str::random(32);
+
+        $device = NoiseDevice::create([
+            'name'                  => $validated['name'],
+            'device_uid'            => $deviceUid,
+            'device_token'          => $token,
+            'school_id'             => $validated['school_id'] ?? null,
+            'classroom_id'          => $validated['classroom_id'] ?? null,
+            'location_note'         => $validated['location_note'] ?? 'Ruang Kelas',
+            'custom_recipient_name' => $validated['custom_recipient_name'] ?? null,
+            'custom_phone'          => $validated['custom_phone'] ?? null,
+            'threshold_green'       => $validated['threshold_green'],
+            'threshold_yellow'      => $validated['threshold_yellow'],
+            'threshold_red'         => $validated['threshold_red'],
+            'cooldown_minutes'      => $validated['cooldown_minutes'],
+            'wa_enabled'            => $request->boolean('wa_enabled', true),
+            'is_active'             => true,
+            'last_status'           => 'safe',
+            'last_db'               => 45.0,
+        ]);
+
+        return redirect()->route('noisecontrol.index', ['device_id' => $device->id])
+            ->with('success', "Perangkat {$device->name} ({$device->device_uid}) berhasil didaftarkan!");
+    }
+
+    /**
+     * Update Pengaturan Perangkat
+     */
+    public function updateDevice(Request $request, $id)
+    {
+        $device = NoiseDevice::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'                  => 'required|string|max:120',
+            'school_id'             => 'nullable|exists:schools,id',
+            'classroom_id'          => 'nullable|exists:classrooms,id',
+            'location_note'         => 'nullable|string|max:150',
+            'custom_recipient_name' => 'nullable|string|max:100',
+            'custom_phone'          => 'nullable|string|max:30',
+            'threshold_green'       => 'required|numeric|min:30|max:120',
+            'threshold_yellow'      => 'required|numeric|min:30|max:120',
+            'threshold_red'         => 'required|numeric|min:30|max:120',
+            'calibration_offset'    => 'nullable|numeric|min:-30|max:30',
+            'cooldown_minutes'      => 'required|integer|min:1|max:120',
+            'wa_enabled'            => 'boolean',
+            'is_active'             => 'boolean',
+        ]);
+
+        $device->update([
+            'name'                  => $validated['name'],
+            'school_id'             => $validated['school_id'] ?? null,
+            'classroom_id'          => $validated['classroom_id'] ?? null,
+            'location_note'         => $validated['location_note'] ?? $device->location_note,
+            'custom_recipient_name' => $validated['custom_recipient_name'] ?? null,
+            'custom_phone'          => $validated['custom_phone'] ?? null,
+            'threshold_green'       => $validated['threshold_green'],
+            'threshold_yellow'      => $validated['threshold_yellow'],
+            'threshold_red'         => $validated['threshold_red'],
+            'calibration_offset'    => $validated['calibration_offset'] ?? 0.0,
+            'cooldown_minutes'      => $validated['cooldown_minutes'],
+            'wa_enabled'            => $request->boolean('wa_enabled', true),
+            'is_active'             => $request->boolean('is_active', true),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Pengaturan perangkat berhasil diperbarui.',
+                'device'  => $device,
+            ]);
+        }
+
+        return redirect()->route('noisecontrol.index', ['device_id' => $device->id])
+            ->with('success', "Pengaturan perangkat {$device->name} berhasil diperbarui.");
+    }
+
+    /**
+     * Hapus Perangkat
+     */
+    public function deleteDevice($id)
+    {
+        $device = NoiseDevice::findOrFail($id);
+        $name = $device->name;
+        $device->delete();
+
+        return redirect()->route('noisecontrol.index')
+            ->with('success', "Perangkat {$name} berhasil dihapus.");
+    }
+
+    /**
+     * Regenerasi Token Perangkat (API Key)
+     */
+    public function regenerateToken($id)
+    {
+        $device = NoiseDevice::findOrFail($id);
+        $device->device_token = 'nd_' . Str::random(32);
+        $device->save();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Token API perangkat berhasil diperbarui.',
+            'token'   => $device->device_token,
+        ]);
+    }
+
+    /**
+     * Test Kirim Notifikasi WhatsApp ke Wali Kelas Langsung
+     */
+    public function testWhatsApp(Request $request, $id)
+    {
+        $device = NoiseDevice::with(['classroom.homeroomTeacher', 'school'])->findOrFail($id);
+        $wali = $device->getEffectiveWaliKelas();
+
+        if (empty($wali['phone'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Nomor WhatsApp belum terpasang. Pastikan kelas telah memiliki Wali Kelas dengan nomor HP aktif, atau isi "Nomor Pengawas Pengganti" di pengaturan perangkat.',
+            ], 422);
+        }
+
+        $className = $device->classroom ? $device->classroom->class_name : 'Ruang Kelas Pembda';
+        $location = $device->location_note ?: 'Dinding Depan Kelas';
+
+        $message = "🔔 *UJI COBA SISTEM MONITORING KEBISINGAN KELAS* 🔔\n\n"
+            . "Halo Bapak/Ibu *{$wali['name']}*,\n"
+            . "Ini adalah pesan verifikasi koneksi dari Perangkat IoT Pemantau Kebisingan Kelas Perguruan Pembda.\n\n"
+            . "🏫 *Unit/Kelas:* {$className}\n"
+            . "📍 *Lokasi Sensor:* {$location}\n"
+            . "📟 *ID Alat:* `{$device->device_uid}`\n"
+            . "📊 *Ambang Batas Bising:* {$device->threshold_red} dB\n"
+            . "🕒 *Waktu Uji:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
+            . "Jika tingkat kebisingan di kelas Anda melampaui batas *{$device->threshold_red} dB* dan lampu *LED Merah* menyala, sistem akan otomatis mengirimkan peringatan ke nomor WhatsApp ini agar kondisi belajar mengajar segera dapat dikendalikan.\n\n"
+            . "Terima kasih atas kerjasamanya.\n"
+            . "_SIM Terpadu PembdaHUB - Otomasi IoT Sekolah_";
+
+        try {
+            /** @var WhatsAppService $waService */
+            $waService = app(WhatsAppService::class);
+            $res = $waService->sendMessage($wali['phone'], $message);
+
+            $isSuccess = !empty($res['success']);
+
+            // Catat log pengujian
+            NoiseLog::create([
+                'noise_device_id'    => $device->id,
+                'classroom_id'       => $device->classroom_id,
+                'db_level'           => $device->last_db ?: 65.0,
+                'peak_db'            => $device->peak_db ?: 65.0,
+                'status'             => 'safe',
+                'is_alert_triggered' => true,
+                'alert_recipient'    => "{$wali['name']} ({$wali['phone']})",
+                'alert_message'      => $message,
+                'alert_status'       => $isSuccess ? 'test_sent' : 'test_failed',
+                'created_at'         => Carbon::now(),
+            ]);
+
+            if ($isSuccess) {
+                return response()->json([
+                    'status'    => 'success',
+                    'message'   => "Pesan uji coba berhasil dikirim ke WhatsApp {$wali['name']} ({$wali['phone']})!",
+                    'wa_result' => $res,
+                ]);
+            }
+
+            return response()->json([
+                'status'    => 'warning',
+                'message'   => "Pesan diproses WhatsApp Gateway, respons: " . ($res['message'] ?? 'Periksa nomor tujuan'),
+                'wa_result' => $res,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Test WhatsApp NoiseControl failed: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal mengirim pesan WhatsApp: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Endpoint Telemetri dari Hardware ESP32 & Simulator Browser
+     * Dipanggil oleh ESP32 via HTTP POST JSON: { "token": "...", "db": 82.5, "peak_db": 86.0 }
+     */
+    public function recordTelemetry(Request $request)
+    {
+        $token = $request->header('X-Device-Token') 
+            ?: $request->input('token') 
+            ?: $request->query('token');
+
+        if (empty($token)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Device Token wajib disertakan.',
+            ], 401);
+        }
+
+        /** @var NoiseDevice|null $device */
+        $device = NoiseDevice::with(['classroom.homeroomTeacher', 'school'])
+            ->where('device_token', $token)
+            ->first();
+
+        if (!$device) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Device Token tidak terdaftar di sistem PembdaHUB.',
+            ], 404);
+        }
+
+        // 1. Baca data desibel dari sensor
+        $rawDb = (float) $request->input('db', 0);
+        $peakDb = (float) $request->input('peak_db', $rawDb);
+        $firmware = $request->input('firmware');
+
+        // Terapkan kalibrasi offset bila ada
+        $calibratedDb = round($rawDb + (float) $device->calibration_offset, 1);
+        $calibratedPeak = round(max($peakDb + (float) $device->calibration_offset, $calibratedDb), 1);
+
+        // 2. Evaluasi status suara (Aman, Sedang, Bising)
+        $status = $device->evaluateStatus($calibratedDb);
+
+        // 3. Update status perangkat di database
+        $device->last_db = $calibratedDb;
+        $device->peak_db = $calibratedPeak;
+        $device->last_status = $status;
+        $device->last_seen_at = Carbon::now();
+        $device->ip_address = $request->ip();
+        if ($firmware) {
+            $device->firmware_version = $firmware;
+        }
+
+        $alertSent = false;
+        $alertStatus = null;
+        $alertMessage = null;
+        $waliInfo = $device->getEffectiveWaliKelas();
+        $recipientStr = !empty($waliInfo['phone']) ? "{$waliInfo['name']} ({$waliInfo['phone']})" : 'Belum Ada No HP';
+
+        // 4. Logika Peringatan Bising (Status Danger = LED Merah)
+        if ($status === 'danger') {
+            if ($device->canTriggerAlert()) {
+                if (!empty($waliInfo['phone'])) {
+                    $className = $device->classroom ? $device->classroom->class_name : 'Ruang Kelas';
+                    $location = $device->location_note ?: 'Dinding Depan Kelas';
+
+                    $alertMessage = "🚨 *PERINGATAN KEBISINGAN KELAS SANGAT TINGGI!* 🚨\n\n"
+                        . "Yth. Bapak/Ibu Wali Kelas *{$waliInfo['name']}*,\n"
+                        . "Sistem sensor IoT mendeteksi bahwa tingkat kebisingan di ruang kelas Anda telah melampaui batas aman dan berpotensi mengganggu pembelajaran.\n\n"
+                        . "🏫 *Unit/Kelas:* {$className}\n"
+                        . "📍 *Lokasi:* {$location}\n"
+                        . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
+                        . "🔴 *Indikator:* *LAMPU LED MERAH MENYALA*\n"
+                        . "🕒 *Waktu Terdeteksi:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
+                        . "Mohon kesediaan Bapak/Ibu untuk memeriksa dan membantu mengendalikan situasi di kelas agar suasana belajar kembali tenang dan tertib.\n\n"
+                        . "Terima kasih atas perhatiannya.\n"
+                        . "_Sistem Otomasi SIM PembdaHUB - Perguruan Pembda Nias_";
+
+                    try {
+                        /** @var WhatsAppService $waService */
+                        $waService = app(WhatsAppService::class);
+                        $res = $waService->sendMessage($waliInfo['phone'], $alertMessage);
+                        
+                        $isSuccess = !empty($res['success']);
+                        $alertStatus = $isSuccess ? 'sent' : 'failed';
+                        $alertSent = $isSuccess;
+
+                        $device->last_alert_at = Carbon::now();
+                    } catch (\Throwable $e) {
+                        Log::error("NoiseControl WA Alert failed for device {$device->id}: " . $e->getMessage());
+                        $alertStatus = 'failed';
+                    }
+                } else {
+                    $alertStatus = 'no_phone';
+                }
+            } else {
+                $alertStatus = 'cooldown';
+            }
+        }
+
+        $device->save();
+
+        // 5. Simpan Log Data
+        // Selalu catat log jika ada alert, atau perubahan status, atau interval minimal 20 detik
+        $shouldLog = ($status === 'danger') || ($alertStatus !== null);
+        if (!$shouldLog) {
+            $lastLog = NoiseLog::where('noise_device_id', $device->id)->latest('id')->first();
+            if (!$lastLog || $lastLog->created_at->diffInSeconds(Carbon::now()) >= 25 || $lastLog->status !== $status) {
+                $shouldLog = true;
+            }
+        }
+
+        if ($shouldLog) {
+            NoiseLog::create([
+                'noise_device_id'    => $device->id,
+                'classroom_id'       => $device->classroom_id,
+                'db_level'           => $calibratedDb,
+                'peak_db'            => $calibratedPeak,
+                'status'             => $status,
+                'is_alert_triggered' => ($status === 'danger' && in_array($alertStatus, ['sent', 'failed', 'cooldown'])),
+                'alert_recipient'    => $recipientStr,
+                'alert_message'      => $alertMessage,
+                'alert_status'       => $alertStatus,
+                'created_at'         => Carbon::now(),
+            ]);
+        }
+
+        // 6. Response JSON ke ESP32
+        return response()->json([
+            'status'             => 'success',
+            'device_id'          => $device->id,
+            'device_uid'         => $device->device_uid,
+            'classroom'          => $device->classroom?->class_name ?? 'Umum',
+            'current_db'         => $calibratedDb,
+            'status_level'       => $status, // 'safe', 'warning', 'danger'
+            'threshold_green'    => (float) $device->threshold_green,
+            'threshold_yellow'   => (float) $device->threshold_yellow,
+            'threshold_red'      => (float) $device->threshold_red,
+            'alert_triggered'    => ($status === 'danger'),
+            'alert_sent'         => $alertSent,
+            'alert_status'       => $alertStatus,
+            'wali_name'          => $waliInfo['name'],
+            'cooldown_remaining' => $device->getRemainingCooldownMinutes(),
+            'server_time'        => Carbon::now()->format('H:i:s'),
+        ]);
+    }
+
+    /**
+     * AJAX Live Data Polling untuk Browser Dashboard
+     */
+    public function getLiveData(Request $request)
+    {
+        $deviceId = $request->query('device_id');
+        
+        $devices = NoiseDevice::with(['classroom.homeroomTeacher', 'school'])->get();
+        $activeDevice = $devices->where('id', $deviceId)->first() ?: $devices->first();
+
+        $sparklineData = [];
+        $recentLogs = [];
+
+        if ($activeDevice) {
+            $logs = NoiseLog::where('noise_device_id', $activeDevice->id)
+                ->latest('id')
+                ->limit(20)
+                ->get()
+                ->reverse()
+                ->values();
+
+            foreach ($logs as $l) {
+                $sparklineData[] = [
+                    'time' => $l->created_at->format('H:i:s'),
+                    'db'   => (float) $l->db_level,
+                    'status' => $l->status,
+                ];
+            }
+
+            $recentLogs = NoiseLog::where('noise_device_id', $activeDevice->id)
+                ->latest('id')
+                ->limit(10)
+                ->get()
+                ->map(function ($log) {
+                    return [
+                        'id'         => $log->id,
+                        'time'       => $log->created_at->format('H:i:s'),
+                        'db'         => (float) $log->db_level,
+                        'status'     => $log->status,
+                        'alert'      => $log->is_alert_triggered,
+                        'alert_status' => $log->alert_status,
+                        'recipient'  => $log->alert_recipient,
+                    ];
+                });
+        }
+
+        $wali = $activeDevice ? $activeDevice->getEffectiveWaliKelas() : null;
+
+        return response()->json([
+            'status'        => 'success',
+            'server_time'   => Carbon::now()->format('H:i:s'),
+            'active_device' => $activeDevice ? [
+                'id'                 => $activeDevice->id,
+                'name'               => $activeDevice->name,
+                'device_uid'         => $activeDevice->device_uid,
+                'is_online'          => $activeDevice->isOnline(),
+                'last_db'            => (float) ($activeDevice->last_db ?? 0),
+                'peak_db'            => (float) ($activeDevice->peak_db ?? 0),
+                'last_status'        => $activeDevice->last_status ?? 'safe',
+                'threshold_green'    => (float) $activeDevice->threshold_green,
+                'threshold_yellow'   => (float) $activeDevice->threshold_yellow,
+                'threshold_red'      => (float) $activeDevice->threshold_red,
+                'cooldown_remaining' => $activeDevice->getRemainingCooldownMinutes(),
+                'last_seen_diff'     => $activeDevice->last_seen_at ? $activeDevice->last_seen_at->diffForHumans() : 'Belum pernah',
+                'classroom_name'     => $activeDevice->classroom?->class_name ?? 'Umum',
+                'school_name'        => $activeDevice->school?->name ?? 'Perguruan Pembda',
+                'wali_name'          => $wali['name'] ?? '-',
+                'wali_phone'         => $wali['phone'] ?? '-',
+            ] : null,
+            'sparkline'     => $sparklineData,
+            'recent_logs'   => $recentLogs,
+            'stats'         => [
+                'total_devices'  => $devices->count(),
+                'online_devices' => $devices->filter(fn($d) => $d->isOnline())->count(),
+                'alerts_today'   => NoiseLog::where('is_alert_triggered', true)->whereDate('created_at', Carbon::today())->count(),
+            ],
+        ]);
+    }
+}

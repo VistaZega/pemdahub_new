@@ -43,6 +43,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Exclude specific public APIs and control endpoints from CSRF verification
         $middleware->validateCsrfTokens(except: [
             'runteks/*',
+            'noicecontrol/*',
+            'noisecontrol/*',
             'api/*',
             'api/v1/*',
         ]);

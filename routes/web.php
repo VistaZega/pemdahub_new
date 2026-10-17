@@ -109,6 +109,21 @@ Route::post('/runteks/settings', [App\Http\Controllers\RunningTextWebController:
 Route::post('/runteks/unlock', [App\Http\Controllers\RunningTextWebController::class, 'unlock'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])->name('runteks.unlock');
 
 // ============================================================
+//  PUSAT KONTROL & MONITORING KEBISINGAN KELAS IOT (/noicecontrol)
+//  Akses: https://perguruanpembda.com/noicecontrol
+// ============================================================
+Route::get('/noicecontrol', [App\Http\Controllers\NoiseControlController::class, 'index'])->name('noisecontrol.index');
+Route::get('/noisecontrol', fn() => redirect()->route('noisecontrol.index'));
+Route::post('/noicecontrol/unlock', [App\Http\Controllers\NoiseControlController::class, 'unlock'])->name('noisecontrol.unlock');
+Route::post('/noicecontrol/devices', [App\Http\Controllers\NoiseControlController::class, 'storeDevice'])->name('noisecontrol.devices.store');
+Route::post('/noicecontrol/devices/{id}', [App\Http\Controllers\NoiseControlController::class, 'updateDevice'])->name('noisecontrol.devices.update');
+Route::delete('/noicecontrol/devices/{id}', [App\Http\Controllers\NoiseControlController::class, 'deleteDevice'])->name('noisecontrol.devices.delete');
+Route::post('/noicecontrol/devices/{id}/test-wa', [App\Http\Controllers\NoiseControlController::class, 'testWhatsApp'])->name('noisecontrol.devices.test-wa');
+Route::post('/noicecontrol/devices/{id}/token', [App\Http\Controllers\NoiseControlController::class, 'regenerateToken'])->name('noisecontrol.devices.token');
+Route::post('/noicecontrol/api/telemetry', [App\Http\Controllers\NoiseControlController::class, 'recordTelemetry'])->name('noisecontrol.telemetry');
+Route::get('/noicecontrol/live-data', [App\Http\Controllers\NoiseControlController::class, 'getLiveData'])->name('noisecontrol.live-data');
+
+// ============================================================
 //  SHARED YAYASAN VIEW (Public dengan Token)
 // ============================================================
 Route::get('/yayasan/progress-input/shared', [App\Http\Controllers\Yayasan\ProgressInputController::class, 'indexShared'])->name('shared.progress-input');

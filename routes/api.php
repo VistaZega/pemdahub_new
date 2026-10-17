@@ -139,5 +139,8 @@ Route::prefix('v1')->group(function () {
     }
 });
 
+// ==== IOT NOISE CONTROL TELEMETRY (ESP32 + INMP441) ====
+Route::post('/noise/telemetry', [\App\Http\Controllers\NoiseControlController::class, 'recordTelemetry']);
+
 
 
