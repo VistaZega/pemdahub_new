@@ -406,11 +406,11 @@ class NoiseControlController extends Controller
         $device->save();
 
         // 5. Simpan Log Data
-        // Selalu catat log jika ada alert, atau perubahan status, atau interval minimal 20 detik
+        // Catat log jika: status bahaya, alert terkirim, jeda >= 5 detik, atau ada perubahan desibel >= 1.5 dB
         $shouldLog = ($status === 'danger') || ($alertStatus !== null);
         if (!$shouldLog) {
             $lastLog = NoiseLog::where('noise_device_id', $device->id)->latest('id')->first();
-            if (!$lastLog || $lastLog->created_at->diffInSeconds(Carbon::now()) >= 25 || $lastLog->status !== $status) {
+            if (!$lastLog || $lastLog->created_at->diffInSeconds(Carbon::now()) >= 5 || abs((float)$lastLog->db_level - (float)$calibratedDb) >= 1.5 || $lastLog->status !== $status) {
                 $shouldLog = true;
             }
         }

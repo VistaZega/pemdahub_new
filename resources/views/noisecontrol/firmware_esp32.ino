@@ -39,6 +39,7 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <driver/i2s.h>
@@ -51,7 +52,7 @@ const char* WIFI_PASSWORD = "PASSWORD_WIFI";          // Ganti dengan Password W
 const char* SERVER_URL    = "https://perguruanpembda.com/noicecontrol/api/telemetry";
 
 // TOKEN ALAT (Dapat disalin dari dashboard perguruanpembda.com/noicecontrol)
-const char* DEVICE_TOKEN  = "nd_GANTI_DENGAN_TOKEN_ALAT_ANDA";
+const char* DEVICE_TOKEN  = "nd_MBKIYTv6GR79bf05lUJEiHZtKcbzDZNp";
 const char* FIRMWARE_VER  = "1.0.0-PRO";
 
 // ================= KONFIGURASI PIN HARDWARE =================
@@ -116,7 +117,7 @@ void setupI2S() {
         .bck_io_num = I2S_SCK_PIN,
         .ws_io_num = I2S_WS_PIN,
         .data_out_num = I2S_PIN_NO_CHANGE,
-        .data_in_num = I2S_SD_PIN
+        .data_in_num = I2S_SD_PIN     // <--- Menggunakan .data_in_num
     };
 
     i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
@@ -247,14 +248,29 @@ void drawOledDisplay(float db, float peak) {
 // ================= KIRIM TELEMETRI KE SERVER PEMBDAHUB =================
 void sendTelemetry(float db, float peak) {
     if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("[Telemetri] Menunggu WiFi terhubung...");
         return; // Lewati jika belum ada koneksi WiFi
     }
 
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure(); // PENTING: Mengizinkan HTTPS tanpa sertifikat CA di ESP32
+
     HTTPClient http;
-    http.begin(SERVER_URL);
+    bool beginOk = false;
+    if (String(SERVER_URL).startsWith("https")) {
+        beginOk = http.begin(secureClient, SERVER_URL);
+    } else {
+        beginOk = http.begin(SERVER_URL);
+    }
+
+    if (!beginOk) {
+        Serial.println("[Telemetri] Gagal menghubungkan ke URL server.");
+        return;
+    }
+
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Device-Token", DEVICE_TOKEN);
-    http.setTimeout(4000);
+    http.setTimeout(5000);
 
     // Buat JSON payload
     StaticJsonDocument<256> doc;
@@ -267,6 +283,7 @@ void sendTelemetry(float db, float peak) {
     serializeJson(doc, jsonString);
 
     int httpCode = http.POST(jsonString);
+    Serial.printf("[Telemetri] Mengirim %0.1f dB ke Server | Response Code: %d\n", db, httpCode);
 
     if (httpCode == 200) {
         String response = http.getString();
@@ -291,6 +308,10 @@ void sendTelemetry(float db, float peak) {
                 isAlertSent = resDoc["alert_sent"];
             }
         }
+    } else if (httpCode > 0) {
+        Serial.printf("[Telemetri] Server merespon status: %d (%s)\n", httpCode, http.getString().c_str());
+    } else {
+        Serial.printf("[Telemetri] Gagal kirim: %s (Cek koneksi internet)\n", http.errorToString(httpCode).c_str());
     }
 
     http.end();

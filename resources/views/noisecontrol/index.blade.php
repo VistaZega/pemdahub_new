@@ -1061,26 +1061,34 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
                         const dev = data.active_device;
                         updateLiveDashboard(dev.last_db, dev.peak_db, dev.last_status, dev.threshold_green, dev.threshold_yellow, dev.threshold_red, dev.is_online);
 
-                        // Update sparkline chart
-                        if (waveformChart && data.sparkline && data.sparkline.length > 0) {
-                            const labels = data.sparkline.map(s => s.time);
-                            const values = data.sparkline.map(s => s.db);
-                            waveformChart.data.labels = labels;
-                            waveformChart.data.datasets[0].data = values;
+                        // Update sparkline chart dynamically
+                        if (waveformChart) {
+                            if (data.sparkline && data.sparkline.length > 1) {
+                                waveformChart.data.labels = data.sparkline.map(s => s.time);
+                                waveformChart.data.datasets[0].data = data.sparkline.map(s => s.db);
+                            } else if (dev.last_db !== undefined && dev.last_db !== null) {
+                                const nowStr = data.server_time || new Date().toLocaleTimeString('id-ID');
+                                waveformChart.data.labels.push(nowStr);
+                                waveformChart.data.datasets[0].data.push(parseFloat(dev.last_db));
+                                if (waveformChart.data.datasets[0].data.length > 20) {
+                                    waveformChart.data.labels.shift();
+                                    waveformChart.data.datasets[0].data.shift();
+                                }
+                            }
 
                             // Adjust line color based on last status
-                            const lastStatus = dev.last_status;
+                            const lastStatus = dev.last_status || 'safe';
                             if (lastStatus === 'danger') {
                                 waveformChart.data.datasets[0].borderColor = '#ef4444';
-                                waveformChart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.15)';
+                                waveformChart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.2)';
                             } else if (lastStatus === 'warning') {
                                 waveformChart.data.datasets[0].borderColor = '#f59e0b';
-                                waveformChart.data.datasets[0].backgroundColor = 'rgba(245, 158, 11, 0.1)';
+                                waveformChart.data.datasets[0].backgroundColor = 'rgba(245, 158, 11, 0.15)';
                             } else {
                                 waveformChart.data.datasets[0].borderColor = '#10b981';
-                                waveformChart.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.08)';
+                                waveformChart.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.1)';
                             }
-                            waveformChart.update();
+                            waveformChart.update('none');
                         }
                     }
                 })
