@@ -151,21 +151,24 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
         <!-- =================================================================== -->
-        <!-- SECTION 1: SIMULATOR VIRTUAL LED MATRIX (256 x 32 Pixel) -->
+        <!-- SECTION 1: SIMULATOR VIRTUAL LED MATRIX (256 x 32 Pixel RGB) -->
         <!-- =================================================================== -->
         <section class="bg-slate-900/60 rounded-3xl border border-slate-800 p-5 lg:p-6 shadow-2xl relative overflow-hidden">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div class="flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-amber-400 animate-ping"></span>
                     <h2 class="text-sm font-tech font-bold text-slate-200 tracking-wider uppercase">
-                        VIRTUAL LED DISPLAY (RASIO FISIK 4 PANEL P5: 256 × 32 PIXEL)
+                        VIRTUAL LED DISPLAY (4 PANEL P5 FULL COLOR RGB: 256 × 32 PIXEL)
                     </h2>
                 </div>
                 <div class="flex items-center gap-2 text-xs">
+                    <span class="px-2 py-0.5 rounded bg-gradient-to-r from-rose-500/20 via-emerald-500/20 to-blue-500/20 text-emerald-300 border border-emerald-500/30 font-mono text-[11px] font-bold">
+                        RGB FULL COLOR (HUB75)
+                    </span>
                     <span id="modeBadge" class="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono font-bold">
                         LOOPING 7-IN-1
                     </span>
-                    <span class="text-slate-500 font-mono">256 × 32 PX (1.28m × 0.16m)</span>
+                    <span class="text-slate-500 font-mono hidden sm:inline">256 × 32 PX (1.28m × 0.16m)</span>
                 </div>
             </div>
 
@@ -191,19 +194,23 @@
                             </span>
                         </div>
                         
-                        <!-- 2. Selaan Absensi Interupsi Real-Time (3 Baris Rapi) -->
+                        <!-- 2. Selaan Absensi Interupsi Real-Time (3 Baris Rapi RGB) -->
                         <div id="ledInterruptContainer" class="hidden w-full flex flex-col items-center justify-center text-center space-y-0.5 sm:space-y-1 py-1">
-                            <!-- Baris 1: Sapaan Ramah -->
+                            <!-- Baris 1: Sapaan Ramah (RGB: Hijau / Emerald Glow) -->
                             <div id="ledInterruptGreeting" class="font-led text-sm sm:text-lg text-emerald-400 font-semibold tracking-wider uppercase leading-none drop-shadow-[0_0_8px_rgba(52,211,153,0.85)]">
                                 Selamat Pagi
                             </div>
-                            <!-- Baris 2: Nama Siswa / Guru (Huruf Lebih Besar, Menonjol & Amber Glow) -->
+                            <!-- Baris 2: Nama Siswa / Guru (RGB: Kuning Emas / Amber Glow Jumbo) -->
                             <div id="ledInterruptName" class="font-led text-3xl sm:text-5xl md:text-6xl text-amber-300 font-bold tracking-wider uppercase leading-none my-0.5 drop-shadow-[0_0_20px_rgba(251,191,36,0.95)] truncate max-w-full px-2">
                                 Yulianus Zega
                             </div>
-                            <!-- Baris 3: Jam, Keterangan, Kelas/Rombel, dan Unit Sekolah -->
-                            <div id="ledInterruptMeta" class="font-led text-xs sm:text-base text-cyan-300 tracking-wide font-medium leading-none drop-shadow-[0_0_8px_rgba(103,232,249,0.85)]">
-                                [07:10/Terlambat] | X - Budi Utomo | SMAS Pembda 1
+                            <!-- Baris 3: Jam, Keterangan, Kelas/Rombel, dan Unit Sekolah (RGB Full Color Accent) -->
+                            <div id="ledInterruptMeta" class="font-led text-xs sm:text-base tracking-wide font-medium leading-none flex items-center justify-center gap-1.5 flex-wrap">
+                                <span class="text-rose-400 font-bold drop-shadow-[0_0_10px_rgba(251,113,113,0.95)]">[07:10/Terlambat]</span>
+                                <span class="text-slate-500 font-mono">|</span>
+                                <span class="text-sky-200 drop-shadow-[0_0_8px_rgba(186,230,253,0.8)]">X - Budi Utomo</span>
+                                <span class="text-slate-500 font-mono">|</span>
+                                <span class="text-emerald-300 drop-shadow-[0_0_8px_rgba(110,231,183,0.8)]">SMAS Pembda 1</span>
                             </div>
                         </div>
                     </div>
@@ -212,7 +219,7 @@
                 <!-- Footer Informasi Panel -->
                 <div class="mt-3 flex flex-wrap items-center justify-between text-[11px] text-slate-400 font-mono">
                     <div class="flex items-center gap-3">
-                        <span><i class="fas fa-microchip text-rose-500"></i> HD-WF2 (ESP32-S3)</span>
+                        <span><i class="fas fa-microchip text-rose-500"></i> HD-WF2 (Full Color RGB)</span>
                         <span><i class="fas fa-wifi text-emerald-500"></i> Wi-Fi: PembdaLINK</span>
                         <span><i class="fas fa-network-wired text-blue-400"></i> IP: <strong id="lblControllerIp" class="text-white">{{ $controllerIp }}</strong></span>
                     </div>
@@ -525,6 +532,51 @@ while ($true) {
                         Script di atas otomatis mendownload teks dari PembdaHUB setiap 2 detik ke file <code>C:\pembdahub_text.txt</code> yang dibaca oleh HD2020.
                     </p>
                 </div>
+
+                <!-- Kolom 3 / Baris Panduan: Pengaturan Layar P5 Full Color RGB di HD2020 -->
+                <div class="col-span-1 lg:col-span-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-5 rounded-2xl border border-emerald-500/30 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">
+                                P5 FULL COLOR RGB (HUB75)
+                            </span>
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider">
+                                Rekomendasi Parameter Layar di Software HD2020 (Password Setting: <code>168</code> atau <code>888</code>)
+                            </h3>
+                        </div>
+                        <span class="text-[11px] text-slate-400 font-mono">Controller: <strong>Huidu HD-WF2</strong></span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+                        <div class="bg-black/50 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">Color Type:</span>
+                            <strong class="text-amber-400 text-sm">Full Color (RGB)</strong>
+                        </div>
+                        <div class="bg-black/50 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">Resolusi (W × H):</span>
+                            <strong class="text-emerald-400 text-sm">256 × 32 Pixel</strong>
+                        </div>
+                        <div class="bg-black/50 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">Hub Interface:</span>
+                            <strong class="text-cyan-400 text-sm">HUB75 / HUB75E</strong>
+                        </div>
+                        <div class="bg-black/50 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">Scan Mode:</span>
+                            <strong class="text-rose-400 text-sm">1/16 Scan (P5 SMD)</strong>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-300 space-y-1">
+                        <p class="font-semibold text-amber-300 flex items-center gap-1.5">
+                            <i class="fas fa-palette"></i> Rekomendasi Pewarnaan 3 Baris di Layar RGB HD2020:
+                        </p>
+                        <p class="text-slate-400">
+                            • <strong>Baris 1 (Sapaan):</strong> Beri warna <span class="text-emerald-400 font-bold">Hijau Neon (#00FF00)</span> agar ramah dan menyegarkan mata.<br>
+                            • <strong>Baris 2 (Nama):</strong> Beri warna <span class="text-amber-300 font-bold">Kuning Emas (#FFFF00)</span> dengan ukuran font paling besar/tebal agar paling mencolok dari kejauhan.<br>
+                            • <strong>Baris 3 (Info Absensi):</strong> Beri warna <span class="text-cyan-300 font-bold">Cyan / Biru Muda (#00FFFF)</span> untuk Hadir, atau <span class="text-rose-400 font-bold">Merah Terang (#FF0000)</span> untuk penanda Terlambat.
+                        </p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -655,18 +707,27 @@ while ($true) {
                         nameEl.textContent = data.interrupt.name || 'SISWA PEMBDA';
                     }
 
-                    // Baris 3: Jam, Keterangan, Kelas, dan Unit Sekolah
-                    if (data.interrupt.meta_line && metaEl) {
-                        metaEl.textContent = data.interrupt.meta_line;
-                    } else if (metaEl) {
+                    // Baris 3: Jam, Keterangan, Kelas, dan Unit Sekolah (Aksen RGB Full Color)
+                    if (metaEl) {
                         const t = data.interrupt.time || '--:--';
                         const s = data.interrupt.status || 'Hadir';
                         const sub = data.interrupt.subtext || '';
                         const sch = data.interrupt.school || '';
-                        const parts = [`[${t}/${s}]`];
-                        if (sub) parts.push(sub);
-                        if (sch) parts.push(sch);
-                        metaEl.textContent = parts.join(' | ');
+                        const isLate = s.toLowerCase().includes('terlambat');
+
+                        // P5 RGB Color Mapping: Merah bila Terlambat, Cyan bila Hadir
+                        const tagColor = isLate 
+                            ? 'text-rose-400 font-bold drop-shadow-[0_0_10px_rgba(251,113,113,0.95)] animate-pulse' 
+                            : 'text-cyan-300 font-bold drop-shadow-[0_0_8px_rgba(103,232,249,0.9)]';
+
+                        let html = `<span class="${tagColor}">[${t}/${s}]</span>`;
+                        if (sub) {
+                            html += ` <span class="text-slate-500 font-mono">|</span> <span class="text-sky-200 drop-shadow-[0_0_8px_rgba(186,230,253,0.8)]">${sub}</span>`;
+                        }
+                        if (sch) {
+                            html += ` <span class="text-slate-500 font-mono">|</span> <span class="text-emerald-300 drop-shadow-[0_0_8px_rgba(110,231,183,0.8)]">${sch}</span>`;
+                        }
+                        metaEl.innerHTML = html;
                     }
 
                     modeBadge.className = "px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold animate-pulse";
