@@ -183,21 +183,25 @@ void updateLedStatus(float db) {
     }
 }
 
-// ================= GAMBAR TAMPILAN OLED 1.3 INCH (HERO dB & SUPER BERSIH) =================
+// ================= GAMBAR TAMPILAN OLED 1.3 INCH (HERO dB & TEKS SANGAT JELAS) =================
 void drawOledDisplay(float db) {
     oled.clearDisplay();
     oled.setTextColor(SH110X_WHITE);
 
-    // 1. Header Bar: Nama Singkat & Status WiFi (Lega, Tanpa Tabrakan)
+    // 1. Header Bar: Teks Title Case Bersih (Gaya Huruf Normal, Bukan Kapital Kaku)
     oled.setTextSize(1);
     oled.setCursor(0, 0);
     String headerName = className;
-    if (headerName == "" || headerName == "Ruang Kelas") headerName = "PEMBDA HUB";
+    if (headerName == "" || headerName == "Ruang Kelas") headerName = "Pembda Hub";
     if (headerName.length() > 10) headerName = headerName.substring(0, 10);
     oled.print(headerName);
 
-    oled.setCursor(98, 0);
-    oled.print(WiFi.status() == WL_CONNECTED ? "WIFI" : "!OFF");
+    oled.setCursor(84, 0);
+    if (WiFi.status() == WL_CONNECTED) {
+        oled.print("Wifi On");
+    } else {
+        oled.print("Offline");
+    }
     oled.drawFastHLine(0, 9, 128, SH110X_WHITE);
 
     // 2. HERO: Angka Utama Desibel (Besar, Tebal, Center-Stage)
@@ -217,27 +221,27 @@ void drawOledDisplay(float db) {
     oled.setCursor(startX + (sDb.length() * 18) + 4, 18);
     oled.print("dB");
 
-    // 3. Status Badge: Ramping, Proporsional & Elegan (Bukan Blok Raksasa)
+    // 3. Status Badge: Ramping, Elegan & Menggunakan Teks Normal (Title Case)
     if (currentStatus == "danger") {
-        // Mode Bahaya / Ribut: Kotak Putih Menyala Sebagai Peringatan Darurat
+        // Mode Bahaya / Ribut: Kotak Peringatan Menyala
         oled.fillRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
         oled.setTextColor(SH110X_BLACK, SH110X_WHITE);
         oled.setTextSize(1);
-        oled.setCursor(39, 40);
-        oled.print("! RIBUT !");
+        oled.setCursor(46, 40);
+        oled.print("Ribut!");
         oled.setTextColor(SH110X_WHITE);
     } else if (currentStatus == "warning") {
         // Mode Waspada / Sedang: Garis Tipis Elegan
         oled.drawRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
         oled.setTextSize(1);
-        oled.setCursor(45, 40);
-        oled.print("SEDANG");
+        oled.setCursor(46, 40);
+        oled.print("Sedang");
     } else {
-        // Mode Aman / Kondusif: Garis Tipis Elegan (Ramping, Tidak Menyilaukan)
+        // Mode Aman / Kondusif: Garis Tipis Elegan
         oled.drawRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
         oled.setTextSize(1);
-        oled.setCursor(51, 40);
-        oled.print("AMAN");
+        oled.setCursor(52, 40);
+        oled.print("Aman");
     }
 
     // 4. Bar Graph VU-Meter Dinamis (Skala 35 dB - 100 dB) di Bagian Bawah
