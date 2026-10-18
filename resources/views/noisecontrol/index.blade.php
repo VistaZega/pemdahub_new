@@ -364,41 +364,66 @@
 
                 </div>
 
-                <!-- 2. WALI KELAS & RECIPIENT CARD -->
+                <!-- 2. WALI KELAS & KEPALA SEKOLAH (RECIPIENT CARD) -->
                 @php
                     $wali = $activeDevice->getEffectiveWaliKelas();
+                    $principal = $activeDevice->getPrincipalInfo();
                 @endphp
-                <div class="glass-panel p-5 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-4 w-full sm:w-auto">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 p-0.5 shadow-lg shadow-emerald-500/20 shrink-0">
-                            <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center text-emerald-400 text-2xl">
-                                <i class="fa-solid fa-user-tie"></i>
+                <div class="glass-panel p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto flex-1">
+                        <!-- Wali Kelas -->
+                        <div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-2xl border border-slate-800">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 p-0.5 shadow-md shadow-emerald-500/20 shrink-0">
+                                <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center text-emerald-400 text-lg">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </div>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">Wali Kelas</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono-code bg-slate-800 text-slate-300">
+                                        {{ $activeDevice->classroom ? $activeDevice->classroom->class_name : 'Kelas' }}
+                                    </span>
+                                </div>
+                                <div class="text-sm font-bold text-white truncate mt-0.5" id="waliNameDisplay">
+                                    {{ $wali['name'] }}
+                                </div>
+                                <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                    <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+                                    <span id="waliPhoneDisplay" class="font-mono-code text-slate-300">{{ $wali['phone'] ?: 'No HP kosong' }}</span>
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Wali Kelas Penerima Peringatan</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-mono-code bg-slate-800 text-slate-300 border border-slate-700">
-                                    {{ $activeDevice->classroom ? $activeDevice->classroom->class_name : 'Belum Ditentukan' }}
-                                </span>
+
+                        <!-- Kepala Sekolah Unit -->
+                        <div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-2xl border border-slate-800">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-500 p-0.5 shadow-md shadow-sky-500/20 shrink-0">
+                                <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center text-sky-400 text-lg">
+                                    <i class="fa-solid fa-id-badge"></i>
+                                </div>
                             </div>
-                            <div class="text-base font-bold text-white mt-0.5" id="waliNameDisplay">
-                                {{ $wali['name'] }}
-                            </div>
-                            <div class="text-xs text-slate-400 flex items-center gap-2 mt-1">
-                                <i class="fa-brands fa-whatsapp text-emerald-400"></i>
-                                <span id="waliPhoneDisplay" class="font-mono-code text-slate-300">{{ $wali['phone'] ?: 'Nomor WhatsApp belum terdaftar' }}</span>
-                                @if(empty($wali['phone']))
-                                <span class="text-[10px] text-rose-400 italic">(Wajib dilengkapi)</span>
-                                @endif
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[10px] font-semibold text-sky-400 uppercase tracking-wider">Kepala Sekolah</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono-code bg-slate-800 text-slate-300">
+                                        {{ $principal['school_name'] ?? ($activeDevice->school?->name ?? 'Unit') }}
+                                    </span>
+                                </div>
+                                <div class="text-sm font-bold text-white truncate mt-0.5">
+                                    {{ $principal['name'] ?? 'Belum Ditentukan' }}
+                                </div>
+                                <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                    <i class="fa-brands fa-whatsapp text-sky-400"></i>
+                                    <span class="font-mono-code text-slate-300">{{ $principal['phone'] ?? 'No HP kosong' }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end shrink-0">
                         <button onclick="testWhatsAppAlert({{ $activeDevice->id }})" id="btnTestWa"
-                            class="px-4 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-2 transition active:scale-95">
-                            <i class="fa-brands fa-whatsapp text-base"></i> Test WA ke Wali Kelas
+                            class="px-4 py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-2 transition active:scale-95 shadow-lg">
+                            <i class="fa-brands fa-whatsapp text-base"></i> Test WA Darurat
                         </button>
                     </div>
                 </div>
@@ -1241,7 +1266,7 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
             .then(res => res.json())
             .then(data => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-brands fa-whatsapp text-base"></i> Test WA ke Wali Kelas';
+                btn.innerHTML = '<i class="fa-brands fa-whatsapp text-base"></i> Test WA Darurat';
 
                 if (data.status === 'success') {
                     alert('✔ ' + data.message);
@@ -1251,7 +1276,7 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
             })
             .catch(err => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-brands fa-whatsapp text-base"></i> Test WA ke Wali Kelas';
+                btn.innerHTML = '<i class="fa-brands fa-whatsapp text-base"></i> Test WA Darurat';
                 alert('Terjadi kesalahan saat memicu pengiriman pesan WhatsApp.');
             });
         }

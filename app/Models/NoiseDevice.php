@@ -124,6 +124,37 @@ class NoiseDevice extends Model
     }
 
     /**
+     * Dapatkan informasi Kepala Sekolah unit terkait
+     */
+    public function getPrincipalInfo(): ?array
+    {
+        $school = $this->school ?: ($this->classroom ? $this->classroom->school : null);
+        if (!$school) return null;
+
+        $principalTeacher = $school->principal;
+        if ($principalTeacher) {
+            $phone = $principalTeacher->phone ?? $principalTeacher->employee?->phone ?? $principalTeacher->user?->phone;
+            return [
+                'name'        => $principalTeacher->full_name,
+                'phone'       => $phone ?: '',
+                'title'       => "Kepala Sekolah {$school->name}",
+                'school_name' => $school->name,
+            ];
+        }
+
+        if (!empty($school->principal_name)) {
+            return [
+                'name'        => $school->principal_name,
+                'phone'       => $school->phone ?: '',
+                'title'       => "Kepala Sekolah {$school->name}",
+                'school_name' => $school->name,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
      * Cek apakah sistem diizinkan mengirim notifikasi WhatsApp saat kondisi bising
      */
     public function canTriggerAlert(): bool

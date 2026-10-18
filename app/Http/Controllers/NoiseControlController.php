@@ -233,76 +233,118 @@ class NoiseControlController extends Controller
     }
 
     /**
-     * Test Kirim Notifikasi WhatsApp ke Wali Kelas Langsung
+     * Test Kirim Notifikasi WhatsApp ke Wali Kelas & Kepala Sekolah Unit Langsung
      */
     public function testWhatsApp(Request $request, $id)
     {
         $device = NoiseDevice::with(['classroom.homeroomTeacher', 'school'])->findOrFail($id);
         $wali = $device->getEffectiveWaliKelas();
+        $principalInfo = $device->getPrincipalInfo();
 
-        if (empty($wali['phone'])) {
+        if (empty($wali['phone']) && empty($principalInfo['phone'])) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Nomor WhatsApp belum terpasang. Pastikan kelas telah memiliki Wali Kelas dengan nomor HP aktif, atau isi "Nomor Pengawas Pengganti" di pengaturan perangkat.',
+                'message' => 'Nomor WhatsApp belum terpasang, baik untuk Wali Kelas maupun Kepala Sekolah. Pastikan data nomor HP telah terdaftar.',
             ], 422);
         }
 
         $className = $device->classroom ? $device->classroom->class_name : 'Ruang Kelas Pembda';
         $location = $device->location_note ?: 'Dinding Depan Kelas';
 
-        $message = "🔔 *UJI COBA SISTEM MONITORING KEBISINGAN KELAS* 🔔\n\n"
-            . "Halo Bapak/Ibu *{$wali['name']}*,\n"
-            . "Ini adalah pesan verifikasi koneksi dari Perangkat IoT Pemantau Kebisingan Kelas Perguruan Pembda.\n\n"
-            . "🏫 *Unit/Kelas:* {$className}\n"
-            . "📍 *Lokasi Sensor:* {$location}\n"
-            . "📟 *ID Alat:* `{$device->device_uid}`\n"
-            . "📊 *Ambang Batas Bising:* {$device->threshold_red} dB\n"
-            . "🕒 *Waktu Uji:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
-            . "Jika tingkat kebisingan di kelas Anda melampaui batas *{$device->threshold_red} dB* dan lampu *LED Merah* menyala, sistem akan otomatis mengirimkan peringatan ke nomor WhatsApp ini agar kondisi belajar mengajar segera dapat dikendalikan.\n\n"
-            . "Terima kasih atas kerjasamanya.\n"
-            . "_SIM Terpadu PembdaHUB - Otomasi IoT Sekolah_";
+        $sentList = [];
+        $failedList = [];
 
-        try {
-            /** @var WhatsAppService $waService */
-            $waService = app(WhatsAppService::class);
-            $res = $waService->sendMessage($wali['phone'], $message);
+        // A. Kirim ke Wali Kelas
+        if (!empty($wali['phone'])) {
+            $message = "🔔 *UJI COBA SISTEM MONITORING KEBISINGAN KELAS* 🔔\n\n"
+                . "Halo Bapak/Ibu Wali Kelas *{$wali['name']}*,\n"
+                . "Ini adalah pesan verifikasi koneksi dari Perangkat IoT Pemantau Kebisingan Kelas Perguruan Pembda.\n\n"
+                . "🏫 *Unit/Kelas:* {$className}\n"
+                . "📍 *Lokasi Sensor:* {$location}\n"
+                . "📟 *ID Alat:* `{$device->device_uid}`\n"
+                . "📊 *Batas Bahaya (Merah):* {$device->threshold_red} dB\n"
+                . "🕒 *Waktu Uji:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
+                . "Jika kebisingan kelas melampaui *{$device->threshold_red} dB* (Lampu Merah & Buzzer Aktif), peringatan otomatis akan dikirim ke WhatsApp Anda agar situasi kelas dapat segera ditertibkan.\n\n"
+                . "_SIM Terpadu PembdaHUB - Otomasi IoT Sekolah_";
 
-            $isSuccess = !empty($res['success']);
-
-            // Catat log pengujian
-            NoiseLog::create([
-                'noise_device_id'    => $device->id,
-                'classroom_id'       => $device->classroom_id,
-                'db_level'           => $device->last_db ?: 65.0,
-                'peak_db'            => $device->peak_db ?: 65.0,
-                'status'             => 'safe',
-                'is_alert_triggered' => true,
-                'alert_recipient'    => "{$wali['name']} ({$wali['phone']})",
-                'alert_message'      => $message,
-                'alert_status'       => $isSuccess ? 'test_sent' : 'test_failed',
-                'created_at'         => Carbon::now(),
-            ]);
-
-            if ($isSuccess) {
-                return response()->json([
-                    'status'    => 'success',
-                    'message'   => "Pesan uji coba berhasil dikirim ke WhatsApp {$wali['name']} ({$wali['phone']})!",
-                    'wa_result' => $res,
-                ]);
+            try {
+                /** @var WhatsAppService $waService */
+                $waService = app(WhatsAppService::class);
+                $resWali = $waService->sendMessage($wali['phone'], $message);
+                if (!empty($resWali['success'])) {
+                    $sentList[] = "Wali Kelas ({$wali['name']})";
+                } else {
+                    $failedList[] = "Wali Kelas ({$wali['name']}): " . ($resWali['message'] ?? 'Gagal');
+                }
+            } catch (\Throwable $e) {
+                $failedList[] = "Wali Kelas ({$wali['name']}): " . $e->getMessage();
             }
-
-            return response()->json([
-                'status'    => 'warning',
-                'message'   => "Pesan diproses WhatsApp Gateway, respons: " . ($res['message'] ?? 'Periksa nomor tujuan'),
-                'wa_result' => $res,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Test WhatsApp NoiseControl failed: ' . $e->getMessage());
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Gagal mengirim pesan WhatsApp: ' . $e->getMessage(),
-            ], 500);
         }
+
+        // B. Kirim ke Kepala Sekolah Unit Terkait
+        if (!empty($principalInfo['phone']) && $principalInfo['phone'] !== ($wali['phone'] ?? null)) {
+            $principalMessage = "🔔 *UJI COBA SISTEM MONITORING KEBISINGAN KELAS* 🔔\n\n"
+                . "Halo Bapak/Ibu *{$principalInfo['name']}* ({$principalInfo['title']}),\n"
+                . "Ini adalah pesan verifikasi koneksi pengawasan pimpinan dari Perangkat IoT Pemantau Kebisingan Kelas Perguruan Pembda.\n\n"
+                . "🏫 *Unit/Kelas:* {$className}\n"
+                . "📍 *Lokasi Sensor:* {$location}\n"
+                . "📟 *ID Alat:* `{$device->device_uid}`\n"
+                . "📊 *Batas Bahaya (Merah):* {$device->threshold_red} dB\n"
+                . "👤 *Wali Kelas Terkait:* {$wali['name']}\n"
+                . "🕒 *Waktu Uji:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
+                . "Jika terjadi kebisingan berlebih (Lampu Merah & Buzzer Bunyi), laporan darurat otomatis diteruskan ke Kepala Sekolah dan Wali Kelas secara bersamaan.\n\n"
+                . "_SIM Terpadu PembdaHUB - Pengawasan KBM_";
+
+            try {
+                /** @var WhatsAppService $waService */
+                $waService = app(WhatsAppService::class);
+                $resKepsek = $waService->sendMessage($principalInfo['phone'], $principalMessage);
+                if (!empty($resKepsek['success'])) {
+                    $sentList[] = "Kepala Sekolah ({$principalInfo['name']})";
+                } else {
+                    $failedList[] = "Kepala Sekolah ({$principalInfo['name']}): " . ($resKepsek['message'] ?? 'Gagal');
+                }
+            } catch (\Throwable $e) {
+                $failedList[] = "Kepala Sekolah ({$principalInfo['name']}): " . $e->getMessage();
+            }
+        }
+
+        // Catat log pengujian
+        $allRecipients = [];
+        if (!empty($wali['phone'])) $allRecipients[] = "Wali: {$wali['name']} ({$wali['phone']})";
+        if (!empty($principalInfo['phone']) && $principalInfo['phone'] !== ($wali['phone'] ?? null)) {
+            $allRecipients[] = "Kepsek: {$principalInfo['name']} ({$principalInfo['phone']})";
+        }
+
+        $isSuccess = count($sentList) > 0;
+        NoiseLog::create([
+            'noise_device_id'    => $device->id,
+            'classroom_id'       => $device->classroom_id,
+            'db_level'           => $device->last_db ?: 65.0,
+            'peak_db'            => $device->peak_db ?: 65.0,
+            'status'             => 'safe',
+            'is_alert_triggered' => true,
+            'alert_recipient'    => implode(' | ', $allRecipients),
+            'alert_message'      => "Uji coba pengiriman notifikasi darurat WhatsApp",
+            'alert_status'       => $isSuccess ? 'test_sent' : 'test_failed',
+            'created_at'         => Carbon::now(),
+        ]);
+
+        if ($isSuccess) {
+            $msg = "Pesan uji coba berhasil dikirim ke: " . implode(' & ', $sentList) . "!";
+            if (count($failedList) > 0) {
+                $msg .= " (Catatan kendala: " . implode('; ', $failedList) . ")";
+            }
+            return response()->json([
+                'status'  => 'success',
+                'message' => $msg,
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'error',
+            'message' => "Gagal mengirim pesan uji coba WhatsApp: " . implode('; ', $failedList),
+        ], 500);
     }
 
     /**
@@ -360,22 +402,33 @@ class NoiseControlController extends Controller
         $alertStatus = null;
         $alertMessage = null;
         $waliInfo = $device->getEffectiveWaliKelas();
-        $recipientStr = !empty($waliInfo['phone']) ? "{$waliInfo['name']} ({$waliInfo['phone']})" : 'Belum Ada No HP';
+        $principalInfo = $device->getPrincipalInfo();
 
-        // 4. Logika Peringatan Bising (Status Danger = LED Merah)
+        $recipientsList = [];
+        if (!empty($waliInfo['phone'])) {
+            $recipientsList[] = "Wali: {$waliInfo['name']} ({$waliInfo['phone']})";
+        }
+        if (!empty($principalInfo['phone']) && $principalInfo['phone'] !== ($waliInfo['phone'] ?? null)) {
+            $recipientsList[] = "Kepsek: {$principalInfo['name']} ({$principalInfo['phone']})";
+        }
+        $recipientStr = !empty($recipientsList) ? implode(' | ', $recipientsList) : 'Belum Ada No HP';
+
+        // 4. Logika Peringatan Bising (HANYA Status Danger / LED Merah >= threshold_red)
         if ($status === 'danger') {
             if ($device->canTriggerAlert()) {
-                if (!empty($waliInfo['phone'])) {
-                    $className = $device->classroom ? $device->classroom->class_name : 'Ruang Kelas';
-                    $location = $device->location_note ?: 'Dinding Depan Kelas';
+                $hasSentAny = false;
+                $className = $device->classroom ? $device->classroom->class_name : 'Ruang Kelas';
+                $location = $device->location_note ?: 'Dinding Depan Kelas';
 
+                // A. Kirim ke Wali Kelas
+                if (!empty($waliInfo['phone'])) {
                     $alertMessage = "🚨 *PERINGATAN KEBISINGAN KELAS SANGAT TINGGI!* 🚨\n\n"
                         . "Yth. Bapak/Ibu Wali Kelas *{$waliInfo['name']}*,\n"
                         . "Sistem sensor IoT mendeteksi bahwa tingkat kebisingan di ruang kelas Anda telah melampaui batas aman dan berpotensi mengganggu pembelajaran.\n\n"
                         . "🏫 *Unit/Kelas:* {$className}\n"
                         . "📍 *Lokasi:* {$location}\n"
                         . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
-                        . "🔴 *Indikator:* *LAMPU LED MERAH MENYALA*\n"
+                        . "🔴 *Indikator:* *LAMPU LED MERAH & BUZZER ALARM BERBUNYI*\n"
                         . "🕒 *Waktu Terdeteksi:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
                         . "Mohon kesediaan Bapak/Ibu untuk memeriksa dan membantu mengendalikan situasi di kelas agar suasana belajar kembali tenang dan tertib.\n\n"
                         . "Terima kasih atas perhatiannya.\n"
@@ -385,18 +438,49 @@ class NoiseControlController extends Controller
                         /** @var WhatsAppService $waService */
                         $waService = app(WhatsAppService::class);
                         $res = $waService->sendMessage($waliInfo['phone'], $alertMessage);
-                        
-                        $isSuccess = !empty($res['success']);
-                        $alertStatus = $isSuccess ? 'sent' : 'failed';
-                        $alertSent = $isSuccess;
-
-                        $device->last_alert_at = Carbon::now();
+                        if (!empty($res['success'])) {
+                            $hasSentAny = true;
+                        }
                     } catch (\Throwable $e) {
-                        Log::error("NoiseControl WA Alert failed for device {$device->id}: " . $e->getMessage());
-                        $alertStatus = 'failed';
+                        Log::error("NoiseControl WA Alert to Wali failed: " . $e->getMessage());
                     }
-                } else {
+                }
+
+                // B. Kirim ke Kepala Sekolah Unit Terkait (Pengawasan Pimpinan)
+                if (!empty($principalInfo['phone']) && $principalInfo['phone'] !== ($waliInfo['phone'] ?? null)) {
+                    $schoolName = $principalInfo['school_name'] ?? 'Unit Sekolah';
+                    $principalMessage = "🚨 *LAPORAN KEBISINGAN KELAS (LAMPU MERAH)* 🚨\n\n"
+                        . "Yth. Bapak/Ibu *{$principalInfo['name']}* ({$principalInfo['title']}),\n"
+                        . "Sistem sensor IoT mendeteksi terjadinya kebisingan tingkat tinggi yang melampaui batas toleransi pada unit sekolah Anda:\n\n"
+                        . "🏫 *Unit/Kelas:* {$className}\n"
+                        . "📍 *Lokasi Sensor:* {$location}\n"
+                        . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
+                        . "🔴 *Indikator:* *LAMPU LED MERAH & BUZZER ALARM BERBUNYI*\n"
+                        . "👤 *Wali Kelas Terkait:* {$waliInfo['name']}\n"
+                        . "🕒 *Waktu Terdeteksi:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
+                        . "Peringatan darurat ini juga telah otomatis diteruskan ke WhatsApp Wali Kelas terkait untuk segera mengondisikan ketertiban belajar mengajar.\n\n"
+                        . "_Sistem Pengawasan KBM Otomatis - SIM PembdaHUB_";
+
+                    try {
+                        /** @var WhatsAppService $waService */
+                        $waService = app(WhatsAppService::class);
+                        $resKepsek = $waService->sendMessage($principalInfo['phone'], $principalMessage);
+                        if (!empty($resKepsek['success'])) {
+                            $hasSentAny = true;
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("NoiseControl WA Alert to Principal failed: " . $e->getMessage());
+                    }
+                }
+
+                if ($hasSentAny) {
+                    $alertStatus = 'sent';
+                    $alertSent = true;
+                    $device->last_alert_at = Carbon::now();
+                } else if (empty($waliInfo['phone']) && empty($principalInfo['phone'])) {
                     $alertStatus = 'no_phone';
+                } else {
+                    $alertStatus = 'failed';
                 }
             } else {
                 $alertStatus = 'cooldown';

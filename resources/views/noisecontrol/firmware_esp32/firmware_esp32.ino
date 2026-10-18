@@ -188,28 +188,46 @@ void updateLedStatus(float db) {
     }
 }
 
-// ================= KONTROL ALARM BUZZER INTERMITEN =================
+// ================= KONTROL ALARM BUZZER (CERDAS & ANTI-FEEDBACK) =================
+// Pola: 3 kali bip cepat (pip..pip..pip), lalu hening 3,1 detik untuk evaluasi suara asli kelas.
+// Menggunakan digitalWrite murni (bebas crash LEDC, tanpa tone(), ramah active buzzer).
 void updateBuzzer(bool isDanger) {
-    static unsigned long lastBeep = 0;
-    static bool beepState = false;
-    if (isDanger) {
-        unsigned long now = millis();
-        // Pola bip-bip intermiten: 120ms ON, 120ms OFF (Nada 2.4 kHz untuk Buzzer Aktif & Pasif)
-        if (now - lastBeep >= 120) {
-            lastBeep = now;
-            beepState = !beepState;
-            if (beepState) {
-                tone(PIN_BUZZER, 2400);
-            } else {
-                noTone(PIN_BUZZER);
-            }
+    static unsigned long cycleStart = 0;
+    static bool wasDanger = false;
+
+    if (!isDanger) {
+        if (wasDanger) {
+            digitalWrite(PIN_BUZZER, LOW);
+            wasDanger = false;
         }
-    } else {
-        noTone(PIN_BUZZER);
+        return;
+    }
+
+    unsigned long now = millis();
+    if (!wasDanger) {
+        cycleStart = now;
+        wasDanger = true;
+    }
+
+    // Siklus total = 3600 ms (500 ms pola bunyi + 3100 ms jeda evaluasi tanpa distorsi)
+    unsigned long elapsed = (now - cycleStart) % 3600;
+
+    if (elapsed < 100) {
+        digitalWrite(PIN_BUZZER, HIGH); // Bip 1
+    } else if (elapsed < 200) {
         digitalWrite(PIN_BUZZER, LOW);
-        beepState = false;
+    } else if (elapsed < 300) {
+        digitalWrite(PIN_BUZZER, HIGH); // Bip 2
+    } else if (elapsed < 400) {
+        digitalWrite(PIN_BUZZER, LOW);
+    } else if (elapsed < 500) {
+        digitalWrite(PIN_BUZZER, HIGH); // Bip 3
+    } else {
+        // Hening 3,1 detik: Memastikan mikrofon mengukur desibel asli ruang kelas tanpa terpapar suara buzzer sendiri
+        digitalWrite(PIN_BUZZER, LOW);
     }
 }
+
 
 // ================= GAMBAR TAMPILAN OLED 1.3 INCH (HERO dB & TEKS SANGAT JELAS) =================
 void drawOledDisplay(float db) {
@@ -346,20 +364,37 @@ void setup() {
     pinMode(PIN_LED_MERAH, OUTPUT);
     pinMode(PIN_BUZZER, OUTPUT);
 
-    // Self-Test: Ketiga LED dan Buzzer berbunyi sejenak saat startup
+    // Pastikan semua output mati diawal
+    digitalWrite(PIN_LED_HIJAU, LOW);
+    digitalWrite(PIN_LED_KUNING, LOW);
+    digitalWrite(PIN_LED_MERAH, LOW);
+    digitalWrite(PIN_BUZZER, LOW);
+
+    // Self-Test Berurutan yang Aman (Menghindari lonjakan arus / Brownout ESP32):
+    // 1. LED Hijau berkedip sejenak
     digitalWrite(PIN_LED_HIJAU, HIGH);
-    digitalWrite(PIN_LED_KUNING, HIGH);
-    digitalWrite(PIN_LED_MERAH, HIGH);
-    digitalWrite(PIN_BUZZER, HIGH);
-    tone(PIN_BUZZER, 2400);
     delay(100);
-    noTone(PIN_BUZZER);
+    digitalWrite(PIN_LED_HIJAU, LOW);
+
+    // 2. LED Kuning berkedip sejenak
+    digitalWrite(PIN_LED_KUNING, HIGH);
+    delay(100);
+    digitalWrite(PIN_LED_KUNING, LOW);
+
+    // 3. LED Merah berkedip sejenak
+    digitalWrite(PIN_LED_MERAH, HIGH);
+    delay(100);
+    digitalWrite(PIN_LED_MERAH, LOW);
+
+    // 4. Buzzer bip singkat satu kali (konfirmasi siap)
+    digitalWrite(PIN_BUZZER, HIGH);
+    delay(80);
     digitalWrite(PIN_BUZZER, LOW);
 
     // Inisialisasi I2C OLED
     Wire.begin(21, 22);
     Wire.setClock(400000);
-    delay(200);
+    delay(100);
 
     if (!oled.begin(0x3C, true)) {
         Serial.println("Inisialisasi OLED gagal!");
@@ -375,10 +410,7 @@ void setup() {
     oled.println("Menginisialisasi...");
     oled.display();
 
-    delay(700);
-    digitalWrite(PIN_LED_HIJAU, LOW);
-    digitalWrite(PIN_LED_KUNING, LOW);
-    digitalWrite(PIN_LED_MERAH, LOW);
+    delay(400);
 
     // Inisialisasi Mikrofon INMP441 (SCK=26, WS=25, SD=32)
     setupI2S();
@@ -404,6 +436,9 @@ void setup() {
     } else {
         Serial.println("\n[WiFi] Belum tersambung (akan mencoba otomatis di background).");
     }
+
+    // Indikator operasional siap: Nyalakan LED Hijau tanda sistem mulai aktif memantau
+    digitalWrite(PIN_LED_HIJAU, HIGH);
 }
 
 // ================= LOOP UTAMA =================
