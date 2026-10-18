@@ -42,6 +42,8 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 // ================= PENGATURAN WIFI & SERVER =================
 const char* WIFI_SSID     = "VST:BlackHole";      // Ganti dengan SSID WiFi/Hotspot Anda
@@ -76,6 +78,15 @@ int alertDelaySeconds  = 60;   // Durasi bising konstan >= 60 detik baru kirim W
 unsigned long dangerStartTime = 0; // Waktu awal suara bising konstan >= thresholdRed
 int currentDangerSeconds = 0;       // Durasi bising konstan aktif dalam detik
 
+// Variabel Antar-Core (FreeRTOS Dual Core Async Telemetry)
+// Core 1 (Sensor & OLED Display) bebas 100% dari lag jaringan!
+// Core 0 (Background) mengurus transmisi HTTPS WiFi tanpa pernah membekukan layar.
+volatile float sharedDb               = 45.0f;
+volatile float sharedPeak             = 45.0f;
+volatile int   sharedDangerSec         = 0;
+volatile bool  requestImmediateTelemetry = false;
+TaskHandle_t   telemetryTaskHandle     = NULL;
+
 // Buffer Audio I2S
 #define SAMPLES_COUNT 512
 int32_t samples[SAMPLES_COUNT];
@@ -85,8 +96,6 @@ float currentDb = 45.0;
 float peakDb    = 45.0;
 String currentStatus = "safe";
 String className     = "Ruang Kelas";
-unsigned long lastTelemetryTime = 0;
-const unsigned long TELEMETRY_INTERVAL = 3000;
 bool isAlertSent = false;
 
 // ================= SETUP I2S INMP441 =================
@@ -131,7 +140,8 @@ void setupI2S() {
 // ================= BACA SUARA & HITUNG DESIBEL (RESPONSIF) =================
 float readNoiseLevel() {
     size_t bytesRead = 0;
-    esp_err_t hasil = i2s_read(I2S_PORT, samples, sizeof(samples), &bytesRead, pdMS_TO_TICKS(150));
+    // 512 sampel @ 16kHz = 32ms audio, timeout 40ms menjamin pembacaan lancar tanpa hang
+    esp_err_t hasil = i2s_read(I2S_PORT, samples, sizeof(samples), &bytesRead, pdMS_TO_TICKS(40));
     int jumlah = bytesRead / sizeof(int32_t);
 
     if (hasil != ESP_OK || jumlah == 0) {
@@ -343,7 +353,8 @@ void drawOledDisplay(float db) {
 }
 
 // ================= KIRIM TELEMETRI KE CLOUD PEMBDAHUB =================
-void sendTelemetry(float db, float peak) {
+// Dijalankan di Core 0 background task sehingga Core 1 (Sensor & Layar) bebas dari lag jaringan!
+void sendTelemetry(float db, float peak, int dangerDuration) {
     if (WiFi.status() != WL_CONNECTED) {
         return; // Lewati jika offline
     }
@@ -363,20 +374,20 @@ void sendTelemetry(float db, float peak) {
 
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Device-Token", DEVICE_TOKEN);
-    http.setTimeout(5000);
+    http.setTimeout(4000);
 
     StaticJsonDocument<256> doc;
     doc["token"]           = DEVICE_TOKEN;
     doc["db"]              = db;
     doc["peak_db"]         = peak;
-    doc["danger_duration"] = currentDangerSeconds;
+    doc["danger_duration"] = dangerDuration;
     doc["firmware"]        = FIRMWARE_VER;
 
     String jsonString;
     serializeJson(doc, jsonString);
 
     int httpCode = http.POST(jsonString);
-    Serial.printf("[Telemetri] Kirim %0.1f dB (Bising: %ds) | Response: %d\n", db, currentDangerSeconds, httpCode);
+    Serial.printf("[Telemetri Core-0] Kirim %0.1f dB (Bising: %ds) | Response: %d\n", db, dangerDuration, httpCode);
 
     if (httpCode == 200) {
         String response = http.getString();
@@ -393,6 +404,46 @@ void sendTelemetry(float db, float peak) {
         }
     }
     http.end();
+}
+
+// ================= BACKGROUND TASK DI CORE 0 (ASINKRON / MULTITHREADING) =================
+// Menjalankan koneksi WiFi & transmisi HTTPS di Core 0 tanpa pernah membekukan loop utama di Core 1
+void telemetryTask(void *pvParameters) {
+    unsigned long lastSendTime = 0;
+    const unsigned long TELEMETRY_INTERVAL_MS = 4000; // Kirim rutin tiap 4 detik
+
+    for (;;) {
+        unsigned long now = millis();
+        bool shouldSend = false;
+
+        if (WiFi.status() == WL_CONNECTED) {
+            if (requestImmediateTelemetry || (now - lastSendTime >= TELEMETRY_INTERVAL_MS)) {
+                shouldSend = true;
+                requestImmediateTelemetry = false;
+            }
+        }
+
+        if (shouldSend) {
+            lastSendTime = now;
+            float sDb = sharedDb;
+            float sPeak = sharedPeak;
+            int sDur = sharedDangerSec;
+            sendTelemetry(sDb, sPeak, sDur);
+        }
+
+        // Coba koneksi ulang WiFi jika terputus (di Core 0 background)
+        if (WiFi.status() != WL_CONNECTED) {
+            static unsigned long lastReconnect = 0;
+            if (now - lastReconnect >= 10000) {
+                lastReconnect = now;
+                Serial.println("[WiFi Background] Reconnecting...");
+                WiFi.reconnect();
+            }
+        }
+
+        // Delay 100ms di Core 0 agar FreeRTOS Task Watchdog Timer (TWDT) rileks
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }
 
 // ================= SETUP UTAMA =================
@@ -475,65 +526,64 @@ void setup() {
         Serial.print("[WiFi] IP ESP32: ");
         Serial.println(WiFi.localIP());
     } else {
-        Serial.println("\n[WiFi] Belum tersambung (akan mencoba otomatis di background).");
+        Serial.println("\n[WiFi] Belum tersambung (akan mencoba otomatis di background Core 0).");
     }
+
+    // Luncurkan Background Telemetry Task di Core 0 (Multithreading FreeRTOS)
+    // Menjamin Core 1 bebas 100% dari lag jaringan sehingga layar OLED dan sensor sangat responsif!
+    xTaskCreatePinnedToCore(
+        telemetryTask,          /* Fungsi task */
+        "TelemetryTask",        /* Nama task */
+        8192,                   /* Ukuran stack (8KB aman untuk TLS/SSL) */
+        NULL,                   /* Parameter */
+        1,                      /* Prioritas task */
+        &telemetryTaskHandle,   /* Handle task */
+        0                       /* Pin ke Core 0 */
+    );
 
     // Indikator operasional siap: Nyalakan LED Hijau tanda sistem mulai aktif memantau
     digitalWrite(PIN_LED_HIJAU, HIGH);
 }
 
-// ================= LOOP UTAMA =================
+// ================= LOOP UTAMA (CORE 1: REAL-TIME SENSOR & OLED) =================
+// 100% Non-Blocking: Menjamin desibel dan OLED bergerak secepat kilat (25 FPS) tanpa ada jeda/tertahan!
 void loop() {
-    // 1. Baca desibel suara dari mikrofon INMP441
+    // 1. Baca desibel suara dari mikrofon INMP441 (Responsif & Cepat)
     float db = readNoiseLevel();
 
     // 2. Filter perataan suara (Responsif terhadap lonjakan suara)
-    float faktor = (db > currentDb) ? 0.60f : 0.25f;
+    float faktor = (db > currentDb) ? 0.65f : 0.25f;
     currentDb += faktor * (db - currentDb);
 
     if (db > peakDb) {
         peakDb = db;
     } else {
-        peakDb = peakDb * 0.98;
+        peakDb = peakDb * 0.98f;
     }
 
     // 3. Kendalikan Nyala LED Tiga Warna & Buzzer Sesuai Batas Suara
     updateLedStatus(currentDb);
     updateBuzzer(currentStatus == "danger");
 
-    // 4. Render Layar OLED secara halus
+    // 4. Update data bersama ke Background Telemetry Task (Core 0)
+    sharedDb = currentDb;
+    sharedPeak = peakDb;
+    sharedDangerSec = currentDangerSeconds;
+
+    // Jika bising konstan baru saja mencapai batas (>= 60 detik), picu kirim instan di Core 0!
+    static bool prevSustained = false;
+    bool isSustained = (currentStatus == "danger" && currentDangerSeconds >= alertDelaySeconds);
+    if (isSustained && !prevSustained) {
+        requestImmediateTelemetry = true;
+    }
+    prevSustained = isSustained;
+
+    // 5. Render Layar OLED secara sangat halus (~25 FPS)
     static unsigned long lastDisp = 0;
-    if (millis() - lastDisp >= 60) {
+    if (millis() - lastDisp >= 40) {
         lastDisp = millis();
         drawOledDisplay(currentDb);
     }
 
-    // 5. Coba sambungkan ulang WiFi jika sempat terputus
-    if (WiFi.status() != WL_CONNECTED) {
-        static unsigned long lastReconnect = 0;
-        if (millis() - lastReconnect >= 10000) {
-            lastReconnect = millis();
-            Serial.println("[WiFi] Reconnecting...");
-            WiFi.reconnect();
-        }
-    }
-
-    // 6. Kirim data telemetri ke server PembdaHUB jika terhubung WiFi
-    // Kirim telemetri:
-    // a. Setiap 3 detik (rutin)
-    // b. Saat baru memasuki status bising (danger)
-    // c. Seketika saat durasi bising konstan baru saja mencapai batas (>= alertDelaySeconds / 60 detik) agar pesan WA terkirim instan
-    static bool prevDanger = false;
-    static bool prevSustained = false;
-    bool isDanger = (currentStatus == "danger");
-    bool isSustained = (isDanger && currentDangerSeconds >= alertDelaySeconds);
-
-    if (millis() - lastTelemetryTime >= TELEMETRY_INTERVAL || (isDanger && !prevDanger) || (isSustained && !prevSustained)) {
-        lastTelemetryTime = millis();
-        sendTelemetry(currentDb, peakDb);
-    }
-    prevDanger = isDanger;
-    prevSustained = isSustained;
-
-    delay(10);
+    delay(2);
 }
