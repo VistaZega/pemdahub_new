@@ -194,13 +194,18 @@ void updateBuzzer(bool isDanger) {
     static bool beepState = false;
     if (isDanger) {
         unsigned long now = millis();
-        // Pola bip-bip intermiten: 120ms ON, 120ms OFF (alarm berulang tanpa delay)
+        // Pola bip-bip intermiten: 120ms ON, 120ms OFF (Nada 2.4 kHz untuk Buzzer Aktif & Pasif)
         if (now - lastBeep >= 120) {
             lastBeep = now;
             beepState = !beepState;
-            digitalWrite(PIN_BUZZER, beepState ? HIGH : LOW);
+            if (beepState) {
+                tone(PIN_BUZZER, 2400);
+            } else {
+                noTone(PIN_BUZZER);
+            }
         }
     } else {
+        noTone(PIN_BUZZER);
         digitalWrite(PIN_BUZZER, LOW);
         beepState = false;
     }
@@ -346,7 +351,9 @@ void setup() {
     digitalWrite(PIN_LED_KUNING, HIGH);
     digitalWrite(PIN_LED_MERAH, HIGH);
     digitalWrite(PIN_BUZZER, HIGH);
-    delay(80);
+    tone(PIN_BUZZER, 2400);
+    delay(100);
+    noTone(PIN_BUZZER);
     digitalWrite(PIN_BUZZER, LOW);
 
     // Inisialisasi I2C OLED
