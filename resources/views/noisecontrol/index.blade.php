@@ -566,6 +566,8 @@
                             <button onclick="setSimLevel(86)" class="px-2 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[11px] font-semibold text-center transition">
                                 🚨 Ribut WA<br><span class="font-mono-code text-[10px]">86 dB</span>
                             </button>
+                        </div>
+
                         <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
                             <div>
                                 <span class="text-xs text-slate-200 font-semibold block">Simulasikan Bising Konstan &ge; 1 Menit</span>
@@ -1235,54 +1237,52 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
             }
 
             const dbVal = parseFloat(document.getElementById('simDbSlider').value);
+            const isSustained = document.getElementById('simSustainedNoise')?.checked ?? true;
             const btn = document.getElementById('btnSendSim');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim Sinyal...';
 
-                const isSustained = document.getElementById('simSustainedNoise')?.checked ?? true;
-                const dbVal = parseFloat(document.getElementById('simDbSlider').value);
-
-                fetch(`{{ route('noisecontrol.telemetry') }}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        token: activeDeviceToken,
-                        db: dbVal,
-                        peak_db: dbVal + 3.0,
-                        danger_duration: isSustained ? 65 : 2,
-                        force_alert: isSustained,
-                        firmware: 'SIMULATOR-WEB'
-                    })
+            fetch(`{{ route('noisecontrol.telemetry') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    token: activeDeviceToken,
+                    db: dbVal,
+                    peak_db: dbVal + 3.0,
+                    danger_duration: isSustained ? 65 : 2,
+                    force_alert: isSustained,
+                    firmware: 'SIMULATOR-WEB'
                 })
-                .then(res => res.json())
-                .then(data => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
 
-                    if (data.status === 'success') {
-                        // Update tampilan seketika
-                        updateLiveDashboard(data.current_db, data.current_db + 3.0, data.status_level, data.threshold_green, data.threshold_yellow, data.threshold_red, true);
+                if (data.status === 'success') {
+                    // Update tampilan seketika
+                    updateLiveDashboard(data.current_db, data.current_db + 3.0, data.status_level, data.threshold_green, data.threshold_yellow, data.threshold_red, true);
 
-                        if (data.alert_triggered && data.alert_sent) {
-                            alert(`🚨 NOTIFIKASI SUKSES: Suara ${data.current_db} dB berlangsung KONSTAN lebih dari 1 menit! Pesan WhatsApp otomatis telah dikirim ke Wali Kelas (${data.wali_name}) dan Kepala Sekolah Unit.`);
-                        } else if (data.alert_status === 'pending_duration') {
-                            alert(`⏱️ KONDISI MERAH SESAAT: Suara ${data.current_db} dB melampaui batas bahaya, namun pesan WhatsApp TIDAK dikirim karena durasi bising belum mencapai batas konstan (${data.danger_duration}s / ${data.alert_delay || 60}s). Ini membuktikan filter anti-false-alarm bekerja sempurna!`);
-                        } else if (data.alert_triggered && data.alert_status === 'cooldown') {
-                            alert(`⚠️ AMBANG BATAS MERAH TERPICU: Suara ${data.current_db} dB, namun pesan WA dilewati karena masih masa Cooldown (${data.cooldown_remaining} menit lagi).`);
-                        }
-                        pollLiveData();
-                    } else {
-                        alert('Gagal mengirim simulasi: ' + (data.message || 'Error'));
+                    if (data.alert_triggered && data.alert_sent) {
+                        alert(`🚨 NOTIFIKASI SUKSES: Suara ${data.current_db} dB berlangsung KONSTAN lebih dari 1 menit! Pesan WhatsApp otomatis telah dikirim ke Wali Kelas (${data.wali_name}) dan Kepala Sekolah Unit.`);
+                    } else if (data.alert_status === 'pending_duration') {
+                        alert(`⏱️ KONDISI MERAH SESAAT: Suara ${data.current_db} dB melampaui batas bahaya, namun pesan WhatsApp TIDAK dikirim karena durasi bising belum mencapai batas konstan (${data.danger_duration}s / ${data.alert_delay || 60}s). Ini membuktikan filter anti-false-alarm bekerja sempurna!`);
+                    } else if (data.alert_triggered && data.alert_status === 'cooldown') {
+                        alert(`⚠️ AMBANG BATAS MERAH TERPICU: Suara ${data.current_db} dB, namun pesan WA dilewati karena masih masa Cooldown (${data.cooldown_remaining} menit lagi).`);
                     }
-                })
-                .catch(err => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
-                    alert('Kesalahan koneksi simulasi.');
-                });
+                    pollLiveData();
+                } else {
+                    alert('Gagal mengirim simulasi: ' + (data.message || 'Error'));
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
+                alert('Kesalahan koneksi simulasi.');
+            });
         }
 
         // Test WhatsApp Direct Button
