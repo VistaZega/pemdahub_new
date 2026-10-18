@@ -738,7 +738,7 @@
                         <li><span class="text-slate-400">GND :</span> GND ESP32</li>
                         <li><span class="text-slate-400">SD  :</span> <span class="text-emerald-400 font-bold">GPIO 32</span> (Serial Data)</li>
                         <li><span class="text-slate-400">WS  :</span> <span class="text-emerald-400 font-bold">GPIO 25</span> (Word Select)</li>
-                        <li><span class="text-slate-400">SCK :</span> <span class="text-emerald-400 font-bold">GPIO 33</span> (Clock BCLK)</li>
+                        <li><span class="text-slate-400">SCK :</span> <span class="text-emerald-400 font-bold">GPIO 26</span> (Clock BCLK)</li>
                         <li><span class="text-slate-400">L/R :</span> GND (Left Channel)</li>
                     </ul>
                 </div>
@@ -783,10 +783,10 @@
 const char* SERVER_URL   = "https://perguruanpembda.com/noicecontrol/api/telemetry";
 const char* DEVICE_TOKEN = "{{ $activeDevice->device_token ?? 'nd_TOKEN_ALAT_ANDA' }}";
 
-// Pin Hardware:
-#define I2S_WS_PIN    25
-#define I2S_SCK_PIN   33
-#define I2S_SD_PIN    32
+// Pin Hardware (Tervalidasi Sesuai Rangkaian):
+#define MIC_SCK       26
+#define MIC_WS        25
+#define MIC_SD        32
 #define PIN_LED_HIJAU   18
 #define PIN_LED_KUNING  19
 #define PIN_LED_MERAH   23
@@ -1351,95 +1351,128 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
  * PEMBDA NOISE CONTROL & CLASSROOM MONITORING SYSTEM
  * Microcontroller : ESP32 (ESP-WROOM-32 / NodeMCU-32S)
  * Sensor Audio    : INMP441 (Digital I2S MEMS Microphone)
- * Display         : OLED 1.3" I2C (SH1106 / SSD1306, Address 0x3C)
- * Indikator LED   : Hijau (Aman), Kuning (Sedikit Ribut), Merah (Terlalu Ribut)
+ * Display         : OLED 1.3" I2C (SH1106, Address 0x3C via Adafruit_SH110X)
+ * Indikator LED   : Hijau (18), Kuning (19), Merah (23)
  * Cloud Server    : https://perguruanpembda.com/noicecontrol
+ * =========================================================================================
+ * PIN HARDWARE:
+ * 1. INMP441 Microphone (I2S):
+ *    - SCK  -> GPIO 26  (Serial Clock / BCLK)  <-- SESUAI RANGKAIAN FISIK!
+ *    - WS   -> GPIO 25  (Word Select / LRCK)
+ *    - SD   -> GPIO 32  (Serial Data Out)
+ *    - VDD  -> 3.3V
+ *    - GND  -> GND
+ *    - L/R  -> GND (Left Channel)
+ * 
+ * 2. OLED 1.3" (I2C):
+ *    - SDA  -> GPIO 21
+ *    - SCL  -> GPIO 22
+ *    - VCC  -> 3.3V
+ *    - GND  -> GND
+ * 
+ * 3. 3x Indikator LED:
+ *    - LED Hijau  (Aman)          -> GPIO 18 (Resistor 220-330 Ohm ke GND)
+ *    - LED Kuning (Sedikit Ribut) -> GPIO 19 (Resistor 220-330 Ohm ke GND)
+ *    - LED Merah  (Terlalu Ribut) -> GPIO 23 (Resistor 220-330 Ohm ke GND)
  * =========================================================================================
  */
 
 #include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH110X.h>
+#include <driver/i2s.h>
+#include <math.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-#include <driver/i2s.h>
-#include <Wire.h>
-#include <U8g2lib.h>
 
 const char* WIFI_SSID     = "NAMA_WIFI_SEKOLAH";
 const char* WIFI_PASSWORD = "PASSWORD_WIFI";
 const char* SERVER_URL    = "https://perguruanpembda.com/noicecontrol/api/telemetry";
 const char* DEVICE_TOKEN  = "${activeDeviceToken}";
-const char* FIRMWARE_VER  = "1.0.0-PRO";
+const char* FIRMWARE_VER  = "1.2.0-PRO";
 
-#define I2S_WS_PIN    25
-#define I2S_SCK_PIN   33
-#define I2S_SD_PIN    32
-#define I2S_PORT      I2S_NUM_0
+#define MIC_SCK  26
+#define MIC_WS   25
+#define MIC_SD   32
+#define I2S_PORT I2S_NUM_0
 
 #define PIN_LED_HIJAU   18
 #define PIN_LED_KUNING  19
 #define PIN_LED_MERAH   23
 
-U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, 22, 21);
+Adafruit_SH1106G oled(128, 64, &Wire, -1);
 
 float thresholdGreen   = ${threshGreen};
 float thresholdYellow  = ${threshYellow};
 float thresholdRed     = ${threshRed};
-float calibOffset      = 12.0;
 
-#define I2S_SAMPLE_RATE 16000
-#define I2S_BUFFER_SIZE 512
-int32_t i2s_raw_samples[I2S_BUFFER_SIZE];
+#define SAMPLES_COUNT 512
+int32_t samples[SAMPLES_COUNT];
 
-#define SPARKLINE_POINTS 32
-uint8_t sparkline[SPARKLINE_POINTS];
-
-unsigned long lastTelemetryTime = 0;
-const unsigned long TELEMETRY_INTERVAL = 3000;
 float currentDb = 45.0;
 float peakDb    = 45.0;
 String currentStatus = "safe";
 String className     = "Ruang Kelas";
+unsigned long lastTelemetryTime = 0;
+const unsigned long TELEMETRY_INTERVAL = 3000;
+bool isAlertSent = false;
 
 void setupI2S() {
-    i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-        .sample_rate = I2S_SAMPLE_RATE,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-        .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_STAND_I2S),
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 4,
-        .dma_buf_len = I2S_BUFFER_SIZE,
-        .use_apll = false,
-        .tx_desc_auto_clear = false,
-        .fixed_mclk = 0
-    };
-    i2s_pin_config_t pin_config = {
-        .bck_io_num = I2S_SCK_PIN,
-        .ws_io_num = I2S_WS_PIN,
-        .data_out_num = I2S_PIN_NO_CHANGE,
-        .data_in_num = I2S_SD_PIN
-    };
-    i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
-    i2s_set_pin(I2S_PORT, &pin_config);
-    i2s_set_clk(I2S_PORT, I2S_SAMPLE_RATE, I2S_BITS_PER_SAMPLE_32BIT, I2S_CHANNEL_MONO);
+    i2s_config_t config = {};
+    config.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX);
+    config.sample_rate = 16000;
+    config.bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT;
+    config.channel_format = I2S_CHANNEL_FMT_ONLY_LEFT;
+    config.communication_format = I2S_COMM_FORMAT_STAND_I2S;
+    config.intr_alloc_flags = 0;
+    config.dma_buf_count = 4;
+    config.dma_buf_len = 256;
+    config.use_apll = false;
+    config.tx_desc_auto_clear = false;
+    config.fixed_mclk = 0;
+
+    i2s_driver_install(I2S_PORT, &config, 0, nullptr);
+
+    i2s_pin_config_t pins = {};
+    pins.mck_io_num = I2S_PIN_NO_CHANGE;
+    pins.bck_io_num = MIC_SCK;
+    pins.ws_io_num = MIC_WS;
+    pins.data_out_num = I2S_PIN_NO_CHANGE;
+    pins.data_in_num = MIC_SD;
+
+    i2s_set_pin(I2S_PORT, &pins);
+
+    for (int i = 0; i < 4; i++) {
+        size_t dibaca = 0;
+        i2s_read(I2S_PORT, samples, sizeof(samples), &dibaca, pdMS_TO_TICKS(100));
+    }
 }
 
 float readNoiseLevel() {
     size_t bytesRead = 0;
-    i2s_read(I2S_PORT, (char*)i2s_raw_samples, sizeof(i2s_raw_samples), &bytesRead, portMAX_DELAY);
-    int samplesCount = bytesRead / sizeof(int32_t);
-    if (samplesCount <= 0) return 30.0;
+    esp_err_t hasil = i2s_read(I2S_PORT, samples, sizeof(samples), &bytesRead, pdMS_TO_TICKS(150));
+    int jumlah = bytesRead / sizeof(int32_t);
+    if (hasil != ESP_OK || jumlah == 0) return 35.0;
 
-    double sumSquares = 0.0;
-    for (int i = 0; i < samplesCount; i++) {
-        int32_t sample = i2s_raw_samples[i] >> 8;
-        sumSquares += ((double)sample * (double)sample);
+    double total = 0;
+    double totalKuadrat = 0;
+    for (int i = 0; i < jumlah; i++) {
+        double x = (double)(samples[i] >> 8) / 8388608.0;
+        total += x;
+        totalKuadrat += x * x;
     }
-    double rms = sqrt(sumSquares / samplesCount);
-    float db = (rms > 10.0) ? (20.0 * log10(rms) - 20.0 + calibOffset) : 30.0;
-    return constrain(db, 30.0, 120.0);
+
+    double rata = total / jumlah;
+    double variansi = totalKuadrat / jumlah - (rata * rata);
+    if (variansi < 0) variansi = 0;
+
+    double rms = sqrt(variansi);
+    float dbfs = 20.0 * log10(rms > 0.000000001 ? rms : 0.000000001);
+    float dbSPL = constrain(dbfs + 115.0f, 35.0f, 110.0f);
+    return dbSPL;
 }
 
 void updateLedStatus(float db) {
@@ -1461,60 +1494,63 @@ void updateLedStatus(float db) {
     }
 }
 
-void drawOledDisplay(float db, float peak) {
-    u8g2.clearBuffer();
-    u8g2.setFont(u8g2_font_6x10_tf);
-    u8g2.drawStr(0, 9, "PEMBDA NOISE MONITOR");
-    u8g2.drawStr(108, 9, WiFi.status() == WL_CONNECTED ? "WIFI" : "!OFF");
-    u8g2.drawHLine(0, 11, 128);
+void drawOledDisplay(float db) {
+    oled.clearDisplay();
+    oled.setTextColor(SH110X_WHITE);
 
-    u8g2.setFont(u8g2_font_logisoso16_tf);
-    char dbStr[16];
-    dtostrf(db, 4, 1, dbStr);
-    strcat(dbStr, " dB");
-    u8g2.drawStr(0, 31, dbStr);
+    oled.setTextSize(1);
+    oled.setCursor(0, 0);
+    oled.print("PEMBDA NOISE MONITOR");
 
-    u8g2.setFont(u8g2_font_6x12_tf);
-    if (currentStatus == "danger") {
-        u8g2.drawRBox(74, 16, 54, 17, 3);
-        u8g2.setDrawColor(0);
-        u8g2.drawStr(78, 29, "!RIBAT!");
-        u8g2.setDrawColor(1);
-    } else if (currentStatus == "warning") {
-        u8g2.drawRFrame(74, 16, 54, 17, 3);
-        u8g2.drawStr(77, 29, "SEDANG");
-    } else {
-        u8g2.drawRFrame(74, 16, 54, 17, 3);
-        u8g2.drawStr(82, 29, "AMAN");
-    }
+    oled.setCursor(102, 0);
+    oled.print(WiFi.status() == WL_CONNECTED ? "WIFI" : "!OFF");
+    oled.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
-    u8g2.drawFrame(0, 36, 128, 9);
+    oled.setTextSize(2);
+    oled.setCursor(0, 16);
+    oled.print(db, 1);
+    oled.setTextSize(1);
+    oled.print(" dB");
+
+    oled.drawRoundRect(68, 14, 58, 18, 3, SH110X_WHITE);
+    oled.setCursor(74, 19);
+    if (currentStatus == "danger") oled.print("!RIBAT!");
+    else if (currentStatus == "warning") oled.print("SEDANG");
+    else oled.print(" AMAN ");
+
+    oled.drawRect(0, 36, 128, 10, SH110X_WHITE);
     int barWidth = map(constrain((int)db, 35, 100), 35, 100, 0, 124);
-    if (barWidth > 0) u8g2.drawBox(2, 38, barWidth, 5);
+    if (barWidth > 0) oled.fillRect(2, 38, barWidth, 6, SH110X_WHITE);
     int redMarkerX = map((int)thresholdRed, 35, 100, 0, 124) + 2;
-    u8g2.drawVLine(redMarkerX, 35, 11);
+    oled.drawFastVLine(redMarkerX, 35, 12, SH110X_WHITE);
 
-    u8g2.drawHLine(0, 48, 128);
-    for (int i = 0; i < SPARKLINE_POINTS - 1; i++) {
-        u8g2.drawLine(i * 4, 63 - sparkline[i], (i + 1) * 4, 63 - sparkline[i + 1]);
-    }
-    u8g2.setFont(u8g2_font_4x6_tf);
-    u8g2.drawStr(86, 58, className.c_str());
-    u8g2.sendBuffer();
+    oled.setCursor(0, 52);
+    oled.print("Kelas: ");
+    oled.print(className);
+
+    oled.display();
 }
 
 void sendTelemetry(float db, float peak) {
     if (WiFi.status() != WL_CONNECTED) return;
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure();
+
     HTTPClient http;
-    http.begin(SERVER_URL);
+    if (String(SERVER_URL).startsWith("https")) {
+        if (!http.begin(secureClient, SERVER_URL)) return;
+    } else {
+        if (!http.begin(SERVER_URL)) return;
+    }
+
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Device-Token", DEVICE_TOKEN);
-    http.setTimeout(4000);
+    http.setTimeout(5000);
 
     StaticJsonDocument<256> doc;
-    doc["token"] = DEVICE_TOKEN;
-    doc["db"] = db;
-    doc["peak_db"] = peak;
+    doc["token"]    = DEVICE_TOKEN;
+    doc["db"]       = db;
+    doc["peak_db"]  = peak;
     doc["firmware"] = FIRMWARE_VER;
     String payload;
     serializeJson(doc, payload);
@@ -1534,19 +1570,34 @@ void sendTelemetry(float db, float peak) {
 
 void setup() {
     Serial.begin(115200);
+
     pinMode(PIN_LED_HIJAU, OUTPUT);
     pinMode(PIN_LED_KUNING, OUTPUT);
     pinMode(PIN_LED_MERAH, OUTPUT);
 
-    u8g2.begin();
-    u8g2.clearBuffer();
-    u8g2.setFont(u8g2_font_6x12_tf);
-    u8g2.drawStr(12, 20, "PEMBDA NOISE MONITOR");
-    u8g2.drawStr(16, 36, "Menginisialisasi...");
-    u8g2.sendBuffer();
+    digitalWrite(PIN_LED_HIJAU, HIGH);
+    digitalWrite(PIN_LED_KUNING, HIGH);
+    digitalWrite(PIN_LED_MERAH, HIGH);
+
+    Wire.begin(21, 22);
+    Wire.setClock(100000);
+    delay(200);
+
+    oled.begin(0x3C, true);
+    oled.setContrast(200);
+    oled.clearDisplay();
+    oled.setTextColor(SH110X_WHITE);
+    oled.setTextSize(1);
+    oled.setCursor(10, 20);
+    oled.println("PEMBDA NOISE MONITOR");
+    oled.display();
+
+    delay(800);
+    digitalWrite(PIN_LED_HIJAU, LOW);
+    digitalWrite(PIN_LED_KUNING, LOW);
+    digitalWrite(PIN_LED_MERAH, LOW);
 
     setupI2S();
-    for (int i = 0; i < SPARKLINE_POINTS; i++) sparkline[i] = 2;
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -1554,23 +1605,16 @@ void setup() {
 
 void loop() {
     float db = readNoiseLevel();
-    currentDb = (currentDb * 0.70) + (db * 0.30);
+    float faktor = (db > currentDb) ? 0.60f : 0.25f;
+    currentDb += faktor * (db - currentDb);
     peakDb = max(db, (float)(peakDb * 0.98));
 
     updateLedStatus(currentDb);
 
-    static unsigned long lastSpark = 0;
-    if (millis() - lastSpark >= 100) {
-        lastSpark = millis();
-        uint8_t h = map(constrain((int)currentDb, 35, 95), 35, 95, 1, 14);
-        for (int i = 0; i < SPARKLINE_POINTS - 1; i++) sparkline[i] = sparkline[i + 1];
-        sparkline[SPARKLINE_POINTS - 1] = h;
-    }
-
     static unsigned long lastDisp = 0;
-    if (millis() - lastDisp >= 80) {
+    if (millis() - lastDisp >= 60) {
         lastDisp = millis();
-        drawOledDisplay(currentDb, peakDb);
+        drawOledDisplay(currentDb);
     }
 
     static bool prevDanger = false;
@@ -1580,7 +1624,7 @@ void loop() {
         sendTelemetry(currentDb, peakDb);
     }
     prevDanger = isDanger;
-    delay(20);
+    delay(10);
 }`;
 
             navigator.clipboard.writeText(fullFirmware).then(() => {
