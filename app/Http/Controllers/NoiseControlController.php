@@ -119,6 +119,7 @@ class NoiseControlController extends Controller
             'threshold_green'       => 'required|numeric|min:30|max:120',
             'threshold_yellow'      => 'required|numeric|min:30|max:120',
             'threshold_red'         => 'required|numeric|min:30|max:120',
+            'alert_delay_seconds'   => 'nullable|integer|min:5|max:600',
             'cooldown_minutes'      => 'required|integer|min:1|max:120',
             'wa_enabled'            => 'boolean',
         ]);
@@ -141,6 +142,7 @@ class NoiseControlController extends Controller
             'threshold_green'       => $validated['threshold_green'],
             'threshold_yellow'      => $validated['threshold_yellow'],
             'threshold_red'         => $validated['threshold_red'],
+            'alert_delay_seconds'   => $validated['alert_delay_seconds'] ?? 60,
             'cooldown_minutes'      => $validated['cooldown_minutes'],
             'wa_enabled'            => $request->boolean('wa_enabled', true),
             'is_active'             => true,
@@ -170,6 +172,7 @@ class NoiseControlController extends Controller
             'threshold_yellow'      => 'required|numeric|min:30|max:120',
             'threshold_red'         => 'required|numeric|min:30|max:120',
             'calibration_offset'    => 'nullable|numeric|min:-30|max:30',
+            'alert_delay_seconds'   => 'nullable|integer|min:5|max:600',
             'cooldown_minutes'      => 'required|integer|min:1|max:120',
             'wa_enabled'            => 'boolean',
             'is_active'             => 'boolean',
@@ -186,6 +189,7 @@ class NoiseControlController extends Controller
             'threshold_yellow'      => $validated['threshold_yellow'],
             'threshold_red'         => $validated['threshold_red'],
             'calibration_offset'    => $validated['calibration_offset'] ?? 0.0,
+            'alert_delay_seconds'   => $validated['alert_delay_seconds'] ?? ($device->alert_delay_seconds ?: 60),
             'cooldown_minutes'      => $validated['cooldown_minutes'],
             'wa_enabled'            => $request->boolean('wa_enabled', true),
             'is_active'             => $request->boolean('is_active', true),
@@ -413,77 +417,90 @@ class NoiseControlController extends Controller
         }
         $recipientStr = !empty($recipientsList) ? implode(' | ', $recipientsList) : 'Belum Ada No HP';
 
-        // 4. Logika Peringatan Bising (HANYA Status Danger / LED Merah >= threshold_red)
+        // 4. Logika Peringatan Bising (HANYA Status Danger & Bertahan Konstan >= alert_delay_seconds)
+        $dangerDuration = (int) $request->input('danger_duration', 0);
+        $requiredDelay = (int) ($device->alert_delay_seconds ?: 60);
+
         if ($status === 'danger') {
-            if ($device->canTriggerAlert()) {
-                $hasSentAny = false;
-                $className = $device->classroom ? $device->classroom->class_name : 'Ruang Kelas';
-                $location = $device->location_note ?: 'Dinding Depan Kelas';
+            // Verifikasi durasi: hanya kirim WhatsApp jika kebisingan konstan >= batas waktu (default 60 detik)
+            // Atau dipicu manual melalui tombol web simulator (force_alert = true)
+            $isSustained = ($dangerDuration >= $requiredDelay) || $request->boolean('force_alert');
 
-                // A. Kirim ke Wali Kelas
-                if (!empty($waliInfo['phone'])) {
-                    $alertMessage = "🚨 *PERINGATAN KEBISINGAN KELAS SANGAT TINGGI!* 🚨\n\n"
-                        . "Yth. Bapak/Ibu Wali Kelas *{$waliInfo['name']}*,\n"
-                        . "Sistem sensor IoT mendeteksi bahwa tingkat kebisingan di ruang kelas Anda telah melampaui batas aman dan berpotensi mengganggu pembelajaran.\n\n"
-                        . "🏫 *Unit/Kelas:* {$className}\n"
-                        . "📍 *Lokasi:* {$location}\n"
-                        . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
-                        . "🔴 *Indikator:* *LAMPU LED MERAH & BUZZER ALARM BERBUNYI*\n"
-                        . "🕒 *Waktu Terdeteksi:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
-                        . "Mohon kesediaan Bapak/Ibu untuk memeriksa dan membantu mengendalikan situasi di kelas agar suasana belajar kembali tenang dan tertib.\n\n"
-                        . "Terima kasih atas perhatiannya.\n"
-                        . "_Sistem Otomasi SIM PembdaHUB - Perguruan Pembda Nias_";
+            if ($isSustained) {
+                if ($device->canTriggerAlert()) {
+                    $hasSentAny = false;
+                    $className = $device->classroom ? $device->classroom->class_name : 'Ruang Kelas';
+                    $location = $device->location_note ?: 'Dinding Depan Kelas';
+                    $durasiDetik = max($dangerDuration, $requiredDelay);
 
-                    try {
-                        /** @var WhatsAppService $waService */
-                        $waService = app(WhatsAppService::class);
-                        $res = $waService->sendMessage($waliInfo['phone'], $alertMessage);
-                        if (!empty($res['success'])) {
-                            $hasSentAny = true;
+                    // A. Kirim ke Wali Kelas
+                    if (!empty($waliInfo['phone'])) {
+                        $alertMessage = "🚨 *PERINGATAN KEBISINGAN KELAS (KONSTAN BERLANJUT)* 🚨\n\n"
+                            . "Yth. Bapak/Ibu Wali Kelas *{$waliInfo['name']}*,\n"
+                            . "Sistem sensor IoT mendeteksi bahwa tingkat kebisingan di ruang kelas Anda telah melampaui batas aman secara *KONSTAN selama lebih dari 1 menit* ({$durasiDetik} detik).\n\n"
+                            . "🏫 *Unit/Kelas:* {$className}\n"
+                            . "📍 *Lokasi:* {$location}\n"
+                            . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
+                            . "🔴 *Indikator:* *LAMPU LED MERAH & BUZZER ALARM AKTIF*\n"
+                            . "🕒 *Waktu Terdeteksi:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
+                            . "Mohon kesediaan Bapak/Ibu untuk memeriksa dan membantu mengendalikan situasi di kelas agar suasana belajar kembali tenang dan tertib.\n\n"
+                            . "Terima kasih atas perhatiannya.\n"
+                            . "_Sistem Otomasi SIM PembdaHUB - Perguruan Pembda Nias_";
+
+                        try {
+                            /** @var WhatsAppService $waService */
+                            $waService = app(WhatsAppService::class);
+                            $res = $waService->sendMessage($waliInfo['phone'], $alertMessage);
+                            if (!empty($res['success'])) {
+                                $hasSentAny = true;
+                            }
+                        } catch (\Throwable $e) {
+                            Log::error("NoiseControl WA Alert to Wali failed: " . $e->getMessage());
                         }
-                    } catch (\Throwable $e) {
-                        Log::error("NoiseControl WA Alert to Wali failed: " . $e->getMessage());
                     }
-                }
 
-                // B. Kirim ke Kepala Sekolah Unit Terkait (Pengawasan Pimpinan)
-                if (!empty($principalInfo['phone']) && $principalInfo['phone'] !== ($waliInfo['phone'] ?? null)) {
-                    $schoolName = $principalInfo['school_name'] ?? 'Unit Sekolah';
-                    $principalMessage = "🚨 *LAPORAN KEBISINGAN KELAS (LAMPU MERAH)* 🚨\n\n"
-                        . "Yth. Bapak/Ibu *{$principalInfo['name']}* ({$principalInfo['title']}),\n"
-                        . "Sistem sensor IoT mendeteksi terjadinya kebisingan tingkat tinggi yang melampaui batas toleransi pada unit sekolah Anda:\n\n"
-                        . "🏫 *Unit/Kelas:* {$className}\n"
-                        . "📍 *Lokasi Sensor:* {$location}\n"
-                        . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
-                        . "🔴 *Indikator:* *LAMPU LED MERAH & BUZZER ALARM BERBUNYI*\n"
-                        . "👤 *Wali Kelas Terkait:* {$waliInfo['name']}\n"
-                        . "🕒 *Waktu Terdeteksi:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
-                        . "Peringatan darurat ini juga telah otomatis diteruskan ke WhatsApp Wali Kelas terkait untuk segera mengondisikan ketertiban belajar mengajar.\n\n"
-                        . "_Sistem Pengawasan KBM Otomatis - SIM PembdaHUB_";
+                    // B. Kirim ke Kepala Sekolah Unit Terkait (Pengawasan Pimpinan)
+                    if (!empty($principalInfo['phone']) && $principalInfo['phone'] !== ($waliInfo['phone'] ?? null)) {
+                        $schoolName = $principalInfo['school_name'] ?? 'Unit Sekolah';
+                        $principalMessage = "🚨 *LAPORAN KEBISINGAN KELAS (KONSTAN BERLANJUT)* 🚨\n\n"
+                            . "Yth. Bapak/Ibu *{$principalInfo['name']}* ({$principalInfo['title']}),\n"
+                            . "Sistem sensor IoT mendeteksi terjadinya kebisingan tingkat tinggi yang berlangsung *KONSTAN selama lebih dari 1 menit* ({$durasiDetik} detik) pada unit sekolah Anda:\n\n"
+                            . "🏫 *Unit/Kelas:* {$className}\n"
+                            . "📍 *Lokasi Sensor:* {$location}\n"
+                            . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
+                            . "🔴 *Indikator:* *LAMPU LED MERAH & BUZZER ALARM AKTIF*\n"
+                            . "👤 *Wali Kelas Terkait:* {$waliInfo['name']}\n"
+                            . "🕒 *Waktu Terdeteksi:* " . Carbon::now()->format('H:i:s d/m/Y') . " WIB\n\n"
+                            . "Peringatan darurat ini juga telah otomatis diteruskan ke WhatsApp Wali Kelas terkait untuk segera mengondisikan ketertiban belajar mengajar.\n\n"
+                            . "_Sistem Pengawasan KBM Otomatis - SIM PembdaHUB_";
 
-                    try {
-                        /** @var WhatsAppService $waService */
-                        $waService = app(WhatsAppService::class);
-                        $resKepsek = $waService->sendMessage($principalInfo['phone'], $principalMessage);
-                        if (!empty($resKepsek['success'])) {
-                            $hasSentAny = true;
+                        try {
+                            /** @var WhatsAppService $waService */
+                            $waService = app(WhatsAppService::class);
+                            $resKepsek = $waService->sendMessage($principalInfo['phone'], $principalMessage);
+                            if (!empty($resKepsek['success'])) {
+                                $hasSentAny = true;
+                            }
+                        } catch (\Throwable $e) {
+                            Log::error("NoiseControl WA Alert to Principal failed: " . $e->getMessage());
                         }
-                    } catch (\Throwable $e) {
-                        Log::error("NoiseControl WA Alert to Principal failed: " . $e->getMessage());
                     }
-                }
 
-                if ($hasSentAny) {
-                    $alertStatus = 'sent';
-                    $alertSent = true;
-                    $device->last_alert_at = Carbon::now();
-                } else if (empty($waliInfo['phone']) && empty($principalInfo['phone'])) {
-                    $alertStatus = 'no_phone';
+                    if ($hasSentAny) {
+                        $alertStatus = 'sent';
+                        $alertSent = true;
+                        $device->last_alert_at = Carbon::now();
+                    } else if (empty($waliInfo['phone']) && empty($principalInfo['phone'])) {
+                        $alertStatus = 'no_phone';
+                    } else {
+                        $alertStatus = 'failed';
+                    }
                 } else {
-                    $alertStatus = 'failed';
+                    $alertStatus = 'cooldown';
                 }
             } else {
-                $alertStatus = 'cooldown';
+                // Bising sesaat / belum mencapai syarat durasi konstan (misal masih 10s dari 60s)
+                $alertStatus = 'pending_duration';
             }
         }
 
@@ -525,7 +542,9 @@ class NoiseControlController extends Controller
             'threshold_green'    => (float) $device->threshold_green,
             'threshold_yellow'   => (float) $device->threshold_yellow,
             'threshold_red'      => (float) $device->threshold_red,
-            'alert_triggered'    => ($status === 'danger'),
+            'alert_delay'        => $requiredDelay,
+            'danger_duration'    => $dangerDuration,
+            'alert_triggered'    => ($status === 'danger' && ($dangerDuration >= $requiredDelay || $request->boolean('force_alert'))),
             'alert_sent'         => $alertSent,
             'alert_status'       => $alertStatus,
             'wali_name'          => $waliInfo['name'],
@@ -596,6 +615,7 @@ class NoiseControlController extends Controller
                 'threshold_green'    => (float) $activeDevice->threshold_green,
                 'threshold_yellow'   => (float) $activeDevice->threshold_yellow,
                 'threshold_red'      => (float) $activeDevice->threshold_red,
+                'alert_delay_seconds'=> (int) ($activeDevice->alert_delay_seconds ?: 60),
                 'cooldown_remaining' => $activeDevice->getRemainingCooldownMinutes(),
                 'last_seen_diff'     => $activeDevice->last_seen_at ? $activeDevice->last_seen_at->diffForHumans() : 'Belum pernah',
                 'classroom_name'     => $activeDevice->classroom?->class_name ?? 'Umum',

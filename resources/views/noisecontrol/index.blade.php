@@ -494,22 +494,37 @@
                                 class="w-full accent-rose-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
                         </div>
 
-                        <!-- Cooldown Notifikasi -->
-                        <div class="grid grid-cols-2 gap-3 pt-2">
+                        <!-- Durasi Bising Konstan & Cooldown Notifikasi -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
                             <div>
-                                <label class="text-[11px] text-slate-400 block mb-1">Cooldown WA (Menit):</label>
-                                <input type="number" name="cooldown_minutes" value="{{ $activeDevice->cooldown_minutes }}" min="1" max="120"
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono-code focus:outline-none focus:border-emerald-500">
+                                <label class="text-[11px] text-slate-400 block mb-1">Durasi Konstan:</label>
+                                <div class="relative">
+                                    <input type="number" name="alert_delay_seconds" value="{{ $activeDevice->alert_delay_seconds ?: 60 }}" min="5" max="300" step="5"
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono-code focus:outline-none focus:border-emerald-500">
+                                    <span class="absolute right-2 top-1.5 text-[10px] text-slate-500">detik</span>
+                                </div>
                             </div>
                             <div>
-                                <label class="text-[11px] text-slate-400 block mb-1">Status Kirim WA:</label>
+                                <label class="text-[11px] text-slate-400 block mb-1">Cooldown WA:</label>
+                                <div class="relative">
+                                    <input type="number" name="cooldown_minutes" value="{{ $activeDevice->cooldown_minutes }}" min="1" max="120"
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono-code focus:outline-none focus:border-emerald-500">
+                                    <span class="absolute right-2 top-1.5 text-[10px] text-slate-500">menit</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-1">Kirim WA:</label>
                                 <label class="inline-flex items-center gap-2 cursor-pointer mt-1">
                                     <input type="checkbox" name="wa_enabled" value="1" {{ $activeDevice->wa_enabled ? 'checked' : '' }} class="sr-only peer">
-                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                                     <span class="text-xs text-slate-300 font-medium">Aktif</span>
                                 </label>
                             </div>
                         </div>
+
+                        <p class="text-[10px] text-slate-400 italic">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> WhatsApp hanya dikirim jika bising konstan &ge; durasi di atas (mencegah alarm palsu dari barang jatuh/pintu terbanting).
+                        </p>
 
                         <button type="submit" id="btnSaveThresholds"
                             class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-xs shadow-lg shadow-emerald-500/20 transition active:scale-95">
@@ -551,6 +566,15 @@
                             <button onclick="setSimLevel(86)" class="px-2 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[11px] font-semibold text-center transition">
                                 🚨 Ribut WA<br><span class="font-mono-code text-[10px]">86 dB</span>
                             </button>
+                        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-slate-200 font-semibold block">Simulasikan Bising Konstan &ge; 1 Menit</span>
+                                <span class="text-[10px] text-slate-400 block">Centang untuk kirim WA, lepas centang untuk uji coba filter suara sesaat.</span>
+                            </div>
+                            <label class="inline-flex items-center gap-2 cursor-pointer shrink-0">
+                                <input type="checkbox" id="simSustainedNoise" value="1" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+                            </label>
                         </div>
 
                         <button onclick="sendSimulatedTelemetry()" id="btnSendSim"
@@ -997,7 +1021,11 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs text-slate-300 block mb-1">Durasi Konstan (Detik):</label>
+                        <input type="number" name="alert_delay_seconds" id="editAlertDelay" min="5" max="300" step="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-code">
+                    </div>
                     <div>
                         <label class="text-xs text-slate-300 block mb-1">Jeda Cooldown WA (Menit):</label>
                         <input type="number" name="cooldown_minutes" id="editCooldown" min="1" max="120" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-code">
@@ -1211,43 +1239,50 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim Sinyal...';
 
-            fetch(`{{ route('noisecontrol.telemetry') }}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    token: activeDeviceToken,
-                    db: dbVal,
-                    peak_db: dbVal + 3.0,
-                    firmware: 'SIMULATOR-WEB'
+                const isSustained = document.getElementById('simSustainedNoise')?.checked ?? true;
+                const dbVal = parseFloat(document.getElementById('simDbSlider').value);
+
+                fetch(`{{ route('noisecontrol.telemetry') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        token: activeDeviceToken,
+                        db: dbVal,
+                        peak_db: dbVal + 3.0,
+                        danger_duration: isSustained ? 65 : 2,
+                        force_alert: isSustained,
+                        firmware: 'SIMULATOR-WEB'
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(data => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
 
-                if (data.status === 'success') {
-                    // Update tampilan seketika
-                    updateLiveDashboard(data.current_db, data.current_db + 3.0, data.status_level, data.threshold_green, data.threshold_yellow, data.threshold_red, true);
+                    if (data.status === 'success') {
+                        // Update tampilan seketika
+                        updateLiveDashboard(data.current_db, data.current_db + 3.0, data.status_level, data.threshold_green, data.threshold_yellow, data.threshold_red, true);
 
-                    if (data.alert_triggered && data.alert_sent) {
-                        alert(`🚨 NOTIFIKASI SUKSES: Suara ${data.current_db} dB melampaui batas bahaya! Pesan WhatsApp otomatis telah dikirim ke Wali Kelas: ${data.wali_name}`);
-                    } else if (data.alert_triggered && data.alert_status === 'cooldown') {
-                        alert(`⚠️ AMBANG BATAS MERAH TERPICU: Suara ${data.current_db} dB, namun pesan WA dilewati karena masih masa Cooldown (${data.cooldown_remaining} menit lagi).`);
+                        if (data.alert_triggered && data.alert_sent) {
+                            alert(`🚨 NOTIFIKASI SUKSES: Suara ${data.current_db} dB berlangsung KONSTAN lebih dari 1 menit! Pesan WhatsApp otomatis telah dikirim ke Wali Kelas (${data.wali_name}) dan Kepala Sekolah Unit.`);
+                        } else if (data.alert_status === 'pending_duration') {
+                            alert(`⏱️ KONDISI MERAH SESAAT: Suara ${data.current_db} dB melampaui batas bahaya, namun pesan WhatsApp TIDAK dikirim karena durasi bising belum mencapai batas konstan (${data.danger_duration}s / ${data.alert_delay || 60}s). Ini membuktikan filter anti-false-alarm bekerja sempurna!`);
+                        } else if (data.alert_triggered && data.alert_status === 'cooldown') {
+                            alert(`⚠️ AMBANG BATAS MERAH TERPICU: Suara ${data.current_db} dB, namun pesan WA dilewati karena masih masa Cooldown (${data.cooldown_remaining} menit lagi).`);
+                        }
+                        pollLiveData();
+                    } else {
+                        alert('Gagal mengirim simulasi: ' + (data.message || 'Error'));
                     }
-                    pollLiveData();
-                } else {
-                    alert('Gagal mengirim simulasi: ' + (data.message || 'Error'));
-                }
-            })
-            .catch(err => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
-                alert('Kesalahan koneksi simulasi.');
-            });
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i> Eksekusi Sinyal Suara ke Sistem';
+                    alert('Kesalahan koneksi simulasi.');
+                });
         }
 
         // Test WhatsApp Direct Button
@@ -1337,6 +1372,7 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
             document.getElementById('editCustomName').value = dev.custom_recipient_name || '';
             document.getElementById('editCustomPhone').value = dev.custom_phone || '';
             document.getElementById('editCooldown').value = dev.cooldown_minutes;
+            document.getElementById('editAlertDelay').value = dev.alert_delay_seconds || 60;
             document.getElementById('editCalibOffset').value = dev.calibration_offset || 0;
 
             document.getElementById('modalEditDevice').classList.remove('hidden');

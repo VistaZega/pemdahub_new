@@ -66,10 +66,15 @@ const char* FIRMWARE_VER  = "1.2.0-PRO";
 // Inisialisasi Layar OLED SH1106
 Adafruit_SH1106G oled(128, 64, &Wire, -1);
 
-// Ambang Batas Desibel Suara
+// Ambang Batas Desibel Suara & Durasi Bising Konstan
 float thresholdGreen   = 65.0; // < 65 dB  : AMAN (LED Hijau)
 float thresholdYellow  = 75.0; // 65-75 dB : SEDANG (LED Kuning)
-float thresholdRed     = 80.0; // >= 80 dB : BAHAYA / TERLALU RIBUT (LED Merah & Kirim WA)
+float thresholdRed     = 80.0; // >= 80 dB : BAHAYA / TERLALU RIBUT (LED Merah)
+int alertDelaySeconds  = 60;   // Durasi bising konstan >= 60 detik baru kirim WhatsApp!
+
+// Pelacak Durasi Bising Konstan (Filter Anti-False Alarm Dentuman Sesaat)
+unsigned long dangerStartTime = 0; // Waktu awal suara bising konstan >= thresholdRed
+int currentDangerSeconds = 0;       // Durasi bising konstan aktif dalam detik
 
 // Buffer Audio I2S
 #define SAMPLES_COUNT 512
@@ -163,28 +168,57 @@ float readNoiseLevel() {
     return dbSPL;
 }
 
-// ================= KONTROL LED TIGA WARNA =================
+// ================= KONTROL STATUS & LED TIGA WARNA (DENGAN FILTER LONJAKAN SESAAT) =================
 void updateLedStatus(float db) {
     if (db >= thresholdRed) {
-        // ZONA 3: TERLALU RIBUT (Merah ON, Kuning & Hijau OFF)
-        digitalWrite(PIN_LED_MERAH, HIGH);
-        digitalWrite(PIN_LED_KUNING, LOW);
-        digitalWrite(PIN_LED_HIJAU, LOW);
-        currentStatus = "danger";
-    } 
-    else if (db >= thresholdGreen) {
-        // ZONA 2: SEDIKIT RIBUT (Kuning ON, Merah & Hijau OFF)
-        digitalWrite(PIN_LED_MERAH, LOW);
-        digitalWrite(PIN_LED_KUNING, HIGH);
-        digitalWrite(PIN_LED_HIJAU, LOW);
-        currentStatus = "warning";
+        if (dangerStartTime == 0) {
+            dangerStartTime = millis();
+        }
+        currentDangerSeconds = (millis() - dangerStartTime) / 1000;
+
+        // TINGKAT 1: Suara keras sesaat (< 3 detik, misal barang jatuh / meja bergeser)
+        if (currentDangerSeconds < 3) {
+            // Tampilkan Kuning waspada sekilas, Buzzer TIDAK berbunyi
+            digitalWrite(PIN_LED_MERAH, LOW);
+            digitalWrite(PIN_LED_KUNING, HIGH);
+            digitalWrite(PIN_LED_HIJAU, LOW);
+            currentStatus = "warning";
+        } else {
+            // TINGKAT 2: Bising konstan (>= 3 detik) -> Masuk status bahaya, LED Merah ON & Buzzer aktif di kelas!
+            digitalWrite(PIN_LED_MERAH, HIGH);
+            digitalWrite(PIN_LED_KUNING, LOW);
+            digitalWrite(PIN_LED_HIJAU, LOW);
+            currentStatus = "danger";
+        }
     } 
     else {
-        // ZONA 1: AMAN / KONDUSIF (Hijau ON, Merah & Kuning OFF)
-        digitalWrite(PIN_LED_MERAH, LOW);
-        digitalWrite(PIN_LED_KUNING, LOW);
-        digitalWrite(PIN_LED_HIJAU, HIGH);
-        currentStatus = "safe";
+        // Suara berada di bawah thresholdRed
+        // Berikan waktu jeda hening 2 detik sebelum mereset penghitung durasi bahaya
+        static unsigned long quietTime = 0;
+        if (dangerStartTime > 0) {
+            if (quietTime == 0) quietTime = millis();
+            if (millis() - quietTime >= 2000) {
+                dangerStartTime = 0;
+                currentDangerSeconds = 0;
+                quietTime = 0;
+            }
+        } else {
+            quietTime = 0;
+        }
+
+        if (db >= thresholdGreen) {
+            // ZONA 2: SEDIKIT RIBUT (Kuning ON, Merah & Hijau OFF)
+            digitalWrite(PIN_LED_MERAH, LOW);
+            digitalWrite(PIN_LED_KUNING, HIGH);
+            digitalWrite(PIN_LED_HIJAU, LOW);
+            currentStatus = "warning";
+        } else {
+            // ZONA 1: AMAN / KONDUSIF (Hijau ON, Merah & Kuning OFF)
+            digitalWrite(PIN_LED_MERAH, LOW);
+            digitalWrite(PIN_LED_KUNING, LOW);
+            digitalWrite(PIN_LED_HIJAU, HIGH);
+            currentStatus = "safe";
+        }
     }
 }
 
@@ -269,12 +303,17 @@ void drawOledDisplay(float db) {
 
     // 3. Status Badge: Ramping, Elegan & Menggunakan Teks Normal (Title Case)
     if (currentStatus == "danger") {
-        // Mode Bahaya / Ribut: Kotak Peringatan Menyala
-        oled.fillRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
+        // Mode Bahaya / Ribut: Kotak Peringatan Menyala dengan Indikator Durasi Detik
+        oled.fillRoundRect(24, 38, 80, 11, 2, SH110X_WHITE);
         oled.setTextColor(SH110X_BLACK, SH110X_WHITE);
         oled.setTextSize(1);
-        oled.setCursor(46, 40);
-        oled.print("Ribut!");
+        if (currentDangerSeconds > 0) {
+            oled.setCursor(28, 40);
+            oled.printf("Ribut! %ds", currentDangerSeconds);
+        } else {
+            oled.setCursor(46, 40);
+            oled.print("Ribut!");
+        }
         oled.setTextColor(SH110X_WHITE);
     } else if (currentStatus == "warning") {
         // Mode Waspada / Sedang: Garis Tipis Elegan
@@ -327,16 +366,17 @@ void sendTelemetry(float db, float peak) {
     http.setTimeout(5000);
 
     StaticJsonDocument<256> doc;
-    doc["token"]    = DEVICE_TOKEN;
-    doc["db"]       = db;
-    doc["peak_db"]  = peak;
-    doc["firmware"] = FIRMWARE_VER;
+    doc["token"]           = DEVICE_TOKEN;
+    doc["db"]              = db;
+    doc["peak_db"]         = peak;
+    doc["danger_duration"] = currentDangerSeconds;
+    doc["firmware"]        = FIRMWARE_VER;
 
     String jsonString;
     serializeJson(doc, jsonString);
 
     int httpCode = http.POST(jsonString);
-    Serial.printf("[Telemetri] Kirim %0.1f dB | Response: %d\n", db, httpCode);
+    Serial.printf("[Telemetri] Kirim %0.1f dB (Bising: %ds) | Response: %d\n", db, currentDangerSeconds, httpCode);
 
     if (httpCode == 200) {
         String response = http.getString();
@@ -347,6 +387,7 @@ void sendTelemetry(float db, float peak) {
             if (resDoc.containsKey("threshold_green")) thresholdGreen = resDoc["threshold_green"];
             if (resDoc.containsKey("threshold_yellow")) thresholdYellow = resDoc["threshold_yellow"];
             if (resDoc.containsKey("threshold_red")) thresholdRed = resDoc["threshold_red"];
+            if (resDoc.containsKey("alert_delay")) alertDelaySeconds = resDoc["alert_delay"];
             if (resDoc.containsKey("classroom")) className = resDoc["classroom"].as<String>();
             if (resDoc.containsKey("alert_sent")) isAlertSent = resDoc["alert_sent"];
         }
@@ -478,14 +519,21 @@ void loop() {
     }
 
     // 6. Kirim data telemetri ke server PembdaHUB jika terhubung WiFi
+    // Kirim telemetri:
+    // a. Setiap 3 detik (rutin)
+    // b. Saat baru memasuki status bising (danger)
+    // c. Seketika saat durasi bising konstan baru saja mencapai batas (>= alertDelaySeconds / 60 detik) agar pesan WA terkirim instan
     static bool prevDanger = false;
+    static bool prevSustained = false;
     bool isDanger = (currentStatus == "danger");
+    bool isSustained = (isDanger && currentDangerSeconds >= alertDelaySeconds);
 
-    if (millis() - lastTelemetryTime >= TELEMETRY_INTERVAL || (isDanger && !prevDanger)) {
+    if (millis() - lastTelemetryTime >= TELEMETRY_INTERVAL || (isDanger && !prevDanger) || (isSustained && !prevSustained)) {
         lastTelemetryTime = millis();
         sendTelemetry(currentDb, peakDb);
     }
     prevDanger = isDanger;
+    prevSustained = isSustained;
 
     delay(10);
 }
