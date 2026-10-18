@@ -766,6 +766,48 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 {_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Otomatis SIM PembdaHUB_|_Executive Report System Perguruan Pembda Nias_}",
 
     /**
+     * Executive - Principal Daily Attendance Digest (Mode Tanggap Darurat Bencana PJJ)
+     */
+    'executive.principal_daily_attendance_pjj' =>
+"{🏫|🏛️|🏢} *{LAPORAN REKAPITULASI KEHADIRAN PJJ|REKAP PRESENSI PJJ DARING|RINGKASAN KEHADIRAN PJJ} {sekolah}*
+{📌|📋|✉️} *{Kepada Yth.|Yth. Bapak/Ibu|Yth.} {nama_kepsek}*
+
+{salam_pembuka}
+
+{📅|🗓️} Tanggal: *{tanggal}*
+{⏰|🕒} Waktu Rekap: *Pukul {waktu_rekap} (Sesi Rekap PJJ)*
+
+📢 *A. PEMBERITAHUAN SISTEM PJJ:*
+Berdasarkan Surat Edaran Pengurus Yayasan Perguruan Pembda Nias Nomor: *07/SE/YP-PEMBDA/X/2026* perihal Tanggap Darurat Bencana Kabut Asap, saat ini berlaku *Sistem Pembelajaran Jarak Jauh (PJJ)* secara daring berbasis SIM PembdaHUB.
+
+📊 *B. JUMLAH SISWA ABSENSI (Total: {total_siswa} Siswa):*
+1. Jumlah Siswa/i Absensi PJJ : *{siswa_pjj_gps} Siswa*
+2. Jumlah Siswa Interaksi dengan LMS : *{siswa_pjj_lms} Siswa*
+• {✅|🟢} Total Siswa Hadir Daring : *{siswa_hadir} Siswa ({persen_hadir}%)*
+• {🤒|🏥} Sakit: *{siswa_sakit}* | {📩|📝} Izin: *{siswa_izin}* | {❌|🚫} Alpha: *{siswa_alpha}*
+• {⏳|⌛} Belum Presensi / Login : *{siswa_belum_presensi} Siswa*
+
+👨‍🏫 *KEHADIRAN GURU & TENDIK (WFH/DARING):*
+• {✅|🟢} Guru Aktif/Hadir: *{guru_hadir}* | {🤒|📩} Sakit/Izin: *{guru_sakit_izin}* | {❌|🚫} Alpha: *{guru_alpha}*
+• {💼|🏢} Pegawai/Staf Hadir: *{pegawai_hadir}* | {🏖️|🌴} Cuti/Izin: *{pegawai_cuti_izin}* | {❌|🚫} Alpha: *{pegawai_alpha}*
+
+📺 *C. LIVE MONITORING KEHADIRAN UNIT:*
+Live kehadiran unit {sekolah} dapat dipantau langsung di:
+🔗 *{live_display_url}*
+
+😷 *D. HIMBAUAN MENJAGA KESEHATAN:*
+Sehubungan dengan pekatnya kabut asap dan penurunan kualitas udara, dihimbau kepada seluruh siswa/i dan Bapak/Ibu Guru untuk mengurangi aktivitas di luar ruangan, selalu mengenakan masker medis bila terpaksa bepergian, memperbanyak minum air putih, dan segera melapor apabila mengalami gangguan pernapasan (ISPA). Tetap jaga kesehatan dan semangat belajar dari rumah! 💪✨
+
+{catatan_penutup}
+
+{motto}
+
+{reply_request}
+
+---
+{_Dikirim otomatis oleh PembdaHUB Executive System (Mode Tanggap Darurat PJJ)_|_Layanan Otomatis Presensi PJJ PembdaHUB_}",
+
+    /**
      * Executive - Homeroom Daily Attendance Digest (Wali Kelas)
      */
     'executive.homeroom_daily_attendance' =>
@@ -797,6 +839,48 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 
 ---
 {_Dikirim otomatis oleh PembdaHUB Executive System_|_Layanan Notifikasi Presensi SIM PembdaHUB_|_Sistem Rekapitulasi Terpadu PembdaHUB_}",
+
+    /**
+     * Executive - Homeroom Daily Attendance Digest (Mode Tanggap Darurat Bencana PJJ)
+     */
+    'executive.homeroom_daily_attendance_pjj' =>
+"{👩‍🏫|👨‍🏫|📊} *{REKAP KEHADIRAN HARIAN PJJ KELAS|LAPORAN PRESENSI PJJ KELAS} {kelas}*
+{📌|📋|✉️} *{Yth. Wali Kelas:|Kepada Yth. Wali Kelas:|Wali Kelas Binaan:} {nama_wali_kelas}*
+
+{salam_pembuka}
+
+{📅|🗓️} Tanggal: *{tanggal}*
+{⏰|🕒} Waktu Rekap: *Pukul {waktu_rekap} (Sesi Rekap PJJ)*
+
+📢 *A. PEMBERITAHUAN SISTEM PJJ:*
+Berdasarkan Surat Edaran Pengurus Yayasan Perguruan Pembda Nias Nomor: *07/SE/YP-PEMBDA/X/2026* perihal Tanggap Darurat Bencana Kabut Asap, saat ini berlaku *Sistem Pembelajaran Jarak Jauh (PJJ)* secara daring berbasis SIM PembdaHUB.
+
+📊 *B. JUMLAH SISWA ABSENSI KELAS {kelas} (Total: {total_siswa} Siswa):*
+1. Jumlah Siswa/i Absensi PJJ : *{siswa_pjj_gps} Siswa*
+2. Jumlah Siswa Interaksi dengan LMS : *{siswa_pjj_lms} Siswa*
+• {✅|🟢} Total Hadir Daring PJJ : *{total_fisik_hadir} Siswa ({persen_hadir}%)*
+• {🚫|❌} Tidak Hadir / Berkendala : *{total_tidak_hadir} Siswa*
+  - {🤒|🏥} Sakit: *{sakit}* | {📩|📝} Izin: *{izin}* | {❌|⛔} Alpha: *{alpha}*
+• {⏳|⌛} Belum Presensi / Login LMS : *{belum_presensi} Siswa*
+
+📋 *{RINCIAN KETIDAKHADIRAN & SISWA BELUM LOGIN:|CATATAN SISWA BELUM PRESENSI HARI INI:}*
+{daftar_tidak_hadir}
+
+📺 *C. LIVE MONITORING KEHADIRAN UNIT:*
+Live kehadiran unit {sekolah} dapat dipantau langsung di:
+🔗 *{live_display_url}*
+
+😷 *D. HIMBAUAN MENJAGA KESEHATAN:*
+Dihimbau kepada Bapak/Ibu Wali Kelas agar aktif mengingatkan peserta didik dan orang tua melalui grup paguyuban kelas untuk mengurangi aktivitas di luar rumah selama kabut asap pekat, wajib memakai masker jika keluar rumah, memperbanyak minum air putih, serta tetap disiplin mengikuti KBM daring di LMS PembdaHUB. Tetap sehat dan semangat! 💪✨
+
+{catatan_penutup}
+
+{motto}
+
+{reply_request}
+
+---
+{_Dikirim otomatis oleh PembdaHUB Executive System (Mode Tanggap Darurat PJJ)_|_Layanan Otomatis Presensi PJJ PembdaHUB_}",
 
     /**
      * Teacher & Employee - Individual Tap Attendance Notification

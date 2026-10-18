@@ -200,4 +200,107 @@ class PjjEmergencyService
             return null;
         }
     }
+
+    /**
+     * Dapatkan URL Live Display Kehadiran per unit sekolah
+     */
+    public static function getDisplayUrlForSchool(?School $school): string
+    {
+        $baseUrl = rtrim(config('app.url', 'https://perguruanpembda.com'), '/');
+        if (!$school) {
+            return "{$baseUrl}/display";
+        }
+
+        $type = strtoupper($school->type ?? '');
+        return match ($type) {
+            'SMP' => "{$baseUrl}/display1",
+            'SMA' => "{$baseUrl}/display2",
+            'SMK' => "{$baseUrl}/display3",
+            default => "{$baseUrl}/display",
+        };
+    }
+
+    /**
+     * Hitung jumlah siswa unik yang berinteraksi dengan LMS pada tanggal tertentu
+     */
+    public static function countLmsInteractingStudents($studentIds, ?string $date = null, $dailyAtts = null): int
+    {
+        if (empty($studentIds)) {
+            return 0;
+        }
+
+        $checkDate = $date ?: Carbon::now('Asia/Jakarta')->toDateString();
+
+        if ($studentIds instanceof \Illuminate\Support\Collection) {
+            $studentIds = $studentIds->toArray();
+        }
+
+        $interactingIds = [];
+
+        // 1. Dari koleksi Attendance yang sudah dimuat (jika ada)
+        if ($dailyAtts) {
+            foreach ($dailyAtts as $att) {
+                if ($att->recorded_via === 'pjj_lms') {
+                    $interactingIds[$att->student_id] = true;
+                }
+            }
+        } else {
+            // Query langsung ke Attendance
+            $attIds = Attendance::whereIn('student_id', $studentIds)
+                ->whereDate('date', $checkDate)
+                ->where('recorded_via', 'pjj_lms')
+                ->pluck('student_id')
+                ->toArray();
+            foreach ($attIds as $id) {
+                $interactingIds[$id] = true;
+            }
+        }
+
+        // 2. Aktivitas Siswa di LMS pada hari ini (Progress Materi)
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('lms_material_progress')) {
+                $progIds = \Illuminate\Support\Facades\DB::table('lms_material_progress')
+                    ->whereIn('student_id', $studentIds)
+                    ->whereDate('updated_at', $checkDate)
+                    ->pluck('student_id')
+                    ->toArray();
+                foreach ($progIds as $id) {
+                    $interactingIds[$id] = true;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 3. Aktivitas Pengumpulan Tugas LMS
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('lms_submissions')) {
+                $subIds = \Illuminate\Support\Facades\DB::table('lms_submissions')
+                    ->whereIn('student_id', $studentIds)
+                    ->where(function ($q) use ($checkDate) {
+                        $q->whereDate('updated_at', $checkDate)
+                          ->orWhereDate('created_at', $checkDate);
+                    })
+                    ->pluck('student_id')
+                    ->toArray();
+                foreach ($subIds as $id) {
+                    $interactingIds[$id] = true;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 4. Aktivitas Percobaan Kuis LMS
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('lms_quiz_attempts')) {
+                $quizIds = \Illuminate\Support\Facades\DB::table('lms_quiz_attempts')
+                    ->whereIn('student_id', $studentIds)
+                    ->whereDate('created_at', $checkDate)
+                    ->pluck('student_id')
+                    ->toArray();
+                foreach ($quizIds as $id) {
+                    $interactingIds[$id] = true;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return count($interactingIds);
+    }
 }

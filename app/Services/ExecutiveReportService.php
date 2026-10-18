@@ -186,6 +186,11 @@ class ExecutiveReportService
                 $greeting = $this->getPolymorphicGreeting($principalName, 'Bapak/Ibu');
                 $closing = $this->getPolymorphicClosing();
 
+                $isPjj = \App\Services\PjjEmergencyService::isPjjActiveForSchool($school->id, $dateToday);
+                $pjjGpsS = $dailyAttsSiswa->filter(fn($a) => $a->recorded_via === 'pjj_gps')->count();
+                $pjjLmsS = \App\Services\PjjEmergencyService::countLmsInteractingStudents($studentIds, $dateToday, $dailyAttsSiswa);
+                $displayUrl = \App\Services\PjjEmergencyService::getDisplayUrlForSchool($school);
+
                 $templateData = [
                     'sekolah' => $school->name,
                     'nama_kepsek' => $principalName,
@@ -198,15 +203,21 @@ class ExecutiveReportService
                     'siswa_izin' => $permitS,
                     'siswa_alpha' => $absentS,
                     'siswa_belum_presensi' => $unrecordedS,
+                    'siswa_pjj_gps' => $pjjGpsS,
+                    'siswa_pjj_lms' => $pjjLmsS,
+                    'persen_hadir' => $totalSiswa > 0 ? (int)round(($presentS / $totalSiswa) * 100) : 0,
+                    'live_display_url' => $displayUrl,
                     'guru_hadir' => $presentG,
                     'guru_dinas' => $dinasG,
                     'guru_sakit' => $sickG,
                     'guru_izin' => $permitG,
+                    'guru_sakit_izin' => $sickG + $permitG,
                     'guru_alpha' => $absentG,
                     'pegawai_hadir' => $presentP,
                     'pegawai_cuti' => $cutiP,
                     'pegawai_sakit' => $sickP,
                     'pegawai_izin' => $permitP,
+                    'pegawai_cuti_izin' => $cutiP + $permitP + $sickP,
                     'pegawai_alpha' => $absentP,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
@@ -214,17 +225,20 @@ class ExecutiveReportService
                     'reply_request' => SpintaxService::spinReplyRequest(),
                 ];
 
+                $templateKey = $isPjj ? 'executive.principal_daily_attendance_pjj' : 'executive.principal_daily_attendance';
+                $modeLabel = $isPjj ? '[MODE PJJ] ' : '';
+
                 if ($dryRun) {
                     $sentCount++;
-                    if ($logger) $logger("🔍 [SIMULASI] Rekap Kepsek {$school->name} siap dikirim ke {$phone} ({$principalName})");
+                    if ($logger) $logger("🔍 [SIMULASI] Rekap Kepsek {$modeLabel}{$school->name} siap dikirim ke {$phone} ({$principalName})");
                 } else {
-                    $res = $this->whatsappService->sendTemplate($phone, 'executive.principal_daily_attendance', $templateData);
+                    $res = $this->whatsappService->sendTemplate($phone, $templateKey, $templateData);
                     if ($res['success'] ?? false) {
                         $sentCount++;
                         if (!$targetPhone) {
                             $this->markDigestSentToday('principal', $school->id, $dateToday);
                         }
-                        if ($logger) $logger("✅ Rekap Kepsek {$school->name} berhasil terkirim ke {$phone} ({$principalName})");
+                        if ($logger) $logger("✅ Rekap Kepsek {$modeLabel}{$school->name} berhasil terkirim ke {$phone} ({$principalName})");
                     } else {
                         $errMsg = $res['error'] ?? 'Gagal kirim via gateway';
                         $errors[] = "{$school->name}: {$errMsg}";
@@ -393,13 +407,20 @@ class ExecutiveReportService
                 $recordedCount = $totalFisikHadir + $totalTidakHadir;
                 $unrecordedCount = max(0, $totalSiswa - $recordedCount);
 
+                $isPjj = \App\Services\PjjEmergencyService::isPjjActiveForSchool($class->school_id, $dateToday);
+                $pjjGpsCount = $dailyAtts->filter(fn($a) => $a->recorded_via === 'pjj_gps')->count();
+                $pjjLmsCount = \App\Services\PjjEmergencyService::countLmsInteractingStudents($studentIds, $dateToday, $dailyAtts);
+                $displayUrl = \App\Services\PjjEmergencyService::getDisplayUrlForSchool($class->school);
+
                 // Grouping rincian rincian kehadiran & Keterlambatan secara terstruktur
                 $detailSections = [];
 
                 if ($totalSiswa === 0) {
                     $absentListSnippet = "• Belum ada siswa yang terdaftar di kelas ini.";
                 } elseif ($recordedCount === 0) {
-                    $absentListSnippet = "⚠️ Belum ada data presensi yang masuk untuk kelas ini ({$totalSiswa} siswa belum presensi).";
+                    $absentListSnippet = $isPjj
+                        ? "⚠️ Belum ada aktivitas presensi PJJ atau interaksi LMS dari siswa ({$totalSiswa} siswa belum terdata)."
+                        : "⚠️ Belum ada data presensi yang masuk untuk kelas ini ({$totalSiswa} siswa belum presensi).";
                 } else {
                     // 1. Rincian Siswa Hadir Terlambat
                     if ($late > 0) {
@@ -408,7 +429,8 @@ class ExecutiveReportService
                             ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . ($a->time_in ? " (" . date('H:i', strtotime($a->time_in)) . " WIB)" : " (TERLAMBAT)"))
                             ->values()
                             ->toArray();
-                        $detailSections[] = "🟡 *Siswa Hadir Terlambat ({$late} Siswa):*\n" . implode("\n", $lateItems);
+                        $labelLate = $isPjj ? "🟡 *Siswa Presensi Terlambat ({$late} Siswa):*\n" : "🟡 *Siswa Hadir Terlambat ({$late} Siswa):*\n";
+                        $detailSections[] = $labelLate . implode("\n", $lateItems);
                     }
 
                     // 2. Rincian Siswa Tidak Hadir (Sakit / Izin / Alpha)
@@ -418,7 +440,8 @@ class ExecutiveReportService
                             ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
                             ->values()
                             ->toArray();
-                        $detailSections[] = "🚫 *Siswa Tidak Hadir ({$totalTidakHadir} Siswa):*\n" . implode("\n", $absentItems);
+                        $labelAbsent = $isPjj ? "🚫 *Siswa Tidak Hadir / Berkendala ({$totalTidakHadir} Siswa):*\n" : "🚫 *Siswa Tidak Hadir ({$totalTidakHadir} Siswa):*\n";
+                        $detailSections[] = $labelAbsent . implode("\n", $absentItems);
                     }
 
                     // 3. Rincian Siswa Belum Presensi
@@ -429,16 +452,22 @@ class ExecutiveReportService
                             ->orderBy('full_name')
                             ->pluck('full_name');
 
+                        $labelUnrec = $isPjj
+                            ? "⏳ *Siswa Belum Presensi PJJ / Belum Login LMS"
+                            : "⏳ *Siswa Belum Presensi";
+
                         if ($unrecordedStudents->count() <= 10) {
                             $unList = $unrecordedStudents->map(fn($n) => "  • {$n}")->toArray();
-                            $detailSections[] = "⏳ *Siswa Belum Presensi ({$unrecordedCount} Siswa):*\n" . implode("\n", $unList);
+                            $detailSections[] = "{$labelUnrec} ({$unrecordedCount} Siswa):*\n" . implode("\n", $unList);
                         } else {
-                            $detailSections[] = "⏳ *Siswa Belum Presensi:* {$unrecordedCount} Siswa";
+                            $detailSections[] = "{$labelUnrec}:* {$unrecordedCount} Siswa";
                         }
                     }
 
                     if (empty($detailSections)) {
-                        $absentListSnippet = "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Hadir Tepat Waktu - 100% ✨)";
+                        $absentListSnippet = $isPjj
+                            ? "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Aktif Hadir PJJ & LMS - 100% ✨)"
+                            : "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Hadir Tepat Waktu - 100% ✨)";
                     } else {
                         $absentListSnippet = implode("\n\n", $detailSections);
                     }
@@ -449,6 +478,7 @@ class ExecutiveReportService
 
                 $templateData = [
                     'kelas' => $class->name,
+                    'sekolah' => $school->name,
                     'nama_wali_kelas' => $homeroomTeacher->full_name,
                     'tanggal' => $dateFormatted,
                     'waktu_rekap' => '08:00 WIB',
@@ -462,6 +492,9 @@ class ExecutiveReportService
                     'izin' => $permit,
                     'alpha' => $absent,
                     'belum_presensi' => $unrecordedCount,
+                    'siswa_pjj_gps' => $pjjGpsCount,
+                    'siswa_pjj_lms' => $pjjLmsCount,
+                    'live_display_url' => $displayUrl,
                     'daftar_tidak_hadir' => $absentListSnippet,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,
@@ -469,21 +502,24 @@ class ExecutiveReportService
                     'reply_request' => SpintaxService::spinReplyRequest(),
                 ];
 
+                $templateKey = $isPjj ? 'executive.homeroom_daily_attendance_pjj' : 'executive.homeroom_daily_attendance';
+                $modeLabel = $isPjj ? '[MODE PJJ] ' : '';
+
                 if ($dryRun) {
                     $sentCount++;
-                    if ($logger) $logger("🔍 [SIMULASI] Rekap {$class->name} siap dikirim ke {$phone} ({$homeroomTeacher->full_name})");
+                    if ($logger) $logger("🔍 [SIMULASI] Rekap {$modeLabel}{$class->name} siap dikirim ke {$phone} ({$homeroomTeacher->full_name})");
                 } else {
-                    $res = $this->whatsappService->sendTemplate($phone, 'executive.homeroom_daily_attendance', $templateData);
+                    $res = $this->whatsappService->sendTemplate($phone, $templateKey, $templateData);
                     if ($res['success'] ?? false) {
                         $sentCount++;
                         if (!$targetPhone) {
                             $this->markDigestSentToday('homeroom', $class->id, $dateToday);
                         }
-                        if ($logger) $logger("✅ Rekap {$class->name} terkirim ke {$phone} ({$homeroomTeacher->full_name})");
+                        if ($logger) $logger("✅ Rekap {$modeLabel}{$class->name} terkirim ke {$phone} ({$homeroomTeacher->full_name})");
                     } else {
                         $errMsg = $res['error'] ?? 'Gagal kirim via gateway';
                         $errors[] = "{$class->name}: {$errMsg}";
-                        if ($logger) $logger("❌ Gagal kirim {$class->name}: {$errMsg}");
+                        if ($logger) $logger("❌ Gagal kirim Wali Kelas {$class->name}: {$errMsg}");
                     }
                 }
 
