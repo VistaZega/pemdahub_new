@@ -183,56 +183,83 @@ void updateLedStatus(float db) {
     }
 }
 
-// ================= GAMBAR TAMPILAN OLED 1.3 INCH =================
+// ================= GAMBAR TAMPILAN OLED 1.3 INCH (SUPER CRISP & JELAS) =================
 void drawOledDisplay(float db) {
     oled.clearDisplay();
+
+    // 1. Header Bar: Bersih, Rapi & Tidak Tumpang Tindih
+    oled.setTextSize(1);
     oled.setTextColor(SH110X_WHITE);
-
-    // 1. Header Bar: Nama Sekolah & Status WiFi
-    oled.setTextSize(1);
     oled.setCursor(0, 0);
-    oled.print("PEMBDA NOISE MONITOR");
+    oled.print("PEMBDA MONITOR"); // 14 karakter (84px) - ada ruang lega
 
-    oled.setCursor(102, 0);
+    oled.setCursor(92, 0);
     if (WiFi.status() == WL_CONNECTED) {
-        oled.print("WIFI");
+        oled.print("[WIFI]");
     } else {
-        oled.print("!OFF");
+        oled.print("[!OFF]");
     }
-    oled.drawLine(0, 10, 127, 10, SH110X_WHITE);
+    oled.drawFastHLine(0, 10, 128, SH110X_WHITE);
 
-    // 2. Angka Desibel Besar di Kiri
-    oled.setTextSize(2);
-    oled.setCursor(0, 16);
-    oled.print(db, 1);
+    // 2. Angka Desibel Utama (BESAR & TEBAL - Size 3, Terbaca Jelas dari Jauh)
+    int intDb = (int)db;
+    int decDb = (int)((db - intDb) * 10);
+    if (decDb < 0) decDb = 0;
+
+    oled.setTextSize(3); // Karakter besar 18x24 pixel
+    oled.setCursor(0, 14);
+    if (intDb < 10) oled.print("0");
+    oled.print(intDb);
+
+    // Desimal & Satuan dB di Samping Angka Besar
     oled.setTextSize(1);
-    oled.print(" dB");
+    oled.setCursor(38, 16);
+    oled.print(".");
+    oled.print(decDb);
 
-    // 3. Kotak Status Badge di Kanan
-    oled.drawRoundRect(68, 14, 58, 18, 3, SH110X_WHITE);
-    oled.setCursor(74, 19);
+    oled.setCursor(38, 28);
+    oled.print("dB");
+
+    // 3. Status Badge Kontras Tinggi (Solid White Pill + Huruf Hitam Pekat)
+    oled.fillRoundRect(62, 14, 66, 19, 3, SH110X_WHITE);
+    oled.setTextColor(SH110X_BLACK, SH110X_WHITE);
+    oled.setTextSize(1);
+
     if (currentStatus == "danger") {
-        oled.print("!RIBAT!");
+        oled.setCursor(68, 20);
+        oled.print("! RIBUT !");
     } else if (currentStatus == "warning") {
-        oled.print("SEDANG");
+        oled.setCursor(74, 20);
+        oled.print("WASPADA");
     } else {
+        oled.setCursor(77, 20);
         oled.print(" AMAN ");
     }
 
-    // 4. Bar Graph VU-Meter Responsif (Skala 35 dB - 100 dB)
+    // Kembalikan warna teks normal putih
+    oled.setTextColor(SH110X_WHITE);
+
+    // 4. Bar Graph VU-Meter Dinamis (Skala 35 dB - 100 dB)
     oled.drawRect(0, 36, 128, 10, SH110X_WHITE);
     int barWidth = map(constrain((int)db, 35, 100), 35, 100, 0, 124);
     if (barWidth > 0) {
         oled.fillRect(2, 38, barWidth, 6, SH110X_WHITE);
     }
-    // Garis Batas Bahaya Merah pada Bar
+    // Garis Penanda Batas Bahaya Merah (80 dB)
     int redMarkerX = map((int)thresholdRed, 35, 100, 0, 124) + 2;
     oled.drawFastVLine(redMarkerX, 35, 12, SH110X_WHITE);
 
-    // 5. Info Kelas di Bagian Bawah
+    // 5. Info Footer: Nama Kelas & Peak dB
+    oled.setTextSize(1);
     oled.setCursor(0, 52);
-    oled.print("Kelas: ");
-    oled.print(className);
+    oled.print("Kls:");
+    String kls = className.length() > 8 ? className.substring(0, 8) : className;
+    oled.print(kls);
+
+    oled.setCursor(76, 52);
+    oled.print("Pk:");
+    oled.print((int)peakDb);
+    oled.print("dB");
 
     oled.display();
 }
@@ -311,7 +338,7 @@ void setup() {
         Serial.println("Inisialisasi OLED gagal!");
     }
 
-    oled.setContrast(200);
+    oled.setContrast(255);
     oled.clearDisplay();
     oled.setTextColor(SH110X_WHITE);
     oled.setTextSize(1);
