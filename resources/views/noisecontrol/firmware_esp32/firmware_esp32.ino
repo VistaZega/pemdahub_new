@@ -52,7 +52,7 @@ const char* SERVER_URL    = "https://perguruanpembda.com/noicecontrol/api/teleme
 
 // Token Alat (Salin dari website perguruanpembda.com/noicecontrol)
 const char* DEVICE_TOKEN  = "nd_MBKIYTv6GR79bf05lUJEiHZtKcbzDZNp";
-const char* FIRMWARE_VER  = "1.2.0-PRO";
+const char* FIRMWARE_VER  = "1.3.0-PRO";
 
 // ================= PIN MAPPING =================
 #define MIC_SCK  26   // Pin SCK INMP441 (GPIO 26)
@@ -72,7 +72,7 @@ Adafruit_SH1106G oled(128, 64, &Wire, -1);
 float thresholdGreen   = 65.0; // < 65 dB  : AMAN (LED Hijau)
 float thresholdYellow  = 75.0; // 65-75 dB : SEDANG (LED Kuning)
 float thresholdRed     = 80.0; // >= 80 dB : BAHAYA / TERLALU RIBUT (LED Merah)
-int alertDelaySeconds  = 60;   // Durasi bising konstan >= 60 detik baru kirim WhatsApp!
+int alertDelaySeconds  = 30;   // Durasi bising konstan >= 30 detik baru kirim WhatsApp!
 
 // Pelacak Durasi Bising Konstan (Filter Anti-False Alarm Dentuman Sesaat)
 unsigned long dangerStartTime = 0; // Waktu awal suara bising konstan >= thresholdRed
@@ -178,7 +178,8 @@ float readNoiseLevel() {
     return dbSPL;
 }
 
-// ================= KONTROL STATUS & LED TIGA WARNA (DENGAN FILTER LONJAKAN SESAAT) =================
+// ================= KONTROL STATUS & LED TIGA WARNA =================
+// LED berubah LANGSUNG real-time tanpa delay — siswa bisa lihat indikator kelas secara instan.
 void updateLedStatus(float db) {
     if (db >= thresholdRed) {
         if (dangerStartTime == 0) {
@@ -186,20 +187,11 @@ void updateLedStatus(float db) {
         }
         currentDangerSeconds = (millis() - dangerStartTime) / 1000;
 
-        // TINGKAT 1: Suara keras sesaat (< 3 detik, misal barang jatuh / meja bergeser)
-        if (currentDangerSeconds < 3) {
-            // Tampilkan Kuning waspada sekilas, Buzzer TIDAK berbunyi
-            digitalWrite(PIN_LED_MERAH, LOW);
-            digitalWrite(PIN_LED_KUNING, HIGH);
-            digitalWrite(PIN_LED_HIJAU, LOW);
-            currentStatus = "warning";
-        } else {
-            // TINGKAT 2: Bising konstan (>= 3 detik) -> Masuk status bahaya, LED Merah ON & Buzzer aktif di kelas!
-            digitalWrite(PIN_LED_MERAH, HIGH);
-            digitalWrite(PIN_LED_KUNING, LOW);
-            digitalWrite(PIN_LED_HIJAU, LOW);
-            currentStatus = "danger";
-        }
+        // LANGSUNG masuk status BAHAYA: LED Merah ON (tanpa filter kuning 3 detik)
+        digitalWrite(PIN_LED_MERAH, HIGH);
+        digitalWrite(PIN_LED_KUNING, LOW);
+        digitalWrite(PIN_LED_HIJAU, LOW);
+        currentStatus = "danger";
     } 
     else {
         // Suara berada di bawah thresholdRed
@@ -232,17 +224,21 @@ void updateLedStatus(float db) {
     }
 }
 
-// ================= KONTROL ALARM BUZZER (CERDAS & ANTI-FEEDBACK) =================
-// Pola: 3 kali bip cepat (pip..pip..pip), lalu hening 3,1 detik untuk evaluasi suara asli kelas.
+// ================= KONTROL ALARM BUZZER BERTAHAP (3 TINGKAT) =================
+// TAHAP 1 (0-3 detik merah)  : Beep pendek 1x (~200ms) sebagai peringatan awal
+// TAHAP 2 (3-10 detik merah) : DIAM — memberi kesempatan kelas mengondisikan diri
+// TAHAP 3 (≥10 detik merah)  : Beep berulang (pip..pip..pip) + jeda 3 detik evaluasi
 // Menggunakan digitalWrite murni (bebas crash LEDC, tanpa tone(), ramah active buzzer).
-void updateBuzzer(bool isDanger) {
+void updateBuzzer(bool isDanger, int dangerSec) {
     static unsigned long cycleStart = 0;
     static bool wasDanger = false;
+    static bool initialBeepDone = false;  // Sudah beep pendek 1x di tahap awal?
 
     if (!isDanger) {
         if (wasDanger) {
             digitalWrite(PIN_BUZZER, LOW);
             wasDanger = false;
+            initialBeepDone = false;
         }
         return;
     }
@@ -251,9 +247,34 @@ void updateBuzzer(bool isDanger) {
     if (!wasDanger) {
         cycleStart = now;
         wasDanger = true;
+        initialBeepDone = false;
     }
 
-    // Siklus total = 3600 ms (500 ms pola bunyi + 3100 ms jeda evaluasi tanpa distorsi)
+    // TAHAP 1: Baru masuk merah (0-3 detik) → Beep pendek 1x (200ms)
+    if (dangerSec < 3) {
+        if (!initialBeepDone) {
+            // Hanya bunyi sekali di awal
+            unsigned long elapsed = now - cycleStart;
+            if (elapsed < 200) {
+                digitalWrite(PIN_BUZZER, HIGH);  // Beep pendek 200ms
+            } else {
+                digitalWrite(PIN_BUZZER, LOW);
+                initialBeepDone = true;
+            }
+        } else {
+            digitalWrite(PIN_BUZZER, LOW);  // Sudah beep, diam
+        }
+        return;
+    }
+
+    // TAHAP 2: Merah bertahan 3-10 detik → DIAM (evaluasi, beri waktu kelas)
+    if (dangerSec < 10) {
+        digitalWrite(PIN_BUZZER, LOW);
+        return;
+    }
+
+    // TAHAP 3: Merah konstan ≥ 10 detik → Bunyi berulang (pip..pip..pip + jeda 3 detik)
+    // Siklus total = 3600 ms (500 ms pola bunyi + 3100 ms jeda evaluasi tanpa distorsi mikrofon)
     unsigned long elapsed = (now - cycleStart) % 3600;
 
     if (elapsed < 100) {
@@ -561,16 +582,16 @@ void loop() {
         peakDb = peakDb * 0.98f;
     }
 
-    // 3. Kendalikan Nyala LED Tiga Warna & Buzzer Sesuai Batas Suara
+    // 3. Kendalikan Nyala LED Tiga Warna & Buzzer Bertahap Sesuai Batas Suara
     updateLedStatus(currentDb);
-    updateBuzzer(currentStatus == "danger");
+    updateBuzzer(currentStatus == "danger", currentDangerSeconds);
 
     // 4. Update data bersama ke Background Telemetry Task (Core 0)
     sharedDb = currentDb;
     sharedPeak = peakDb;
     sharedDangerSec = currentDangerSeconds;
 
-    // Jika bising konstan baru saja mencapai batas (>= 60 detik), picu kirim instan di Core 0!
+    // Jika bising konstan baru saja mencapai batas (>= 30 detik), picu kirim instan di Core 0!
     static bool prevSustained = false;
     bool isSustained = (currentStatus == "danger" && currentDangerSeconds >= alertDelaySeconds);
     if (isSustained && !prevSustained) {

@@ -499,7 +499,7 @@
                             <div>
                                 <label class="text-[11px] text-slate-400 block mb-1">Durasi Konstan:</label>
                                 <div class="relative">
-                                    <input type="number" name="alert_delay_seconds" value="{{ $activeDevice->alert_delay_seconds ?: 60 }}" min="5" max="300" step="5"
+                                    <input type="number" name="alert_delay_seconds" value="{{ $activeDevice->alert_delay_seconds ?: 30 }}" min="5" max="300" step="5"
                                         class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono-code focus:outline-none focus:border-emerald-500">
                                     <span class="absolute right-2 top-1.5 text-[10px] text-slate-500">detik</span>
                                 </div>
@@ -570,7 +570,7 @@
 
                         <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
                             <div>
-                                <span class="text-xs text-slate-200 font-semibold block">Simulasikan Bising Konstan &ge; 1 Menit</span>
+                                <span class="text-xs text-slate-200 font-semibold block">Simulasikan Bising Konstan &ge; 30 Detik</span>
                                 <span class="text-[10px] text-slate-400 block">Centang untuk kirim WA, lepas centang untuk uji coba filter suara sesaat.</span>
                             </div>
                             <label class="inline-flex items-center gap-2 cursor-pointer shrink-0">
@@ -855,13 +855,15 @@ const char* DEVICE_TOKEN = "{{ $activeDevice->device_token ?? 'nd_TOKEN_ALAT_AND
 #define PIN_LED_HIJAU   18
 #define PIN_LED_KUNING  19
 #define PIN_LED_MERAH   23
+#define PIN_BUZZER      4
 
 // Ambang Batas Default dari Server:
 float thresholdGreen   = {{ $activeDevice->threshold_green ?? 65.0 }};
 float thresholdYellow  = {{ $activeDevice->threshold_yellow ?? 75.0 }};
 float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
+int alertDelaySeconds  = {{ $activeDevice->alert_delay_seconds ?? 30 }};
 
-// (Klik tombol 'Salin Seluruh Kode Arduino' di atas untuk mengunduh kode lengkap 250+ baris)</code></pre>
+// (Klik tombol 'Salin Seluruh Kode Arduino' di atas untuk menyalin kode lengkap 1.3.0-PRO)</code></pre>
                 </div>
             </div>
         </div>
@@ -1076,6 +1078,7 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
         let threshGreen = {{ $activeDevice->threshold_green ?? 65.0 }};
         let threshYellow = {{ $activeDevice->threshold_yellow ?? 75.0 }};
         let threshRed = {{ $activeDevice->threshold_red ?? 80.0 }};
+        let alertDelaySec = {{ $activeDevice->alert_delay_seconds ?? 30 }};
 
         // Initialize Waveform Chart
         let waveformChart = null;
@@ -1252,7 +1255,7 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
                     token: activeDeviceToken,
                     db: dbVal,
                     peak_db: dbVal + 3.0,
-                    danger_duration: isSustained ? 65 : 2,
+                    danger_duration: isSustained ? 35 : 2,
                     force_alert: isSustained,
                     firmware: 'SIMULATOR-WEB'
                 })
@@ -1267,9 +1270,9 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
                     updateLiveDashboard(data.current_db, data.current_db + 3.0, data.status_level, data.threshold_green, data.threshold_yellow, data.threshold_red, true);
 
                     if (data.alert_triggered && data.alert_sent) {
-                        alert(`🚨 NOTIFIKASI SUKSES: Suara ${data.current_db} dB berlangsung KONSTAN lebih dari 1 menit! Pesan WhatsApp otomatis telah dikirim ke Wali Kelas (${data.wali_name}) dan Kepala Sekolah Unit.`);
+                        alert(`🚨 NOTIFIKASI SUKSES: Suara ${data.current_db} dB berlangsung KONSTAN lebih dari 30 detik! Pesan WhatsApp otomatis telah dikirim ke Wali Kelas (${data.wali_name}) dan Kepala Sekolah Unit.`);
                     } else if (data.alert_status === 'pending_duration') {
-                        alert(`⏱️ KONDISI MERAH SESAAT: Suara ${data.current_db} dB melampaui batas bahaya, namun pesan WhatsApp TIDAK dikirim karena durasi bising belum mencapai batas konstan (${data.danger_duration}s / ${data.alert_delay || 60}s). Ini membuktikan filter anti-false-alarm bekerja sempurna!`);
+                        alert(`⏱️ KONDISI MERAH SESAAT: Suara ${data.current_db} dB melampaui batas bahaya, namun pesan WhatsApp TIDAK dikirim karena durasi bising belum mencapai batas konstan (${data.danger_duration}s / ${data.alert_delay || 30}s). Ini membuktikan filter anti-false-alarm bekerja sempurna!`);
                     } else if (data.alert_triggered && data.alert_status === 'cooldown') {
                         alert(`⚠️ AMBANG BATAS MERAH TERPICU: Suara ${data.current_db} dB, namun pesan WA dilewati karena masih masa Cooldown (${data.cooldown_remaining} menit lagi).`);
                     }
@@ -1372,7 +1375,7 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
             document.getElementById('editCustomName').value = dev.custom_recipient_name || '';
             document.getElementById('editCustomPhone').value = dev.custom_phone || '';
             document.getElementById('editCooldown').value = dev.cooldown_minutes;
-            document.getElementById('editAlertDelay').value = dev.alert_delay_seconds || 60;
+            document.getElementById('editAlertDelay').value = dev.alert_delay_seconds || 30;
             document.getElementById('editCalibOffset').value = dev.calibration_offset || 0;
 
             document.getElementById('modalEditDevice').classList.remove('hidden');
@@ -1416,23 +1419,19 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
         }
 
         function copyFirmwareCode() {
-            const code = document.getElementById('firmwareCodeBlock').innerText;
-            // Fetch full source code from firmware file
-            fetch('{{ asset("storage/firmware_esp32.ino") }}')
-                .catch(() => null);
-
-            // Copy populated firmware template
+            // Copy populated firmware template (Firmware 1.3.0-PRO)
             const fullFirmware = `/* =========================================================================================
  * PEMBDA NOISE CONTROL & CLASSROOM MONITORING SYSTEM
  * Microcontroller : ESP32 (ESP-WROOM-32 / NodeMCU-32S)
  * Sensor Audio    : INMP441 (Digital I2S MEMS Microphone)
  * Display         : OLED 1.3" I2C (SH1106, Address 0x3C via Adafruit_SH110X)
  * Indikator LED   : Hijau (18), Kuning (19), Merah (23)
+ * Buzzer Alarm    : Active Buzzer (GPIO 4)
  * Cloud Server    : https://perguruanpembda.com/noicecontrol
  * =========================================================================================
  * PIN HARDWARE:
  * 1. INMP441 Microphone (I2S):
- *    - SCK  -> GPIO 26  (Serial Clock / BCLK)  <-- SESUAI RANGKAIAN FISIK!
+ *    - SCK  -> GPIO 26  (Serial Clock / BCLK)
  *    - WS   -> GPIO 25  (Word Select / LRCK)
  *    - SD   -> GPIO 32  (Serial Data Out)
  *    - VDD  -> 3.3V
@@ -1449,6 +1448,10 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
  *    - LED Hijau  (Aman)          -> GPIO 18 (Resistor 220-330 Ohm ke GND)
  *    - LED Kuning (Sedikit Ribut) -> GPIO 19 (Resistor 220-330 Ohm ke GND)
  *    - LED Merah  (Terlalu Ribut) -> GPIO 23 (Resistor 220-330 Ohm ke GND)
+ * 
+ * 4. Buzzer Alarm:
+ *    - Positif (+) / VCC          -> GPIO 4  (Alarm Bunyi Saat Ribut)
+ *    - Negatif (-) / GND          -> GND
  * =========================================================================================
  */
 
@@ -1462,39 +1465,63 @@ float thresholdRed     = {{ $activeDevice->threshold_red ?? 80.0 }};
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
-const char* WIFI_SSID     = "NAMA_WIFI_SEKOLAH";
-const char* WIFI_PASSWORD = "PASSWORD_WIFI";
+// ================= PENGATURAN WIFI & SERVER =================
+const char* WIFI_SSID     = "VST:BlackHole";      // Ganti dengan SSID WiFi/Hotspot Anda
+const char* WIFI_PASSWORD = "pelita31";          // Ganti dengan Password WiFi Anda
 const char* SERVER_URL    = "https://perguruanpembda.com/noicecontrol/api/telemetry";
-const char* DEVICE_TOKEN  = "${activeDeviceToken}";
-const char* FIRMWARE_VER  = "1.2.0-PRO";
 
-#define MIC_SCK  26
-#define MIC_WS   25
-#define MIC_SD   32
+// Token Alat (Salin dari website perguruanpembda.com/noicecontrol)
+const char* DEVICE_TOKEN  = "${activeDeviceToken}";
+const char* FIRMWARE_VER  = "1.3.0-PRO";
+
+// ================= PIN MAPPING =================
+#define MIC_SCK  26   // Pin SCK INMP441 (GPIO 26)
+#define MIC_WS   25   // Pin WS INMP441  (GPIO 25)
+#define MIC_SD   32   // Pin SD INMP441  (GPIO 32)
 #define I2S_PORT I2S_NUM_0
 
 #define PIN_LED_HIJAU   18
 #define PIN_LED_KUNING  19
 #define PIN_LED_MERAH   23
+#define PIN_BUZZER      4    // Pin Buzzer Alarm (GPIO 4)
 
+// Inisialisasi Layar OLED SH1106
 Adafruit_SH1106G oled(128, 64, &Wire, -1);
 
-float thresholdGreen   = ${threshGreen};
-float thresholdYellow  = ${threshYellow};
-float thresholdRed     = ${threshRed};
+// Ambang Batas Desibel Suara & Durasi Bising Konstan
+float thresholdGreen   = ${threshGreen}; // < 65 dB  : AMAN (LED Hijau)
+float thresholdYellow  = ${threshYellow}; // 65-75 dB : SEDANG (LED Kuning)
+float thresholdRed     = ${threshRed}; // >= 80 dB : BAHAYA / TERLALU RIBUT (LED Merah)
+int alertDelaySeconds  = ${alertDelaySec};   // Durasi bising konstan >= 30 detik baru kirim WhatsApp!
 
+// Pelacak Durasi Bising Konstan (Filter Anti-False Alarm Dentuman Sesaat)
+unsigned long dangerStartTime = 0; // Waktu awal suara bising konstan >= thresholdRed
+int currentDangerSeconds = 0;       // Durasi bising konstan aktif dalam detik
+
+// Variabel Antar-Core (FreeRTOS Dual Core Async Telemetry)
+// Core 1 (Sensor & OLED Display) bebas 100% dari lag jaringan!
+// Core 0 (Background) mengurus transmisi HTTPS WiFi tanpa pernah membekukan layar.
+volatile float sharedDb               = 45.0f;
+volatile float sharedPeak             = 45.0f;
+volatile int   sharedDangerSec         = 0;
+volatile bool  requestImmediateTelemetry = false;
+TaskHandle_t   telemetryTaskHandle     = NULL;
+
+// Buffer Audio I2S
 #define SAMPLES_COUNT 512
 int32_t samples[SAMPLES_COUNT];
 
+// Variabel Suara & Telemetri
 float currentDb = 45.0;
 float peakDb    = 45.0;
 String currentStatus = "safe";
 String className     = "Ruang Kelas";
-unsigned long lastTelemetryTime = 0;
-const unsigned long TELEMETRY_INTERVAL = 3000;
 bool isAlertSent = false;
 
+// ================= SETUP I2S INMP441 =================
 void setupI2S() {
     i2s_config_t config = {};
     config.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX);
@@ -1509,7 +1536,10 @@ void setupI2S() {
     config.tx_desc_auto_clear = false;
     config.fixed_mclk = 0;
 
-    i2s_driver_install(I2S_PORT, &config, 0, nullptr);
+    esp_err_t hasil = i2s_driver_install(I2S_PORT, &config, 0, nullptr);
+    if (hasil != ESP_OK) {
+        Serial.println("I2S driver install gagal!");
+    }
 
     i2s_pin_config_t pins = {};
     pins.mck_io_num = I2S_PIN_NO_CHANGE;
@@ -1518,57 +1548,175 @@ void setupI2S() {
     pins.data_out_num = I2S_PIN_NO_CHANGE;
     pins.data_in_num = MIC_SD;
 
-    i2s_set_pin(I2S_PORT, &pins);
+    hasil = i2s_set_pin(I2S_PORT, &pins);
+    if (hasil != ESP_OK) {
+        Serial.println("I2S set pin gagal!");
+    }
 
+    // Buang data awal mikrofon
     for (int i = 0; i < 4; i++) {
         size_t dibaca = 0;
         i2s_read(I2S_PORT, samples, sizeof(samples), &dibaca, pdMS_TO_TICKS(100));
     }
 }
 
+// ================= BACA SUARA & HITUNG DESIBEL (RESPONSIF) =================
 float readNoiseLevel() {
     size_t bytesRead = 0;
-    esp_err_t hasil = i2s_read(I2S_PORT, samples, sizeof(samples), &bytesRead, pdMS_TO_TICKS(150));
+    // 512 sampel @ 16kHz = 32ms audio, timeout 40ms menjamin pembacaan lancar tanpa hang
+    esp_err_t hasil = i2s_read(I2S_PORT, samples, sizeof(samples), &bytesRead, pdMS_TO_TICKS(40));
     int jumlah = bytesRead / sizeof(int32_t);
-    if (hasil != ESP_OK || jumlah == 0) return 35.0;
 
+    if (hasil != ESP_OK || jumlah == 0) {
+        return 35.0;
+    }
+
+    // Normalisasi audio 24-bit ke rentang -1.0 s.d +1.0
     double total = 0;
     double totalKuadrat = 0;
+
     for (int i = 0; i < jumlah; i++) {
         double x = (double)(samples[i] >> 8) / 8388608.0;
         total += x;
         totalKuadrat += x * x;
     }
 
+    // Hilangkan komponen DC Offset untuk mendapatkan RMS murni
     double rata = total / jumlah;
     double variansi = totalKuadrat / jumlah - (rata * rata);
     if (variansi < 0) variansi = 0;
 
     double rms = sqrt(variansi);
+    
+    // Hitung dBFS (-75 s.d -20 dBFS)
     float dbfs = 20.0 * log10(rms > 0.000000001 ? rms : 0.000000001);
-    float dbSPL = constrain(dbfs + 115.0f, 35.0f, 110.0f);
+
+    // Konversi dBFS ke estimasi dB SPL (Sound Pressure Level) yang realistis:
+    // Suara hening kamar: ~40-48 dB
+    // Percakapan sedang : ~60-70 dB
+    // Suara keras/tepuk : ~80-95 dB
+    float dbSPL = dbfs + 115.0f;
+    dbSPL = constrain(dbSPL, 35.0f, 110.0f);
+
     return dbSPL;
 }
 
+// ================= KONTROL STATUS & LED TIGA WARNA =================
+// LED berubah LANGSUNG real-time tanpa delay — siswa bisa lihat indikator kelas secara instan.
 void updateLedStatus(float db) {
     if (db >= thresholdRed) {
+        if (dangerStartTime == 0) {
+            dangerStartTime = millis();
+        }
+        currentDangerSeconds = (millis() - dangerStartTime) / 1000;
+
+        // LANGSUNG masuk status BAHAYA: LED Merah ON (tanpa filter kuning 3 detik)
         digitalWrite(PIN_LED_MERAH, HIGH);
         digitalWrite(PIN_LED_KUNING, LOW);
         digitalWrite(PIN_LED_HIJAU, LOW);
         currentStatus = "danger";
-    } else if (db >= thresholdGreen) {
-        digitalWrite(PIN_LED_MERAH, LOW);
-        digitalWrite(PIN_LED_KUNING, HIGH);
-        digitalWrite(PIN_LED_HIJAU, LOW);
-        currentStatus = "warning";
-    } else {
-        digitalWrite(PIN_LED_MERAH, LOW);
-        digitalWrite(PIN_LED_KUNING, LOW);
-        digitalWrite(PIN_LED_HIJAU, HIGH);
-        currentStatus = "safe";
+    } 
+    else {
+        // Suara berada di bawah thresholdRed
+        // Berikan waktu jeda hening 2 detik sebelum mereset penghitung durasi bahaya
+        static unsigned long quietTime = 0;
+        if (dangerStartTime > 0) {
+            if (quietTime == 0) quietTime = millis();
+            if (millis() - quietTime >= 2000) {
+                dangerStartTime = 0;
+                currentDangerSeconds = 0;
+                quietTime = 0;
+            }
+        } else {
+            quietTime = 0;
+        }
+
+        if (db >= thresholdGreen) {
+            // ZONA 2: SEDIKIT RIBUT (Kuning ON, Merah & Hijau OFF)
+            digitalWrite(PIN_LED_MERAH, LOW);
+            digitalWrite(PIN_LED_KUNING, HIGH);
+            digitalWrite(PIN_LED_HIJAU, LOW);
+            currentStatus = "warning";
+        } else {
+            // ZONA 1: AMAN / KONDUSIF (Hijau ON, Merah & Kuning OFF)
+            digitalWrite(PIN_LED_MERAH, LOW);
+            digitalWrite(PIN_LED_KUNING, LOW);
+            digitalWrite(PIN_LED_HIJAU, HIGH);
+            currentStatus = "safe";
+        }
     }
 }
 
+// ================= KONTROL ALARM BUZZER BERTAHAP (3 TINGKAT) =================
+// TAHAP 1 (0-3 detik merah)  : Beep pendek 1x (~200ms) sebagai peringatan awal
+// TAHAP 2 (3-10 detik merah) : DIAM — memberi kesempatan kelas mengondisikan diri
+// TAHAP 3 (≥10 detik merah)  : Beep berulang (pip..pip..pip) + jeda 3 detik evaluasi
+// Menggunakan digitalWrite murni (bebas crash LEDC, tanpa tone(), ramah active buzzer).
+void updateBuzzer(bool isDanger, int dangerSec) {
+    static unsigned long cycleStart = 0;
+    static bool wasDanger = false;
+    static bool initialBeepDone = false;  // Sudah beep pendek 1x di tahap awal?
+
+    if (!isDanger) {
+        if (wasDanger) {
+            digitalWrite(PIN_BUZZER, LOW);
+            wasDanger = false;
+            initialBeepDone = false;
+        }
+        return;
+    }
+
+    unsigned long now = millis();
+    if (!wasDanger) {
+        cycleStart = now;
+        wasDanger = true;
+        initialBeepDone = false;
+    }
+
+    // TAHAP 1: Baru masuk merah (0-3 detik) → Beep pendek 1x (200ms)
+    if (dangerSec < 3) {
+        if (!initialBeepDone) {
+            // Hanya bunyi sekali di awal
+            unsigned long elapsed = now - cycleStart;
+            if (elapsed < 200) {
+                digitalWrite(PIN_BUZZER, HIGH);  // Beep pendek 200ms
+            } else {
+                digitalWrite(PIN_BUZZER, LOW);
+                initialBeepDone = true;
+            }
+        } else {
+            digitalWrite(PIN_BUZZER, LOW);  // Sudah beep, diam
+        }
+        return;
+    }
+
+    // TAHAP 2: Merah bertahan 3-10 detik → DIAM (evaluasi, beri waktu kelas)
+    if (dangerSec < 10) {
+        digitalWrite(PIN_BUZZER, LOW);
+        return;
+    }
+
+    // TAHAP 3: Merah konstan ≥ 10 detik → Bunyi berulang (pip..pip..pip + jeda 3 detik)
+    // Siklus total = 3600 ms (500 ms pola bunyi + 3100 ms jeda evaluasi tanpa distorsi mikrofon)
+    unsigned long elapsed = (now - cycleStart) % 3600;
+
+    if (elapsed < 100) {
+        digitalWrite(PIN_BUZZER, HIGH); // Bip 1
+    } else if (elapsed < 200) {
+        digitalWrite(PIN_BUZZER, LOW);
+    } else if (elapsed < 300) {
+        digitalWrite(PIN_BUZZER, HIGH); // Bip 2
+    } else if (elapsed < 400) {
+        digitalWrite(PIN_BUZZER, LOW);
+    } else if (elapsed < 500) {
+        digitalWrite(PIN_BUZZER, HIGH); // Bip 3
+    } else {
+        // Hening 3,1 detik: Memastikan mikrofon mengukur desibel asli ruang kelas tanpa terpapar suara buzzer sendiri
+        digitalWrite(PIN_BUZZER, LOW);
+    }
+}
+
+// ================= GAMBAR TAMPILAN OLED 1.3 INCH (HERO dB & TEKS SANGAT JELAS) =================
 void drawOledDisplay(float db) {
     oled.clearDisplay();
     oled.setTextColor(SH110X_WHITE);
@@ -1608,12 +1756,17 @@ void drawOledDisplay(float db) {
 
     // 3. Status Badge: Ramping, Elegan & Menggunakan Teks Normal (Title Case)
     if (currentStatus == "danger") {
-        // Mode Bahaya / Ribut: Kotak Peringatan Menyala
-        oled.fillRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
+        // Mode Bahaya / Ribut: Kotak Peringatan Menyala dengan Indikator Durasi Detik
+        oled.fillRoundRect(24, 38, 80, 11, 2, SH110X_WHITE);
         oled.setTextColor(SH110X_BLACK, SH110X_WHITE);
         oled.setTextSize(1);
-        oled.setCursor(46, 40);
-        oled.print("Ribut!");
+        if (currentDangerSeconds > 0) {
+            oled.setCursor(28, 40);
+            oled.printf("Ribut! %ds", currentDangerSeconds);
+        } else {
+            oled.setCursor(46, 40);
+            oled.print("Ribut!");
+        }
         oled.setTextColor(SH110X_WHITE);
     } else if (currentStatus == "warning") {
         // Mode Waspada / Sedang: Garis Tipis Elegan
@@ -1642,104 +1795,228 @@ void drawOledDisplay(float db) {
     oled.display();
 }
 
-void sendTelemetry(float db, float peak) {
-    if (WiFi.status() != WL_CONNECTED) return;
+// ================= KIRIM TELEMETRI KE CLOUD PEMBDAHUB =================
+// Dijalankan di Core 0 background task sehingga Core 1 (Sensor & Layar) bebas dari lag jaringan!
+void sendTelemetry(float db, float peak, int dangerDuration) {
+    if (WiFi.status() != WL_CONNECTED) {
+        return; // Lewati jika offline
+    }
+
     WiFiClientSecure secureClient;
-    secureClient.setInsecure();
+    secureClient.setInsecure(); // Mengizinkan HTTPS tanpa validasi sertifikat CA
 
     HTTPClient http;
+    bool beginOk = false;
     if (String(SERVER_URL).startsWith("https")) {
-        if (!http.begin(secureClient, SERVER_URL)) return;
+        beginOk = http.begin(secureClient, SERVER_URL);
     } else {
-        if (!http.begin(SERVER_URL)) return;
+        beginOk = http.begin(SERVER_URL);
     }
+
+    if (!beginOk) return;
 
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Device-Token", DEVICE_TOKEN);
-    http.setTimeout(5000);
+    http.setTimeout(4000);
 
     StaticJsonDocument<256> doc;
-    doc["token"]    = DEVICE_TOKEN;
-    doc["db"]       = db;
-    doc["peak_db"]  = peak;
-    doc["firmware"] = FIRMWARE_VER;
-    String payload;
-    serializeJson(doc, payload);
+    doc["token"]           = DEVICE_TOKEN;
+    doc["db"]              = db;
+    doc["peak_db"]         = peak;
+    doc["danger_duration"] = dangerDuration;
+    doc["firmware"]        = FIRMWARE_VER;
 
-    int code = http.POST(payload);
-    if (code == 200) {
+    String jsonString;
+    serializeJson(doc, jsonString);
+
+    int httpCode = http.POST(jsonString);
+    Serial.printf("[Telemetri Core-0] Kirim %0.1f dB (Bising: %ds) | Response: %d\\n", db, dangerDuration, httpCode);
+
+    if (httpCode == 200) {
+        String response = http.getString();
         StaticJsonDocument<512> resDoc;
-        if (!deserializeJson(resDoc, http.getString())) {
+        DeserializationError error = deserializeJson(resDoc, response);
+
+        if (!error) {
             if (resDoc.containsKey("threshold_green")) thresholdGreen = resDoc["threshold_green"];
             if (resDoc.containsKey("threshold_yellow")) thresholdYellow = resDoc["threshold_yellow"];
             if (resDoc.containsKey("threshold_red")) thresholdRed = resDoc["threshold_red"];
+            if (resDoc.containsKey("alert_delay")) alertDelaySeconds = resDoc["alert_delay"];
             if (resDoc.containsKey("classroom")) className = resDoc["classroom"].as<String>();
+            if (resDoc.containsKey("alert_sent")) isAlertSent = resDoc["alert_sent"];
         }
     }
     http.end();
 }
 
+// ================= BACKGROUND TASK DI CORE 0 (ASINKRON / MULTITHREADING) =================
+// Menjalankan koneksi WiFi & transmisi HTTPS di Core 0 tanpa pernah membekukan loop utama di Core 1
+void telemetryTask(void *pvParameters) {
+    unsigned long lastSendTime = 0;
+    const unsigned long TELEMETRY_INTERVAL_MS = 4000; // Kirim rutin tiap 4 detik
+
+    for (;;) {
+        unsigned long now = millis();
+        bool shouldSend = false;
+
+        if (WiFi.status() == WL_CONNECTED) {
+            if (requestImmediateTelemetry || (now - lastSendTime >= TELEMETRY_INTERVAL_MS)) {
+                shouldSend = true;
+                requestImmediateTelemetry = false;
+            }
+        }
+
+        if (shouldSend) {
+            lastSendTime = now;
+            float sDb = sharedDb;
+            float sPeak = sharedPeak;
+            int sDur = sharedDangerSec;
+            sendTelemetry(sDb, sPeak, sDur);
+        }
+
+        // Coba koneksi ulang WiFi jika terputus (di Core 0 background)
+        if (WiFi.status() != WL_CONNECTED) {
+            static unsigned long lastReconnect = 0;
+            if (now - lastReconnect >= 10000) {
+                lastReconnect = now;
+                Serial.println("[WiFi Background] Reconnecting...");
+                WiFi.reconnect();
+            }
+        }
+
+        // Delay 100ms di Core 0 agar FreeRTOS Task Watchdog Timer (TWDT) rileks
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+
+// ================= SETUP UTAMA =================
 void setup() {
     Serial.begin(115200);
 
+    // Setup Pin LED & Buzzer
     pinMode(PIN_LED_HIJAU, OUTPUT);
     pinMode(PIN_LED_KUNING, OUTPUT);
     pinMode(PIN_LED_MERAH, OUTPUT);
+    pinMode(PIN_BUZZER, OUTPUT);
 
-    digitalWrite(PIN_LED_HIJAU, HIGH);
-    digitalWrite(PIN_LED_KUNING, HIGH);
-    digitalWrite(PIN_LED_MERAH, HIGH);
+    // Pastikan semua output mati diawal
+    digitalWrite(PIN_LED_HIJAU, LOW);
+    digitalWrite(PIN_LED_KUNING, LOW);
+    digitalWrite(PIN_LED_MERAH, LOW);
+    digitalWrite(PIN_BUZZER, LOW);
 
+    // Self-Test Berurutan yang Aman (Menghindari lonjakan arus / Brownout ESP32):
+    digitalWrite(PIN_LED_HIJAU, HIGH); delay(100); digitalWrite(PIN_LED_HIJAU, LOW);
+    digitalWrite(PIN_LED_KUNING, HIGH); delay(100); digitalWrite(PIN_LED_KUNING, LOW);
+    digitalWrite(PIN_LED_MERAH, HIGH); delay(100); digitalWrite(PIN_LED_MERAH, LOW);
+    digitalWrite(PIN_BUZZER, HIGH); delay(80); digitalWrite(PIN_BUZZER, LOW);
+
+    // Inisialisasi I2C OLED
     Wire.begin(21, 22);
     Wire.setClock(400000);
-    delay(200);
+    delay(100);
 
-    oled.begin(0x3C, true);
+    if (!oled.begin(0x3C, true)) {
+        Serial.println("Inisialisasi OLED gagal!");
+    }
+
     oled.setContrast(255);
     oled.clearDisplay();
     oled.setTextColor(SH110X_WHITE);
     oled.setTextSize(1);
     oled.setCursor(10, 20);
     oled.println("PEMBDA NOISE MONITOR");
+    oled.setCursor(18, 38);
+    oled.println("Menginisialisasi...");
     oled.display();
 
-    delay(800);
-    digitalWrite(PIN_LED_HIJAU, LOW);
-    digitalWrite(PIN_LED_KUNING, LOW);
-    digitalWrite(PIN_LED_MERAH, LOW);
+    delay(400);
 
+    // Inisialisasi Mikrofon INMP441 (SCK=26, WS=25, SD=32)
     setupI2S();
 
+    // Koneksi WiFi ke Hotspot/Router
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Serial.print("\\n[WiFi] Menghubungkan ke: ");
+    Serial.println(WIFI_SSID);
+
+    int wifiRetry = 0;
+    while (WiFi.status() != WL_CONNECTED && wifiRetry < 15) {
+        delay(300);
+        Serial.print(".");
+        wifiRetry++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\\n[WiFi] Berhasil Terhubung!");
+        Serial.print("[WiFi] IP ESP32: ");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println("\\n[WiFi] Belum tersambung (akan mencoba otomatis di background Core 0).");
+    }
+
+    // Luncurkan Background Telemetry Task di Core 0 (Multithreading FreeRTOS)
+    xTaskCreatePinnedToCore(
+        telemetryTask,          /* Fungsi task */
+        "TelemetryTask",        /* Nama task */
+        8192,                   /* Ukuran stack (8KB aman untuk TLS/SSL) */
+        NULL,                   /* Parameter */
+        1,                      /* Prioritas task */
+        &telemetryTaskHandle,   /* Handle task */
+        0                       /* Pin ke Core 0 */
+    );
+
+    // Indikator operasional siap: Nyalakan LED Hijau tanda sistem mulai aktif memantau
+    digitalWrite(PIN_LED_HIJAU, HIGH);
 }
 
+// ================= LOOP UTAMA (CORE 1: REAL-TIME SENSOR & OLED) =================
+// 100% Non-Blocking: Menjamin desibel dan OLED bergerak secepat kilat (25 FPS) tanpa ada jeda/tertahan!
 void loop() {
+    // 1. Baca desibel suara dari mikrofon INMP441 (Responsif & Cepat)
     float db = readNoiseLevel();
-    float faktor = (db > currentDb) ? 0.60f : 0.25f;
+
+    // 2. Filter perataan suara (Responsif terhadap lonjakan suara)
+    float faktor = (db > currentDb) ? 0.65f : 0.25f;
     currentDb += faktor * (db - currentDb);
-    peakDb = max(db, (float)(peakDb * 0.98));
 
+    if (db > peakDb) {
+        peakDb = db;
+    } else {
+        peakDb = peakDb * 0.98f;
+    }
+
+    // 3. Kendalikan Nyala LED Tiga Warna & Buzzer Bertahap Sesuai Batas Suara
     updateLedStatus(currentDb);
+    updateBuzzer(currentStatus == "danger", currentDangerSeconds);
 
+    // 4. Update data bersama ke Background Telemetry Task (Core 0)
+    sharedDb = currentDb;
+    sharedPeak = peakDb;
+    sharedDangerSec = currentDangerSeconds;
+
+    // Jika bising konstan baru saja mencapai batas (>= 30 detik), picu kirim instan di Core 0!
+    static bool prevSustained = false;
+    bool isSustained = (currentStatus == "danger" && currentDangerSeconds >= alertDelaySeconds);
+    if (isSustained && !prevSustained) {
+        requestImmediateTelemetry = true;
+    }
+    prevSustained = isSustained;
+
+    // 5. Render Layar OLED secara sangat halus (~25 FPS)
     static unsigned long lastDisp = 0;
-    if (millis() - lastDisp >= 60) {
+    if (millis() - lastDisp >= 40) {
         lastDisp = millis();
         drawOledDisplay(currentDb);
     }
 
-    static bool prevDanger = false;
-    bool isDanger = (currentStatus == "danger");
-    if (millis() - lastTelemetryTime >= TELEMETRY_INTERVAL || (isDanger && !prevDanger)) {
-        lastTelemetryTime = millis();
-        sendTelemetry(currentDb, peakDb);
-    }
-    prevDanger = isDanger;
-    delay(10);
+    delay(2);
 }`;
 
             navigator.clipboard.writeText(fullFirmware).then(() => {
-                alert('✔ Seluruh Source Code Arduino ESP32 berhasil disalin ke clipboard! Siap di-paste ke Arduino IDE.');
+                alert('✔ Seluruh Source Code Arduino ESP32 (v1.3.0-PRO) berhasil disalin ke clipboard! Siap di-paste ke Arduino IDE.');
             });
         }
     </script>

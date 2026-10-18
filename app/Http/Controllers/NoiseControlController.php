@@ -142,7 +142,7 @@ class NoiseControlController extends Controller
             'threshold_green'       => $validated['threshold_green'],
             'threshold_yellow'      => $validated['threshold_yellow'],
             'threshold_red'         => $validated['threshold_red'],
-            'alert_delay_seconds'   => $validated['alert_delay_seconds'] ?? 60,
+            'alert_delay_seconds'   => $validated['alert_delay_seconds'] ?? 30,
             'cooldown_minutes'      => $validated['cooldown_minutes'],
             'wa_enabled'            => $request->boolean('wa_enabled', true),
             'is_active'             => true,
@@ -189,7 +189,7 @@ class NoiseControlController extends Controller
             'threshold_yellow'      => $validated['threshold_yellow'],
             'threshold_red'         => $validated['threshold_red'],
             'calibration_offset'    => $validated['calibration_offset'] ?? 0.0,
-            'alert_delay_seconds'   => $validated['alert_delay_seconds'] ?? ($device->alert_delay_seconds ?: 60),
+            'alert_delay_seconds'   => $validated['alert_delay_seconds'] ?? ($device->alert_delay_seconds ?: 30),
             'cooldown_minutes'      => $validated['cooldown_minutes'],
             'wa_enabled'            => $request->boolean('wa_enabled', true),
             'is_active'             => $request->boolean('is_active', true),
@@ -419,10 +419,10 @@ class NoiseControlController extends Controller
 
         // 4. Logika Peringatan Bising (HANYA Status Danger & Bertahan Konstan >= alert_delay_seconds)
         $dangerDuration = (int) $request->input('danger_duration', 0);
-        $requiredDelay = (int) ($device->alert_delay_seconds ?: 60);
+        $requiredDelay = (int) ($device->alert_delay_seconds ?: 30);
 
         if ($status === 'danger') {
-            // Verifikasi durasi: hanya kirim WhatsApp jika kebisingan konstan >= batas waktu (default 60 detik)
+            // Verifikasi durasi: hanya kirim WhatsApp jika kebisingan konstan >= batas waktu (default 30 detik)
             // Atau dipicu manual melalui tombol web simulator (force_alert = true)
             $isSustained = ($dangerDuration >= $requiredDelay) || $request->boolean('force_alert');
 
@@ -437,7 +437,7 @@ class NoiseControlController extends Controller
                     if (!empty($waliInfo['phone'])) {
                         $alertMessage = "🚨 *PERINGATAN KEBISINGAN KELAS (KONSTAN BERLANJUT)* 🚨\n\n"
                             . "Yth. Bapak/Ibu Wali Kelas *{$waliInfo['name']}*,\n"
-                            . "Sistem sensor IoT mendeteksi bahwa tingkat kebisingan di ruang kelas Anda telah melampaui batas aman secara *KONSTAN selama lebih dari 1 menit* ({$durasiDetik} detik).\n\n"
+                            . "Sistem sensor IoT mendeteksi bahwa tingkat kebisingan di ruang kelas Anda telah melampaui batas aman secara *KONSTAN selama lebih dari 30 detik* ({$durasiDetik} detik).\n\n"
                             . "🏫 *Unit/Kelas:* {$className}\n"
                             . "📍 *Lokasi:* {$location}\n"
                             . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
@@ -464,7 +464,7 @@ class NoiseControlController extends Controller
                         $schoolName = $principalInfo['school_name'] ?? 'Unit Sekolah';
                         $principalMessage = "🚨 *LAPORAN KEBISINGAN KELAS (KONSTAN BERLANJUT)* 🚨\n\n"
                             . "Yth. Bapak/Ibu *{$principalInfo['name']}* ({$principalInfo['title']}),\n"
-                            . "Sistem sensor IoT mendeteksi terjadinya kebisingan tingkat tinggi yang berlangsung *KONSTAN selama lebih dari 1 menit* ({$durasiDetik} detik) pada unit sekolah Anda:\n\n"
+                            . "Sistem sensor IoT mendeteksi terjadinya kebisingan tingkat tinggi yang berlangsung *KONSTAN selama lebih dari 30 detik* ({$durasiDetik} detik) pada unit sekolah Anda:\n\n"
                             . "🏫 *Unit/Kelas:* {$className}\n"
                             . "📍 *Lokasi Sensor:* {$location}\n"
                             . "📊 *Tingkat Kebisingan:* *{$calibratedDb} dB* (Batas Bahaya: {$device->threshold_red} dB)\n"
@@ -615,7 +615,7 @@ class NoiseControlController extends Controller
                 'threshold_green'    => (float) $activeDevice->threshold_green,
                 'threshold_yellow'   => (float) $activeDevice->threshold_yellow,
                 'threshold_red'      => (float) $activeDevice->threshold_red,
-                'alert_delay_seconds'=> (int) ($activeDevice->alert_delay_seconds ?: 60),
+                'alert_delay_seconds'=> (int) ($activeDevice->alert_delay_seconds ?: 30),
                 'cooldown_remaining' => $activeDevice->getRemainingCooldownMinutes(),
                 'last_seen_diff'     => $activeDevice->last_seen_at ? $activeDevice->last_seen_at->diffForHumans() : 'Belum pernah',
                 'classroom_name'     => $activeDevice->classroom?->class_name ?? 'Umum',

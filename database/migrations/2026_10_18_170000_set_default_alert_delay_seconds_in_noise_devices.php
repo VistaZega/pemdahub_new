@@ -11,13 +11,14 @@ return new class extends Migration
     {
         if (Schema::hasTable('noise_devices')) {
             Schema::table('noise_devices', function (Blueprint $table) {
-                $table->integer('alert_delay_seconds')->default(60)->change();
+                $table->integer('alert_delay_seconds')->default(30)->change();
             });
 
-            // Update existing records with the 60s sustained noise default
+            // Update existing records with the 30s sustained noise default
             DB::table('noise_devices')
                 ->where('alert_delay_seconds', '<', 30)
-                ->update(['alert_delay_seconds' => 60]);
+                ->orWhere('alert_delay_seconds', 60)
+                ->update(['alert_delay_seconds' => 30]);
         }
     }
 
