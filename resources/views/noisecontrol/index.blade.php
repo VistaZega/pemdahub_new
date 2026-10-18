@@ -727,7 +727,7 @@
             </div>
 
             <!-- HARDWARE PINOUT TABLE -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <!-- INMP441 -->
                 <div class="glass-card p-4 rounded-2xl border border-slate-700/60 space-y-2">
                     <div class="text-xs font-bold font-mono-code text-emerald-400 flex items-center gap-2">
@@ -736,9 +736,9 @@
                     <ul class="text-xs space-y-1 font-mono-code text-slate-300">
                         <li><span class="text-slate-400">VDD :</span> 3.3V ESP32</li>
                         <li><span class="text-slate-400">GND :</span> GND ESP32</li>
-                        <li><span class="text-slate-400">SD  :</span> <span class="text-emerald-400 font-bold">GPIO 32</span> (Serial Data)</li>
-                        <li><span class="text-slate-400">WS  :</span> <span class="text-emerald-400 font-bold">GPIO 25</span> (Word Select)</li>
-                        <li><span class="text-slate-400">SCK :</span> <span class="text-emerald-400 font-bold">GPIO 26</span> (Clock BCLK)</li>
+                        <li><span class="text-slate-400">SD  :</span> <span class="text-emerald-400 font-bold">GPIO 32</span></li>
+                        <li><span class="text-slate-400">WS  :</span> <span class="text-emerald-400 font-bold">GPIO 25</span></li>
+                        <li><span class="text-slate-400">SCK :</span> <span class="text-emerald-400 font-bold">GPIO 26</span></li>
                         <li><span class="text-slate-400">L/R :</span> GND (Left Channel)</li>
                     </ul>
                 </div>
@@ -746,15 +746,15 @@
                 <!-- OLED 1.3" -->
                 <div class="glass-card p-4 rounded-2xl border border-slate-700/60 space-y-2">
                     <div class="text-xs font-bold font-mono-code text-blue-400 flex items-center gap-2">
-                        <i class="fa-solid fa-tv"></i> 2. DISPLAY OLED 1.3" (I2C)
+                        <i class="fa-solid fa-tv"></i> 2. DISPLAY OLED (I2C)
                     </div>
                     <ul class="text-xs space-y-1 font-mono-code text-slate-300">
                         <li><span class="text-slate-400">VCC :</span> 3.3V ESP32</li>
                         <li><span class="text-slate-400">GND :</span> GND ESP32</li>
-                        <li><span class="text-slate-400">SDA :</span> <span class="text-blue-400 font-bold">GPIO 21</span> (I2C Data)</li>
-                        <li><span class="text-slate-400">SCL :</span> <span class="text-blue-400 font-bold">GPIO 22</span> (I2C Clock)</li>
-                        <li><span class="text-slate-400">Chip:</span> SH1106 / SSD1306 (0x3C)</li>
-                        <li><span class="text-slate-400">Fitur:</span> Bar VU Graph + Teks dB</li>
+                        <li><span class="text-slate-400">SDA :</span> <span class="text-blue-400 font-bold">GPIO 21</span></li>
+                        <li><span class="text-slate-400">SCL :</span> <span class="text-blue-400 font-bold">GPIO 22</span></li>
+                        <li><span class="text-slate-400">Chip:</span> SH1106 / SSD1306</li>
+                        <li><span class="text-slate-400">Fitur:</span> VU Bar + Teks Hero dB</li>
                     </ul>
                 </div>
 
@@ -764,10 +764,24 @@
                         <i class="fa-solid fa-traffic-light"></i> 3. INDIKATOR 3 LED
                     </div>
                     <ul class="text-xs space-y-1 font-mono-code text-slate-300">
-                        <li><span class="text-emerald-400">LED Hijau  (Aman)    :</span> <span class="font-bold">GPIO 18</span></li>
-                        <li><span class="text-amber-400">LED Kuning (Sedang)  :</span> <span class="font-bold">GPIO 19</span></li>
-                        <li><span class="text-rose-400">LED Merah  (Ribut)   :</span> <span class="font-bold">GPIO 23</span></li>
-                        <li class="text-[10px] text-slate-400 pt-1">Gunakan resistor 220&Omega; - 330&Omega; di setiap kaki katoda ke GND.</li>
+                        <li><span class="text-emerald-400">LED Hijau (Aman) :</span> <span class="font-bold">GPIO 18</span></li>
+                        <li><span class="text-amber-400">LED Kuning (Sedang):</span> <span class="font-bold">GPIO 19</span></li>
+                        <li><span class="text-rose-400">LED Merah (Ribut) :</span> <span class="font-bold">GPIO 23</span></li>
+                        <li class="text-[10px] text-slate-400 pt-1">Resistor 220&Omega; - 330&Omega; ke GND.</li>
+                    </ul>
+                </div>
+
+                <!-- BUZZER ALARM -->
+                <div class="glass-card p-4 rounded-2xl border border-slate-700/60 space-y-2">
+                    <div class="text-xs font-bold font-mono-code text-rose-400 flex items-center gap-2">
+                        <i class="fa-solid fa-bell"></i> 4. BUZZER ALARM
+                    </div>
+                    <ul class="text-xs space-y-1 font-mono-code text-slate-300">
+                        <li><span class="text-slate-400">Positif (+) :</span> <span class="text-rose-400 font-bold">GPIO 4</span></li>
+                        <li><span class="text-slate-400">Negatif (-) :</span> GND ESP32</li>
+                        <li><span class="text-slate-400">Pola Suara  :</span> Bip-bip Intermiten</li>
+                        <li><span class="text-slate-400">Pemicu      :</span> Suara &ge; 80 dB (Merah)</li>
+                        <li class="text-[10px] text-slate-400 pt-1">Buzzer aktif 3.3V/5V otomatis bip.</li>
                     </ul>
                 </div>
             </div>

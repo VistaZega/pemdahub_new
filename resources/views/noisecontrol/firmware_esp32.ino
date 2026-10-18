@@ -25,6 +25,10 @@
  *    - LED Hijau  (Aman)          -> GPIO 18 (Resistor 220-330 Ohm ke GND)
  *    - LED Kuning (Sedikit Ribut) -> GPIO 19 (Resistor 220-330 Ohm ke GND)
  *    - LED Merah  (Terlalu Ribut) -> GPIO 23 (Resistor 220-330 Ohm ke GND)
+ * 
+ * 4. Buzzer Alarm:
+ *    - Positif (+) / VCC          -> GPIO 4  (Alarm Bunyi Saat Ribut)
+ *    - Negatif (-) / GND          -> GND
  * =========================================================================================
  */
 
@@ -40,12 +44,12 @@
 #include <ArduinoJson.h>
 
 // ================= PENGATURAN WIFI & SERVER =================
-const char* WIFI_SSID     = "NAMA_WIFI_SEKOLAH";      // Ganti dengan SSID WiFi/Hotspot Anda
-const char* WIFI_PASSWORD = "PASSWORD_WIFI";          // Ganti dengan Password WiFi Anda
+const char* WIFI_SSID     = "VST:BlackHole";      // Ganti dengan SSID WiFi/Hotspot Anda
+const char* WIFI_PASSWORD = "pelita31";          // Ganti dengan Password WiFi Anda
 const char* SERVER_URL    = "https://perguruanpembda.com/noicecontrol/api/telemetry";
 
 // Token Alat (Salin dari website perguruanpembda.com/noicecontrol)
-const char* DEVICE_TOKEN  = "nd_GANTI_DENGAN_TOKEN_ALAT_ANDA";
+const char* DEVICE_TOKEN  = "nd_MBKIYTv6GR79bf05lUJEiHZtKcbzDZNp";
 const char* FIRMWARE_VER  = "1.2.0-PRO";
 
 // ================= PIN MAPPING =================
@@ -57,6 +61,7 @@ const char* FIRMWARE_VER  = "1.2.0-PRO";
 #define PIN_LED_HIJAU   18
 #define PIN_LED_KUNING  19
 #define PIN_LED_MERAH   23
+#define PIN_BUZZER      4    // Pin Buzzer Alarm (GPIO 4)
 
 // Inisialisasi Layar OLED SH1106
 Adafruit_SH1106G oled(128, 64, &Wire, -1);
@@ -180,6 +185,24 @@ void updateLedStatus(float db) {
         digitalWrite(PIN_LED_KUNING, LOW);
         digitalWrite(PIN_LED_HIJAU, HIGH);
         currentStatus = "safe";
+    }
+}
+
+// ================= KONTROL ALARM BUZZER INTERMITEN =================
+void updateBuzzer(bool isDanger) {
+    static unsigned long lastBeep = 0;
+    static bool beepState = false;
+    if (isDanger) {
+        unsigned long now = millis();
+        // Pola bip-bip intermiten: 120ms ON, 120ms OFF (alarm berulang tanpa delay)
+        if (now - lastBeep >= 120) {
+            lastBeep = now;
+            beepState = !beepState;
+            digitalWrite(PIN_BUZZER, beepState ? HIGH : LOW);
+        }
+    } else {
+        digitalWrite(PIN_BUZZER, LOW);
+        beepState = false;
     }
 }
 
@@ -312,15 +335,19 @@ void sendTelemetry(float db, float peak) {
 void setup() {
     Serial.begin(115200);
 
-    // Setup Pin LED
+    // Setup Pin LED & Buzzer
     pinMode(PIN_LED_HIJAU, OUTPUT);
     pinMode(PIN_LED_KUNING, OUTPUT);
     pinMode(PIN_LED_MERAH, OUTPUT);
+    pinMode(PIN_BUZZER, OUTPUT);
 
-    // Self-Test: Ketiga LED menyala sejenak saat startup
+    // Self-Test: Ketiga LED dan Buzzer berbunyi sejenak saat startup
     digitalWrite(PIN_LED_HIJAU, HIGH);
     digitalWrite(PIN_LED_KUNING, HIGH);
     digitalWrite(PIN_LED_MERAH, HIGH);
+    digitalWrite(PIN_BUZZER, HIGH);
+    delay(80);
+    digitalWrite(PIN_BUZZER, LOW);
 
     // Inisialisasi I2C OLED
     Wire.begin(21, 22);
@@ -341,7 +368,7 @@ void setup() {
     oled.println("Menginisialisasi...");
     oled.display();
 
-    delay(800);
+    delay(700);
     digitalWrite(PIN_LED_HIJAU, LOW);
     digitalWrite(PIN_LED_KUNING, LOW);
     digitalWrite(PIN_LED_MERAH, LOW);
@@ -349,9 +376,27 @@ void setup() {
     // Inisialisasi Mikrofon INMP441 (SCK=26, WS=25, SD=32)
     setupI2S();
 
-    // Koneksi WiFi (Opsional, tetap jalan jika offline)
+    // Koneksi WiFi ke Hotspot/Router
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Serial.print("\n[WiFi] Menghubungkan ke: ");
+    Serial.println(WIFI_SSID);
+
+    int wifiRetry = 0;
+    while (WiFi.status() != WL_CONNECTED && wifiRetry < 15) {
+        delay(300);
+        Serial.print(".");
+        wifiRetry++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\n[WiFi] Berhasil Terhubung!");
+        Serial.print("[WiFi] IP ESP32: ");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println("\n[WiFi] Belum tersambung (akan mencoba otomatis di background).");
+    }
 }
 
 // ================= LOOP UTAMA =================
@@ -369,8 +414,9 @@ void loop() {
         peakDb = peakDb * 0.98;
     }
 
-    // 3. Kendalikan Nyala LED Tiga Warna Sesuai Batas Suara
+    // 3. Kendalikan Nyala LED Tiga Warna & Buzzer Sesuai Batas Suara
     updateLedStatus(currentDb);
+    updateBuzzer(currentStatus == "danger");
 
     // 4. Render Layar OLED secara halus
     static unsigned long lastDisp = 0;
@@ -379,7 +425,17 @@ void loop() {
         drawOledDisplay(currentDb);
     }
 
-    // 5. Kirim data telemetri ke server PembdaHUB jika terhubung WiFi
+    // 5. Coba sambungkan ulang WiFi jika sempat terputus
+    if (WiFi.status() != WL_CONNECTED) {
+        static unsigned long lastReconnect = 0;
+        if (millis() - lastReconnect >= 10000) {
+            lastReconnect = millis();
+            Serial.println("[WiFi] Reconnecting...");
+            WiFi.reconnect();
+        }
+    }
+
+    // 6. Kirim data telemetri ke server PembdaHUB jika terhubung WiFi
     static bool prevDanger = false;
     bool isDanger = (currentStatus == "danger");
 
