@@ -781,15 +781,15 @@ Terima kasih atas disiplin kerja dan pengabdian Bapak/Ibu hari ini! 🙏",
 Berdasarkan Surat Edaran Pengurus Yayasan Perguruan Pembda Nias Nomor: *07/SE/YP-PEMBDA/X/2026* perihal Tanggap Darurat Bencana Kabut Asap, saat ini berlaku *Sistem Pembelajaran Jarak Jauh (PJJ)* secara daring berbasis SIM PembdaHUB.
 
 📊 *B. JUMLAH SISWA ABSENSI (Total: {total_siswa} Siswa):*
-1. Jumlah Siswa/i Absensi PJJ : *{siswa_pjj_gps} Siswa*
+1. Jumlah Siswa/i Absensi PJJ (Tombol Presensi) : *{siswa_pjj_gps} Siswa*
 2. Jumlah Siswa Interaksi dengan LMS : *{siswa_pjj_lms} Siswa*
-• {✅|🟢} Total Siswa Hadir Daring : *{siswa_hadir} Siswa ({persen_hadir}%)*
-• {🤒|🏥} Sakit: *{siswa_sakit}* | {📩|📝} Izin: *{siswa_izin}* | {❌|🚫} Alpha: *{siswa_alpha}*
-• {⏳|⌛} Belum Presensi / Login : *{siswa_belum_presensi} Siswa*
+• {✅|🟢} Total Kehadiran Siswa : *{siswa_hadir} Siswa ({persen_hadir}%)*
+• {⏳|⌛} Belum Absensi : *{siswa_belum_presensi} Siswa*
+_(Catatan: Siswa yang absen tombol dan membuka LMS tetap dihitung 1 siswa hadir)_
 
 👨‍🏫 *KEHADIRAN GURU & TENDIK (WFH/DARING):*
-• {✅|🟢} Guru Aktif/Hadir: *{guru_hadir}* | {🤒|📩} Sakit/Izin: *{guru_sakit_izin}* | {❌|🚫} Alpha: *{guru_alpha}*
-• {💼|🏢} Pegawai/Staf Hadir: *{pegawai_hadir}* | {🏖️|🌴} Cuti/Izin: *{pegawai_cuti_izin}* | {❌|🚫} Alpha: *{pegawai_alpha}*
+• {✅|🟢} Guru Hadir / Aktif Daring: *{guru_hadir}* | {⏳|⌛} Belum Presensi: *{guru_alpha}*
+• {💼|🏢} Pegawai / Staf Hadir: *{pegawai_hadir}* | {⏳|⌛} Belum Presensi: *{pegawai_alpha}*
 
 📺 *C. LIVE MONITORING KEHADIRAN UNIT:*
 Live kehadiran unit {sekolah} dapat dipantau langsung di:
@@ -856,14 +856,13 @@ Sehubungan dengan pekatnya kabut asap dan penurunan kualitas udara, dihimbau kep
 Berdasarkan Surat Edaran Pengurus Yayasan Perguruan Pembda Nias Nomor: *07/SE/YP-PEMBDA/X/2026* perihal Tanggap Darurat Bencana Kabut Asap, saat ini berlaku *Sistem Pembelajaran Jarak Jauh (PJJ)* secara daring berbasis SIM PembdaHUB.
 
 📊 *B. JUMLAH SISWA ABSENSI KELAS {kelas} (Total: {total_siswa} Siswa):*
-1. Jumlah Siswa/i Absensi PJJ : *{siswa_pjj_gps} Siswa*
+1. Jumlah Siswa/i Absensi PJJ (Tombol Presensi) : *{siswa_pjj_gps} Siswa*
 2. Jumlah Siswa Interaksi dengan LMS : *{siswa_pjj_lms} Siswa*
-• {✅|🟢} Total Hadir Daring PJJ : *{total_fisik_hadir} Siswa ({persen_hadir}%)*
-• {🚫|❌} Tidak Hadir / Berkendala : *{total_tidak_hadir} Siswa*
-  - {🤒|🏥} Sakit: *{sakit}* | {📩|📝} Izin: *{izin}* | {❌|⛔} Alpha: *{alpha}*
-• {⏳|⌛} Belum Presensi / Login LMS : *{belum_presensi} Siswa*
+• {✅|🟢} Total Kehadiran Siswa : *{total_fisik_hadir} Siswa ({persen_hadir}%)*
+• {⏳|⌛} Belum Absensi : *{belum_presensi} Siswa*
+_(Catatan: Siswa yang absen tombol dan membuka LMS tetap dihitung 1 siswa hadir)_
 
-📋 *{RINCIAN KETIDAKHADIRAN & SISWA BELUM LOGIN:|CATATAN SISWA BELUM PRESENSI HARI INI:}*
+📋 *{DAFTAR SISWA BELUM ABSENSI HARI INI:|RINCIAN SISWA BELUM ABSENSI HARI INI:}*
 {daftar_tidak_hadir}
 
 📺 *C. LIVE MONITORING KEHADIRAN UNIT:*

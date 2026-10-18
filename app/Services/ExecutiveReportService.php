@@ -187,9 +187,21 @@ class ExecutiveReportService
                 $closing = $this->getPolymorphicClosing();
 
                 $isPjj = \App\Services\PjjEmergencyService::isPjjActiveForSchool($school->id, $dateToday);
-                $pjjGpsS = $dailyAttsSiswa->filter(fn($a) => $a->recorded_via === 'pjj_gps')->count();
-                $pjjLmsS = \App\Services\PjjEmergencyService::countLmsInteractingStudents($studentIds, $dateToday, $dailyAttsSiswa);
                 $displayUrl = \App\Services\PjjEmergencyService::getDisplayUrlForSchool($school);
+
+                if ($isPjj) {
+                    $pjjStats = \App\Services\PjjEmergencyService::calculatePjjStudentAttendanceStats($studentIds, $dateToday, $dailyAttsSiswa);
+                    $totalSiswa = $pjjStats['total_siswa'];
+                    $presentS = $pjjStats['total_hadir_unik']; // Unik: Absen tombol & buka LMS tetap dihitung 1
+                    $unrecordedS = $pjjStats['belum_absensi'];
+                    $pjjGpsS = $pjjStats['pjj_gps_count'];
+                    $pjjLmsS = $pjjStats['pjj_lms_count'];
+                    $persenHadirS = $pjjStats['persen_hadir'];
+                } else {
+                    $pjjGpsS = 0;
+                    $pjjLmsS = 0;
+                    $persenHadirS = $totalSiswa > 0 ? (int)round(($presentS / $totalSiswa) * 100) : 0;
+                }
 
                 $templateData = [
                     'sekolah' => $school->name,
@@ -205,7 +217,7 @@ class ExecutiveReportService
                     'siswa_belum_presensi' => $unrecordedS,
                     'siswa_pjj_gps' => $pjjGpsS,
                     'siswa_pjj_lms' => $pjjLmsS,
-                    'persen_hadir' => $totalSiswa > 0 ? (int)round(($presentS / $totalSiswa) * 100) : 0,
+                    'persen_hadir' => $persenHadirS,
                     'live_display_url' => $displayUrl,
                     'guru_hadir' => $presentG,
                     'guru_dinas' => $dinasG,
@@ -408,68 +420,89 @@ class ExecutiveReportService
                 $unrecordedCount = max(0, $totalSiswa - $recordedCount);
 
                 $isPjj = \App\Services\PjjEmergencyService::isPjjActiveForSchool($class->school_id, $dateToday);
-                $pjjGpsCount = $dailyAtts->filter(fn($a) => $a->recorded_via === 'pjj_gps')->count();
-                $pjjLmsCount = \App\Services\PjjEmergencyService::countLmsInteractingStudents($studentIds, $dateToday, $dailyAtts);
                 $displayUrl = \App\Services\PjjEmergencyService::getDisplayUrlForSchool($class->school);
 
-                // Grouping rincian rincian kehadiran & Keterlambatan secara terstruktur
-                $detailSections = [];
+                if ($isPjj) {
+                    $pjjStats = \App\Services\PjjEmergencyService::calculatePjjStudentAttendanceStats($studentIds, $dateToday, $dailyAtts);
+                    $totalSiswa = $pjjStats['total_siswa'];
+                    $totalFisikHadir = $pjjStats['total_hadir_unik']; // Unik! Absen tombol & buka LMS tetap 1
+                    $unrecordedCount = $pjjStats['belum_absensi'];
+                    $pjjGpsCount = $pjjStats['pjj_gps_count'];
+                    $pjjLmsCount = $pjjStats['pjj_lms_count'];
+                    $persenHadir = $pjjStats['persen_hadir'];
+                    $totalTidakHadir = $unrecordedCount;
 
-                if ($totalSiswa === 0) {
-                    $absentListSnippet = "• Belum ada siswa yang terdaftar di kelas ini.";
-                } elseif ($recordedCount === 0) {
-                    $absentListSnippet = $isPjj
-                        ? "⚠️ Belum ada aktivitas presensi PJJ atau interaksi LMS dari siswa ({$totalSiswa} siswa belum terdata)."
-                        : "⚠️ Belum ada data presensi yang masuk untuk kelas ini ({$totalSiswa} siswa belum presensi).";
-                } else {
-                    // 1. Rincian Siswa Hadir Terlambat
-                    if ($late > 0) {
-                        $lateItems = $dailyAtts
-                            ->filter(fn($a) => $a->status === 'terlambat')
-                            ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . ($a->time_in ? " (" . date('H:i', strtotime($a->time_in)) . " WIB)" : " (TERLAMBAT)"))
-                            ->values()
-                            ->toArray();
-                        $labelLate = $isPjj ? "🟡 *Siswa Presensi Terlambat ({$late} Siswa):*\n" : "🟡 *Siswa Hadir Terlambat ({$late} Siswa):*\n";
-                        $detailSections[] = $labelLate . implode("\n", $lateItems);
-                    }
-
-                    // 2. Rincian Siswa Tidak Hadir (Sakit / Izin / Alpha)
-                    if ($totalTidakHadir > 0) {
-                        $absentItems = $dailyAtts
-                            ->filter(fn($a) => in_array($a->status, ['sakit', 'izin', 'alpha', 'alpa']))
-                            ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
-                            ->values()
-                            ->toArray();
-                        $labelAbsent = $isPjj ? "🚫 *Siswa Tidak Hadir / Berkendala ({$totalTidakHadir} Siswa):*\n" : "🚫 *Siswa Tidak Hadir ({$totalTidakHadir} Siswa):*\n";
-                        $detailSections[] = $labelAbsent . implode("\n", $absentItems);
-                    }
-
-                    // 3. Rincian Siswa Belum Presensi
-                    if ($unrecordedCount > 0) {
-                        $recordedStudentIds = $dailyAtts->keys();
-                        $unrecordedStudentIds = $studentIds->diff($recordedStudentIds);
+                    // Buat rincian daftar siswa yang belum absensi
+                    if ($totalSiswa === 0) {
+                        $absentListSnippet = "• Belum ada siswa yang terdaftar di kelas ini.";
+                    } elseif ($unrecordedCount === 0) {
+                        $absentListSnippet = "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Kelas {$class->name} Hadir Lengkap - 100% ✨)";
+                    } else {
+                        $unrecordedStudentIds = $pjjStats['unrecorded_student_ids'];
                         $unrecordedStudents = \App\Models\Student::whereIn('id', $unrecordedStudentIds)
                             ->orderBy('full_name')
                             ->pluck('full_name');
 
-                        $labelUnrec = $isPjj
-                            ? "⏳ *Siswa Belum Presensi PJJ / Belum Login LMS"
-                            : "⏳ *Siswa Belum Presensi";
-
-                        if ($unrecordedStudents->count() <= 10) {
+                        if ($unrecordedStudents->count() <= 15) {
                             $unList = $unrecordedStudents->map(fn($n) => "  • {$n}")->toArray();
-                            $detailSections[] = "{$labelUnrec} ({$unrecordedCount} Siswa):*\n" . implode("\n", $unList);
+                            $absentListSnippet = "⏳ *Siswa Belum Absensi ({$unrecordedCount} Siswa):*\n" . implode("\n", $unList);
                         } else {
-                            $detailSections[] = "{$labelUnrec}:* {$unrecordedCount} Siswa";
+                            $absentListSnippet = "⏳ *Siswa Belum Absensi:* {$unrecordedCount} Siswa (Belum presensi mandiri tombol & belum berinteraksi di LMS)";
                         }
                     }
+                } else {
+                    $pjjGpsCount = 0;
+                    $pjjLmsCount = 0;
 
-                    if (empty($detailSections)) {
-                        $absentListSnippet = $isPjj
-                            ? "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Aktif Hadir PJJ & LMS - 100% ✨)"
-                            : "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Hadir Tepat Waktu - 100% ✨)";
+                    // Grouping rincian rincian kehadiran & Keterlambatan secara terstruktur (Mode Normal)
+                    $detailSections = [];
+
+                    if ($totalSiswa === 0) {
+                        $absentListSnippet = "• Belum ada siswa yang terdaftar di kelas ini.";
+                    } elseif ($recordedCount === 0) {
+                        $absentListSnippet = "⚠️ Belum ada data presensi yang masuk untuk kelas ini ({$totalSiswa} siswa belum presensi).";
                     } else {
-                        $absentListSnippet = implode("\n\n", $detailSections);
+                        // 1. Rincian Siswa Hadir Terlambat
+                        if ($late > 0) {
+                            $lateItems = $dailyAtts
+                                ->filter(fn($a) => $a->status === 'terlambat')
+                                ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . ($a->time_in ? " (" . date('H:i', strtotime($a->time_in)) . " WIB)" : " (TERLAMBAT)"))
+                                ->values()
+                                ->toArray();
+                            $detailSections[] = "🟡 *Siswa Hadir Terlambat ({$late} Siswa):*\n" . implode("\n", $lateItems);
+                        }
+
+                        // 2. Rincian Siswa Tidak Hadir (Sakit / Izin / Alpha)
+                        if ($totalTidakHadir > 0) {
+                            $absentItems = $dailyAtts
+                                ->filter(fn($a) => in_array($a->status, ['sakit', 'izin', 'alpha', 'alpa']))
+                                ->map(fn($a) => "  • " . ($a->student->full_name ?? 'Siswa') . " (" . strtoupper($a->status) . ")")
+                                ->values()
+                                ->toArray();
+                            $detailSections[] = "🚫 *Siswa Tidak Hadir ({$totalTidakHadir} Siswa):*\n" . implode("\n", $absentItems);
+                        }
+
+                        // 3. Rincian Siswa Belum Presensi
+                        if ($unrecordedCount > 0) {
+                            $recordedStudentIds = $dailyAtts->keys();
+                            $unrecordedStudentIds = $studentIds->diff($recordedStudentIds);
+                            $unrecordedStudents = \App\Models\Student::whereIn('id', $unrecordedStudentIds)
+                                ->orderBy('full_name')
+                                ->pluck('full_name');
+
+                            if ($unrecordedStudents->count() <= 10) {
+                                $unList = $unrecordedStudents->map(fn($n) => "  • {$n}")->toArray();
+                                $detailSections[] = "⏳ *Siswa Belum Presensi ({$unrecordedCount} Siswa):*\n" . implode("\n", $unList);
+                            } else {
+                                $detailSections[] = "⏳ *Siswa Belum Presensi:* {$unrecordedCount} Siswa";
+                            }
+                        }
+
+                        if (empty($detailSections)) {
+                            $absentListSnippet = "• ✅ Nihil (Seluruh {$totalSiswa} Siswa Hadir Tepat Waktu - 100% ✨)";
+                        } else {
+                            $absentListSnippet = implode("\n\n", $detailSections);
+                        }
                     }
                 }
 

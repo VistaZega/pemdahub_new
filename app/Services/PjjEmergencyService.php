@@ -221,42 +221,79 @@ class PjjEmergencyService
     }
 
     /**
-     * Hitung jumlah siswa unik yang berinteraksi dengan LMS pada tanggal tertentu
+     * Hitung statistik presensi siswa PJJ dengan deduplikasi:
+     * Siswa yang hadir melalui tombol absensi DAN berinteraksi dengan LMS tetap dihitung 1 siswa hadir.
+     * Karena PJJ, tidak ada Izin/Sakit — yang ada hanya Hadir dan Belum Absensi.
      */
-    public static function countLmsInteractingStudents($studentIds, ?string $date = null, $dailyAtts = null): int
+    public static function calculatePjjStudentAttendanceStats($studentIds, ?string $date = null, $dailyAtts = null): array
     {
-        if (empty($studentIds)) {
-            return 0;
+        if ($studentIds instanceof \Illuminate\Support\Collection) {
+            $studentIds = $studentIds->map(fn($id) => (int)$id)->toArray();
+        } else {
+            $studentIds = array_map('intval', (array)$studentIds);
+        }
+
+        $totalSiswa = count($studentIds);
+        if ($totalSiswa === 0) {
+            return [
+                'total_siswa'            => 0,
+                'pjj_gps_count'          => 0,
+                'pjj_lms_count'          => 0,
+                'total_hadir_unik'       => 0,
+                'belum_absensi'          => 0,
+                'persen_hadir'           => 0,
+                'hadir_student_ids'      => [],
+                'unrecorded_student_ids' => [],
+            ];
         }
 
         $checkDate = $date ?: Carbon::now('Asia/Jakarta')->toDateString();
 
-        if ($studentIds instanceof \Illuminate\Support\Collection) {
-            $studentIds = $studentIds->toArray();
-        }
-
-        $interactingIds = [];
-
-        // 1. Dari koleksi Attendance yang sudah dimuat (jika ada)
+        // 1. Siswa yang hadir melalui tombol absensi (pjj_gps atau scan gps mobile)
+        $gpsStudentIds = [];
         if ($dailyAtts) {
             foreach ($dailyAtts as $att) {
-                if ($att->recorded_via === 'pjj_lms') {
-                    $interactingIds[$att->student_id] = true;
+                if ($att->recorded_via === 'pjj_gps' || (in_array($att->recorded_via, ['gps', 'qr_gps', 'mobile']) && $att->status === 'hadir')) {
+                    $gpsStudentIds[(int)$att->student_id] = true;
                 }
             }
         } else {
-            // Query langsung ke Attendance
-            $attIds = Attendance::whereIn('student_id', $studentIds)
+            $found = Attendance::whereIn('student_id', $studentIds)
+                ->whereDate('date', $checkDate)
+                ->where(function ($q) {
+                    $q->where('recorded_via', 'pjj_gps')
+                      ->orWhere(function ($sq) {
+                          $sq->whereIn('recorded_via', ['gps', 'qr_gps', 'mobile'])
+                             ->where('status', 'hadir');
+                      });
+                })
+                ->pluck('student_id')
+                ->toArray();
+            foreach ($found as $id) {
+                $gpsStudentIds[(int)$id] = true;
+            }
+        }
+
+        // 2. Siswa yang berinteraksi dengan LMS
+        $lmsStudentIds = [];
+        if ($dailyAtts) {
+            foreach ($dailyAtts as $att) {
+                if ($att->recorded_via === 'pjj_lms') {
+                    $lmsStudentIds[(int)$att->student_id] = true;
+                }
+            }
+        } else {
+            $foundAttLms = Attendance::whereIn('student_id', $studentIds)
                 ->whereDate('date', $checkDate)
                 ->where('recorded_via', 'pjj_lms')
                 ->pluck('student_id')
                 ->toArray();
-            foreach ($attIds as $id) {
-                $interactingIds[$id] = true;
+            foreach ($foundAttLms as $id) {
+                $lmsStudentIds[(int)$id] = true;
             }
         }
 
-        // 2. Aktivitas Siswa di LMS pada hari ini (Progress Materi)
+        // Aktivitas di tabel LMS (Progress Materi, Submissions, Kuis)
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('lms_material_progress')) {
                 $progIds = \Illuminate\Support\Facades\DB::table('lms_material_progress')
@@ -265,12 +302,11 @@ class PjjEmergencyService
                     ->pluck('student_id')
                     ->toArray();
                 foreach ($progIds as $id) {
-                    $interactingIds[$id] = true;
+                    $lmsStudentIds[(int)$id] = true;
                 }
             }
         } catch (\Throwable $e) {}
 
-        // 3. Aktivitas Pengumpulan Tugas LMS
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('lms_submissions')) {
                 $subIds = \Illuminate\Support\Facades\DB::table('lms_submissions')
@@ -282,12 +318,11 @@ class PjjEmergencyService
                     ->pluck('student_id')
                     ->toArray();
                 foreach ($subIds as $id) {
-                    $interactingIds[$id] = true;
+                    $lmsStudentIds[(int)$id] = true;
                 }
             }
         } catch (\Throwable $e) {}
 
-        // 4. Aktivitas Percobaan Kuis LMS
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('lms_quiz_attempts')) {
                 $quizIds = \Illuminate\Support\Facades\DB::table('lms_quiz_attempts')
@@ -296,11 +331,43 @@ class PjjEmergencyService
                     ->pluck('student_id')
                     ->toArray();
                 foreach ($quizIds as $id) {
-                    $interactingIds[$id] = true;
+                    $lmsStudentIds[(int)$id] = true;
                 }
             }
         } catch (\Throwable $e) {}
 
-        return count($interactingIds);
+        // Juga periksa jika siswa memiliki catatan kehadiran berstatus 'hadir' lainnya hari ini
+        $allHadirAttIds = [];
+        if ($dailyAtts) {
+            foreach ($dailyAtts as $att) {
+                if ($att->status === 'hadir' || $att->status === 'terlambat') {
+                    $allHadirAttIds[(int)$att->student_id] = true;
+                }
+            }
+        }
+
+        // 3. PENGGABUNGAN UNIK (DEDUPLIKASI):
+        // Siswa yang absen tombol DAN buka LMS tetap dihitung 1 siswa hadir!
+        $uniqueHadirIds = array_values(array_unique(array_merge(
+            array_keys($gpsStudentIds),
+            array_keys($lmsStudentIds),
+            array_keys($allHadirAttIds)
+        )));
+
+        $totalHadirUnik = count($uniqueHadirIds);
+        $unrecordedStudentIds = array_values(array_diff($studentIds, $uniqueHadirIds));
+        $belumAbsensi = count($unrecordedStudentIds);
+        $persenHadir = $totalSiswa > 0 ? (int)round(($totalHadirUnik / $totalSiswa) * 100) : 0;
+
+        return [
+            'total_siswa'            => $totalSiswa,
+            'pjj_gps_count'          => count($gpsStudentIds),
+            'pjj_lms_count'          => count($lmsStudentIds),
+            'total_hadir_unik'       => $totalHadirUnik,
+            'belum_absensi'          => $belumAbsensi,
+            'persen_hadir'           => $persenHadir,
+            'hadir_student_ids'      => $uniqueHadirIds,
+            'unrecorded_student_ids' => $unrecordedStudentIds,
+        ];
     }
 }

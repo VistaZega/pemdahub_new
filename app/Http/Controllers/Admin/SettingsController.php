@@ -798,7 +798,7 @@ class SettingsController extends Controller
             ],
             'executive.principal_daily_attendance_pjj' => [
                 'title' => '🚨 Laporan Eksekutif Presensi PJJ Darurat (Ke Kepala Sekolah)',
-                'variables' => ['{sekolah}', '{nama_kepsek}', '{tanggal}', '{waktu_rekap}', '{total_siswa}', '{siswa_pjj_gps}', '{siswa_pjj_lms}', '{siswa_hadir}', '{persen_hadir}', '{siswa_sakit}', '{siswa_izin}', '{siswa_alpha}', '{siswa_belum_presensi}', '{guru_hadir}', '{guru_sakit_izin}', '{guru_alpha}', '{pegawai_hadir}', '{pegawai_cuti_izin}', '{pegawai_alpha}', '{live_display_url}'],
+                'variables' => ['{sekolah}', '{nama_kepsek}', '{tanggal}', '{waktu_rekap}', '{total_siswa}', '{siswa_pjj_gps}', '{siswa_pjj_lms}', '{siswa_hadir}', '{persen_hadir}', '{siswa_belum_presensi}', '{guru_hadir}', '{guru_alpha}', '{pegawai_hadir}', '{pegawai_alpha}', '{live_display_url}'],
             ],
             'executive.homeroom_daily_attendance' => [
                 'title' => '👩‍🏫 Laporan Rekap Presensi Harian (Ke Wali Kelas)',
@@ -806,7 +806,7 @@ class SettingsController extends Controller
             ],
             'executive.homeroom_daily_attendance_pjj' => [
                 'title' => '🚨 Laporan Rekap Presensi PJJ Darurat (Ke Wali Kelas)',
-                'variables' => ['{kelas}', '{sekolah}', '{nama_wali_kelas}', '{tanggal}', '{waktu_rekap}', '{total_siswa}', '{siswa_pjj_gps}', '{siswa_pjj_lms}', '{total_fisik_hadir}', '{persen_hadir}', '{total_tidak_hadir}', '{sakit}', '{izin}', '{alpha}', '{belum_presensi}', '{daftar_tidak_hadir}', '{live_display_url}'],
+                'variables' => ['{kelas}', '{sekolah}', '{nama_wali_kelas}', '{tanggal}', '{waktu_rekap}', '{total_siswa}', '{siswa_pjj_gps}', '{siswa_pjj_lms}', '{total_fisik_hadir}', '{persen_hadir}', '{belum_presensi}', '{daftar_tidak_hadir}', '{live_display_url}'],
             ],
             'executive.principal_monthly_spp' => [
                 'title' => '💰 Laporan Realisasi Keuangan SPP Bulanan (Ke Kepala Sekolah)',
