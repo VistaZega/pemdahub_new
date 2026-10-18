@@ -1496,80 +1496,69 @@ void updateLedStatus(float db) {
 
 void drawOledDisplay(float db) {
     oled.clearDisplay();
-
-    // 1. Header Bar: Bersih, Rapi & Tidak Tumpang Tindih
-    oled.setTextSize(1);
     oled.setTextColor(SH110X_WHITE);
-    oled.setCursor(0, 0);
-    oled.print("PEMBDA MONITOR"); // 14 karakter (84px) - ada ruang lega
 
-    oled.setCursor(92, 0);
-    if (WiFi.status() == WL_CONNECTED) {
-        oled.print("[WIFI]");
-    } else {
-        oled.print("[!OFF]");
-    }
-    oled.drawFastHLine(0, 10, 128, SH110X_WHITE);
-
-    // 2. Angka Desibel Utama (BESAR & TEBAL - Size 3, Terbaca Jelas dari Jauh)
-    int intDb = (int)db;
-    int decDb = (int)((db - intDb) * 10);
-    if (decDb < 0) decDb = 0;
-
-    oled.setTextSize(3); // Karakter besar 18x24 pixel
-    oled.setCursor(0, 14);
-    if (intDb < 10) oled.print("0");
-    oled.print(intDb);
-
-    // Desimal & Satuan dB di Samping Angka Besar
+    // 1. Header Bar: Nama Singkat & Status WiFi (Lega, Tanpa Tabrakan)
     oled.setTextSize(1);
-    oled.setCursor(38, 16);
-    oled.print(".");
-    oled.print(decDb);
+    oled.setCursor(0, 0);
+    String headerName = className;
+    if (headerName == "" || headerName == "Ruang Kelas") headerName = "PEMBDA HUB";
+    if (headerName.length() > 10) headerName = headerName.substring(0, 10);
+    oled.print(headerName);
 
-    oled.setCursor(38, 28);
+    oled.setCursor(98, 0);
+    oled.print(WiFi.status() == WL_CONNECTED ? "WIFI" : "!OFF");
+    oled.drawFastHLine(0, 9, 128, SH110X_WHITE);
+
+    // 2. HERO: Angka Utama Desibel (Besar, Tebal, Center-Stage)
+    char dbBuf[8];
+    dtostrf(db, 4, 1, dbBuf);
+    String sDb = String(dbBuf);
+    sDb.trim();
+
+    // Hitung posisi horizontal agar pas di tengah layar (100 px total)
+    int startX = (sDb.length() > 4) ? 4 : 14;
+
+    oled.setTextSize(3); // Font besar Size 3 (18x21 px)
+    oled.setCursor(startX, 13);
+    oled.print(sDb);
+
+    oled.setTextSize(2); // Satuan dB Size 2 (12x16 px)
+    oled.setCursor(startX + (sDb.length() * 18) + 4, 18);
     oled.print("dB");
 
-    // 3. Status Badge Kontras Tinggi (Solid White Pill + Huruf Hitam Pekat)
-    oled.fillRoundRect(62, 14, 66, 19, 3, SH110X_WHITE);
-    oled.setTextColor(SH110X_BLACK, SH110X_WHITE);
-    oled.setTextSize(1);
-
+    // 3. Status Badge: Ramping, Proporsional & Elegan (Bukan Blok Raksasa)
     if (currentStatus == "danger") {
-        oled.setCursor(68, 20);
+        // Mode Bahaya / Ribut: Kotak Putih Menyala Sebagai Peringatan Darurat
+        oled.fillRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
+        oled.setTextColor(SH110X_BLACK, SH110X_WHITE);
+        oled.setTextSize(1);
+        oled.setCursor(39, 40);
         oled.print("! RIBUT !");
+        oled.setTextColor(SH110X_WHITE);
     } else if (currentStatus == "warning") {
-        oled.setCursor(74, 20);
-        oled.print("WASPADA");
+        // Mode Waspada / Sedang: Garis Tipis Elegan
+        oled.drawRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
+        oled.setTextSize(1);
+        oled.setCursor(45, 40);
+        oled.print("SEDANG");
     } else {
-        oled.setCursor(77, 20);
-        oled.print(" AMAN ");
+        // Mode Aman / Kondusif: Garis Tipis Elegan (Ramping, Tidak Menyilaukan)
+        oled.drawRoundRect(32, 38, 64, 11, 2, SH110X_WHITE);
+        oled.setTextSize(1);
+        oled.setCursor(51, 40);
+        oled.print("AMAN");
     }
 
-    // Kembalikan warna teks normal putih
-    oled.setTextColor(SH110X_WHITE);
-
-    // 4. Bar Graph VU-Meter Dinamis (Skala 35 dB - 100 dB)
-    oled.drawRect(0, 36, 128, 10, SH110X_WHITE);
+    // 4. Bar Graph VU-Meter Dinamis (Skala 35 dB - 100 dB) di Bagian Bawah
+    oled.drawRect(0, 53, 128, 8, SH110X_WHITE);
     int barWidth = map(constrain((int)db, 35, 100), 35, 100, 0, 124);
     if (barWidth > 0) {
-        oled.fillRect(2, 38, barWidth, 6, SH110X_WHITE);
+        oled.fillRect(2, 55, barWidth, 4, SH110X_WHITE);
     }
-    // Garis Penanda Batas Bahaya Merah (80 dB)
+    // Garis Batas Ambang Merah (Threshold 80 dB)
     int redMarkerX = map((int)thresholdRed, 35, 100, 0, 124) + 2;
-    oled.drawFastVLine(redMarkerX, 35, 12, SH110X_WHITE);
-
-    // 5. Info Footer: Nama Kelas & Peak dB
-    oled.setTextSize(1);
-    oled.setCursor(0, 52);
-    oled.print("Kls:");
-    String kls = className.length() > 8 ? className.substring(0, 8) : className;
-    oled.print(kls);
-
-    oled.setCursor(76, 52);
-    oled.print("Pk:");
-    oled.print((int)peakDb);
-    oled.print("dB");
+    oled.drawFastVLine(redMarkerX, 52, 10, SH110X_WHITE);
 
     oled.display();
 }
@@ -1623,7 +1612,7 @@ void setup() {
     digitalWrite(PIN_LED_MERAH, HIGH);
 
     Wire.begin(21, 22);
-    Wire.setClock(100000);
+    Wire.setClock(400000);
     delay(200);
 
     oled.begin(0x3C, true);
