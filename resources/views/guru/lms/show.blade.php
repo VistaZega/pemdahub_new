@@ -2756,8 +2756,8 @@ if (!function_exists('balanceHtmlTags')) {
 
                     <!-- Conditional File Upload -->
                     <div x-show="type !== 'text' && type !== 'link' && type !== 'embed' && type !== 'canva' && type !== 'googledocs'" class="bg-amber-50 p-4 border-2 border-black rounded-2xl">
-                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Unggah Berkas Lampiran (PDF / Doc / Video / Gambar / Audio - Maks. 10 MB)</label>
-                        <input type="file" name="file" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
+                        <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Unggah Berkas Lampiran (PDF / Doc / Video / Gambar / Audio - Maks. 30 MB)</label>
+                        <input type="file" name="file" onchange="validateMaterialFileSize(this, 30)" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
                     </div>
 
                     <!-- URL / Embed Field -->
@@ -2893,8 +2893,8 @@ if (!function_exists('balanceHtmlTags')) {
                             <input type="text" name="file_url" x-model="mat.file_url" placeholder="https://..." class="w-full border-2 border-black rounded-2xl px-4 py-3 text-sm text-black font-black focus:ring-4 focus:ring-black/20 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Ganti File (Maks. 10 MB)</label>
-                            <input type="file" name="file" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
+                            <label class="block text-xs font-black text-black uppercase tracking-wider mb-1.5">Ganti File (Maks. 30 MB)</label>
+                            <input type="file" name="file" onchange="validateMaterialFileSize(this, 30)" class="w-full text-xs text-black font-bold file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-2 file:border-black file:text-xs file:font-black file:bg-amber-300 file:text-black hover:file:bg-black hover:file:text-white cursor-pointer">
                         </div>
                     </div>
 
@@ -3504,6 +3504,18 @@ if (!function_exists('balanceHtmlTags')) {
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
+    }
+
+    function validateMaterialFileSize(input, maxMb = 30) {
+        if (input.files && input.files[0]) {
+            const sizeInMb = input.files[0].size / (1024 * 1024);
+            if (sizeInMb > maxMb) {
+                alert(`Ukuran berkas (${sizeInMb.toFixed(1)} MB) melebihi batas maksimal ${maxMb} MB. Silakan pilih berkas yang lebih kecil.`);
+                input.value = '';
+                return false;
+            }
+        }
+        return true;
     }
 
     function insertTemplate(editorType, templateType) {

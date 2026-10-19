@@ -1654,19 +1654,20 @@ Buat dengan bahasa Indonesia yang ramah, jelas, dan edukatif.";
 
         $request->validate([
             'module_id' => 'required|exists:lms_modules,id',
-            'title' => 'required|string|max:200',
+            'title' => 'required|string|max:255',
             'material_type' => 'nullable|string',
             'file_url' => 'nullable|string|max:1000',
             'content' => 'nullable|string',
-            'file' => 'nullable|file|max:10240',
+            'file' => 'nullable|file|max:30720',
         ], [
             'title.required' => 'Judul materi wajib diisi.',
-            'file.max' => 'Ukuran file maksimal 10MB.',
+            'title.max' => 'Judul materi maksimal 255 karakter.',
+            'file.max' => 'Ukuran berkas maksimal 30 MB.',
         ]);
 
         $data = [
             'module_id' => $request->module_id,
-            'title' => $request->title,
+            'title' => trim((string) $request->title),
             'content' => $request->content,
         ];
         if ($request->filled('material_type')) {

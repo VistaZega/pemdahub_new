@@ -98,6 +98,16 @@ if (!empty($inputToken)) {
     $githubToken = $savedToken;
 }
 
+// Auto-fix SESSION_DRIVER to 'database' in .env if currently set to 'cookie'
+if (file_exists($envFile)) {
+    $curEnv = @file_get_contents($envFile);
+    if ($curEnv !== false && preg_match('/^SESSION_DRIVER=cookie/m', $curEnv)) {
+        $curEnv = preg_replace('/^SESSION_DRIVER=cookie/m', 'SESSION_DRIVER=database', $curEnv);
+        @file_put_contents($envFile, $curEnv);
+        echo "<div class='notice-box' style='border-color:#3fb950;'><span class='ok'>✔ SESSION_DRIVER di .env berhasil diubah dari 'cookie' ke 'database' (Mencegah error 502 Bad Gateway / upstream too big header saat simpan materi LMS).</span></div>";
+    }
+}
+
 // Prevent Git from hanging on authentication prompts
 putenv('GIT_TERMINAL_PROMPT=0');
 putenv('GIT_ASKPASS=/bin/echo');

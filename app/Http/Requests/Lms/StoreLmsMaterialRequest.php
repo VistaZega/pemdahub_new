@@ -11,6 +11,15 @@ class StoreLmsMaterialRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('title')) {
+            $this->merge([
+                'title' => trim((string) $this->input('title')),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -19,7 +28,7 @@ class StoreLmsMaterialRequest extends FormRequest
             'material_type' => 'required|in:pdf,document,video,text,image,link,interactive,audio,embed,canva,googledocs',
             'content' => 'nullable|string',
             'file_url' => 'nullable|string',
-            'file' => 'nullable|file|max:10240',
+            'file' => 'nullable|file|max:30720',
         ];
     }
 
@@ -27,8 +36,9 @@ class StoreLmsMaterialRequest extends FormRequest
     {
         return [
             'title.required' => 'Judul materi wajib diisi.',
+            'title.max' => 'Judul materi maksimal 255 karakter.',
             'material_type.required' => 'Jenis materi wajib dipilih.',
-            'file.max' => 'Ukuran file maksimal 10MB.',
+            'file.max' => 'Ukuran berkas maksimal 30 MB.',
         ];
     }
 }
