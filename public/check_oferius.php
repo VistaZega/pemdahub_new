@@ -56,16 +56,34 @@ if ($c842) {
     }
 }
 
-echo "\n=== RECENT ERROR LOGS (LAST 30 LINES) ===\n";
+echo "\n=== RECENT ERROR LOGS (LAST 3 EXCEPTIONS) ===\n";
 $logPath = storage_path('logs/laravel-' . date('Y-m-d') . '.log');
-if (!file_exists($logPath)) {
-    $logPath = storage_path('logs/laravel.log');
-}
 if (file_exists($logPath)) {
-    $lines = file($logPath);
-    $lastLines = array_slice($lines, -30);
-    echo implode("", $lastLines);
+    $content = file_get_contents($logPath);
+    preg_match_all('/\[\d{4}-\d{2}-\d{2}.*?\].*?\.(?:ERROR|CRITICAL|ALERT):.*?(?=\n\[\d{4}-\d{2}-\d{2}|$)/s', $content, $matches);
+    if (!empty($matches[0])) {
+        $lastErrors = array_slice($matches[0], -5);
+        foreach ($lastErrors as $err) {
+            echo "----------------------------------------\n";
+            echo mb_substr($err, 0, 1500) . "\n";
+        }
+    } else {
+        echo "No ERROR/CRITICAL found in today's log.\n";
+    }
 } else {
     echo "Log file not found.\n";
 }
+
+echo "\n=== MATERIAL 4908 DETAILS ===\n";
+$m4908 = \App\Models\LmsMaterial::find(4908);
+if ($m4908) {
+    echo "ID: {$m4908->id}\n";
+    echo "Title: {$m4908->title}\n";
+    echo "Type: {$m4908->material_type}\n";
+    echo "File Path: {$m4908->file_path}\n";
+    echo "File URL: {$m4908->file_url}\n";
+    echo "File Size: {$m4908->file_size}\n";
+    echo "Created: {$m4908->created_at}\n";
+}
+
 
