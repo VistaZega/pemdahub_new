@@ -40,7 +40,38 @@ class LmsCourseController extends Controller
     private function getTeacher(): ?Teacher
     {
         $user = Auth::user();
-        return Teacher::where('user_id', $user->id)->first();
+        if (!$user) {
+            return null;
+        }
+
+        // 1. Coba ambil teacher berdasarkan active_school_id sesi saat ini
+        $sessionSchoolId = session('active_school_id');
+        if ($sessionSchoolId) {
+            $teacher = Teacher::where('user_id', $user->id)
+                ->where('school_id', $sessionSchoolId)
+                ->first();
+            if ($teacher) {
+                return $teacher;
+            }
+        }
+
+        // 2. Coba ambil teacher berdasarkan user_id
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        if ($teacher) {
+            return $teacher;
+        }
+
+        // 3. Coba ambil via relasi employee
+        $employee = $user->employee ?? \App\Models\Employee::where('user_id', $user->id)->first();
+        if ($employee) {
+            $teacher = Teacher::where('employee_id', $employee->id)->first();
+            if ($teacher) {
+                return $teacher;
+            }
+        }
+
+        // 4. Fallback ke relasi $user->teacher
+        return $user->teacher;
     }
 
     private function getActiveSemester(): ?Semester
@@ -51,7 +82,18 @@ class LmsCourseController extends Controller
     private function authorizeAccess(LmsCourse $course, Teacher $teacher): bool
     {
         $user = Auth::user();
-        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+        if ($user && ($user->isOwnerOrSuperAdmin() || $user->isKetuaYayasan())) {
+            return true;
+        }
+
+        $tIds = $user ? $user->teacherIds() : [];
+        if (empty($tIds)) {
+            $tIds = $teacher->allTeacherIds();
+        }
+        if (empty($tIds)) {
+            $tIds = [$teacher->id];
+        }
+
         return in_array($course->teacher_id, $tIds);
     }
 
@@ -66,7 +108,14 @@ class LmsCourseController extends Controller
         }
 
         $user = Auth::user();
-        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+        $tIds = $user ? $user->teacherIds() : [];
+        if (empty($tIds)) {
+            $tIds = $teacher->allTeacherIds();
+        }
+        if (empty($tIds)) {
+            $tIds = [$teacher->id];
+        }
+
         $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
 
         $activeSemester = $this->getActiveSemester();
@@ -88,10 +137,14 @@ class LmsCourseController extends Controller
                 $q->whereHas('lmsClasses.classroom', function($sq) use ($effectiveSchoolId) {
                     $sq->where('school_id', $effectiveSchoolId);
                 })
-                // Atau untuk course tanpa rombel, dipadankan dengan school_id pada tabel lms_courses
+                // Atau untuk course tanpa rombel / rombel lama, dipadankan dengan school_id pada tabel lms_courses atau classroom lama
                 ->orWhere(function($sq) use ($effectiveSchoolId) {
                     $sq->whereDoesntHave('lmsClasses')
-                       ->where('school_id', $effectiveSchoolId);
+                       ->where(function($nsq) use ($effectiveSchoolId) {
+                           $nsq->where('school_id', $effectiveSchoolId)
+                               ->orWhereNull('school_id')
+                               ->orWhereHas('classroom', fn($csq) => $csq->where('school_id', $effectiveSchoolId));
+                       });
                 });
             })
             ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
@@ -102,9 +155,15 @@ class LmsCourseController extends Controller
             ->orderByDesc('created_at')
             ->paginate(12)->withQueryString();
 
+        // Hitung total seluruh course milik guru lintas semua unit sekolah
+        $totalAllUnitsCourses = LmsCourse::whereIn('teacher_id', $tIds)->count();
+
         // Orphan courses: milik guru, tidak punya rombel pada unit sekolah aktif
         $orphanCourses = LmsCourse::whereIn('teacher_id', $tIds)
-            ->where('school_id', $effectiveSchoolId)
+            ->where(function($q) use ($effectiveSchoolId) {
+                $q->where('school_id', $effectiveSchoolId)
+                  ->orWhereNull('school_id');
+            })
             ->whereDoesntHave('lmsClasses')
             ->with(['subject', 'semester'])
             ->withCount(['materials', 'assignments', 'quizzes'])
@@ -118,7 +177,7 @@ class LmsCourseController extends Controller
         return view('guru.lms.index', compact(
             'teacher', 'courses', 'activeSemester',
             'classrooms', 'selectedClassroomId', 'selectedClassroom',
-            'orphanCourses'
+            'orphanCourses', 'totalAllUnitsCourses'
         ));
     }
 
@@ -139,7 +198,13 @@ class LmsCourseController extends Controller
         $teacher->load('school');
 
         $user = Auth::user();
-        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+        $tIds = $user ? $user->teacherIds() : [];
+        if (empty($tIds)) {
+            $tIds = $teacher->allTeacherIds();
+        }
+        if (empty($tIds)) {
+            $tIds = [$teacher->id];
+        }
 
         $activeSemester = $this->getActiveSemester();
         $activeYear = AcademicYear::where('is_active', true)->first();
@@ -368,7 +433,13 @@ class LmsCourseController extends Controller
         }
         $teacher->load('school');
         $user = Auth::user();
-        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+        $tIds = $user ? $user->teacherIds() : [];
+        if (empty($tIds)) {
+            $tIds = $teacher->allTeacherIds();
+        }
+        if (empty($tIds)) {
+            $tIds = [$teacher->id];
+        }
 
         $activeYear = AcademicYear::where('is_active', true)->first();
 

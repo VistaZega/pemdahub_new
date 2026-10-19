@@ -234,10 +234,21 @@
     {{-- Empty state no courses at all --}}
     <div class="bg-white rounded-3xl shadow-md border-2 border-black p-16 text-center">
         <div class="w-20 h-20 bg-amber-300 border-2 border-black rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-book-open text-3xl text-black"></i></div>
-        <h3 class="text-lg font-black text-black mb-1">Belum Ada Course Ajar</h3>
+        <h3 class="text-lg font-black text-black mb-1">Belum Ada Course Ajar di Unit Ini</h3>
+        @if(($totalAllUnitsCourses ?? 0) > 0)
+        <div class="my-4 max-w-md mx-auto p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 text-xs font-bold leading-relaxed text-left">
+            <div class="flex items-start gap-2.5">
+                <i class="fas fa-info-circle text-amber-600 text-base mt-0.5 shrink-0"></i>
+                <div>
+                    <span>Anda memiliki <strong>{{ $totalAllUnitsCourses }} course ajar</strong> di unit sekolah lain. Silakan gunakan menu pemilih unit sekolah (SMK / SMA / SMP) di pojok kanan atas navbar untuk beralih unit.</span>
+                </div>
+            </div>
+        </div>
+        @else
         <p class="text-black font-bold text-xs mb-6 max-w-sm mx-auto">Mulai buat course pertama Anda untuk mengunggah materi digital dan tugas siswa.</p>
+        @endif
         <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-black hover:bg-amber-400 hover:text-black text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider border-2 border-black shadow-md">
-            <i class="fas fa-plus-circle text-sm text-amber-400"></i> Buat Course Pertama
+            <i class="fas fa-plus-circle text-sm text-amber-400"></i> Buat Course Baru
         </a>
     </div>
     @endif

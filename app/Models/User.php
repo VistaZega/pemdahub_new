@@ -314,11 +314,32 @@ class User extends Authenticatable
      */
     public function isGuru(): bool
     {
+        // 1. Sesi peran aktif adalah guru (role switcher)
+        if (session('active_role') === 'guru') {
+            return true;
+        }
+
+        // 2. Superadmin / Owner / Ketua Yayasan
+        if ($this->isOwnerOrSuperAdmin() || $this->isKetuaYayasan()) {
+            return true;
+        }
+
+        // 3. Memiliki role guru eksplisit
+        if ($this->role === 'guru' || $this->hasRole('guru')) {
+            return true;
+        }
+
+        // 4. Memiliki profil guru di tabel teachers (baik via relasi teacher atau query user_id)
+        if ((bool) $this->teacher || Teacher::where('user_id', $this->id)->exists()) {
+            return true;
+        }
+
+        // 5. Terdaftar sebagai pegawai murni non-guru dan tanpa profil pengajar
         if ($this->role === 'pegawai' || ($this->employee && !$this->employee->isTeacher())) {
             return false;
         }
 
-        return $this->hasRole('guru') || session('active_role') === 'guru' || (bool) $this->teacher;
+        return false;
     }
 
     /**
@@ -428,10 +449,6 @@ class User extends Authenticatable
      */
     public function teacherIds(): array
     {
-        if ($this->role === 'pegawai' || ($this->employee && !$this->employee->isTeacher())) {
-            return [];
-        }
-
         $ids = Teacher::where('user_id', $this->id)->pluck('id')->toArray();
         $employee = $this->employee 
             ?? $this->teacher?->employee 
@@ -444,7 +461,15 @@ class User extends Authenticatable
         if ($this->teacher && !in_array($this->teacher->id, $ids)) {
             $ids[] = $this->teacher->id;
         }
-        return array_unique(array_filter($ids));
+
+        $ids = array_unique(array_filter($ids));
+
+        // Jika tidak ada ID profil guru di database dan berstatus pegawai non-guru murni
+        if (empty($ids) && ($this->role === 'pegawai' || ($this->employee && !$this->employee->isTeacher()))) {
+            return [];
+        }
+
+        return $ids;
     }
 
     /**
