@@ -56,23 +56,20 @@ if ($c842) {
     }
 }
 
-echo "\n=== RECENT ERROR LOGS (LAST 3 EXCEPTIONS) ===\n";
+echo "\n=== LOGS AROUND 08:40-08:50 WIB (01:40-01:50 UTC) ===\n";
 $logPath = storage_path('logs/laravel-' . date('Y-m-d') . '.log');
 if (file_exists($logPath)) {
-    $content = file_get_contents($logPath);
-    preg_match_all('/\[\d{4}-\d{2}-\d{2}.*?\].*?\.(?:ERROR|CRITICAL|ALERT):.*?(?=\n\[\d{4}-\d{2}-\d{2}|$)/s', $content, $matches);
-    if (!empty($matches[0])) {
-        $lastErrors = array_slice($matches[0], -5);
-        foreach ($lastErrors as $err) {
-            echo "----------------------------------------\n";
-            echo mb_substr($err, 0, 1500) . "\n";
+    $lines = file($logPath);
+    $found = false;
+    foreach ($lines as $line) {
+        if (preg_match('/\[2026-10-19 (01:4[0-9]|08:4[0-9])/', $line)) {
+            echo $line;
+            $found = true;
         }
-    } else {
-        echo "No ERROR/CRITICAL found in today's log.\n";
     }
-} else {
-    echo "Log file not found.\n";
+    if (!$found) echo "No log lines matching 01:40-01:49 UTC or 08:40-08:49 WIB\n";
 }
+
 
 echo "\n=== MATERIAL 4908 DETAILS ===\n";
 $m4908 = \App\Models\LmsMaterial::find(4908);
