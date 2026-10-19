@@ -49,6 +49,24 @@ class ReputationBadgeSeeder extends Seeder
                 'requirement_type' => 'points',
                 'requirement_value' => 1500,
             ],
+            [
+                'name' => 'Virtual Educator',
+                'code' => 'virtual_educator',
+                'icon' => 'fa-chalkboard-user',
+                'color' => 'bg-rose-500',
+                'description' => 'Guru inovatif yang aktif menyelenggarakan KBM interaktif di PembdaTEMU.',
+                'requirement_type' => 'points',
+                'requirement_value' => 300,
+            ],
+            [
+                'name' => 'Live Learner',
+                'code' => 'live_learner',
+                'icon' => 'fa-video',
+                'color' => 'bg-sky-500',
+                'description' => 'Siswa interaktif yang hadir aktif dalam pembelajaran virtual PembdaTEMU.',
+                'requirement_type' => 'points',
+                'requirement_value' => 250,
+            ],
         ];
 
         foreach ($badges as $badge) {

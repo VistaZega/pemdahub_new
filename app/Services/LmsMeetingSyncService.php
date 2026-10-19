@@ -263,7 +263,11 @@ class LmsMeetingSyncService
         // Urutkan siswa yang angkat tangan berdasarkan siapa yang duluan
         usort($raisedHands, fn($a, $b) => ($a['time'] ?? 0) <=> ($b['time'] ?? 0));
 
+        $sessionKey = 'lms_meeting_session_' . $courseId;
+        $isActive = Cache::has($sessionKey);
+
         return [
+            'is_active'       => $isActive,
             'attendees'       => $attendees,
             'raised_hands'    => $raisedHands,
             'chats'           => $visibleChats,
@@ -271,5 +275,14 @@ class LmsMeetingSyncService
             'available_moods' => $availableMoods,
             'server_time'     => time(),
         ];
+    }
+
+    /**
+     * Bersihkan cache sinyal & chat saat sesi meeting resmi diakhiri
+     */
+    public static function endSession(int $courseId): void
+    {
+        Cache::forget(self::getSignalsKey($courseId));
+        Cache::forget(self::getChatsKey($courseId));
     }
 }

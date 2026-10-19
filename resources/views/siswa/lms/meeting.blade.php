@@ -196,6 +196,11 @@
                 <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #10b981;"></span>
                 <span id="mode-status-text">Koneksi Aktif</span>
             </div>
+            <div class="w-px h-4" style="background-color: rgba(255,255,255,0.3);"></div>
+            <div class="flex items-center gap-1.5 text-xs font-mono-code font-black text-amber-300" title="Reward Reputasi: +25 Poin Siswa (min. 5 menit hadir)">
+                <i class="fa-solid fa-award text-amber-400"></i>
+                <span>+25 Pts</span>
+            </div>
         </div>
 
         {{-- Right Controls (Tactile Buttons with Icon Boxes) --}}
@@ -761,6 +766,14 @@
                 <p class="text-xs mt-1.5 leading-relaxed font-medium" style="color: #555555;">
                     Durasi kehadiran Anda sampai detik ini akan tersimpan di rekap absensi guru. Anda dapat bergabung kembali selama guru masih membuka kelas.
                 </p>
+                <div class="mt-3 p-2.5 rounded-xl flex items-center gap-2.5 text-xs font-mono-code" style="background-color: #ecfdf5; color: #065f46; border: 1.5px solid #10b981;">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0 border border-black shadow-xs">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <span class="font-black text-emerald-950">+25 Poin Reputasi Siswa</span> otomatis diraih jika Anda hadir aktif minimal 5 menit di sesi PembdaTEMU ini!
+                    </div>
+                </div>
             </div>
             <div class="flex items-center justify-end gap-2.5 pt-2">
                 <button onclick="closeLeaveModal()" type="button" class="btn-tactile-white px-4 py-2 rounded-xl text-xs font-mono-code font-bold">
@@ -1770,6 +1783,16 @@
         function handleStudentMeetingSyncData(data) {
             if (!data) return;
 
+            // 0. Cek jika Guru sudah mengakhiri meeting
+            if (data.is_active === false && !window.isMeetingEndedByTeacher) {
+                window.isMeetingEndedByTeacher = true;
+                showToast('Guru telah mengakhiri sesi PembdaTEMU. Mengalihkan ke LMS...', 'info');
+                setTimeout(() => {
+                    window.location.href = "{{ route('siswa.lms.show', $course->id) }}";
+                }, 2000);
+                return;
+            }
+
             // 1. Attendees Map & Friends List
             const attendees = data.attendees || [];
             const friendsOnly = attendees.filter(a => a.user_id !== AGORA_UID && a.role === 'siswa');
@@ -2008,7 +2031,16 @@
             document.getElementById('leave-meeting-modal').classList.add('hidden');
         }
         async function executeLeaveMeeting() {
-            reportLeave();
+            try {
+                const fd = new FormData();
+                fd.append('_token', "{{ csrf_token() }}");
+                await fetch("{{ route('siswa.lms.meeting.leave', $course->id) }}", {
+                    method: 'POST',
+                    body: fd
+                });
+            } catch(e) {
+                reportLeave();
+            }
             try {
                 if (localAudioTrack) { localAudioTrack.stop(); localAudioTrack.close(); }
                 if (localVideoTrack) { localVideoTrack.stop(); localVideoTrack.close(); }

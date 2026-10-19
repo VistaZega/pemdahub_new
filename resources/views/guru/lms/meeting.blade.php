@@ -213,6 +213,11 @@
                 <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #10b981;"></span>
                 <span id="header-attendee-count" style="color: #fde047; font-weight: 900;">0</span> Siswa Hadir
             </button>
+            <div class="w-px h-4" style="background-color: rgba(255,255,255,0.3);"></div>
+            <div class="flex items-center gap-1.5 text-xs font-mono-code font-black text-amber-300" title="Reward Reputasi: +50 Poin Guru Host KBM (min. 5 menit & ada siswa hadir)">
+                <i class="fa-solid fa-award text-amber-400"></i>
+                <span>+50 Pts</span>
+            </div>
         </div>
 
         {{-- Right Controls (Tactile Buttons with Icon Boxes) --}}
@@ -848,6 +853,14 @@
                 <p class="text-xs mt-1.5 leading-relaxed font-medium" style="color: #555;">
                     Sesi PembdaTEMU untuk mata pelajaran <strong>{{ $course->course_name ?? $course->name }}</strong> akan ditutup. Seluruh siswa akan diarahkan kembali ke beranda modul dan total durasi kehadiran siswa otomatis tersimpan di rekap presensi.
                 </p>
+                <div class="mt-3 p-2.5 rounded-xl flex items-center gap-2.5 text-xs font-mono-code" style="background-color: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b;">
+                    <div class="w-7 h-7 rounded-lg bg-amber-400 text-black flex items-center justify-center font-bold text-sm flex-shrink-0 border border-black shadow-xs">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <span class="font-black text-amber-950">+50 Poin Reputasi Guru</span> otomatis diraih jika durasi KBM &ge; 5 menit dan ada siswa hadir. Siswa yang hadir juga meraih <span class="font-black text-amber-950">+25 Poin</span>.
+                    </div>
+                </div>
             </div>
             <div class="flex items-center justify-end gap-2.5 pt-2">
                 <button onclick="closeEndMeetingModal()" type="button" class="btn-tactile-white px-4 py-2 rounded-xl text-xs font-mono-code font-bold">

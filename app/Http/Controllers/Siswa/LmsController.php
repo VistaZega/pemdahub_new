@@ -17,6 +17,7 @@ use App\Models\LmsMaterial;
 use App\Models\LmsModule;
 use App\Models\LmsMeetingSession;
 use App\Models\LmsMeetingAttendance;
+use App\Models\ReputationLog;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -1491,13 +1492,21 @@ HTML;
         // Catat kehadiran siswa
         $sessionId = cache()->get('lms_meeting_session_' . $course->id);
         if ($sessionId) {
-            LmsMeetingAttendance::firstOrCreate(
-                ['session_id' => $sessionId, 'student_id' => $student->id],
-                [
+            $attendance = LmsMeetingAttendance::where('session_id', $sessionId)
+                ->where('student_id', $student->id)
+                ->first();
+
+            if (!$attendance) {
+                LmsMeetingAttendance::create([
+                    'session_id' => $sessionId,
                     'course_id'  => $course->id,
+                    'student_id' => $student->id,
                     'joined_at'  => now(),
-                ]
-            );
+                ]);
+            } elseif ($attendance->left_at !== null) {
+                // Siswa masuk kembali setelah sempat keluar / reconnect
+                $attendance->update(['left_at' => null]);
+            }
         }
 
         $course->loadMissing(['school', 'subject', 'teacher.user', 'classroom']);
@@ -1514,7 +1523,7 @@ HTML;
     }
 
     /**
-     * AJAX: Siswa meninggalkan meeting — catat left_at dan durasi
+     * AJAX: Siswa meninggalkan meeting — catat left_at dan durasi, berikan poin reputasi
      */
     public function leaveAttendance(Request $request, LmsCourse $course)
     {
@@ -1524,6 +1533,7 @@ HTML;
         }
 
         $sessionId = cache()->get('lms_meeting_session_' . $course->id);
+        $pointsAwarded = 0;
         if ($sessionId) {
             $attendance = LmsMeetingAttendance::where('session_id', $sessionId)
                 ->where('student_id', $student->id)
@@ -1532,10 +1542,29 @@ HTML;
 
             if ($attendance) {
                 $attendance->recordLeave();
+
+                // Gamifikasi: Jika siswa hadir aktif minimal 5 menit (300 detik)
+                $studentUserId = $student->user_id ?? auth()->id();
+                if ($attendance->duration_seconds >= 300 && $studentUserId) {
+                    ReputationLog::log(
+                        $studentUserId,
+                        25,
+                        'lms_meeting_attendance',
+                        "Kehadiran KBM Live PembdaTEMU: {$course->course_name} ({$attendance->duration_label})",
+                        $attendance
+                    );
+                    $pointsAwarded = 25;
+                    session()->flash('success', "Kehadiran di PembdaTEMU berhasil dicatat ({$attendance->duration_label}). 🎉 Selamat! Anda meraih +25 Poin Reputasi!");
+                } else {
+                    session()->flash('success', "Kehadiran di PembdaTEMU berhasil dicatat ({$attendance->duration_label}).");
+                }
             }
         }
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'points_awarded' => $pointsAwarded,
+        ]);
     }
 
     /**
@@ -1589,6 +1618,7 @@ HTML;
         }
 
         $state = \App\Services\LmsMeetingSyncService::getState($course->id, $userId);
+        $state['is_active'] = (bool)($course->meeting_active && cache()->has('lms_meeting_session_' . $course->id));
 
         return response()->json($state);
     }

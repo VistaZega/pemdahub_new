@@ -28,6 +28,7 @@ use App\Models\LmsQuizQuestion;
 use App\Models\Classroom;
 use App\Models\School;
 use App\Models\TeachingAssignment;
+use App\Models\ReputationLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -2028,6 +2029,10 @@ HTML;
             abort(403);
         }
 
+        $pointEarned = false;
+        $totalAttendees = 0;
+        $durationMinutes = 0;
+
         // Tutup sesi meeting yang aktif
         $sessionId = cache()->get('lms_meeting_session_' . $course->id);
         if ($sessionId) {
@@ -2046,8 +2051,45 @@ HTML;
                     'ended_at'        => now(),
                     'total_attendees' => $totalAttendees,
                 ]);
+
+                // Gamifikasi: Poin Reputasi Guru (Host KBM Live)
+                // Syarat: Durasi KBM minimal 5 menit (300 detik) dan dihadiri minimal 1 siswa
+                $durationSeconds = $session->started_at ? max(0, now()->timestamp - $session->started_at->timestamp) : 0;
+                $durationMinutes = intdiv($durationSeconds, 60);
+                $teacherUserId = $teacher->user_id ?? auth()->id();
+
+                if ($durationSeconds >= 300 && $totalAttendees >= 1 && $teacherUserId) {
+                    ReputationLog::log(
+                        $teacherUserId,
+                        50,
+                        'lms_meeting_host',
+                        "Menyelenggarakan KBM Live PembdaTEMU: {$course->course_name} ({$totalAttendees} peserta, {$durationMinutes} menit)",
+                        $session
+                    );
+                    $pointEarned = true;
+                }
+
+                // Gamifikasi: Poin Reputasi Siswa yang Hadir
+                // Syarat: Siswa hadir aktif minimal 5 menit (300 detik)
+                $attendances = LmsMeetingAttendance::where('session_id', $session->id)
+                    ->with('student.user')
+                    ->get();
+
+                foreach ($attendances as $att) {
+                    $studentUserId = $att->student?->user_id;
+                    if ($att->duration_seconds >= 300 && $studentUserId) {
+                        ReputationLog::log(
+                            $studentUserId,
+                            25,
+                            'lms_meeting_attendance',
+                            "Kehadiran KBM Live PembdaTEMU: {$course->course_name} ({$att->duration_label})",
+                            $att
+                        );
+                    }
+                }
             }
             cache()->forget('lms_meeting_session_' . $course->id);
+            \App\Services\LmsMeetingSyncService::endSession($course->id);
         }
 
         $course->update([
@@ -2055,8 +2097,13 @@ HTML;
             'meeting_started_at' => null,
         ]);
 
+        $message = 'Sesi PembdaTEMU berhasil diakhiri.';
+        if ($pointEarned) {
+            $message .= ' 🎉 Selamat! Anda meraih +50 Poin Reputasi Guru atas penyelenggaraan KBM Live.';
+        }
+
         return redirect()->route('guru.lms.show', $course->id)
-            ->with('success', 'Sesi PembdaTEMU berhasil diakhiri.');
+            ->with('success', $message);
     }
 
     /**
