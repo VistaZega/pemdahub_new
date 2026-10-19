@@ -112,9 +112,43 @@ if ($m4908) {
         $u = \App\Models\User::find($rep->user_id);
         echo "User: " . ($u->name ?? 'N/A') . " (role: " . ($u->role ?? 'N/A') . ")\n";
     } else {
-        echo "No reputation log found for material 4908.\n";
-    }
+echo "\n=== SIMULATE STORE MATERIAL ===\n";
+try {
+    $course = \App\Models\LmsCourse::find(842);
+    $longTitle = 'Materi ini membahas peran orang tua sebagai pendidik utama dalam membimbing anak, menanamkan nilai-nilai kristiani, serta pentingnya menghormati dan menghargai orang tua sesuai firman Tuhan.';
+    echo "Title length: " . strlen($longTitle) . " chars\n";
+    
+    $maxOrder = $course->materials()->max('order_number') ?? 0;
+    $simMat = $course->materials()->create([
+        'module_id' => 2401,
+        'title' => $longTitle,
+        'material_type' => 'pdf',
+        'content' => 'Orang tua adalah pendidik pertama dan utama dalam kehidupan anak. Melalui kasih, nasihat, teladan, dan bimbingan, orang tua mengajarkan nilai-nilai kehidupan serta iman kepada Tuhan. Sebagai anak, kita dipanggil untuk menghormati, mengasihi, dan menghargai pengorbanan orang tua, serta menerapkan ajaran mereka dalam kehidupan sehari-hari sesuai firman Tuhan.',
+        'file_url' => 'https://canva.link/gn65smmtltqwhht',
+        'file_path' => 'lms/materials/test_sim.pdf',
+        'file_size' => 374836,
+        'order_number' => $maxOrder + 1,
+        'is_published' => true,
+    ]);
+    echo "Simulated material created successfully with ID: {$simMat->id}!\n";
+
+    // Test Reputation
+    \App\Models\ReputationLog::log(279, 30, 'lms_content', "Membuat materi LMS baru: " . $simMat->title, $simMat);
+    echo "ReputationLog logged successfully!\n";
+
+    // Test Notification
+    $notificationService = app(\App\Services\NotificationService::class);
+    $notifRes = $notificationService->sendLmsNotification($course, 'lms.material.published', ['title' => $simMat->title]);
+    echo "NotificationService returned: " . json_encode($notifRes) . "\n";
+
+    // Cleanup simulation
+    $simMat->forceDelete();
+    echo "Cleaned up simulation material.\n";
+} catch (\Throwable $e) {
+    echo "SIMULATION CAUGHT THROWABLE: " . get_class($e) . " - " . $e->getMessage() . "\n";
+    echo $e->getTraceAsString() . "\n";
 }
+
 
 
 
