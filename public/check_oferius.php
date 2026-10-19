@@ -106,6 +106,15 @@ if ($m4908) {
     echo "File URL: {$m4908->file_url}\n";
     echo "File Size: {$m4908->file_size}\n";
     echo "Created: {$m4908->created_at}\n";
+    $rep = \App\Models\ReputationLog::where('reference_type', 'App\Models\LmsMaterial')->where('reference_id', 4908)->first();
+    if ($rep) {
+        echo "Reputation Log User ID: {$rep->user_id}\n";
+        $u = \App\Models\User::find($rep->user_id);
+        echo "User: " . ($u->name ?? 'N/A') . " (role: " . ($u->role ?? 'N/A') . ")\n";
+    } else {
+        echo "No reputation log found for material 4908.\n";
+    }
 }
+
 
 
