@@ -51,27 +51,26 @@
             background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 0);
             background-size: 20px 20px;
         }
-        /* Video Tile Responsive Styles (Zoom style) */
+        /* Video Tile Responsive Styles (Zoom style - Modern & Sleek) */
         .video-tile {
             position: relative;
             background: #090d16;
-            border-radius: 1rem;
+            border-radius: 1.25rem;
             overflow: hidden;
-            border: 1.5px solid rgba(51, 65, 85, 0.7);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            aspect-ratio: 16 / 9;
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .video-tile:hover {
-            border-color: rgba(99, 102, 241, 0.6);
+            border-color: rgba(139, 92, 246, 0.5);
         }
         .video-tile.speaking {
             border-color: #10b981 !important;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4), 0 0 25px rgba(16, 185, 129, 0.35) !important;
         }
         .video-tile.pinned-speaker {
-            border-color: #6366f1 !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4), 0 0 30px rgba(139, 92, 246, 0.3) !important;
         }
         .video-tile video {
             width: 100% !important;
@@ -80,34 +79,42 @@
             border-radius: inherit;
         }
         .filmstrip-tile {
-            height: 96px !important;
-            width: 170px !important;
+            height: 100px !important;
+            width: 175px !important;
             flex-shrink: 0 !important;
             cursor: pointer;
-            border-radius: 0.75rem !important;
+            border-radius: 1rem !important;
         }
         .filmstrip-tile:hover {
-            transform: scale(1.03);
-            border-color: #6366f1 !important;
+            transform: scale(1.04);
+            border-color: #8b5cf6 !important;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+        .animate-subtle-glow {
+            animation: pulse-subtle 3s infinite ease-in-out;
         }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden select-none">
 
     {{-- 1. SMART CLASSROOM HEADER --}}
-    <header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 z-30 flex-shrink-0 shadow-lg">
+    {{-- 1. SMART CLASSROOM HEADER (MODERN & ENERGETIC) --}}
+    <header class="bg-slate-900/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 z-30 flex-shrink-0 shadow-xl">
         
         {{-- Info Kelas & Guru --}}
         <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 p-0.5 shadow-lg shadow-rose-900/30 flex-shrink-0">
-                <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center text-rose-500 font-bold">
-                    <i class="fas fa-chalkboard-user text-base animate-pulse"></i>
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-amber-400 p-0.5 shadow-lg shadow-rose-900/40 flex-shrink-0">
+                <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center text-pink-400 font-bold">
+                    <i class="fas fa-video text-base animate-pulse"></i>
                 </div>
             </div>
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/15 border border-rose-500/30 text-rose-400 uppercase tracking-wider">
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> PembdaTEMU Live
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500/15 border border-rose-500/30 text-rose-400 uppercase tracking-widest shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> PembdaTEMU LIVE
                     </span>
                     <span class="text-[11px] font-semibold text-slate-400 hidden md:inline truncate">
                         {{ $course->school?->name ?? 'Perguruan Pembda' }}
@@ -122,60 +129,60 @@
             </div>
         </div>
 
-        {{-- Center Status Widget: Durasi & Peserta Hadir --}}
-        <div class="hidden lg:flex items-center gap-2 bg-slate-950/70 border border-slate-800/90 rounded-2xl px-3.5 py-1.5 shadow-inner">
-            <div class="flex items-center gap-2 text-xs font-bold text-amber-400">
-                <i class="far fa-clock text-amber-500 animate-spin" style="animation-duration: 8s;"></i>
-                <span id="class-timer" class="font-mono tracking-wider">00:00:00</span>
+        {{-- Center Status Widget: Durasi & Peserta Hadir (Cyber Monospace) --}}
+        <div class="hidden lg:flex items-center gap-2.5 bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-1.5 shadow-inner">
+            <div class="flex items-center gap-2 text-xs font-bold text-amber-300" title="Durasi Live Kelas">
+                <i class="far fa-clock text-amber-400 animate-spin" style="animation-duration: 8s;"></i>
+                <span id="class-timer" class="font-mono tracking-widest text-sm text-amber-300">00:00:00</span>
             </div>
-            <div class="w-px h-3.5 bg-slate-800"></div>
-            <button onclick="switchTab('peserta')" class="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors" title="Lihat siswa yang hadir">
-                <i class="fas fa-users text-[11px]"></i>
+            <div class="w-px h-4 bg-slate-800"></div>
+            <button onclick="switchTab('peserta')" class="flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors" title="Lihat daftar siswa hadir">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                 <span id="header-attendee-count">0</span> Siswa Hadir
             </button>
         </div>
 
-        {{-- Right Controls --}}
+        {{-- Right Controls (Energetic Neon Buttons) --}}
         <div class="flex items-center gap-2 flex-shrink-0">
             
-            {{-- Tombol Salin Tautan --}}
-            <button onclick="copyMeetingLink()" type="button" class="hidden sm:flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm active:scale-95" title="Salin link kelas untuk dibagikan ke siswa">
-                <i class="far fa-copy text-indigo-400"></i>
+            {{-- Tombol Salin Tautan (Electric Cyan) --}}
+            <button onclick="copyMeetingLink()" type="button" class="hidden sm:flex items-center gap-1.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 hover:text-white border border-cyan-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95" title="Salin link kelas untuk dibagikan ke siswa">
+                <i class="fas fa-link text-cyan-400 text-xs"></i>
                 <span>Salin Tautan</span>
             </button>
 
-            {{-- Tombol Papan Tulis Cepat --}}
-            <button onclick="openTabDirect('whiteboard')" type="button" class="flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95" title="Buka Papan Tulis Digital KBM">
-                <i class="fas fa-pen-fancy text-emerald-400"></i>
+            {{-- Tombol Papan Tulis Cepat (Emerald Neon) --}}
+            <button onclick="openTabDirect('whiteboard')" type="button" class="flex items-center gap-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 hover:text-white border border-emerald-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm" title="Buka Papan Tulis Digital KBM">
+                <i class="fas fa-paintbrush text-emerald-400 text-xs"></i>
                 <span class="hidden md:inline">Papan Tulis</span>
             </button>
 
-            {{-- Tombol Pilihan Tampilan (Zoom View Selector) --}}
+            {{-- Tombol Pilihan Tampilan (Zoom View Selector - Violet Neon) --}}
             <div class="relative inline-block text-left" id="header-view-wrapper">
-                <button onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm" title="Pilihan Tata Letak Tampilan (Zoom)">
-                    <i id="header-view-icon" class="fas fa-table-cells text-indigo-400"></i>
+                <button onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-1.5 bg-violet-500/15 hover:bg-violet-500/25 text-violet-300 hover:text-white border border-violet-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm" title="Pilihan Tata Letak Tampilan (Zoom)">
+                    <i id="header-view-icon" class="fas fa-table-cells text-violet-400 text-xs"></i>
                     <span class="hidden md:inline">Tampilan: <span id="header-view-name" class="text-white">Galeri</span></span>
-                    <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
+                    <i class="fas fa-chevron-down text-[9px] text-slate-400 ml-0.5"></i>
                 </button>
             </div>
 
-            {{-- Tombol Toggle Panel Materi / Peserta --}}
-            <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95" title="Buka atau sembunyikan panel modul dan siswa">
-                <i class="fas fa-columns text-indigo-400"></i>
+            {{-- Tombol Toggle Panel Materi / Peserta (Indigo Neon) --}}
+            <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="flex items-center gap-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 hover:text-white border border-indigo-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm" title="Buka atau sembunyikan panel modul dan siswa">
+                <i class="fas fa-columns text-indigo-400 text-xs"></i>
                 <span class="hidden sm:inline">Panel KBM</span>
             </button>
 
             {{-- Profile Chip Guru --}}
-            <div class="hidden xl:flex items-center gap-2 bg-slate-800/80 border border-slate-700 px-2.5 py-1 rounded-xl text-xs text-slate-300">
-                <div class="w-6 h-6 rounded-full bg-indigo-600/80 flex items-center justify-center text-[10px] font-bold text-white uppercase">
+            <div class="hidden xl:flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-2.5 py-1 rounded-xl text-xs text-slate-300" title="{{ $displayName }}">
+                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-[10px] font-black text-white uppercase shadow-sm">
                     {{ substr($displayName, 0, 1) }}
                 </div>
-                <span class="font-medium max-w-[110px] truncate">{{ $displayName }}</span>
+                <span class="font-bold max-w-[100px] truncate text-slate-200">{{ explode(' ', trim($displayName))[0] }}</span>
             </div>
 
-            {{-- Tombol Akhiri Kelas --}}
-            <button onclick="openEndMeetingModal()" type="button" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all shadow-md shadow-rose-900/40 flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0">
-                <i class="fas fa-phone-slash"></i>
+            {{-- Tombol Akhiri Kelas (Crimson Coral Gradient) --}}
+            <button onclick="openEndMeetingModal()" type="button" class="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 active:from-rose-700 active:to-pink-700 text-white font-black px-4 py-1.5 rounded-xl text-xs transition-all shadow-lg shadow-rose-900/40 flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0">
+                <i class="fas fa-power-off text-xs"></i>
                 <span>Akhiri Kelas</span>
             </button>
         </div>
@@ -185,19 +192,19 @@
     <div class="flex-1 flex flex-row overflow-hidden relative" style="height: calc(100vh - 61px);">
         
         {{-- Conference Stage (Video Call Agora) --}}
-        <main id="conference-panel" class="flex-1 relative bg-slate-950 flex flex-col h-full overflow-hidden transition-all duration-150">
+        <main id="conference-panel" class="flex-1 relative bg-[#070a13] flex flex-col h-full overflow-hidden transition-all duration-150">
             
             {{-- FLOATING ZOOM-STYLE VIEW SELECTOR (POJOK KANAN ATAS VIDEO) --}}
             <div class="absolute top-3.5 right-3.5 z-30 flex items-center gap-2">
                 <div class="relative" id="video-view-dropdown-wrapper">
-                    <button id="btn-view-toggle" onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white px-3.5 py-1.5 rounded-xl border border-slate-700/80 text-xs font-bold transition shadow-xl backdrop-blur-md active:scale-95" title="Ganti Tata Letak Video (Zoom)">
+                    <button id="btn-view-toggle" onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white px-3.5 py-1.5 rounded-xl border border-white/10 text-xs font-bold transition shadow-2xl backdrop-blur-xl active:scale-95" title="Ganti Tata Letak Video (Zoom)">
                         <i id="current-view-icon" class="fas fa-table-cells text-indigo-400 text-xs"></i>
                         <span>Tampilan: <span id="current-view-name" class="text-white">Galeri</span></span>
                         <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
                     </button>
 
-                    <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-2 z-50 backdrop-blur-xl transition-all">
-                        <div class="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-800 mb-1">
+                    <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-white/10 shadow-2xl p-2 z-50 backdrop-blur-2xl transition-all">
+                        <div class="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-800 mb-1">
                             Pilihan Tata Letak (Zoom)
                         </div>
                         
@@ -235,10 +242,22 @@
                 </div>
             </div>
 
+            {{-- STATUS INDIKATOR GURU (POJOK KIRI ATAS - DISKRIT, ELEGAN & TIDAK MENUTUPI WAJAH) --}}
+            <div id="solo-teacher-banner" class="absolute top-3.5 left-3.5 z-20 pointer-events-auto transition-all duration-300">
+                <div class="flex items-center gap-2 bg-slate-900/85 backdrop-blur-md border border-emerald-500/30 px-3 py-1.5 rounded-xl shadow-lg text-[11px]">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-emerald-300 font-bold">Kamera Aktif</span>
+                    <span class="text-slate-400 hidden sm:inline">• Menunggu Siswa Masuk</span>
+                </div>
+            </div>
+
             {{-- 1. SPEAKER VIEW STAGE (Active when currentLayout === 'speaker') --}}
             <div id="stage-speaker-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-3 gap-2.5 relative min-h-0">
                 {{-- Top Filmstrip Bar: Thumbnail peserta lain --}}
-                <div id="speaker-filmstrip" class="flex items-center gap-2.5 overflow-x-auto p-1.5 h-28 shrink-0 bg-slate-900/60 rounded-2xl border border-slate-800/80 backdrop-blur-sm scroll-smooth">
+                <div id="speaker-filmstrip" class="flex items-center gap-2.5 overflow-x-auto p-1.5 h-28 shrink-0 bg-slate-900/60 rounded-2xl border border-white/10 backdrop-blur-sm scroll-smooth">
                     {{-- Non-pinned tiles live here --}}
                 </div>
                 {{-- Main Spotlight Screen: 1 Peserta Terfokus (Guru/Siswa) --}}
@@ -248,10 +267,10 @@
             </div>
 
             {{-- 2. GALLERY VIEW STAGE (Default: Active when currentLayout === 'gallery' or 'sidebyside') --}}
-            <div id="stage-gallery-wrapper" class="flex-1 flex items-center justify-center overflow-hidden h-full p-3 min-h-0 relative">
+            <div id="stage-gallery-wrapper" class="flex-1 flex items-center justify-center overflow-hidden h-full p-2.5 sm:p-3 min-h-0 relative">
                 <div id="gallery-grid" class="w-full h-full flex items-center justify-center gap-3 transition-all duration-300">
                     {{-- Local video tile (Guru) --}}
-                    <div id="video-tile-local" class="video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-2xl flex items-center justify-center w-full max-w-5xl h-full max-h-[78vh] aspect-video mx-auto my-auto transition-all">
+                    <div id="video-tile-local" class="video-tile group relative rounded-2xl md:rounded-3xl overflow-hidden bg-slate-900 border border-slate-700/60 shadow-2xl flex items-center justify-center w-full h-full max-h-[82vh] transition-all">
                         <div id="agora-local-video" class="w-full h-full relative">
                             {{-- Agora video injected here --}}
                         </div>
@@ -261,12 +280,16 @@
                             </div>
                             <p class="text-xs font-semibold text-slate-300">Mengaktifkan kamera...</p>
                         </div>
-                        <div class="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-800 shadow-md">
+                        
+                        {{-- BADGE NAMA GURU: TEPAT DI POJOK KIRI BAWAH (MINIMALIS & TIDAK MENGGANGGU DI TENGAH) --}}
+                        <div class="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-slate-950/75 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-white/10 shadow-lg" title="{{ $displayName }}">
                             <i id="tile-mic-local" class="fas fa-microphone text-emerald-400 text-[10px]"></i>
-                            <span class="truncate max-w-[170px]"><i class="fas fa-chalkboard-user text-rose-400 mr-1"></i>{{ $displayName }} (Host)</span>
+                            <span class="truncate max-w-[140px] text-slate-100">{{ explode(' ', trim($displayName))[0] }}</span>
+                            <span class="px-1.5 py-0.2 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[9px] font-extrabold uppercase">Host</span>
                         </div>
-                        <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="pinSpeaker('local')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 text-xs shadow-md transition" title="Fokuskan / Spotlight">
+                        
+                        <div class="absolute top-3 right-3 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="pinSpeaker('local')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-violet-600 text-slate-300 hover:text-white border border-white/10 text-xs shadow-md transition" title="Fokuskan / Spotlight">
                                 <i class="fas fa-thumbtack text-[10px]"></i>
                             </button>
                         </div>
@@ -274,63 +297,54 @@
                 </div>
             </div>
 
-            {{-- SOLO TEACHER FLOATING BANNER (Hanya muncul jika belum ada siswa yang bergabung) --}}
-            <div id="solo-teacher-banner" class="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto transition-all duration-300">
-                <div class="flex items-center gap-3 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 px-4 py-2 rounded-2xl shadow-2xl text-xs">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span class="text-slate-300 font-medium">Kamera Anda Aktif • Menunggu siswa bergabung</span>
-                    <button onclick="copyMeetingLink()" type="button" class="ml-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30">
-                        <i class="far fa-copy text-xs"></i>
-                        <span>Bagikan Tautan</span>
-                    </button>
-                </div>
-            </div>
-
-            {{-- Floating Teacher Action Bar --}}
-            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 px-3 py-2 rounded-2xl shadow-2xl">
+            {{-- Floating Teacher Action Dock (Modern Sleek Floating Island) --}}
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-900/90 backdrop-blur-2xl border border-white/10 px-3.5 py-2 rounded-2xl shadow-2xl">
                 
-                {{-- Toggle Mic --}}
-                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition" title="Nyalakan/Matikan Mikrofon">
-                    <i id="mic-icon" class="fas fa-microphone text-emerald-400"></i>
+                {{-- Toggle Mic (Emerald / Rose) --}}
+                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative p-3 rounded-xl bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/40 transition active:scale-95 shadow-sm" title="Nyalakan/Matikan Mikrofon">
+                    <i id="mic-icon" class="fas fa-microphone text-sm"></i>
+                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap border border-slate-700">Mic</span>
                 </button>
 
-                {{-- Toggle Camera --}}
-                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition" title="Nyalakan/Matikan Kamera">
-                    <i id="cam-icon" class="fas fa-video text-emerald-400"></i>
+                {{-- Toggle Camera (Cyan / Rose) --}}
+                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative p-3 rounded-xl bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40 transition active:scale-95 shadow-sm" title="Nyalakan/Matikan Kamera">
+                    <i id="cam-icon" class="fas fa-video text-sm"></i>
+                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap border border-slate-700">Kamera</span>
                 </button>
 
-                {{-- Screen Share --}}
-                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition" title="Bagikan Layar Anda">
-                    <i class="fas fa-desktop text-blue-400"></i>
+                {{-- Screen Share (Sky Blue) --}}
+                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="group relative p-3 rounded-xl bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 border border-sky-500/40 transition active:scale-95 shadow-sm" title="Bagikan Layar Anda">
+                    <i class="fas fa-desktop text-sm"></i>
+                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap border border-slate-700">Bagi Layar</span>
                 </button>
 
-                <div class="w-px h-4 bg-slate-700/80 hidden sm:block"></div>
+                <div class="w-px h-5 bg-white/10 hidden sm:block"></div>
 
-                {{-- Mute All Button (Pedagogical Control) --}}
-                <button onclick="teacherMuteEveryone()" type="button" class="group relative flex items-center gap-1.5 bg-slate-800 hover:bg-amber-600/30 text-slate-200 hover:text-amber-300 border border-slate-700 hover:border-amber-500/50 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all" title="Kondusifkan Kelas: Matikan mic seluruh siswa">
+                {{-- Mute All Button (Amber Sunset) --}}
+                <button onclick="teacherMuteEveryone()" type="button" class="flex items-center gap-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95" title="Kondusifkan Kelas: Minta seluruh siswa mematikan mic">
                     <i class="fas fa-volume-xmark text-amber-400"></i>
                     <span class="hidden sm:inline">Mute Semua</span>
                 </button>
 
-                <div class="w-px h-4 bg-slate-700/80 hidden sm:block"></div>
+                <div class="w-px h-5 bg-white/10 hidden sm:block"></div>
 
-                {{-- Quick Open Material --}}
-                <button onclick="openTabDirect('materi')" type="button" class="flex items-center gap-1.5 bg-slate-800 hover:bg-indigo-600/30 text-slate-200 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/50 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all" title="Buka silabus materi & modul kelas">
-                    <i class="fas fa-book-open text-indigo-400"></i>
+                {{-- Quick Open Material (Electric Purple) --}}
+                <button onclick="openTabDirect('materi')" type="button" class="flex items-center gap-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95" title="Buka silabus materi & modul kelas">
+                    <i class="fas fa-book-open text-purple-400"></i>
                     <span class="hidden sm:inline">Modul</span>
                 </button>
 
-                {{-- Quick Open Whiteboard --}}
-                <button onclick="openTabDirect('whiteboard')" type="button" class="flex items-center gap-1.5 bg-slate-800 hover:bg-emerald-600/30 text-slate-200 hover:text-emerald-300 border border-slate-700 hover:border-emerald-500/50 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all" title="Tulis rumus atau coretan di papan tulis">
-                    <i class="fas fa-pen text-emerald-400"></i>
+                {{-- Quick Open Whiteboard (Neon Mint) --}}
+                <button onclick="openTabDirect('whiteboard')" type="button" class="flex items-center gap-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95" title="Tulis rumus atau coretan di papan tulis">
+                    <i class="fas fa-pen-nib text-emerald-400"></i>
                     <span class="hidden sm:inline">Papan Tulis</span>
                 </button>
 
-                {{-- Quick Open Attendees --}}
-                <button onclick="openTabDirect('peserta')" type="button" class="flex items-center gap-1.5 bg-slate-800 hover:bg-cyan-600/30 text-slate-200 hover:text-cyan-300 border border-slate-700 hover:border-cyan-500/50 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all" title="Lihat kehadiran siswa secara realtime">
-                    <i class="fas fa-user-check text-cyan-400"></i>
+                {{-- Quick Open Attendees (Electric Teal) --}}
+                <button onclick="openTabDirect('peserta')" type="button" class="flex items-center gap-1.5 bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95" title="Lihat kehadiran siswa secara realtime">
+                    <i class="fas fa-users-viewfinder text-teal-400"></i>
                     <span class="hidden sm:inline">Presensi</span>
-                    <span id="quick-attendee-badge" class="bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded-md text-[10px] font-bold">0</span>
+                    <span id="quick-attendee-badge" class="bg-teal-500/30 text-teal-200 px-1.5 py-0.2 rounded-full text-[10px] font-black border border-teal-400/40">0</span>
                 </button>
             </div>
         </main>
@@ -803,28 +817,30 @@
             rearrangeTiles();
         }
 
-        // Buat DOM tile untuk video remote siswa (Zoom style)
+        // Buat DOM tile untuk video remote siswa (Zoom style - Sleek & Modern)
         function createRemoteTile(user) {
             const tile = document.createElement('div');
             tile.id = `video-tile-${user.uid}`;
-            tile.className = 'video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-lg flex items-center justify-center transition-all duration-300';
+            tile.className = 'video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-xl flex items-center justify-center transition-all duration-300';
             
-            const studentName = attendeesMap[user.uid] || `Siswa #${user.uid}`;
+            const rawName = attendeesMap[user.uid] || `Siswa #${user.uid}`;
+            const shortName = rawName.split(' ')[0];
 
             tile.innerHTML = `
                 <div id="remote-${user.uid}" class="w-full h-full relative"></div>
-                <div id="remote-placeholder-${user.uid}" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-400 hidden">
-                    <div class="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-2xl font-bold text-indigo-400 mb-1.5 shadow-inner">
-                        <i class="fas fa-user-graduate text-xl"></i>
+                <div id="remote-placeholder-${user.uid}" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-400 hidden pointer-events-none">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center text-2xl font-bold text-white mb-2 shadow-lg">
+                        ${shortName.charAt(0)}
                     </div>
-                    <p class="text-xs font-semibold text-slate-300">${studentName}</p>
+                    <p class="text-xs font-semibold text-slate-300">${shortName}</p>
                 </div>
-                <div class="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-800 shadow-md">
+                {{-- BADGE NAMA SISWA: TEPAT DI POJOK KIRI BAWAH DISKRIT --}}
+                <div class="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-slate-950/75 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-white/10 shadow-lg" title="${rawName}">
                     <i id="tile-mic-${user.uid}" class="fas fa-microphone text-emerald-400 text-[10px]"></i>
-                    <span id="tile-name-${user.uid}" class="truncate max-w-[160px]"><i class="fas fa-user-graduate text-indigo-400 mr-1"></i>${studentName}</span>
+                    <span id="tile-name-${user.uid}" class="truncate max-w-[130px]">${shortName}</span>
                 </div>
-                <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onclick="pinSpeaker('${user.uid}')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 text-xs shadow-md transition" title="Fokuskan / Spotlight">
+                <div class="absolute top-3 right-3 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="pinSpeaker('${user.uid}')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-violet-600 text-slate-300 hover:text-white border border-white/10 text-xs shadow-md transition" title="Fokuskan / Spotlight">
                         <i class="fas fa-thumbtack text-[10px]"></i>
                     </button>
                 </div>
@@ -845,7 +861,7 @@
             const allTiles = Array.from(document.querySelectorAll('.video-tile'));
             const total = allTiles.length;
 
-            // Tampilkan/sembunyikan notifikasi jika guru masih sendirian
+            // Tampilkan status solo di pojok kiri atas jika guru masih sendirian
             if (soloBanner) {
                 if (total <= 1) {
                     soloBanner.classList.remove('hidden');
@@ -870,14 +886,14 @@
 
                 if (pinnedTile && mainStage) {
                     mainStage.appendChild(pinnedTile);
-                    pinnedTile.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border-2 border-indigo-500/60 shadow-2xl flex items-center justify-center w-full h-full max-h-[75vh] aspect-video transition-all pinned-speaker';
+                    pinnedTile.className = 'video-tile relative rounded-2xl md:rounded-3xl overflow-hidden bg-slate-900 border-2 border-violet-500/60 shadow-2xl flex items-center justify-center w-full h-full max-h-[82vh] transition-all pinned-speaker';
                     pinnedTile.onclick = null;
                 }
 
                 allTiles.forEach(tile => {
                     if (tile !== pinnedTile && filmstrip) {
                         filmstrip.appendChild(tile);
-                        tile.className = 'video-tile filmstrip-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md flex items-center justify-center aspect-video cursor-pointer transition-all hover:scale-105';
+                        tile.className = 'video-tile filmstrip-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-md flex items-center justify-center aspect-video cursor-pointer transition-all hover:scale-105';
                         tile.classList.remove('pinned-speaker');
                         tile.onclick = () => pinSpeaker(tile.id === 'video-tile-local' ? 'local' : tile.id.replace('video-tile-', ''));
                     }
@@ -898,22 +914,22 @@
 
                 if (galleryGrid) {
                     if (total <= 1) {
-                        galleryGrid.className = 'w-full h-full flex items-center justify-center p-2';
+                        galleryGrid.className = 'w-full h-full flex items-center justify-center p-1 sm:p-2';
                         if (allTiles[0]) {
-                            allTiles[0].className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-2xl flex items-center justify-center w-full max-w-5xl h-full max-h-[78vh] aspect-video mx-auto my-auto transition-all';
+                            allTiles[0].className = 'video-tile relative rounded-2xl md:rounded-3xl overflow-hidden bg-slate-900 border border-slate-700/60 shadow-2xl flex items-center justify-center w-full h-full max-h-[82vh] transition-all';
                         }
                     } else if (total === 2) {
-                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-1 md:grid-cols-2 gap-3.5 items-center justify-center p-2';
-                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 shadow-xl flex items-center justify-center w-full h-full max-h-[70vh] aspect-video transition-all');
+                        galleryGrid.className = 'w-full h-full max-h-[82vh] grid grid-cols-1 md:grid-cols-2 gap-3.5 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-xl flex items-center justify-center w-full h-full max-h-[75vh] aspect-video transition-all');
                     } else if (total <= 4) {
-                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-2 grid-rows-2 gap-3 items-center justify-center p-2';
-                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 shadow-xl flex items-center justify-center w-full h-full aspect-video transition-all');
+                        galleryGrid.className = 'w-full h-full max-h-[82vh] grid grid-cols-2 grid-rows-2 gap-3 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-xl flex items-center justify-center w-full h-full aspect-video transition-all');
                     } else if (total <= 6) {
-                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-3 grid-rows-2 gap-2.5 items-center justify-center p-2';
-                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-lg flex items-center justify-center w-full h-full aspect-video transition-all');
+                        galleryGrid.className = 'w-full h-full max-h-[82vh] grid grid-cols-3 grid-rows-2 gap-2.5 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-white/10 shadow-lg flex items-center justify-center w-full h-full aspect-video transition-all');
                     } else {
-                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-3 md:grid-cols-4 gap-2.5 overflow-y-auto p-2';
-                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md flex items-center justify-center w-full aspect-video transition-all');
+                        galleryGrid.className = 'w-full h-full max-h-[82vh] grid grid-cols-3 md:grid-cols-4 gap-2.5 overflow-y-auto p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-white/10 shadow-md flex items-center justify-center w-full aspect-video transition-all');
                     }
                 }
             }
@@ -1368,34 +1384,52 @@
 
                     if (total === 0) {
                         listEl.innerHTML = `
-                            <div class="text-center text-xs text-slate-500 py-12">
-                                <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2 text-slate-400">
-                                    <i class="far fa-user text-xl"></i>
+                            <div class="text-center py-10 px-4">
+                                <div class="relative w-16 h-16 mx-auto mb-3">
+                                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 blur-lg opacity-40 animate-pulse"></div>
+                                    <div class="relative w-full h-full rounded-2xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl border border-white/20">
+                                        <i class="fas fa-users-rays"></i>
+                                    </div>
                                 </div>
-                                <p class="font-medium text-slate-300">Belum ada siswa yang masuk.</p>
-                                <p class="text-[10px] text-slate-500 mt-1">Salin tautan kelas dan kirim ke grup WhatsApp rombel.</p>
+                                <h4 class="text-xs font-black text-white uppercase tracking-wider">Ruang Kelas Siap!</h4>
+                                <p class="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">Belum ada siswa yang masuk. Bagikan link kelas ini langsung ke grup WhatsApp siswa agar mereka segera bergabung:</p>
+                                <div class="mt-4">
+                                    <button onclick="copyMeetingLink()" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs shadow-lg shadow-emerald-900/40 transition-all hover:scale-105 active:scale-95">
+                                        <i class="fab fa-whatsapp text-sm"></i>
+                                        <span>Salin Tautan WhatsApp</span>
+                                    </button>
+                                </div>
                             </div>
                         `;
                         return;
                     }
 
                     let html = '';
-                    data.attendees.forEach(student => {
+                    const avatarGradients = [
+                        'from-pink-500 to-rose-500',
+                        'from-cyan-500 to-blue-500',
+                        'from-emerald-500 to-teal-500',
+                        'from-violet-500 to-purple-500',
+                        'from-amber-500 to-orange-500'
+                    ];
+
+                    data.attendees.forEach((student, idx) => {
+                        const grad = avatarGradients[idx % avatarGradients.length];
                         html += `
-                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-all text-xs">
+                            <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-800/70 hover:bg-slate-800 border border-white/10 transition-all text-xs shadow-sm">
                                 <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-[11px] font-extrabold text-white shadow-md flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr ${grad} flex items-center justify-center text-[11px] font-black text-white shadow-md flex-shrink-0">
                                         ${student.initials}
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="font-bold text-slate-200 truncate leading-snug">${student.name}</p>
+                                        <p class="font-extrabold text-slate-100 truncate leading-snug">${student.name}</p>
                                         <span class="text-[10px] text-slate-400 flex items-center gap-1">
-                                            <i class="far fa-clock text-indigo-400"></i> ${student.joined_at}
+                                            <i class="far fa-clock text-cyan-400"></i> ${student.joined_at}
                                         </span>
                                     </div>
                                 </div>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hadir
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Hadir
                                 </span>
                             </div>
                         `;
@@ -1410,7 +1444,7 @@
                                 attendeesMap[sid] = student.name;
                                 const nameBadge = document.getElementById(`tile-name-${sid}`);
                                 if (nameBadge) {
-                                    nameBadge.innerHTML = `<i class="fas fa-user-graduate text-indigo-400 mr-1"></i>${student.name}`;
+                                    nameBadge.textContent = student.name.split(' ')[0];
                                 }
                             }
                         });
