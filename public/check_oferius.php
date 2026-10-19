@@ -16,8 +16,10 @@ echo "max_execution_time: " . ini_get('max_execution_time') . "\n";
 echo "max_input_time: " . ini_get('max_input_time') . "\n";
 echo "PHP SAPI: " . php_sapi_name() . "\n";
 echo "SERVER SOFTWARE: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "\n";
-echo "SESSION DRIVER: " . config('session.driver') . "\n";
-echo "SESSION LIFETIME: " . config('session.lifetime') . "\n";
+echo "SESSION DRIVER config: " . config('session.driver') . "\n";
+echo "SESSION_DRIVER env: " . env('SESSION_DRIVER') . "\n";
+echo ".env exists: " . (file_exists(base_path('.env')) ? 'YES' : 'NO') . " | writable: " . (is_writable(base_path('.env')) ? 'YES' : 'NO') . "\n";
+
 echo "sessions table exists: " . (Illuminate\Support\Facades\Schema::hasTable('sessions') ? 'YES' : 'NO') . "\n";
 $sessDir = storage_path('framework/sessions');
 echo "storage/framework/sessions exists: " . (is_dir($sessDir) ? 'YES' : 'NO') . " | writable: " . (is_writable($sessDir) ? 'YES' : 'NO') . "\n";
