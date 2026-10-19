@@ -675,7 +675,7 @@
 </div>
 
 <!-- Modal for Add/Edit Schedule -->
-<div id="scheduleModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+<div id="scheduleModal" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4" style="z-index: 99999 !important;">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-t-2xl sticky top-0 z-10">
             <h3 class="text-xl font-bold" id="modalTitle">Tambah Jadwal</h3>
@@ -1569,7 +1569,7 @@ if (fitToScreenBtn) {
             
             // Show notification
             const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down';
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-[100000] animate-fade-in-down';
             notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>Zoom disesuaikan ke ${optimalZoom}%`;
             document.body.appendChild(notification);
             
