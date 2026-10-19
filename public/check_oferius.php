@@ -17,7 +17,11 @@ echo "max_input_time: " . ini_get('max_input_time') . "\n";
 echo "PHP SAPI: " . php_sapi_name() . "\n";
 echo "SERVER SOFTWARE: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "\n";
 
-echo "\n=== NGINX CONFIGURATION CHECK ===\n";
+echo "\n=== NGINX SITES-ENABLED PEMBDAHUB CONFIG ===\n";
+if (file_exists('/etc/nginx/sites-enabled/pembdahub')) {
+    echo file_get_contents('/etc/nginx/sites-enabled/pembdahub') . "\n";
+}
+
 $nginxConfigs = [
     '/etc/nginx/nginx.conf',
     '/etc/nginx/conf.d/default.conf',
