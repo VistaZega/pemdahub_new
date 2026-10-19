@@ -49,6 +49,9 @@ try {
         ]
     );
     $storeRequest->setUserResolver(function() use ($teacherUser) { return $teacherUser; });
+    $storeRequest->setContainer($app);
+    $storeRequest->setRedirector($app->make('redirect'));
+    $storeRequest->validateResolved();
 
     $controller = app(\App\Http\Controllers\Guru\LmsCourseController::class);
     $redirectResp = $controller->storeMaterial($storeRequest, $course);
