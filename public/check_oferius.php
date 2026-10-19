@@ -16,6 +16,9 @@ echo "max_execution_time: " . ini_get('max_execution_time') . "\n";
 echo "max_input_time: " . ini_get('max_input_time') . "\n";
 echo "PHP SAPI: " . php_sapi_name() . "\n";
 echo "SERVER SOFTWARE: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "\n";
+echo "SESSION DRIVER: " . config('session.driver') . "\n";
+echo "SESSION LIFETIME: " . config('session.lifetime') . "\n";
+
 
 echo "\n=== NGINX SITES-ENABLED PEMBDAHUB CONFIG ===\n";
 if (file_exists('/etc/nginx/sites-enabled/pembdahub')) {
