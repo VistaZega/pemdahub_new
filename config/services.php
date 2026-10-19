@@ -88,6 +88,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Agora.io WebRTC Configuration
+    |--------------------------------------------------------------------------
+    | Digunakan untuk Live Kelas (Video Conference) di fitur LMS PembdaHUB.
+    | Daftarkan akun di https://console.agora.io dan buat project baru.
+    | Salin App ID dan App Certificate ke dalam file .env production.
+    */
+    'agora' => [
+        'app_id'          => env('AGORA_APP_ID', ''),
+        'app_certificate' => env('AGORA_APP_CERTIFICATE', ''),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Firebase Configuration
     |--------------------------------------------------------------------------
     */
@@ -122,6 +135,16 @@ return [
             'enabled' => env('WHATSAPP_ALERT_ENABLED', false),
             'admin_phone' => env('WHATSAPP_ALERT_PHONE', env('WHATSAPP_ADMIN_PHONE')),
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agora.io WebRTC Live Video Configuration
+    |--------------------------------------------------------------------------
+    */
+    'agora' => [
+        'app_id' => env('AGORA_APP_ID', 'aeca99d8bea14861ad0a38d2082a3814'),
+        'app_certificate' => env('AGORA_APP_CERTIFICATE', '57595929b52b4aa98df72aca79186983'),
     ],
 
 ];

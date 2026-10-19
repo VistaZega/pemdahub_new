@@ -51,6 +51,17 @@
             background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 0);
             background-size: 20px 20px;
         }
+        /* Agora local video pip */
+        #agora-local-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #agora-remote-videos > div video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden select-none">
@@ -136,15 +147,53 @@
     {{-- 2. MAIN WORKSPACE CONTAINER (SPLIT SCREEN) --}}
     <div class="flex-1 flex flex-row overflow-hidden relative" style="height: calc(100vh - 61px);">
         
-        {{-- Conference Stage (Video Call Jitsi) --}}
+        {{-- Conference Stage (Video Call Agora) --}}
         <main id="conference-panel" class="flex-1 relative bg-slate-950 flex flex-col h-full overflow-hidden transition-all duration-150">
             
-            {{-- Video Container --}}
-            <div id="meet" class="w-full flex-1 relative bg-slate-950"></div>
+            {{-- AGORA VIDEO AREA --}}
+            <div class="flex-1 flex flex-col overflow-hidden p-3 gap-3">
+                {{-- Video lokal guru --}}
+                <div id="agora-local-video" class="w-full h-56 bg-slate-900 rounded-xl overflow-hidden border border-slate-700 flex-shrink-0 relative">
+                    <div id="agora-local-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 pointer-events-none">
+                        <i class="fas fa-spinner animate-spin text-3xl mb-2 text-indigo-400"></i>
+                        <p class="text-xs">Mengaktifkan kamera...</p>
+                    </div>
+                    <div class="absolute bottom-2 left-2 z-10 bg-slate-900/80 px-2 py-0.5 rounded-lg text-[10px] font-bold text-white border border-slate-700">
+                        <i class="fas fa-chalkboard-user text-rose-400 mr-1"></i>{{ $displayName }}
+                    </div>
+                </div>
 
-            {{-- Floating Teacher Action Bar (Indonesian Language & Friendly) --}}
+                {{-- Grid video remote siswa --}}
+                <div id="agora-remote-videos" class="flex-1 grid gap-2 overflow-y-auto min-h-0" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); align-content: start;">
+                    {{-- Placeholder jika belum ada siswa --}}
+                    <div id="no-students-placeholder" class="col-span-full flex flex-col items-center justify-center text-slate-500 py-10">
+                        <i class="fas fa-users-slash text-4xl mb-3 text-slate-700"></i>
+                        <p class="text-xs text-slate-400">Menunggu siswa bergabung...</p>
+                        <p class="text-[10px] text-slate-600 mt-1">Bagikan tautan kelas ke siswa</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Floating Teacher Action Bar --}}
             <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 px-3 py-2 rounded-2xl shadow-2xl">
                 
+                {{-- Toggle Mic --}}
+                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition" title="Nyalakan/Matikan Mikrofon">
+                    <i id="mic-icon" class="fas fa-microphone text-emerald-400"></i>
+                </button>
+
+                {{-- Toggle Camera --}}
+                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition" title="Nyalakan/Matikan Kamera">
+                    <i id="cam-icon" class="fas fa-video text-emerald-400"></i>
+                </button>
+
+                {{-- Screen Share --}}
+                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition" title="Bagikan Layar Anda">
+                    <i class="fas fa-desktop text-blue-400"></i>
+                </button>
+
+                <div class="w-px h-4 bg-slate-700/80 hidden sm:block"></div>
+
                 {{-- Mute All Button (Pedagogical Control) --}}
                 <button onclick="teacherMuteEveryone()" type="button" class="group relative flex items-center gap-1.5 bg-slate-800 hover:bg-amber-600/30 text-slate-200 hover:text-amber-300 border border-slate-700 hover:border-amber-500/50 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all" title="Kondusifkan Kelas: Matikan mic seluruh siswa">
                     <i class="fas fa-volume-xmark text-amber-400"></i>
@@ -421,14 +470,210 @@
         <span>Tautan kelas berhasil disalin! Bagikan ke siswa via WhatsApp.</span>
     </div>
 
-    {{-- JITSI MEET EXTERNAL API SDK --}}
-    <script src="https://{{ config('services.jitsi.domain', 'meet.jit.si') }}/external_api.js"></script>
+    {{-- AGORA WEB SDK CDN --}}
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
 
     <script>
-        let jitsiApi = null;
+        // ============================================================
+        // AGORA CONFIGURATION (dari Laravel controller)
+        // ============================================================
+        const AGORA_APP_ID  = "{{ $agoraAppId }}";
+        const AGORA_TOKEN   = "{{ $agoraToken }}" || null;
+        const AGORA_CHANNEL = "{{ $agoraChannel }}";
+        const AGORA_UID     = {{ $agoraUid }};
+        const COURSE_ID     = {{ $course->id }};
+        const IS_HOST       = true;
+
+        let agoraClient;
+        let localVideoTrack, localAudioTrack, localScreenTrack;
+        let isScreenSharing = false;
+        let isMuted         = false;
+        let isCamOff        = false;
+
+        // ============================================================
+        // 1. INISIALISASI AGORA RTC
+        // ============================================================
+        async function initAgora() {
+            if (!AGORA_APP_ID) {
+                showAgoraError('AGORA_APP_ID belum dikonfigurasi. Isi di file .env server production.');
+                return;
+            }
+
+            agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+
+            // Event: user remote baru publish stream
+            agoraClient.on('user-published', async (user, mediaType) => {
+                await agoraClient.subscribe(user, mediaType);
+                if (mediaType === 'video') {
+                    const remoteDiv = document.getElementById(`remote-${user.uid}`) || createRemoteDiv(user.uid);
+                    user.videoTrack.play(remoteDiv);
+                }
+                if (mediaType === 'audio') {
+                    user.audioTrack.play();
+                }
+                updateParticipantCount();
+                hidePlaceholder();
+            });
+
+            // Event: user remote berhenti publish
+            agoraClient.on('user-unpublished', (user) => {
+                const div = document.getElementById(`remote-${user.uid}`);
+                if (div) div.remove();
+                updateParticipantCount();
+                if (agoraClient.remoteUsers.length === 0) showPlaceholder();
+            });
+
+            // Event: user remote keluar dari channel
+            agoraClient.on('user-left', (user) => {
+                const div = document.getElementById(`remote-${user.uid}`);
+                if (div) div.remove();
+                updateParticipantCount();
+                if (agoraClient.remoteUsers.length === 0) showPlaceholder();
+            });
+
+            // Join channel
+            await agoraClient.join(AGORA_APP_ID, AGORA_CHANNEL, AGORA_TOKEN || null, AGORA_UID);
+
+            // Buat track audio & video lokal
+            [localAudioTrack, localVideoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+
+            // Tampilkan video lokal
+            localVideoTrack.play('agora-local-video');
+            const placeholder = document.getElementById('agora-local-placeholder');
+            if (placeholder) placeholder.style.display = 'none';
+
+            // Publish stream ke channel
+            await agoraClient.publish([localAudioTrack, localVideoTrack]);
+        }
+
+        // Buat div container untuk video remote siswa
+        function createRemoteDiv(uid) {
+            const container = document.getElementById('agora-remote-videos');
+            const div = document.createElement('div');
+            div.id = `remote-${uid}`;
+            div.className = 'bg-slate-900 rounded-xl overflow-hidden border border-slate-700 aspect-video relative';
+            div.innerHTML = `<div class="absolute bottom-1 left-1 z-10 bg-slate-900/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white border border-slate-700"><i class="fas fa-user text-indigo-300 mr-0.5"></i>Siswa #${uid}</div>`;
+            container.appendChild(div);
+            return div;
+        }
+
+        function hidePlaceholder() {
+            const p = document.getElementById('no-students-placeholder');
+            if (p) p.style.display = 'none';
+        }
+
+        function showPlaceholder() {
+            const p = document.getElementById('no-students-placeholder');
+            if (p) p.style.display = 'flex';
+        }
+
+        // ============================================================
+        // 2. KONTROL MIC, KAMERA, SCREEN SHARE
+        // ============================================================
+        async function toggleMic() {
+            if (!localAudioTrack) return;
+            isMuted = !isMuted;
+            await localAudioTrack.setMuted(isMuted);
+            document.getElementById('mic-icon').className = isMuted
+                ? 'fas fa-microphone-slash text-red-400'
+                : 'fas fa-microphone text-emerald-400';
+            const btn = document.getElementById('btn-toggle-mic');
+            btn.className = isMuted
+                ? 'group relative p-3 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 transition'
+                : 'group relative p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition';
+        }
+
+        async function toggleCam() {
+            if (!localVideoTrack) return;
+            isCamOff = !isCamOff;
+            await localVideoTrack.setMuted(isCamOff);
+            document.getElementById('cam-icon').className = isCamOff
+                ? 'fas fa-video-slash text-red-400'
+                : 'fas fa-video text-emerald-400';
+            const btn = document.getElementById('btn-toggle-cam');
+            btn.className = isCamOff
+                ? 'group relative p-3 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 transition'
+                : 'group relative p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition';
+        }
+
+        async function toggleScreenShare() {
+            if (!isScreenSharing) {
+                try {
+                    localScreenTrack = await AgoraRTC.createScreenVideoTrack();
+                    await agoraClient.unpublish(localVideoTrack);
+                    await agoraClient.publish(localScreenTrack);
+                    localScreenTrack.play('agora-local-video');
+                    isScreenSharing = true;
+                    document.getElementById('btn-screenshare').classList.add('bg-blue-600/30', 'text-blue-300', 'border-blue-500/30');
+                    // Otomatis matikan screen share ketika pengguna menghentikan dari browser
+                    localScreenTrack.on('track-ended', async () => {
+                        await stopScreenShare();
+                    });
+                } catch(e) {
+                    console.warn('Screen share dibatalkan:', e.message);
+                }
+            } else {
+                await stopScreenShare();
+            }
+        }
+
+        async function stopScreenShare() {
+            if (!localScreenTrack) return;
+            await agoraClient.unpublish(localScreenTrack);
+            localScreenTrack.stop();
+            localScreenTrack.close();
+            localScreenTrack = null;
+            if (localVideoTrack) {
+                await agoraClient.publish(localVideoTrack);
+                localVideoTrack.play('agora-local-video');
+            }
+            isScreenSharing = false;
+            const btn = document.getElementById('btn-screenshare');
+            if (btn) btn.classList.remove('bg-blue-600/30', 'text-blue-300', 'border-blue-500/30');
+        }
+
+        // ============================================================
+        // 3. UPDATE COUNTER PESERTA
+        // ============================================================
+        function updateParticipantCount() {
+            if (!agoraClient) return;
+            const count = agoraClient.remoteUsers.length;
+            const headerEl = document.getElementById('header-attendee-count');
+            const badgeEl  = document.getElementById('quick-attendee-badge');
+            if (headerEl) headerEl.textContent = count;
+            if (badgeEl)  badgeEl.textContent  = count;
+        }
+
+        // ============================================================
+        // 4. KONTROL PEDAGOGIS GURU (MUTE ALL)
+        // ============================================================
+        function teacherMuteEveryone() {
+            // Agora free tier tidak support force-mute remote — informasikan ke guru
+            alert('Fitur Kondusifkan Kelas: Minta siswa untuk mematikan mikrofon masing-masing, atau gunakan chat/pesan untuk instruksi. (Fitur force-mute memerlukan Agora Real-Time Messaging).');
+        }
+
+        // ============================================================
+        // 5. ERROR HANDLER
+        // ============================================================
+        function showAgoraError(msg) {
+            const el = document.getElementById('agora-local-video');
+            if (el) {
+                el.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
+                        <i class="fas fa-video-slash text-4xl mb-3 text-rose-500"></i>
+                        <p class="text-sm font-bold text-slate-300">Kamera tidak dapat diakses</p>
+                        <p class="text-xs mt-1 text-slate-500">${msg}</p>
+                        <p class="text-xs mt-3 text-amber-400">Pastikan AGORA_APP_ID sudah diisi di .env dan browser diizinkan mengakses kamera/mikrofon.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================================
+        // 6. LIVE TIMER KALKULASI
+        // ============================================================
         let meetingStartTime = new Date("{{ $course->meeting_started_at ? $course->meeting_started_at->toISOString() : now()->toISOString() }}");
 
-        // 1. LIVE TIMER KALKULASI
         function updateTimer() {
             const now = new Date();
             const diffMs = Math.max(0, now - meetingStartTime);
@@ -442,7 +687,9 @@
         setInterval(updateTimer, 1000);
         updateTimer();
 
-        // 2. TOGGLE & SWITCH TAB CLASSROOM HUB
+        // ============================================================
+        // 7. TOGGLE & SWITCH TAB CLASSROOM HUB
+        // ============================================================
         function toggleClassroomHub() {
             const hub = document.getElementById('classroom-hub');
             const handler = document.getElementById('resize-handler');
@@ -458,7 +705,6 @@
         }
 
         function switchTab(tabName) {
-            // Pastikan panel terbuka jika sedang tersembunyi
             const hub = document.getElementById('classroom-hub');
             const handler = document.getElementById('resize-handler');
             if (hub.classList.contains('hidden')) {
@@ -490,7 +736,9 @@
             switchTab(tabName);
         }
 
-        // 3. MATERIAL PREVIEW VIEWER
+        // ============================================================
+        // 8. MATERIAL PREVIEW VIEWER
+        // ============================================================
         function displayMaterial(title, type, url, content) {
             const box = document.getElementById('material-preview-box');
             const iframe = document.getElementById('preview-iframe');
@@ -534,7 +782,9 @@
             if (iframe) iframe.src = 'about:blank';
         }
 
-        // 4. DIGITAL WHITEBOARD LOGIC (HTML5 CANVAS)
+        // ============================================================
+        // 9. DIGITAL WHITEBOARD LOGIC (HTML5 CANVAS)
+        // ============================================================
         const canvas = document.getElementById('whiteboard-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -547,7 +797,6 @@
             const container = document.getElementById('whiteboard-container');
             if (!container) return;
             
-            // Simpan gambar sebelum resize
             let tempImage = null;
             if (canvas.width > 0 && canvas.height > 0) {
                 tempImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -556,7 +805,6 @@
             canvas.width = container.offsetWidth;
             canvas.height = container.offsetHeight;
 
-            // Pulihkan gambar jika ada
             if (tempImage) {
                 ctx.putImageData(tempImage, 0, 0);
             }
@@ -619,7 +867,7 @@
             } else {
                 container.classList.add('canvas-whiteboard');
                 if (penColor === '#ffffff') {
-                    penColor = '#0f172a'; // Ganti ke hitam otomatis jika background putih
+                    penColor = '#0f172a';
                 }
             }
         }
@@ -630,7 +878,6 @@
             tempCanvas.height = canvas.height;
             const tempCtx = tempCanvas.getContext('2d');
             
-            // Background fill
             const container = document.getElementById('whiteboard-container');
             if (container.classList.contains('canvas-chalkboard')) {
                 tempCtx.fillStyle = '#14281d';
@@ -648,7 +895,6 @@
             link.click();
         }
 
-        // Pointer event listeners for Whiteboard drawing
         function getCanvasCoords(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -705,112 +951,63 @@
 
         window.addEventListener('resize', resizeWhiteboardCanvas);
 
-        // 5. JITSI MEET INITIALIZATION
-        document.addEventListener("DOMContentLoaded", function () {
-            const domain = "{{ config('services.jitsi.domain', 'meet.jit.si') }}";
-            const options = {
-                roomName: "{{ $roomName }}",
-                width: "100%",
-                height: "100%",
-                parentNode: document.querySelector('#meet'),
-                userInfo: {
-                    displayName: "{{ $displayName }}"
-                },
-                configOverwrite: {
-                    startWithAudioMuted: false,
-                    startWithVideoMuted: false,
-                    enableWelcomePage: false,
-                    prejoinPageEnabled: false,
-                    disableDeepLinking: true
-                },
-                interfaceConfigOverwrite: {
-                    TOOLBAR_BUTTONS: [
-                        'microphone', 'camera', 'desktop', 'fullscreen',
-                        'chat', 'recording', 'livestreaming', 'sharedvideo',
-                        'raisehand', 'videoquality', 'tileview', 'mute-everyone',
-                        'settings', 'hangup'
-                    ],
-                    SETTINGS_SECTIONS: ['devices', 'language', 'profile']
-                }
-            };
+        // ============================================================
+        // 10. POLLING PRESENSI SISWA (ATTENDANCE)
+        // ============================================================
+        function fetchAttendees() {
+            fetch("{{ route('guru.lms.meeting.attendees', $course->id) }}")
+                .then(response => response.json())
+                .then(data => {
+                    const total = data.total || 0;
+                    document.getElementById('header-attendee-count').textContent = total;
+                    document.getElementById('attendee-tab-count').textContent = total;
+                    document.getElementById('quick-attendee-badge').textContent = total;
 
-            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+                    const listEl = document.getElementById('attendees-list');
+                    if (!listEl) return;
 
-            const iframe = jitsiApi.getIFrame();
-            if (iframe) {
-                iframe.setAttribute('allow', 'camera *; microphone *; display-capture *; autoplay *; clipboard-write *');
-            }
-
-            // Tangkap event saat guru menutup meeting dari tombol bawaan Jitsi
-            jitsiApi.addEventListener('videoConferenceLeft', function() {
-                openEndMeetingModal();
-            });
-
-            // Polling Peserta Hadir (Attendance)
-            function fetchAttendees() {
-                fetch("{{ route('guru.lms.meeting.attendees', $course->id) }}")
-                    .then(response => response.json())
-                    .then(data => {
-                        const total = data.total || 0;
-                        document.getElementById('header-attendee-count').textContent = total;
-                        document.getElementById('attendee-tab-count').textContent = total;
-                        document.getElementById('quick-attendee-badge').textContent = total;
-
-                        const listEl = document.getElementById('attendees-list');
-                        if (!listEl) return;
-
-                        if (total === 0) {
-                            listEl.innerHTML = `
-                                <div class="text-center text-xs text-slate-500 py-12">
-                                    <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2 text-slate-400">
-                                        <i class="far fa-user text-xl"></i>
-                                    </div>
-                                    <p class="font-medium text-slate-300">Belum ada siswa yang masuk.</p>
-                                    <p class="text-[10px] text-slate-500 mt-1">Salin tautan kelas dan kirim ke grup WhatsApp rombel.</p>
+                    if (total === 0) {
+                        listEl.innerHTML = `
+                            <div class="text-center text-xs text-slate-500 py-12">
+                                <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2 text-slate-400">
+                                    <i class="far fa-user text-xl"></i>
                                 </div>
-                            `;
-                            return;
-                        }
+                                <p class="font-medium text-slate-300">Belum ada siswa yang masuk.</p>
+                                <p class="text-[10px] text-slate-500 mt-1">Salin tautan kelas dan kirim ke grup WhatsApp rombel.</p>
+                            </div>
+                        `;
+                        return;
+                    }
 
-                        let html = '';
-                        data.attendees.forEach(student => {
-                            html += `
-                                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-all text-xs">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-[11px] font-extrabold text-white shadow-md flex-shrink-0">
-                                            ${student.initials}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="font-bold text-slate-200 truncate leading-snug">${student.name}</p>
-                                            <span class="text-[10px] text-slate-400 flex items-center gap-1">
-                                                <i class="far fa-clock text-indigo-400"></i> ${student.joined_at}
-                                            </span>
-                                        </div>
+                    let html = '';
+                    data.attendees.forEach(student => {
+                        html += `
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-all text-xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-[11px] font-extrabold text-white shadow-md flex-shrink-0">
+                                        ${student.initials}
                                     </div>
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hadir
-                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-slate-200 truncate leading-snug">${student.name}</p>
+                                        <span class="text-[10px] text-slate-400 flex items-center gap-1">
+                                            <i class="far fa-clock text-indigo-400"></i> ${student.joined_at}
+                                        </span>
+                                    </div>
                                 </div>
-                            `;
-                        });
-                        listEl.innerHTML = html;
-                    })
-                    .catch(err => console.error("Error fetching attendees:", err));
-            }
-
-            setInterval(fetchAttendees, 12000);
-            fetchAttendees();
-        });
-
-        // 6. KONTROL PEDAGOGIS GURU
-        function teacherMuteEveryone() {
-            if (jitsiApi) {
-                jitsiApi.executeCommand('muteEveryone');
-                alert('Seluruh mikrofon siswa berhasil dinonaktifkan (Mute All).');
-            }
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hadir
+                                </span>
+                            </div>
+                        `;
+                    });
+                    listEl.innerHTML = html;
+                })
+                .catch(err => console.error("Error fetching attendees:", err));
         }
 
-        // 7. COPY MEETING LINK & TOAST
+        // ============================================================
+        // 11. COPY MEETING LINK & TOAST
+        // ============================================================
         function copyMeetingLink() {
             const joinUrl = "{{ route('siswa.lms.meeting.join', $course->id) }}";
             navigator.clipboard.writeText(joinUrl).then(() => {
@@ -824,7 +1021,9 @@
             });
         }
 
-        // 8. MODAL AKHIRI KELAS
+        // ============================================================
+        // 12. MODAL AKHIRI KELAS
+        // ============================================================
         function openEndMeetingModal() {
             document.getElementById('end-meeting-modal').classList.remove('hidden');
         }
@@ -832,7 +1031,9 @@
             document.getElementById('end-meeting-modal').classList.add('hidden');
         }
 
-        // 9. RESIZE DRAG HANDLER LOGIC
+        // ============================================================
+        // 13. RESIZE DRAG HANDLER LOGIC
+        // ============================================================
         const hub = document.getElementById('classroom-hub');
         const resizeHandler = document.getElementById('resize-handler');
         const overlay = document.getElementById('resize-overlay');
@@ -862,6 +1063,33 @@
                 document.body.style.cursor = 'default';
                 resizeWhiteboardCanvas();
             }
+        });
+
+        // ============================================================
+        // 14. INIT SAAT HALAMAN LOAD
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start Agora
+            initAgora().catch(err => {
+                console.error('Agora init error:', err);
+                showAgoraError(err.message || 'Gagal terhubung ke Agora');
+            });
+
+            // Start attendance polling
+            setInterval(fetchAttendees, 12000);
+            fetchAttendees();
+        });
+
+        // ============================================================
+        // 15. CLEANUP SAAT HALAMAN DITUTUP
+        // ============================================================
+        window.addEventListener('beforeunload', async () => {
+            try {
+                if (localAudioTrack) { localAudioTrack.stop(); localAudioTrack.close(); }
+                if (localVideoTrack) { localVideoTrack.stop(); localVideoTrack.close(); }
+                if (localScreenTrack) { localScreenTrack.stop(); localScreenTrack.close(); }
+                if (agoraClient) await agoraClient.leave();
+            } catch(e) { /* ignore cleanup errors */ }
         });
     </script>
 </body>

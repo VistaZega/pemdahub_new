@@ -2006,7 +2006,13 @@ HTML;
         $activeSessionId = cache()->get('lms_meeting_session_' . $course->id);
         $activeSession   = $activeSessionId ? LmsMeetingSession::with('attendances.student.user')->find($activeSessionId) : null;
 
-        return view('guru.lms.meeting', compact('teacher', 'course', 'roomName', 'displayName', 'activeSession'));
+        // Generate Agora token untuk guru (publisher role — bisa kirim video & audio)
+        $agoraChannel = \App\Services\AgoraTokenService::generateChannelName($course->id);
+        $agoraUid     = auth()->id(); // Gunakan user ID sebagai UID Agora
+        $agoraToken   = \App\Services\AgoraTokenService::buildToken($agoraChannel, $agoraUid, \App\Services\AgoraTokenService::ROLE_PUBLISHER);
+        $agoraAppId   = config('services.agora.app_id');
+
+        return view('guru.lms.meeting', compact('teacher', 'course', 'roomName', 'displayName', 'activeSession', 'agoraToken', 'agoraAppId', 'agoraChannel', 'agoraUid'));
     }
 
     /**

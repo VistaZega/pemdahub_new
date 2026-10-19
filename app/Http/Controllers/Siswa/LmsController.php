@@ -1504,7 +1504,13 @@ HTML;
         $roomName    = 'PembdaHub_Course_' . $course->id . '_' . md5($course->code . config('app.key'));
         $displayName = $student->full_name;
 
-        return view('siswa.lms.meeting', compact('student', 'course', 'roomName', 'displayName'));
+        // Generate Agora token untuk siswa (subscriber role — hanya menerima video/audio)
+        $agoraChannel = \App\Services\AgoraTokenService::generateChannelName($course->id);
+        $agoraUid     = auth()->id();
+        $agoraToken   = \App\Services\AgoraTokenService::buildToken($agoraChannel, $agoraUid, \App\Services\AgoraTokenService::ROLE_SUBSCRIBER);
+        $agoraAppId   = config('services.agora.app_id');
+
+        return view('siswa.lms.meeting', compact('student', 'course', 'roomName', 'displayName', 'agoraToken', 'agoraAppId', 'agoraChannel', 'agoraUid'));
     }
 
     /**
