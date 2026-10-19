@@ -34,6 +34,27 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(100, 116, 139, 0.8);
         }
+        .video-tile {
+            position: relative;
+            overflow: hidden;
+            background-color: #0f172a;
+            border-radius: 1rem;
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .video-tile.speaking {
+            box-shadow: 0 0 0 3px #10b981, 0 0 20px rgba(16, 185, 129, 0.5) !important;
+            border-color: #10b981 !important;
+        }
+        .video-tile.pinned-speaker {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.35) !important;
+        }
+        .filmstrip-tile {
+            height: 96px !important;
+            width: 170px !important;
+            flex-shrink: 0 !important;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden select-none">
@@ -88,6 +109,15 @@
                 <span id="data-saver-label">Hemat Kuota</span>
             </button>
 
+            {{-- Tombol Pilihan Tampilan (Zoom View Selector) --}}
+            <div class="relative inline-block text-left" id="header-view-wrapper">
+                <button onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm" title="Pilihan Tata Letak Tampilan (Zoom)">
+                    <i id="header-view-icon" class="fas fa-user-tie text-rose-400"></i>
+                    <span class="hidden md:inline">Tampilan: <span id="header-view-name" class="text-white">Pembicara</span></span>
+                    <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
+                </button>
+            </div>
+
             {{-- Tombol Buka Materi --}}
             <button onclick="toggleStudentHub()" type="button" id="btn-student-hub" class="flex items-center gap-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95" title="Buka modul dan materi pelajaran">
                 <i class="fas fa-book-open text-indigo-400"></i>
@@ -116,55 +146,116 @@
         {{-- Conference Arena (Agora Video Stage) --}}
         <main id="conference-panel" class="flex-1 relative bg-slate-950 flex flex-col h-full overflow-hidden transition-all duration-150">
             
-            {{-- Video Arena Layout --}}
-            <div class="flex-1 flex flex-col overflow-hidden p-3 gap-3 relative">
-                
-                {{-- Layar Utama: Video Guru / Screen Share Guru --}}
-                <div class="flex-1 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 relative flex items-center justify-center shadow-inner">
-                    <div id="agora-teacher-video" class="w-full h-full relative">
-                        {{-- Placeholder sebelum guru connect / jika guru belum publish video --}}
-                        <div id="teacher-waiting-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-                            <div class="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3 animate-pulse">
-                                <i class="fas fa-chalkboard-user text-2xl"></i>
-                            </div>
-                            <h3 class="text-base font-bold text-white">Menghubungkan ke Ruang PembdaTEMU...</h3>
-                            <p class="text-xs text-slate-400 mt-1 max-w-sm">Guru sedang menyiapkan siaran. Suara dan video guru akan otomatis muncul saat guru mulai mengajar.</p>
-                            <span class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Channel: {{ $agoraChannel }}
+            {{-- FLOATING ZOOM-STYLE VIEW SELECTOR (POJOK KANAN ATAS VIDEO) --}}
+            <div class="absolute top-3.5 right-3.5 z-30 flex items-center gap-2">
+                <div class="relative" id="video-view-dropdown-wrapper">
+                    <button id="btn-view-toggle" onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white px-3.5 py-1.5 rounded-xl border border-slate-700/80 text-xs font-bold transition shadow-xl backdrop-blur-md active:scale-95" title="Ganti Tata Letak Video (Zoom)">
+                        <i id="current-view-icon" class="fas fa-user-tie text-rose-400 text-xs"></i>
+                        <span>Tampilan: <span id="current-view-name" class="text-white">Pembicara</span></span>
+                        <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
+                    </button>
+
+                    <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-2 z-50 backdrop-blur-xl transition-all">
+                        <div class="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-800 mb-1">
+                            Pilihan Tata Letak (Zoom)
+                        </div>
+                        
+                        <button onclick="changeStudentLayout('speaker')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-200 hover:text-white flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fas fa-user-tie text-rose-400 w-4"></i>
+                                <span>Tampilan Pembicara</span>
                             </span>
-                        </div>
-                    </div>
+                            <i id="check-speaker" class="fas fa-check text-rose-400 text-xs"></i>
+                        </button>
 
-                    {{-- Badge Status Siaran Guru --}}
-                    <div class="absolute top-3 left-3 z-10 flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-900/90 border border-slate-700 text-slate-200 backdrop-blur-md">
-                            <i class="fas fa-chalkboard-user text-indigo-400"></i>
-                            <span>{{ $course->teacher->user->name ?? 'Guru Pengajar' }}</span>
-                        </span>
-                        <span id="teacher-audio-indicator" class="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] font-bold bg-slate-900/90 border border-slate-700 text-slate-400 backdrop-blur-md">
-                            <i class="fas fa-volume-high text-emerald-400"></i> Audio Aktif
+                        <button onclick="changeStudentLayout('gallery')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-200 hover:text-white flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fas fa-table-cells text-indigo-400 w-4"></i>
+                                <span>Tampilan Galeri</span>
+                            </span>
+                            <i id="check-gallery" class="fas fa-check text-indigo-400 text-xs hidden"></i>
+                        </button>
+
+                        <button onclick="changeStudentLayout('sidebyside')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-200 hover:text-white flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fas fa-columns text-emerald-400 w-4"></i>
+                                <span>Berdampingan (Materi)</span>
+                            </span>
+                            <i id="check-sidebyside" class="fas fa-check text-emerald-400 text-xs hidden"></i>
+                        </button>
+
+                        <div class="h-px bg-slate-800 my-1.5"></div>
+
+                        <button onclick="toggleStudentFullscreen()" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors">
+                            <i id="menu-fs-icon" class="fas fa-expand text-amber-400 w-4"></i>
+                            <span id="menu-fs-text">Layar Penuh (F11)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 1. SPEAKER VIEW STAGE (Default Siswa: Focus ke Guru/Host) --}}
+            <div id="stage-speaker-wrapper" class="flex-1 flex flex-col h-full overflow-hidden p-3 gap-2.5 relative min-h-0">
+                {{-- Top Filmstrip Bar: Thumbnail peserta lain --}}
+                <div id="speaker-filmstrip" class="flex items-center gap-2.5 overflow-x-auto p-1.5 h-28 shrink-0 bg-slate-900/60 rounded-2xl border border-slate-800/80 backdrop-blur-sm scroll-smooth">
+                    {{-- Non-pinned tiles live here --}}
+                </div>
+                {{-- Main Spotlight Screen: 1 Peserta Terfokus (Guru/Siswa) --}}
+                <div id="speaker-main-stage" class="flex-1 flex items-center justify-center overflow-hidden min-h-0 relative p-1">
+                    {{-- Pinned tile lives here --}}
+                </div>
+            </div>
+
+            {{-- 2. GALLERY VIEW STAGE (Active when currentLayout === 'gallery' or 'sidebyside') --}}
+            <div id="stage-gallery-wrapper" class="hidden flex-1 items-center justify-center overflow-hidden h-full p-3 min-h-0 relative">
+                <div id="gallery-grid" class="w-full h-full flex items-center justify-center gap-3 transition-all duration-300">
+                    {{-- All tiles reside here in gallery mode --}}
+                </div>
+            </div>
+
+            {{-- MASTER INITIAL TILES CONTAINER (Akan dipindahkan oleh rearrangeTiles) --}}
+            <div id="master-tiles-pool" class="hidden">
+                {{-- 1. Video Tile GURU (Host) --}}
+                <div id="video-tile-teacher" class="video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-2xl flex items-center justify-center w-full max-w-5xl h-full max-h-[78vh] aspect-video mx-auto my-auto transition-all">
+                    <div id="agora-teacher-video" class="w-full h-full relative"></div>
+                    <div id="teacher-waiting-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-6 text-center bg-slate-900 pointer-events-none">
+                        <div class="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3 animate-pulse">
+                            <i class="fas fa-chalkboard-user text-2xl"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-white">Menghubungkan ke Ruang PembdaTEMU...</h3>
+                        <p class="text-xs text-slate-400 mt-1 max-w-sm">Guru sedang menyiapkan siaran. Video & audio guru akan otomatis tampil di sini saat mulai mengajar.</p>
+                        <span class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Channel: {{ $agoraChannel }}
                         </span>
                     </div>
-
-                    {{-- PiP Video Siswa (Kamera Sendiri) di Pojok Bawah Kanan --}}
-                    <div id="student-pip-container" class="absolute bottom-20 sm:bottom-4 right-4 w-36 sm:w-48 aspect-video bg-slate-900/95 rounded-xl overflow-hidden border border-slate-700 shadow-2xl z-20">
-                        <div id="agora-student-video" class="w-full h-full relative">
-                            <div id="student-cam-off-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-500 text-[10px]">
-                                <i class="fas fa-video-slash text-base mb-1"></i>
-                                <span>Kamera Nonaktif</span>
-                            </div>
-                        </div>
-                        <div class="absolute bottom-1 left-1.5 z-10 text-[9px] font-bold text-white bg-slate-900/80 px-1.5 py-0.5 rounded border border-slate-700">
-                            Saya ({{ explode(' ', $displayName)[0] }})
-                        </div>
+                    <div class="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-800 shadow-md">
+                        <i id="teacher-audio-indicator" class="fas fa-volume-high text-emerald-400 text-[10px]"></i>
+                        <span class="truncate max-w-[170px]"><i class="fas fa-chalkboard-user text-rose-400 mr-1"></i>{{ $course->teacher->user->name ?? 'Guru Pengajar' }} (Guru)</span>
+                    </div>
+                    <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="pinStudentSpeaker('teacher')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 text-xs shadow-md transition" title="Fokuskan / Spotlight">
+                            <i class="fas fa-thumbtack text-[10px]"></i>
+                        </button>
                     </div>
                 </div>
 
-                {{-- Baris Thumbnail Siswa Lain --}}
-                <div id="agora-peers-container" class="h-20 bg-slate-900/60 rounded-xl border border-slate-800/80 p-2 flex items-center gap-2 overflow-x-auto flex-shrink-0">
-                    <div id="no-peers-hint" class="text-[11px] text-slate-500 px-3 flex items-center gap-2">
-                        <i class="fas fa-users text-slate-600"></i>
-                        <span>Siswa lain yang mengaktifkan kamera akan muncul di sini</span>
+                {{-- 2. Video Tile SAYA (Siswa Sendiri) --}}
+                <div id="video-tile-local" class="video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-2xl flex items-center justify-center aspect-video transition-all">
+                    <div id="agora-student-video" class="w-full h-full relative"></div>
+                    <div id="student-cam-off-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-500 text-xs pointer-events-none">
+                        <div class="w-14 h-14 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-xl font-bold text-cyan-400 mb-1.5 shadow-inner">
+                            {{ substr($displayName, 0, 1) }}
+                        </div>
+                        <span class="text-[11px] font-semibold text-slate-400">Kamera Saya Nonaktif</span>
+                    </div>
+                    <div class="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-800 shadow-md">
+                        <i id="tile-mic-local" class="fas fa-microphone-slash text-rose-400 text-[10px]"></i>
+                        <span class="truncate max-w-[150px]">Saya ({{ explode(' ', $displayName)[0] }})</span>
+                    </div>
+                    <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="pinStudentSpeaker('local')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 text-xs shadow-md transition" title="Fokuskan / Spotlight">
+                            <i class="fas fa-thumbtack text-[10px]"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -406,22 +497,291 @@
         let isRaiseHand      = false;
         let isDataSaver      = false;
 
-        // 1. INISIALISASI AGORA CLIENT SISWA
+        // Zoom Layout State Variables (Siswa)
+        let currentLayout    = 'speaker'; // 'speaker' | 'gallery' | 'sidebyside'
+        let currentPinnedUid = 'teacher'; // 'teacher' | 'local' | remote uid
+        let attendeesMap     = {};        // user.uid => student name
+
+        // ============================================================
+        // 1. ZOOM LAYOUT CONTROLLER (SISWA)
+        // ============================================================
+        function toggleViewMenu(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('view-dropdown-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdownWrapper = document.getElementById('video-view-dropdown-wrapper');
+            const headerWrapper   = document.getElementById('header-view-wrapper');
+            const menu            = document.getElementById('view-dropdown-menu');
+            if (!menu) return;
+            if (dropdownWrapper && !dropdownWrapper.contains(e.target) && headerWrapper && !headerWrapper.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function changeStudentLayout(mode) {
+            currentLayout = mode;
+            updateStudentViewLabel(mode);
+
+            const hub = document.getElementById('student-hub');
+            const handler = document.getElementById('resize-handler');
+
+            if (mode === 'sidebyside') {
+                if (hub && hub.classList.contains('hidden')) {
+                    hub.classList.remove('hidden');
+                    hub.classList.add('flex');
+                    if (handler) handler.classList.remove('hidden');
+                }
+            } else {
+                if (hub && !hub.classList.contains('hidden')) {
+                    hub.classList.add('hidden');
+                    hub.classList.remove('flex');
+                    if (handler) handler.classList.add('hidden');
+                }
+            }
+
+            rearrangeStudentTiles();
+            const menu = document.getElementById('view-dropdown-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        function updateStudentViewLabel(mode) {
+            const iconEl     = document.getElementById('current-view-icon');
+            const nameEl     = document.getElementById('current-view-name');
+            const headerIcon = document.getElementById('header-view-icon');
+            const headerName = document.getElementById('header-view-name');
+            const checkGal   = document.getElementById('check-gallery');
+            const checkSpk   = document.getElementById('check-speaker');
+            const checkSbs   = document.getElementById('check-sidebyside');
+
+            if (checkGal) checkGal.classList.add('hidden');
+            if (checkSpk) checkSpk.classList.add('hidden');
+            if (checkSbs) checkSbs.classList.add('hidden');
+
+            if (mode === 'gallery') {
+                if (iconEl) iconEl.className = 'fas fa-table-cells text-indigo-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Galeri';
+                if (headerIcon) headerIcon.className = 'fas fa-table-cells text-indigo-400';
+                if (headerName) headerName.textContent = 'Galeri';
+                if (checkGal) checkGal.classList.remove('hidden');
+            } else if (mode === 'sidebyside') {
+                if (iconEl) iconEl.className = 'fas fa-columns text-emerald-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Berdampingan';
+                if (headerIcon) headerIcon.className = 'fas fa-columns text-emerald-400';
+                if (headerName) headerName.textContent = 'Berdampingan';
+                if (checkSbs) checkSbs.classList.remove('hidden');
+            } else {
+                if (iconEl) iconEl.className = 'fas fa-user-tie text-rose-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Pembicara';
+                if (headerIcon) headerIcon.className = 'fas fa-user-tie text-rose-400';
+                if (headerName) headerName.textContent = 'Pembicara';
+                if (checkSpk) checkSpk.classList.remove('hidden');
+            }
+        }
+
+        function toggleStudentFullscreen() {
+            const el = document.documentElement;
+            const fsIcon = document.getElementById('menu-fs-icon');
+            const fsText = document.getElementById('menu-fs-text');
+            const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+
+            if (!isFs) {
+                if (el.requestFullscreen) {
+                    el.requestFullscreen();
+                } else if (el.webkitRequestFullscreen) {
+                    el.webkitRequestFullscreen();
+                }
+                if (fsIcon) fsIcon.className = 'fas fa-compress text-amber-400 w-4';
+                if (fsText) fsText.textContent = 'Keluar Layar Penuh';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                if (fsIcon) fsIcon.className = 'fas fa-expand text-amber-400 w-4';
+                if (fsText) fsText.textContent = 'Layar Penuh (F11)';
+            }
+            const menu = document.getElementById('view-dropdown-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        function pinStudentSpeaker(target) {
+            currentPinnedUid = target;
+            if (currentLayout !== 'speaker') {
+                changeStudentLayout('speaker');
+            } else {
+                rearrangeStudentTiles();
+            }
+        }
+
+        function createRemoteStudentTile(user) {
+            const tile = document.createElement('div');
+            tile.id = `video-tile-${user.uid}`;
+            tile.className = 'video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-lg flex items-center justify-center transition-all duration-300';
+            
+            const studentName = attendeesMap[user.uid] || `Siswa #${user.uid}`;
+
+            tile.innerHTML = `
+                <div id="remote-${user.uid}" class="w-full h-full relative"></div>
+                <div id="remote-placeholder-${user.uid}" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-400 hidden pointer-events-none">
+                    <div class="w-14 h-14 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-xl font-bold text-indigo-400 mb-1.5 shadow-inner">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-300">${studentName}</p>
+                </div>
+                <div class="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-800 shadow-md">
+                    <i id="tile-mic-${user.uid}" class="fas fa-microphone text-emerald-400 text-[10px]"></i>
+                    <span id="tile-name-${user.uid}" class="truncate max-w-[150px]"><i class="fas fa-user-graduate text-indigo-400 mr-1"></i>${studentName}</span>
+                </div>
+                <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="pinStudentSpeaker('${user.uid}')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 text-xs shadow-md transition" title="Fokuskan / Spotlight">
+                        <i class="fas fa-thumbtack text-[10px]"></i>
+                    </button>
+                </div>
+            `;
+            return tile;
+        }
+
+        // Susun ulang posisi tile video berdasarkan mode tata letak Zoom (Siswa)
+        function rearrangeStudentTiles() {
+            const isSpeaker = (currentLayout === 'speaker');
+            const galleryStage = document.getElementById('stage-gallery-wrapper');
+            const speakerStage = document.getElementById('stage-speaker-wrapper');
+            const galleryGrid  = document.getElementById('gallery-grid');
+            const filmstrip    = document.getElementById('speaker-filmstrip');
+            const mainStage    = document.getElementById('speaker-main-stage');
+
+            // Ambil seluruh tile video yang ada
+            const allTiles = Array.from(document.querySelectorAll('.video-tile'));
+            const total = allTiles.length;
+
+            if (isSpeaker) {
+                if (galleryStage) galleryStage.classList.add('hidden');
+                if (speakerStage) {
+                    speakerStage.classList.remove('hidden');
+                    speakerStage.classList.add('flex');
+                }
+
+                // Tentukan tile yang di-pin
+                let pinnedId = 'video-tile-teacher';
+                if (currentPinnedUid === 'local') {
+                    pinnedId = 'video-tile-local';
+                } else if (currentPinnedUid !== 'teacher') {
+                    pinnedId = `video-tile-${currentPinnedUid}`;
+                }
+
+                let pinnedTile = document.getElementById(pinnedId);
+                if (!pinnedTile && allTiles.length > 0) {
+                    pinnedTile = document.getElementById('video-tile-teacher') || allTiles[0];
+                }
+
+                if (pinnedTile && mainStage) {
+                    mainStage.appendChild(pinnedTile);
+                    pinnedTile.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border-2 border-indigo-500/60 shadow-2xl flex items-center justify-center w-full h-full max-h-[75vh] aspect-video transition-all pinned-speaker';
+                    pinnedTile.onclick = null;
+                }
+
+                allTiles.forEach(tile => {
+                    if (tile !== pinnedTile && filmstrip) {
+                        filmstrip.appendChild(tile);
+                        tile.className = 'video-tile filmstrip-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md flex items-center justify-center aspect-video cursor-pointer transition-all hover:scale-105';
+                        tile.classList.remove('pinned-speaker');
+                        tile.onclick = () => {
+                            if (tile.id === 'video-tile-teacher') pinStudentSpeaker('teacher');
+                            else if (tile.id === 'video-tile-local') pinStudentSpeaker('local');
+                            else pinStudentSpeaker(tile.id.replace('video-tile-', ''));
+                        };
+                    }
+                });
+            } else {
+                // Mode Galeri atau Mode Berdampingan
+                if (speakerStage) {
+                    speakerStage.classList.add('hidden');
+                    speakerStage.classList.remove('flex');
+                }
+                if (galleryStage) {
+                    galleryStage.classList.remove('hidden');
+                    galleryStage.classList.add('flex');
+                }
+
+                allTiles.forEach(tile => {
+                    if (galleryGrid) galleryGrid.appendChild(tile);
+                    tile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                    tile.onclick = null;
+                });
+
+                if (galleryGrid) {
+                    if (total <= 1) {
+                        galleryGrid.className = 'w-full h-full flex items-center justify-center p-2';
+                        if (allTiles[0]) {
+                            allTiles[0].className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-2xl flex items-center justify-center w-full max-w-5xl h-full max-h-[78vh] aspect-video mx-auto my-auto transition-all';
+                        }
+                    } else if (total === 2) {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-1 md:grid-cols-2 gap-3.5 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 shadow-xl flex items-center justify-center w-full h-full max-h-[70vh] aspect-video transition-all');
+                    } else if (total <= 4) {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-2 grid-rows-2 gap-3 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 shadow-xl flex items-center justify-center w-full h-full aspect-video transition-all');
+                    } else if (total <= 6) {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-3 grid-rows-2 gap-2.5 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-lg flex items-center justify-center w-full h-full aspect-video transition-all');
+                    } else {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-3 md:grid-cols-4 gap-2.5 overflow-y-auto p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md flex items-center justify-center w-full aspect-video transition-all');
+                    }
+                }
+            }
+
+            // Pastikan video element terus berjalan setelah direparenting
+            document.querySelectorAll('.video-tile video').forEach(v => {
+                if (v && v.paused) v.play().catch(() => {});
+            });
+        }
+
+        // ============================================================
+        // 2. INISIALISASI AGORA CLIENT SISWA
+        // ============================================================
         async function initAgoraStudent() {
             if (!AGORA_APP_ID) {
                 console.error("Agora App ID kosong.");
                 return;
             }
 
+            // Tata letak awal siswa
+            rearrangeStudentTiles();
+
             // Inisialisasi RTC Client Agora
             agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
-            // Remote User Published (Guru atau Teman publish stream)
+            // Deteksi Active Speaker (Border hijau saat berbicara)
+            agoraClient.enableAudioVolumeIndicator();
+            agoraClient.on('volume-indicator', (volumes) => {
+                document.querySelectorAll('.video-tile').forEach(t => t.classList.remove('speaking'));
+                volumes.forEach(vol => {
+                    if (vol.level > 15) {
+                        let targetTileId = null;
+                        if (vol.uid === 0 || vol.uid === AGORA_UID) {
+                            targetTileId = 'video-tile-local';
+                        } else if (vol.uid === TEACHER_USER_ID) {
+                            targetTileId = 'video-tile-teacher';
+                        } else {
+                            targetTileId = `video-tile-${vol.uid}`;
+                        }
+                        const tileEl = document.getElementById(targetTileId);
+                        if (tileEl) tileEl.classList.add('speaking');
+                    }
+                });
+            });
+
+            // Remote User Published (Guru atau Siswa lain publish track)
             agoraClient.on('user-published', async (user, mediaType) => {
                 await agoraClient.subscribe(user, mediaType);
 
                 if (mediaType === 'video') {
-                    // Cek apakah yang publish adalah Guru
+                    // Cek apakah Guru atau Siswa lain
                     if (user.uid === TEACHER_USER_ID || isTeacherTrack(user)) {
                         const teacherContainer = document.getElementById('agora-teacher-video');
                         const placeholder = document.getElementById('teacher-waiting-placeholder');
@@ -429,8 +789,13 @@
                         user.videoTrack.play(teacherContainer);
                     } else {
                         // Siswa lain (Classmate)
-                        const peerContainer = document.getElementById(`peer-${user.uid}`) || createPeerContainer(user.uid);
-                        user.videoTrack.play(peerContainer);
+                        let peerTile = document.getElementById(`video-tile-${user.uid}`);
+                        if (!peerTile) {
+                            peerTile = createRemoteStudentTile(user);
+                            document.getElementById('master-tiles-pool').appendChild(peerTile);
+                            rearrangeStudentTiles();
+                        }
+                        user.videoTrack.play(`remote-${user.uid}`);
                     }
                 }
 
@@ -445,22 +810,22 @@
 
             // Remote User Unpublished
             agoraClient.on('user-unpublished', (user, mediaType) => {
-                if (user.uid === TEACHER_USER_ID && mediaType === 'video') {
+                if ((user.uid === TEACHER_USER_ID || isTeacherTrack(user)) && mediaType === 'video') {
                     const placeholder = document.getElementById('teacher-waiting-placeholder');
                     if (placeholder) placeholder.style.display = 'flex';
                 }
-                if (mediaType === 'video') {
-                    const el = document.getElementById(`peer-${user.uid}`);
+                if (mediaType === 'video' && user.uid !== TEACHER_USER_ID) {
+                    const el = document.getElementById(`video-tile-${user.uid}`);
                     if (el) el.remove();
-                    checkPeersEmpty();
+                    rearrangeStudentTiles();
                 }
             });
 
             // Remote User Left
             agoraClient.on('user-left', (user) => {
-                const el = document.getElementById(`peer-${user.uid}`);
+                const el = document.getElementById(`video-tile-${user.uid}`);
                 if (el) el.remove();
-                checkPeersEmpty();
+                rearrangeStudentTiles();
             });
 
             // Join Agora Channel
@@ -469,30 +834,7 @@
         }
 
         function isTeacherTrack(user) {
-            // Jika TEACHER_USER_ID cocok atau tidak ada ID lain
             return TEACHER_USER_ID > 0 && user.uid === TEACHER_USER_ID;
-        }
-
-        function createPeerContainer(uid) {
-            const hint = document.getElementById('no-peers-hint');
-            if (hint) hint.style.display = 'none';
-
-            const container = document.getElementById('agora-peers-container');
-            const div = document.createElement('div');
-            div.id = `peer-${uid}`;
-            div.className = 'h-full aspect-video bg-slate-800 rounded-lg overflow-hidden border border-slate-700 flex-shrink-0 relative';
-            div.innerHTML = `<span class="absolute bottom-0.5 left-1 z-10 text-[8px] font-bold text-white bg-slate-900/80 px-1 rounded">Siswa #${uid}</span>`;
-            container.appendChild(div);
-            return div;
-        }
-
-        function checkPeersEmpty() {
-            const container = document.getElementById('agora-peers-container');
-            const peers = container.querySelectorAll('[id^="peer-"]');
-            const hint = document.getElementById('no-peers-hint');
-            if (peers.length === 0 && hint) {
-                hint.style.display = 'flex';
-            }
         }
 
         // 2. KONTROL MIC & KAMERA SISWA
@@ -625,11 +967,20 @@
                 hub.classList.remove('hidden');
                 hub.classList.add('flex');
                 if (handler) handler.classList.remove('hidden');
+                if (currentLayout === 'gallery') {
+                    currentLayout = 'sidebyside';
+                    updateStudentViewLabel('sidebyside');
+                }
             } else {
                 hub.classList.add('hidden');
                 hub.classList.remove('flex');
                 if (handler) handler.classList.add('hidden');
+                if (currentLayout === 'sidebyside') {
+                    currentLayout = 'speaker';
+                    updateStudentViewLabel('speaker');
+                }
             }
+            rearrangeStudentTiles();
         }
 
         function switchStudentTab(tabName) {
@@ -752,6 +1103,18 @@
 
                     let html = '';
                     data.attendees.forEach(stu => {
+                        attendeesMap[stu.id] = stu.name;
+
+                        // Perbarui nama di tile video jika sudah ada
+                        const tileNameSpan = document.getElementById(`tile-name-${stu.id}`);
+                        if (tileNameSpan) {
+                            tileNameSpan.innerHTML = `<i class="fas fa-user-graduate text-indigo-400 mr-1"></i>${stu.name}`;
+                        }
+                        const tilePlaceholder = document.querySelector(`#remote-placeholder-${stu.id} p`);
+                        if (tilePlaceholder) {
+                            tilePlaceholder.textContent = stu.name;
+                        }
+
                         html += `
                             <div class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs">
                                 <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">

@@ -51,16 +51,44 @@
             background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 0);
             background-size: 20px 20px;
         }
-        /* Agora local video pip */
-        #agora-local-video video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        /* Video Tile Responsive Styles (Zoom style) */
+        .video-tile {
+            position: relative;
+            background: #090d16;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1.5px solid rgba(51, 65, 85, 0.7);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            aspect-ratio: 16 / 9;
         }
-        #agora-remote-videos > div video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .video-tile:hover {
+            border-color: rgba(99, 102, 241, 0.6);
+        }
+        .video-tile.speaking {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4);
+        }
+        .video-tile.pinned-speaker {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+        }
+        .video-tile video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: inherit;
+        }
+        .filmstrip-tile {
+            height: 96px !important;
+            width: 170px !important;
+            flex-shrink: 0 !important;
+            cursor: pointer;
+            border-radius: 0.75rem !important;
+        }
+        .filmstrip-tile:hover {
+            transform: scale(1.03);
+            border-color: #6366f1 !important;
         }
     </style>
 </head>
@@ -122,6 +150,15 @@
                 <span class="hidden md:inline">Papan Tulis</span>
             </button>
 
+            {{-- Tombol Pilihan Tampilan (Zoom View Selector) --}}
+            <div class="relative inline-block text-left" id="header-view-wrapper">
+                <button onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm" title="Pilihan Tata Letak Tampilan (Zoom)">
+                    <i id="header-view-icon" class="fas fa-table-cells text-indigo-400"></i>
+                    <span class="hidden md:inline">Tampilan: <span id="header-view-name" class="text-white">Galeri</span></span>
+                    <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
+                </button>
+            </div>
+
             {{-- Tombol Toggle Panel Materi / Peserta --}}
             <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95" title="Buka atau sembunyikan panel modul dan siswa">
                 <i class="fas fa-columns text-indigo-400"></i>
@@ -150,27 +187,102 @@
         {{-- Conference Stage (Video Call Agora) --}}
         <main id="conference-panel" class="flex-1 relative bg-slate-950 flex flex-col h-full overflow-hidden transition-all duration-150">
             
-            {{-- AGORA VIDEO AREA --}}
-            <div class="flex-1 flex flex-col overflow-hidden p-3 gap-3">
-                {{-- Video lokal guru --}}
-                <div id="agora-local-video" class="w-full h-56 bg-slate-900 rounded-xl overflow-hidden border border-slate-700 flex-shrink-0 relative">
-                    <div id="agora-local-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 pointer-events-none">
-                        <i class="fas fa-spinner animate-spin text-3xl mb-2 text-indigo-400"></i>
-                        <p class="text-xs">Mengaktifkan kamera...</p>
-                    </div>
-                    <div class="absolute bottom-2 left-2 z-10 bg-slate-900/80 px-2 py-0.5 rounded-lg text-[10px] font-bold text-white border border-slate-700">
-                        <i class="fas fa-chalkboard-user text-rose-400 mr-1"></i>{{ $displayName }}
+            {{-- FLOATING ZOOM-STYLE VIEW SELECTOR (POJOK KANAN ATAS VIDEO) --}}
+            <div class="absolute top-3.5 right-3.5 z-30 flex items-center gap-2">
+                <div class="relative" id="video-view-dropdown-wrapper">
+                    <button id="btn-view-toggle" onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white px-3.5 py-1.5 rounded-xl border border-slate-700/80 text-xs font-bold transition shadow-xl backdrop-blur-md active:scale-95" title="Ganti Tata Letak Video (Zoom)">
+                        <i id="current-view-icon" class="fas fa-table-cells text-indigo-400 text-xs"></i>
+                        <span>Tampilan: <span id="current-view-name" class="text-white">Galeri</span></span>
+                        <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
+                    </button>
+
+                    <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-2 z-50 backdrop-blur-xl transition-all">
+                        <div class="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-800 mb-1">
+                            Pilihan Tata Letak (Zoom)
+                        </div>
+                        
+                        <button onclick="changeLayout('gallery')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-200 hover:text-white flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fas fa-table-cells text-indigo-400 w-4"></i>
+                                <span>Tampilan Galeri</span>
+                            </span>
+                            <i id="check-gallery" class="fas fa-check text-indigo-400 text-xs"></i>
+                        </button>
+
+                        <button onclick="changeLayout('speaker')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-200 hover:text-white flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fas fa-user-tie text-rose-400 w-4"></i>
+                                <span>Tampilan Pembicara</span>
+                            </span>
+                            <i id="check-speaker" class="fas fa-check text-rose-400 text-xs hidden"></i>
+                        </button>
+
+                        <button onclick="changeLayout('sidebyside')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-200 hover:text-white flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fas fa-columns text-emerald-400 w-4"></i>
+                                <span>Berdampingan (KBM)</span>
+                            </span>
+                            <i id="check-sidebyside" class="fas fa-check text-emerald-400 text-xs hidden"></i>
+                        </button>
+
+                        <div class="h-px bg-slate-800 my-1.5"></div>
+
+                        <button onclick="toggleAppFullscreen()" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition-colors">
+                            <i id="menu-fs-icon" class="fas fa-expand text-amber-400 w-4"></i>
+                            <span id="menu-fs-text">Layar Penuh (F11)</span>
+                        </button>
                     </div>
                 </div>
+            </div>
 
-                {{-- Grid video remote siswa --}}
-                <div id="agora-remote-videos" class="flex-1 grid gap-2 overflow-y-auto min-h-0" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); align-content: start;">
-                    {{-- Placeholder jika belum ada siswa --}}
-                    <div id="no-students-placeholder" class="col-span-full flex flex-col items-center justify-center text-slate-500 py-10">
-                        <i class="fas fa-users-slash text-4xl mb-3 text-slate-700"></i>
-                        <p class="text-xs text-slate-400">Menunggu siswa bergabung...</p>
-                        <p class="text-[10px] text-slate-600 mt-1">Bagikan tautan kelas ke siswa</p>
+            {{-- 1. SPEAKER VIEW STAGE (Active when currentLayout === 'speaker') --}}
+            <div id="stage-speaker-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-3 gap-2.5 relative min-h-0">
+                {{-- Top Filmstrip Bar: Thumbnail peserta lain --}}
+                <div id="speaker-filmstrip" class="flex items-center gap-2.5 overflow-x-auto p-1.5 h-28 shrink-0 bg-slate-900/60 rounded-2xl border border-slate-800/80 backdrop-blur-sm scroll-smooth">
+                    {{-- Non-pinned tiles live here --}}
+                </div>
+                {{-- Main Spotlight Screen: 1 Peserta Terfokus (Guru/Siswa) --}}
+                <div id="speaker-main-stage" class="flex-1 flex items-center justify-center overflow-hidden min-h-0 relative p-1">
+                    {{-- Pinned tile lives here --}}
+                </div>
+            </div>
+
+            {{-- 2. GALLERY VIEW STAGE (Default: Active when currentLayout === 'gallery' or 'sidebyside') --}}
+            <div id="stage-gallery-wrapper" class="flex-1 flex items-center justify-center overflow-hidden h-full p-3 min-h-0 relative">
+                <div id="gallery-grid" class="w-full h-full flex items-center justify-center gap-3 transition-all duration-300">
+                    {{-- Local video tile (Guru) --}}
+                    <div id="video-tile-local" class="video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-2xl flex items-center justify-center w-full max-w-5xl h-full max-h-[78vh] aspect-video mx-auto my-auto transition-all">
+                        <div id="agora-local-video" class="w-full h-full relative">
+                            {{-- Agora video injected here --}}
+                        </div>
+                        <div id="agora-local-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 bg-slate-900 pointer-events-none">
+                            <div class="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-2xl font-bold text-rose-400 mb-2">
+                                {{ substr($displayName, 0, 1) }}
+                            </div>
+                            <p class="text-xs font-semibold text-slate-300">Mengaktifkan kamera...</p>
+                        </div>
+                        <div class="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-800 shadow-md">
+                            <i id="tile-mic-local" class="fas fa-microphone text-emerald-400 text-[10px]"></i>
+                            <span class="truncate max-w-[170px]"><i class="fas fa-chalkboard-user text-rose-400 mr-1"></i>{{ $displayName }} (Host)</span>
+                        </div>
+                        <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="pinSpeaker('local')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 text-xs shadow-md transition" title="Fokuskan / Spotlight">
+                                <i class="fas fa-thumbtack text-[10px]"></i>
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            {{-- SOLO TEACHER FLOATING BANNER (Hanya muncul jika belum ada siswa yang bergabung) --}}
+            <div id="solo-teacher-banner" class="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto transition-all duration-300">
+                <div class="flex items-center gap-3 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 px-4 py-2 rounded-2xl shadow-2xl text-xs">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="text-slate-300 font-medium">Kamera Anda Aktif • Menunggu siswa bergabung</span>
+                    <button onclick="copyMeetingLink()" type="button" class="ml-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30">
+                        <i class="far fa-copy text-xs"></i>
+                        <span>Bagikan Tautan</span>
+                    </button>
                 </div>
             </div>
 
@@ -491,6 +603,115 @@
         let isCamOff        = false;
 
         // ============================================================
+        // LAYOUT & VIEW MANAGEMENT (ZOOM STYLE)
+        // ============================================================
+        let currentLayout = 'gallery'; // 'gallery', 'speaker', 'sidebyside'
+        let currentPinnedUid = 'local'; // 'local' or remote uid
+        let attendeesMap = {}; // mapping user_id -> student name
+
+        function toggleViewMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('view-dropdown-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function closeViewMenu() {
+            const menu = document.getElementById('view-dropdown-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            const wrapper1 = document.getElementById('video-view-dropdown-wrapper');
+            const wrapper2 = document.getElementById('header-view-wrapper');
+            if ((!wrapper1 || !wrapper1.contains(e.target)) && (!wrapper2 || !wrapper2.contains(e.target))) {
+                closeViewMenu();
+            }
+        });
+
+        function changeLayout(mode) {
+            currentLayout = mode;
+            closeViewMenu();
+
+            const hub = document.getElementById('classroom-hub');
+            const handler = document.getElementById('resize-handler');
+
+            // Update icons and labels
+            const iconEl = document.getElementById('current-view-icon');
+            const nameEl = document.getElementById('current-view-name');
+            const headerIcon = document.getElementById('header-view-icon');
+            const headerName = document.getElementById('header-view-name');
+            const checkGal = document.getElementById('check-gallery');
+            const checkSpk = document.getElementById('check-speaker');
+            const checkSbs = document.getElementById('check-sidebyside');
+
+            if (checkGal) checkGal.classList.add('hidden');
+            if (checkSpk) checkSpk.classList.add('hidden');
+            if (checkSbs) checkSbs.classList.add('hidden');
+
+            if (mode === 'speaker') {
+                if (iconEl) iconEl.className = 'fas fa-user-tie text-rose-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Pembicara';
+                if (headerIcon) headerIcon.className = 'fas fa-user-tie text-rose-400';
+                if (headerName) headerName.textContent = 'Pembicara';
+                if (checkSpk) checkSpk.classList.remove('hidden');
+
+                if (hub) { hub.classList.add('hidden'); hub.classList.remove('flex'); }
+                if (handler) handler.classList.add('hidden');
+            } else if (mode === 'sidebyside') {
+                if (iconEl) iconEl.className = 'fas fa-columns text-emerald-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Berdampingan';
+                if (headerIcon) headerIcon.className = 'fas fa-columns text-emerald-400';
+                if (headerName) headerName.textContent = 'Berdampingan';
+                if (checkSbs) checkSbs.classList.remove('hidden');
+
+                if (hub) { hub.classList.remove('hidden'); hub.classList.add('flex'); }
+                if (handler) handler.classList.remove('hidden');
+            } else {
+                // gallery mode
+                if (iconEl) iconEl.className = 'fas fa-table-cells text-indigo-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Galeri';
+                if (headerIcon) headerIcon.className = 'fas fa-table-cells text-indigo-400';
+                if (headerName) headerName.textContent = 'Galeri';
+                if (checkGal) checkGal.classList.remove('hidden');
+
+                if (hub) { hub.classList.add('hidden'); hub.classList.remove('flex'); }
+                if (handler) handler.classList.add('hidden');
+            }
+
+            rearrangeTiles();
+        }
+
+        function pinSpeaker(uid) {
+            currentPinnedUid = uid;
+            if (currentLayout !== 'speaker') {
+                changeLayout('speaker');
+            } else {
+                rearrangeTiles();
+            }
+        }
+
+        function toggleAppFullscreen() {
+            closeViewMenu();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('menu-fs-icon');
+            const text = document.getElementById('menu-fs-text');
+            if (!document.fullscreenElement) {
+                if (icon) icon.className = 'fas fa-expand text-amber-400 w-4';
+                if (text) text.textContent = 'Layar Penuh (F11)';
+            } else {
+                if (icon) icon.className = 'fas fa-compress text-amber-400 w-4';
+                if (text) text.textContent = 'Keluar Layar Penuh (Esc)';
+            }
+        });
+
+        // ============================================================
         // 1. INISIALISASI AGORA RTC
         // ============================================================
         async function initAgora() {
@@ -501,34 +722,67 @@
 
             agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
+            // Active Speaker Volume Indicator (Zoom-style glowing green border)
+            agoraClient.enableAudioVolumeIndicator();
+            agoraClient.on('volume-indicator', volumes => {
+                volumes.forEach(volume => {
+                    const isSpeaking = volume.level > 10;
+                    const tileId = (volume.uid === AGORA_UID || volume.uid === 0) 
+                        ? 'video-tile-local' 
+                        : `video-tile-${volume.uid}`;
+                    const tile = document.getElementById(tileId);
+                    if (tile) {
+                        if (isSpeaking) {
+                            tile.classList.add('speaking');
+                        } else {
+                            tile.classList.remove('speaking');
+                        }
+                    }
+                });
+            });
+
             // Event: user remote baru publish stream
             agoraClient.on('user-published', async (user, mediaType) => {
                 await agoraClient.subscribe(user, mediaType);
                 if (mediaType === 'video') {
-                    const remoteDiv = document.getElementById(`remote-${user.uid}`) || createRemoteDiv(user.uid);
-                    user.videoTrack.play(remoteDiv);
+                    let tile = document.getElementById(`video-tile-${user.uid}`);
+                    if (!tile) {
+                        tile = createRemoteTile(user);
+                    }
+                    user.videoTrack.play(`remote-${user.uid}`);
+                    const ph = document.getElementById(`remote-placeholder-${user.uid}`);
+                    if (ph) ph.style.display = 'none';
                 }
                 if (mediaType === 'audio') {
                     user.audioTrack.play();
+                    const micIcon = document.getElementById(`tile-mic-${user.uid}`);
+                    if (micIcon) micIcon.className = 'fas fa-microphone text-emerald-400 text-[10px]';
                 }
                 updateParticipantCount();
-                hidePlaceholder();
+                rearrangeTiles();
             });
 
             // Event: user remote berhenti publish
-            agoraClient.on('user-unpublished', (user) => {
-                const div = document.getElementById(`remote-${user.uid}`);
-                if (div) div.remove();
-                updateParticipantCount();
-                if (agoraClient.remoteUsers.length === 0) showPlaceholder();
+            agoraClient.on('user-unpublished', (user, mediaType) => {
+                if (mediaType === 'video') {
+                    const ph = document.getElementById(`remote-placeholder-${user.uid}`);
+                    if (ph) ph.style.display = 'flex';
+                }
+                if (mediaType === 'audio') {
+                    const micIcon = document.getElementById(`tile-mic-${user.uid}`);
+                    if (micIcon) micIcon.className = 'fas fa-microphone-slash text-rose-400 text-[10px]';
+                }
             });
 
             // Event: user remote keluar dari channel
             agoraClient.on('user-left', (user) => {
-                const div = document.getElementById(`remote-${user.uid}`);
-                if (div) div.remove();
+                const tile = document.getElementById(`video-tile-${user.uid}`);
+                if (tile) tile.remove();
+                if (currentPinnedUid == user.uid) {
+                    currentPinnedUid = 'local';
+                }
                 updateParticipantCount();
-                if (agoraClient.remoteUsers.length === 0) showPlaceholder();
+                rearrangeTiles();
             });
 
             // Join channel
@@ -544,27 +798,130 @@
 
             // Publish stream ke channel
             await agoraClient.publish([localAudioTrack, localVideoTrack]);
+
+            // Tata letak awal
+            rearrangeTiles();
         }
 
-        // Buat div container untuk video remote siswa
-        function createRemoteDiv(uid) {
-            const container = document.getElementById('agora-remote-videos');
-            const div = document.createElement('div');
-            div.id = `remote-${uid}`;
-            div.className = 'bg-slate-900 rounded-xl overflow-hidden border border-slate-700 aspect-video relative';
-            div.innerHTML = `<div class="absolute bottom-1 left-1 z-10 bg-slate-900/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white border border-slate-700"><i class="fas fa-user text-indigo-300 mr-0.5"></i>Siswa #${uid}</div>`;
-            container.appendChild(div);
-            return div;
+        // Buat DOM tile untuk video remote siswa (Zoom style)
+        function createRemoteTile(user) {
+            const tile = document.createElement('div');
+            tile.id = `video-tile-${user.uid}`;
+            tile.className = 'video-tile group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-lg flex items-center justify-center transition-all duration-300';
+            
+            const studentName = attendeesMap[user.uid] || `Siswa #${user.uid}`;
+
+            tile.innerHTML = `
+                <div id="remote-${user.uid}" class="w-full h-full relative"></div>
+                <div id="remote-placeholder-${user.uid}" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-400 hidden">
+                    <div class="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-2xl font-bold text-indigo-400 mb-1.5 shadow-inner">
+                        <i class="fas fa-user-graduate text-xl"></i>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-300">${studentName}</p>
+                </div>
+                <div class="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-800 shadow-md">
+                    <i id="tile-mic-${user.uid}" class="fas fa-microphone text-emerald-400 text-[10px]"></i>
+                    <span id="tile-name-${user.uid}" class="truncate max-w-[160px]"><i class="fas fa-user-graduate text-indigo-400 mr-1"></i>${studentName}</span>
+                </div>
+                <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="pinSpeaker('${user.uid}')" type="button" class="p-1.5 rounded-lg bg-slate-950/80 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 text-xs shadow-md transition" title="Fokuskan / Spotlight">
+                        <i class="fas fa-thumbtack text-[10px]"></i>
+                    </button>
+                </div>
+            `;
+            return tile;
         }
 
-        function hidePlaceholder() {
-            const p = document.getElementById('no-students-placeholder');
-            if (p) p.style.display = 'none';
-        }
+        // Susun ulang posisi tile video berdasarkan mode tata letak Zoom
+        function rearrangeTiles() {
+            const isSpeaker = (currentLayout === 'speaker');
+            const galleryStage = document.getElementById('stage-gallery-wrapper');
+            const speakerStage = document.getElementById('stage-speaker-wrapper');
+            const galleryGrid = document.getElementById('gallery-grid');
+            const filmstrip = document.getElementById('speaker-filmstrip');
+            const mainStage = document.getElementById('speaker-main-stage');
+            const soloBanner = document.getElementById('solo-teacher-banner');
 
-        function showPlaceholder() {
-            const p = document.getElementById('no-students-placeholder');
-            if (p) p.style.display = 'flex';
+            const allTiles = Array.from(document.querySelectorAll('.video-tile'));
+            const total = allTiles.length;
+
+            // Tampilkan/sembunyikan notifikasi jika guru masih sendirian
+            if (soloBanner) {
+                if (total <= 1) {
+                    soloBanner.classList.remove('hidden');
+                } else {
+                    soloBanner.classList.add('hidden');
+                }
+            }
+
+            if (isSpeaker) {
+                if (galleryStage) galleryStage.classList.add('hidden');
+                if (speakerStage) {
+                    speakerStage.classList.remove('hidden');
+                    speakerStage.classList.add('flex');
+                }
+
+                const pinnedId = (currentPinnedUid === 'local') ? 'video-tile-local' : `video-tile-${currentPinnedUid}`;
+                let pinnedTile = document.getElementById(pinnedId);
+                if (!pinnedTile && allTiles.length > 0) {
+                    pinnedTile = allTiles[0];
+                    currentPinnedUid = (pinnedTile.id === 'video-tile-local') ? 'local' : pinnedTile.id.replace('video-tile-', '');
+                }
+
+                if (pinnedTile && mainStage) {
+                    mainStage.appendChild(pinnedTile);
+                    pinnedTile.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border-2 border-indigo-500/60 shadow-2xl flex items-center justify-center w-full h-full max-h-[75vh] aspect-video transition-all pinned-speaker';
+                    pinnedTile.onclick = null;
+                }
+
+                allTiles.forEach(tile => {
+                    if (tile !== pinnedTile && filmstrip) {
+                        filmstrip.appendChild(tile);
+                        tile.className = 'video-tile filmstrip-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md flex items-center justify-center aspect-video cursor-pointer transition-all hover:scale-105';
+                        tile.classList.remove('pinned-speaker');
+                        tile.onclick = () => pinSpeaker(tile.id === 'video-tile-local' ? 'local' : tile.id.replace('video-tile-', ''));
+                    }
+                });
+            } else {
+                // Mode Galeri atau Mode Berdampingan (KBM)
+                if (speakerStage) {
+                    speakerStage.classList.add('hidden');
+                    speakerStage.classList.remove('flex');
+                }
+                if (galleryStage) galleryStage.classList.remove('hidden');
+
+                allTiles.forEach(tile => {
+                    if (galleryGrid) galleryGrid.appendChild(tile);
+                    tile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                    tile.onclick = null;
+                });
+
+                if (galleryGrid) {
+                    if (total <= 1) {
+                        galleryGrid.className = 'w-full h-full flex items-center justify-center p-2';
+                        if (allTiles[0]) {
+                            allTiles[0].className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-2xl flex items-center justify-center w-full max-w-5xl h-full max-h-[78vh] aspect-video mx-auto my-auto transition-all';
+                        }
+                    } else if (total === 2) {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-1 md:grid-cols-2 gap-3.5 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 shadow-xl flex items-center justify-center w-full h-full max-h-[70vh] aspect-video transition-all');
+                    } else if (total <= 4) {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-2 grid-rows-2 gap-3 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 shadow-xl flex items-center justify-center w-full h-full aspect-video transition-all');
+                    } else if (total <= 6) {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-3 grid-rows-2 gap-2.5 items-center justify-center p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-lg flex items-center justify-center w-full h-full aspect-video transition-all');
+                    } else {
+                        galleryGrid.className = 'w-full h-full max-h-[78vh] grid grid-cols-3 md:grid-cols-4 gap-2.5 overflow-y-auto p-2';
+                        allTiles.forEach(t => t.className = 'video-tile relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md flex items-center justify-center w-full aspect-video transition-all');
+                    }
+                }
+            }
+
+            // Pastikan video terus memutar lancar
+            document.querySelectorAll('.video-tile video').forEach(v => {
+                if (v && v.paused) v.play().catch(() => {});
+            });
         }
 
         // ============================================================
@@ -697,10 +1054,53 @@
                 hub.classList.remove('hidden');
                 hub.classList.add('flex');
                 if (handler) handler.classList.remove('hidden');
+                if (currentLayout === 'gallery') {
+                    currentLayout = 'sidebyside';
+                    updateViewLabel('sidebyside');
+                }
             } else {
                 hub.classList.add('hidden');
                 hub.classList.remove('flex');
                 if (handler) handler.classList.add('hidden');
+                if (currentLayout === 'sidebyside') {
+                    currentLayout = 'gallery';
+                    updateViewLabel('gallery');
+                }
+            }
+            rearrangeTiles();
+        }
+
+        function updateViewLabel(mode) {
+            const iconEl = document.getElementById('current-view-icon');
+            const nameEl = document.getElementById('current-view-name');
+            const headerIcon = document.getElementById('header-view-icon');
+            const headerName = document.getElementById('header-view-name');
+            const checkGal = document.getElementById('check-gallery');
+            const checkSpk = document.getElementById('check-speaker');
+            const checkSbs = document.getElementById('check-sidebyside');
+
+            if (checkGal) checkGal.classList.add('hidden');
+            if (checkSpk) checkSpk.classList.add('hidden');
+            if (checkSbs) checkSbs.classList.add('hidden');
+
+            if (mode === 'sidebyside') {
+                if (iconEl) iconEl.className = 'fas fa-columns text-emerald-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Berdampingan';
+                if (headerIcon) headerIcon.className = 'fas fa-columns text-emerald-400';
+                if (headerName) headerName.textContent = 'Berdampingan';
+                if (checkSbs) checkSbs.classList.remove('hidden');
+            } else if (mode === 'speaker') {
+                if (iconEl) iconEl.className = 'fas fa-user-tie text-rose-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Pembicara';
+                if (headerIcon) headerIcon.className = 'fas fa-user-tie text-rose-400';
+                if (headerName) headerName.textContent = 'Pembicara';
+                if (checkSpk) checkSpk.classList.remove('hidden');
+            } else {
+                if (iconEl) iconEl.className = 'fas fa-table-cells text-indigo-400 text-xs';
+                if (nameEl) nameEl.textContent = 'Galeri';
+                if (headerIcon) headerIcon.className = 'fas fa-table-cells text-indigo-400';
+                if (headerName) headerName.textContent = 'Galeri';
+                if (checkGal) checkGal.classList.remove('hidden');
             }
         }
 
@@ -1001,6 +1401,20 @@
                         `;
                     });
                     listEl.innerHTML = html;
+
+                    // Update nama siswa pada badge video tile jika cocok dengan user_id
+                    if (data.attendees) {
+                        data.attendees.forEach(student => {
+                            const sid = student.user_id || student.id;
+                            if (sid) {
+                                attendeesMap[sid] = student.name;
+                                const nameBadge = document.getElementById(`tile-name-${sid}`);
+                                if (nameBadge) {
+                                    nameBadge.innerHTML = `<i class="fas fa-user-graduate text-indigo-400 mr-1"></i>${student.name}`;
+                                }
+                            }
+                        });
+                    }
                 })
                 .catch(err => console.error("Error fetching attendees:", err));
         }
