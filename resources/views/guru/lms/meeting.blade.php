@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Tatap Muka Virtual: {{ $course->course_name ?? $course->name }} - PembdaHUB</title>
+    <title>PembdaTEMU: {{ $course->course_name ?? $course->name }} - PembdaHUB</title>
     
     <!-- Tailwind CSS & App JS -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -78,8 +78,8 @@
             </div>
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/15 border border-rose-500/30 text-rose-400 uppercase tracking-wider">
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Live Kelas
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/15 border border-rose-500/30 text-rose-400 uppercase tracking-wider">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> PembdaTEMU Live
                     </span>
                     <span class="text-[11px] font-semibold text-slate-400 hidden md:inline truncate">
                         {{ $course->school?->name ?? 'Perguruan Pembda' }}
@@ -445,9 +445,9 @@
                 <i class="fas fa-power-off"></i>
             </div>
             <div>
-                <h3 class="text-base font-bold text-white">Akhiri Sesi Tatap Muka?</h3>
+                <h3 class="text-base font-bold text-white">Akhiri Sesi PembdaTEMU?</h3>
                 <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-                    Sesi kelas live untuk mata pelajaran <strong>{{ $course->course_name ?? $course->name }}</strong> akan ditutup. Seluruh siswa akan diarahkan kembali ke beranda modul dan total durasi kehadiran siswa otomatis tersimpan di rekap presensi.
+                    Sesi PembdaTEMU untuk mata pelajaran <strong>{{ $course->course_name ?? $course->name }}</strong> akan ditutup. Seluruh siswa akan diarahkan kembali ke beranda modul dan total durasi kehadiran siswa otomatis tersimpan di rekap presensi.
                 </p>
             </div>
             <div class="flex items-center justify-end gap-2 pt-2">
@@ -457,7 +457,7 @@
                 <form action="{{ route('guru.lms.meeting.stop', $course->id) }}" method="POST">
                     @csrf
                     <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-lg shadow-rose-900/30 flex items-center gap-1.5">
-                        <i class="fas fa-check"></i> Ya, Akhiri Kelas
+                        <i class="fas fa-check"></i> Ya, Akhiri PembdaTEMU
                     </button>
                 </form>
             </div>
@@ -467,7 +467,7 @@
     {{-- 5. TOAST NOTIFICATION --}}
     <div id="copy-toast" class="fixed bottom-6 right-6 z-50 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl border border-indigo-400 flex items-center gap-2 transform translate-y-12 opacity-0 transition-all duration-300 pointer-events-none">
         <i class="fas fa-circle-check text-emerald-300 text-sm"></i>
-        <span>Tautan kelas berhasil disalin! Bagikan ke siswa via WhatsApp.</span>
+        <span>Tautan PembdaTEMU berhasil disalin! Bagikan ke siswa via WhatsApp.</span>
     </div>
 
     {{-- AGORA WEB SDK CDN --}}

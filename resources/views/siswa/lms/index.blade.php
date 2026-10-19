@@ -270,12 +270,12 @@
                     @if($course->meeting_active)
                     <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" class="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-rose-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black shadow-md">
                         <span class="w-2 h-2 bg-white rounded-full inline-block animate-ping"></span>
-                        LIVE
+                        TEMU LIVE
                     </a>
                     @else
                     <a href="#" id="live-badge-{{ $course->id }}" class="absolute top-4 right-4 z-20 hidden items-center gap-1.5 bg-rose-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black shadow-md">
                         <span class="w-2 h-2 bg-white rounded-full inline-block animate-ping"></span>
-                        LIVE
+                        TEMU LIVE
                     </a>
                     @endif
 

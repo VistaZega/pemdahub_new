@@ -1922,8 +1922,8 @@ HTML;
                 if ($student && $student->user_id) {
                     Notification::create([
                         'user_id'       => $student->user_id,
-                        'title'         => '🔴 Kelas Live Dimulai!',
-                        'message'       => "Guru telah memulai kelas live untuk course **{$course->name}**. Bergabunglah sekarang!",
+                        'title'         => '🔴 PembdaTEMU Dimulai!',
+                        'message'       => "Guru telah membuka sesi live **PembdaTEMU** untuk mata pelajaran **{$course->name}**. Bergabunglah sekarang!",
                         'type'          => 'info',
                         'related_model' => 'LmsCourse',
                         'related_id'    => $course->id,
@@ -1944,7 +1944,7 @@ HTML;
         }
 
         return redirect()->route('guru.lms.meeting.join', $course->id)
-            ->with('success', 'Kelas tatap muka virtual berhasil dimulai.');
+            ->with('success', 'Sesi PembdaTEMU berhasil dimulai.');
     }
 
     /**
@@ -1985,7 +1985,7 @@ HTML;
         ]);
 
         return redirect()->route('guru.lms.show', $course->id)
-            ->with('success', 'Kelas tatap muka virtual berhasil diakhiri.');
+            ->with('success', 'Sesi PembdaTEMU berhasil diakhiri.');
     }
 
     /**

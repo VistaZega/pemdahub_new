@@ -401,7 +401,7 @@
                                     @if($matchedCourse && $matchedCourse->meeting_active)
                                     <a href="{{ route('siswa.lms.meeting.join', $matchedCourse->id) }}" style="padding: 0.5rem 1rem; background-color: #e11d48; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(225,29,72,0.3);" class="animate-pulse">
                                         <span style="width: 0.5rem; height: 0.5rem; background-color: #ffffff; border-radius: 9999px; display: inline-block;"></span>
-                                        <span>Gabung LIVE</span> &rarr;
+                                        <span>Masuk PembdaTEMU</span> &rarr;
                                     </a>
                                     @else
                                     <a href="{{ $lmsUrl }}" style="padding: 0.5rem 1rem; background-color: #059669; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">

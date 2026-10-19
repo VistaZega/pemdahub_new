@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Tatap Muka Virtual: {{ $course->course_name ?? $course->name }} - PembdaHUB</title>
+    <title>PembdaTEMU: {{ $course->course_name ?? $course->name }} - PembdaHUB</title>
     
     <!-- Tailwind CSS & App JS -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -50,8 +50,8 @@
             </div>
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 uppercase tracking-wider">
-                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span> Mengikuti Kelas
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 uppercase tracking-wider">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span> Mengikuti PembdaTEMU
                     </span>
                     <span class="text-[11px] font-semibold text-slate-400 hidden md:inline truncate">
                         {{ $course->school?->name ?? 'Perguruan Pembda' }}
@@ -127,7 +127,7 @@
                             <div class="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3 animate-pulse">
                                 <i class="fas fa-chalkboard-user text-2xl"></i>
                             </div>
-                            <h3 class="text-base font-bold text-white">Menghubungkan ke Ruang Live Guru...</h3>
+                            <h3 class="text-base font-bold text-white">Menghubungkan ke Ruang PembdaTEMU...</h3>
                             <p class="text-xs text-slate-400 mt-1 max-w-sm">Guru sedang menyiapkan siaran. Suara dan video guru akan otomatis muncul saat guru mulai mengajar.</p>
                             <span class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Channel: {{ $agoraChannel }}
@@ -370,7 +370,7 @@
                 <i class="fas fa-door-open"></i>
             </div>
             <div>
-                <h3 class="text-base font-bold text-white">Tinggalkan Kelas Live?</h3>
+                <h3 class="text-base font-bold text-white">Tinggalkan Sesi PembdaTEMU?</h3>
                 <p class="text-xs text-slate-300 mt-1 leading-relaxed">
                     Durasi kehadiran Anda sampai detik ini akan tersimpan di rekap absensi guru. Anda dapat bergabung kembali selama guru masih membuka kelas.
                 </p>
@@ -380,7 +380,7 @@
                     Batal
                 </button>
                 <button onclick="executeLeaveMeeting()" type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-lg shadow-rose-900/30 flex items-center gap-1.5">
-                    <i class="fas fa-check"></i> Ya, Tinggalkan Kelas
+                    <i class="fas fa-check"></i> Ya, Tinggalkan PembdaTEMU
                 </button>
             </div>
         </div>

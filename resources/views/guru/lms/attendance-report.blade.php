@@ -1,6 +1,6 @@
 @extends('layouts.guru')
 
-@section('title', 'Rekap Kehadiran Tatap Muka - ' . $course->name)
+@section('title', 'Rekap Kehadiran PembdaTEMU - ' . $course->name)
 
 @push('styles')
 <style>
@@ -22,10 +22,10 @@
                 <i class="fas fa-chevron-right text-[8px] text-gray-400"></i>
                 <a href="{{ route('guru.lms.show', $course->id) }}" class="hover:text-emerald-600 transition-colors">{{ $course->name }}</a>
                 <i class="fas fa-chevron-right text-[8px] text-gray-400"></i>
-                <span class="text-gray-700">Rekap Kehadiran</span>
+                <span class="text-gray-700">Rekap PembdaTEMU</span>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Rekap Kehadiran Tatap Muka Virtual</h1>
-            <p class="text-sm text-gray-500 mt-1">Daftar riwayat sesi tatap muka dan absensi kehadiran siswa kelas virtual.</p>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Rekap Kehadiran PembdaTEMU</h1>
+            <p class="text-sm text-gray-500 mt-1">Daftar riwayat sesi tatap muka PembdaTEMU dan absensi kehadiran siswa.</p>
         </div>
         <div>
             <a href="{{ route('guru.lms.show', $course->id) }}" class="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all shadow-sm">
@@ -40,9 +40,9 @@
             <div class="absolute -right-6 -bottom-6 opacity-10">
                 <i class="fas fa-video text-7xl"></i>
             </div>
-            <p class="text-xs font-bold tracking-wide text-indigo-100">Total Sesi Live</p>
+            <p class="text-xs font-bold tracking-wide text-indigo-100">Total Sesi PembdaTEMU</p>
             <p class="text-3xl font-extrabold mt-1">{{ $sessions->total() }}</p>
-            <p class="text-[10px] text-indigo-100 mt-2 font-medium">Sesi tatap muka virtual yang telah dimulai oleh guru.</p>
+            <p class="text-[10px] text-indigo-100 mt-2 font-medium">Sesi PembdaTEMU yang telah diselenggarakan oleh guru.</p>
         </div>
         
         <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-md relative overflow-hidden">
@@ -171,8 +171,8 @@
             <div class="w-20 h-20 bg-indigo-50 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-video-slash text-3xl text-indigo-300"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-700 mb-1">Belum Ada Sesi Tatap Muka</h3>
-            <p class="text-sm text-gray-400 max-w-xs mx-auto leading-relaxed">Sesi tatap muka virtual yang dimulai oleh guru akan tercatat secara otomatis di halaman ini.</p>
+            <h3 class="text-lg font-bold text-gray-700 mb-1">Belum Ada Sesi PembdaTEMU</h3>
+            <p class="text-sm text-gray-400 max-w-xs mx-auto leading-relaxed">Sesi PembdaTEMU yang dimulai oleh guru akan tercatat secara otomatis di halaman ini.</p>
         </div>
         @endforelse
 

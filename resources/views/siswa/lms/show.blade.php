@@ -129,16 +129,16 @@ if (!function_exists('balanceHtmlTags')) {
                 </div>
                 <div>
                     <h3 class="font-bold text-sm text-white leading-tight flex items-center gap-2">
-                        Kelas Tatap Muka Sedang Berlangsung! 
+                        PembdaTEMU Sedang Berlangsung! 
                         <span class="bg-rose-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full animate-bounce">LIVE</span>
                     </h3>
                     <p class="text-gray-400 text-xs mt-0.5">
-                        Guru Anda telah memulai tatap muka virtual. Klik tombol untuk bergabung ke kelas.
+                        Guru Anda telah membuka sesi live PembdaTEMU. Klik tombol di samping untuk langsung bergabung ke kelas.
                     </p>
                 </div>
             </div>
-            <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" class="w-full md:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg hover:shadow-rose-900/30 transition transform hover:scale-105 active:scale-95 text-center text-xs uppercase tracking-wider">
-                Gabung Kelas Virtual
+            <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" class="w-full md:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg hover:shadow-rose-900/30 transition transform hover:scale-105 active:scale-95 text-center text-xs uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i class="fas fa-video"></i> Gabung PembdaTEMU
             </a>
         </div>
     </div>

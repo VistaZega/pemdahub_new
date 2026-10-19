@@ -198,14 +198,14 @@ if (!function_exists('balanceHtmlTags')) {
                 </a>
                 <div class="flex flex-wrap items-center gap-2">
                     <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" class="bg-slate-100 border-2 border-black text-black hover:bg-amber-300 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all">
-                        <i class="fas fa-clipboard-user text-black"></i> Rekap Kehadiran
+                        <i class="fas fa-clipboard-user text-black"></i> Rekap PembdaTEMU
                     </a>
                     @if($course->meeting_active)
                         <a href="{{ route('guru.lms.meeting.join', $course->id) }}" class="bg-rose-600 text-white font-black px-3.5 py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-md border-2 border-black hover:bg-rose-700 transition-all">
                             <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                            Live Tatap Muka
+                            Masuk PembdaTEMU
                         </a>
-                        <form action="{{ route('guru.lms.meeting.stop', $course->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri tatap muka virtual?');">
+                        <form action="{{ route('guru.lms.meeting.stop', $course->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri sesi PembdaTEMU?');">
                             @csrf
                             <button type="submit" class="bg-black text-white hover:bg-rose-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-2 border-black">
                                 Akhiri
@@ -215,7 +215,7 @@ if (!function_exists('balanceHtmlTags')) {
                         <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" class="bg-black hover:bg-emerald-600 text-white px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all border-2 border-black">
-                                <i class="fas fa-video text-xs text-amber-400"></i> Mulai Tatap Muka
+                                <i class="fas fa-video text-xs text-amber-400"></i> Buka PembdaTEMU
                             </button>
                         </form>
                     @endif

@@ -1485,7 +1485,7 @@ HTML;
 
         if (!$course->meeting_active) {
             return redirect()->route('siswa.lms.show', $course->id)
-                ->with('error', 'Kelas tatap muka virtual sedang tidak aktif.');
+                ->with('error', 'Sesi PembdaTEMU untuk kelas ini sedang tidak aktif.');
         }
 
         // Catat kehadiran siswa
