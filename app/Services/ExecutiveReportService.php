@@ -527,7 +527,7 @@ class ExecutiveReportService
                     'belum_presensi' => $unrecordedCount,
                     'siswa_pjj_gps' => $pjjGpsCount,
                     'siswa_pjj_lms' => $pjjLmsCount,
-                    'live_display_url' => $displayUrl,
+                    'live_display_url' => $displayUrl . (str_contains($displayUrl, '?') ? '&' : '?') . 'kelas=' . urlencode($class->name),
                     'daftar_tidak_hadir' => $absentListSnippet,
                     'salam_pembuka' => $greeting,
                     'catatan_penutup' => $closing,

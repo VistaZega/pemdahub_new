@@ -89,6 +89,30 @@ class PublicDisplayController extends Controller
             $targetSchool = \App\Models\School::where('is_active', true)->where('type', $type)->first();
         }
 
+        // Ambil daftar kelas aktif untuk filter wali kelas di live view
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $classrooms = collect();
+        if ($activeYear) {
+            $clQuery = \App\Models\Classroom::where('academic_year_id', $activeYear->id)
+                ->where('is_active', true)
+                ->with(['homeroomTeacher.employee', 'school:id,name,type']);
+
+            if ($targetSchool) {
+                $clQuery->where('school_id', $targetSchool->id);
+            } else {
+                $clQuery->whereHas('school', function ($q) {
+                    $q->where('is_active', true)->where('type', '!=', 'yayasan');
+                });
+            }
+
+            $classrooms = $clQuery->orderBy('school_id')
+                ->orderBy('grade_level')
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        $selectedClass = trim((string)(request('kelas') ?: request('class') ?: request('rombel') ?: ''));
+
         $userAgent = request()->userAgent() ?? '';
         $isMobile = (bool) preg_match('/(android|iphone|ipad|ipod|blackberry|opera mini|mobile|windows phone)/i', $userAgent);
         if (request('mode') === 'mobile') {
@@ -98,10 +122,12 @@ class PublicDisplayController extends Controller
         }
 
         return view('display.attendance', [
-            'targetSchool' => $targetSchool,
-            'unitNumber'   => $unitNumber,
-            'targetType'   => $type,
-            'isMobile'     => $isMobile,
+            'targetSchool'  => $targetSchool,
+            'unitNumber'    => $unitNumber,
+            'targetType'    => $type,
+            'isMobile'      => $isMobile,
+            'classrooms'    => $classrooms,
+            'selectedClass' => $selectedClass,
         ]);
     }
 
@@ -356,27 +382,51 @@ class PublicDisplayController extends Controller
             $employeeBelumAbsen += $gBelum;
         }
 
-        // ── KHUSUS UNIT TERTENTU: Hitung Rekapitulasi Rombel / Kelas ────────
+        // ── KHUSUS UNIT TERTENTU / FILTER KELAS: Hitung Rekapitulasi Rombel / Kelas ────────
+        $targetClass   = trim((string)($request->query('kelas') ?: $request->query('class') ?: $request->query('rombel') ?: ''));
+        $targetClassId = $request->query('class_id') ?: $request->query('classroom_id');
+
         $rombelStats = [];
-        if ($filterType && $activeAcademicYearId && $schools->isNotEmpty()) {
-            $singleSchool = $schools->first();
-            $classrooms = \App\Models\Classroom::where('school_id', $singleSchool->id)
-                ->where('academic_year_id', $activeAcademicYearId)
+        if ($activeAcademicYearId && $schools->isNotEmpty()) {
+            $classroomsQuery = \App\Models\Classroom::where('academic_year_id', $activeAcademicYearId)
                 ->where('is_active', true)
+                ->with(['homeroomTeacher.employee', 'school:id,name,type']);
+
+            if ($filterType) {
+                $classroomsQuery->where('school_id', $schools->first()->id);
+            } else {
+                $classroomsQuery->whereIn('school_id', $schools->pluck('id'));
+            }
+
+            $classrooms = $classroomsQuery->orderBy('school_id')
                 ->orderBy('grade_level')
                 ->orderBy('class_name')
                 ->get();
 
+            // Ambil seluruh siswa aktif di kelas-kelas ini sekaligus (Single Bulk Query)
+            $classStudentMap = \Illuminate\Support\Facades\DB::table('student_classes')
+                ->join('students', 'student_classes.student_id', '=', 'students.id')
+                ->where('student_classes.academic_year_id', $activeAcademicYearId)
+                ->where('student_classes.status', 'aktif')
+                ->whereIn('student_classes.classroom_id', $classrooms->pluck('id'))
+                ->select('student_classes.classroom_id', 'students.id as student_id', 'students.full_name')
+                ->orderBy('students.full_name')
+                ->get()
+                ->groupBy('classroom_id');
+
             foreach ($classrooms as $cls) {
-                $totalInClass = Student::whereHas('studentClasses', function ($sc) use ($cls, $activeAcademicYearId) {
-                    $sc->where('classroom_id', $cls->id)
-                       ->where('academic_year_id', $activeAcademicYearId)
-                       ->where('status', 'aktif');
-                })->count();
+                $studentsInThisClass = $classStudentMap->get($cls->id, collect());
+                $totalInClass = $studentsInThisClass->count();
+                $classStudentIds = $studentsInThisClass->pluck('student_id')->toArray();
 
                 // Deduplikasi per siswa dalam rombel
-                $classStudentGroups = $studentAttendances->where('classroom_id', $cls->id)->groupBy('student_id');
+                $classStudentGroups = $studentAttendances->filter(function ($att) use ($cls, $classStudentIds) {
+                    return ((int)($att->classroom_id ?? 0) === (int)$cls->id) || in_array($att->student_id, $classStudentIds);
+                })->groupBy('student_id');
+
                 $hadirInClass = $classStudentGroups->count();
+                $attendedStudentIds = $classStudentGroups->keys()->toArray();
+
                 $lambatInClass = $classStudentGroups->filter(function($recs, $studentId) use ($cls, $activePklStudentIds) {
                     $isPkl = isset($activePklStudentIds[$studentId]) || $recs->contains('recorded_via', 'gps_pkl');
                     $isPjj = $recs->contains('recorded_via', 'pjj_gps') || $recs->contains('recorded_via', 'pjj_lms');
@@ -387,25 +437,40 @@ class PublicDisplayController extends Controller
                     $firstIn = $recs->filter(fn($r) => !empty($r->time_in) && !in_array($r->time_in, ['00:00:00', '00:00']))->sortBy('time_in')->first();
                     return ($firstIn && method_exists($cls, 'isLate') && $cls->isLate($firstIn->time_in));
                 })->count();
+
                 $tepatInClass = max(0, $hadirInClass - $lambatInClass);
                 $belumInClass = max(0, $totalInClass - $hadirInClass);
                 $pctInClass = $totalInClass > 0 ? round(($hadirInClass / $totalInClass) * 100) : 0;
 
+                // Ambil daftar nama siswa yang belum absen di kelas ini
+                $unrecordedStudents = $studentsInThisClass->reject(function ($s) use ($attendedStudentIds) {
+                    return in_array($s->student_id, $attendedStudentIds);
+                })->values()->map(function ($s) {
+                    return [
+                        'id'   => $s->student_id,
+                        'name' => $s->full_name,
+                    ];
+                })->all();
+
                 $rombelStats[] = [
-                    'id'     => $cls->id,
-                    'name'   => $cls->class_name,
-                    'grade'  => $cls->grade_level,
-                    'total'  => $totalInClass,
-                    'hadir'  => $hadirInClass,
-                    'tepat'  => $tepatInClass,
-                    'lambat' => $lambatInClass,
-                    'belum'  => $belumInClass,
-                    'pct'    => $pctInClass,
+                    'id'                  => $cls->id,
+                    'name'                => $cls->class_name,
+                    'grade'               => $cls->grade_level,
+                    'school_id'           => $cls->school_id,
+                    'school_type'         => $cls->school?->type,
+                    'homeroom_teacher'    => $cls->homeroomTeacher?->full_name ?: '-',
+                    'total'               => $totalInClass,
+                    'hadir'               => $hadirInClass,
+                    'tepat'               => $tepatInClass,
+                    'lambat'              => $lambatInClass,
+                    'belum'               => $belumInClass,
+                    'pct'                 => $pctInClass,
+                    'unrecorded_students' => $unrecordedStudents,
                 ];
             }
         }
 
-        // ── GABUNGKAN FEED AKTIVITAS TERBARU (25 item, deduplikasi per orang) ──
+        // ── GABUNGKAN FEED AKTIVITAS TERBARU (deduplikasi per orang) ──
         $feed = collect();
 
         $studentFeedGroups = $studentAttendances->groupBy('student_id');
@@ -451,6 +516,8 @@ class PublicDisplayController extends Controller
                 'jam_keluar'      => $waktuPulang ?: '--:--',
                 'nama'            => $bestAtt->student->full_name ?? 'Tidak dikenal',
                 'info'            => $bestAtt->classroom->class_name ?? '-',
+                'classroom_id'    => $bestAtt->classroom_id ?? $bestAtt->classroom?->id,
+                'class_name'      => $bestAtt->classroom->class_name ?? '-',
                 'aksi'            => $statusLabel,
                 'tipe'            => $tipe,
                 'sort_time'       => $hasPulang ? $latestOut : ($earliestIn ?? ($bestAtt->time_in ?? '00:00:00')),
@@ -497,6 +564,8 @@ class PublicDisplayController extends Controller
                 'jam_keluar'      => $waktuPulang ?: '--:--',
                 'nama'            => $bestAtt->employee->full_name ?? 'Tidak dikenal',
                 'info'            => 'Guru/Staf',
+                'classroom_id'    => null,
+                'class_name'      => null,
                 'aksi'            => $statusLabel,
                 'tipe'            => $tipe,
                 'sort_time'       => $hasPulang ? $latestOut : ($earliestIn ?? ($bestAtt->time_in ?? '00:00:00')),
@@ -511,14 +580,31 @@ class PublicDisplayController extends Controller
             ]);
         }
 
-        // Urutkan berdasarkan waktu terbaru
-        $feedSorted = $feed->sortByDesc('sort_time')->take(25)->values();
+        // Jika ada filter kelas, batasi feed hanya untuk siswa kelas terkait (kembalikan hingga 60 item agar seluruh kelas terlihat)
+        if ($targetClass !== '' || $targetClassId) {
+            $feed = $feed->filter(function ($item) use ($targetClass, $targetClassId) {
+                if ($item['kategori'] !== 'siswa') return false;
+                if ($targetClassId && !empty($item['classroom_id'])) {
+                    return (int)$item['classroom_id'] === (int)$targetClassId;
+                }
+                if ($targetClass !== '') {
+                    return strcasecmp(trim($item['class_name'] ?? $item['info'] ?? ''), trim($targetClass)) === 0;
+                }
+                return true;
+            });
+
+            $feedSorted = $feed->sortByDesc('sort_time')->take(60)->values();
+        } else {
+            // Urutkan berdasarkan waktu terbaru (default 25 item untuk feed umum)
+            $feedSorted = $feed->sortByDesc('sort_time')->take(25)->values();
+        }
 
         return response()->json([
             'tanggal'          => $now->translatedFormat('l, d F Y'),
             'jam'              => $now->format('H:i:s'),
             'server_timestamp' => round(microtime(true) * 1000),
             'filter_unit'      => $filterType,
+            'filter_kelas'     => $targetClass ?: null,
             'statistik'    => [
                 'siswa_hadir'        => $studentHadir,
                 'siswa_terlambat'    => $studentTerlambat,

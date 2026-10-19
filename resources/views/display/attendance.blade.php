@@ -1082,12 +1082,31 @@
         }
         .rombel-card {
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 7px;
-            padding: 4px 6px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 5px 7px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 3px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+        }
+        .rombel-card:hover {
+            border-color: #3b82f6;
+            background: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(59,130,246,0.12);
+        }
+        .rombel-card.active-rombel-card {
+            background: #eff6ff !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.2) !important;
+        }
+        .rombel-card.active-rombel-card .rombel-name {
+            color: #1d4ed8 !important;
+            font-weight: 900 !important;
         }
         .rombel-card-header {
             display: flex;
@@ -1550,13 +1569,13 @@
         .m-stat-lambat .m-stat-value { color: #ea580c; }
 
         /* ============================================================
-           MOBILE CONTROLS CONTAINER (SEARCH + FILTER CHIPS + ACTIONS)
+           CONTROLS CONTAINER (SEARCH + CLASS SELECT + CHIPS + ACTIONS)
         ============================================================ */
         .mobile-controls-container {
-            display: none; /* Desktop default: disembunyikan */
+            display: flex; /* Aktif baik di desktop maupun mobile */
             flex-direction: column;
             gap: 8px;
-            padding: 10px 12px;
+            padding: 8px 12px;
             background: #f8fafc;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
@@ -1565,12 +1584,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
         .mobile-search-wrap {
-            flex: 1;
+            flex: 1 1 180px;
             position: relative;
             display: flex;
             align-items: center;
+            min-width: 140px;
         }
         .mobile-search-wrap .search-icon {
             position: absolute;
@@ -1581,12 +1602,12 @@
         }
         .mobile-search-wrap input {
             width: 100%;
-            padding: 8px 30px 8px 32px;
+            padding: 7px 30px 7px 32px;
             border-radius: 20px;
             border: 1.5px solid var(--border-bright);
             background: #ffffff;
             font-family: inherit;
-            font-size: 13px;
+            font-size: 12.5px;
             color: #0f172a;
             outline: none;
             transition: all 0.2s ease;
@@ -1610,6 +1631,74 @@
             font-size: 10px;
             cursor: pointer;
         }
+        /* Class Filter Dropdown */
+        .class-filter-select-wrap {
+            flex: 1 1 200px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-width: 140px;
+        }
+        .class-filter-select {
+            width: 100%;
+            padding: 7px 28px 7px 30px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border-bright);
+            background: #ffffff;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .class-filter-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+        .class-filter-select.has-value {
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 800;
+        }
+        .class-select-icon {
+            position: absolute;
+            left: 10px;
+            color: #2563eb;
+            font-size: 13px;
+            pointer-events: none;
+        }
+        .class-select-arrow {
+            position: absolute;
+            right: 10px;
+            color: #64748b;
+            font-size: 11px;
+            pointer-events: none;
+        }
+        .class-filter-clear-btn {
+            position: absolute;
+            right: 24px;
+            background: #e2e8f0;
+            border: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .class-filter-clear-btn:hover {
+            background: #cbd5e1;
+            color: #0f172a;
+        }
         .mobile-action-btns {
             display: flex;
             align-items: center;
@@ -1617,8 +1706,8 @@
             flex-shrink: 0;
         }
         .mobile-ctrl-btn {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             border: 1.5px solid var(--border-bright);
             background: #ffffff;
@@ -1626,7 +1715,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             transition: all 0.15s ease;
@@ -1642,6 +1731,188 @@
             background: #fef2f2;
             border-color: #fecaca;
             color: #dc2626;
+        }
+
+        /* ============================================================
+           CLASS ACTIVE BANNER (TAMPILAN KHUSUS SAAT KELAS DIFILTER)
+        ============================================================ */
+        .class-active-banner {
+            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+            border: 1.5px solid #93c5fd;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 8px 12px 4px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: fadeInBanner 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeInBanner {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cab-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .cab-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+        .cab-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            background: #2563eb;
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cab-class-name {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: 0.02em;
+            line-height: 1;
+        }
+        .cab-teacher {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            background: #e0f2fe;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cab-reset-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .cab-reset-btn:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+        .cab-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .cab-stat-pill {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .cab-stat-total { border-color: #cbd5e1; }
+        .cab-stat-hadir { border-color: #86efac; background: #f0fdf4; }
+        .cab-stat-belum { 
+            border-color: #fca5a5; 
+            background: #fef2f2; 
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cab-stat-belum:hover {
+            border-color: #ef4444;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15);
+        }
+        .cab-lbl {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+        }
+        .cab-stat-hadir .cab-lbl { color: #166534; }
+        .cab-stat-belum .cab-lbl { color: #991b1b; }
+        .cab-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            font-weight: 900;
+            color: #0f172a;
+        }
+        .cab-stat-hadir .cab-val { color: #15803d; }
+        .cab-stat-belum .cab-val { color: #b91c1c; }
+        .cab-sub {
+            font-size: 11px;
+            font-weight: 800;
+            color: #16a34a;
+        }
+        .cab-action-hint {
+            font-size: 10px;
+            font-weight: 700;
+            color: #dc2626;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .cab-unrecorded-box {
+            background: #ffffff;
+            border: 1px dashed #fca5a5;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .cab-unrecorded-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            color: #991b1b;
+            font-weight: 700;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .cab-unrecorded-note {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: normal;
+        }
+        .cab-unrecorded-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 140px;
+            overflow-y: auto;
+        }
+        .cab-student-tag {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .mobile-filter-chips-scroll {
@@ -2332,13 +2603,30 @@
                     </div>
                 </div>
 
-                <!-- MOBILE CONTROLS & FILTER BAR -->
+                <!-- CONTROLS & FILTER BAR -->
                 <div class="mobile-controls-container" id="mobile-controls-container">
                     <div class="mobile-controls-bar">
                         <div class="mobile-search-wrap">
                             <i class="fa-solid fa-magnifying-glass search-icon"></i>
                             <input type="text" id="mobile-search-input" placeholder="Cari nama siswa, guru, kelas..." oninput="handleSearchInput(this.value)" autocomplete="off">
                             <button type="button" class="search-clear-btn" id="search-clear-btn" onclick="clearSearch()" style="display:none;" title="Hapus pencarian">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="class-filter-select-wrap">
+                            <i class="fa-solid fa-graduation-cap class-select-icon"></i>
+                            <select id="class-filter-select" class="class-filter-select" onchange="onClassSelectChange(this.value)" title="Pilih kelas / rombel untuk filter">
+                                <option value="">🏫 Semua Kelas</option>
+                                @if(isset($classrooms))
+                                    @foreach($classrooms as $cls)
+                                        <option value="{{ $cls->class_name }}" data-id="{{ $cls->id }}" {{ ($selectedClass ?? '') === $cls->class_name ? 'selected' : '' }}>
+                                            {{ $cls->class_name }} {{ $cls->homeroomTeacher ? '· ' . $cls->homeroomTeacher->full_name : '' }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <i class="fa-solid fa-chevron-down class-select-arrow"></i>
+                            <button type="button" class="class-filter-clear-btn" id="class-filter-clear-btn" onclick="clearClassFilter()" style="display:none;" title="Reset filter kelas">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
@@ -2358,6 +2646,43 @@
                         <button type="button" class="filter-chip" data-filter="pulang" onclick="setStatusFilter('pulang', this)">Pulang</button>
                         <button type="button" class="filter-chip" data-filter="siswa" onclick="setStatusFilter('siswa', this)">Siswa</button>
                         <button type="button" class="filter-chip" data-filter="pegawai" onclick="setStatusFilter('pegawai', this)">Guru/Staf</button>
+                    </div>
+                </div>
+
+                <!-- CLASS ACTIVE BANNER: Ringkasan & Daftar Belum Absen saat filter kelas aktif -->
+                <div class="class-active-banner" id="class-active-banner" style="display: none;">
+                    <div class="cab-header">
+                        <div class="cab-title-wrap">
+                            <span class="cab-badge"><i class="fa-solid fa-chalkboard-user"></i> FILTER KELAS</span>
+                            <span class="cab-class-name" id="cab-class-name">–</span>
+                            <span class="cab-teacher" id="cab-teacher"><i class="fa-solid fa-user-tie"></i> Wali Kelas: –</span>
+                        </div>
+                        <button type="button" class="cab-reset-btn" onclick="clearClassFilter()" title="Tampilkan seluruh kelas kembali">
+                            <i class="fa-solid fa-xmark"></i> <span>Semua Kelas</span>
+                        </button>
+                    </div>
+                    <div class="cab-stats-row">
+                        <div class="cab-stat-pill cab-stat-total" title="Jumlah total siswa terdaftar di kelas ini">
+                            <span class="cab-lbl"><i class="fa-solid fa-users"></i> Total</span>
+                            <span class="cab-val" id="cab-val-total">0</span>
+                        </div>
+                        <div class="cab-stat-pill cab-stat-hadir" title="Siswa yang sudah absensi / interaksi LMS">
+                            <span class="cab-lbl"><i class="fa-solid fa-check"></i> Hadir</span>
+                            <span class="cab-val" id="cab-val-hadir">0</span>
+                            <span class="cab-sub" id="cab-sub-pct">(0%)</span>
+                        </div>
+                        <div class="cab-stat-pill cab-stat-belum" id="cab-stat-belum-pill" onclick="toggleUnrecordedList()" title="Klik untuk melihat nama siswa yang belum absen">
+                            <span class="cab-lbl"><i class="fa-solid fa-clock"></i> Belum</span>
+                            <span class="cab-val" id="cab-val-belum">0</span>
+                            <span class="cab-action-hint" id="cab-hint-btn"><i class="fa-solid fa-chevron-down"></i> Lihat Nama</span>
+                        </div>
+                    </div>
+                    <div class="cab-unrecorded-box" id="cab-unrecorded-box" style="display: none;">
+                        <div class="cab-unrecorded-header">
+                            <span><i class="fa-solid fa-user-clock"></i> Siswa Belum Absen (<strong id="cab-unrecorded-count">0</strong>):</span>
+                            <span class="cab-unrecorded-note">Belum ada scan kehadiran / akses LMS hari ini</span>
+                        </div>
+                        <div class="cab-unrecorded-list" id="cab-unrecorded-list"></div>
                     </div>
                 </div>
 
@@ -2451,10 +2776,24 @@ let currentFeedData    = [];
 let currentTotalAbsen  = 0;
 let currentSearchQuery = '';
 let currentStatusFilter= 'all';
+let currentClassFilter = "{{ $selectedClass ?? '' }}";
+let lastRombelStats    = [];
+let isUnrecordedOpen   = false;
 let soundMuted         = localStorage.getItem('pembda_display_muted') === '1';
 let mobileViewMode     = 'feed'; // 'feed' (default) or 'rekap'
 let serverTimeOffset   = 0;
 let isServerTimeSynced = false;
+
+// Periksa query parameter ?kelas= di URL saat halaman dimuat
+(function checkUrlClassParam() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const k = urlParams.get('kelas') || urlParams.get('class') || urlParams.get('rombel');
+        if (k && !currentClassFilter) {
+            currentClassFilter = k;
+        }
+    } catch (e) {}
+})();
 
 // ============================================================
 //  DETEKSI PERANGKAT (MOBILE vs DESKTOP)
@@ -2487,8 +2826,14 @@ tickClock();
 async function fetchData() {
     const fetchStart = Date.now();
     try {
-        const sep = API_URL.includes('?') ? '&' : '?';
-        const res  = await fetch(API_URL + sep + 't=' + Date.now());
+        let fetchUrl = API_URL;
+        const queryParts = [];
+        if (currentClassFilter) {
+            queryParts.push('kelas=' + encodeURIComponent(currentClassFilter));
+        }
+        queryParts.push('t=' + Date.now());
+        const sep = fetchUrl.includes('?') ? '&' : '?';
+        const res  = await fetch(fetchUrl + sep + queryParts.join('&'));
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         failCount  = 0;
@@ -2560,7 +2905,9 @@ function updateDisplay(data) {
     }
 
     // ─ Rekapitulasi Per Unit Sekolah & Rombel ─
+    lastRombelStats = data.rombel_stats || [];
     renderUnitPanels(data.rekap_unit, data.rombel_stats);
+    updateClassBanner();
 
     // ─ Update Angka Total Absen untuk Tampilan Diperlebar & Mobile Stats Strip ─
     updateExpandedStats(data);
@@ -2736,6 +3083,15 @@ function setStatusFilter(filter, el) {
 function applyFeedFilters(isNewScan = false) {
     let filtered = currentFeedData;
 
+    // Filter Kelas (hanya tampilkan siswa kelas yang dipilih)
+    if (currentClassFilter) {
+        filtered = filtered.filter(item => {
+            if (item.kategori !== 'siswa') return false;
+            const itemClass = (item.class_name || item.info || '').trim().toLowerCase();
+            return itemClass === currentClassFilter.toLowerCase();
+        });
+    }
+
     if (currentSearchQuery) {
         filtered = filtered.filter(item => {
             const nama   = (item.nama || '').toLowerCase();
@@ -2896,8 +3252,12 @@ function renderUnitPanels(rekapUnit, rombelStats) {
                     <span class="rombel-total-badge">${rombelStats.length} Kelas</span>
                 </div>
                 <div class="rombel-grid">
-                    ${rombelStats.map(r => `
-                        <div class="rombel-card">
+                    ${rombelStats.map(r => {
+                        const isActive = currentClassFilter && (currentClassFilter.toLowerCase() === (r.name || '').toLowerCase());
+                        const activeCls = isActive ? 'active-rombel-card' : '';
+                        const teacherInfo = r.homeroom_teacher && r.homeroom_teacher !== '-' ? ` · Wali: ${escHtml(r.homeroom_teacher)}` : '';
+                        return `
+                        <div class="rombel-card ${activeCls}" onclick="setClassFilter('${escHtml(r.name)}')" title="Klik untuk filter live absensi kelas ${escHtml(r.name)}${teacherInfo}">
                             <div class="rombel-card-header">
                                 <span class="rombel-name" title="${escHtml(r.name)}">${escHtml(r.name)}</span>
                                 <span class="rombel-pct">${r.pct}%</span>
@@ -2911,13 +3271,150 @@ function renderUnitPanels(rekapUnit, rombelStats) {
                                 <div class="progress-fill-mini fill-green" style="width: ${r.pct}%;"></div>
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `;
     }
 
     container.innerHTML = cardsHtml + rombelHtml;
+}
+
+// ============================================================
+//  KONTROL FILTER KELAS & BANNER KHUSUS WALI KELAS
+// ============================================================
+function updateClassBanner() {
+    const banner = document.getElementById('class-active-banner');
+    const select = document.getElementById('class-filter-select');
+    const clearBtn = document.getElementById('class-filter-clear-btn');
+
+    if (!currentClassFilter) {
+        if (banner) banner.style.display = 'none';
+        if (select) {
+            select.value = '';
+            select.classList.remove('has-value');
+        }
+        if (clearBtn) clearBtn.style.display = 'none';
+        return;
+    }
+
+    if (select) {
+        select.value = currentClassFilter;
+        select.classList.add('has-value');
+    }
+    if (clearBtn) clearBtn.style.display = 'inline-flex';
+
+    if (!banner) return;
+
+    // Cari data rombel dari lastRombelStats
+    const r = lastRombelStats.find(item => (item.name || '').toLowerCase() === currentClassFilter.toLowerCase())
+           || { name: currentClassFilter, total: 0, hadir: 0, belum: 0, pct: 0, homeroom_teacher: '-', unrecorded_students: [] };
+
+    const nameEl = document.getElementById('cab-class-name');
+    if (nameEl) nameEl.textContent = r.name;
+
+    const teacherEl = document.getElementById('cab-teacher');
+    if (teacherEl) {
+        teacherEl.innerHTML = `<i class="fa-solid fa-user-tie"></i> Wali Kelas: <strong>${escHtml(r.homeroom_teacher || '-')}</strong>`;
+    }
+
+    const valTotalEl = document.getElementById('cab-val-total');
+    if (valTotalEl) valTotalEl.textContent = r.total;
+
+    const valHadirEl = document.getElementById('cab-val-hadir');
+    if (valHadirEl) valHadirEl.textContent = r.hadir;
+
+    const subPctEl = document.getElementById('cab-sub-pct');
+    if (subPctEl) subPctEl.textContent = `(${r.pct}%)`;
+
+    const valBelumEl = document.getElementById('cab-val-belum');
+    if (valBelumEl) valBelumEl.textContent = r.belum;
+
+    const unrecordedCountEl = document.getElementById('cab-unrecorded-count');
+    if (unrecordedCountEl) unrecordedCountEl.textContent = r.belum;
+
+    const listEl = document.getElementById('cab-unrecorded-list');
+    if (listEl) {
+        if (r.unrecorded_students && r.unrecorded_students.length > 0) {
+            listEl.innerHTML = r.unrecorded_students.map(s => `
+                <span class="cab-student-tag" title="Siswa belum presensi">
+                    <i class="fa-regular fa-circle-xmark"></i> ${escHtml(s.name)}
+                </span>
+            `).join('');
+        } else if (r.total > 0 && r.belum === 0) {
+            listEl.innerHTML = `<span style="font-size:11px;color:#16a34a;font-weight:700;"><i class="fa-solid fa-circle-check"></i> Nihil — Seluruh ${r.total} siswa kelas ${escHtml(r.name)} sudah hadir lengkap (100%)! ✨</span>`;
+        } else {
+            listEl.innerHTML = `<span style="font-size:11px;color:#64748b;">Belum ada data siswa untuk kelas ini.</span>`;
+        }
+    }
+
+    const box = document.getElementById('cab-unrecorded-box');
+    const hintBtn = document.getElementById('cab-hint-btn');
+    if (box) {
+        box.style.display = isUnrecordedOpen ? 'flex' : 'none';
+    }
+    if (hintBtn) {
+        hintBtn.innerHTML = isUnrecordedOpen 
+            ? `<i class="fa-solid fa-chevron-up"></i> Tutup Nama`
+            : `<i class="fa-solid fa-chevron-down"></i> Lihat Nama (${r.belum})`;
+    }
+
+    banner.style.display = 'flex';
+}
+
+function toggleUnrecordedList() {
+    isUnrecordedOpen = !isUnrecordedOpen;
+    updateClassBanner();
+}
+
+function setClassFilter(className) {
+    className = (className || '').trim();
+    if (currentClassFilter.toLowerCase() === className.toLowerCase() && className !== '') return;
+    currentClassFilter = className;
+    
+    // Perbarui URL browser tanpa reload halaman (deep link support)
+    try {
+        const url = new URL(window.location.href);
+        if (className) {
+            url.searchParams.set('kelas', className);
+        } else {
+            url.searchParams.delete('kelas');
+            url.searchParams.delete('class');
+            url.searchParams.delete('rombel');
+        }
+        window.history.replaceState(null, '', url.toString());
+    } catch (e) {}
+
+    // Highlight card rombel aktif di kolom kanan
+    document.querySelectorAll('.rombel-card').forEach(card => {
+        const nameEl = card.querySelector('.rombel-name');
+        if (nameEl && nameEl.textContent.trim().toLowerCase() === className.toLowerCase()) {
+            card.classList.add('active-rombel-card');
+        } else {
+            card.classList.remove('active-rombel-card');
+        }
+    });
+
+    // Update banner UI
+    updateClassBanner();
+
+    // Jika di HP dan sedang membuka tab Rekapitulasi, otomatis geser ke tab Live Absensi agar siswa langsung terlihat
+    if (isMobileView() && mobileViewMode === 'rekap') {
+        switchMobileView('feed');
+    }
+
+    // Refresh feed segera
+    applyFeedFilters(false);
+    fetchData();
+}
+
+function clearClassFilter() {
+    setClassFilter('');
+}
+
+function onClassSelectChange(val) {
+    setClassFilter(val);
 }
 
 // ============================================================
