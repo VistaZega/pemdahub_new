@@ -112,6 +112,10 @@ if ($m4908) {
         $u = \App\Models\User::find($rep->user_id);
         echo "User: " . ($u->name ?? 'N/A') . " (role: " . ($u->role ?? 'N/A') . ")\n";
     } else {
+        echo "No reputation log found for material 4908.\n";
+    }
+}
+
 echo "\n=== SIMULATE STORE MATERIAL ===\n";
 try {
     $course = \App\Models\LmsCourse::find(842);
