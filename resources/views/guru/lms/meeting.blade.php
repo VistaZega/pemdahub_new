@@ -237,10 +237,10 @@
             {{-- Tombol Pilihan Tampilan (Zoom View Selector - Amber Tactile) --}}
             <div class="relative inline-block text-left" id="header-view-wrapper">
                 <button onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-1.5 btn-tactile-white px-3 py-1.5 rounded-xl text-xs font-mono-code font-black active:scale-95" title="Pilihan Tata Letak Tampilan (Zoom)">
-                    <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #fbc02d; color: #121316;">
-                        <i id="header-view-icon" class="fa-solid fa-table-cells"></i>
+                    <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;">
+                        <i id="header-view-icon" class="fa-solid fa-chalkboard-user"></i>
                     </div>
-                    <span class="hidden md:inline">Tata Letak: <span id="header-view-name" style="color: #ff3823; font-weight: 900;">Galeri</span></span>
+                    <span class="hidden md:inline">Tata Letak: <span id="header-view-name" style="color: #ff3823; font-weight: 900;">Ruang Kelas (5x8)</span></span>
                     <i class="fa-solid fa-chevron-down text-[9px] ml-0.5" style="color: #121316;"></i>
                 </button>
             </div>
@@ -279,33 +279,41 @@
             <div class="absolute top-4 right-4 z-30 flex items-center gap-2">
                 <div class="relative" id="video-view-dropdown-wrapper">
                     <button id="btn-view-toggle" onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-2 btn-tactile-white px-3.5 py-1.5 rounded-xl text-xs font-mono-code font-black transition active:scale-95" title="Ganti Tata Letak Video (Zoom)">
-                        <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #2563eb; color: #ffffff;">
-                            <i id="current-view-icon" class="fa-solid fa-table-cells"></i>
+                        <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;">
+                            <i id="current-view-icon" class="fa-solid fa-chalkboard-user"></i>
                         </div>
-                        <span>Tata Letak: <span id="current-view-name" style="color: #ff3823; font-weight: 900;">Galeri</span></span>
+                        <span>Tata Letak: <span id="current-view-name" style="color: #ff3823; font-weight: 900;">Ruang Kelas (5x8)</span></span>
                         <i class="fa-solid fa-chevron-down text-[9px]" style="color: #121316;"></i>
                     </button>
 
-                    <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-60 rounded-2xl bg-white p-2.5 z-50 transition-all" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
+                    <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-white p-2.5 z-50 transition-all" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
                         <div class="px-3 py-1 text-[10px] font-mono-code font-extrabold uppercase tracking-wider mb-1.5 flex items-center justify-between" style="color: #777; border-bottom: 1.5px solid #e2ded5;">
                             <span>TATA LETAK ZOOM</span>
                             <span>⌜ ⌟</span>
                         </div>
                         
+                        <button onclick="changeLayout('classroom')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                            <span class="flex items-center gap-2.5">
+                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;"><i class="fa-solid fa-chalkboard-user"></i></span>
+                                <span>Model Ruang Kelas (5×8)</span>
+                            </span>
+                            <i id="check-classroom" class="fa-solid fa-check text-xs font-black" style="color: #ff3823;"></i>
+                        </button>
+
                         <button onclick="changeLayout('gallery')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
                             <span class="flex items-center gap-2.5">
                                 <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #2563eb; color: #ffffff;"><i class="fa-solid fa-table-cells"></i></span>
                                 <span>Tampilan Galeri</span>
                             </span>
-                            <i id="check-gallery" class="fa-solid fa-check text-xs font-black" style="color: #2563eb;"></i>
+                            <i id="check-gallery" class="fa-solid fa-check text-xs hidden font-black" style="color: #2563eb;"></i>
                         </button>
 
                         <button onclick="changeLayout('speaker')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
                             <span class="flex items-center gap-2.5">
-                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;"><i class="fa-solid fa-user-tie"></i></span>
+                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #fbc02d; color: #121316;"><i class="fa-solid fa-user-tie"></i></span>
                                 <span>Tampilan Pembicara</span>
                             </span>
-                            <i id="check-speaker" class="fa-solid fa-check text-xs hidden font-black" style="color: #ff3823;"></i>
+                            <i id="check-speaker" class="fa-solid fa-check text-xs hidden font-black" style="color: #fbc02d;"></i>
                         </button>
 
                         <button onclick="changeLayout('sidebyside')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
@@ -327,7 +335,7 @@
             </div>
 
             {{-- STATUS INDIKATOR GURU (TENGAH ATAS - TACTILE PILL) --}}
-            <div id="solo-teacher-banner" class="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto transition-all duration-300">
+            <div id="solo-teacher-banner" class="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto transition-all duration-300 hidden">
                 <div class="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono-code font-black" style="background-color: #fbc02d; color: #121316; border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
                     <span class="w-2.5 h-2.5 rounded-full animate-ping" style="background-color: #10b981;"></span>
                     <i class="fa-solid fa-video text-xs"></i>
@@ -335,7 +343,46 @@
                 </div>
             </div>
 
-            {{-- 1. SPEAKER VIEW STAGE (Active when currentLayout === 'speaker') --}}
+            {{-- 1. CLASSROOM VIEW STAGE (DEFAULT: Model Ruang Kelas 5x8 Kursi Siswa + Meja Guru Depan) --}}
+            <div id="stage-classroom-wrapper" class="flex flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 pb-28 gap-2 relative min-h-0">
+                
+                {{-- AREA MIMBAR / PODIUM GURU (DEPAN KELAS) --}}
+                <div class="w-full flex flex-col items-center justify-center flex-shrink-0">
+                    <div class="flex items-center gap-2 mb-1.5 flex-wrap justify-center">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                            <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ PODIUM GURU / DEPAN KELAS
+                        </span>
+                        <span id="classroom-occupancy-pill" class="px-2.5 py-1 rounded-full text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                            0 / 40 Kursi Terisi
+                        </span>
+                    </div>
+
+                    {{-- Teacher Video Spotlight Slot --}}
+                    <div id="podium-teacher-slot" class="w-full max-w-xl h-44 sm:h-52 md:h-60 flex items-center justify-center">
+                        {{-- Video tile guru masuk ke sini secara otomatis --}}
+                    </div>
+                </div>
+
+                {{-- DENAH TEMPAT DUDUK SISWA (5 BARIS X 8 KOLOM = 40 BANGKU) --}}
+                <div class="flex-1 overflow-y-auto px-1 sm:px-3 pt-1">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="flex items-center justify-between px-2 py-1 mb-2 border-b-2 border-[#121316]/20">
+                            <span class="text-[10px] font-mono-code font-black uppercase tracking-wider text-[#121316] flex items-center gap-1.5">
+                                <i class="fa-solid fa-chalkboard-user text-[#ff3823]"></i>
+                                <span>DENAH BANGKU SISWA (5 BARIS × 8 KOLOM = 40 MEJA)</span>
+                            </span>
+                            <span class="text-[10px] font-mono-code font-bold text-[#555] hidden sm:inline">
+                                Pintu Masuk ➜ Baris 1 Depan s/d Baris 5 Belakang
+                            </span>
+                        </div>
+                        <div id="classroom-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5">
+                            {{-- 40 slot kursi siswa (terisi / kosong) dirender dinamis di sini --}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 2. SPEAKER VIEW STAGE (Active when currentLayout === 'speaker') --}}
             <div id="stage-speaker-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-3 pb-28 gap-2.5 relative min-h-0">
                 {{-- Top Filmstrip Bar: Thumbnail peserta lain --}}
                 <div id="speaker-filmstrip" class="flex items-center gap-2.5 overflow-x-auto p-2 h-28 shrink-0 rounded-2xl backdrop-blur-sm scroll-smooth" style="background-color: rgba(255,255,255,0.9); border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
@@ -347,9 +394,9 @@
                 </div>
             </div>
 
-            {{-- 2. GALLERY VIEW STAGE (Default: Active when currentLayout === 'gallery' or 'sidebyside') --}}
+            {{-- 3. GALLERY VIEW STAGE (Active when currentLayout === 'gallery' or 'sidebyside') --}}
             {{-- pb-28 memastikan video tile TIDAK PERNAH tertutup oleh dock mengambang di bawah --}}
-            <div id="stage-gallery-wrapper" class="flex-1 flex items-center justify-center overflow-hidden h-full p-2.5 sm:p-4 pb-28 min-h-0 relative">
+            <div id="stage-gallery-wrapper" class="hidden flex-1 items-center justify-center overflow-hidden h-full p-2.5 sm:p-4 pb-28 min-h-0 relative">
                 <div id="gallery-grid" class="w-full h-full flex items-center justify-center gap-3.5 transition-all duration-300">
                     {{-- Local video tile (Guru) --}}
                     <div id="video-tile-local" class="video-tile group relative rounded-3xl overflow-hidden flex items-center justify-center w-full h-full max-h-[82vh] transition-all" style="background-color: #0f172a; border: 2.5px solid #121316; box-shadow: 4px 4px 0px #121316;">
@@ -711,10 +758,10 @@
         let isMuted          = false;
         let isCamOff         = false;
 
-        // Zoom Layout State Variables
-        let currentLayout    = 'gallery'; // 'gallery' | 'speaker' | 'sidebyside'
-        let currentPinnedUid = 'local';   // 'local' | remote uid
-        let attendeesMap     = {};        // user.uid => student name
+        // Zoom Layout State Variables (Default: Model Ruang Kelas 5x8 Kursi)
+        let currentLayout    = 'classroom'; // 'classroom' | 'gallery' | 'speaker' | 'sidebyside'
+        let currentPinnedUid = 'local';     // 'local' | remote uid
+        let attendeesMap     = {};          // user.uid => student name
 
         // ============================================================
         // 1. INISIALISASI AGORA CLIENT & WEBRTC
@@ -852,31 +899,107 @@
 
         // Susun ulang posisi tile video berdasarkan mode tata letak Zoom
         function rearrangeTiles() {
-            const isSpeaker = (currentLayout === 'speaker');
-            const galleryStage = document.getElementById('stage-gallery-wrapper');
-            const speakerStage = document.getElementById('stage-speaker-wrapper');
-            const galleryGrid = document.getElementById('gallery-grid');
-            const filmstrip = document.getElementById('speaker-filmstrip');
-            const mainStage = document.getElementById('speaker-main-stage');
-            const soloBanner = document.getElementById('solo-teacher-banner');
+            const isClassroom = (currentLayout === 'classroom');
+            const isSpeaker   = (currentLayout === 'speaker');
+            const classroomStage = document.getElementById('stage-classroom-wrapper');
+            const galleryStage   = document.getElementById('stage-gallery-wrapper');
+            const speakerStage   = document.getElementById('stage-speaker-wrapper');
+            const classroomGrid  = document.getElementById('classroom-grid');
+            const teacherSlot    = document.getElementById('podium-teacher-slot');
+            const galleryGrid    = document.getElementById('gallery-grid');
+            const filmstrip      = document.getElementById('speaker-filmstrip');
+            const mainStage      = document.getElementById('speaker-main-stage');
+            const soloBanner     = document.getElementById('solo-teacher-banner');
+            const occupancyPill  = document.getElementById('classroom-occupancy-pill');
 
             const allTiles = Array.from(document.querySelectorAll('.video-tile'));
+            const teacherTile = document.getElementById('video-tile-local');
+            const studentTiles = allTiles.filter(t => t.id !== 'video-tile-local');
             const total = allTiles.length;
 
-            // Tampilkan status solo jika guru masih sendirian
-            if (soloBanner) {
-                if (total <= 1) {
-                    soloBanner.classList.remove('hidden');
-                } else {
-                    soloBanner.classList.add('hidden');
-                }
-            }
-
-            if (isSpeaker) {
+            if (isClassroom) {
                 if (galleryStage) galleryStage.classList.add('hidden');
+                if (speakerStage) speakerStage.classList.add('hidden');
+                if (classroomStage) {
+                    classroomStage.classList.remove('hidden');
+                    classroomStage.classList.add('flex');
+                }
+
+                if (soloBanner) soloBanner.classList.add('hidden');
+
+                // 1. Tempatkan Video Guru di Mimbar / Podium Depan
+                if (teacherTile && teacherSlot) {
+                    teacherSlot.appendChild(teacherTile);
+                    teacherTile.className = 'video-tile relative rounded-3xl overflow-hidden flex items-center justify-center w-full h-full max-h-[82vh] transition-all';
+                    teacherTile.style.backgroundColor = '#0f172a';
+                    teacherTile.style.border = '2.5px solid #121316';
+                    teacherTile.style.boxShadow = '4px 4px 0px #ff3823';
+                    teacherTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                    teacherTile.onclick = null;
+                }
+
+                // 2. Update occupancy pill
+                if (occupancyPill) {
+                    occupancyPill.textContent = `${studentTiles.length} / 40 Kursi Terisi`;
+                }
+
+                // 3. Render 40 Bangku Siswa (5 Baris x 8 Kolom)
+                if (classroomGrid) {
+                    classroomGrid.innerHTML = '';
+                    const totalSlots = Math.max(40, studentTiles.length);
+                    for (let i = 0; i < totalSlots; i++) {
+                        const seatNum = String(i + 1).padStart(2, '0');
+                        if (i < studentTiles.length) {
+                            // Kursi Terisi: Pasang student video tile
+                            const sTile = studentTiles[i];
+                            sTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-24 sm:h-28 aspect-video transition-all';
+                            sTile.style.backgroundColor = '#0f172a';
+                            sTile.style.border = '2px solid #121316';
+                            sTile.style.boxShadow = '3px 3px 0px #121316';
+                            sTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                            sTile.onclick = null;
+
+                            // Tambah atau perbarui tag nomor meja
+                            let deskTag = sTile.querySelector('.seat-desk-tag');
+                            const badge = sTile.querySelector('.absolute.top-4.left-4') || sTile.querySelector('.rounded-xl');
+                            if (!deskTag && badge) {
+                                deskTag = document.createElement('span');
+                                deskTag.className = 'seat-desk-tag px-1.5 py-0.5 rounded text-[8px] font-mono-code font-black';
+                                deskTag.style.backgroundColor = '#fbc02d';
+                                deskTag.style.color = '#121316';
+                                deskTag.style.border = '1px solid #121316';
+                                badge.insertBefore(deskTag, badge.firstChild);
+                            }
+                            if (deskTag) {
+                                deskTag.textContent = `#${seatNum}`;
+                            }
+                            classroomGrid.appendChild(sTile);
+                        } else {
+                            // Kursi Kosong (Tactile Blueprint Style)
+                            const emptySlot = document.createElement('div');
+                            emptySlot.className = 'h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center p-2 text-center transition-all bg-white/70 hover:bg-[#faf3e0] select-none';
+                            emptySlot.style.border = '2px dashed #cbd5e1';
+                            emptySlot.style.boxShadow = '2px 2px 0px rgba(0,0,0,0.03)';
+                            emptySlot.innerHTML = `
+                                <span class="text-[9px] font-mono-code font-bold mb-1" style="color: #64748b;">Meja #${seatNum}</span>
+                                <i class="fa-solid fa-chair text-base sm:text-lg mb-1" style="color: #cbd5e1;"></i>
+                                <span class="text-[8px] font-mono-code font-bold uppercase tracking-wider" style="color: #94a3b8;">[ Kosong ]</span>
+                            `;
+                            classroomGrid.appendChild(emptySlot);
+                        }
+                    }
+                }
+            } else if (isSpeaker) {
+                if (classroomStage) classroomStage.classList.add('hidden');
+                if (galleryStage)   galleryStage.classList.add('hidden');
                 if (speakerStage) {
                     speakerStage.classList.remove('hidden');
                     speakerStage.classList.add('flex');
+                }
+
+                if (soloBanner) {
+                    if (total <= 1) soloBanner.classList.remove('hidden');
+                    else soloBanner.classList.add('hidden');
                 }
 
                 const pinnedId = (currentPinnedUid === 'local') ? 'video-tile-local' : `video-tile-${currentPinnedUid}`;
@@ -908,11 +1031,20 @@
                 });
             } else {
                 // Mode Galeri atau Mode Berdampingan (KBM)
+                if (classroomStage) classroomStage.classList.add('hidden');
                 if (speakerStage) {
                     speakerStage.classList.add('hidden');
                     speakerStage.classList.remove('flex');
                 }
-                if (galleryStage) galleryStage.classList.remove('hidden');
+                if (galleryStage) {
+                    galleryStage.classList.remove('hidden');
+                    galleryStage.classList.add('flex');
+                }
+
+                if (soloBanner) {
+                    if (total <= 1) soloBanner.classList.remove('hidden');
+                    else soloBanner.classList.add('hidden');
+                }
 
                 allTiles.forEach(tile => {
                     if (galleryGrid) galleryGrid.appendChild(tile);
@@ -1162,15 +1294,23 @@
             const nameEl     = document.getElementById('current-view-name');
             const headerIcon = document.getElementById('header-view-icon');
             const headerName = document.getElementById('header-view-name');
+            const checkCls   = document.getElementById('check-classroom');
             const checkGal   = document.getElementById('check-gallery');
             const checkSpk   = document.getElementById('check-speaker');
             const checkSbs   = document.getElementById('check-sidebyside');
 
+            if (checkCls) checkCls.classList.add('hidden');
             if (checkGal) checkGal.classList.add('hidden');
             if (checkSpk) checkSpk.classList.add('hidden');
             if (checkSbs) checkSbs.classList.add('hidden');
 
-            if (mode === 'speaker') {
+            if (mode === 'classroom') {
+                if (iconEl) iconEl.className = 'fa-solid fa-chalkboard-user text-xs';
+                if (nameEl) nameEl.textContent = 'Ruang Kelas (5x8)';
+                if (headerIcon) headerIcon.className = 'fa-solid fa-chalkboard-user';
+                if (headerName) headerName.textContent = 'Ruang Kelas (5x8)';
+                if (checkCls) checkCls.classList.remove('hidden');
+            } else if (mode === 'speaker') {
                 if (iconEl) iconEl.className = 'fa-solid fa-user-tie text-xs';
                 if (nameEl) nameEl.textContent = 'Pembicara';
                 if (headerIcon) headerIcon.className = 'fa-solid fa-user-tie';
