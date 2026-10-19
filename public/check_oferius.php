@@ -18,6 +18,11 @@ echo "PHP SAPI: " . php_sapi_name() . "\n";
 echo "SERVER SOFTWARE: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "\n";
 echo "SESSION DRIVER: " . config('session.driver') . "\n";
 echo "SESSION LIFETIME: " . config('session.lifetime') . "\n";
+echo "sessions table exists: " . (Illuminate\Support\Facades\Schema::hasTable('sessions') ? 'YES' : 'NO') . "\n";
+$sessDir = storage_path('framework/sessions');
+echo "storage/framework/sessions exists: " . (is_dir($sessDir) ? 'YES' : 'NO') . " | writable: " . (is_writable($sessDir) ? 'YES' : 'NO') . "\n";
+echo "/etc/nginx/sites-enabled/pembdahub writable: " . (is_writable('/etc/nginx/sites-enabled/pembdahub') ? 'YES' : 'NO') . "\n";
+
 
 
 echo "\n=== NGINX SITES-ENABLED PEMBDAHUB CONFIG ===\n";
