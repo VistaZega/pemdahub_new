@@ -58,7 +58,22 @@ foreach (array_unique($nginxConfigs) as $nconf) {
 }
 
 
-echo "\n=== SYSTEM ERROR LOGS CHECK ===\n";
+echo "\n=== PEMBDAHUB NGINX ERROR LOG ===\n";
+if (file_exists('/var/log/nginx/pembdahub-error.log')) {
+    echo "Size: " . filesize('/var/log/nginx/pembdahub-error.log') . " bytes\n";
+    $lines = file('/var/log/nginx/pembdahub-error.log');
+    echo implode("", array_slice($lines, -25));
+} else {
+    echo "pembdahub-error.log not found.\n";
+}
+
+echo "\n=== PEMBDAHUB NGINX ACCESS LOG (LAST 10 POSTS) ===\n";
+if (file_exists('/var/log/nginx/pembdahub-access.log')) {
+    $lines = file('/var/log/nginx/pembdahub-access.log');
+    $postLines = array_filter($lines, fn($l) => str_contains($l, 'POST '));
+    echo implode("", array_slice($postLines, -10));
+}
+
 $systemLogs = [
     '/var/log/nginx/error.log',
     '/var/log/nginx/perguruanpembda.com.error.log',
