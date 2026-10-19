@@ -63,6 +63,7 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
         Route::get('/{course}', [App\Http\Controllers\Siswa\LmsController::class, 'show'])->name('show');
         Route::get('/{course}/meeting/join', [App\Http\Controllers\Siswa\LmsController::class, 'joinMeeting'])->name('meeting.join');
         Route::post('/{course}/meeting/leave', [App\Http\Controllers\Siswa\LmsController::class, 'leaveAttendance'])->name('meeting.leave'); // AJAX
+        Route::post('/{course}/meeting/sync', [App\Http\Controllers\Siswa\LmsController::class, 'meetingSync'])->name('meeting.sync'); // AJAX sync (hands, mood, chat)
         Route::get('/live-status', [App\Http\Controllers\Siswa\LmsController::class, 'liveStatus'])->name('live-status'); // AJAX polling
 
         // Assignments & Quizzes

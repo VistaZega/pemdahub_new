@@ -312,20 +312,48 @@
             {{-- 1. CLASSROOM VIEW STAGE (DEFAULT: Model Ruang Kelas 5x8 Kursi Siswa + Meja Guru Depan) --}}
             <div id="stage-classroom-wrapper" class="flex flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 pb-28 gap-2 relative min-h-0">
                 
-                {{-- AREA MIMBAR / PODIUM GURU (DEPAN KELAS) --}}
-                <div class="w-full flex flex-col items-center justify-center flex-shrink-0">
+                {{-- AREA DUAL MIMBAR / PODIUM DEPAN KELAS (GURU DI KIRI + SISWA BICARA/BERTANYA DI KANAN SEJAJAR) --}}
+                <div class="w-full flex flex-col items-center justify-center flex-shrink-0 mb-1">
                     <div class="flex items-center gap-2 mb-1.5 flex-wrap justify-center">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
-                            <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ PODIUM GURU / DEPAN KELAS
+                            <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ MIMBAR UTAMA KELAS (GURU & PEMBICARA AKTIF)
                         </span>
                         <span id="classroom-occupancy-pill" class="px-2.5 py-1 rounded-full text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             1 / 40 Kursi Terisi
                         </span>
                     </div>
 
-                    {{-- Teacher Video Spotlight Slot --}}
-                    <div id="podium-teacher-slot" class="w-full max-w-xl h-44 sm:h-52 md:h-60 flex items-center justify-center">
-                        {{-- Video tile guru masuk ke sini secara otomatis --}}
+                    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-3 px-2">
+                        {{-- Slot Kiri: Mimbar Guru Pengajar --}}
+                        <div class="flex flex-col">
+                            <div class="flex items-center justify-between px-2 py-0.5 mb-1 text-[10px] font-mono-code font-black text-[#ff3823]">
+                                <span>👨‍🏫 MIMBAR GURU / PENGAJAR</span>
+                                <span class="text-slate-500 font-bold">Host Kelas</span>
+                            </div>
+                            <div id="podium-teacher-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center rounded-2xl overflow-hidden bg-slate-900 border-2 border-black" style="box-shadow: 3px 3px 0px #ff3823;">
+                                {{-- Video tile guru masuk ke sini secara otomatis --}}
+                            </div>
+                        </div>
+
+                        {{-- Slot Kanan: Mimbar Siswa Bicara / Bertanya (Active Speaker Podium) --}}
+                        <div class="flex flex-col">
+                            <div class="flex items-center justify-between px-2 py-0.5 mb-1 text-[10px] font-mono-code font-black text-[#2563eb]">
+                                <span class="flex items-center gap-1">
+                                    <i class="fa-solid fa-microphone-lines text-[#2563eb]"></i> MIMBAR SISWA BICARA / BERTANYA
+                                </span>
+                                <span id="podium-speaker-badge" class="px-1.5 py-0.2 rounded text-[9px] font-mono-code font-bold bg-slate-200 text-slate-700">Siap Bertanya</span>
+                            </div>
+                            <div id="podium-speaker-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center rounded-2xl overflow-hidden bg-slate-900 border-2 border-black relative" style="box-shadow: 3px 3px 0px #2563eb;">
+                                {{-- Standby Card jika tidak ada siswa yang bicara --}}
+                                <div id="podium-speaker-idle" class="flex flex-col items-center justify-center text-center p-4 w-full h-full bg-[#f8fafc] border-2 border-dashed border-slate-300 rounded-2xl">
+                                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-2 bg-blue-50 border-2 border-blue-400 text-blue-600 shadow-sm">
+                                        <i class="fa-solid fa-hand"></i>
+                                    </div>
+                                    <h4 class="text-xs font-mono-code font-black text-slate-800">Mimbar Bicara Siap</h4>
+                                    <p class="text-[10px] text-slate-500 mt-1 max-w-xs font-medium">Klik <strong>Angkat Tangan</strong> atau nyalakan mikrofon untuk berbicara dan tampil di mimbar depan bersama Guru.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -410,12 +438,17 @@
                         <span class="text-[11px] font-mono-code font-bold" style="color: #fde047;">Kamera Nonaktif</span>
                     </div>
 
-                    {{-- 🎯 PERBAIKAN: BADGE NAMA SAYA DIPINDAH KE POJOK KIRI ATAS --}}
-                    {{-- Dijamin 100% TIDAK AKAN PERNAH TERTUTUP oleh menu bar di bawah! --}}
-                    <div class="absolute top-4 left-4 z-20 flex items-center gap-2 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-black shadow-md" style="background-color: rgba(18, 19, 22, 0.95); color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #2563eb;" title="{{ $displayName }}">
+                    {{-- 🎯 BADGE NAMA SAYA + MOOD + HAND INDICATOR --}}
+                    <div class="absolute top-4 left-4 z-20 flex items-center gap-1.5 backdrop-blur-md px-2.5 py-1.5 rounded-xl text-xs font-black shadow-md flex-wrap" style="background-color: rgba(18, 19, 22, 0.95); color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #2563eb;" title="{{ $displayName }}">
                         <i id="tile-mic-local" class="fa-solid fa-microphone-slash text-xs" style="color: #ff3823;"></i>
-                        <span class="truncate max-w-[140px] font-mono-code font-bold" style="color: #fde047;">Saya ({{ explode(' ', trim($displayName))[0] }})</span>
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-mono-code font-black uppercase tracking-wider" style="background-color: #2563eb; color: #ffffff;">SISWA</span>
+                        <span class="truncate max-w-[120px] font-mono-code font-bold" style="color: #fde047;">Saya ({{ explode(' ', trim($displayName))[0] }})</span>
+                        <span class="px-1.5 py-0.5 rounded text-[8px] font-mono-code font-black uppercase tracking-wider" style="background-color: #2563eb; color: #ffffff;">SISWA</span>
+                        <span id="tile-mood-local" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-mono-code font-black" style="background-color: #ffedd5; color: #ea580c; border: 1px solid #121316;">
+                            <span id="tile-mood-local-icon">🔥</span> <span id="tile-mood-local-text">Semangat</span>
+                        </span>
+                        <span id="tile-hand-local" class="hidden px-1.5 py-0.2 rounded text-[9px] font-mono-code font-black animate-bounce" style="background-color: #ef4444; color: #ffffff; border: 1px solid #121316;">
+                            ✋
+                        </span>
                     </div>
 
                     <div class="absolute top-4 right-4 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -449,6 +482,19 @@
                     <span id="raise-hand-label" class="hidden sm:inline">Angkat Tangan</span>
                 </button>
 
+                {{-- Suasana Hati / Mood Picker Siswa --}}
+                <button onclick="openMoodModal()" id="btn-mood-picker" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black active:scale-95 transition-all" style="background-color: #ffffff; color: #121316; border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;" title="Pilih suasana hati Anda saat mengikuti kelas">
+                    <span id="current-mood-icon" class="text-sm">🔥</span>
+                    <span id="current-mood-label" class="hidden sm:inline">Semangat</span>
+                </button>
+
+                {{-- Buka Chat Realtime (Blue Tactile) --}}
+                <button onclick="openStudentTab('chat')" type="button" class="relative flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5" style="background-color: #2563eb; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Buka ruang obrolan kelas">
+                    <i class="fa-solid fa-comments text-sm" style="color: #fde047;"></i>
+                    <span class="hidden sm:inline">Chat</span>
+                    <span id="quick-chat-badge" class="hidden absolute -top-2 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
+                </button>
+
                 {{-- Buka Materi Cepat (Indigo Tactile) --}}
                 <button onclick="openStudentTab('materi')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5" style="background-color: #4f46e5; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Buka materi modul pelajaran">
                     <i class="fa-solid fa-book-open text-sm" style="color: #fde047;"></i>
@@ -477,19 +523,28 @@
         <aside id="student-hub" class="w-[480px] max-w-[90vw] flex flex-col h-full z-15 shadow-2xl relative" style="background-color: #faf8f5; border-left: 2.5px solid #121316;">
             
             {{-- Tabs Header Bar --}}
-            <div class="flex items-center p-2 gap-2 flex-shrink-0" style="background-color: #ede9df; border-bottom: 2px solid #121316;">
-                <button id="tab-btn-materi" onclick="switchStudentTab('materi')" type="button" class="flex-1 py-2 px-3 text-xs font-mono-code font-black transition-all flex items-center justify-center gap-1.5 rounded-xl" style="background-color: #121316; color: #fde047; border: 2px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
+            <div class="flex items-center p-2 gap-1.5 flex-shrink-0" style="background-color: #ede9df; border-bottom: 2px solid #121316;">
+                <button id="tab-btn-materi" onclick="switchStudentTab('materi')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-black transition-all flex items-center justify-center gap-1 rounded-xl" style="background-color: #121316; color: #fde047; border: 2px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
                     <i class="fa-solid fa-book text-xs" style="color: #ff3823;"></i>
-                    <span>Materi & Modul</span>
+                    <span class="hidden sm:inline">Modul</span>
                 </button>
-                <button id="tab-btn-notes" onclick="switchStudentTab('notes')" type="button" class="flex-1 py-2 px-3 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl hover:bg-[#faf3e0]" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+                <button id="tab-btn-notes" onclick="switchStudentTab('notes')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0]" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
                     <i class="fa-solid fa-pen-to-square text-xs" style="color: #10b981;"></i>
-                    <span>Catatan</span>
+                    <span class="hidden sm:inline">Catatan</span>
                 </button>
-                <button id="tab-btn-friends" onclick="switchStudentTab('friends')" type="button" class="flex-1 py-2 px-3 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl hover:bg-[#faf3e0]" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+                <button id="tab-btn-friends" onclick="switchStudentTab('friends')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0]" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
                     <i class="fa-solid fa-users text-xs" style="color: #2563eb;"></i>
                     <span>Teman</span>
                 </button>
+                <button id="tab-btn-chat" onclick="switchStudentTab('chat')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0] relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+                    <i class="fa-solid fa-comments text-xs" style="color: #2563eb;"></i>
+                    <span>Chat</span>
+                    <span id="chat-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ff3823; color: #ffffff;">0</span>
+                </button>
+                <button onclick="toggleStudentHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
                 <button onclick="toggleStudentHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
@@ -543,13 +598,28 @@
                         </div>
                     @else
                         @foreach($modules as $module)
+                            @php
+                                $moduleHeaderBg = match($module->color) {
+                                    'indigo' => '#4f46e5',
+                                    'emerald' => '#059669',
+                                    'rose' => '#e11d48',
+                                    'amber' => '#d97706',
+                                    'blue' => '#2563eb',
+                                    'purple' => '#7c3aed',
+                                    'cyan' => '#0891b2',
+                                    'orange' => '#ea580c',
+                                    default => '#121316'
+                                };
+                            @endphp
                             <div class="poster-card bg-white overflow-hidden">
-                                <div class="p-3 flex items-center justify-between" style="background-color: #121316; color: #ffffff; border-bottom: 2px solid #121316;">
+                                <div class="p-3 flex items-center justify-between" style="background-color: {{ $moduleHeaderBg }}; color: #ffffff; border-bottom: 2px solid #121316;">
                                     <div class="flex items-center gap-2 min-w-0">
-                                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: #fde047;"></span>
-                                        <h4 class="text-xs font-black truncate font-mono-code" style="color: #ffffff;">{{ $module->title }}</h4>
+                                        <span class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-mono-code font-black text-white bg-black/30 border border-white/40">
+                                            {{ $module->sequence ?? ($loop->iteration) }}
+                                        </span>
+                                        <h4 class="text-xs font-black truncate font-mono-code text-white">{{ $module->title }}</h4>
                                     </div>
-                                    <span class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded-md border border-black" style="background-color: #fbc02d; color: #121316;">{{ $module->materials()->active()->count() }} Materi</span>
+                                    <span class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded-md border border-black bg-white text-black shadow-xs">{{ $module->materials()->active()->count() }} Materi</span>
                                 </div>
                                 <div class="p-2.5 space-y-2" style="background-color: #faf8f5;">
                                     @foreach($module->materials()->active()->ordered()->get() as $material)
@@ -622,6 +692,60 @@
                     </div>
                 </div>
             </div>
+
+            {{-- TAB 4: CHAT KELAS REALTIME (PUBLIK & DIRECT MESSAGE) --}}
+            <div id="tab-content-chat" class="flex-1 flex flex-col overflow-hidden hidden" style="background-color: #faf8f5;">
+                {{-- Header Chat --}}
+                <div class="p-3 flex items-center justify-between flex-shrink-0 shadow-xs" style="background-color: #ffffff; border-bottom: 2px solid #121316;">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-white" style="background-color: #2563eb; border: 1.5px solid #121316;">
+                            <i class="fa-solid fa-comments"></i>
+                        </span>
+                        <div>
+                            <div class="text-[10px] font-mono-code font-black uppercase" style="color: #2563eb;">✱ OBROLAN KELAS</div>
+                            <h3 class="text-xs font-black" style="color: #121316;">Chat Publik & Pribadi</h3>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-mono-code font-bold text-slate-500">Tujuan:</span>
+                        <select id="chat-recipient-select" class="text-[11px] font-mono-code font-bold px-2 py-1 rounded-xl bg-white border-2 border-black focus:outline-none" style="box-shadow: 2px 2px 0px #121316;">
+                            <option value="all">📢 Semua Orang (Publik)</option>
+                            @if($course->teacher && $course->teacher->user)
+                                <option value="{{ $course->teacher->user->id }}">👨‍🏫 Guru: {{ $course->teacher->user->name }}</option>
+                            @endif
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Chat Messages List --}}
+                <div id="chat-messages-container" class="flex-1 overflow-y-auto p-3 space-y-2.5 graph-paper-box">
+                    <div id="chat-empty-state" class="text-center text-xs py-12 poster-card bg-white p-6" style="color: #777;">
+                        <i class="fa-regular fa-comment-dots text-3xl mb-2 block" style="color: #2563eb;"></i>
+                        <p class="font-mono-code font-bold text-[#121316]">Belum ada pesan obrolan.</p>
+                        <p class="text-[10px] font-medium text-slate-500 mt-1">Gunakan chat untuk bertanya kepada guru atau berdiskusi dengan teman.</p>
+                    </div>
+                </div>
+
+                {{-- Quick Reactions Bar --}}
+                <div class="px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto flex-shrink-0 bg-white" style="border-top: 1.5px solid #e2ded5;">
+                    <span class="text-[10px] font-mono-code font-bold text-slate-400 mr-1 flex-shrink-0">Reaksi:</span>
+                    <button onclick="sendQuickReaction('👍')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">👍</button>
+                    <button onclick="sendQuickReaction('👏')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">👏</button>
+                    <button onclick="sendQuickReaction('❤️')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">❤️</button>
+                    <button onclick="sendQuickReaction('💡')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">💡</button>
+                    <button onclick="sendQuickReaction('🙋')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">🙋</button>
+                    <button onclick="sendQuickReaction('❓')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">❓</button>
+                </div>
+
+                {{-- Chat Input Form --}}
+                <div class="p-2.5 bg-white flex items-center gap-2 flex-shrink-0" style="border-top: 2px solid #121316;">
+                    <input type="text" id="chat-input-text" placeholder="Tulis pesan ke semua, guru, atau teman..." class="flex-1 px-3 py-2 text-xs font-mono-code rounded-xl border-2 border-black focus:outline-none" style="box-shadow: 2px 2px 0px #121316;" onkeydown="if(event.key==='Enter') sendChatMessage()">
+                    <button onclick="sendChatMessage()" type="button" class="btn-tactile-red px-3.5 py-2 rounded-xl text-xs font-mono-code font-black flex items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span class="hidden sm:inline">Kirim</span>
+                    </button>
+                </div>
+            </div>
         </aside>
     </div>
 
@@ -649,6 +773,56 @@
                 </button>
                 <button onclick="executeLeaveMeeting()" type="button" class="btn-tactile-red px-4 py-2 rounded-xl text-xs font-mono-code font-black flex items-center gap-1.5">
                     <i class="fa-solid fa-check"></i> Ya, Tinggalkan Sesi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL PILIH SUASANA HATI / MOOD SISWA (TACTILE NEO-BRUTALIST) --}}
+    <div id="mood-picker-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" style="background-color: rgba(18, 19, 22, 0.75); backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 relative" style="border: 2.5px solid #121316; box-shadow: 8px 8px 0px #fbc02d;">
+            <span class="absolute top-2.5 left-3 font-mono-code text-xs select-none" style="color: #999;">⌜</span>
+            <span class="absolute top-2.5 right-3 font-mono-code text-xs select-none" style="color: #999;">⌝</span>
+            <span class="absolute bottom-2.5 left-3 font-mono-code text-xs select-none" style="color: #999;">⌞</span>
+            <span class="absolute bottom-2.5 right-3 font-mono-code text-xs select-none" style="color: #999;">⌟</span>
+
+            <div class="flex items-center justify-between border-b-2 border-black pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-xl" style="background-color: #fbc02d; border: 2px solid #121316; color: #121316; box-shadow: 2px 2px 0px #121316;">
+                        <i class="fa-regular fa-face-smile"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-mono-code font-black uppercase text-[#ea580c]">✱ SUASANA HATI KELAS</div>
+                        <h3 class="text-base font-black text-[#121316]">Bagaimana Suasana Hatimu Saat Ini?</h3>
+                    </div>
+                </div>
+                <button onclick="closeMoodModal()" type="button" class="p-2 rounded-xl border border-black hover:bg-slate-100">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                Pilih ikon yang paling menggambarkan perasaan atau kondisimu sekarang. Guru dapat melihat rekap suasana hati untuk menyesuaikan tempo dan suasana pembelajaran:
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[50vh] overflow-y-auto p-1">
+                @foreach(\App\Services\LmsMeetingSyncService::getAvailableMoods() as $mKey => $m)
+                    <button type="button" onclick="selectStudentMood('{{ $mKey }}', '{{ $m['icon'] }}', '{{ $m['label'] }}', '{{ $m['bg'] }}', '{{ $m['color'] }}')" 
+                        class="mood-option-btn flex items-center gap-2.5 p-2.5 rounded-2xl text-left transition-all active:scale-95" 
+                        id="mood-btn-{{ $mKey }}"
+                        style="background-color: {{ $m['bg'] }}; color: {{ $m['color'] }}; border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
+                        <span class="text-2xl flex-shrink-0">{{ $m['icon'] }}</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-black truncate">{{ $m['label'] }}</div>
+                            <div class="text-[9px] font-mono-code opacity-75 font-bold">Pilih Status</div>
+                        </div>
+                    </button>
+                @endforeach
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                <button onclick="closeMoodModal()" type="button" class="btn-tactile-white px-4 py-2 rounded-xl text-xs font-mono-code font-bold">
+                    Tutup
                 </button>
             </div>
         </div>
@@ -802,6 +976,25 @@
             }
         }
 
+        // 🎯 FITUR UNGGULAN: PROMOTE SISWA KE MIMBAR BICARA / BERTANYA (KANAN ATAS SEJAJAR GURU)
+        let activeStudentSpeakerUid = null;
+        let activeSpeakerTimer = null;
+
+        function promoteStudentToSpeakerPodium(uid) {
+            activeStudentSpeakerUid = String(uid);
+            if (activeSpeakerTimer) clearTimeout(activeSpeakerTimer);
+            if (currentLayout === 'classroom') {
+                rearrangeStudentTiles();
+            }
+            // Tetap di mimbar selama 7 detik setelah hening bicara
+            activeSpeakerTimer = setTimeout(() => {
+                activeStudentSpeakerUid = null;
+                if (currentLayout === 'classroom') {
+                    rearrangeStudentTiles();
+                }
+            }, 7000);
+        }
+
         // 🎯 BUAT DOM TILE UNTUK VIDEO REMOTE TEMAN SEKELAS
         // BADGE NAMA SISWA DITETAPKAN DI POJOK KIRI ATAS AGAR TIDAK TERTUTUP BAR MENU!
         function createRemoteStudentTile(user) {
@@ -824,11 +1017,17 @@
                     <p class="text-xs font-mono-code font-bold" style="color: #fde047;">${shortName}</p>
                 </div>
                 {{-- BADGE NAMA SISWA LAIN: TEPAT DI POJOK KIRI ATAS - 100% AMAN DARI MENU BAR BAWAH --}}
-                <div class="absolute top-4 left-4 z-20 flex items-center gap-2 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-black shadow-md" style="background-color: rgba(18, 19, 22, 0.95); color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #2563eb;" title="${rawName}">
+                <div class="absolute top-4 left-4 z-20 flex items-center gap-1.5 backdrop-blur-md px-2.5 py-1.5 rounded-xl text-xs font-black shadow-md flex-wrap" style="background-color: rgba(18, 19, 22, 0.95); color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #2563eb;" title="${rawName}">
                     <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #10b981;"></span>
                     <i id="tile-mic-${user.uid}" class="fa-solid fa-microphone text-xs" style="color: #10b981;"></i>
-                    <span id="tile-name-${user.uid}" class="truncate max-w-[140px] font-mono-code font-bold" style="color: #fde047;">${shortName}</span>
-                    <span class="px-2 py-0.5 rounded-md text-[9px] font-mono-code font-black uppercase tracking-wider" style="background-color: #2563eb; color: #ffffff;">SISWA</span>
+                    <span id="tile-name-${user.uid}" class="truncate max-w-[120px] font-mono-code font-bold" style="color: #fde047;">${shortName}</span>
+                    <span class="px-1.5 py-0.5 rounded text-[8px] font-mono-code font-black uppercase tracking-wider" style="background-color: #2563eb; color: #ffffff;">SISWA</span>
+                    <span id="tile-mood-${user.uid}" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-mono-code font-black" style="background-color: #f1f5f9; color: #121316; border: 1px solid #121316;">
+                        🔥 Semangat
+                    </span>
+                    <span id="tile-hand-${user.uid}" class="hidden px-1.5 py-0.2 rounded text-[9px] font-mono-code font-black animate-bounce" style="background-color: #ef4444; color: #ffffff; border: 1px solid #121316;">
+                        ✋
+                    </span>
                 </div>
                 <div class="absolute top-4 right-4 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onclick="pinStudentSpeaker('${user.uid}')" type="button" class="p-2 rounded-xl text-xs transition active:translate-x-0.5 active:translate-y-0.5" style="background-color: #ffffff; color: #121316; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Fokuskan / Spotlight">
@@ -848,6 +1047,9 @@
             const speakerStage   = document.getElementById('stage-speaker-wrapper');
             const classroomGrid  = document.getElementById('classroom-grid');
             const teacherSlot    = document.getElementById('podium-teacher-slot');
+            const speakerSlot    = document.getElementById('podium-speaker-slot');
+            const speakerIdle    = document.getElementById('podium-speaker-idle');
+            const speakerBadge   = document.getElementById('podium-speaker-badge');
             const galleryGrid    = document.getElementById('gallery-grid');
             const filmstrip      = document.getElementById('speaker-filmstrip');
             const mainStage      = document.getElementById('speaker-main-stage');
@@ -872,53 +1074,104 @@
                     classroomStage.classList.add('flex');
                 }
 
-                // 1. Tempatkan Video Guru di Mimbar / Podium Depan
+                // 1. Tempatkan Video Guru di Mimbar Kiri Depan
                 if (teacherTile && teacherSlot) {
                     teacherSlot.appendChild(teacherTile);
-                    teacherTile.className = 'video-tile relative rounded-3xl overflow-hidden flex items-center justify-center w-full h-full max-h-[82vh] transition-all';
+                    teacherTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-full transition-all';
                     teacherTile.style.backgroundColor = '#0f172a';
                     teacherTile.style.border = '2.5px solid #121316';
-                    teacherTile.style.boxShadow = '4px 4px 0px #ff3823';
+                    teacherTile.style.boxShadow = 'none';
                     teacherTile.classList.remove('filmstrip-tile', 'pinned-speaker');
                     teacherTile.onclick = null;
                 }
 
-                // 2. Update occupancy pill (termasuk saya)
+                // 2. Tempatkan Active Speaker Siswa di Mimbar Kanan Depan (Sejajar Guru)
+                let speakerTile = null;
+                if (activeStudentSpeakerUid) {
+                    if (activeStudentSpeakerUid === String(AGORA_UID) || activeStudentSpeakerUid === 'local') {
+                        speakerTile = localTile;
+                    } else {
+                        speakerTile = document.getElementById(`video-tile-${activeStudentSpeakerUid}`);
+                    }
+                }
+
+                if (speakerTile && speakerSlot) {
+                    if (speakerIdle) speakerIdle.classList.add('hidden');
+                    speakerSlot.appendChild(speakerTile);
+                    speakerTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-full transition-all';
+                    speakerTile.style.backgroundColor = '#0f172a';
+                    speakerTile.style.border = '2.5px solid #2563eb';
+                    speakerTile.style.boxShadow = 'none';
+                    speakerTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                    speakerTile.onclick = null;
+                    if (speakerBadge) {
+                        speakerBadge.textContent = 'Sedang Berbicara 🎤';
+                        speakerBadge.className = 'px-1.5 py-0.2 rounded text-[9px] font-mono-code font-black bg-blue-600 text-white animate-pulse';
+                    }
+                } else {
+                    if (speakerIdle) {
+                        speakerIdle.classList.remove('hidden');
+                        if (speakerSlot && !speakerSlot.contains(speakerIdle)) {
+                            speakerSlot.appendChild(speakerIdle);
+                        }
+                    }
+                    if (speakerBadge) {
+                        speakerBadge.textContent = 'Siap Bertanya';
+                        speakerBadge.className = 'px-1.5 py-0.2 rounded text-[9px] font-mono-code font-bold bg-slate-200 text-slate-700';
+                    }
+                }
+
+                // 3. Update occupancy pill (termasuk saya)
                 if (occupancyPill) {
                     occupancyPill.textContent = `${studentTiles.length} / 40 Kursi Terisi`;
                 }
 
-                // 3. Render 40 Bangku Siswa (5 Baris x 8 Kolom)
+                // 4. Render 40 Bangku Siswa (5 Baris x 8 Kolom)
                 if (classroomGrid) {
                     classroomGrid.innerHTML = '';
                     const totalSlots = Math.max(40, studentTiles.length);
                     for (let i = 0; i < totalSlots; i++) {
                         const seatNum = String(i + 1).padStart(2, '0');
                         if (i < studentTiles.length) {
-                            // Kursi Terisi: Pasang student video tile
                             const sTile = studentTiles[i];
-                            sTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-24 sm:h-28 aspect-video transition-all';
-                            sTile.style.backgroundColor = '#0f172a';
-                            sTile.style.border = (sTile.id === 'video-tile-local') ? '2.5px solid #2563eb' : '2px solid #121316';
-                            sTile.style.boxShadow = (sTile.id === 'video-tile-local') ? '3px 3px 0px #2563eb' : '3px 3px 0px #121316';
-                            sTile.classList.remove('filmstrip-tile', 'pinned-speaker');
-                            sTile.onclick = null;
+                            // Cek jika siswa ini sedang berada di mimbar kanan atas
+                            const isAtSpeakerPodium = (speakerTile && sTile === speakerTile);
 
-                            // Tambah atau perbarui tag nomor meja
-                            let deskTag = sTile.querySelector('.seat-desk-tag');
-                            const badge = sTile.querySelector('.absolute.top-4.left-4') || sTile.querySelector('.rounded-xl');
-                            if (!deskTag && badge) {
-                                deskTag = document.createElement('span');
-                                deskTag.className = 'seat-desk-tag px-1.5 py-0.5 rounded text-[8px] font-mono-code font-black';
-                                deskTag.style.backgroundColor = (sTile.id === 'video-tile-local') ? '#2563eb' : '#fbc02d';
-                                deskTag.style.color = (sTile.id === 'video-tile-local') ? '#ffffff' : '#121316';
-                                deskTag.style.border = '1px solid #121316';
-                                badge.insertBefore(deskTag, badge.firstChild);
+                            if (isAtSpeakerPodium) {
+                                // Tampilkan penanda bahwa siswa sedang berada di mimbar depan
+                                const speakingSeat = document.createElement('div');
+                                speakingSeat.className = 'h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center p-2 text-center transition-all bg-blue-50 border-2 border-blue-400 select-none shadow-sm';
+                                speakingSeat.innerHTML = `
+                                    <span class="text-[9px] font-mono-code font-bold mb-1 text-blue-900">Meja #${seatNum}</span>
+                                    <i class="fa-solid fa-microphone-lines text-lg text-blue-600 mb-1 animate-bounce"></i>
+                                    <span class="text-[8px] font-mono-code font-black text-blue-700 uppercase">[ Di Mimbar Depan 🎤 ]</span>
+                                `;
+                                classroomGrid.appendChild(speakingSeat);
+                            } else {
+                                // Kursi Terisi: Pasang student video tile
+                                sTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-24 sm:h-28 aspect-video transition-all';
+                                sTile.style.backgroundColor = '#0f172a';
+                                sTile.style.border = (sTile.id === 'video-tile-local') ? '2.5px solid #2563eb' : '2px solid #121316';
+                                sTile.style.boxShadow = (sTile.id === 'video-tile-local') ? '3px 3px 0px #2563eb' : '3px 3px 0px #121316';
+                                sTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                                sTile.onclick = null;
+
+                                // Tag nomor meja
+                                let deskTag = sTile.querySelector('.seat-desk-tag');
+                                const badge = sTile.querySelector('.absolute.top-4.left-4') || sTile.querySelector('.rounded-xl');
+                                if (!deskTag && badge) {
+                                    deskTag = document.createElement('span');
+                                    deskTag.className = 'seat-desk-tag px-1.5 py-0.5 rounded text-[8px] font-mono-code font-black';
+                                    deskTag.style.backgroundColor = (sTile.id === 'video-tile-local') ? '#2563eb' : '#fbc02d';
+                                    deskTag.style.color = (sTile.id === 'video-tile-local') ? '#ffffff' : '#121316';
+                                    deskTag.style.border = '1px solid #121316';
+                                    badge.insertBefore(deskTag, badge.firstChild);
+                                }
+                                if (deskTag) {
+                                    deskTag.textContent = `#${seatNum}`;
+                                }
+                                classroomGrid.appendChild(sTile);
                             }
-                            if (deskTag) {
-                                deskTag.textContent = `#${seatNum}`;
-                            }
-                            classroomGrid.appendChild(sTile);
                         } else {
                             // Kursi Kosong (Tactile Blueprint Style)
                             const emptySlot = document.createElement('div');
@@ -1058,7 +1311,7 @@
             // Inisialisasi RTC Client Agora
             agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
-            // Deteksi Active Speaker (Border hijau saat berbicara)
+            // Deteksi Active Speaker (Border hijau + Auto-Promote Siswa Bicara ke Mimbar)
             agoraClient.enableAudioVolumeIndicator();
             agoraClient.on('volume-indicator', (volumes) => {
                 document.querySelectorAll('.video-tile').forEach(t => t.classList.remove('speaking'));
@@ -1067,10 +1320,14 @@
                         let targetTileId = null;
                         if (vol.uid === 0 || vol.uid === AGORA_UID) {
                             targetTileId = 'video-tile-local';
+                            // Siswa lokal berbicara -> Naikkan ke mimbar depan
+                            promoteStudentToSpeakerPodium(AGORA_UID);
                         } else if (vol.uid === TEACHER_USER_ID) {
                             targetTileId = 'video-tile-teacher';
                         } else {
                             targetTileId = `video-tile-${vol.uid}`;
+                            // Siswa lain berbicara -> Naikkan ke mimbar depan
+                            promoteStudentToSpeakerPodium(vol.uid);
                         }
                         const tileEl = document.getElementById(targetTileId);
                         if (tileEl) tileEl.classList.add('speaking');
@@ -1153,14 +1410,23 @@
 
                 const icon = document.getElementById('mic-icon');
                 const btn  = document.getElementById('btn-toggle-mic');
+                const tileMic = document.getElementById('tile-mic-local');
                 if (isMicOn) {
                     icon.className = 'fa-solid fa-microphone text-base text-white';
                     btn.style.backgroundColor = '#10b981';
                     btn.style.color = '#ffffff';
+                    if (tileMic) {
+                        tileMic.className = 'fa-solid fa-microphone text-xs';
+                        tileMic.style.color = '#10b981';
+                    }
                 } else {
                     icon.className = 'fa-solid fa-microphone-slash text-base text-white';
                     btn.style.backgroundColor = '#ff3823';
                     btn.style.color = '#ffffff';
+                    if (tileMic) {
+                        tileMic.className = 'fa-solid fa-microphone-slash text-xs';
+                        tileMic.style.color = '#ff3823';
+                    }
                 }
             } catch (err) {
                 console.warn('Gagal mengakses mikrofon siswa:', err);
@@ -1201,23 +1467,63 @@
             }
         }
 
-        // 3. ANGKAT TANGAN (RAISE HAND)
-        function studentToggleRaiseHand() {
+        // 3. ANGKAT TANGAN (RAISE HAND) SISWA
+        async function studentToggleRaiseHand() {
             isRaiseHand = !isRaiseHand;
             const btn = document.getElementById('btn-raise-hand');
             const label = document.getElementById('raise-hand-label');
+            const handLocal = document.getElementById('tile-hand-local');
             if (isRaiseHand) {
                 btn.style.backgroundColor = '#ff3823';
                 btn.style.color = '#ffffff';
                 if (label) label.textContent = 'Tangan Terangkat!';
+                if (handLocal) handLocal.classList.remove('hidden');
+                // Naikkan diri sendiri ke mimbar pembicara depan
+                promoteStudentToSpeakerPodium(AGORA_UID);
             } else {
                 btn.style.backgroundColor = '#fbc02d';
                 btn.style.color = '#121316';
                 if (label) label.textContent = 'Angkat Tangan';
+                if (handLocal) handLocal.classList.add('hidden');
             }
+            await syncMeetingStudent({ raise_hand: isRaiseHand });
         }
 
-        // 4. MODE HEMAT KUOTA
+        // 4. SUASANA HATI / MOOD PICKER SISWA
+        let currentMood = 'semangat';
+
+        function openMoodModal() {
+            const modal = document.getElementById('mood-picker-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeMoodModal() {
+            const modal = document.getElementById('mood-picker-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function selectStudentMood(key, icon, label, bg, color) {
+            currentMood = key;
+            const iconEl = document.getElementById('current-mood-icon');
+            const labelEl = document.getElementById('current-mood-label');
+            if (iconEl) iconEl.textContent = icon;
+            if (labelEl) labelEl.textContent = label;
+
+            const localMoodTag = document.getElementById('tile-mood-local');
+            if (localMoodTag) {
+                localMoodTag.style.backgroundColor = bg;
+                localMoodTag.style.color = color;
+                const iSpan = document.getElementById('tile-mood-local-icon');
+                const tSpan = document.getElementById('tile-mood-local-text');
+                if (iSpan) iSpan.textContent = icon;
+                if (tSpan) tSpan.textContent = label;
+            }
+
+            closeMoodModal();
+            await syncMeetingStudent({ mood: key });
+        }
+
+        // 5. MODE HEMAT KUOTA
         async function toggleDataSaverMode() {
             isDataSaver = !isDataSaver;
             const btn = document.getElementById('btn-data-saver');
@@ -1245,7 +1551,7 @@
             }
         }
 
-        // 5. LIVE TIMER KEHADIRAN SISWA
+        // 6. LIVE TIMER KEHADIRAN SISWA
         let studentJoinTime = new Date();
         function updateStudentTimer() {
             const now = new Date();
@@ -1260,7 +1566,7 @@
         setInterval(updateStudentTimer, 1000);
         updateStudentTimer();
 
-        // 6. TOGGLE & SWITCH TAB LEARNING COMPANION HUB
+        // 7. TOGGLE & SWITCH TAB LEARNING COMPANION HUB
         function toggleStudentHub() {
             const hub = document.getElementById('student-hub');
             const handler = document.getElementById('resize-handler');
@@ -1284,6 +1590,9 @@
             rearrangeStudentTiles();
         }
 
+        let isStudentChatActiveTab = false;
+        let unreadStudentChatCount = 0;
+
         function switchStudentTab(tabName) {
             const hub = document.getElementById('student-hub');
             const handler = document.getElementById('resize-handler');
@@ -1293,7 +1602,7 @@
                 if (handler) handler.classList.remove('hidden');
             }
 
-            const tabs = ['materi', 'notes', 'friends'];
+            const tabs = ['materi', 'notes', 'friends', 'chat'];
             tabs.forEach(t => {
                 const btn = document.getElementById('tab-btn-' + t);
                 const content = document.getElementById('tab-content-' + t);
@@ -1303,23 +1612,38 @@
                     btn.style.boxShadow = '2px 2px 0px #ff3823';
                     btn.classList.add('font-black');
                     btn.classList.remove('font-bold');
-                    content.classList.remove('hidden');
+                    if (content) content.classList.remove('hidden');
                 } else {
-                    btn.style.backgroundColor = '#ffffff';
-                    btn.style.color = '#121316';
-                    btn.style.boxShadow = 'none';
-                    btn.classList.add('font-bold');
-                    btn.classList.remove('font-black');
-                    content.classList.add('hidden');
+                    if (btn) {
+                        btn.style.backgroundColor = '#ffffff';
+                        btn.style.color = '#121316';
+                        btn.style.boxShadow = 'none';
+                        btn.classList.add('font-bold');
+                        btn.classList.remove('font-black');
+                    }
+                    if (content) content.classList.add('hidden');
                 }
             });
+
+            if (tabName === 'chat') {
+                isStudentChatActiveTab = true;
+                unreadStudentChatCount = 0;
+                const badge1 = document.getElementById('chat-tab-badge');
+                const badge2 = document.getElementById('quick-chat-badge');
+                if (badge1) badge1.classList.add('hidden');
+                if (badge2) badge2.classList.add('hidden');
+                const c = document.getElementById('chat-messages-container');
+                if (c) c.scrollTop = c.scrollHeight;
+            } else {
+                isStudentChatActiveTab = false;
+            }
         }
 
         function openStudentTab(tabName) {
             switchStudentTab(tabName);
         }
 
-        // 7. DISPLAY MATERI PEMBELAJARAN
+        // 8. DISPLAY MATERI PEMBELAJARAN
         function displayStudentMaterial(title, type, url, content) {
             const box = document.getElementById('material-preview-box');
             const iframe = document.getElementById('preview-iframe');
@@ -1363,7 +1687,7 @@
             if (iframe) iframe.src = 'about:blank';
         }
 
-        // 8. BUKU CATATAN SISWA (PERSISTED LOCALSTORAGE)
+        // 9. BUKU CATATAN SISWA (PERSISTED LOCALSTORAGE)
         const notesKey = 'pembdahub_lms_notes_{{ $course->id }}_{{ $student->id }}';
         const notesArea = document.getElementById('student-notes-area');
 
@@ -1391,32 +1715,111 @@
         }
         loadStudentNotes();
 
-        // 9. POLLING TEMAN SEKELAS
-        function fetchFriends() {
-            fetch("{{ route('guru.lms.meeting.attendees', $course->id) }}")
-                .then(r => r.json())
-                .then(data => {
-                    const total = data.total || 0;
-                    const badgeEl = document.getElementById('friends-badge-count');
-                    if (badgeEl) badgeEl.textContent = total + ' Online';
+        // ============================================================
+        // 10. REALTIME SIGNALING & SYNC SISWA (PRESENSI, MOOD, HANDS, CHAT)
+        // ============================================================
+        let isSyncingStudent = false;
+        let lastRenderedStudentChatIds = new Set();
 
-                    const listEl = document.getElementById('friends-list');
-                    if (!listEl) return;
+        async function syncMeetingStudent(extraPayload = {}) {
+            if (isSyncingStudent) return;
+            isSyncingStudent = true;
+            try {
+                const payload = Object.assign({
+                    action: 'sync',
+                    raise_hand: isRaiseHand,
+                    mood: currentMood
+                }, extraPayload);
 
-                    if (total === 0) {
-                        listEl.innerHTML = `
-                            <div class="text-center py-10 px-4 poster-card bg-white p-6" style="color: #777;">
-                                <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background-color: #ede9df; border: 2px solid #121316; color: #2563eb;">
-                                    <i class="fa-solid fa-users-rays"></i>
-                                </div>
-                                <h4 class="text-xs font-mono-code font-black uppercase" style="color: #121316;">Belum Ada Teman Lain</h4>
-                                <p class="text-[11px] mt-1.5 leading-relaxed font-medium" style="color: #555;">Anda adalah siswa pertama yang bergabung di PembdaTEMU ini. Teman-teman sekelas akan muncul di sini saat mereka masuk.</p>
-                            </div>
-                        `;
-                        return;
+                const res = await fetch("{{ route('siswa.lms.meeting.sync', $course->id) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("Sync HTTP " + res.status);
+                const data = await res.json();
+                handleStudentMeetingSyncData(data);
+            } catch(err) {
+                console.warn("Sync siswa warning:", err);
+            } finally {
+                isSyncingStudent = false;
+            }
+        }
+
+        function handleStudentMeetingSyncData(data) {
+            if (!data) return;
+
+            // 1. Attendees Map & Friends List
+            const attendees = data.attendees || [];
+            const friendsOnly = attendees.filter(a => a.user_id !== AGORA_UID && a.role === 'siswa');
+            const badgeEl = document.getElementById('friends-badge-count');
+            if (badgeEl) badgeEl.textContent = (friendsOnly.length + 1) + ' Online';
+
+            // Update attendeesMap
+            attendees.forEach(stu => {
+                const sid = String(stu.user_id);
+                attendeesMap[sid] = stu.name;
+
+                // Tile nama
+                const tileNameSpan = document.getElementById(`tile-name-${sid}`);
+                if (tileNameSpan) {
+                    tileNameSpan.textContent = stu.name.split(' ')[0];
+                }
+
+                // Remote mood tag
+                const moodTag = document.getElementById(`tile-mood-${sid}`);
+                if (moodTag && stu.mood_icon) {
+                    moodTag.innerHTML = `<span>${stu.mood_icon}</span> <span>${stu.mood_label}</span>`;
+                    moodTag.style.backgroundColor = stu.mood_bg || '#f1f5f9';
+                    moodTag.style.color = stu.mood_color || '#121316';
+                }
+
+                // Remote hand tag
+                const handTag = document.getElementById(`tile-hand-${sid}`);
+                if (handTag) {
+                    if (stu.raise_hand) {
+                        handTag.classList.remove('hidden');
+                    } else {
+                        handTag.classList.add('hidden');
                     }
+                }
+            });
 
-                    let html = '';
+            // Cek apakah guru menurunkan tangan kita
+            const myRecord = attendees.find(a => a.user_id === AGORA_UID);
+            if (myRecord) {
+                if (!myRecord.raise_hand && isRaiseHand) {
+                    isRaiseHand = false;
+                    const btn = document.getElementById('btn-raise-hand');
+                    const label = document.getElementById('raise-hand-label');
+                    const handLocal = document.getElementById('tile-hand-local');
+                    if (btn) {
+                        btn.style.backgroundColor = '#fbc02d';
+                        btn.style.color = '#121316';
+                    }
+                    if (label) label.textContent = 'Angkat Tangan';
+                    if (handLocal) handLocal.classList.add('hidden');
+                }
+            }
+
+            // Render Friends List
+            const friendsList = document.getElementById('friends-list');
+            if (friendsList) {
+                if (friendsOnly.length === 0) {
+                    friendsList.innerHTML = `
+                        <div class="text-center py-10 px-4 poster-card bg-white p-6" style="color: #777;">
+                            <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background-color: #ede9df; border: 2px solid #121316; color: #2563eb;">
+                                <i class="fa-solid fa-users-rays"></i>
+                            </div>
+                            <h4 class="text-xs font-mono-code font-black uppercase" style="color: #121316;">Belum Ada Teman Lain</h4>
+                            <p class="text-[11px] mt-1.5 leading-relaxed font-medium" style="color: #555;">Anda adalah siswa pertama yang bergabung di PembdaTEMU ini. Teman-teman sekelas akan muncul di sini saat mereka masuk.</p>
+                        </div>
+                    `;
+                } else {
                     const avatarGradients = [
                         'linear-gradient(135deg, #ec4899, #f43f5e)',
                         'linear-gradient(135deg, #06b6d4, #3b82f6)',
@@ -1424,39 +1827,24 @@
                         'linear-gradient(135deg, #8b5cf6, #a855f7)',
                         'linear-gradient(135deg, #f59e0b, #f97316)'
                     ];
-
-                    data.attendees.forEach((stu, idx) => {
-                        attendeesMap[stu.id] = stu.name;
+                    let html = '';
+                    friendsOnly.forEach((stu, idx) => {
                         const grad = avatarGradients[idx % avatarGradients.length];
-                        const short = (stu.name || '').split(' ')[0] || stu.name;
-
-                        // Perbarui nama di tile video jika sudah ada
-                        const tileNameSpan = document.getElementById(`tile-name-${stu.id}`);
-                        if (tileNameSpan) {
-                            tileNameSpan.textContent = short;
-                            if (tileNameSpan.parentElement) {
-                                tileNameSpan.parentElement.setAttribute('title', stu.name);
-                            }
-                        }
-                        const tilePlaceholder = document.querySelector(`#remote-placeholder-${stu.id} p`);
-                        if (tilePlaceholder) {
-                            tilePlaceholder.textContent = short;
-                        }
-
+                        const initials = stu.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
                         html += `
                             <div class="flex items-center justify-between p-3 rounded-2xl bg-white text-xs transition-all" style="border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black text-white flex-shrink-0" style="background: ${grad}; border: 2px solid #121316;">
-                                        ${stu.initials}
+                                        ${initials}
                                     </div>
                                     <div class="min-w-0">
-                                        <div class="flex items-center gap-1.5">
-                                            <p class="font-black truncate" style="color: #121316;">${stu.name}</p>
-                                            ${stu.is_online ? '<span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #10b981;"></span>' : ''}
+                                        <p class="font-black truncate" style="color: #121316;">${stu.name}</p>
+                                        <div class="flex items-center gap-1.5 mt-0.5">
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[9px] font-bold" style="background-color: ${stu.mood_bg || '#f1f5f9'}; color: ${stu.mood_color || '#121316'}; border: 1px solid #121316;">
+                                                ${stu.mood_icon || '🔥'} ${stu.mood_label || 'Semangat'}
+                                            </span>
+                                            ${stu.raise_hand ? '<span class="px-1.5 py-0.2 rounded text-[9px] bg-red-500 text-white font-bold animate-pulse">✋ Bertanya</span>' : ''}
                                         </div>
-                                        <p class="text-[10px] font-mono-code font-bold flex items-center gap-1" style="color: #555;">
-                                            <i class="fa-regular fa-clock" style="color: #2563eb;"></i> Masuk: ${stu.joined_at}
-                                        </p>
                                     </div>
                                 </div>
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1.5px solid #121316;">
@@ -1465,12 +1853,122 @@
                             </div>
                         `;
                     });
-                    listEl.innerHTML = html;
-                })
-                .catch(() => {});
+                    friendsList.innerHTML = html;
+                }
+            }
+
+            // 2. Chat Recipient Select
+            const chatSelect = document.getElementById('chat-recipient-select');
+            if (chatSelect) {
+                const currentVal = chatSelect.value;
+                let selectOptions = `<option value="all">📢 Semua Orang (Publik)</option>`;
+                
+                // Add teacher
+                const teacherUser = attendees.find(a => a.role === 'guru');
+                if (teacherUser) {
+                    selectOptions += `<option value="${teacherUser.user_id}">👨‍🏫 Guru: ${teacherUser.name}</option>`;
+                }
+                // Add classmates
+                friendsOnly.forEach(f => {
+                    selectOptions += `<option value="${f.user_id}">👤 ${f.name} (Teman)</option>`;
+                });
+                chatSelect.innerHTML = selectOptions;
+                if (currentVal && chatSelect.querySelector(`option[value="${currentVal}"]`)) {
+                    chatSelect.value = currentVal;
+                }
+            }
+
+            // 3. Render Chats
+            const chats = data.chats || [];
+            const chatContainer = document.getElementById('chat-messages-container');
+            const chatEmpty = document.getElementById('chat-empty-state');
+
+            if (chatContainer) {
+                if (chats.length === 0) {
+                    if (chatEmpty) chatEmpty.classList.remove('hidden');
+                } else {
+                    if (chatEmpty) chatEmpty.classList.add('hidden');
+
+                    let newIncomingMsg = false;
+                    chats.forEach(c => {
+                        if (!lastRenderedStudentChatIds.has(c.id)) {
+                            newIncomingMsg = true;
+                            lastRenderedStudentChatIds.add(c.id);
+                        }
+                    });
+
+                    if (newIncomingMsg) {
+                        let chatHtml = '';
+                        chats.forEach(c => {
+                            const isMe = (c.sender_id === AGORA_UID);
+                            const isPrivate = c.is_private;
+                            const bubbleBg = isMe ? '#fef08a' : (isPrivate ? '#f3e8ff' : '#ffffff');
+                            const borderCol = isPrivate ? '#9333ea' : '#121316';
+                            const badgePrivate = isPrivate ? `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-mono-code font-black bg-purple-600 text-white"><i class="fa-solid fa-lock text-[7px]"></i> PRIBADI: ${c.recipient_name}</span>` : '';
+
+                            chatHtml += `
+                                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                                    <div class="flex items-center gap-1.5 mb-0.5 text-[9px] font-mono-code font-bold text-slate-500">
+                                        <span class="${isMe ? 'text-[#ff3823] font-black' : 'text-[#121316]'}">${isMe ? 'Saya' : c.sender_name}</span>
+                                        ${badgePrivate}
+                                        <span>${c.time_formatted || ''}</span>
+                                    </div>
+                                    <div class="px-3 py-2 rounded-2xl max-w-[85%] text-xs font-mono-code break-words" style="background-color: ${bubbleBg}; color: #121316; border: 1.5px solid ${borderCol}; box-shadow: 2px 2px 0px ${borderCol};">
+                                        ${c.text}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        chatContainer.innerHTML = chatHtml;
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                        if (!isStudentChatActiveTab) {
+                            unreadStudentChatCount++;
+                            const badge1 = document.getElementById('chat-tab-badge');
+                            const badge2 = document.getElementById('quick-chat-badge');
+                            if (badge1) {
+                                badge1.textContent = unreadStudentChatCount;
+                                badge1.classList.remove('hidden');
+                            }
+                            if (badge2) {
+                                badge2.textContent = unreadStudentChatCount;
+                                badge2.classList.remove('hidden');
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        // 10. PRESENSI KELUAR & LEAVE HANDLER
+        async function sendChatMessage(customText = null) {
+            const input = document.getElementById('chat-input-text');
+            const select = document.getElementById('chat-recipient-select');
+            const text = (customText !== null ? customText : (input ? input.value : '')).trim();
+            if (!text) return;
+
+            if (customText === null && input) {
+                input.value = '';
+            }
+
+            const recipientId = select ? select.value : 'all';
+            let recipientName = 'Semua Orang';
+            if (select && select.options[select.selectedIndex]) {
+                recipientName = select.options[select.selectedIndex].text.replace(/^[^\w]+/, '').trim();
+            }
+
+            await syncMeetingStudent({
+                action: 'send_chat',
+                text: text,
+                recipient_id: recipientId,
+                recipient_name: recipientName
+            });
+        }
+
+        function sendQuickReaction(emoji) {
+            sendChatMessage(emoji);
+        }
+
+        // 11. PRESENSI KELUAR & LEAVE HANDLER
         function reportLeave() {
             const fd = new FormData();
             fd.append('_token', "{{ csrf_token() }}");
@@ -1502,7 +2000,7 @@
             window.location.href = "{{ route('siswa.lms.show', $course->id) }}";
         }
 
-        // 11. RESIZE DRAG HANDLER
+        // 12. RESIZE DRAG HANDLER
         const studentHub = document.getElementById('student-hub');
         const resizeHandler = document.getElementById('resize-handler');
         const overlay = document.getElementById('resize-overlay');
@@ -1532,14 +2030,14 @@
             }
         });
 
-        // 12. INIT ON PAGE LOAD
+        // 13. INIT ON PAGE LOAD
         document.addEventListener("DOMContentLoaded", function () {
             initAgoraStudent().catch(err => {
                 console.error("Agora student init error:", err);
             });
 
-            setInterval(fetchFriends, 15000);
-            fetchFriends();
+            setInterval(syncMeetingStudent, 3500);
+            syncMeetingStudent();
         });
     </script>
 </body>

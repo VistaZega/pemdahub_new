@@ -148,6 +148,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/{course}/meeting/stop', [App\Http\Controllers\Guru\LmsCourseController::class, 'stopMeeting'])->name('meeting.stop');
         Route::get('/{course}/meeting/join', [App\Http\Controllers\Guru\LmsCourseController::class, 'joinMeeting'])->name('meeting.join');
         Route::get('/{course}/meeting/attendees', [App\Http\Controllers\Guru\LmsCourseController::class, 'meetingAttendees'])->name('meeting.attendees'); // AJAX polling
+        Route::post('/{course}/meeting/sync', [App\Http\Controllers\Guru\LmsCourseController::class, 'meetingSync'])->name('meeting.sync'); // AJAX sync (hands, mood, chat)
         Route::get('/{course}/meeting/attendance-report', [App\Http\Controllers\Guru\LmsCourseController::class, 'attendanceReport'])->name('meeting.attendance');
 
         // Modules

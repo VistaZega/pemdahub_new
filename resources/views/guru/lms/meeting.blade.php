@@ -346,20 +346,56 @@
             {{-- 1. CLASSROOM VIEW STAGE (DEFAULT: Model Ruang Kelas 5x8 Kursi Siswa + Meja Guru Depan) --}}
             <div id="stage-classroom-wrapper" class="flex flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 pb-28 gap-2 relative min-h-0">
                 
-                {{-- AREA MIMBAR / PODIUM GURU (DEPAN KELAS) --}}
-                <div class="w-full flex flex-col items-center justify-center flex-shrink-0">
-                    <div class="flex items-center gap-2 mb-1.5 flex-wrap justify-center">
+                {{-- AREA MIMBAR DEPAN KELAS: DUAL PODIUM (GURU + SISWA BICARA / BERTANYA) --}}
+                <div class="w-full flex flex-col items-center justify-center flex-shrink-0 px-2 sm:px-4">
+                    <div class="flex items-center gap-2 mb-2 flex-wrap justify-center">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
-                            <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ PODIUM GURU / DEPAN KELAS
+                            <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ MIMBAR DEPAN KELAS
                         </span>
                         <span id="classroom-occupancy-pill" class="px-2.5 py-1 rounded-full text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             0 / 40 Kursi Terisi
                         </span>
+                        <span id="hand-raise-alert-pill" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono-code font-black animate-bounce" style="background-color: #ef4444; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                            <i class="fa-solid fa-hand"></i> <span id="hand-raise-count-text">0 Ingin Bertanya</span>
+                        </span>
                     </div>
 
-                    {{-- Teacher Video Spotlight Slot --}}
-                    <div id="podium-teacher-slot" class="w-full max-w-xl h-44 sm:h-52 md:h-60 flex items-center justify-center">
-                        {{-- Video tile guru masuk ke sini secara otomatis --}}
+                    {{-- DUAL PODIUM GRID: KIRI = PODIUM GURU, KANAN = SISWA BICARA / BERTANYA --}}
+                    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-3 items-center justify-center">
+                        
+                        {{-- PODIUM 1: GURU PENGAJAR --}}
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
+                                <span class="flex items-center gap-1.5 text-[#ff3823]">
+                                    <i class="fa-solid fa-chalkboard-user"></i> PODIUM GURU
+                                </span>
+                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#ff3823] text-white">PENGAJAR</span>
+                            </div>
+                            <div id="podium-teacher-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center">
+                                {{-- Video tile guru masuk ke sini secara otomatis --}}
+                            </div>
+                        </div>
+
+                        {{-- PODIUM 2: SISWA BICARA / BERTANYA (ACTIVE SPEAKER & TANYA) --}}
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #2563eb;">
+                                <span class="flex items-center gap-1.5 text-[#2563eb]">
+                                    <i class="fa-solid fa-microphone-lines"></i> <span id="podium-speaker-label">MIMBAR SISWA BICARA & TANYA</span>
+                                </span>
+                                <span id="podium-speaker-badge" class="text-[9px] px-1.5 py-0.2 rounded bg-[#2563eb] text-white">STANDBY</span>
+                            </div>
+                            <div id="podium-speaker-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center relative">
+                                {{-- Standby Card jika belum ada siswa yang bicara/bertanya --}}
+                                <div id="podium-speaker-idle" class="w-full h-full rounded-3xl flex flex-col items-center justify-center p-4 text-center select-none transition-all" style="background-color: rgba(255,255,255,0.85); border: 2.5px dashed #cbd5e1; box-shadow: 3px 3px 0px rgba(0,0,0,0.05);">
+                                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg mb-2 text-[#64748b] bg-slate-100 border border-slate-300">
+                                        <i class="fa-solid fa-microphone-lines"></i>
+                                    </div>
+                                    <p class="text-xs font-mono-code font-black text-[#121316]">Belum Ada Siswa Bicara</p>
+                                    <p class="text-[10px] font-mono-code font-medium text-[#64748b] mt-0.5 max-w-xs">Siswa yang membuka mikrofon atau angkat tangan otomatis tampil di sini sejajar dengan guru.</p>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -476,6 +512,13 @@
                     <span class="hidden sm:inline">Presensi</span>
                     <span id="quick-attendee-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1px solid #121316;">0</span>
                 </button>
+
+                {{-- Quick Open Chat (Blue Tactile with Unread Badge) --}}
+                <button onclick="openTabDirect('chat')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5 relative" style="background-color: #2563eb; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Buka obrolan kelas & tanya jawab">
+                    <i class="fa-solid fa-comments text-sm" style="color: #fde047;"></i>
+                    <span class="hidden sm:inline">Chat</span>
+                    <span id="quick-chat-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
+                </button>
             </div>
         </main>
 
@@ -493,18 +536,23 @@
         <aside id="classroom-hub" class="w-[520px] max-w-[90vw] flex flex-col h-full z-15 shadow-2xl relative" style="background-color: #faf8f5; border-left: 2.5px solid #121316;">
             
             {{-- Tabs Header Bar (Tactile Binder Style) --}}
-            <div class="flex items-center p-2 gap-2 flex-shrink-0" style="background-color: #ede9df; border-bottom: 2px solid #121316;">
-                <button id="tab-btn-materi" onclick="switchTab('materi')" type="button" class="flex-1 py-2 px-3 text-xs font-mono-code font-black transition-all flex items-center justify-center gap-2 rounded-xl" style="background-color: #121316; color: #fde047; border: 2px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
+            <div class="flex items-center p-2 gap-1.5 flex-shrink-0" style="background-color: #ede9df; border-bottom: 2px solid #121316;">
+                <button id="tab-btn-materi" onclick="switchTab('materi')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-black transition-all flex items-center justify-center gap-1.5 rounded-xl" style="background-color: #121316; color: #fde047; border: 2px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
                     <i class="fa-solid fa-book text-xs" style="color: #ff3823;"></i>
-                    <span>Materi & Modul</span>
+                    <span class="hidden sm:inline">Modul</span>
                 </button>
-                <button id="tab-btn-whiteboard" onclick="switchTab('whiteboard')" type="button" class="flex-1 py-2 px-3 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-2 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+                <button id="tab-btn-whiteboard" onclick="switchTab('whiteboard')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
                     <i class="fa-solid fa-pen-ruler text-xs" style="color: #7c3aed;"></i>
-                    <span>Papan Tulis</span>
+                    <span class="hidden sm:inline">Papan Tulis</span>
                 </button>
-                <button id="tab-btn-peserta" onclick="switchTab('peserta')" type="button" class="flex-1 py-2 px-3 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-2 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+                <button id="tab-btn-peserta" onclick="switchTab('peserta')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
                     <i class="fa-solid fa-users text-xs" style="color: #10b981;"></i>
                     <span>Siswa (<span id="attendee-tab-count">0</span>)</span>
+                </button>
+                <button id="tab-btn-chat" onclick="switchTab('chat')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+                    <i class="fa-solid fa-comments text-xs" style="color: #2563eb;"></i>
+                    <span>Chat</span>
+                    <span id="chat-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ff3823; color: #ffffff;">0</span>
                 </button>
                 <button onclick="toggleClassroomHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
                     <i class="fa-solid fa-xmark text-sm"></i>
@@ -562,14 +610,27 @@
                         </div>
                     @else
                         @foreach($modules as $module)
-                            <div class="poster-card bg-white overflow-hidden" style="border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
-                                {{-- Header Modul: Hitam Pekat dengan Teks Putih & Kuning (100% Terbaca) --}}
-                                <div class="p-3 flex items-center justify-between" style="background-color: #121316 !important; color: #ffffff !important; border-bottom: 2px solid #121316 !important;">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: #fde047; display: inline-block;"></span>
-                                        <h4 class="text-xs font-black truncate font-mono-code" style="color: #ffffff !important;">{{ $module->title }}</h4>
+                            @php
+                                $moduleHeaderBg = match($module->color) {
+                                    'indigo'  => '#4f46e5',
+                                    'emerald' => '#059669',
+                                    'rose'    => '#e11d48',
+                                    'amber'   => '#d97706',
+                                    'blue'    => '#2563eb',
+                                    'purple'  => '#9333ea',
+                                    'cyan'    => '#0891b2',
+                                    'orange'  => '#ea580c',
+                                    default   => '#2563eb'
+                                };
+                            @endphp
+                            <div class="poster-card bg-white overflow-hidden rounded-2xl" style="border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
+                                {{-- Header Modul: Sesuai aturan warna tema modul LMS --}}
+                                <div class="p-3 flex items-center justify-between" style="background-color: {{ $moduleHeaderBg }} !important; color: #ffffff !important; border-bottom: 2px solid #121316 !important;">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <span class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black border border-black shadow-xs flex-shrink-0" style="background-color: #fbbf24; color: #121316;">{{ $module->sequence }}</span>
+                                        <h4 class="text-xs font-black truncate font-mono-code text-white">{{ $module->title }}</h4>
                                     </div>
-                                    <span class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded-md" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #000000;">{{ $module->materials()->active()->count() }} Materi</span>
+                                    <span class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded-md flex-shrink-0" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #000000;">{{ $module->materials()->active()->count() }} Materi</span>
                                 </div>
                                 <div class="p-2.5 space-y-2" style="background-color: #faf8f5;">
                                     @foreach($module->materials()->active()->ordered()->get() as $material)
@@ -675,18 +736,42 @@
                 </div>
             </div>
 
-            {{-- TAB 3: DAFTAR SISWA & PRESENSI REALTIME --}}
+            {{-- TAB 3: DAFTAR SISWA, ANGKAT TANGAN & SUASANA HATI REALTIME --}}
             <div id="tab-content-peserta" class="flex-1 flex flex-col overflow-hidden hidden" style="background-color: #faf8f5;">
                 
                 {{-- Header Sub-bar --}}
                 <div class="p-3 flex items-center justify-between flex-shrink-0 shadow-xs" style="background-color: #ffffff; border-bottom: 2px solid #121316;">
                     <div>
-                        <div class="text-[10px] font-mono-code font-black uppercase" style="color: #ff3823;">✱ REALTIME KBM</div>
-                        <h3 class="text-xs font-black" style="color: #121316;">Presensi Tatap Muka</h3>
+                        <div class="text-[10px] font-mono-code font-black uppercase" style="color: #ff3823;">✱ KONTROL KELAS</div>
+                        <h3 class="text-xs font-black" style="color: #121316;">Presensi & Suasana Hati</h3>
                     </div>
                     <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" target="_blank" class="btn-tactile-yellow text-[10px] font-mono-code font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5">
                         <i class="fa-solid fa-file-invoice"></i> Rekap Sesi
                     </a>
+                </div>
+
+                {{-- Siswa Angkat Tangan (Alert Box Guru) --}}
+                <div id="hands-raised-section" class="hidden p-3 bg-[#fef2f2] border-b-2 border-[#121316] flex-shrink-0">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-[11px] font-mono-code font-black text-[#dc2626] flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand animate-bounce"></i> SISWA ANGKAT TANGAN (<span id="hands-raised-count">0</span>)
+                        </span>
+                        <span class="text-[9px] font-mono-code text-[#7f1d1d] font-bold">Klik untuk panggil</span>
+                    </div>
+                    <div id="hands-raised-list" class="space-y-1.5">
+                        {{-- Items angkat tangan di-render dinamis --}}
+                    </div>
+                </div>
+
+                {{-- Rekap Suasana Hati Kelas (Mood Meter) --}}
+                <div class="p-3 bg-white border-b-2 border-[#121316] flex-shrink-0">
+                    <div class="text-[10px] font-mono-code font-black uppercase text-[#475569] mb-1.5 flex items-center justify-between">
+                        <span>✱ REKAP SUASANA HATI KELAS</span>
+                        <span class="text-[9px] text-[#94a3b8]">Live Feedback</span>
+                    </div>
+                    <div id="mood-meter-badges" class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-[10px] font-mono-code font-bold text-slate-400">Belum ada respon suasana hati siswa.</span>
+                    </div>
                 </div>
 
                 {{-- List Peserta (Vibrant Poster Card Style) --}}
@@ -695,6 +780,57 @@
                         <i class="fa-solid fa-spinner animate-spin text-2xl mb-2 block" style="color: #4f46e5;"></i>
                         <p class="font-mono-code font-bold">Memuat daftar siswa hadir...</p>
                     </div>
+                </div>
+            </div>
+
+            {{-- TAB 4: CHAT KELAS REALTIME (PUBLIK & DIRECT MESSAGE) --}}
+            <div id="tab-content-chat" class="flex-1 flex flex-col overflow-hidden hidden" style="background-color: #faf8f5;">
+                {{-- Header Chat --}}
+                <div class="p-3 flex items-center justify-between flex-shrink-0 shadow-xs" style="background-color: #ffffff; border-bottom: 2px solid #121316;">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-white" style="background-color: #2563eb; border: 1.5px solid #121316;">
+                            <i class="fa-solid fa-comments"></i>
+                        </span>
+                        <div>
+                            <div class="text-[10px] font-mono-code font-black uppercase" style="color: #2563eb;">✱ OBROLAN KELAS</div>
+                            <h3 class="text-xs font-black" style="color: #121316;">Chat Publik & Pribadi</h3>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-mono-code font-bold text-slate-500">Tujuan:</span>
+                        <select id="chat-recipient-select" class="text-[11px] font-mono-code font-bold px-2 py-1 rounded-xl bg-white border-2 border-black focus:outline-none" style="box-shadow: 2px 2px 0px #121316;">
+                            <option value="all">🌐 Semua Orang (Publik)</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Chat Messages List --}}
+                <div id="chat-messages-container" class="flex-1 overflow-y-auto p-3 space-y-2.5 graph-paper-box">
+                    <div id="chat-empty-state" class="text-center text-xs py-12 poster-card bg-white p-6" style="color: #777;">
+                        <i class="fa-regular fa-comment-dots text-3xl mb-2 block" style="color: #2563eb;"></i>
+                        <p class="font-mono-code font-bold text-[#121316]">Belum ada pesan obrolan.</p>
+                        <p class="text-[10px] font-medium text-slate-500 mt-1">Gunakan chat untuk berdiskusi, menyapa kelas, atau mengirim pesan pribadi.</p>
+                    </div>
+                </div>
+
+                {{-- Quick Reactions Bar --}}
+                <div class="px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto flex-shrink-0 bg-white" style="border-top: 1.5px solid #e2ded5;">
+                    <span class="text-[10px] font-mono-code font-bold text-slate-400 mr-1 flex-shrink-0">Reaksi:</span>
+                    <button onclick="sendQuickReaction('👍')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">👍</button>
+                    <button onclick="sendQuickReaction('👏')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">👏</button>
+                    <button onclick="sendQuickReaction('❤️')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">❤️</button>
+                    <button onclick="sendQuickReaction('💡')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">💡</button>
+                    <button onclick="sendQuickReaction('🙋')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">🙋</button>
+                    <button onclick="sendQuickReaction('❓')" type="button" class="px-2 py-0.5 rounded-lg text-xs hover:scale-110 active:scale-95 transition bg-slate-100 border border-slate-300">❓</button>
+                </div>
+
+                {{-- Chat Input Form --}}
+                <div class="p-2.5 bg-white flex items-center gap-2 flex-shrink-0" style="border-top: 2px solid #121316;">
+                    <input type="text" id="chat-input-text" placeholder="Tulis pesan ke semua atau siswa..." class="flex-1 px-3 py-2 text-xs font-mono-code rounded-xl border-2 border-black focus:outline-none" style="box-shadow: 2px 2px 0px #121316;" onkeydown="if(event.key==='Enter') sendChatMessage()">
+                    <button onclick="sendChatMessage()" type="button" class="btn-tactile-red px-3.5 py-2 rounded-xl text-xs font-mono-code font-black flex items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span class="hidden sm:inline">Kirim</span>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -762,6 +898,13 @@
         let currentLayout    = 'classroom'; // 'classroom' | 'gallery' | 'speaker' | 'sidebyside'
         let currentPinnedUid = 'local';     // 'local' | remote uid
         let attendeesMap     = {};          // user.uid => student name
+        let activeStudentSpeakerUid = null; // UID siswa yang sedang bicara di mimbar kanan
+        let activeSpeakerTimer = null;      // Timer hold speaker di mimbar
+        let currentRaisedHands = [];        // Daftar siswa angkat tangan
+        let currentMoods = {};              // user.uid => { mood, icon, label, color, bg }
+        let currentChatList = [];           // Daftar pesan chat
+        let unreadChatCount = 0;            // Jumlah pesan chat belum dibaca
+        let isChatActiveTab = false;        // Status tab chat sedang aktif
 
         // ============================================================
         // 1. INISIALISASI AGORA CLIENT & WEBRTC
@@ -784,6 +927,11 @@
                         const targetTileId = (vol.uid === 0 || vol.uid === AGORA_UID) ? 'video-tile-local' : `video-tile-${vol.uid}`;
                         const tileEl = document.getElementById(targetTileId);
                         if (tileEl) tileEl.classList.add('speaking');
+
+                        // Jika siswa yang berbicara (bukan guru lokal)
+                        if (vol.uid !== 0 && vol.uid !== AGORA_UID) {
+                            promoteStudentToSpeakerPodium(vol.uid);
+                        }
                     }
                 });
             });
@@ -838,6 +986,9 @@
                 if (currentPinnedUid === String(user.uid)) {
                     currentPinnedUid = 'local';
                 }
+                if (activeStudentSpeakerUid === String(user.uid)) {
+                    activeStudentSpeakerUid = null;
+                }
                 updateParticipantCount();
                 rearrangeTiles();
             });
@@ -860,8 +1011,23 @@
             rearrangeTiles();
         }
 
-        // 🎯 BUAT DOM TILE UNTUK VIDEO REMOTE SISWA (TACTILE POSTER FRAME)
-        // BADGE NAMA SISWA DITETAPKAN DI POJOK KIRI ATAS AGAR TIDAK TERTUTUP BAR MENU!
+        // 🎯 FITUR UNGGULAN: PROMOTE SISWA KE MIMBAR BICARA / BERTANYA (KANAN ATAS)
+        function promoteStudentToSpeakerPodium(uid) {
+            activeStudentSpeakerUid = String(uid);
+            if (activeSpeakerTimer) clearTimeout(activeSpeakerTimer);
+            if (currentLayout === 'classroom') {
+                rearrangeTiles();
+            }
+            // Tetap di mimbar selama 7 detik setelah hening bicara
+            activeSpeakerTimer = setTimeout(() => {
+                activeStudentSpeakerUid = null;
+                if (currentLayout === 'classroom') {
+                    rearrangeTiles();
+                }
+            }, 7000);
+        }
+
+        // 🎯 BUAT DOM TILE UNTUK VIDEO REMOTE SISWA (LENGKAP DENGAN MOOD & HAND RAISE)
         function createRemoteTile(user) {
             const tile = document.createElement('div');
             tile.id = `video-tile-${user.uid}`;
@@ -872,6 +1038,8 @@
             
             const rawName = attendeesMap[user.uid] || `Siswa #${user.uid}`;
             const shortName = rawName.split(' ')[0];
+            const mood = currentMoods[user.uid] || { icon: '🔥', label: 'Semangat', bg: '#ffedd5', color: '#ea580c' };
+            const isHand = currentRaisedHands.some(h => String(h.user_id) === String(user.uid));
 
             tile.innerHTML = `
                 <div id="remote-${user.uid}" class="w-full h-full relative"></div>
@@ -881,15 +1049,26 @@
                     </div>
                     <p class="text-xs font-mono-code font-bold" style="color: #fde047;">${shortName}</p>
                 </div>
-                {{-- BADGE NAMA SISWA: TEPAT DI POJOK KIRI ATAS - 100% AMAN DARI MENU BAR BAWAH --}}
-                <div class="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black shadow-md" style="background-color: #121316; color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #2563eb;" title="${rawName}">
-                    <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #10b981;"></span>
-                    <i id="tile-mic-${user.uid}" class="fa-solid fa-microphone text-xs" style="color: #10b981;"></i>
-                    <span id="tile-name-${user.uid}" class="truncate max-w-[140px] font-mono-code font-bold" style="color: #fde047;">${shortName}</span>
-                    <span class="px-2 py-0.5 rounded-md text-[9px] font-mono-code font-black uppercase tracking-wider" style="background-color: #2563eb; color: #ffffff;">SISWA</span>
+                {{-- BADGE NAMA SISWA + SUASANA HATI + ANGKAT TANGAN (POJOK KIRI ATAS) --}}
+                <div class="absolute top-3 left-3 z-20 flex items-center gap-1.5 flex-wrap max-w-[90%]">
+                    <span class="seat-desk-tag px-1.5 py-0.5 rounded text-[8px] font-mono-code font-black" style="background-color: #fbc02d; color: #121316; border: 1px solid #121316;">Meja</span>
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black shadow-md" style="background-color: #121316; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #2563eb;" title="${rawName}">
+                        <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #10b981;"></span>
+                        <i id="tile-mic-${user.uid}" class="fa-solid fa-microphone text-xs" style="color: #10b981;"></i>
+                        <span id="tile-name-${user.uid}" class="truncate max-w-[120px] font-mono-code font-bold" style="color: #fde047;">${shortName}</span>
+                    </div>
+                    <span id="tile-mood-${user.uid}" class="tile-mood-badge px-2 py-0.5 rounded-xl text-[10px] font-mono-code font-black border border-black shadow-xs flex items-center gap-1" style="background-color: ${mood.bg}; color: ${mood.color};" title="Suasana Hati: ${mood.label}">
+                        <span>${mood.icon}</span> <span class="hidden sm:inline">${mood.label}</span>
+                    </span>
+                    <span id="tile-hand-${user.uid}" class="tile-hand-badge ${isHand ? '' : 'hidden'} px-2 py-0.5 rounded-xl text-[10px] font-mono-code font-black bg-red-600 text-white animate-bounce border border-black shadow-xs flex items-center gap-1">
+                        <i class="fa-solid fa-hand"></i> Tanya
+                    </span>
                 </div>
-                <div class="absolute top-4 right-4 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onclick="pinSpeaker('${user.uid}')" type="button" class="p-2 rounded-xl text-xs active:translate-x-0.5 active:translate-y-0.5 transition" style="background-color: #ffffff; color: #121316; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Fokuskan / Spotlight">
+                <div class="absolute top-3 right-3 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="promoteStudentToSpeakerPodium('${user.uid}')" type="button" class="p-1.5 rounded-xl text-xs transition active:scale-95" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Panggil ke Mimbar Depan">
+                        <i class="fa-solid fa-microphone-lines text-xs"></i>
+                    </button>
+                    <button onclick="pinSpeaker('${user.uid}')" type="button" class="p-1.5 rounded-xl text-xs active:scale-95 transition" style="background-color: #ffffff; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Fokuskan / Spotlight">
                         <i class="fa-solid fa-thumbtack text-xs"></i>
                     </button>
                 </div>
@@ -906,6 +1085,10 @@
             const speakerStage   = document.getElementById('stage-speaker-wrapper');
             const classroomGrid  = document.getElementById('classroom-grid');
             const teacherSlot    = document.getElementById('podium-teacher-slot');
+            const speakerSlot    = document.getElementById('podium-speaker-slot');
+            const speakerIdle    = document.getElementById('podium-speaker-idle');
+            const speakerLabel   = document.getElementById('podium-speaker-label');
+            const speakerBadge   = document.getElementById('podium-speaker-badge');
             const galleryGrid    = document.getElementById('gallery-grid');
             const filmstrip      = document.getElementById('speaker-filmstrip');
             const mainStage      = document.getElementById('speaker-main-stage');
@@ -927,7 +1110,7 @@
 
                 if (soloBanner) soloBanner.classList.add('hidden');
 
-                // 1. Tempatkan Video Guru di Mimbar / Podium Depan
+                // 1. Tempatkan Video Guru di Mimbar Kiri
                 if (teacherTile && teacherSlot) {
                     teacherSlot.appendChild(teacherTile);
                     teacherTile.className = 'video-tile relative rounded-3xl overflow-hidden flex items-center justify-center w-full h-full max-h-[82vh] transition-all';
@@ -938,42 +1121,93 @@
                     teacherTile.onclick = null;
                 }
 
-                // 2. Update occupancy pill
+                // 2. Tempatkan Siswa yang Sedang Bicara / Bertanya di Mimbar Kanan
+                let activeOnPodiumTile = null;
+                let activeOnPodiumUid = null;
+
+                if (activeStudentSpeakerUid) {
+                    const candidate = document.getElementById(`video-tile-${activeStudentSpeakerUid}`);
+                    if (candidate) {
+                        activeOnPodiumTile = candidate;
+                        activeOnPodiumUid = activeStudentSpeakerUid;
+                    }
+                } else if (currentRaisedHands.length > 0) {
+                    const firstHandUid = currentRaisedHands[0].user_id;
+                    const candidate = document.getElementById(`video-tile-${firstHandUid}`);
+                    if (candidate) {
+                        activeOnPodiumTile = candidate;
+                        activeOnPodiumUid = String(firstHandUid);
+                    }
+                }
+
+                if (activeOnPodiumTile && speakerSlot) {
+                    speakerSlot.appendChild(activeOnPodiumTile);
+                    activeOnPodiumTile.className = 'video-tile relative rounded-3xl overflow-hidden flex items-center justify-center w-full h-full max-h-[82vh] transition-all';
+                    activeOnPodiumTile.style.backgroundColor = '#0f172a';
+                    activeOnPodiumTile.style.border = '3px solid #2563eb';
+                    activeOnPodiumTile.style.boxShadow = '5px 5px 0px #121316';
+                    activeOnPodiumTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                    activeOnPodiumTile.onclick = null;
+                    if (speakerIdle) speakerIdle.classList.add('hidden');
+
+                    const pName = attendeesMap[activeOnPodiumUid] || `Siswa #${activeOnPodiumUid}`;
+                    const isHand = (currentRaisedHands.find(h => String(h.user_id) === String(activeOnPodiumUid)));
+                    if (speakerLabel) {
+                        speakerLabel.textContent = isHand ? `✋ INGIN BERTANYA: ${pName}` : `🎙️ SEDANG BICARA: ${pName}`;
+                    }
+                    if (speakerBadge) {
+                        speakerBadge.textContent = isHand ? 'ANGKAT TANGAN' : 'BICARA';
+                        speakerBadge.style.backgroundColor = isHand ? '#ef4444' : '#10b981';
+                    }
+                } else {
+                    if (speakerIdle) speakerIdle.classList.remove('hidden');
+                    if (speakerLabel) speakerLabel.textContent = 'MIMBAR SISWA BICARA & TANYA';
+                    if (speakerBadge) {
+                        speakerBadge.textContent = 'STANDBY';
+                        speakerBadge.style.backgroundColor = '#2563eb';
+                    }
+                }
+
+                // 3. Update occupancy pill
                 if (occupancyPill) {
                     occupancyPill.textContent = `${studentTiles.length} / 40 Kursi Terisi`;
                 }
 
-                // 3. Render 40 Bangku Siswa (5 Baris x 8 Kolom)
+                // 4. Render 40 Bangku Siswa (5 Baris x 8 Kolom)
                 if (classroomGrid) {
                     classroomGrid.innerHTML = '';
                     const totalSlots = Math.max(40, studentTiles.length);
                     for (let i = 0; i < totalSlots; i++) {
                         const seatNum = String(i + 1).padStart(2, '0');
                         if (i < studentTiles.length) {
-                            // Kursi Terisi: Pasang student video tile
                             const sTile = studentTiles[i];
-                            sTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-24 sm:h-28 aspect-video transition-all';
-                            sTile.style.backgroundColor = '#0f172a';
-                            sTile.style.border = '2px solid #121316';
-                            sTile.style.boxShadow = '3px 3px 0px #121316';
-                            sTile.classList.remove('filmstrip-tile', 'pinned-speaker');
-                            sTile.onclick = null;
+                            if (sTile === activeOnPodiumTile) {
+                                // Tampilkan penanda bahwa siswa ini sedang berada di mimbar depan!
+                                const reservedDesk = document.createElement('div');
+                                reservedDesk.className = 'h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center p-2 text-center transition-all select-none';
+                                reservedDesk.style.backgroundColor = '#eff6ff';
+                                reservedDesk.style.border = '2px solid #2563eb';
+                                reservedDesk.style.boxShadow = '3px 3px 0px #121316';
+                                reservedDesk.innerHTML = `
+                                    <span class="text-[9px] font-mono-code font-black mb-1" style="color: #1e40af;">Meja #${seatNum}</span>
+                                    <i class="fa-solid fa-microphone-lines text-lg mb-1 animate-pulse" style="color: #2563eb;"></i>
+                                    <span class="text-[8px] font-mono-code font-black uppercase px-2 py-0.5 rounded text-white" style="background-color: #2563eb;">Di Mimbar Depan 🎤</span>
+                                `;
+                                classroomGrid.appendChild(reservedDesk);
+                            } else {
+                                sTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-24 sm:h-28 aspect-video transition-all';
+                                sTile.style.backgroundColor = '#0f172a';
+                                sTile.style.border = '2px solid #121316';
+                                sTile.style.boxShadow = '3px 3px 0px #121316';
+                                sTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                                sTile.onclick = null;
 
-                            // Tambah atau perbarui tag nomor meja
-                            let deskTag = sTile.querySelector('.seat-desk-tag');
-                            const badge = sTile.querySelector('.absolute.top-4.left-4') || sTile.querySelector('.rounded-xl');
-                            if (!deskTag && badge) {
-                                deskTag = document.createElement('span');
-                                deskTag.className = 'seat-desk-tag px-1.5 py-0.5 rounded text-[8px] font-mono-code font-black';
-                                deskTag.style.backgroundColor = '#fbc02d';
-                                deskTag.style.color = '#121316';
-                                deskTag.style.border = '1px solid #121316';
-                                badge.insertBefore(deskTag, badge.firstChild);
+                                let deskTag = sTile.querySelector('.seat-desk-tag');
+                                if (deskTag) {
+                                    deskTag.textContent = `#${seatNum}`;
+                                }
+                                classroomGrid.appendChild(sTile);
                             }
-                            if (deskTag) {
-                                deskTag.textContent = `#${seatNum}`;
-                            }
-                            classroomGrid.appendChild(sTile);
                         } else {
                             // Kursi Kosong (Tactile Blueprint Style)
                             const emptySlot = document.createElement('div');
@@ -1402,7 +1636,7 @@
                 if (handler) handler.classList.remove('hidden');
             }
 
-            const tabs = ['materi', 'whiteboard', 'peserta'];
+            const tabs = ['materi', 'whiteboard', 'peserta', 'chat'];
             tabs.forEach(t => {
                 const btn = document.getElementById('tab-btn-' + t);
                 const content = document.getElementById('tab-content-' + t);
@@ -1411,15 +1645,30 @@
                     btn.style.color = '#fde047';
                     btn.style.border = '2px solid #121316';
                     btn.style.boxShadow = '2px 2px 0px #ff3823';
-                    content.classList.remove('hidden');
+                    if (content) content.classList.remove('hidden');
                 } else {
-                    btn.style.backgroundColor = '#ffffff';
-                    btn.style.color = '#121316';
-                    btn.style.border = '2px solid #121316';
-                    btn.style.boxShadow = 'none';
-                    content.classList.add('hidden');
+                    if (btn) {
+                        btn.style.backgroundColor = '#ffffff';
+                        btn.style.color = '#121316';
+                        btn.style.border = '2px solid #121316';
+                        btn.style.boxShadow = 'none';
+                    }
+                    if (content) content.classList.add('hidden');
                 }
             });
+
+            if (tabName === 'chat') {
+                isChatActiveTab = true;
+                unreadChatCount = 0;
+                const badge1 = document.getElementById('chat-tab-badge');
+                const badge2 = document.getElementById('quick-chat-badge');
+                if (badge1) badge1.classList.add('hidden');
+                if (badge2) badge2.classList.add('hidden');
+                const c = document.getElementById('chat-messages-container');
+                if (c) c.scrollTop = c.scrollHeight;
+            } else {
+                isChatActiveTab = false;
+            }
 
             if (tabName === 'whiteboard') {
                 setTimeout(resizeCanvas, 100);
@@ -1610,40 +1859,149 @@
         }
 
         // ============================================================
-        // 11. POLLING PRESENSI REALTIME
+        // 11. REALTIME SIGNALING & SYNC (PRESENSI, MOOD, ANGKAT TANGAN, CHAT)
         // ============================================================
-        function fetchAttendees() {
-            fetch("{{ route('guru.lms.meeting.attendees', $course->id) }}")
-                .then(r => r.json())
-                .then(data => {
-                    const total = data.total || 0;
-                    document.getElementById('header-attendee-count').textContent = total;
-                    document.getElementById('attendee-tab-count').textContent = total;
-                    document.getElementById('quick-attendee-badge').textContent = total;
+        let isSyncing = false;
+        let knownHandIds = new Set();
+        let lastRenderedChatIds = new Set();
+        let audioCtx = null;
 
-                    const listEl = document.getElementById('attendees-list');
-                    if (!listEl) return;
+        function playNotificationChime() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
 
-                    if (total === 0) {
-                        listEl.innerHTML = `
-                            <div class="text-center py-10 px-4 poster-card bg-white p-6" style="color: #777;">
-                                <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background-color: #ede9df; border: 2px solid #121316; color: #ff3823;">
-                                    <i class="fa-solid fa-user-clock"></i>
-                                </div>
-                                <h4 class="text-xs font-mono-code font-black uppercase" style="color: #121316;">Belum Ada Siswa Hadir</h4>
-                                <p class="text-[11px] mt-1.5 leading-relaxed font-medium" style="color: #555;">Bagikan tautan sesi ini kepada siswa agar mereka segera masuk ke ruang PembdaTEMU.</p>
-                                <div class="mt-4">
-                                    <button onclick="copyMeetingLink()" type="button" class="btn-tactile-yellow text-xs font-mono-code font-black px-4 py-2 rounded-xl inline-flex items-center gap-2">
-                                        <i class="fa-solid fa-copy"></i>
-                                        <span>Salin Tautan WhatsApp</span>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        return;
+                const now = audioCtx.currentTime;
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880.00, now + 0.12); // A5
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.exponentialRampToValueAtTime(0.25, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+
+                osc.start(now);
+                osc.stop(now + 0.38);
+            } catch (e) {
+                console.warn("Chime error:", e);
+            }
+        }
+
+        async function syncMeetingState(extraPayload = {}) {
+            if (isSyncing) return;
+            isSyncing = true;
+            try {
+                const payload = Object.assign({ action: 'sync' }, extraPayload);
+                const res = await fetch("{{ route('guru.lms.meeting.sync', $course->id) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("Sync HTTP " + res.status);
+                const data = await res.json();
+                handleMeetingSyncData(data);
+            } catch (err) {
+                console.warn("Sync warning:", err);
+            } finally {
+                isSyncing = false;
+            }
+        }
+
+        function handleMeetingSyncData(data) {
+            if (!data) return;
+
+            // 1. Peserta & Count
+            const attendees = data.attendees || [];
+            const studentAttendees = attendees.filter(a => a.role === 'siswa');
+            const total = studentAttendees.length;
+
+            const hCount = document.getElementById('header-attendee-count');
+            if (hCount) hCount.textContent = total;
+            const tabCount = document.getElementById('attendee-tab-count');
+            if (tabCount) tabCount.textContent = total;
+            const qCount = document.getElementById('quick-attendee-badge');
+            if (qCount) qCount.textContent = total;
+
+            // 2. Update Attendees Map (UID -> Nama & Data)
+            attendees.forEach(student => {
+                const sid = String(student.user_id);
+                attendeesMap[sid] = student.name;
+
+                // Update name tag pada tile remote video & meja kelas
+                const nameTag = document.getElementById(`tile-name-${sid}`);
+                if (nameTag) {
+                    nameTag.textContent = student.name.split(' ')[0];
+                }
+                const seatNameTag = document.getElementById(`seat-name-${sid}`);
+                if (seatNameTag) {
+                    seatNameTag.textContent = student.name.split(' ')[0];
+                }
+
+                // Update Suasana Hati (Mood) badge pada tile & meja
+                const moodTileTag = document.getElementById(`tile-mood-${sid}`);
+                if (moodTileTag && student.mood_icon) {
+                    moodTileTag.innerHTML = `<span>${student.mood_icon}</span> <span>${student.mood_label}</span>`;
+                    moodTileTag.style.backgroundColor = student.mood_bg || '#ffffff';
+                    moodTileTag.style.color = student.mood_color || '#121316';
+                }
+                const seatMoodTag = document.getElementById(`seat-mood-${sid}`);
+                if (seatMoodTag && student.mood_icon) {
+                    seatMoodTag.innerHTML = `<span>${student.mood_icon}</span> <span>${student.mood_label}</span>`;
+                    seatMoodTag.style.backgroundColor = student.mood_bg || '#ffffff';
+                    seatMoodTag.style.color = student.mood_color || '#121316';
+                }
+
+                // Update Angkat Tangan badge pada tile & meja
+                const handTileTag = document.getElementById(`tile-hand-${sid}`);
+                if (handTileTag) {
+                    if (student.raise_hand) {
+                        handTileTag.classList.remove('hidden');
+                    } else {
+                        handTileTag.classList.add('hidden');
                     }
+                }
+                const seatHandTag = document.getElementById(`seat-hand-${sid}`);
+                if (seatHandTag) {
+                    if (student.raise_hand) {
+                        seatHandTag.classList.remove('hidden');
+                    } else {
+                        seatHandTag.classList.add('hidden');
+                    }
+                }
+            });
 
-                    let html = '';
+            // 3. Render Daftar Peserta di Tab Siswa
+            const listEl = document.getElementById('attendees-list');
+            if (listEl) {
+                if (studentAttendees.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="text-center py-10 px-4 poster-card bg-white p-6" style="color: #777;">
+                            <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background-color: #ede9df; border: 2px solid #121316; color: #ff3823;">
+                                <i class="fa-solid fa-user-clock"></i>
+                            </div>
+                            <h4 class="text-xs font-mono-code font-black uppercase" style="color: #121316;">Belum Ada Siswa Hadir</h4>
+                            <p class="text-[11px] mt-1.5 leading-relaxed font-medium" style="color: #555;">Bagikan tautan sesi ini kepada siswa agar mereka segera masuk ke ruang PembdaTEMU.</p>
+                            <div class="mt-4">
+                                <button onclick="copyMeetingLink()" type="button" class="btn-tactile-yellow text-xs font-mono-code font-black px-4 py-2 rounded-xl inline-flex items-center gap-2">
+                                    <i class="fa-solid fa-copy"></i>
+                                    <span>Salin Tautan WhatsApp</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
                     const avatarGradients = [
                         'linear-gradient(135deg, #ec4899, #f43f5e)',
                         'linear-gradient(135deg, #06b6d4, #3b82f6)',
@@ -1651,44 +2009,235 @@
                         'linear-gradient(135deg, #8b5cf6, #a855f7)',
                         'linear-gradient(135deg, #f59e0b, #f97316)'
                     ];
-
-                    data.attendees.forEach((student, idx) => {
+                    let html = '';
+                    studentAttendees.forEach((student, idx) => {
                         const grad = avatarGradients[idx % avatarGradients.length];
+                        const initials = student.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+                        const isHand = student.raise_hand;
                         html += `
-                            <div class="flex items-center justify-between p-3 rounded-2xl bg-white text-xs transition-all" style="border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black text-white flex-shrink-0" style="background: ${grad}; border: 2px solid #121316;">
-                                        ${student.initials}
+                            <div class="p-3 rounded-2xl bg-white text-xs transition-all space-y-2" style="border: 2px solid #121316; box-shadow: 3px 3px 0px ${isHand ? '#ef4444' : '#121316'};">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white flex-shrink-0" style="background: ${grad}; border: 1.5px solid #121316;">
+                                            ${initials}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="font-black truncate leading-snug" style="color: #121316;">${student.name}</p>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[9px] font-bold" style="background-color: ${student.mood_bg || '#f1f5f9'}; color: ${student.mood_color || '#121316'}; border: 1px solid #121316;">
+                                                    ${student.mood_icon || '🔥'} ${student.mood_label || 'Semangat'}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="min-w-0">
-                                        <p class="font-black truncate leading-snug" style="color: #121316;">${student.name}</p>
-                                        <span class="text-[10px] font-mono-code font-bold flex items-center gap-1" style="color: #555;">
-                                            <i class="fa-regular fa-clock" style="color: #2563eb;"></i> Masuk: ${student.joined_at}
-                                        </span>
+                                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                                        ${isHand ? `
+                                            <button onclick="promoteStudentToSpeakerPodium('${student.user_id}'); dismissHand(${student.user_id});" type="button" class="btn-tactile-yellow px-2 py-1 rounded-lg text-[10px] font-mono-code font-black flex items-center gap-1" title="Panggil ke mimbar bicara">
+                                                <i class="fa-solid fa-microphone-lines text-xs"></i> Panggil
+                                            </button>
+                                        ` : `
+                                            <button onclick="promoteStudentToSpeakerPodium('${student.user_id}')" type="button" class="p-1.5 rounded-lg text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700" title="Pindahkan ke mimbar depan">
+                                                <i class="fa-solid fa-microphone text-[10px]"></i>
+                                            </button>
+                                        `}
                                     </div>
                                 </div>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1.5px solid #121316;">
-                                    <span class="w-1.5 h-1.5 rounded-full animate-ping" style="background-color: #ffffff;"></span> HADIR
-                                </span>
                             </div>
                         `;
                     });
                     listEl.innerHTML = html;
+                }
+            }
 
-                    if (data.attendees) {
-                        data.attendees.forEach(student => {
-                            const sid = student.user_id || student.id;
-                            if (sid) {
-                                attendeesMap[sid] = student.name;
-                                const nameBadge = document.getElementById(`tile-name-${sid}`);
-                                if (nameBadge) {
-                                    nameBadge.textContent = student.name.split(' ')[0];
-                                }
-                            }
-                        });
+            // 4. Update Section Siswa Angkat Tangan (Hands Raised Alert)
+            const hands = data.raised_hands || [];
+            const handsSection = document.getElementById('hands-raised-section');
+            const handsCountEl = document.getElementById('hands-raised-count');
+            const handsListEl = document.getElementById('hands-raised-list');
+
+            let newHandDetected = false;
+            hands.forEach(h => {
+                if (!knownHandIds.has(h.user_id)) {
+                    newHandDetected = true;
+                }
+            });
+            if (newHandDetected && hands.length > 0) {
+                playNotificationChime();
+            }
+            knownHandIds = new Set(hands.map(h => h.user_id));
+
+            if (handsSection) {
+                if (hands.length > 0) {
+                    handsSection.classList.remove('hidden');
+                    if (handsCountEl) handsCountEl.textContent = hands.length;
+                    if (handsListEl) {
+                        handsListEl.innerHTML = hands.map(h => `
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-red-300 shadow-xs">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="text-base animate-bounce">✋</span>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-black truncate text-red-900">${h.name}</div>
+                                        <div class="text-[9px] font-mono-code text-red-600 font-bold">Ingin bertanya / berbicara</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <button onclick="promoteStudentToSpeakerPodium('${h.user_id}'); dismissHand(${h.user_id});" type="button" class="btn-tactile-yellow px-2 py-0.5 rounded-lg text-[10px] font-mono-code font-black flex items-center gap-1">
+                                        <i class="fa-solid fa-microphone-lines text-xs"></i> Panggil
+                                    </button>
+                                    <button onclick="dismissHand(${h.user_id})" type="button" class="px-2 py-0.5 rounded-lg text-[10px] font-mono-code font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">
+                                        Turunkan
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
                     }
-                })
-                .catch(err => console.error("Error fetching attendees:", err));
+                } else {
+                    handsSection.classList.add('hidden');
+                }
+            }
+
+            // 5. Update Mood Meter Badges (Rekap Emosi / Suasana Hati Kelas)
+            const moodMeterEl = document.getElementById('mood-meter-badges');
+            if (moodMeterEl) {
+                const summary = data.mood_summary || {};
+                const keys = Object.keys(summary);
+                if (keys.length === 0) {
+                    moodMeterEl.innerHTML = `<span class="text-[10px] font-mono-code font-bold text-slate-400">Belum ada respon suasana hati siswa.</span>`;
+                } else {
+                    const availableMoods = data.available_moods || {};
+                    let moodHtml = '';
+                    for (const [label, count] of Object.entries(summary)) {
+                        let foundMeta = null;
+                        for (const k in availableMoods) {
+                            if (availableMoods[k].label === label) {
+                                foundMeta = availableMoods[k];
+                                break;
+                            }
+                        }
+                        const icon = foundMeta ? foundMeta.icon : '✨';
+                        const bg = foundMeta ? foundMeta.bg : '#f1f5f9';
+                        const color = foundMeta ? foundMeta.color : '#121316';
+                        moodHtml += `
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] font-mono-code font-bold shadow-xs" style="background-color: ${bg}; color: ${color}; border: 1.5px solid #121316;">
+                                <span>${icon}</span>
+                                <span>${label}</span>
+                                <span class="ml-0.5 px-1 rounded-full bg-white text-black font-black text-[9px] border border-black">${count}</span>
+                            </span>
+                        `;
+                    }
+                    moodMeterEl.innerHTML = moodHtml;
+                }
+            }
+
+            // 6. Update Pilihan Tujuan Chat (Dropdown Recipient)
+            const chatSelect = document.getElementById('chat-recipient-select');
+            if (chatSelect) {
+                const currentVal = chatSelect.value;
+                let selectOptions = `<option value="all">📢 Semua Orang (Publik)</option>`;
+                studentAttendees.forEach(s => {
+                    selectOptions += `<option value="${s.user_id}">👤 ${s.name} (Siswa)</option>`;
+                });
+                chatSelect.innerHTML = selectOptions;
+                if (currentVal && chatSelect.querySelector(`option[value="${currentVal}"]`)) {
+                    chatSelect.value = currentVal;
+                }
+            }
+
+            // 7. Render Chat Messages
+            const chats = data.chats || [];
+            const chatContainer = document.getElementById('chat-messages-container');
+            const chatEmpty = document.getElementById('chat-empty-state');
+
+            if (chatContainer) {
+                if (chats.length === 0) {
+                    if (chatEmpty) chatEmpty.classList.remove('hidden');
+                } else {
+                    if (chatEmpty) chatEmpty.classList.add('hidden');
+                    
+                    let newIncomingMsg = false;
+                    chats.forEach(c => {
+                        if (!lastRenderedChatIds.has(c.id)) {
+                            newIncomingMsg = true;
+                            lastRenderedChatIds.add(c.id);
+                        }
+                    });
+
+                    if (newIncomingMsg) {
+                        let chatHtml = '';
+                        chats.forEach(c => {
+                            const isMe = (c.sender_id === AGORA_UID);
+                            const isPrivate = c.is_private;
+                            const bubbleBg = isMe ? '#fef08a' : (isPrivate ? '#f3e8ff' : '#ffffff');
+                            const borderCol = isPrivate ? '#9333ea' : '#121316';
+                            const badgePrivate = isPrivate ? `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-mono-code font-black bg-purple-600 text-white"><i class="fa-solid fa-lock text-[7px]"></i> PRIBADI: ${c.recipient_name}</span>` : '';
+
+                            chatHtml += `
+                                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                                    <div class="flex items-center gap-1.5 mb-0.5 text-[9px] font-mono-code font-bold text-slate-500">
+                                        <span class="${isMe ? 'text-[#ff3823] font-black' : 'text-[#121316]'}">${isMe ? 'Saya' : c.sender_name}</span>
+                                        ${badgePrivate}
+                                        <span>${c.time_formatted || ''}</span>
+                                    </div>
+                                    <div class="px-3 py-2 rounded-2xl max-w-[85%] text-xs font-mono-code break-words" style="background-color: ${bubbleBg}; color: #121316; border: 1.5px solid ${borderCol}; box-shadow: 2px 2px 0px ${borderCol};">
+                                        ${c.text}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        chatContainer.innerHTML = chatHtml;
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                        if (!isChatActiveTab) {
+                            unreadChatCount++;
+                            const badge1 = document.getElementById('chat-tab-badge');
+                            const badge2 = document.getElementById('quick-chat-badge');
+                            if (badge1) {
+                                badge1.textContent = unreadChatCount;
+                                badge1.classList.remove('hidden');
+                            }
+                            if (badge2) {
+                                badge2.textContent = unreadChatCount;
+                                badge2.classList.remove('hidden');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        async function sendChatMessage(customText = null) {
+            const input = document.getElementById('chat-input-text');
+            const select = document.getElementById('chat-recipient-select');
+            const text = (customText !== null ? customText : (input ? input.value : '')).trim();
+            if (!text) return;
+
+            if (customText === null && input) {
+                input.value = '';
+            }
+
+            const recipientId = select ? select.value : 'all';
+            let recipientName = 'Semua Orang';
+            if (select && select.options[select.selectedIndex]) {
+                recipientName = select.options[select.selectedIndex].text.replace(/^[^\w]+/, '').trim();
+            }
+
+            await syncMeetingState({
+                action: 'send_chat',
+                text: text,
+                recipient_id: recipientId,
+                recipient_name: recipientName
+            });
+        }
+
+        function sendQuickReaction(emoji) {
+            sendChatMessage(emoji);
+        }
+
+        async function dismissHand(targetUserId) {
+            await syncMeetingState({
+                action: 'dismiss_hand',
+                target_user_id: targetUserId
+            });
         }
 
         // ============================================================
@@ -1761,8 +2310,8 @@
                 showAgoraError(err.message || 'Kamera atau mikrofon tidak dapat dibuka');
             });
 
-            setInterval(fetchAttendees, 15000);
-            fetchAttendees();
+            setInterval(syncMeetingState, 3500);
+            syncMeetingState();
         });
 
         window.addEventListener('beforeunload', async () => {

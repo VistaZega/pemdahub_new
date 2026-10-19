@@ -1539,6 +1539,61 @@ HTML;
     }
 
     /**
+     * AJAX: Realtime Sync Meeting Siswa (Angkat Tangan, Suasana Hati / Mood, Chat Publik & Direct Message)
+     */
+    public function meetingSync(Request $request, LmsCourse $course)
+    {
+        $student = $this->getStudent();
+        if (!$student || !$this->isEnrolled($student, $course)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $userId = auth()->id();
+        $studentName = $student->full_name ?? ($student->user->name ?? 'Siswa');
+
+        $action = $request->input('action');
+        $extra = [];
+
+        if ($request->has('raise_hand')) {
+            $extra['raise_hand'] = $request->boolean('raise_hand');
+        }
+        if ($request->filled('mood')) {
+            $extra['mood'] = (string)$request->input('mood');
+        }
+
+        // Heartbeat siswa
+        \App\Services\LmsMeetingSyncService::syncUser(
+            $course->id,
+            $userId,
+            $studentName,
+            'siswa',
+            $student->id,
+            $extra
+        );
+
+        // Handle Chat dari siswa
+        if ($action === 'send_chat') {
+            $text = (string)$request->input('text', '');
+            $recipientId = $request->input('recipient_id', 'all');
+            $recipientName = (string)$request->input('recipient_name', 'Semua Orang');
+
+            \App\Services\LmsMeetingSyncService::sendChat(
+                $course->id,
+                $userId,
+                $studentName,
+                'siswa',
+                $recipientId,
+                $recipientName,
+                $text
+            );
+        }
+
+        $state = \App\Services\LmsMeetingSyncService::getState($course->id, $userId);
+
+        return response()->json($state);
+    }
+
+    /**
      * AJAX: Status kelas live untuk siswa (polling tiap 30 detik)
      * Returns array of course IDs yang meeting_active = true dan siswa enrolled
      */

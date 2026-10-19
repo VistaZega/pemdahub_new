@@ -2115,6 +2115,61 @@ HTML;
     }
 
     /**
+     * AJAX: Realtime Sync Meeting State (Peserta, Angkat Tangan, Suasana Hati / Mood, Chat Publik & Direct Message)
+     */
+    public function meetingSync(\Illuminate\Http\Request $request, LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $userId = auth()->id();
+        $userName = $teacher->user->name ?? 'Guru Pengajar';
+
+        // Heartbeat guru ke sync service
+        \App\Services\LmsMeetingSyncService::syncUser(
+            $course->id,
+            $userId,
+            $userName,
+            'guru',
+            null,
+            ['mood' => 'semangat', 'raise_hand' => false]
+        );
+
+        $action = $request->input('action');
+
+        // Handle Chat dari guru
+        if ($action === 'send_chat') {
+            $text = (string)$request->input('text', '');
+            $recipientId = $request->input('recipient_id', 'all');
+            $recipientName = (string)$request->input('recipient_name', 'Semua Orang');
+
+            \App\Services\LmsMeetingSyncService::sendChat(
+                $course->id,
+                $userId,
+                $userName,
+                'guru',
+                $recipientId,
+                $recipientName,
+                $text
+            );
+        }
+
+        // Handle Guru menurunkan tangan siswa
+        if ($action === 'dismiss_hand') {
+            $targetUserId = (int)$request->input('target_user_id');
+            if ($targetUserId > 0) {
+                \App\Services\LmsMeetingSyncService::dismissHand($course->id, $targetUserId);
+            }
+        }
+
+        $state = \App\Services\LmsMeetingSyncService::getState($course->id, $userId);
+
+        return response()->json($state);
+    }
+
+    /**
      * Laporan kehadiran meeting per course
      */
     public function attendanceReport(LmsCourse $course)
