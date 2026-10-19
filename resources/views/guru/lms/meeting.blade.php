@@ -360,42 +360,37 @@
                         </span>
                     </div>
 
-                    {{-- DUAL PODIUM GRID: KIRI = PODIUM GURU, KANAN = SISWA BICARA / BERTANYA --}}
-                    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-3 items-center justify-center">
-                        
-                        {{-- PODIUM 1: GURU PENGAJAR --}}
-                        <div class="flex flex-col items-center w-full">
-                            <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
-                                <span class="flex items-center gap-1.5 text-[#ff3823]">
-                                    <i class="fa-solid fa-chalkboard-user"></i> PODIUM GURU
-                                </span>
-                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#ff3823] text-white">PENGAJAR</span>
-                            </div>
-                            <div id="podium-teacher-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center">
-                                {{-- Video tile guru masuk ke sini secara otomatis --}}
-                            </div>
-                        </div>
-
-                        {{-- PODIUM 2: SISWA BICARA / BERTANYA (ACTIVE SPEAKER & TANYA) --}}
-                        <div class="flex flex-col items-center w-full">
-                            <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #2563eb;">
-                                <span class="flex items-center gap-1.5 text-[#2563eb]">
-                                    <i class="fa-solid fa-microphone-lines"></i> <span id="podium-speaker-label">MIMBAR SISWA BICARA & TANYA</span>
-                                </span>
-                                <span id="podium-speaker-badge" class="text-[9px] px-1.5 py-0.2 rounded bg-[#2563eb] text-white">STANDBY</span>
-                            </div>
-                            <div id="podium-speaker-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center relative">
-                                {{-- Standby Card jika belum ada siswa yang bicara/bertanya --}}
-                                <div id="podium-speaker-idle" class="w-full h-full rounded-3xl flex flex-col items-center justify-center p-4 text-center select-none transition-all" style="background-color: rgba(255,255,255,0.85); border: 2.5px dashed #cbd5e1; box-shadow: 3px 3px 0px rgba(0,0,0,0.05);">
-                                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg mb-2 text-[#64748b] bg-slate-100 border border-slate-300">
-                                        <i class="fa-solid fa-microphone-lines"></i>
-                                    </div>
-                                    <p class="text-xs font-mono-code font-black text-[#121316]">Belum Ada Siswa Bicara</p>
-                                    <p class="text-[10px] font-mono-code font-medium text-[#64748b] mt-0.5 max-w-xs">Siswa yang membuka mikrofon atau angkat tangan otomatis tampil di sini sejajar dengan guru.</p>
+                    {{-- DYNAMIC PODIUM: DEFAULT GURU DI TENGAH DEPAN; JIKA ADA SISWA BICARA/TANYA BERUBAH MENJADI 2 KOLOM --}}
+                    <div id="podium-container" class="w-full max-w-xl mx-auto transition-all duration-300">
+                        <div id="podium-grid" class="w-full flex items-center justify-center transition-all duration-300">
+                            
+                            {{-- PODIUM 1: GURU PENGAJAR --}}
+                            <div id="podium-teacher-wrapper" class="flex flex-col items-center w-full transition-all duration-300">
+                                <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
+                                    <span class="flex items-center gap-1.5 text-[#ff3823]">
+                                        <i class="fa-solid fa-chalkboard-user"></i> PODIUM GURU
+                                    </span>
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#ff3823] text-white">PENGAJAR</span>
+                                </div>
+                                <div id="podium-teacher-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center">
+                                    {{-- Video tile guru masuk ke sini secara otomatis --}}
                                 </div>
                             </div>
-                        </div>
 
+                            {{-- PODIUM 2: SISWA BICARA / BERTANYA (ACTIVE SPEAKER & TANYA) - MUNCUL HANYA SAAT ADA SISWA BICARA/BERTANYA --}}
+                            <div id="podium-speaker-wrapper" class="hidden flex-col items-center w-full transition-all duration-300">
+                                <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #2563eb;">
+                                    <span class="flex items-center gap-1.5 text-[#2563eb]">
+                                        <i class="fa-solid fa-microphone-lines"></i> <span id="podium-speaker-label">MIMBAR SISWA BICARA & TANYA</span>
+                                    </span>
+                                    <span id="podium-speaker-badge" class="text-[9px] px-1.5 py-0.2 rounded bg-[#2563eb] text-white">BICARA</span>
+                                </div>
+                                <div id="podium-speaker-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center relative">
+                                    {{-- Video tile siswa masuk ke sini saat berbicara --}}
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
@@ -923,7 +918,8 @@
             agoraClient.on('volume-indicator', (volumes) => {
                 document.querySelectorAll('.video-tile').forEach(t => t.classList.remove('speaking'));
                 volumes.forEach(vol => {
-                    if (vol.level > 15) {
+                    // Ambang batas suara level >= 28 untuk mencegah suara bocor / background noise menaikkan siswa ke mimbar depan
+                    if (vol.level >= 28) {
                         const targetTileId = (vol.uid === 0 || vol.uid === AGORA_UID) ? 'video-tile-local' : `video-tile-${vol.uid}`;
                         const tileEl = document.getElementById(targetTileId);
                         if (tileEl) tileEl.classList.add('speaking');
@@ -1140,7 +1136,23 @@
                     }
                 }
 
+                const podiumContainer = document.getElementById('podium-container');
+                const podiumGrid = document.getElementById('podium-grid');
+                const speakerWrapper = document.getElementById('podium-speaker-wrapper');
+
                 if (activeOnPodiumTile && speakerSlot) {
+                    // ADA SISWA BICARA / BERTANYA: Buka mimbar kanan, lebarkan wadah, guru bergeser ke kiri
+                    if (podiumContainer) {
+                        podiumContainer.className = 'w-full max-w-5xl mx-auto transition-all duration-300';
+                    }
+                    if (podiumGrid) {
+                        podiumGrid.className = 'w-full grid grid-cols-1 md:grid-cols-2 gap-3 items-center justify-center transition-all duration-300';
+                    }
+                    if (speakerWrapper) {
+                        speakerWrapper.classList.remove('hidden');
+                        speakerWrapper.classList.add('flex');
+                    }
+
                     speakerSlot.appendChild(activeOnPodiumTile);
                     activeOnPodiumTile.className = 'video-tile relative rounded-3xl overflow-hidden flex items-center justify-center w-full h-full max-h-[82vh] transition-all';
                     activeOnPodiumTile.style.backgroundColor = '#0f172a';
@@ -1148,7 +1160,6 @@
                     activeOnPodiumTile.style.boxShadow = '5px 5px 0px #121316';
                     activeOnPodiumTile.classList.remove('filmstrip-tile', 'pinned-speaker');
                     activeOnPodiumTile.onclick = null;
-                    if (speakerIdle) speakerIdle.classList.add('hidden');
 
                     const pName = attendeesMap[activeOnPodiumUid] || `Siswa #${activeOnPodiumUid}`;
                     const isHand = (currentRaisedHands.find(h => String(h.user_id) === String(activeOnPodiumUid)));
@@ -1160,11 +1171,16 @@
                         speakerBadge.style.backgroundColor = isHand ? '#ef4444' : '#10b981';
                     }
                 } else {
-                    if (speakerIdle) speakerIdle.classList.remove('hidden');
-                    if (speakerLabel) speakerLabel.textContent = 'MIMBAR SISWA BICARA & TANYA';
-                    if (speakerBadge) {
-                        speakerBadge.textContent = 'STANDBY';
-                        speakerBadge.style.backgroundColor = '#2563eb';
+                    // TIDAK ADA SISWA BICARA / BERTANYA: Sembunyikan mimbar kanan, video guru kembali ke tengah depan
+                    if (speakerWrapper) {
+                        speakerWrapper.classList.add('hidden');
+                        speakerWrapper.classList.remove('flex');
+                    }
+                    if (podiumGrid) {
+                        podiumGrid.className = 'w-full flex items-center justify-center transition-all duration-300';
+                    }
+                    if (podiumContainer) {
+                        podiumContainer.className = 'w-full max-w-xl mx-auto transition-all duration-300';
                     }
                 }
 
