@@ -17,6 +17,43 @@ echo "max_input_time: " . ini_get('max_input_time') . "\n";
 echo "PHP SAPI: " . php_sapi_name() . "\n";
 echo "SERVER SOFTWARE: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "\n";
 
+echo "\n=== NGINX CONFIGURATION CHECK ===\n";
+$nginxConfigs = [
+    '/etc/nginx/nginx.conf',
+    '/etc/nginx/conf.d/default.conf',
+    '/etc/nginx/conf.d/perguruanpembda.com.conf',
+    '/etc/nginx/sites-available/default',
+    '/etc/nginx/sites-available/perguruanpembda.com',
+    '/etc/nginx/sites-enabled/default',
+    '/etc/nginx/sites-enabled/perguruanpembda.com',
+];
+$foundConf = glob('/etc/nginx/sites-enabled/*');
+if ($foundConf) {
+    $nginxConfigs = array_merge($nginxConfigs, $foundConf);
+}
+foreach (array_unique($nginxConfigs) as $nconf) {
+    if (file_exists($nconf) && is_readable($nconf)) {
+        $c = file_get_contents($nconf);
+        echo "Config $nconf is readable! Size: " . strlen($c) . " bytes\n";
+        // Search client_max_body_size
+        preg_match_all('/client_max_body_size\s+[^;]+;/i', $c, $cm);
+        if (!empty($cm[0])) {
+            echo "  client_max_body_size: " . implode(', ', $cm[0]) . "\n";
+        } else {
+            echo "  client_max_body_size NOT EXPLICITLY DEFINED in $nconf (defaults to 1MB!)\n";
+        }
+        preg_match_all('/client_body_buffer_size\s+[^;]+;/i', $c, $cbm);
+        if (!empty($cbm[0])) {
+            echo "  client_body_buffer_size: " . implode(', ', $cbm[0]) . "\n";
+        }
+        preg_match_all('/fastcgi_read_timeout\s+[^;]+;/i', $c, $ftm);
+        if (!empty($ftm[0])) {
+            echo "  fastcgi_read_timeout: " . implode(', ', $ftm[0]) . "\n";
+        }
+    }
+}
+
+
 echo "\n=== SYSTEM ERROR LOGS CHECK ===\n";
 $systemLogs = [
     '/var/log/nginx/error.log',
