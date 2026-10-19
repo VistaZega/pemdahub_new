@@ -67,12 +67,22 @@ if (file_exists('/var/log/nginx/pembdahub-error.log')) {
     echo "pembdahub-error.log not found.\n";
 }
 
-echo "\n=== PEMBDAHUB NGINX ACCESS LOG (LAST 10 POSTS) ===\n";
+echo "\n=== PEMBDAHUB NGINX ACCESS LOG (SEARCH MATERIALS) ===\n";
 if (file_exists('/var/log/nginx/pembdahub-access.log')) {
     $lines = file('/var/log/nginx/pembdahub-access.log');
-    $postLines = array_filter($lines, fn($l) => str_contains($l, 'POST '));
-    echo implode("", array_slice($postLines, -10));
+    $matLines = array_filter($lines, fn($l) => str_contains($l, 'materials'));
+    echo "Found " . count($matLines) . " lines matching 'materials':\n";
+    echo implode("", array_slice($matLines, -15));
 }
+
+echo "\n=== PEMBDAHUB NGINX ERROR LOG (SEARCH MATERIALS) ===\n";
+if (file_exists('/var/log/nginx/pembdahub-error.log')) {
+    $lines = file('/var/log/nginx/pembdahub-error.log');
+    $matLines = array_filter($lines, fn($l) => str_contains($l, 'materials') || str_contains($l, '842'));
+    echo "Found " . count($matLines) . " lines matching 'materials' or '842':\n";
+    echo implode("", array_slice($matLines, -15));
+}
+
 
 $systemLogs = [
     '/var/log/nginx/error.log',
