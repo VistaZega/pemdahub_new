@@ -75,9 +75,26 @@
         </a>
 
         @if(\App\Models\Setting::getValue('siswa_access_lms', true))
+        @php
+            $hasActiveTemu = false;
+            try {
+                if (Auth::check() && Auth::user()->student) {
+                    $hasActiveTemu = \App\Models\LmsCourse::where('meeting_active', true)
+                        ->whereHas('lmsClasses.enrollments', function($q) {
+                            $q->where('student_id', Auth::user()->student->id)
+                              ->whereIn('status', ['enrolled', 'in_progress']);
+                        })->exists();
+                }
+            } catch (\Exception $e) {}
+        @endphp
     <a href="{{ route('siswa.lms.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.lms.*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white"><i class="fas fa-book-open text-[10px]"></i></div>
-        <span>LMS</span>
+        <span class="flex-1">LMS</span>
+        @if($hasActiveTemu)
+            <span class="inline-flex items-center gap-1 text-[9px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span> LIVE
+            </span>
+        @endif
     </a>
     @endif
 

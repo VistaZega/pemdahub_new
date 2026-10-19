@@ -59,6 +59,62 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
+    {{-- ALERT LIVE PEMBDATEMU (JIKA ADA GURU YANG SEDANG LIVE MENGAJAR) --}}
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
+    @if(isset($activeMeetings) && $activeMeetings->isNotEmpty())
+        @foreach($activeMeetings as $meetingCourse)
+        <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-2xl border-2 border-rose-500 mb-8 transition-all hover:shadow-rose-500/20">
+            {{-- Rainbow & Crimson Top Accent Line --}}
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-rose-500 via-pink-500 to-amber-400"></div>
+
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div class="flex items-start md:items-center gap-4 md:gap-6">
+                    {{-- Pulsing Live Icon --}}
+                    <div class="relative shrink-0">
+                        <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-rose-500"></span>
+                        </span>
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-600 to-pink-600 flex items-center justify-center text-white text-2xl shadow-lg border-2 border-white">
+                            <i class="fas fa-video animate-pulse"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-700 border border-rose-300 uppercase tracking-widest">
+                                <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> KELAS LIVE SEDANG AKTIF
+                            </span>
+                            <span class="px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase">
+                                PembdaTEMU
+                            </span>
+                        </div>
+                        <h2 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                            {{ $meetingCourse->course_name ?? $meetingCourse->name }}
+                        </h2>
+                        <p class="text-xs md:text-sm text-slate-600 font-semibold mt-1 flex flex-wrap items-center gap-2">
+                            <span><i class="fas fa-chalkboard-teacher text-indigo-600"></i> Guru: <strong>{{ $meetingCourse->teacher?->user?->name ?? 'Guru Pengajar' }}</strong></span>
+                            @if($meetingCourse->meeting_started_at)
+                                <span>&bull;</span>
+                                <span><i class="far fa-clock text-amber-600"></i> Dimulai: <strong>{{ \Carbon\Carbon::parse($meetingCourse->meeting_started_at)->format('H:i') }} WIB</strong></span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Action Button --}}
+                <div class="flex items-center gap-3 shrink-0">
+                    <a href="{{ route('siswa.lms.meeting.join', $meetingCourse->id) }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-sm uppercase tracking-wider px-6 py-4 rounded-2xl shadow-xl shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 border-2 border-white">
+                        <i class="fas fa-arrow-right-to-bracket text-lg"></i>
+                        <span>Masuk Kelas Live Sekarang</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    @endif
+
     {{-- 2. URGENT ATTENDANCE ALERT (IF NOT CHECKED IN) --}}
     @if(!$todayAttendance || !$todayAttendance->time_out)
     <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-3xl shadow-xl text-white" style="border-radius: 1.75rem; padding: 0.35rem; margin-bottom: 2rem;">
@@ -397,21 +453,19 @@
                                     <span>Materi & Modul</span>
                                 </a>
 
-                                @if($isCurrent)
-                                    @if($matchedCourse && $matchedCourse->meeting_active)
-                                    <a href="{{ route('siswa.lms.meeting.join', $matchedCourse->id) }}" style="padding: 0.5rem 1rem; background-color: #e11d48; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(225,29,72,0.3);" class="animate-pulse">
+                                @if($matchedCourse && $matchedCourse->meeting_active)
+                                    <a href="{{ route('siswa.lms.meeting.join', $matchedCourse->id) }}" style="padding: 0.5rem 1rem; background-color: #e11d48; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px rgba(225,29,72,0.35);" class="animate-pulse">
                                         <span style="width: 0.5rem; height: 0.5rem; background-color: #ffffff; border-radius: 9999px; display: inline-block;"></span>
                                         <span>Masuk PembdaTEMU</span> &rarr;
                                     </a>
-                                    @else
+                                @elseif($isCurrent)
                                     <a href="{{ $lmsUrl }}" style="padding: 0.5rem 1rem; background-color: #059669; color: #ffffff; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                         <span>Masuk LMS</span> &rarr;
                                     </a>
-                                    @endif
                                 @else
-                                <a href="{{ $lmsUrl }}" style="padding: 0.45rem 0.85rem; background-color: #f1f5f9; color: #334155; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid #cbd5e1;">
-                                    <span>Buka Modul</span> &rarr;
-                                </a>
+                                    <a href="{{ $lmsUrl }}" style="padding: 0.45rem 0.85rem; background-color: #f1f5f9; color: #334155; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid #cbd5e1;">
+                                        <span>Buka Modul</span> &rarr;
+                                    </a>
                                 @endif
                             </div>
                         </div>

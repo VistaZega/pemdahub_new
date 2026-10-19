@@ -268,14 +268,14 @@
                 {{-- Card Header (Dynamic Header Color based on Module, default Abu Muda) --}}
                 <div class="relative p-5 overflow-hidden border-b-2 border-black text-white" style="background-color: {{ $themeColor }} !important;">
                     @if($course->meeting_active)
-                    <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" class="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-rose-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black shadow-md">
+                    <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" class="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-rose-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black shadow-md hover:bg-rose-700 transition">
                         <span class="w-2 h-2 bg-white rounded-full inline-block animate-ping"></span>
-                        TEMU LIVE
+                        PembdaTEMU LIVE
                     </a>
                     @else
                     <a href="#" id="live-badge-{{ $course->id }}" class="absolute top-4 right-4 z-20 hidden items-center gap-1.5 bg-rose-600 text-white px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border border-black shadow-md">
                         <span class="w-2 h-2 bg-white rounded-full inline-block animate-ping"></span>
-                        TEMU LIVE
+                        PembdaTEMU LIVE
                     </a>
                     @endif
 
@@ -349,9 +349,16 @@
                     </div>
 
                     {{-- CTA --}}
-                    <div class="mt-auto">
+                    <div class="mt-auto space-y-2">
+                        @if($course->meeting_active)
+                        <a href="{{ route('siswa.lms.meeting.join', $course->id) }}"
+                           class="flex items-center justify-center gap-2 w-full bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 rounded-2xl transition-all shadow-lg shadow-rose-500/25 text-xs font-black uppercase tracking-wider border-2 border-black animate-pulse">
+                            <span class="w-2 h-2 rounded-full bg-white inline-block animate-ping"></span>
+                            <i class="fas fa-video text-xs"></i> Masuk PembdaTEMU Live
+                        </a>
+                        @endif
                         <a href="{{ route('siswa.lms.show', $course->id) }}"
-                           class="flex items-center justify-center gap-2 w-full text-white px-4 py-3.5 rounded-2xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black hover:opacity-90"
+                           class="flex items-center justify-center gap-2 w-full text-white px-4 py-3 rounded-2xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black hover:opacity-90"
                            style="background-color: {{ $themeColor }} !important;">
                             <i class="fas fa-door-open text-xs"></i> Masuk Ruang Belajar
                         </a>

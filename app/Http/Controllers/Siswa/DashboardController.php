@@ -264,7 +264,9 @@ class DashboardController extends Controller
             ->latest('enrolled_at')
             ->get();
             
-        $courses = $enrollments->map(fn($e) => $e->lmsClass->course)->filter()->unique('id')->take(4);
+        $allStudentCourses = $enrollments->map(fn($e) => $e->lmsClass?->course)->filter()->unique('id');
+        $activeMeetings = $allStudentCourses->filter(fn($c) => $c->meeting_active)->values();
+        $courses = $allStudentCourses->take(4);
         
         $courseProgress = app(\App\Services\LmsProgressService::class)->calculateMultipleCoursesProgressForStudent($courses, $student->id);
 
@@ -297,7 +299,7 @@ class DashboardController extends Controller
             'student', 'classroom', 'activeYear', 'activeSemester',
             'avgScore', 'attendanceData', 'totalOutstanding', 'studentBillingStats',
             'todaySchedules', 'groupedTodaySchedules', 'currentTime', 'currentSchedule', 'nextSchedule',
-            'latestReportCard', 'courses', 'courseProgress',
+            'latestReportCard', 'courses', 'courseProgress', 'activeMeetings',
             'reputation', 'reputationLogs', 'rank', 'todayAttendance', 'attendanceHistory',
             'showReportCard', 'dnaAnalysis', 'unifiedDeadlines'
         ));
