@@ -15,6 +15,31 @@ echo "memory_limit: " . ini_get('memory_limit') . "\n";
 echo "max_execution_time: " . ini_get('max_execution_time') . "\n";
 echo "max_input_time: " . ini_get('max_input_time') . "\n";
 echo "PHP SAPI: " . php_sapi_name() . "\n";
+echo "SERVER SOFTWARE: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "\n";
+
+echo "\n=== SYSTEM ERROR LOGS CHECK ===\n";
+$systemLogs = [
+    '/var/log/nginx/error.log',
+    '/var/log/nginx/perguruanpembda.com.error.log',
+    '/var/log/apache2/error.log',
+    '/var/log/php8.3-fpm.log',
+    '/var/log/php8.2-fpm.log',
+    '/var/log/php-fpm.log',
+];
+foreach ($systemLogs as $slog) {
+    if (file_exists($slog)) {
+        if (is_readable($slog)) {
+            echo "Log $slog is readable! Last 15 lines:\n";
+            $slines = file($slog);
+            echo implode("", array_slice($slines, -15));
+        } else {
+            echo "Log $slog exists but is NOT readable (permissions).\n";
+        }
+    } else {
+        echo "Log $slog does not exist.\n";
+    }
+}
+
 
 echo "\n=== TEACHER OFERIUS ZEGA ===\n";
 $teachers = \App\Models\Teacher::where('full_name', 'like', '%Oferius%')->get();
