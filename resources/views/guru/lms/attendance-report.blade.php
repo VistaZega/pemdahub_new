@@ -105,11 +105,18 @@
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-4 justify-between md:justify-end">
+                <div class="flex items-center gap-3 justify-between md:justify-end">
                     <div class="text-right">
                         <p class="text-xs text-gray-400 font-bold tracking-wide">Kehadiran Siswa</p>
                         <p class="text-base font-extrabold text-indigo-600 mt-0.5">{{ $session->attendances->count() }} Siswa Hadir</p>
                     </div>
+                    <a href="{{ route('guru.lms.meeting.session.print', [$course->id, $session->id]) }}" target="_blank"
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition shadow-xs active:scale-95"
+                       title="Cetak Berita Acara Resmi Pelaksanaan KBM (PDF)"
+                       @click.stop>
+                        <i class="fas fa-print text-amber-600"></i>
+                        <span class="hidden sm:inline">Berita Acara</span>
+                    </a>
                     <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 transition-colors border border-gray-100">
                         <i class="fas fa-chevron-down transition-transform duration-200" :class="openSessionId === {{ $session->id }} ? 'rotate-180' : ''"></i>
                     </button>

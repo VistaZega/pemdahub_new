@@ -51,6 +51,11 @@ class LmsMeetingSyncService
         return 'lms_meeting_qa_' . $courseId;
     }
 
+    protected static function getQuizKey(int $courseId): string
+    {
+        return 'lms_meeting_quiz_' . $courseId;
+    }
+
     /**
      * Heartbeat / Sync status pengguna (Guru atau Siswa)
      */
@@ -283,6 +288,7 @@ class LmsMeetingSyncService
             'chats'           => $visibleChats,
             'poll'            => self::getPoll($courseId, $forUserId),
             'qa_list'         => self::getQuestions($courseId, $forUserId),
+            'quiz'            => self::getQuiz($courseId, $forUserId),
             'mood_summary'    => $moodSummary,
             'available_moods' => $availableMoods,
             'server_time'     => time(),
@@ -501,6 +507,265 @@ class LmsMeetingSyncService
         }, $questions);
     }
 
+    // ─────────────────────────────────────────────────────────
+    // FITUR FASE 4: KUIS LIVE KAHOOT-STYLE (IN-VIDEO QUIZ)
+    // ─────────────────────────────────────────────────────────
+
+    public static function startQuiz(int $courseId, string $title, array $questions): array
+    {
+        $cleanQuestions = [];
+        foreach ($questions as $q) {
+            $text = trim($q['question'] ?? '');
+            $opts = array_values(array_filter(array_map('trim', (array)($q['options'] ?? []))));
+            $correct = (int)($q['correct_answer'] ?? 0);
+            $timeLimit = (int)($q['time_limit'] ?? 20);
+
+            if ($text !== '' && count($opts) >= 2) {
+                $cleanQuestions[] = [
+                    'question'       => htmlspecialchars($text, ENT_QUOTES, 'UTF-8'),
+                    'options'        => array_map(fn($o) => htmlspecialchars($o, ENT_QUOTES, 'UTF-8'), $opts),
+                    'correct_answer' => $correct,
+                    'time_limit'     => $timeLimit > 0 ? $timeLimit : 20,
+                    'explanation'    => htmlspecialchars(trim($q['explanation'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                ];
+            }
+        }
+
+        if (empty($cleanQuestions)) {
+            $cleanQuestions = [
+                [
+                    'question'       => 'Contoh Soal: Manakah rumus Hukum Ohm yang benar?',
+                    'options'        => ['V = I × R', 'P = V × I', 'I = V × R', 'R = V × I'],
+                    'correct_answer' => 0,
+                    'time_limit'     => 20,
+                    'explanation'    => 'Hukum Ohm menyatakan bahwa beda potensial (V) sebanding dengan kuat arus (I) dikalikan hambatan (R).',
+                ]
+            ];
+        }
+
+        $quiz = [
+            'id'                     => uniqid('quiz_live_'),
+            'title'                  => htmlspecialchars(trim($title ?: 'Kuis Interaktif KBM'), ENT_QUOTES, 'UTF-8'),
+            'status'                 => 'waiting',
+            'current_question_index' => 0,
+            'questions'              => $cleanQuestions,
+            'question_started_at'    => null,
+            'players'                => [],
+            'answers_count'          => 0,
+            'created_at'             => time(),
+        ];
+
+        Cache::put(self::getQuizKey($courseId), $quiz, self::TTL_SECONDS);
+        return $quiz;
+    }
+
+    public static function startQuestion(int $courseId, int $index = 0): ?array
+    {
+        $quizKey = self::getQuizKey($courseId);
+        $quiz = Cache::get($quizKey);
+        if (!$quiz) return null;
+
+        $quiz['status'] = 'question';
+        $quiz['current_question_index'] = $index;
+        $quiz['question_started_at'] = time();
+        $quiz['answers_count'] = 0;
+
+        // Reset last_answer status for players on new question
+        foreach ($quiz['players'] as &$pl) {
+            unset($pl['last_answer']);
+            unset($pl['last_answer_correct']);
+            unset($pl['last_answer_points']);
+        }
+
+        Cache::put($quizKey, $quiz, self::TTL_SECONDS);
+        return $quiz;
+    }
+
+    public static function submitQuizAnswer(int $courseId, int $userId, string $userName, int $answerIndex): ?array
+    {
+        $quizKey = self::getQuizKey($courseId);
+        $quiz = Cache::get($quizKey);
+        if (!$quiz || ($quiz['status'] ?? '') !== 'question') {
+            return null;
+        }
+
+        $idx = $quiz['current_question_index'] ?? 0;
+        $currentQ = $quiz['questions'][$idx] ?? null;
+        if (!$currentQ) return null;
+
+        // Init player if not exists
+        if (!isset($quiz['players'][$userId])) {
+            $quiz['players'][$userId] = [
+                'user_id'       => $userId,
+                'name'          => $userName,
+                'score'         => 0,
+                'correct_count' => 0,
+                'streak'        => 0,
+                'answers'       => [],
+            ];
+        }
+
+        $player = &$quiz['players'][$userId];
+
+        // Cegah submit ganda untuk soal yang sama
+        if (isset($player['answers'][$idx])) {
+            return $quiz;
+        }
+
+        $isCorrect = ((int)$answerIndex === (int)$currentQ['correct_answer']);
+        $elapsed = max(0, time() - ($quiz['question_started_at'] ?? time()));
+        $timeLimit = (int)($currentQ['time_limit'] ?? 20);
+
+        $points = 0;
+        if ($isCorrect) {
+            $ratio = max(0, ($timeLimit - $elapsed) / max(1, $timeLimit));
+            $points = (int) round(500 + ($ratio * 500)); // Rentang 500 s/d 1000 poin
+            $player['score'] += $points;
+            $player['correct_count']++;
+            $player['streak']++;
+        } else {
+            $player['streak'] = 0;
+        }
+
+        $player['answers'][$idx] = (int)$answerIndex;
+        $player['last_answer'] = (int)$answerIndex;
+        $player['last_answer_correct'] = $isCorrect;
+        $player['last_answer_points'] = $points;
+
+        $quiz['answers_count'] = ($quiz['answers_count'] ?? 0) + 1;
+
+        Cache::put($quizKey, $quiz, self::TTL_SECONDS);
+        return $quiz;
+    }
+
+    public static function showQuizScoreboard(int $courseId): ?array
+    {
+        $quizKey = self::getQuizKey($courseId);
+        $quiz = Cache::get($quizKey);
+        if (!$quiz) return null;
+
+        $quiz['status'] = 'scoreboard';
+        Cache::put($quizKey, $quiz, self::TTL_SECONDS);
+        return $quiz;
+    }
+
+    public static function endQuiz(int $courseId): ?array
+    {
+        $quizKey = self::getQuizKey($courseId);
+        $quiz = Cache::get($quizKey);
+        if (!$quiz) return null;
+
+        $quiz['status'] = 'finished';
+        $quiz['ended_at'] = time();
+
+        // Sort players by score DESC
+        $players = array_values($quiz['players'] ?? []);
+        usort($players, fn($a, $b) => ($b['score'] ?? 0) <=> ($a['score'] ?? 0));
+
+        // Award bonus reputation points to Top 3
+        $bonusRanks = [
+            0 => ['points' => 15, 'label' => 'Juara 1'],
+            1 => ['points' => 10, 'label' => 'Juara 2'],
+            2 => ['points' => 5,  'label' => 'Juara 3'],
+        ];
+
+        foreach ($bonusRanks as $rankIdx => $bonus) {
+            if (isset($players[$rankIdx]) && ($players[$rankIdx]['score'] ?? 0) > 0) {
+                $p = $players[$rankIdx];
+                $studentUser = \App\Models\User::find($p['user_id']);
+                if ($studentUser) {
+                    \App\Models\ReputationLog::log(
+                        $p['user_id'],
+                        $bonus['points'],
+                        'lms_quiz_winner',
+                        "{$bonus['label']} Kuis Live PembdaTEMU: {$quiz['title']} (Skor: {$p['score']})"
+                    );
+                }
+            }
+        }
+
+        Cache::put($quizKey, $quiz, self::TTL_SECONDS);
+        return $quiz;
+    }
+
+    public static function clearQuiz(int $courseId): void
+    {
+        Cache::forget(self::getQuizKey($courseId));
+    }
+
+    public static function getQuiz(int $courseId, ?int $forUserId = null): ?array
+    {
+        $quizKey = self::getQuizKey($courseId);
+        $quiz = Cache::get($quizKey);
+        if (!$quiz) {
+            return null;
+        }
+
+        $currentIndex = (int)($quiz['current_question_index'] ?? 0);
+        $totalQuestions = count($quiz['questions'] ?? []);
+        $currentQuestion = $quiz['questions'][$currentIndex] ?? null;
+
+        $safeCurrentQ = null;
+        if ($currentQuestion) {
+            $safeCurrentQ = [
+                'question'   => $currentQuestion['question'],
+                'options'    => $currentQuestion['options'],
+                'time_limit' => $currentQuestion['time_limit'] ?? 20,
+            ];
+            // Kunci jawaban hanya dibagikan ke siswa saat scoreboard atau finished
+            if (in_array($quiz['status'], ['scoreboard', 'finished'])) {
+                $safeCurrentQ['correct_answer'] = $currentQuestion['correct_answer'];
+                $safeCurrentQ['explanation']    = $currentQuestion['explanation'] ?? '';
+            }
+        }
+
+        $players = array_values($quiz['players'] ?? []);
+        usort($players, fn($a, $b) => ($b['score'] ?? 0) <=> ($a['score'] ?? 0));
+
+        $topPlayers = array_slice($players, 0, 5);
+        $podium = array_slice($players, 0, 3);
+
+        $myPlayer = null;
+        if ($forUserId && isset($quiz['players'][$forUserId])) {
+            $myPlayer = $quiz['players'][$forUserId];
+            $rank = 1;
+            foreach ($players as $i => $pl) {
+                if ($pl['user_id'] == $forUserId) {
+                    $rank = $i + 1;
+                    break;
+                }
+            }
+            $myPlayer['rank'] = $rank;
+        }
+
+        $distribution = [0 => 0, 1 => 0, 2 => 0, 3 => 0];
+        foreach ($quiz['players'] ?? [] as $pl) {
+            if (isset($pl['answers'][$currentIndex])) {
+                $ansIdx = (int)$pl['answers'][$currentIndex];
+                if (isset($distribution[$ansIdx])) {
+                    $distribution[$ansIdx]++;
+                }
+            }
+        }
+
+        return [
+            'id'                     => $quiz['id'],
+            'title'                  => $quiz['title'],
+            'status'                 => $quiz['status'],
+            'current_question_index' => $currentIndex,
+            'total_questions'        => $totalQuestions,
+            'current_question'       => $safeCurrentQ,
+            'question_started_at'    => $quiz['question_started_at'] ?? 0,
+            'time_elapsed'           => max(0, time() - ($quiz['question_started_at'] ?? time())),
+            'total_players'          => count($players),
+            'answers_count'          => $quiz['answers_count'] ?? 0,
+            'distribution'           => $distribution,
+            'top_players'            => $topPlayers,
+            'podium'                 => $podium,
+            'my_player'              => $myPlayer,
+        ];
+    }
+
     /**
      * Bersihkan seluruh cache saat sesi meeting resmi diakhiri
      */
@@ -510,5 +775,6 @@ class LmsMeetingSyncService
         Cache::forget(self::getChatsKey($courseId));
         Cache::forget(self::getPollKey($courseId));
         Cache::forget(self::getQaKey($courseId));
+        Cache::forget(self::getQuizKey($courseId));
     }
 }

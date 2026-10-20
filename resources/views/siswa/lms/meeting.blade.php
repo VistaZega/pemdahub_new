@@ -328,6 +328,20 @@
                         </span>
                     </div>
 
+                    {{-- FLOATING PROMPT KUIS LIVE DARI GURU (KAHOOT-STYLE) --}}
+                    <div id="student-floating-quiz-banner" class="hidden w-full max-w-xl mx-auto mb-2 p-3 rounded-2xl flex items-center justify-between gap-3 transition-all animate-pulse" style="background-color: #ec4899; color: #ffffff; border: 2.5px solid #121316; box-shadow: 4px 4px 0px #121316;">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="text-xl flex-shrink-0">🎮</span>
+                            <div class="min-w-0">
+                                <div class="text-[9px] font-mono-code font-black uppercase text-pink-200 tracking-wider">KUIS LIVE BERLANGSUNG!</div>
+                                <div id="student-floating-quiz-title" class="text-xs font-black truncate text-white">Soal aktif sedang dibuka guru...</div>
+                            </div>
+                        </div>
+                        <button onclick="switchStudentTab('kuis')" type="button" class="btn-tactile-white px-3 py-1.5 rounded-xl text-xs font-mono-code font-black flex items-center gap-1 flex-shrink-0" style="background-color: #fde047; color: #121316; border: 2px solid #121316;">
+                            <span>Ikuti Kuis</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
                     {{-- FLOATING PROMPT POLLING KBM DARI GURU --}}
                     <div id="student-floating-poll-banner" class="hidden w-full max-w-xl mx-auto mb-2 p-3 rounded-2xl flex items-center justify-between gap-3 transition-all" style="background-color: #fde047; color: #121316; border: 2.5px solid #121316; box-shadow: 4px 4px 0px #121316;">
                         <div class="flex items-center gap-2.5 min-w-0">
@@ -520,6 +534,13 @@
                     <i class="fa-solid fa-pen-nib text-sm" style="color: #fde047;"></i>
                     <span class="hidden sm:inline">Catatan</span>
                 </button>
+
+                {{-- Buka Kuis Live (Pink Tactile) --}}
+                <button onclick="openStudentTab('kuis')" type="button" class="relative flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5" style="background-color: #ec4899; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Buka Kuis Interaktif Live">
+                    <i class="fa-solid fa-gamepad text-sm" style="color: #fde047;"></i>
+                    <span class="hidden sm:inline">Kuis</span>
+                    <span id="student-quick-quiz-badge" class="hidden absolute -top-2 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #fde047; color: #121316; border: 1px solid #121316;">!</span>
+                </button>
             </div>
         </main>
 
@@ -564,6 +585,11 @@
                     <i class="fa-solid fa-clipboard-question text-xs" style="color: #ea580c;"></i>
                     <span>Q&A</span>
                     <span id="student-qa-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
+                </button>
+                <button id="tab-btn-kuis" onclick="switchStudentTab('kuis')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0] relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Kuis Interaktif Live">
+                    <i class="fa-solid fa-gamepad text-xs" style="color: #ec4899;"></i>
+                    <span>Kuis</span>
+                    <span id="student-quiz-tab-badge" class="hidden w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
                 </button>
                 <button onclick="toggleStudentHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
                     <i class="fa-solid fa-xmark text-sm"></i>
@@ -860,6 +886,121 @@
                         <p class="text-xs font-mono-code font-bold text-slate-700">Belum ada pertanyaan</p>
                         <p class="text-[10px] text-slate-500 mt-1">Gunakan form di atas untuk menanyakan materi yang belum Anda pahami.</p>
                     </div>
+                </div>
+            </div>
+
+            {{-- TAB 7: KUIS INTERAKTIF LIVE (KAHOOT-STYLE PLAYER SUPER CLASSROOM) --}}
+            <div id="tab-content-kuis" class="flex-1 flex flex-col overflow-hidden hidden" style="background-color: #faf8f5;">
+                {{-- Header Kuis Siswa --}}
+                <div class="p-3 flex items-center justify-between flex-shrink-0 shadow-xs" style="background-color: #ffffff; border-bottom: 2px solid #121316;">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs border border-black shadow-xs" style="background-color: #ec4899; color: #ffffff;">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-black" style="color: #121316;">Kuis Interaktif Live</div>
+                            <div class="text-[9px] font-mono-code font-bold text-slate-500">Jawab cepat &amp; raih skor tertinggi!</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span id="student-quiz-status-pill" class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-slate-100 text-slate-700 border border-slate-300">Menunggu</span>
+                    </div>
+                </div>
+
+                {{-- Content Area --}}
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    
+                    {{-- VIEW 1: STANDBY / WAITING STATE --}}
+                    <div id="student-quiz-standby" class="p-6 rounded-2xl bg-white border-2 border-black text-center" style="box-shadow: 4px 4px 0px #121316;">
+                        <div class="w-14 h-14 mx-auto rounded-2xl bg-pink-100 text-pink-600 border border-pink-300 flex items-center justify-center text-2xl mb-3">
+                            🎮
+                        </div>
+                        <h4 class="text-sm font-black text-slate-900">Belum Ada Kuis Aktif</h4>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Saat Guru meluncurkan kuis interaktif, pertanyaan dan tombol jawaban Kahoot akan otomatis muncul di sini!</p>
+                        <div class="mt-4 p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-xs font-mono-code text-amber-900 font-bold">
+                            🏆 Top 3 Siswa tercepat meraih bonus reputasi: 🥇 +15 Poin, 🥈 +10 Poin, 🥉 +5 Poin!
+                        </div>
+                    </div>
+
+                    {{-- VIEW 2: QUESTION ACTIVE (KAHOOT-STYLE 4 BUTTONS) --}}
+                    <div id="student-quiz-question-box" class="hidden space-y-3">
+                        <div class="p-4 rounded-2xl bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span id="student-q-badge" class="px-2.5 py-0.5 rounded-lg text-xs font-mono-code font-black bg-pink-100 text-pink-700 border border-pink-300">
+                                    Soal 1 / 1
+                                </span>
+                                <div class="flex items-center gap-1.5 font-mono-code text-xs font-black text-rose-600">
+                                    <i class="fa-solid fa-clock animate-spin"></i>
+                                    <span id="student-q-timer" class="px-2 py-0.5 rounded bg-rose-500 text-white font-mono-code text-xs">20s</span>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-slate-50 border-2 border-slate-200 mb-3">
+                                <h3 id="student-q-text" class="text-sm font-black text-slate-900 leading-snug">
+                                    Pertanyaan kuis sedang dimuat...
+                                </h3>
+                            </div>
+
+                            {{-- Status Jika Sudah Menjawab --}}
+                            <div id="student-answered-indicator" class="hidden mb-3 p-2.5 rounded-xl bg-emerald-100 border border-emerald-400 text-center font-mono-code text-xs text-emerald-900 font-bold animate-pulse">
+                                ✓ Jawaban Anda Telah Terkirim! Menunggu guru membuka papan skor...
+                            </div>
+
+                            {{-- 4 Big Kahoot-Style Tactile Buttons --}}
+                            <div id="student-kahoot-buttons" class="grid grid-cols-2 gap-2.5">
+                                {{-- Diisi secara dinamis dengan 4 tombol Kahoot --}}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- VIEW 3: SCOREBOARD / RESULT FEEDBACK --}}
+                    <div id="student-quiz-result-box" class="hidden space-y-3">
+                        <div class="p-4 rounded-2xl bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
+                            <div id="student-result-banner" class="p-3 rounded-xl text-center mb-3 border-2 border-black">
+                                {{-- Dinamis: Benar / Salah --}}
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 mb-3 font-mono-code text-xs space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-bold">Peringkat Anda:</span>
+                                    <span id="student-my-rank" class="font-black text-slate-900">#1 di Kelas</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-bold">Total Skor Anda:</span>
+                                    <span id="student-my-score" class="font-black text-pink-600">0 pts</span>
+                                </div>
+                                <div id="student-correct-answer-info" class="pt-2 border-t border-slate-200 text-[11px] text-slate-700">
+                                    {{-- Kunci jawaban benar & penjelasan --}}
+                                </div>
+                            </div>
+
+                            {{-- Top 5 Leaderboard --}}
+                            <div>
+                                <div class="text-[10px] font-mono-code font-bold text-slate-500 uppercase mb-1.5">Top 5 Skor Kelas:</div>
+                                <div id="student-top-leaderboard" class="space-y-1">
+                                    {{-- List top 5 --}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- VIEW 4: FINAL PODIUM --}}
+                    <div id="student-quiz-podium-box" class="hidden space-y-3">
+                        <div class="p-5 rounded-2xl bg-white border-2 border-black text-center" style="box-shadow: 4px 4px 0px #121316;">
+                            <div class="text-3xl mb-1 animate-bounce">🏆</div>
+                            <h3 class="text-sm font-black text-slate-900">KUIS LIVE SELESAI</h3>
+                            <p id="student-podium-title" class="text-xs font-mono-code font-bold text-slate-500 mb-3">Hasil Akhir Kuis KBM</p>
+
+                            <div id="student-podium-cards" class="grid grid-cols-3 gap-1.5 items-end mb-3 pt-2">
+                                {{-- Podium --}}
+                            </div>
+
+                            <div id="student-podium-my-result" class="p-2.5 rounded-xl bg-amber-50 border border-amber-300 font-mono-code text-xs text-amber-950 font-bold">
+                                {{-- Posisi siswa sendiri dan bonus reputasi --}}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </aside>
@@ -1748,7 +1889,7 @@
                 if (handler) handler.classList.remove('hidden');
             }
 
-            const tabs = ['materi', 'notes', 'friends', 'chat', 'polling', 'qa'];
+            const tabs = ['materi', 'notes', 'friends', 'chat', 'polling', 'qa', 'kuis'];
             tabs.forEach(t => {
                 const btn = document.getElementById('tab-btn-' + t);
                 const content = document.getElementById('tab-content-' + t);
@@ -1780,6 +1921,12 @@
             if (tabName === 'qa') {
                 const qBadge = document.getElementById('student-qa-tab-badge');
                 if (qBadge) qBadge.classList.add('hidden');
+            }
+            if (tabName === 'kuis') {
+                const qBadge = document.getElementById('student-quiz-tab-badge');
+                const quickQBadge = document.getElementById('student-quick-quiz-badge');
+                if (qBadge) qBadge.classList.add('hidden');
+                if (quickQBadge) quickQBadge.classList.add('hidden');
             }
 
             if (tabName === 'chat') {
@@ -2111,6 +2258,9 @@
 
             // 9. Render Q&A Queue untuk Siswa
             renderStudentQa(data.qa_list);
+
+            // 10. Render Kuis Live Kahoot-style untuk Siswa (Fase 4)
+            renderStudentQuiz(data.quiz);
         }
 
         async function sendChatMessage(customText = null) {
@@ -2389,6 +2539,365 @@
             });
 
             container.innerHTML = html;
+        }
+
+        // ============================================================
+        // 10B. FITUR FASE 4: KUIS LIVE KAHOOT-STYLE PLAYER (SISWA)
+        // ============================================================
+        let currentStudentQuiz = null;
+        let studentQuizTimerInterval = null;
+        let studentQuizRemaining = 0;
+        let hasSubmittedCurrentQuestion = false;
+        let lastAnsweredQuestionIndex = -1;
+
+        const KAHOOT_SHAPES_SISWA = ['▲', '◆', '●', '■'];
+        const KAHOOT_COLORS_SISWA = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981'];
+
+        async function submitStudentQuizAnswer(answerIndex) {
+            if (!currentStudentQuiz || currentStudentQuiz.status !== 'question') return;
+            if (hasSubmittedCurrentQuestion) return;
+
+            hasSubmittedCurrentQuestion = true;
+            lastAnsweredQuestionIndex = currentStudentQuiz.current_question_index;
+
+            // Visual feedback pada tombol yang dipilih
+            for (let i = 0; i < 4; i++) {
+                const b = document.getElementById(`kahoot-btn-${i}`);
+                if (b) {
+                    b.disabled = true;
+                    if (i === answerIndex) {
+                        b.classList.add('ring-4', 'ring-white', 'scale-95');
+                        b.style.boxShadow = 'none';
+                    } else {
+                        b.classList.add('opacity-40', 'cursor-not-allowed');
+                    }
+                }
+            }
+
+            const ind = document.getElementById('student-answered-indicator');
+            if (ind) ind.classList.remove('hidden');
+
+            await syncMeetingStudent({
+                action: 'submit_quiz_answer',
+                answer_index: answerIndex
+            });
+
+            showToast('Jawaban Anda berhasil dikirim! Menunggu papan skor...', 'success');
+        }
+
+        function renderStudentQuiz(quiz) {
+            currentStudentQuiz = quiz;
+
+            const banner = document.getElementById('student-floating-quiz-banner');
+            const qBannerTitle = document.getElementById('student-floating-quiz-title');
+            const tabBadge = document.getElementById('student-quiz-tab-badge');
+            const quickBadge = document.getElementById('student-quick-quiz-badge');
+
+            const vStandby = document.getElementById('student-quiz-standby');
+            const vQuestion = document.getElementById('student-quiz-question-box');
+            const vResult = document.getElementById('student-quiz-result-box');
+            const vPodium = document.getElementById('student-quiz-podium-box');
+            const statusPill = document.getElementById('student-quiz-status-pill');
+
+            if (!quiz || !quiz.status || quiz.status === 'standby') {
+                if (banner) banner.classList.add('hidden');
+                if (tabBadge) tabBadge.classList.add('hidden');
+                if (quickBadge) quickBadge.classList.add('hidden');
+                if (statusPill) {
+                    statusPill.textContent = 'Menunggu';
+                    statusPill.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-slate-100 text-slate-700 border border-slate-300';
+                }
+                if (vStandby) vStandby.classList.remove('hidden');
+                if (vQuestion) vQuestion.classList.add('hidden');
+                if (vResult) vResult.classList.add('hidden');
+                if (vPodium) vPodium.classList.add('hidden');
+                if (studentQuizTimerInterval) { clearInterval(studentQuizTimerInterval); studentQuizTimerInterval = null; }
+                return;
+            }
+
+            // Kuis Mode Soal Aktif
+            if (quiz.status === 'question') {
+                const curQ = quiz.current_question || {};
+                const qIdx = (quiz.current_question_index || 0);
+                const totalQ = quiz.total_questions || 1;
+
+                // Reset status jawaban jika soal berganti
+                if (lastAnsweredQuestionIndex !== qIdx) {
+                    hasSubmittedCurrentQuestion = false;
+                }
+
+                const myPlayer = quiz.my_player || null;
+                const hasAnsweredServer = (myPlayer && myPlayer.answers && myPlayer.answers[qIdx] !== undefined);
+                if (hasAnsweredServer) {
+                    hasSubmittedCurrentQuestion = true;
+                    lastAnsweredQuestionIndex = qIdx;
+                }
+
+                // Tampilkan Floating Banner jika belum menjawab
+                if (banner) {
+                    if (!hasSubmittedCurrentQuestion) {
+                        banner.classList.remove('hidden');
+                        if (qBannerTitle) {
+                            qBannerTitle.textContent = `Soal #${qIdx + 1}: ${curQ.question || ''}`;
+                        }
+                    } else {
+                        banner.classList.add('hidden');
+                    }
+                }
+
+                if (tabBadge && !hasSubmittedCurrentQuestion) tabBadge.classList.remove('hidden');
+                if (quickBadge && !hasSubmittedCurrentQuestion) quickBadge.classList.remove('hidden');
+
+                if (statusPill) {
+                    statusPill.textContent = 'LIVE // SOAL AKTIF';
+                    statusPill.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-rose-500 text-white animate-pulse border border-rose-700';
+                }
+
+                if (vStandby) vStandby.classList.add('hidden');
+                if (vQuestion) vQuestion.classList.remove('hidden');
+                if (vResult) vResult.classList.add('hidden');
+                if (vPodium) vPodium.classList.add('hidden');
+
+                const qBadge = document.getElementById('student-q-badge');
+                if (qBadge) qBadge.textContent = `Soal ${qIdx + 1} dari ${totalQ}`;
+
+                const qText = document.getElementById('student-q-text');
+                if (qText) qText.textContent = curQ.question || 'Pertanyaan Kuis';
+
+                // Timer Countdown
+                const timeLimit = curQ.time_limit || 20;
+                const elapsed = quiz.time_elapsed || 0;
+                studentQuizRemaining = Math.max(0, timeLimit - elapsed);
+                const timerEl = document.getElementById('student-q-timer');
+                if (timerEl) timerEl.textContent = `${studentQuizRemaining}s`;
+
+                if (!studentQuizTimerInterval) {
+                    studentQuizTimerInterval = setInterval(() => {
+                        if (studentQuizRemaining > 0) {
+                            studentQuizRemaining--;
+                            const tEl = document.getElementById('student-q-timer');
+                            if (tEl) tEl.textContent = `${studentQuizRemaining}s`;
+                        } else {
+                            clearInterval(studentQuizTimerInterval);
+                            studentQuizTimerInterval = null;
+                        }
+                    }, 1000);
+                }
+
+                // Status Indicator
+                const answeredInd = document.getElementById('student-answered-indicator');
+                if (answeredInd) {
+                    if (hasSubmittedCurrentQuestion) {
+                        answeredInd.classList.remove('hidden');
+                    } else {
+                        answeredInd.classList.add('hidden');
+                    }
+                }
+
+                // Render 4 Kahoot-style buttons
+                const btnContainer = document.getElementById('student-kahoot-buttons');
+                if (btnContainer && curQ.options) {
+                    let btnsHtml = '';
+                    const myChosenAnswer = myPlayer && myPlayer.answers ? myPlayer.answers[qIdx] : null;
+
+                    curQ.options.forEach((optText, oIdx) => {
+                        const shape = KAHOOT_SHAPES_SISWA[oIdx % 4];
+                        const color = KAHOOT_COLORS_SISWA[oIdx % 4];
+                        const isMyPick = (myChosenAnswer !== null && myChosenAnswer === oIdx);
+                        const disabledAttr = hasSubmittedCurrentQuestion ? 'disabled' : '';
+                        const opacityClass = hasSubmittedCurrentQuestion && !isMyPick ? 'opacity-40 cursor-not-allowed' : '';
+                        const ringClass = isMyPick ? 'ring-4 ring-white scale-95' : '';
+
+                        btnsHtml += `
+                            <button id="kahoot-btn-${oIdx}" onclick="submitStudentQuizAnswer(${oIdx})" type="button" ${disabledAttr} class="p-3.5 rounded-2xl text-white font-mono-code font-bold text-xs flex flex-col items-start justify-between min-h-[85px] border-2 border-black transition active:scale-95 ${opacityClass} ${ringClass}" style="background-color: ${color}; box-shadow: ${isMyPick ? 'none' : '3px 3px 0px #121316'};">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="w-7 h-7 rounded-lg bg-white/25 flex items-center justify-center font-black text-sm">${shape}</span>
+                                    ${isMyPick ? '<span class="px-2 py-0.5 rounded bg-white text-black font-black text-[10px]">Pilihan Anda ✓</span>' : ''}
+                                </div>
+                                <span class="text-xs font-black mt-2 text-left leading-snug line-clamp-2">${optText}</span>
+                            </button>
+                        `;
+                    });
+                    btnContainer.innerHTML = btnsHtml;
+                }
+                return;
+            }
+
+            // Kuis Mode Scoreboard / Result
+            if (quiz.status === 'scoreboard') {
+                if (studentQuizTimerInterval) { clearInterval(studentQuizTimerInterval); studentQuizTimerInterval = null; }
+                if (banner) banner.classList.add('hidden');
+                if (tabBadge) tabBadge.classList.add('hidden');
+                if (quickBadge) quickBadge.classList.add('hidden');
+
+                if (statusPill) {
+                    statusPill.textContent = 'PAPAN SKOR';
+                    statusPill.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-indigo-500 text-white border border-indigo-700';
+                }
+
+                if (vStandby) vStandby.classList.add('hidden');
+                if (vQuestion) vQuestion.classList.add('hidden');
+                if (vResult) vResult.classList.remove('hidden');
+                if (vPodium) vPodium.classList.add('hidden');
+
+                const curQ = quiz.current_question || {};
+                const myPlayer = quiz.my_player || null;
+
+                // Result Banner
+                const resBanner = document.getElementById('student-result-banner');
+                if (resBanner) {
+                    if (myPlayer && myPlayer.last_answer_correct) {
+                        resBanner.className = 'p-3 rounded-xl text-center mb-3 border-2 border-black bg-emerald-400 text-emerald-950 font-mono-code';
+                        resBanner.style.boxShadow = '3px 3px 0px #121316';
+                        resBanner.innerHTML = `
+                            <div class="text-xl">🎉 LUAR BIASA!</div>
+                            <div class="text-xs font-black mt-0.5">Jawaban Anda Benar (+${myPlayer.last_answer_points || 0} Poin)</div>
+                        `;
+                    } else if (myPlayer && myPlayer.last_answer !== undefined) {
+                        resBanner.className = 'p-3 rounded-xl text-center mb-3 border-2 border-black bg-rose-400 text-rose-950 font-mono-code';
+                        resBanner.style.boxShadow = '3px 3px 0px #121316';
+                        resBanner.innerHTML = `
+                            <div class="text-xl">❌ YAH, BELUM TEPAT</div>
+                            <div class="text-xs font-black mt-0.5">Jangan menyerah! Masih ada kesempatan di soal berikutnya.</div>
+                        `;
+                    } else {
+                        resBanner.className = 'p-3 rounded-xl text-center mb-3 border-2 border-black bg-slate-200 text-slate-800 font-mono-code';
+                        resBanner.style.boxShadow = '3px 3px 0px #121316';
+                        resBanner.innerHTML = `
+                            <div class="text-sm font-bold">Waktu Habis / Tidak Menjawab</div>
+                        `;
+                    }
+                }
+
+                // Rank & Score
+                const myRankEl = document.getElementById('student-my-rank');
+                if (myRankEl) {
+                    myRankEl.textContent = myPlayer && myPlayer.rank ? `#${myPlayer.rank} dari ${quiz.total_players || 1} Siswa` : '-';
+                }
+                const myScoreEl = document.getElementById('student-my-score');
+                if (myScoreEl) {
+                    myScoreEl.textContent = `${(myPlayer ? myPlayer.score : 0).toLocaleString()} pts`;
+                }
+
+                // Correct Answer Info
+                const correctInfoEl = document.getElementById('student-correct-answer-info');
+                if (correctInfoEl && curQ.options && curQ.correct_answer !== undefined) {
+                    const corrText = curQ.options[curQ.correct_answer] || '';
+                    correctInfoEl.innerHTML = `
+                        <div class="font-bold text-emerald-800">
+                            <strong>Kunci Jawaban Benar:</strong> ${corrText}
+                        </div>
+                        ${curQ.explanation ? `<div class="mt-1 text-slate-600"><em>Penjelasan:</em> ${curQ.explanation}</div>` : ''}
+                    `;
+                }
+
+                // Top 5 Leaderboard
+                const topContainer = document.getElementById('student-top-leaderboard');
+                if (topContainer) {
+                    const topList = quiz.top_players || [];
+                    let topHtml = '';
+                    topList.forEach((pl, rIdx) => {
+                        const medal = rIdx === 0 ? '🥇' : (rIdx === 1 ? '🥈' : (rIdx === 2 ? '🥉' : `#${rIdx + 1}`));
+                        const isMe = (myPlayer && pl.user_id === myPlayer.user_id);
+                        topHtml += `
+                            <div class="flex items-center justify-between p-2 rounded-xl ${isMe ? 'bg-pink-100 border-2 border-pink-500 font-black' : 'bg-white border border-slate-200'} font-mono-code text-xs">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="w-5 text-center font-bold">${medal}</span>
+                                    <span class="truncate">${pl.name} ${isMe ? '(Anda)' : ''}</span>
+                                </div>
+                                <span class="font-bold text-pink-600 ml-2">${(pl.score || 0).toLocaleString()} pts</span>
+                            </div>
+                        `;
+                    });
+                    topContainer.innerHTML = topHtml;
+                }
+                return;
+            }
+
+            // Kuis Mode Selesai (Podium Final)
+            if (quiz.status === 'finished') {
+                if (studentQuizTimerInterval) { clearInterval(studentQuizTimerInterval); studentQuizTimerInterval = null; }
+                if (banner) banner.classList.add('hidden');
+                if (tabBadge) tabBadge.classList.add('hidden');
+                if (quickBadge) quickBadge.classList.add('hidden');
+
+                if (statusPill) {
+                    statusPill.textContent = 'PODIUM FINAL';
+                    statusPill.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-amber-400 text-amber-950 border border-amber-600';
+                }
+
+                if (vStandby) vStandby.classList.add('hidden');
+                if (vQuestion) vQuestion.classList.add('hidden');
+                if (vResult) vResult.classList.add('hidden');
+                if (vPodium) vPodium.classList.remove('hidden');
+
+                const pTitle = document.getElementById('student-podium-title');
+                if (pTitle) pTitle.textContent = quiz.title || 'Kuis KBM Selesai';
+
+                const podCards = document.getElementById('student-podium-cards');
+                if (podCards) {
+                    const podList = quiz.podium || [];
+                    const p1 = podList[0] || null;
+                    const p2 = podList[1] || null;
+                    const p3 = podList[2] || null;
+
+                    podCards.innerHTML = `
+                        {{-- Juara 2 --}}
+                        <div class="flex flex-col items-center">
+                            <span class="text-xl mb-1">🥈</span>
+                            <div class="w-full p-2 rounded-t-xl border-2 border-black bg-slate-200 text-center font-mono-code" style="box-shadow: 2px 2px 0px #121316; height: 95px;">
+                                <div class="text-[8px] font-black text-slate-600">JUARA 2</div>
+                                <div class="text-[11px] font-black truncate text-slate-900 mt-0.5">${p2 ? p2.name : '-'}</div>
+                                <div class="text-[9px] font-bold text-pink-600 mt-0.5">${p2 ? (p2.score || 0).toLocaleString() : '0'} pts</div>
+                                <span class="inline-block mt-1 px-1 rounded bg-amber-200 text-amber-900 text-[7px] font-black">+10 Rep</span>
+                            </div>
+                        </div>
+
+                        {{-- Juara 1 --}}
+                        <div class="flex flex-col items-center -mt-3">
+                            <span class="text-2xl mb-1 animate-bounce">🥇</span>
+                            <div class="w-full p-2.5 rounded-t-xl border-2 border-black bg-amber-300 text-center font-mono-code" style="box-shadow: 2px 2px 0px #121316; height: 115px;">
+                                <div class="text-[9px] font-black text-amber-900">JUARA 1 👑</div>
+                                <div class="text-[11px] font-black truncate text-slate-900 mt-0.5">${p1 ? p1.name : '-'}</div>
+                                <div class="text-[10px] font-bold text-pink-700 mt-0.5">${p1 ? (p1.score || 0).toLocaleString() : '0'} pts</div>
+                                <span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-black text-amber-300 text-[8px] font-black">+15 Rep</span>
+                            </div>
+                        </div>
+
+                        {{-- Juara 3 --}}
+                        <div class="flex flex-col items-center">
+                            <span class="text-xl mb-1">🥉</span>
+                            <div class="w-full p-2 rounded-t-xl border-2 border-black bg-amber-700/20 text-center font-mono-code" style="box-shadow: 2px 2px 0px #121316; height: 85px;">
+                                <div class="text-[8px] font-black text-amber-900">JUARA 3</div>
+                                <div class="text-[11px] font-black truncate text-slate-900 mt-0.5">${p3 ? p3.name : '-'}</div>
+                                <div class="text-[9px] font-bold text-pink-600 mt-0.5">${p3 ? (p3.score || 0).toLocaleString() : '0'} pts</div>
+                                <span class="inline-block mt-1 px-1 rounded bg-amber-200 text-amber-900 text-[7px] font-black">+5 Rep</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // My Result Card
+                const myResultEl = document.getElementById('student-podium-my-result');
+                if (myResultEl) {
+                    const myPlayer = quiz.my_player || null;
+                    if (myPlayer) {
+                        const rank = myPlayer.rank || 0;
+                        let bonusText = '';
+                        if (rank === 1) bonusText = '🎉 Selamat! Anda Juara 1 dan meraih bonus +15 Poin Reputasi!';
+                        else if (rank === 2) bonusText = '🎉 Hebat! Anda Juara 2 dan meraih bonus +10 Poin Reputasi!';
+                        else if (rank === 3) bonusText = '🎉 Keren! Anda Juara 3 dan meraih bonus +5 Poin Reputasi!';
+                        else bonusText = `Hasil Akhir Anda: Peringkat #${rank} (${(myPlayer.score || 0).toLocaleString()} pts). Terus semangat!`;
+
+                        myResultEl.innerHTML = `
+                            <p>${bonusText}</p>
+                            <p class="text-[10px] text-slate-500 font-normal mt-1">Poin reputasi pemenang otomatis tersimpan ke profil siswa.</p>
+                        `;
+                    } else {
+                        myResultEl.innerHTML = `<p class="text-slate-500">Kuis selesai. Terima kasih atas partisipasi Anda!</p>`;
+                    }
+                }
+            }
         }
 
         // 11. PRESENSI KELUAR & LEAVE HANDLER

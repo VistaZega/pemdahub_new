@@ -1636,6 +1636,12 @@ HTML;
             }
         }
 
+        // Handle Jawaban Kuis Kahoot-style dari siswa (Fase 4)
+        if ($action === 'submit_quiz_answer') {
+            $answerIndex = (int)$request->input('answer_index', 0);
+            \App\Services\LmsMeetingSyncService::submitQuizAnswer($course->id, $userId, $studentName, $answerIndex);
+        }
+
         $state = \App\Services\LmsMeetingSyncService::getState($course->id, $userId);
         $state['is_active'] = (bool)($course->meeting_active && cache()->has('lms_meeting_session_' . $course->id));
 

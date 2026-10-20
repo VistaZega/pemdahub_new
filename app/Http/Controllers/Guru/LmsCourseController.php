@@ -2130,7 +2130,12 @@ HTML;
         $agoraToken   = \App\Services\AgoraTokenService::buildToken($agoraChannel, $agoraUid, \App\Services\AgoraTokenService::ROLE_PUBLISHER);
         $agoraAppId   = config('services.agora.app_id');
 
-        return view('guru.lms.meeting', compact('teacher', 'course', 'roomName', 'displayName', 'activeSession', 'agoraToken', 'agoraAppId', 'agoraChannel', 'agoraUid'));
+        // Kuis LMS untuk pilihan Kuis Live KBM (Fase 4)
+        $courseQuizzes = \App\Models\LmsQuiz::where('course_id', $course->id)
+            ->with(['questions' => fn($q) => $q->orderBy('order_number')])
+            ->get();
+
+        return view('guru.lms.meeting', compact('teacher', 'course', 'roomName', 'displayName', 'activeSession', 'agoraToken', 'agoraAppId', 'agoraChannel', 'agoraUid', 'courseQuizzes'));
     }
 
     /**
@@ -2239,6 +2244,87 @@ HTML;
             }
         }
 
+        // Handle Kuis Live Kahoot-style (Fase 4)
+        if ($action === 'start_live_quiz') {
+            $quizTitle = (string)$request->input('title', 'Kuis Interaktif KBM');
+            $timeLimit = (int)$request->input('time_limit', 20);
+            $cleanQuestions = [];
+
+            if ($request->filled('quiz_id')) {
+                $quizModel = \App\Models\LmsQuiz::with(['questions' => fn($q) => $q->orderBy('order_number')])->find($request->input('quiz_id'));
+                if ($quizModel) {
+                    $quizTitle = $quizModel->title;
+                    foreach ($quizModel->questions as $q) {
+                        $rawOpts = $q->options;
+                        $options = [];
+                        $correctIndex = 0;
+
+                        if (is_array($rawOpts)) {
+                            foreach ($rawOpts as $idx => $opt) {
+                                if (is_array($opt)) {
+                                    $key = strtoupper(trim((string)($opt['key'] ?? '')));
+                                    $txt = (string)($opt['text'] ?? ($opt['label'] ?? ''));
+                                    $options[] = $txt;
+                                    if ($key === strtoupper(trim((string)$q->correct_answer)) || (string)$idx === (string)$q->correct_answer) {
+                                        $correctIndex = $idx;
+                                    }
+                                } else {
+                                    $options[] = (string)$opt;
+                                    if ((string)$idx === (string)$q->correct_answer || (string)$opt === (string)$q->correct_answer) {
+                                        $correctIndex = $idx;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (empty($options) && $q->question_type === 'true_false') {
+                            $options = ['Benar', 'Salah'];
+                            $correctIndex = $q->isTrueFalseBenar() ? 0 : 1;
+                        }
+
+                        if (!empty($options)) {
+                            $cleanQuestions[] = [
+                                'question'       => strip_tags($q->question),
+                                'options'        => array_values($options),
+                                'correct_answer' => $correctIndex,
+                                'time_limit'     => $timeLimit,
+                                'explanation'    => strip_tags((string)($q->explanation ?? '')),
+                            ];
+                        }
+                    }
+                }
+            }
+
+            if (empty($cleanQuestions) && $request->has('questions')) {
+                $inputQuestions = (array)$request->input('questions', []);
+                foreach ($inputQuestions as $iq) {
+                    $text = trim((string)($iq['question'] ?? ''));
+                    $opts = array_values(array_filter(array_map('trim', (array)($iq['options'] ?? []))));
+                    if ($text !== '' && count($opts) >= 2) {
+                        $cleanQuestions[] = [
+                            'question'       => $text,
+                            'options'        => $opts,
+                            'correct_answer' => (int)($iq['correct_answer'] ?? 0),
+                            'time_limit'     => (int)($iq['time_limit'] ?? $timeLimit),
+                            'explanation'    => trim((string)($iq['explanation'] ?? '')),
+                        ];
+                    }
+                }
+            }
+
+            \App\Services\LmsMeetingSyncService::startQuiz($course->id, $quizTitle, $cleanQuestions);
+            \App\Services\LmsMeetingSyncService::startQuestion($course->id, 0);
+        } elseif ($action === 'next_quiz_question') {
+            $nextIndex = (int)$request->input('question_index', 0);
+            \App\Services\LmsMeetingSyncService::startQuestion($course->id, $nextIndex);
+        } elseif ($action === 'show_quiz_scoreboard') {
+            \App\Services\LmsMeetingSyncService::showQuizScoreboard($course->id);
+        } elseif ($action === 'end_live_quiz') {
+            \App\Services\LmsMeetingSyncService::endQuiz($course->id);
+        } elseif ($action === 'clear_live_quiz') {
+            \App\Services\LmsMeetingSyncService::clearQuiz($course->id);
+        }
+
         $state = \App\Services\LmsMeetingSyncService::getState($course->id, $userId);
 
         return response()->json($state);
@@ -2261,6 +2347,58 @@ HTML;
             ->paginate(10);
 
         return view('guru.lms.attendance-report', compact('teacher', 'course', 'sessions'));
+    }
+
+    /**
+     * Cetak Berita Acara & Rekapitulasi Pelaksanaan KBM Virtual PembdaTEMU
+     */
+    public function printSessionReport(LmsCourse $course, LmsMeetingSession $session)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            abort(403);
+        }
+
+        if ($session->course_id !== $course->id) {
+            abort(404);
+        }
+
+        $session->load([
+            'attendances.student.user',
+            'startedBy',
+        ]);
+
+        $course->loadMissing(['school', 'subject', 'classroom', 'classes.classroom']);
+
+        // Data unit sekolah & Kepala Sekolah
+        $school = $course->school;
+        $principal = null;
+        if ($school) {
+            $principal = $school->principal;
+        }
+
+        // Hitung total siswa terdaftar di course
+        $enrolledStudentsCount = $course->enrolled_students_count ?? 0;
+        if ($enrolledStudentsCount === 0) {
+            $enrolledStudentsCount = \App\Models\LmsEnrollment::whereIn('lms_class_id', $course->lmsClasses()->pluck('id'))
+                ->whereIn('status', ['enrolled', 'in_progress', 'completed'])
+                ->distinct('student_id')
+                ->count('student_id');
+        }
+
+        $attendedCount = $session->attendances->count();
+        $attendanceRate = $enrolledStudentsCount > 0 ? round(($attendedCount / $enrolledStudentsCount) * 100, 1) : 100;
+
+        return view('guru.lms.meeting-print', compact(
+            'teacher',
+            'course',
+            'session',
+            'school',
+            'principal',
+            'enrolledStudentsCount',
+            'attendedCount',
+            'attendanceRate'
+        ));
     }
 
     /**

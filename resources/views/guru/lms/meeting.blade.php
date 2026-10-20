@@ -527,6 +527,12 @@
                     <span class="hidden sm:inline">Chat</span>
                     <span id="quick-chat-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
                 </button>
+
+                {{-- Quick Open Live Quiz (Pink Tactile) --}}
+                <button onclick="openTabDirect('kuis')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5 relative" style="background-color: #ec4899; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Luncurkan Kuis Live Interaktif (Kahoot-style)">
+                    <i class="fa-solid fa-gamepad text-sm" style="color: #fde047;"></i>
+                    <span class="hidden sm:inline">Kuis Live</span>
+                </button>
             </div>
         </main>
 
@@ -571,6 +577,11 @@
                     <i class="fa-solid fa-clipboard-question text-xs" style="color: #ea580c;"></i>
                     <span>Q&A</span>
                     <span id="qa-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
+                </button>
+                <button id="tab-btn-kuis" onclick="switchTab('kuis')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Kuis Interaktif Live (Kahoot-style)">
+                    <i class="fa-solid fa-gamepad text-xs" style="color: #ec4899;"></i>
+                    <span>Kuis</span>
+                    <span id="quiz-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ec4899; color: #ffffff;">LIVE</span>
                 </button>
                 <button onclick="toggleClassroomHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
                     <i class="fa-solid fa-xmark text-sm"></i>
@@ -985,6 +996,260 @@
                         <p class="text-xs font-mono-code font-bold text-slate-700">Belum ada pertanyaan materi</p>
                         <p class="text-[10px] text-slate-500 mt-1">Siswa dapat menuliskan pertanyaan materi melalui tab Q&A mereka dan memberikan upvote.</p>
                     </div>
+                </div>
+            </div>
+
+            {{-- TAB 7: KUIS INTERAKTIF LIVE (KAHOOT-STYLE SUPER CLASSROOM) --}}
+            <div id="tab-content-kuis" class="flex-1 flex flex-col overflow-hidden hidden" style="background-color: #faf8f5;">
+                {{-- Header Kuis --}}
+                <div class="p-3 flex items-center justify-between flex-shrink-0 shadow-xs" style="background-color: #ffffff; border-bottom: 2px solid #121316;">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs border border-black shadow-xs" style="background-color: #ec4899; color: #ffffff;">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-black" style="color: #121316;">Kuis Interaktif Live</div>
+                            <div class="text-[9px] font-mono-code font-bold text-slate-500">Kahoot-style • Realtime Skor &amp; Podium</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span id="guru-quiz-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-slate-100 text-slate-700 border border-slate-300">Standby</span>
+                    </div>
+                </div>
+
+                {{-- Scrollable Container --}}
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    
+                    {{-- 1. VIEW LAUNCHER --}}
+                    <div id="quiz-view-launcher" class="space-y-4">
+                        <div class="p-4 rounded-2xl bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono-code font-black bg-pink-100 text-pink-700 border border-pink-300">FASE 4</span>
+                                <h4 class="text-xs font-black uppercase text-slate-900">Luncurkan Kuis Kelas</h4>
+                            </div>
+                            
+                            {{-- Mode Toggle --}}
+                            <div class="grid grid-cols-2 gap-2 mb-4 p-1 rounded-xl bg-slate-100 border border-slate-300">
+                                <button type="button" onclick="setQuizLauncherMode('lms')" id="btn-mode-lms-quiz" class="py-1.5 text-xs font-mono-code font-black rounded-lg bg-black text-amber-300 transition">
+                                    Dari Kuis LMS
+                                </button>
+                                <button type="button" onclick="setQuizLauncherMode('custom')" id="btn-mode-custom-quiz" class="py-1.5 text-xs font-mono-code font-bold rounded-lg text-slate-700 transition">
+                                    Soal Cepat KBM
+                                </button>
+                            </div>
+
+                            {{-- Mode 1: Pilih dari Kuis LMS --}}
+                            <div id="quiz-mode-lms" class="space-y-3">
+                                <div>
+                                    <label class="block text-[10px] font-mono-code font-bold text-slate-600 mb-1">PILIH KUIS MATERI KURSUS INI:</label>
+                                    <select id="guru-quiz-select" class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0">
+                                        @if(isset($courseQuizzes) && $courseQuizzes->count() > 0)
+                                            <option value="">-- Pilih Kuis LMS yang Siap Diuji --</option>
+                                            @foreach($courseQuizzes as $q)
+                                                <option value="{{ $q->id }}" data-questions="{{ $q->questions->count() }}">
+                                                    {{ $q->title }} ({{ $q->questions->count() }} Soal)
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            <option value="">(Belum ada Kuis dibuat di kursus ini - gunakan tab 'Soal Cepat KBM')</option>
+                                        @endif
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-mono-code font-bold text-slate-600 mb-1">DURASI WAKTU PER SOAL:</label>
+                                    <select id="guru-quiz-lms-time" class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0">
+                                        <option value="15">15 Detik (Cepat &amp; Menantang)</option>
+                                        <option value="20" selected>20 Detik (Standar Rekomendasi)</option>
+                                        <option value="30">30 Detik (Santai)</option>
+                                        <option value="45">45 Detik (Analisis Soal Hitungan)</option>
+                                        <option value="60">60 Detik (1 Menit)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Mode 2: Soal Cepat KBM --}}
+                            <div id="quiz-mode-custom" class="space-y-3 hidden">
+                                <div>
+                                    <label class="block text-[10px] font-mono-code font-bold text-slate-600 mb-1">JUDUL KUIS KILAT:</label>
+                                    <input type="text" id="guru-custom-quiz-title" value="Kuis Kilat Pemahaman Materi" class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-mono-code font-bold text-slate-600 mb-1">PERTANYAAN SOAL:</label>
+                                    <textarea id="guru-custom-question" rows="2" placeholder="Tuliskan pertanyaan materi di sini..." class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0">Berapakah nilai tegangan jika arus 2A dan hambatan 10 Ohm?</textarea>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-[10px] font-mono-code font-bold text-slate-600">PILIHAN JAWABAN &amp; KUNCI BENAR:</label>
+                                    
+                                    {{-- Opsi A Merah --}}
+                                    <div class="flex items-center gap-2">
+                                        <input type="radio" name="custom_correct_ans" value="0" id="ans_rad_0" class="w-4 h-4 text-red-600 focus:ring-0">
+                                        <span class="w-6 h-6 rounded-md flex items-center justify-center text-white font-mono-code font-black text-xs" style="background-color: #ef4444;">▲</span>
+                                        <input type="text" id="ans_opt_0" value="5 Volt" placeholder="Pilihan A" class="flex-1 text-xs font-bold p-2 rounded-xl border-2 border-black bg-white">
+                                    </div>
+                                    {{-- Opsi B Biru --}}
+                                    <div class="flex items-center gap-2">
+                                        <input type="radio" name="custom_correct_ans" value="1" id="ans_rad_1" checked class="w-4 h-4 text-blue-600 focus:ring-0">
+                                        <span class="w-6 h-6 rounded-md flex items-center justify-center text-white font-mono-code font-black text-xs" style="background-color: #3b82f6;">◆</span>
+                                        <input type="text" id="ans_opt_1" value="20 Volt" placeholder="Pilihan B" class="flex-1 text-xs font-bold p-2 rounded-xl border-2 border-black bg-white">
+                                    </div>
+                                    {{-- Opsi C Kuning --}}
+                                    <div class="flex items-center gap-2">
+                                        <input type="radio" name="custom_correct_ans" value="2" id="ans_rad_2" class="w-4 h-4 text-amber-500 focus:ring-0">
+                                        <span class="w-6 h-6 rounded-md flex items-center justify-center text-white font-mono-code font-black text-xs" style="background-color: #f59e0b;">●</span>
+                                        <input type="text" id="ans_opt_2" value="12 Volt" placeholder="Pilihan C" class="flex-1 text-xs font-bold p-2 rounded-xl border-2 border-black bg-white">
+                                    </div>
+                                    {{-- Opsi D Hijau --}}
+                                    <div class="flex items-center gap-2">
+                                        <input type="radio" name="custom_correct_ans" value="3" id="ans_rad_3" class="w-4 h-4 text-emerald-600 focus:ring-0">
+                                        <span class="w-6 h-6 rounded-md flex items-center justify-center text-white font-mono-code font-black text-xs" style="background-color: #10b981;">■</span>
+                                        <input type="text" id="ans_opt_3" value="8 Volt" placeholder="Pilihan D" class="flex-1 text-xs font-bold p-2 rounded-xl border-2 border-black bg-white">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-mono-code font-bold text-slate-600 mb-1">DURASI WAKTU SOAL:</label>
+                                    <select id="guru-custom-quiz-time" class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0">
+                                        <option value="15">15 Detik</option>
+                                        <option value="20" selected>20 Detik (Standar)</option>
+                                        <option value="30">30 Detik</option>
+                                        <option value="60">60 Detik</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Tombol Launch --}}
+                            <div class="pt-4">
+                                <button type="button" onclick="startGuruLiveQuiz()" class="w-full py-3 px-4 rounded-2xl text-xs font-mono-code font-black uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 text-white border-2 border-black" style="background-color: #ec4899; box-shadow: 4px 4px 0px #121316;">
+                                    <i class="fa-solid fa-rocket"></i> Luncurkan Kuis Live Sekarang
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Info Kotak Hadiah Reputasi --}}
+                        <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-mono-code text-amber-950 flex items-start gap-2.5">
+                            <span class="text-xl">🏆</span>
+                            <div>
+                                <p class="font-black text-amber-900">Bonus Poin Reputasi Otomatis:</p>
+                                <p class="text-[11px] text-amber-800 mt-0.5">Top 3 siswa tercepat dan tertepat akan langsung mendapat bonus reputasi di profil mereka: 🥇 +15 Poin, 🥈 +10 Poin, 🥉 +5 Poin.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2. VIEW RUNNING QUESTION --}}
+                    <div id="quiz-view-question" class="hidden space-y-4">
+                        <div class="p-4 rounded-2xl bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span id="guru-q-badge" class="px-2.5 py-1 rounded-lg text-xs font-mono-code font-black bg-pink-100 text-pink-700 border border-pink-300">
+                                    Soal 1 / 1
+                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-mono-code font-bold text-slate-500">Sisa Waktu:</span>
+                                    <span id="guru-q-timer" class="px-2.5 py-0.5 rounded-md text-xs font-mono-code font-black bg-rose-500 text-white animate-pulse">
+                                        20s
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Question Text --}}
+                            <div class="p-3 rounded-xl bg-slate-50 border-2 border-slate-200 mb-4">
+                                <h3 id="guru-q-text" class="text-sm font-extrabold text-slate-900 leading-snug">
+                                    Pertanyaan sedang dimuat...
+                                </h3>
+                            </div>
+
+                            {{-- Live Answers Progress Bar --}}
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between text-xs font-mono-code font-bold text-slate-600 mb-1">
+                                    <span>Respon Siswa:</span>
+                                    <span id="guru-q-answers-count" class="font-black text-pink-600">0 / 0 Siswa Menjawab</span>
+                                </div>
+                                <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-300 overflow-hidden">
+                                    <div id="guru-q-progress-bar" class="h-full bg-pink-500 transition-all duration-300" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            {{-- 4 Pilihan Jawaban Cards --}}
+                            <div id="guru-q-options-grid" class="grid grid-cols-2 gap-2 mb-4">
+                                {{-- Diisi dynamically via JS --}}
+                            </div>
+
+                            {{-- Tombol Scoreboard & Batal --}}
+                            <div class="flex items-center gap-2 pt-2 border-t border-slate-200">
+                                <button type="button" onclick="showGuruQuizScoreboard()" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-mono-code font-black text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition border-2 border-black" style="box-shadow: 3px 3px 0px #121316;">
+                                    <i class="fa-solid fa-chart-column mr-1"></i> Tampilkan Skor &amp; Jawaban
+                                </button>
+                                <button type="button" onclick="cancelGuruQuiz()" class="py-2.5 px-3 rounded-xl text-xs font-mono-code font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-300 transition" title="Batalkan kuis">
+                                    <i class="fa-solid fa-stop"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. VIEW SCOREBOARD & ANALYSIS --}}
+                    <div id="quiz-view-scoreboard" class="hidden space-y-4">
+                        <div class="p-4 rounded-2xl bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono-code font-black bg-indigo-100 text-indigo-700 border border-indigo-300">
+                                    PAPAN SKOR SEMENTARA
+                                </span>
+                                <span id="guru-score-q-badge" class="text-xs font-mono-code font-bold text-slate-500">Soal 1 / 1</span>
+                            </div>
+
+                            {{-- Bar Chart Distribusi Jawaban --}}
+                            <div class="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <div class="text-[10px] font-mono-code font-bold text-slate-600 uppercase mb-2">Distribusi Pilihan Siswa:</div>
+                                <div id="guru-score-distribution" class="space-y-1.5">
+                                    {{-- Diisi secara dinamis --}}
+                                </div>
+                            </div>
+
+                            {{-- Leaderboard Top 5 Siswa --}}
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between text-xs font-mono-code font-bold text-slate-700 mb-2">
+                                    <span>🏅 TOP 5 SKOR TERTINGGI:</span>
+                                    <span class="text-[10px] text-slate-400">Poin Realtime</span>
+                                </div>
+                                <div id="guru-score-leaderboard" class="space-y-1.5">
+                                    {{-- Diisi secara dinamis --}}
+                                </div>
+                            </div>
+
+                            {{-- Navigation Buttons --}}
+                            <div class="flex items-center gap-2 pt-2 border-t border-slate-200">
+                                <button type="button" id="btn-guru-next-q" onclick="guruNextQuizQuestion()" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-mono-code font-black text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition border-2 border-black" style="box-shadow: 3px 3px 0px #121316;">
+                                    <span>Soal Berikutnya</span> <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                                <button type="button" onclick="endGuruQuizToPodium()" class="py-2.5 px-3 rounded-xl text-xs font-mono-code font-black text-amber-900 bg-amber-300 hover:bg-amber-400 border-2 border-black transition" style="box-shadow: 2px 2px 0px #121316;" title="Selesaikan kuis & buka podium">
+                                    <i class="fa-solid fa-trophy mr-1"></i> Buka Podium
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. VIEW PODIUM FINAL --}}
+                    <div id="quiz-view-podium" class="hidden space-y-4">
+                        <div class="p-5 rounded-2xl bg-white border-2 border-black text-center" style="box-shadow: 5px 5px 0px #121316;">
+                            <div class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center text-3xl mb-2 border-2 border-black animate-bounce" style="background-color: #fde047; box-shadow: 3px 3px 0px #121316;">
+                                🏆
+                            </div>
+                            <h3 class="text-base font-black text-slate-900">PODIUM JUARA KUIS LIVE</h3>
+                            <p id="guru-podium-title" class="text-xs font-mono-code font-bold text-slate-500 mb-4">Kuis Interaktif KBM Selesai</p>
+
+                            {{-- Podium 3 Besar Cards --}}
+                            <div id="guru-podium-cards" class="grid grid-cols-3 gap-2 items-end mb-4 pt-4">
+                                {{-- Diisi via JS: Juara 2 (kiri), Juara 1 (tengah), Juara 3 (kanan) --}}
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs font-mono-code text-emerald-950 mb-4">
+                                <span class="font-black">✓ Poin Reputasi Diberikan:</span>
+                                <span class="text-[11px] block text-emerald-800 mt-0.5">Juara 1 (+15 Poin), Juara 2 (+10 Poin), Juara 3 (+5 Poin) otomatis ditambahkan ke database.</span>
+                            </div>
+
+                            <button type="button" onclick="clearGuruLiveQuiz()" class="w-full py-2.5 px-4 rounded-xl text-xs font-mono-code font-black text-white bg-slate-900 hover:bg-slate-800 border-2 border-black transition active:scale-95" style="box-shadow: 3px 3px 0px #121316;">
+                                Mulai Kuis Baru
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </aside>
@@ -1819,7 +2084,7 @@
                 if (handler) handler.classList.remove('hidden');
             }
 
-            const tabs = ['materi', 'whiteboard', 'peserta', 'chat', 'polling', 'qa'];
+            const tabs = ['materi', 'whiteboard', 'peserta', 'chat', 'polling', 'qa', 'kuis'];
             tabs.forEach(t => {
                 const btn = document.getElementById('tab-btn-' + t);
                 const content = document.getElementById('tab-content-' + t);
@@ -1849,6 +2114,10 @@
             if (tabName === 'qa') {
                 const qBadge = document.getElementById('qa-tab-badge');
                 if (qBadge) qBadge.classList.add('hidden');
+            }
+            if (tabName === 'kuis') {
+                const quizBadge = document.getElementById('quiz-tab-badge');
+                if (quizBadge) quizBadge.classList.add('hidden');
             }
 
             if (tabName === 'chat') {
@@ -2403,6 +2672,9 @@
 
             // 9. Render Q&A Queue
             renderGuruQa(data.qa_list);
+
+            // 10. Render Kuis Live Kahoot-style (Fase 4)
+            renderGuruQuiz(data.quiz);
         }
 
         async function sendChatMessage(customText = null) {
@@ -2718,6 +2990,379 @@
             });
 
             container.innerHTML = html;
+        }
+
+        // ============================================================
+        // 11C. FITUR FASE 4: KUIS LIVE KAHOOT-STYLE (SUPER CLASSROOM)
+        // ============================================================
+        let currentGuruQuizLauncherMode = 'lms';
+        let currentGuruQuizData = null;
+        let guruQuizTimerInterval = null;
+        let guruQuizRemaining = 0;
+
+        const KAHOOT_SHAPES = ['▲', '◆', '●', '■'];
+        const KAHOOT_COLORS = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981'];
+        const KAHOOT_LETTERS = ['A', 'B', 'C', 'D'];
+
+        function setQuizLauncherMode(mode) {
+            currentGuruQuizLauncherMode = mode;
+            const btnLms = document.getElementById('btn-mode-lms-quiz');
+            const btnCustom = document.getElementById('btn-mode-custom-quiz');
+            const modeLms = document.getElementById('quiz-mode-lms');
+            const modeCustom = document.getElementById('quiz-mode-custom');
+
+            if (mode === 'lms') {
+                if (btnLms) { btnLms.className = 'py-1.5 text-xs font-mono-code font-black rounded-lg bg-black text-amber-300 transition'; }
+                if (btnCustom) { btnCustom.className = 'py-1.5 text-xs font-mono-code font-bold rounded-lg text-slate-700 transition'; }
+                if (modeLms) modeLms.classList.remove('hidden');
+                if (modeCustom) modeCustom.classList.add('hidden');
+            } else {
+                if (btnCustom) { btnCustom.className = 'py-1.5 text-xs font-mono-code font-black rounded-lg bg-black text-amber-300 transition'; }
+                if (btnLms) { btnLms.className = 'py-1.5 text-xs font-mono-code font-bold rounded-lg text-slate-700 transition'; }
+                if (modeCustom) modeCustom.classList.remove('hidden');
+                if (modeLms) modeLms.classList.add('hidden');
+            }
+        }
+
+        async function startGuruLiveQuiz() {
+            if (currentGuruQuizLauncherMode === 'lms') {
+                const quizSelect = document.getElementById('guru-quiz-select');
+                const quizId = quizSelect ? quizSelect.value : '';
+                if (!quizId) {
+                    alert('Silakan pilih salah satu kuis yang ada di LMS atau gunakan tab "Soal Cepat KBM"!');
+                    return;
+                }
+                const timeLimit = parseInt(document.getElementById('guru-quiz-lms-time')?.value || '20');
+
+                await syncMeetingState({
+                    action: 'start_live_quiz',
+                    quiz_id: quizId,
+                    time_limit: timeLimit
+                });
+            } else {
+                const title = (document.getElementById('guru-custom-quiz-title')?.value || 'Kuis Kilat KBM').trim();
+                const questionText = (document.getElementById('guru-custom-question')?.value || '').trim();
+                if (!questionText) {
+                    alert('Pertanyaan kuis kilat tidak boleh kosong!');
+                    return;
+                }
+                const opts = [
+                    (document.getElementById('ans_opt_0')?.value || '').trim(),
+                    (document.getElementById('ans_opt_1')?.value || '').trim(),
+                    (document.getElementById('ans_opt_2')?.value || '').trim(),
+                    (document.getElementById('ans_opt_3')?.value || '').trim()
+                ].filter(o => o !== '');
+
+                if (opts.length < 2) {
+                    alert('Minimal masukkan 2 pilihan jawaban!');
+                    return;
+                }
+
+                let correctAns = 0;
+                const checkedRadio = document.querySelector('input[name="custom_correct_ans"]:checked');
+                if (checkedRadio) {
+                    correctAns = parseInt(checkedRadio.value) || 0;
+                }
+                const timeLimit = parseInt(document.getElementById('guru-custom-quiz-time')?.value || '20');
+
+                await syncMeetingState({
+                    action: 'start_live_quiz',
+                    title: title,
+                    time_limit: timeLimit,
+                    questions: [{
+                        question: questionText,
+                        options: opts,
+                        correct_answer: correctAns,
+                        time_limit: timeLimit
+                    }]
+                });
+            }
+
+            switchTab('kuis');
+        }
+
+        async function showGuruQuizScoreboard() {
+            await syncMeetingState({
+                action: 'show_quiz_scoreboard'
+            });
+        }
+
+        async function guruNextQuizQuestion() {
+            if (!currentGuruQuizData) return;
+            const nextIdx = (currentGuruQuizData.current_question_index || 0) + 1;
+            if (nextIdx < (currentGuruQuizData.total_questions || 1)) {
+                await syncMeetingState({
+                    action: 'next_quiz_question',
+                    question_index: nextIdx
+                });
+            } else {
+                await endGuruQuizToPodium();
+            }
+        }
+
+        async function endGuruQuizToPodium() {
+            await syncMeetingState({
+                action: 'end_live_quiz'
+            });
+        }
+
+        async function cancelGuruQuiz() {
+            if (confirm('Hentikan dan bersihkan kuis live ini?')) {
+                await syncMeetingState({
+                    action: 'clear_live_quiz'
+                });
+            }
+        }
+
+        async function clearGuruLiveQuiz() {
+            await syncMeetingState({
+                action: 'clear_live_quiz'
+            });
+        }
+
+        function renderGuruQuiz(quiz) {
+            currentGuruQuizData = quiz;
+
+            const vLauncher = document.getElementById('quiz-view-launcher');
+            const vQuestion = document.getElementById('quiz-view-question');
+            const vScoreboard = document.getElementById('quiz-view-scoreboard');
+            const vPodium = document.getElementById('quiz-view-podium');
+            const statusBadge = document.getElementById('guru-quiz-status-badge');
+            const tabBadge = document.getElementById('quiz-tab-badge');
+
+            if (!quiz || !quiz.status || quiz.status === 'standby') {
+                if (statusBadge) {
+                    statusBadge.textContent = 'Standby';
+                    statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-slate-100 text-slate-700 border border-slate-300';
+                }
+                if (tabBadge) tabBadge.classList.add('hidden');
+                if (vLauncher) vLauncher.classList.remove('hidden');
+                if (vQuestion) vQuestion.classList.add('hidden');
+                if (vScoreboard) vScoreboard.classList.add('hidden');
+                if (vPodium) vPodium.classList.add('hidden');
+                if (guruQuizTimerInterval) { clearInterval(guruQuizTimerInterval); guruQuizTimerInterval = null; }
+                return;
+            }
+
+            // Kuis Sedang Berjalan (Question)
+            if (quiz.status === 'question') {
+                if (statusBadge) {
+                    statusBadge.textContent = 'LIVE // SOAL AKTIF';
+                    statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-rose-500 text-white animate-pulse border border-rose-700';
+                }
+                if (tabBadge) tabBadge.classList.remove('hidden');
+                if (vLauncher) vLauncher.classList.add('hidden');
+                if (vQuestion) vQuestion.classList.remove('hidden');
+                if (vScoreboard) vScoreboard.classList.add('hidden');
+                if (vPodium) vPodium.classList.add('hidden');
+
+                const curQ = quiz.current_question || {};
+                const qIdx = (quiz.current_question_index || 0) + 1;
+                const totalQ = quiz.total_questions || 1;
+
+                const qBadge = document.getElementById('guru-q-badge');
+                if (qBadge) qBadge.textContent = `Soal ${qIdx} dari ${totalQ}`;
+
+                const qText = document.getElementById('guru-q-text');
+                if (qText) qText.textContent = curQ.question || 'Pertanyaan Kuis';
+
+                // Timer Countdown
+                const timeLimit = curQ.time_limit || 20;
+                const elapsed = quiz.time_elapsed || 0;
+                guruQuizRemaining = Math.max(0, timeLimit - elapsed);
+                const timerEl = document.getElementById('guru-q-timer');
+                if (timerEl) timerEl.textContent = `${guruQuizRemaining}s`;
+
+                if (!guruQuizTimerInterval) {
+                    guruQuizTimerInterval = setInterval(() => {
+                        if (guruQuizRemaining > 0) {
+                            guruQuizRemaining--;
+                            const tEl = document.getElementById('guru-q-timer');
+                            if (tEl) tEl.textContent = `${guruQuizRemaining}s`;
+                        } else {
+                            clearInterval(guruQuizTimerInterval);
+                            guruQuizTimerInterval = null;
+                        }
+                    }, 1000);
+                }
+
+                // Answers counter
+                const ansCount = quiz.answers_count || 0;
+                const totPlayers = quiz.total_players || 0;
+                const countEl = document.getElementById('guru-q-answers-count');
+                if (countEl) countEl.textContent = `${ansCount} / ${totPlayers} Siswa Menjawab`;
+
+                const pct = totPlayers > 0 ? Math.min(100, Math.round((ansCount / totPlayers) * 100)) : 0;
+                const progBar = document.getElementById('guru-q-progress-bar');
+                if (progBar) progBar.style.width = `${pct}%`;
+
+                // Options Grid (4 Kahoot Buttons)
+                const optsGrid = document.getElementById('guru-q-options-grid');
+                if (optsGrid && curQ.options) {
+                    let optsHtml = '';
+                    curQ.options.forEach((optText, oIdx) => {
+                        const shape = KAHOOT_SHAPES[oIdx % 4];
+                        const color = KAHOOT_COLORS[oIdx % 4];
+                        optsHtml += `
+                            <div class="p-2.5 rounded-xl text-white font-mono-code font-bold text-xs flex items-center gap-2 border-2 border-black" style="background-color: ${color}; box-shadow: 2px 2px 0px #121316;">
+                                <span class="w-6 h-6 rounded-md bg-white/25 flex items-center justify-center font-black text-xs">${shape}</span>
+                                <span class="truncate">${optText}</span>
+                            </div>
+                        `;
+                    });
+                    optsGrid.innerHTML = optsHtml;
+                }
+                return;
+            }
+
+            // Kuis Status Scoreboard
+            if (quiz.status === 'scoreboard') {
+                if (guruQuizTimerInterval) { clearInterval(guruQuizTimerInterval); guruQuizTimerInterval = null; }
+                if (statusBadge) {
+                    statusBadge.textContent = 'PAPAN SKOR';
+                    statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-indigo-500 text-white border border-indigo-700';
+                }
+                if (tabBadge) tabBadge.classList.add('hidden');
+                if (vLauncher) vLauncher.classList.add('hidden');
+                if (vQuestion) vQuestion.classList.add('hidden');
+                if (vScoreboard) vScoreboard.classList.remove('hidden');
+                if (vPodium) vPodium.classList.add('hidden');
+
+                const curQ = quiz.current_question || {};
+                const qIdx = (quiz.current_question_index || 0) + 1;
+                const totalQ = quiz.total_questions || 1;
+
+                const scoreBadge = document.getElementById('guru-score-q-badge');
+                if (scoreBadge) scoreBadge.textContent = `Soal ${qIdx} dari ${totalQ}`;
+
+                // Distribusi Pilihan Siswa
+                const distContainer = document.getElementById('guru-score-distribution');
+                if (distContainer && curQ.options) {
+                    let distHtml = '';
+                    const dist = quiz.distribution || {};
+                    const totalAns = Math.max(1, quiz.answers_count || 1);
+
+                    curQ.options.forEach((optText, oIdx) => {
+                        const count = dist[oIdx] || 0;
+                        const pct = Math.round((count / totalAns) * 100);
+                        const shape = KAHOOT_SHAPES[oIdx % 4];
+                        const color = KAHOOT_COLORS[oIdx % 4];
+                        const isCorrect = (curQ.correct_answer === oIdx);
+
+                        distHtml += `
+                            <div class="p-2 rounded-xl border ${isCorrect ? 'bg-emerald-50 border-emerald-500 shadow-xs ring-2 ring-emerald-400' : 'bg-white border-slate-200'}">
+                                <div class="flex items-center justify-between text-xs font-mono-code mb-1">
+                                    <div class="flex items-center gap-1.5 truncate">
+                                        <span class="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-black" style="background-color: ${color};">${shape}</span>
+                                        <span class="font-bold truncate text-slate-900">${optText}</span>
+                                        ${isCorrect ? '<span class="text-emerald-700 font-black text-[10px] ml-1">✓ BENAR</span>' : ''}
+                                    </div>
+                                    <span class="font-black text-slate-700 ml-2">${count} siswa (${pct}%)</span>
+                                </div>
+                                <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full ${isCorrect ? 'bg-emerald-500' : 'bg-slate-400'}" style="width: ${pct}%;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    distContainer.innerHTML = distHtml;
+                }
+
+                // Leaderboard Top 5 Siswa
+                const lbContainer = document.getElementById('guru-score-leaderboard');
+                if (lbContainer) {
+                    const topList = quiz.top_players || [];
+                    if (topList.length === 0) {
+                        lbContainer.innerHTML = `<p class="text-[10px] font-mono-code text-slate-400 text-center py-2">Belum ada skor yang dicatat.</p>`;
+                    } else {
+                        let lbHtml = '';
+                        topList.forEach((pl, rIdx) => {
+                            const medal = rIdx === 0 ? '🥇' : (rIdx === 1 ? '🥈' : (rIdx === 2 ? '🥉' : `#${rIdx + 1}`));
+                            lbHtml += `
+                                <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 shadow-xs font-mono-code text-xs">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="text-sm font-black w-6 text-center">${medal}</span>
+                                        <span class="font-extrabold truncate text-slate-900">${pl.name}</span>
+                                    </div>
+                                    <span class="font-black text-pink-600">${(pl.score || 0).toLocaleString()} pts</span>
+                                </div>
+                            `;
+                        });
+                        lbContainer.innerHTML = lbHtml;
+                    }
+                }
+
+                // Tombol Next Question vs Buka Podium
+                const nextBtn = document.getElementById('btn-guru-next-q');
+                if (nextBtn) {
+                    if (qIdx < totalQ) {
+                        nextBtn.innerHTML = `<span>Soal Berikutnya (${qIdx + 1}/${totalQ})</span> <i class="fa-solid fa-arrow-right ml-1"></i>`;
+                    } else {
+                        nextBtn.innerHTML = `<span>Selesai &amp; Buka Podium</span> <i class="fa-solid fa-trophy ml-1"></i>`;
+                    }
+                }
+                return;
+            }
+
+            // Kuis Status Selesai (Podium)
+            if (quiz.status === 'finished') {
+                if (guruQuizTimerInterval) { clearInterval(guruQuizTimerInterval); guruQuizTimerInterval = null; }
+                if (statusBadge) {
+                    statusBadge.textContent = 'SELESAI (PODIUM)';
+                    statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-amber-400 text-amber-950 border border-amber-600';
+                }
+                if (tabBadge) tabBadge.classList.add('hidden');
+                if (vLauncher) vLauncher.classList.add('hidden');
+                if (vQuestion) vQuestion.classList.add('hidden');
+                if (vScoreboard) vScoreboard.classList.add('hidden');
+                if (vPodium) vPodium.classList.remove('hidden');
+
+                const pTitle = document.getElementById('guru-podium-title');
+                if (pTitle) pTitle.textContent = quiz.title || 'Kuis KBM';
+
+                const podCards = document.getElementById('guru-podium-cards');
+                if (podCards) {
+                    const podList = quiz.podium || [];
+                    const p1 = podList[0] || null;
+                    const p2 = podList[1] || null;
+                    const p3 = podList[2] || null;
+
+                    podCards.innerHTML = `
+                        {{-- Juara 2 (Perak) --}}
+                        <div class="flex flex-col items-center">
+                            <span class="text-2xl mb-1">🥈</span>
+                            <div class="w-full p-2.5 rounded-t-2xl border-2 border-black bg-slate-200 text-center font-mono-code" style="box-shadow: 2px 2px 0px #121316; height: 110px;">
+                                <div class="text-[9px] font-black text-slate-600">JUARA 2</div>
+                                <div class="text-xs font-black truncate text-slate-900 mt-1">${p2 ? p2.name : '-'}</div>
+                                <div class="text-[10px] font-black text-pink-600 mt-0.5">${p2 ? (p2.score || 0).toLocaleString() : '0'} pts</div>
+                                <span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 text-[8px] font-black">+10 Rep</span>
+                            </div>
+                        </div>
+
+                        {{-- Juara 1 (Emas - Paling Tinggi) --}}
+                        <div class="flex flex-col items-center -mt-4">
+                            <span class="text-3xl mb-1 animate-bounce">🥇</span>
+                            <div class="w-full p-3 rounded-t-2xl border-2 border-black bg-amber-300 text-center font-mono-code" style="box-shadow: 3px 3px 0px #121316; height: 135px;">
+                                <div class="text-[10px] font-black text-amber-900">JUARA 1 👑</div>
+                                <div class="text-xs font-black truncate text-slate-900 mt-1">${p1 ? p1.name : '-'}</div>
+                                <div class="text-[11px] font-black text-pink-700 mt-0.5">${p1 ? (p1.score || 0).toLocaleString() : '0'} pts</div>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded bg-black text-amber-300 text-[9px] font-black">+15 Rep</span>
+                            </div>
+                        </div>
+
+                        {{-- Juara 3 (Perunggu) --}}
+                        <div class="flex flex-col items-center">
+                            <span class="text-2xl mb-1">🥉</span>
+                            <div class="w-full p-2.5 rounded-t-2xl border-2 border-black bg-amber-700/20 text-center font-mono-code" style="box-shadow: 2px 2px 0px #121316; height: 95px;">
+                                <div class="text-[9px] font-black text-amber-900">JUARA 3</div>
+                                <div class="text-xs font-black truncate text-slate-900 mt-1">${p3 ? p3.name : '-'}</div>
+                                <div class="text-[10px] font-black text-pink-600 mt-0.5">${p3 ? (p3.score || 0).toLocaleString() : '0'} pts</div>
+                                <span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 text-[8px] font-black">+5 Rep</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
         }
 
         // ============================================================
