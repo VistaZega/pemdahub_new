@@ -398,6 +398,8 @@
                         </div>
                     </div>
                 </div>
+            @endif
+
             @if(session('error'))
                 <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-700 flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-3">
