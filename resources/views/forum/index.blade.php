@@ -39,8 +39,8 @@
 </script>
 <style>
     .forum-hdr { font-family: 'Space Grotesk', sans-serif; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+    .no-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
 
     /* ── LIGHT THEME COLORS ── */
     .bg-forum-base   { background-color: #f8fafc !important; }
@@ -1031,100 +1031,146 @@
         </div>
 
         <!-- SIDEBAR WIDGETS (Right) -->
-        <div class="hidden xl:flex flex-col w-72 flex-shrink-0 bg-white border-l border-slate-100 p-5 gap-5 max-h-[85vh] overflow-y-auto no-scrollbar">
-            <!-- User Profile Card -->
-            @php
-                $user = auth()->user();
-                $isYayasan = $user->username === 'yulzega' || str_contains(strtolower($user->name ?? ''), 'yulianus zega');
-                $rep = $user->reputation;
-                $pts = $rep->total_points ?? 0;
-                $school = $user->school->name ?? 'Yayasan Perguruan Pembda Nias';
-                
-                $next = 100; $rank = 'Perintis';
-                if ($pts >= 500) { $rank = 'Legenda 👑'; $next = 1000; }
-                elseif ($pts >= 200) { $rank = 'Kontributor 💎'; $next = 500; }
-                elseif ($pts >= 100) { $rank = 'Warga Aktif 🚀'; $next = 200; }
-                $pct = min(100, max(5, round(($pts / $next) * 100)));
-            @endphp
-            @if($isYayasan)
-            <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 rounded-3xl p-5 shadow-lg text-white relative overflow-hidden border-2 border-black">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black shadow-inner flex items-center justify-center flex-shrink-0 overflow-hidden text-black font-black text-lg">
-                        <img src="{{ $user->avatar_url }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="w-full h-full items-center justify-center hidden bg-amber-400 text-black font-black"><i class="fas fa-crown"></i></div>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="font-black text-white truncate text-base tracking-tight">{{ $user->name }}</div>
-                        <div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider truncate">{{ $school }}</div>
-                    </div>
-                </div>
-                
-                <div class="inline-flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-xl text-xs font-black text-amber-300 border border-amber-400/30">
-                    <i class="fas fa-crown text-amber-400"></i> Pimpinan Yayasan
-                </div>
-            </div>
-            @else
-            <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 rounded-3xl p-5 shadow-lg shadow-purple-500/20 text-white relative overflow-hidden">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 shadow-inner flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        <img src="{{ $user->avatar_url }}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="font-bold text-white truncate text-base tracking-tight">{{ $user->name }}</div>
-                        <div class="text-[10px] text-white font-bold uppercase tracking-wider truncate">{{ $school }}</div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-between items-center mb-2 text-xs font-extrabold text-white">
-                    <span>{{ $rank }}</span>
-                    <span>{{ $pts }} / {{ $next }} Pts</span>
-                </div>
-                <div class="w-full bg-white/30 h-2 rounded-full overflow-hidden p-0.5">
-                    <div class="bg-white h-full rounded-full transition-all duration-300" style="width: {{ $pct }}%"></div>
-                </div>
-            </div>
-            @endif
+        <div class="hidden xl:flex flex-col w-80 flex-shrink-0 bg-white border-l border-slate-100 max-h-[85vh] overflow-hidden">
+            <!-- Pinned Top User Profile Card (Fixed header, never scrolled away or cut off) -->
+            <div class="p-4 bg-white border-b border-slate-100 shrink-0">
+                @php
+                    $user = auth()->user();
+                    $isYayasan = $user->username === 'yulzega' || str_contains(strtolower($user->name ?? ''), 'yulianus zega');
+                    $rep = $user->reputation;
+                    $pts = $rep->total_points ?? 0;
+                    $school = $user->school->name ?? 'Yayasan Perguruan Pembda Nias';
+                    
+                    $next = 100; $rank = 'Perintis';
+                    if ($pts >= 500) { $rank = 'Legenda 👑'; $next = 1000; }
+                    elseif ($pts >= 200) { $rank = 'Kontributor 💎'; $next = 500; }
+                    elseif ($pts >= 100) { $rank = 'Warga Aktif 🚀'; $next = 200; }
+                    $pct = min(100, max(5, round(($pts / $next) * 100)));
+                @endphp
 
-            <!-- Leaderboard Widget -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="forum-hdr text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <i class="ph-bold ph-trophy text-amber-500"></i> Leaderboard
-                    </h3>
-                    <a href="{{ route('reputation.leaderboard') }}" class="text-[10px] text-indigo-700 hover:text-indigo-900 uppercase tracking-wider font-bold">Semua</a>
-                </div>
-                <div class="space-y-3">
-                    @foreach($topStudents as $i => $s)
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-900">{{ $i+1 }}</div>
-                            <img src="{{ $s->user->avatar_url }}" class="w-6 h-6 rounded-full border border-slate-100 object-cover">
+                @if($isYayasan)
+                <!-- Premium Yayasan Profile Card -->
+                <div class="rounded-2xl p-4 text-white relative overflow-hidden shadow-md border border-amber-400/40"
+                     style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #172554 100%);">
+                    <!-- Subtle Glow Effect -->
+                    <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-amber-500/15 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="absolute -left-6 -top-6 w-24 h-24 bg-indigo-500/15 rounded-full blur-xl pointer-events-none"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-3.5 mb-3">
+                            <!-- Avatar Frame with Verified Crown Badge -->
+                            <div class="relative shrink-0">
+                                <div class="w-13 h-13 rounded-2xl bg-amber-400/20 p-0.5 ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900 shadow-md overflow-hidden flex items-center justify-center">
+                                    <img src="{{ $user->avatar_url }}" 
+                                         alt="{{ $user->name }}" 
+                                         class="w-full h-full object-cover rounded-[14px]"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-full h-full items-center justify-center hidden bg-amber-400 text-slate-950 font-black text-xl">
+                                        <i class="ph-bold ph-crown"></i>
+                                    </div>
+                                </div>
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 rounded-full flex items-center justify-center text-[10px] shadow-sm font-black border border-white/80" title="Pimpinan Terverifikasi">
+                                    👑
+                                </span>
+                            </div>
+
+                            <!-- User Info -->
                             <div class="min-w-0 flex-1">
-                                <div class="text-[11px] font-bold text-slate-900 truncate">{{ $s->user->name }}</div>
+                                <h3 class="font-bold text-white text-sm leading-snug tracking-tight truncate" title="{{ $user->name }}">
+                                    {{ $user->name }}
+                                </h3>
+                                <p class="text-[11px] text-amber-300/90 font-medium truncate mt-0.5" title="{{ $school }}">
+                                    {{ $school }}
+                                </p>
                             </div>
-                            <div class="text-[11px] font-bold text-indigo-700">{{ $s->total_points }}</div>
                         </div>
-                    @endforeach
+
+                        <!-- Role Badge -->
+                        <div class="flex items-center justify-between pt-2 border-t border-white/10">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                <i class="ph-bold ph-shield-check text-amber-400 text-xs"></i>
+                                <span>Pimpinan Yayasan</span>
+                            </span>
+                            <span class="text-[10px] text-slate-300 font-bold uppercase tracking-wider">
+                                Eksekutif
+                            </span>
+                        </div>
+                    </div>
                 </div>
+                @else
+                <!-- Regular User Profile Card -->
+                <div class="rounded-2xl p-4 text-white relative overflow-hidden shadow-md"
+                     style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #9333ea 100%);">
+                    <div class="flex items-center gap-3.5 mb-3">
+                        <div class="w-13 h-13 rounded-2xl bg-white/20 p-0.5 ring-2 ring-white/60 ring-offset-2 ring-offset-purple-700 shadow-md overflow-hidden shrink-0 flex items-center justify-center">
+                            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover rounded-[14px]">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-bold text-white text-sm leading-snug tracking-tight truncate" title="{{ $user->name }}">
+                                {{ $user->name }}
+                            </h3>
+                            <p class="text-[11px] text-purple-100 font-medium truncate mt-0.5" title="{{ $school }}">
+                                {{ $school }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-1.5 pt-2 border-t border-white/15">
+                        <div class="flex justify-between items-center text-xs font-black text-white/95">
+                            <span>{{ $rank }}</span>
+                            <span class="text-purple-100">{{ $pts }} / {{ $next }} Pts</span>
+                        </div>
+                        <div class="w-full bg-black/25 h-2 rounded-full overflow-hidden p-0.5">
+                            <div class="bg-white h-full rounded-full transition-all duration-300" style="width: {{ $pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
 
-            <!-- Collab Widget -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-                <h3 class="forum-hdr text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
-                    <i class="ph-bold ph-handshake text-indigo-600"></i> Cari Tim
-                </h3>
-                <div class="space-y-2.5">
-                    @forelse($activeCollabs as $c)
-                        <a href="{{ route('forum.show', $c) }}" class="block p-3 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition">
-                            <div class="text-[9px] text-indigo-700 font-bold uppercase mb-1">{{ $c->category_label }}</div>
-                            <div class="text-xs font-bold text-slate-900 line-clamp-2 mb-1.5">{{ $c->title }}</div>
-                            <div class="flex justify-between items-center text-[10px] text-slate-900 font-bold">
-                                <span class="truncate pr-2">{{ $c->user->name }}</span>
-                                <span class="flex-shrink-0">{{ $c->approvedMembers()->count() }} Tim</span>
+            <!-- Scrollable Content: Leaderboard & Cari Tim Widgets -->
+            <div class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto no-scrollbar">
+                <!-- Leaderboard Widget -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="forum-hdr text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <i class="ph-bold ph-trophy text-amber-500"></i> Leaderboard
+                        </h3>
+                        <a href="{{ route('reputation.leaderboard') }}" class="text-[10px] text-indigo-700 hover:text-indigo-900 uppercase tracking-wider font-bold">Semua</a>
+                    </div>
+                    <div class="space-y-3">
+                        @foreach($topStudents as $i => $s)
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-900">{{ $i+1 }}</div>
+                                <img src="{{ $s->user->avatar_url }}" class="w-6 h-6 rounded-full border border-slate-100 object-cover">
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-[11px] font-bold text-slate-900 truncate">{{ $s->user->name }}</div>
+                                </div>
+                                <div class="text-[11px] font-bold text-indigo-700">{{ $s->total_points }}</div>
                             </div>
-                        </a>
-                    @empty
-                        <div class="text-[11px] text-slate-900 font-bold italic text-center py-2">Belum ada kolaborasi aktif.</div>
-                    @endforelse
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Collab Widget -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                    <h3 class="forum-hdr text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
+                        <i class="ph-bold ph-handshake text-indigo-600"></i> Cari Tim
+                    </h3>
+                    <div class="space-y-2.5">
+                        @forelse($activeCollabs as $c)
+                            <a href="{{ route('forum.show', $c) }}" class="block p-3 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition">
+                                <div class="text-[9px] text-indigo-700 font-bold uppercase mb-1">{{ $c->category_label }}</div>
+                                <div class="text-xs font-bold text-slate-900 line-clamp-2 mb-1.5">{{ $c->title }}</div>
+                                <div class="flex justify-between items-center text-[10px] text-slate-900 font-bold">
+                                    <span class="truncate pr-2">{{ $c->user->name }}</span>
+                                    <span class="flex-shrink-0">{{ $c->approvedMembers()->count() }} Tim</span>
+                                </div>
+                            </a>
+                        @empty
+                            <div class="text-[11px] text-slate-900 font-bold italic text-center py-2">Belum ada kolaborasi aktif.</div>
+                        @endforelse
+                    </div>
                 </div>
             </div>
         </div>
