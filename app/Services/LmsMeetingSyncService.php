@@ -41,6 +41,16 @@ class LmsMeetingSyncService
         return 'lms_meeting_chats_' . $courseId;
     }
 
+    protected static function getPollKey(int $courseId): string
+    {
+        return 'lms_meeting_poll_' . $courseId;
+    }
+
+    protected static function getQaKey(int $courseId): string
+    {
+        return 'lms_meeting_qa_' . $courseId;
+    }
+
     /**
      * Heartbeat / Sync status pengguna (Guru atau Siswa)
      */
@@ -271,18 +281,234 @@ class LmsMeetingSyncService
             'attendees'       => $attendees,
             'raised_hands'    => $raisedHands,
             'chats'           => $visibleChats,
+            'poll'            => self::getPoll($courseId, $forUserId),
+            'qa_list'         => self::getQuestions($courseId, $forUserId),
             'mood_summary'    => $moodSummary,
             'available_moods' => $availableMoods,
             'server_time'     => time(),
         ];
     }
 
+    // ─────────────────────────────────────────────────────────
+    // FITUR POLLING KILAT (QUICK POLL)
+    // ─────────────────────────────────────────────────────────
+
+    public static function createPoll(int $courseId, string $question, array $options): array
+    {
+        $options = array_values(array_filter(array_map('trim', $options)));
+        if (empty($options)) {
+            $options = ['Paham', 'Masih Bingung'];
+        }
+
+        $poll = [
+            'id'          => uniqid('poll_'),
+            'question'    => htmlspecialchars(trim($question), ENT_QUOTES, 'UTF-8'),
+            'options'     => array_map(fn($o) => htmlspecialchars($o, ENT_QUOTES, 'UTF-8'), $options),
+            'created_at'  => time(),
+            'is_active'   => true,
+            'votes'       => [], // userId => optionIndex
+            'total_votes' => 0,
+            'counts'      => array_fill(0, count($options), 0),
+        ];
+
+        Cache::put(self::getPollKey($courseId), $poll, self::TTL_SECONDS);
+        return $poll;
+    }
+
+    public static function votePoll(int $courseId, int $userId, int $optionIndex): ?array
+    {
+        $pollKey = self::getPollKey($courseId);
+        $poll = Cache::get($pollKey);
+        if (!$poll || empty($poll['is_active'])) {
+            return null;
+        }
+
+        if (!isset($poll['options'][$optionIndex])) {
+            return null;
+        }
+
+        $poll['votes'][$userId] = (int)$optionIndex;
+        $poll['total_votes'] = count($poll['votes']);
+
+        // Recount
+        $counts = array_fill(0, count($poll['options']), 0);
+        foreach ($poll['votes'] as $uid => $idx) {
+            if (isset($counts[$idx])) {
+                $counts[$idx]++;
+            }
+        }
+        $poll['counts'] = $counts;
+
+        Cache::put($pollKey, $poll, self::TTL_SECONDS);
+        return $poll;
+    }
+
+    public static function endPoll(int $courseId): ?array
+    {
+        $pollKey = self::getPollKey($courseId);
+        $poll = Cache::get($pollKey);
+        if ($poll) {
+            $poll['is_active'] = false;
+            $poll['ended_at'] = time();
+            Cache::put($pollKey, $poll, self::TTL_SECONDS);
+        }
+        return $poll;
+    }
+
+    public static function clearPoll(int $courseId): void
+    {
+        Cache::forget(self::getPollKey($courseId));
+    }
+
+    public static function getPoll(int $courseId, ?int $forUserId = null): ?array
+    {
+        $poll = Cache::get(self::getPollKey($courseId));
+        if (!$poll) {
+            return null;
+        }
+
+        $userVoted = null;
+        $hasVoted = false;
+        if ($forUserId && isset($poll['votes'][$forUserId])) {
+            $userVoted = (int)$poll['votes'][$forUserId];
+            $hasVoted = true;
+        }
+
+        $percentages = [];
+        $total = max(1, $poll['total_votes']);
+        foreach ($poll['counts'] as $c) {
+            $percentages[] = $poll['total_votes'] > 0 ? round(($c / $total) * 100) : 0;
+        }
+
+        return [
+            'id'                => $poll['id'],
+            'question'          => $poll['question'],
+            'options'           => $poll['options'],
+            'created_at'        => $poll['created_at'],
+            'is_active'         => (bool)($poll['is_active'] ?? false),
+            'total_votes'       => (int)($poll['total_votes'] ?? 0),
+            'counts'            => $poll['counts'] ?? array_fill(0, count($poll['options']), 0),
+            'percentages'       => $percentages,
+            'has_voted'         => $hasVoted,
+            'user_voted_option' => $userVoted,
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // FITUR TANYA JAWAB TERSTRUKTUR (Q&A QUEUE & UPVOTE)
+    // ─────────────────────────────────────────────────────────
+
+    public static function askQuestion(int $courseId, int $userId, string $userName, string $userRole, string $text): ?array
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return null;
+        }
+
+        $qaKey = self::getQaKey($courseId);
+        $questions = Cache::get($qaKey, []);
+
+        $item = [
+            'id'             => uniqid('qa_'),
+            'user_id'        => $userId,
+            'user_name'      => $userName,
+            'user_role'      => $userRole,
+            'question'       => htmlspecialchars($text, ENT_QUOTES, 'UTF-8'),
+            'created_at'     => time(),
+            'time_formatted' => date('H:i'),
+            'upvotes'        => [$userId], // Pembuat otomatis upvote
+            'upvote_count'   => 1,
+            'status'         => 'pending', // 'pending' | 'answering' | 'answered'
+        ];
+
+        $questions[] = $item;
+
+        if (count($questions) > 100) {
+            $questions = array_slice($questions, -100);
+        }
+
+        Cache::put($qaKey, $questions, self::TTL_SECONDS);
+        return $item;
+    }
+
+    public static function upvoteQuestion(int $courseId, string $questionId, int $userId): array
+    {
+        $qaKey = self::getQaKey($courseId);
+        $questions = Cache::get($qaKey, []);
+
+        foreach ($questions as &$q) {
+            if ($q['id'] === $questionId) {
+                $idx = array_search($userId, $q['upvotes']);
+                if ($idx !== false) {
+                    unset($q['upvotes'][$idx]);
+                    $q['upvotes'] = array_values($q['upvotes']);
+                } else {
+                    $q['upvotes'][] = $userId;
+                }
+                $q['upvote_count'] = count($q['upvotes']);
+                break;
+            }
+        }
+
+        Cache::put($qaKey, $questions, self::TTL_SECONDS);
+        return $questions;
+    }
+
+    public static function updateQuestionStatus(int $courseId, string $questionId, string $status): array
+    {
+        $qaKey = self::getQaKey($courseId);
+        $questions = Cache::get($qaKey, []);
+
+        if ($status === 'delete') {
+            $questions = array_values(array_filter($questions, fn($q) => $q['id'] !== $questionId));
+        } else {
+            foreach ($questions as &$q) {
+                if ($q['id'] === $questionId) {
+                    $q['status'] = in_array($status, ['pending', 'answering', 'answered']) ? $status : 'pending';
+                    break;
+                }
+            }
+        }
+
+        Cache::put($qaKey, $questions, self::TTL_SECONDS);
+        return $questions;
+    }
+
+    public static function getQuestions(int $courseId, ?int $forUserId = null): array
+    {
+        $qaKey = self::getQaKey($courseId);
+        $questions = Cache::get($qaKey, []);
+
+        // Sort: 'answering' di atas, lalu upvote terbanyak, lalu terbaru
+        usort($questions, function ($a, $b) {
+            $isAnswA = ($a['status'] ?? '') === 'answering';
+            $isAnswB = ($b['status'] ?? '') === 'answering';
+            if ($isAnswA && !$isAnswB) return -1;
+            if (!$isAnswA && $isAnswB) return 1;
+
+            $votesA = (int)($a['upvote_count'] ?? 0);
+            $votesB = (int)($b['upvote_count'] ?? 0);
+            if ($votesA !== $votesB) {
+                return $votesB <=> $votesA;
+            }
+
+            return ($b['created_at'] ?? 0) <=> ($a['created_at'] ?? 0);
+        });
+
+        return array_map(function ($q) use ($forUserId) {
+            $q['has_upvoted'] = $forUserId ? in_array($forUserId, $q['upvotes'] ?? []) : false;
+            return $q;
+        }, $questions);
+    }
+
     /**
-     * Bersihkan cache sinyal & chat saat sesi meeting resmi diakhiri
+     * Bersihkan seluruh cache saat sesi meeting resmi diakhiri
      */
     public static function endSession(int $courseId): void
     {
         Cache::forget(self::getSignalsKey($courseId));
         Cache::forget(self::getChatsKey($courseId));
+        Cache::forget(self::getPollKey($courseId));
+        Cache::forget(self::getQaKey($courseId));
     }
 }

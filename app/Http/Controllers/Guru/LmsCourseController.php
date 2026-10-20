@@ -2211,6 +2211,34 @@ HTML;
             }
         }
 
+        // Handle Polling KBM dari guru
+        if ($action === 'create_poll') {
+            $question = (string)$request->input('question', 'Apakah materi ini sudah dipahami?');
+            $options = (array)$request->input('options', ['Paham', 'Masih Bingung']);
+            \App\Services\LmsMeetingSyncService::createPoll($course->id, $question, $options);
+        } elseif ($action === 'end_poll') {
+            \App\Services\LmsMeetingSyncService::endPoll($course->id);
+        } elseif ($action === 'clear_poll') {
+            \App\Services\LmsMeetingSyncService::clearPoll($course->id);
+        } elseif ($action === 'vote_poll') {
+            $optionIndex = (int)$request->input('option_index', 0);
+            \App\Services\LmsMeetingSyncService::votePoll($course->id, $userId, $optionIndex);
+        }
+
+        // Handle Q&A Moderation dari guru
+        if ($action === 'update_qa_status') {
+            $questionId = (string)$request->input('question_id', '');
+            $status = (string)$request->input('status', 'pending');
+            if ($questionId !== '') {
+                \App\Services\LmsMeetingSyncService::updateQuestionStatus($course->id, $questionId, $status);
+            }
+        } elseif ($action === 'upvote_qa') {
+            $questionId = (string)$request->input('question_id', '');
+            if ($questionId !== '') {
+                \App\Services\LmsMeetingSyncService::upvoteQuestion($course->id, $questionId, $userId);
+            }
+        }
+
         $state = \App\Services\LmsMeetingSyncService::getState($course->id, $userId);
 
         return response()->json($state);

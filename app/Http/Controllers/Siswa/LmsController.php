@@ -1617,6 +1617,25 @@ HTML;
             );
         }
 
+        // Handle Vote Polling dari siswa
+        if ($action === 'vote_poll') {
+            $optionIndex = (int)$request->input('option_index', 0);
+            \App\Services\LmsMeetingSyncService::votePoll($course->id, $userId, $optionIndex);
+        }
+
+        // Handle Pengajuan Pertanyaan Q&A dari siswa
+        if ($action === 'ask_question') {
+            $text = (string)$request->input('text', '');
+            if ($text !== '') {
+                \App\Services\LmsMeetingSyncService::askQuestion($course->id, $userId, $studentName, 'siswa', $text);
+            }
+        } elseif ($action === 'upvote_qa') {
+            $questionId = (string)$request->input('question_id', '');
+            if ($questionId !== '') {
+                \App\Services\LmsMeetingSyncService::upvoteQuestion($course->id, $questionId, $userId);
+            }
+        }
+
         $state = \App\Services\LmsMeetingSyncService::getState($course->id, $userId);
         $state['is_active'] = (bool)($course->meeting_active && cache()->has('lms_meeting_session_' . $course->id));
 

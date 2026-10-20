@@ -328,6 +328,20 @@
                         </span>
                     </div>
 
+                    {{-- FLOATING PROMPT POLLING KBM DARI GURU --}}
+                    <div id="student-floating-poll-banner" class="hidden w-full max-w-xl mx-auto mb-2 p-3 rounded-2xl flex items-center justify-between gap-3 transition-all" style="background-color: #fde047; color: #121316; border: 2.5px solid #121316; box-shadow: 4px 4px 0px #121316;">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="text-xl flex-shrink-0 animate-bounce">📢</span>
+                            <div class="min-w-0">
+                                <div class="text-[9px] font-mono-code font-black uppercase text-amber-900 tracking-wider">POLLING KBM DILUNCURKAN GURU</div>
+                                <div id="student-floating-poll-question" class="text-xs font-black truncate text-black">Pertanyaan polling...</div>
+                            </div>
+                        </div>
+                        <button onclick="switchStudentTab('polling')" type="button" class="btn-tactile-white px-3 py-1.5 rounded-xl text-xs font-mono-code font-black flex items-center gap-1 flex-shrink-0">
+                            <span>Jawab</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
                     <div id="podium-container" class="w-full max-w-xl mx-auto transition-all duration-300">
                         <div id="podium-grid" class="w-full flex items-center justify-center transition-all duration-300">
                             {{-- Slot Kiri: Mimbar Guru Pengajar --}}
@@ -536,15 +550,21 @@
                     <i class="fa-solid fa-users text-xs" style="color: #2563eb;"></i>
                     <span>Teman</span>
                 </button>
-                <button id="tab-btn-chat" onclick="switchStudentTab('chat')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0] relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+                <button id="tab-btn-chat" onclick="switchStudentTab('chat')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0] relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
                     <i class="fa-solid fa-comments text-xs" style="color: #2563eb;"></i>
                     <span>Chat</span>
                     <span id="chat-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ff3823; color: #ffffff;">0</span>
                 </button>
-                <button onclick="toggleStudentHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
-                    <i class="fa-solid fa-xmark text-sm"></i>
+                <button id="tab-btn-polling" onclick="switchStudentTab('polling')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0] relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Polling Kilat">
+                    <i class="fa-solid fa-square-poll-vertical text-xs" style="color: #d97706;"></i>
+                    <span>Poll</span>
+                    <span id="student-poll-tab-badge" class="hidden w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                 </button>
-            </div>
+                <button id="tab-btn-qa" onclick="switchStudentTab('qa')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0] relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tanya Jawab Q&A">
+                    <i class="fa-solid fa-clipboard-question text-xs" style="color: #ea580c;"></i>
+                    <span>Q&A</span>
+                    <span id="student-qa-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
+                </button>
                 <button onclick="toggleStudentHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
@@ -744,6 +764,102 @@
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                         <span class="hidden sm:inline">Kirim</span>
                     </button>
+                </div>
+            </div>
+
+            {{-- TAB 5: POLLING KILAT SISWA --}}
+            <div id="tab-content-polling" class="flex-1 flex flex-col overflow-hidden hidden" style="background-color: #faf8f5;">
+                {{-- Header Polling --}}
+                <div class="p-3 flex items-center justify-between flex-shrink-0 shadow-xs" style="background-color: #ffffff; border-bottom: 2px solid #121316;">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs border border-black shadow-xs" style="background-color: #d97706; color: #ffffff;">
+                            <i class="fa-solid fa-square-poll-vertical"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-black" style="color: #121316;">Polling Kilat KBM</div>
+                            <div class="text-[9px] font-mono-code font-bold text-slate-500">Pertanyaan interaktif dari guru</div>
+                        </div>
+                    </div>
+                    <div id="student-poll-header-badge">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-slate-100 text-slate-600 border border-slate-300">Menunggu</span>
+                    </div>
+                </div>
+
+                {{-- Konten Utama Polling --}}
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    {{-- Belum Ada Polling --}}
+                    <div id="student-poll-empty" class="text-center py-12 px-4">
+                        <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-100 text-amber-700 border border-amber-300 flex items-center justify-center text-xl mb-2">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                        <p class="text-xs font-mono-code font-bold text-slate-700">Belum Ada Polling Aktif</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Saat Guru meluncurkan pertanyaan polling kilat, pilihan jawaban akan langsung muncul di sini.</p>
+                    </div>
+
+                    {{-- Ada Polling Aktif / Selesai --}}
+                    <div id="student-poll-card" class="hidden p-4 rounded-2xl bg-white space-y-3 relative overflow-hidden" style="border: 2px solid #121316; box-shadow: 4px 4px 0px #d97706;">
+                        <div class="flex items-center justify-between">
+                            <span id="student-poll-status-indicator" class="px-2 py-0.5 rounded-md text-[10px] font-mono-code font-black flex items-center gap-1.5" style="background-color: #fef3c7; color: #92400e; border: 1px solid #f59e0b;">
+                                <span class="w-2 h-2 rounded-full animate-ping bg-amber-500"></span> POLLING BERLANGSUNG
+                            </span>
+                            <span id="student-poll-total-badge" class="text-xs font-mono-code font-black text-slate-700">0 Suara</span>
+                        </div>
+
+                        <h4 id="student-poll-question-text" class="text-sm font-black leading-snug" style="color: #121316;">
+                            Pertanyaan Polling
+                        </h4>
+
+                        {{-- Options Container (Buttons or Progress Bars) --}}
+                        <div id="student-poll-options-container" class="space-y-2 pt-1">
+                            {{-- Diisi secara dinamis oleh JavaScript --}}
+                        </div>
+
+                        <div id="student-poll-notice" class="text-[10px] font-mono-code text-center text-slate-500 pt-1 border-t border-slate-200">
+                            Pilih salah satu jawaban di atas untuk memberikan suara Anda.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- TAB 6: TANYA JAWAB TERSTRUKTUR (Q&A) SISWA --}}
+            <div id="tab-content-qa" class="flex-1 flex flex-col overflow-hidden hidden" style="background-color: #faf8f5;">
+                {{-- Header Q&A --}}
+                <div class="p-3 flex items-center justify-between flex-shrink-0 shadow-xs" style="background-color: #ffffff; border-bottom: 2px solid #121316;">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs border border-black shadow-xs" style="background-color: #ea580c; color: #ffffff;">
+                            <i class="fa-solid fa-clipboard-question"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-black" style="color: #121316;">Tanya Jawab (Q&A)</div>
+                            <div class="text-[9px] font-mono-code font-bold text-slate-500">Tanyakan materi & upvote pertanyaan teman</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span id="student-qa-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-orange-100 text-orange-800 border border-orange-300">0 Pertanyaan</span>
+                    </div>
+                </div>
+
+                {{-- Form Ajukan Pertanyaan --}}
+                <div class="p-3 bg-white border-b-2 border-black flex flex-col gap-2 flex-shrink-0">
+                    <label class="text-[10px] font-mono-code font-black text-slate-700 uppercase">Ajukan Pertanyaan ke Guru:</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="student-qa-input" placeholder="Tuliskan pertanyaan materi..." class="flex-1 px-3 py-2 text-xs font-mono-code rounded-xl border-2 border-black focus:outline-none" style="box-shadow: 2px 2px 0px #121316;" onkeydown="if(event.key==='Enter') submitStudentQuestion()">
+                        <button onclick="submitStudentQuestion()" type="button" class="btn-tactile-red px-3.5 py-2 rounded-xl text-xs font-mono-code font-black flex items-center gap-1 active:scale-95">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span>Tanya</span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Daftar Pertanyaan Q&A --}}
+                <div id="student-qa-list-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <div id="student-qa-empty" class="text-center py-10 px-4">
+                        <div class="w-12 h-12 mx-auto rounded-2xl bg-orange-100 text-orange-600 border border-orange-300 flex items-center justify-center text-xl mb-2">
+                            <i class="fa-solid fa-comment-dots"></i>
+                        </div>
+                        <p class="text-xs font-mono-code font-bold text-slate-700">Belum ada pertanyaan</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Gunakan form di atas untuk menanyakan materi yang belum Anda pahami.</p>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -1632,16 +1748,18 @@
                 if (handler) handler.classList.remove('hidden');
             }
 
-            const tabs = ['materi', 'notes', 'friends', 'chat'];
+            const tabs = ['materi', 'notes', 'friends', 'chat', 'polling', 'qa'];
             tabs.forEach(t => {
                 const btn = document.getElementById('tab-btn-' + t);
                 const content = document.getElementById('tab-content-' + t);
                 if (t === tabName) {
-                    btn.style.backgroundColor = '#121316';
-                    btn.style.color = '#fde047';
-                    btn.style.boxShadow = '2px 2px 0px #ff3823';
-                    btn.classList.add('font-black');
-                    btn.classList.remove('font-bold');
+                    if (btn) {
+                        btn.style.backgroundColor = '#121316';
+                        btn.style.color = '#fde047';
+                        btn.style.boxShadow = '2px 2px 0px #ff3823';
+                        btn.classList.add('font-black');
+                        btn.classList.remove('font-bold');
+                    }
                     if (content) content.classList.remove('hidden');
                 } else {
                     if (btn) {
@@ -1654,6 +1772,15 @@
                     if (content) content.classList.add('hidden');
                 }
             });
+
+            if (tabName === 'polling') {
+                const pBadge = document.getElementById('student-poll-tab-badge');
+                if (pBadge) pBadge.classList.add('hidden');
+            }
+            if (tabName === 'qa') {
+                const qBadge = document.getElementById('student-qa-tab-badge');
+                if (qBadge) qBadge.classList.add('hidden');
+            }
 
             if (tabName === 'chat') {
                 isStudentChatActiveTab = true;
@@ -1978,6 +2105,12 @@
                     }
                 }
             }
+
+            // 8. Render Polling Kilat untuk Siswa
+            renderStudentPoll(data.poll);
+
+            // 9. Render Q&A Queue untuk Siswa
+            renderStudentQa(data.qa_list);
         }
 
         async function sendChatMessage(customText = null) {
@@ -2006,6 +2139,256 @@
 
         function sendQuickReaction(emoji) {
             sendChatMessage(emoji);
+        }
+
+        // ============================================================
+        // 10B. FITUR FASE 2 SISWA: POLLING KILAT & TANYA JAWAB (Q&A)
+        // ============================================================
+        let studentCurrentPoll = null;
+
+        async function voteStudentPoll(optionIndex) {
+            await syncMeetingStudent({
+                action: 'vote_poll',
+                option_index: optionIndex
+            });
+            showToast('Suara Anda telah dicatat!', 'success');
+        }
+
+        function renderStudentPoll(poll) {
+            studentCurrentPoll = poll;
+            const banner = document.getElementById('student-floating-poll-banner');
+            const qBanner = document.getElementById('student-floating-poll-question');
+            const emptyEl = document.getElementById('student-poll-empty');
+            const cardEl = document.getElementById('student-poll-card');
+            const headerBadge = document.getElementById('student-poll-header-badge');
+            const tabPing = document.getElementById('student-poll-tab-badge');
+
+            if (!poll) {
+                if (banner) banner.classList.add('hidden');
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                if (cardEl) cardEl.classList.add('hidden');
+                if (headerBadge) {
+                    headerBadge.innerHTML = '<span class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-slate-100 text-slate-600 border border-slate-300">Menunggu</span>';
+                }
+                if (tabPing) tabPing.classList.add('hidden');
+                return;
+            }
+
+            // Ada Polling
+            if (emptyEl) emptyEl.classList.add('hidden');
+            if (cardEl) cardEl.classList.remove('hidden');
+
+            const qText = document.getElementById('student-poll-question-text');
+            if (qText) qText.textContent = poll.question;
+
+            const totalBadge = document.getElementById('student-poll-total-badge');
+            if (totalBadge) totalBadge.textContent = `${poll.total_votes} Suara`;
+
+            const statusInd = document.getElementById('student-poll-status-indicator');
+            if (poll.is_active) {
+                if (statusInd) {
+                    statusInd.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono-code font-black flex items-center gap-1.5 bg-amber-100 text-amber-900 border border-amber-300';
+                    statusInd.innerHTML = '<span class="w-2 h-2 rounded-full animate-ping bg-amber-500"></span> POLLING BERLANGSUNG';
+                }
+                if (headerBadge) {
+                    headerBadge.innerHTML = '<span class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">● Aktif</span>';
+                }
+                // Tampilkan banner melayang jika belum vote
+                if (!poll.has_voted) {
+                    if (banner) {
+                        banner.classList.remove('hidden');
+                        if (qBanner) qBanner.textContent = poll.question;
+                    }
+                    if (tabPing) tabPing.classList.remove('hidden');
+                } else {
+                    if (banner) banner.classList.add('hidden');
+                    if (tabPing) tabPing.classList.add('hidden');
+                }
+            } else {
+                if (statusInd) {
+                    statusInd.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono-code font-black bg-slate-200 text-slate-700 border border-slate-300';
+                    statusInd.innerHTML = '<i class="fa-solid fa-lock text-[9px]"></i> POLLING SELESAI';
+                }
+                if (headerBadge) {
+                    headerBadge.innerHTML = '<span class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black bg-slate-100 text-slate-600 border border-slate-300">Selesai</span>';
+                }
+                if (banner) banner.classList.add('hidden');
+                if (tabPing) tabPing.classList.add('hidden');
+            }
+
+            // Options Container
+            const container = document.getElementById('student-poll-options-container');
+            const noticeEl = document.getElementById('student-poll-notice');
+            if (!container) return;
+
+            const colors = ['#ea580c', '#0284c7', '#16a34a', '#9333ea', '#ca8a04', '#dc2626'];
+
+            if (poll.is_active && !poll.has_voted) {
+                // Tampilkan tombol interaktif untuk memilih
+                if (noticeEl) noticeEl.textContent = 'Pilih salah satu jawaban di bawah untuk memberikan suara Anda:';
+                let html = '';
+                poll.options.forEach((opt, idx) => {
+                    const color = colors[idx % colors.length];
+                    html += `
+                        <button onclick="voteStudentPoll(${idx})" type="button" class="w-full p-3 rounded-2xl flex items-center justify-between font-mono-code font-bold text-xs bg-white hover:bg-amber-50 active:scale-95 transition-all text-slate-900 border-2 border-black" style="box-shadow: 3px 3px 0px #121316;">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-6 h-6 rounded-lg flex items-center justify-center text-white font-black text-xs" style="background-color: ${color};">${idx + 1}</span>
+                                <span class="text-left font-black">${opt}</span>
+                            </div>
+                            <i class="fa-solid fa-check text-xs text-slate-300"></i>
+                        </button>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                // Tampilkan hasil & progress bar
+                if (noticeEl) {
+                    noticeEl.innerHTML = poll.has_voted
+                        ? '<span class="text-emerald-700 font-bold">🎉 Suara Anda telah dicatat. Berikut perolehan suara kelas:</span>'
+                        : '<span class="text-slate-500">🔒 Polling telah ditutup oleh Guru.</span>';
+                }
+
+                let html = '';
+                poll.options.forEach((opt, idx) => {
+                    const count = poll.counts[idx] || 0;
+                    const pct = poll.percentages[idx] || 0;
+                    const color = colors[idx % colors.length];
+                    const isMyChoice = (idx === poll.user_voted_option);
+
+                    html += `
+                        <div class="p-2.5 rounded-xl border ${isMyChoice ? 'border-2 border-amber-500 bg-amber-50/50' : 'border-slate-300 bg-slate-50'} space-y-1.5">
+                            <div class="flex items-center justify-between text-xs font-mono-code">
+                                <div class="flex items-center gap-2 font-black text-slate-900">
+                                    <span class="w-5 h-5 rounded flex items-center justify-center text-[10px] text-white font-bold" style="background-color: ${color};">${idx + 1}</span>
+                                    <span>${opt}</span>
+                                    ${isMyChoice ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-400 text-black border border-black">Pilihan Anda</span>' : ''}
+                                </div>
+                                <div class="font-extrabold text-slate-800">
+                                    <span>${count}</span> <span class="text-[10px] text-slate-500">(${pct}%)</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden border border-slate-300">
+                                <div class="h-full rounded-full transition-all duration-500" style="width: ${pct}%; background-color: ${color};"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (poll.is_active && poll.has_voted) {
+                    html += `
+                        <div class="text-center pt-2">
+                            <button onclick="changeStudentPollVote()" type="button" class="text-[11px] font-mono-code font-bold text-amber-800 hover:underline">
+                                ↺ Ubah Pilihan Jawaban
+                            </button>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+            }
+        }
+
+        function changeStudentPollVote() {
+            if (!studentCurrentPoll || !studentCurrentPoll.is_active) return;
+            studentCurrentPoll.has_voted = false;
+            renderStudentPoll(studentCurrentPoll);
+        }
+
+        // Q&A Functions for Siswa
+        async function submitStudentQuestion() {
+            const input = document.getElementById('student-qa-input');
+            const text = input ? input.value.trim() : '';
+            if (!text) {
+                alert('Silakan tuliskan pertanyaan materi Anda.');
+                return;
+            }
+
+            input.value = '';
+            await syncMeetingStudent({
+                action: 'ask_question',
+                text: text
+            });
+
+            showToast('Pertanyaan Anda telah dikirim ke guru!', 'success');
+            switchStudentTab('qa');
+        }
+
+        async function upvoteStudentQa(questionId) {
+            await syncMeetingStudent({
+                action: 'upvote_qa',
+                question_id: questionId
+            });
+        }
+
+        function renderStudentQa(qaList) {
+            const container = document.getElementById('student-qa-list-container');
+            const emptyEl = document.getElementById('student-qa-empty');
+            const countBadge = document.getElementById('student-qa-count-badge');
+            if (!container) return;
+
+            const list = qaList || [];
+            if (countBadge) countBadge.textContent = `${list.length} Pertanyaan`;
+
+            if (list.length === 0) {
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                container.querySelectorAll('.student-qa-card').forEach(el => el.remove());
+                return;
+            }
+
+            if (emptyEl) emptyEl.classList.add('hidden');
+
+            let html = '';
+            list.forEach(item => {
+                const isAnswering = (item.status === 'answering');
+                const isAnswered = (item.status === 'answered');
+
+                let borderStyle = 'border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;';
+                let cardBg = '#ffffff';
+                let statusBadge = '';
+
+                if (isAnswering) {
+                    borderStyle = 'border: 2.5px solid #d97706; box-shadow: 4px 4px 0px #f59e0b;';
+                    cardBg = '#fffbeb';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[9px] font-mono-code font-black bg-amber-400 text-black border border-black animate-pulse flex items-center gap-1"><i class="fa-solid fa-microphone-lines text-xs"></i> SEDANG DIBAHAS GURU</span>';
+                } else if (isAnswered) {
+                    cardBg = '#f0fdf4';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[9px] font-mono-code font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">✅ Sudah Dijawab</span>';
+                } else {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[9px] font-mono-code font-bold bg-slate-100 text-slate-600 border border-slate-300">⏳ Menunggu</span>';
+                }
+
+                html += `
+                    <div class="student-qa-card p-3 rounded-2xl transition-all space-y-2 relative" style="background-color: ${cardBg}; ${borderStyle}">
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-md bg-orange-500 text-white flex items-center justify-center text-[10px] font-black border border-black shadow-xs">
+                                    ${item.user_name.charAt(0).toUpperCase()}
+                                </span>
+                                <div>
+                                    <span class="font-black text-slate-900">${item.user_name}</span>
+                                    <span class="text-[9px] font-mono-code text-slate-400 ml-1">${item.time_formatted}</span>
+                                </div>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+
+                        <p class="text-xs font-mono-code font-bold text-slate-800 leading-snug pl-1">
+                            "${item.question}"
+                        </p>
+
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200">
+                            <button onclick="upvoteStudentQa('${item.id}')" type="button" class="btn-tactile-white px-2.5 py-1 rounded-lg text-[10px] font-mono-code font-black flex items-center gap-1.5 ${item.has_upvoted ? 'text-orange-600 border-orange-500' : 'text-slate-600'}" title="Upvote jika Anda juga ingin pertanyaan ini dijawab">
+                                <i class="fa-solid fa-thumbs-up"></i>
+                                <span>${item.upvote_count} Upvote</span>
+                            </button>
+
+                            ${isAnswering ? '<span class="text-[10px] font-mono-code font-black text-amber-700 animate-bounce">Perhatikan Guru di Mimbar 🎤</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
         // 11. PRESENSI KELUAR & LEAVE HANDLER
