@@ -1035,7 +1035,7 @@
                             </div>
                             <h3 class="font-black text-[#121316] text-base sm:text-lg leading-tight mb-3 group-hover:text-rose-600 transition">{{ $latestHighlight->title }}</h3>
                             <div class="flex items-center gap-2 mt-auto pt-2 border-t border-[#121316]/10">
-                                <img src="{{ $latestHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-[#121316]">
+                                <img src="{{ $latestHighlight->user->avatar_url }}" onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';" class="w-6 h-6 rounded-full border border-[#121316] object-cover">
                                 <span class="text-xs font-bold text-[#121316]">{{ $latestHighlight->user->name }}</span>
                             </div>
                         </a>
@@ -1052,7 +1052,7 @@
                             </div>
                             <h3 class="font-black text-[#121316] text-base sm:text-lg leading-tight mb-3 group-hover:text-amber-700 transition">{{ $trendingHighlight->title }}</h3>
                             <div class="flex items-center gap-2 mt-auto pt-2 border-t border-[#121316]/10">
-                                <img src="{{ $trendingHighlight->user->avatar_url }}" class="w-6 h-6 rounded-full border border-[#121316]">
+                                <img src="{{ $trendingHighlight->user->avatar_url }}" onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';" class="w-6 h-6 rounded-full border border-[#121316] object-cover">
                                 <span class="text-xs font-bold text-[#121316]">{{ $trendingHighlight->user->name }}</span>
                             </div>
                         </a>
@@ -1104,6 +1104,8 @@
                             <div class="flex justify-between items-start mb-3 pt-1">
                                 <div class="flex items-center gap-3">
                                     <img src="{{ $author->avatar_url }}" 
+                                         alt="{{ $author->name }}"
+                                         onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';"
                                          class="w-10 h-10 rounded-2xl border-2 border-[#121316] shadow-[1px_1px_0px_#121316] object-cover">
                                     <div>
                                         <div class="flex items-center gap-1.5 flex-wrap">
@@ -1455,7 +1457,7 @@
                 <div class="rounded-2xl p-4 text-[#121316] bg-gradient-to-br from-indigo-50/60 to-purple-50/60 border-2 border-[#121316] shadow-[3px_3px_0px_#121316]">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-12 h-12 rounded-2xl bg-white p-0.5 border-2 border-[#121316] shadow-[1px_1px_0px_#121316] overflow-hidden shrink-0 flex items-center justify-center">
-                            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover rounded-xl">
+                            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';" class="w-full h-full object-cover rounded-xl">
                         </div>
                         <div class="min-w-0 flex-1">
                             <h3 class="font-black text-[#121316] text-sm leading-snug tracking-tight truncate" title="{{ $user->name }}">
@@ -1496,7 +1498,7 @@
                                 <div class="w-5 h-5 rounded-md border border-[#121316] flex items-center justify-center text-[10px] font-mono-code font-black {{ $i === 0 ? 'bg-[#fde047] text-[#121316]' : ($i === 1 ? 'bg-slate-200 text-[#121316]' : ($i === 2 ? 'bg-amber-100 text-[#121316]' : 'bg-[#faf8f5] text-slate-600')) }}">
                                     {{ $i+1 }}
                                 </div>
-                                <img src="{{ $s->user->avatar_url }}" class="w-6 h-6 rounded-full border border-[#121316] object-cover">
+                                <img src="{{ $s->user->avatar_url }}" alt="{{ $s->user->name }}" onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';" class="w-6 h-6 rounded-full border border-[#121316] object-cover">
                                 <div class="min-w-0 flex-1">
                                     <div class="text-xs font-bold text-[#121316] truncate">{{ $s->user->name }}</div>
                                 </div>

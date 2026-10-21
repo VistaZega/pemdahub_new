@@ -406,11 +406,7 @@ class Student extends Model
                 }
             }
 
-            // Soft fallback: If path string is populated, attempt returning asset URL
-            if (!empty($clean) && (str_contains($clean, '/') || str_contains($clean, '.'))) {
-                return asset('storage/' . $clean);
-            }
-
+            // Jika file fisik tidak ditemukan di disk, jangan return URL mati/404
             return null;
         };
 
@@ -418,11 +414,7 @@ class Student extends Model
         if ($this->applicant && ($url = $resolvePhoto($this->applicant->photo_path))) return $url;
         if ($this->user && ($url = $resolvePhoto($this->user->photo))) return $url;
 
-        if (file_exists(public_path('images/default-student.jpg'))) {
-            return asset('images/default-student.jpg');
-        }
-
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name) . '&background=0284c7&color=ffffff&bold=true';
+        return asset('images/default-avatar.svg');
     }
 
     /**

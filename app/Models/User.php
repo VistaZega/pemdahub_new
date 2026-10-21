@@ -858,13 +858,11 @@ class User extends Authenticatable
                     }
                 }
 
-                if (!empty($clean) && (str_contains($clean, '/') || str_contains($clean, '.'))) {
-                    return asset('storage/' . $clean);
-                }
+                // Jika file fisik tidak ditemukan di disk, jangan return URL mati/404
             }
         }
 
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=3b82f6&color=ffffff&bold=true';
+        return asset('images/default-avatar.svg');
     }
 
     public function getPhotoUrlAttribute(): string

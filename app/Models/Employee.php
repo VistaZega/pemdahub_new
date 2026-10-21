@@ -146,7 +146,7 @@ class Employee extends Model
             return asset('storage/' . $this->photo);
         }
 
-        return asset('images/default-student.jpg');
+        return asset('images/default-avatar.svg');
     }
 
 

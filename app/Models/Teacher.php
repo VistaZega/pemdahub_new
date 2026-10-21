@@ -145,7 +145,7 @@ class Teacher extends Model
             return asset('storage/' . $photo);
         }
 
-        return asset('images/default-student.jpg');
+        return asset('images/default-avatar.svg');
     }
 
 

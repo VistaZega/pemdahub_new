@@ -252,6 +252,8 @@
         <!-- ORIGINAL POST (First Message) -->
         <div class="flex gap-3 sm:gap-4">
             <img src="{{ $thread->user->avatar_url }}" 
+                 alt="{{ $thread->user->name }}"
+                 onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';"
                  class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex-shrink-0 object-cover">
             <div class="flex-1 min-w-0 space-y-2">
                 <!-- Meta -->
@@ -629,6 +631,7 @@
                 <!-- Top-Level Comment Card -->
                 <div class="flex gap-3 sm:gap-4" id="reply-{{ $reply->id }}" x-data="{ editing: false }">
                     <img src="{{ $reply->user->avatar_url }}" 
+                         onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';"
                          class="w-10 h-10 rounded-xl border-2 border-[#121316] shadow-[1px_1px_0px_#121316] flex-shrink-0 object-cover">
                     <div class="flex-1 min-w-0 space-y-2">
                         <!-- User Info & Edit/Delete -->
@@ -747,7 +750,9 @@
                             <div class="mt-4 space-y-4 pl-4 sm:pl-6 border-l-2 border-[#121316]">
                                 @foreach($reply->children as $child)
                                     <div class="flex gap-2.5 sm:gap-3" id="reply-{{ $child->id }}" x-data="{ editingChild: false }">
-                                        <img src="{{ $child->user->avatar_url }}" class="w-8 h-8 rounded-lg border-2 border-[#121316] object-cover flex-shrink-0">
+                                        <img src="{{ $child->user->avatar_url }}" 
+                                             onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';"
+                                             class="w-8 h-8 rounded-lg border-2 border-[#121316] object-cover flex-shrink-0">
                                         <div class="flex-1 min-w-0 space-y-1.5">
                                             <div class="flex items-center justify-between gap-1 flex-wrap">
                                                 <div class="flex items-center gap-1.5 flex-wrap">
@@ -1276,7 +1281,9 @@ function renderReplyCardHtml(r, isChild = false) {
     if (isChild) {
         return `
         <div class="flex gap-2.5 sm:gap-3 transition-all duration-700" id="reply-${r.id}" x-data="{ editingChild: false }">
-            <img src="${r.avatar_url}" class="w-8 h-8 rounded-lg border-2 border-[#121316] object-cover flex-shrink-0">
+            <img src="${r.avatar_url}" 
+                 onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';"
+                 class="w-8 h-8 rounded-lg border-2 border-[#121316] object-cover flex-shrink-0">
             <div class="flex-1 min-w-0 space-y-1.5">
                 <div class="flex items-center justify-between gap-1 flex-wrap">
                     <div class="flex items-center gap-1.5 flex-wrap">
@@ -1310,7 +1317,9 @@ function renderReplyCardHtml(r, isChild = false) {
 
     return `
     <div class="flex gap-3 sm:gap-4 transition-all duration-700" id="reply-${r.id}" x-data="{ editing: false }">
-        <img src="${r.avatar_url}" class="w-10 h-10 rounded-xl border-2 border-[#121316] shadow-[1px_1px_0px_#121316] flex-shrink-0 object-cover">
+        <img src="${r.avatar_url}" 
+             onerror="this.onerror=null; this.src='{{ asset('images/default-avatar.svg') }}';"
+             class="w-10 h-10 rounded-xl border-2 border-[#121316] shadow-[1px_1px_0px_#121316] flex-shrink-0 object-cover">
         <div class="flex-1 min-w-0 space-y-2">
             <div class="flex items-center justify-between gap-2 flex-wrap">
                 <div class="flex items-center gap-1.5 flex-wrap min-w-0">

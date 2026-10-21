@@ -68,6 +68,6 @@ class AlumniDirectory extends Model
         }
         
         // Default avatar fallback
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name) . '&color=ffffff&background=6366f1';
+        return asset('images/default-avatar.svg');
     }
 }
