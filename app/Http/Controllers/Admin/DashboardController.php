@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $user = auth()->user();
         $isSuperAdmin = $user->isSuperAdmin();
         $isKepsek = $user->isKepalaSekolah();
-        $schoolId = $isSuperAdmin ? null : $user->school_id;
+        $schoolId = $isSuperAdmin ? null : (session('active_school_id') ?: $user->school_id);
 
         // Get current academic year
         $currentAcademicYear = AcademicYear::where('is_active', true)->first() 

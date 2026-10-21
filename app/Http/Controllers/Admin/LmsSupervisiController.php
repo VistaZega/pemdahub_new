@@ -15,13 +15,14 @@ class LmsSupervisiController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin() || $user->isKetuaYayasan();
-        $schoolId = $request->get('school_id', $user->school_id);
+        $effectiveSchoolId = session('active_school_id', $user->school_id);
+        $schoolId = $request->get('school_id', $effectiveSchoolId);
 
         $query = LmsCourse::with(['teacher.user', 'subject', 'reviewer', 'lmsClasses.classroom'])
             ->withCount(['materials', 'assignments', 'quizzes', 'modules']);
 
         if (!$isSuperAdmin) {
-            $query->where('school_id', $user->school_id);
+            $query->where('school_id', $effectiveSchoolId);
         } elseif ($schoolId) {
             $query->where('school_id', $schoolId);
         }
@@ -52,7 +53,8 @@ class LmsSupervisiController extends Controller
     public function preview(LmsCourse $course)
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isKetuaYayasan() && $course->school_id !== $user->school_id) {
+        $userSchoolId = session('active_school_id', $user->school_id);
+        if (!$user->isSuperAdmin() && !$user->isKetuaYayasan() && $course->school_id !== $userSchoolId && $course->school_id !== $user->school_id) {
             abort(403);
         }
 
@@ -71,7 +73,8 @@ class LmsSupervisiController extends Controller
     public function review(Request $request, LmsCourse $course)
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isKetuaYayasan() && $course->school_id !== $user->school_id) {
+        $userSchoolId = session('active_school_id', $user->school_id);
+        if (!$user->isSuperAdmin() && !$user->isKetuaYayasan() && $course->school_id !== $userSchoolId && $course->school_id !== $user->school_id) {
             abort(403);
         }
 
