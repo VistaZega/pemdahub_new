@@ -39,6 +39,12 @@
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">Buat Bank Soal</h1>
                     <p class="text-emerald-50 mt-1 text-base">Buat koleksi soal baru atau import langsung dari Excel/ZIP</p>
+                    @if(isset($school))
+                    <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-white/20 text-white rounded-lg text-xs font-bold border border-white/20 shadow-xs">
+                        <i class="fas fa-school text-amber-300"></i>
+                        <span>Unit: {{ $school->name }} ({{ strtoupper($school->type) }})</span>
+                    </div>
+                    @endif
                 </div>
             </div>
             <div class="flex items-center gap-3">

@@ -19,6 +19,7 @@ use App\Models\Classroom;
 use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\Teacher;
+use App\Models\School;
 use App\Services\CbtService;
 use App\Exports\CbtQuestionsTemplateExport;
 use App\Exports\CbtExamParticipationExport;
@@ -32,14 +33,84 @@ use ZipArchive;
 
 class CbtController extends Controller
 {
+    use HasMultiSchool;
+
     public function __construct(private CbtService $cbtService) {}
 
     /**
-     * Resolve the authenticated teacher record (DRY helper)
+     * Resolve the authenticated teacher record (DRY helper, multi-school aware)
      */
     private function resolveTeacher(): Teacher
     {
-        return Teacher::where('user_id', Auth::id())->firstOrFail();
+        $user = Auth::user();
+        if (!$user) {
+            abort(401);
+        }
+
+        // 1. Coba ambil teacher berdasarkan active_school_id sesi saat ini
+        $sessionSchoolId = session('active_school_id');
+        if ($sessionSchoolId) {
+            $teacher = Teacher::where('user_id', $user->id)
+                ->where('school_id', $sessionSchoolId)
+                ->first();
+            if ($teacher) {
+                return $teacher;
+            }
+        }
+
+        // 2. Coba ambil teacher berdasarkan user_id
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        if ($teacher) {
+            return $teacher;
+        }
+
+        // 3. Coba ambil via relasi employee
+        $employee = $user->employee ?? \App\Models\Employee::where('user_id', $user->id)->first();
+        if ($employee) {
+            $teacher = Teacher::where('employee_id', $employee->id)->first();
+            if ($teacher) {
+                return $teacher;
+            }
+        }
+
+        // 4. Fallback ke relasi $user->teacher
+        if ($user->teacher) {
+            return $user->teacher;
+        }
+
+        abort(403, 'Data profil guru tidak ditemukan.');
+    }
+
+    /**
+     * Mendapatkan unit sekolah efektif yang sedang aktif dipilih guru
+     */
+    private function getEffectiveSchool(?Teacher $teacher = null): School
+    {
+        $schoolId = $this->getEffectiveSchoolId($teacher);
+        $school = School::find($schoolId);
+        if ($school) {
+            return $school;
+        }
+        if ($teacher && $teacher->school) {
+            return $teacher->school;
+        }
+        return School::schoolsOnly()->firstOrFail();
+    }
+
+    /**
+     * Helper seluruh ID Teacher yang dimiliki oleh pengguna saat ini
+     */
+    private function getAllTeacherIds(?Teacher $teacher = null): array
+    {
+        $user = Auth::user();
+        $ids = $user ? $user->teacherIds() : [];
+        if (empty($ids) && $teacher) {
+            $ids = $teacher->allTeacherIds();
+        }
+        if (empty($ids) && $teacher) {
+            $ids = [$teacher->id];
+        }
+        return array_unique(array_filter($ids));
     }
 
     /**
@@ -55,8 +126,11 @@ class CbtController extends Controller
             || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
         );
 
-        $isOwner = $bank->teacher_id === $teacher->id;
-        $isSchoolMatch = $bank->school_id && $teacher->school_id && ($bank->school_id == $teacher->school_id);
+        $tIds = $this->getAllTeacherIds($teacher);
+        $isOwner = in_array($bank->teacher_id, $tIds);
+
+        $accessibleSchoolIds = $user ? $user->getAvailableSchools()->pluck('id')->toArray() : [$teacher->school_id];
+        $isSchoolMatch = $bank->school_id && in_array((int) $bank->school_id, array_map('intval', $accessibleSchoolIds));
         $isShared = (bool) $bank->is_shared;
 
         abort_unless($isOwner || $isShared || $isSchoolMatch || $isAdmin, 403, 'Anda tidak memiliki akses ke bank soal ini.');
@@ -64,22 +138,44 @@ class CbtController extends Controller
     }
 
     /**
-     * Get all subject IDs taught or competent by a teacher
+     * Get all subject IDs taught or competent by a teacher (optionally filtered by school)
      */
-    private function getTeacherSubjectIds(Teacher $teacher): array
+    private function getTeacherSubjectIds(?Teacher $teacher = null, ?int $schoolId = null): array
     {
-        $taSubjectIds = \App\Models\TeachingAssignment::where('teacher_id', $teacher->id)
-            ->where('is_active', true)
-            ->pluck('subject_id');
+        $teacher = $teacher ?? $this->resolveTeacher();
+        $tIds = $this->getAllTeacherIds($teacher);
 
-        $scheduleSubjectIds = \App\Models\Schedule::where('teacher_id', $teacher->id)
-            ->pluck('subject_id');
+        $taQuery = \App\Models\TeachingAssignment::whereIn('teacher_id', $tIds)
+            ->where('is_active', true);
+        if ($schoolId) {
+            $taQuery->where(function($q) use ($schoolId) {
+                $q->whereHas('classroom', fn($cq) => $cq->where('school_id', $schoolId))
+                  ->orWhereHas('subject', fn($sq) => $sq->where('school_id', $schoolId));
+            });
+        }
+        $taSubjectIds = $taQuery->pluck('subject_id');
 
-        $competentSubjectIds = $teacher->competentSubjects()
-            ->pluck('subjects.id');
+        $scheduleQuery = \App\Models\Schedule::whereIn('teacher_id', $tIds);
+        if ($schoolId) {
+            $scheduleQuery->whereHas('subject', fn($sq) => $sq->where('school_id', $schoolId));
+        }
+        $scheduleSubjectIds = $scheduleQuery->pluck('subject_id');
 
-        $legacySubjectIds = $teacher->subjects()
-            ->pluck('subjects.id');
+        $competentQuery = \Illuminate\Support\Facades\DB::table('subject_teacher')
+            ->whereIn('teacher_id', $tIds);
+        if ($schoolId) {
+            $competentQuery->join('subjects', 'subjects.id', '=', 'subject_teacher.subject_id')
+                ->where('subjects.school_id', $schoolId);
+        }
+        $competentSubjectIds = $competentQuery->pluck('subject_teacher.subject_id');
+
+        $legacyQuery = \Illuminate\Support\Facades\DB::table('schedules')
+            ->whereIn('teacher_id', $tIds);
+        if ($schoolId) {
+            $legacyQuery->join('subjects', 'subjects.id', '=', 'schedules.subject_id')
+                ->where('subjects.school_id', $schoolId);
+        }
+        $legacySubjectIds = $legacyQuery->pluck('schedules.subject_id');
 
         return $taSubjectIds
             ->merge($scheduleSubjectIds)
@@ -89,6 +185,51 @@ class CbtController extends Controller
             ->filter()
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Ambil koleksi mapel aktif untuk unit sekolah tertentu yang relevan dengan guru
+     */
+    private function getSubjectsForSchool(Teacher $teacher, School $school): \Illuminate\Support\Collection
+    {
+        $taughtSubjectIds = $this->getTeacherSubjectIds($teacher, $school->id);
+
+        $subjects = Subject::where('school_id', $school->id)
+            ->where('is_active', true)
+            ->when(!empty($taughtSubjectIds), fn($q) => $q->whereIn('id', $taughtSubjectIds))
+            ->orderBy('name')
+            ->get();
+
+        // Fallback jika belum terdaftar penugasan langsung di unit ini:
+        // Cari mapel di unit ini yang namanya cocok dengan mapel kompetensi guru di unit lain
+        if ($subjects->isEmpty()) {
+            $allTaughtSubjectIds = $this->getTeacherSubjectIds($teacher);
+            $taughtSubjects = Subject::whereIn('id', $allTaughtSubjectIds)->get();
+            $taughtNames = $taughtSubjects->map(fn($s) => trim($s->name ?: $s->subject_name))->filter()->unique();
+
+            if ($taughtNames->isNotEmpty()) {
+                $subjects = Subject::where('school_id', $school->id)
+                    ->where('is_active', true)
+                    ->where(function ($q) use ($taughtNames) {
+                        foreach ($taughtNames as $name) {
+                            $q->orWhere('name', 'like', "%{$name}%")
+                              ->orWhere('subject_name', 'like', "%{$name}%");
+                        }
+                    })
+                    ->orderBy('name')
+                    ->get();
+            }
+        }
+
+        // Fallback terakhir: jika tetap kosong, tampilkan semua mapel aktif di unit tersebut
+        if ($subjects->isEmpty()) {
+            $subjects = Subject::where('school_id', $school->id)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get();
+        }
+
+        return $subjects;
     }
 
     /**
@@ -108,7 +249,24 @@ class CbtController extends Controller
             return true;
         }
 
-        return in_array($subjectId, $teacherSubjectIds);
+        if (in_array($subjectId, $teacherSubjectIds)) {
+            return true;
+        }
+
+        // Cek jika ada mapel dengan nama yang sama yang diajar guru di unit lain
+        $targetSubject = Subject::find($subjectId);
+        if ($targetSubject) {
+            $targetName = strtolower(trim($targetSubject->name ?: $targetSubject->subject_name));
+            $taughtNames = Subject::whereIn('id', $teacherSubjectIds)
+                ->get()
+                ->map(fn($s) => strtolower(trim($s->name ?: $s->subject_name)))
+                ->toArray();
+            if (in_array($targetName, $taughtNames)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -124,8 +282,11 @@ class CbtController extends Controller
             || in_array($user->role ?? '', ['admin', 'superadmin', 'kurikulum', 'operator', 'admin_sekolah'])
         );
 
-        $isOwner = $exam->teacher_id === $teacher->id;
-        $isSchoolMatch = $exam->school_id && $teacher->school_id && ($exam->school_id == $teacher->school_id);
+        $tIds = $this->getAllTeacherIds($teacher);
+        $isOwner = in_array($exam->teacher_id, $tIds);
+
+        $accessibleSchoolIds = $user ? $user->getAvailableSchools()->pluck('id')->toArray() : [$teacher->school_id];
+        $isSchoolMatch = $exam->school_id && in_array((int) $exam->school_id, array_map('intval', $accessibleSchoolIds));
         $teachesSubject = $this->teacherTeachesSubject($teacher, $exam->subject_id);
 
         $canAccess = $isAdmin || $isOwner || ($isSchoolMatch && $teachesSubject);
@@ -141,46 +302,48 @@ class CbtController extends Controller
     public function bankIndex()
     {
         $teacher = $this->resolveTeacher();
-        $teacher->load('school');
+        $school = $this->getEffectiveSchool($teacher);
+        $tIds = $this->getAllTeacherIds($teacher);
 
-        $banks = CbtQuestionBank::where('teacher_id', $teacher->id)
-            ->with('subject', 'questions')
+        $banks = CbtQuestionBank::where(function ($q) use ($tIds, $school) {
+                $q->where(function ($sub) use ($tIds, $school) {
+                    $sub->whereIn('teacher_id', $tIds)
+                        ->where(function($sq) use ($school) {
+                            $sq->where('school_id', $school->id)->orWhereNull('school_id');
+                        });
+                })->orWhere(function ($sq) use ($school) {
+                    $sq->where('is_shared', true)
+                       ->where('school_id', $school->id);
+                });
+            })
+            ->with('subject', 'questions', 'school')
             ->orderByDesc('created_at')
             ->paginate(20)->withQueryString();
 
-        $subjects = $teacher->subjects;
-        if ($subjects->isEmpty()) {
-            $subjects = Subject::where('school_id', $teacher->school_id)->get();
-        }
-        $gradeLevels = $teacher->school->getGradeLevels();
+        $subjects = $this->getSubjectsForSchool($teacher, $school);
+        $gradeLevels = $school->getGradeLevels();
 
-        return view('guru.cbt.banks.index', compact('banks', 'subjects', 'gradeLevels'));
+        return view('guru.cbt.banks.index', compact('banks', 'subjects', 'gradeLevels', 'school'));
     }
 
     public function bankCreate()
     {
         $teacher = $this->resolveTeacher();
-        $teacher->load('school');
+        $school = $this->getEffectiveSchool($teacher);
 
-        // Subjects: prefer teacher's teaching subjects, fallback to school's subjects
-        $subjects = $teacher->subjects;
-        if ($subjects->isEmpty()) {
-            $subjects = Subject::where('school_id', $teacher->school_id)->get();
-        }
-
-        // Grade levels filtered by school type (SMP=7-9, SMA/SMK=10-12)
-        $gradeLevels = $teacher->school->getGradeLevels();
+        $subjects = $this->getSubjectsForSchool($teacher, $school);
+        $gradeLevels = $school->getGradeLevels();
         $academicYear = AcademicYear::where('is_active', true)->first();
 
-        return view('guru.cbt.banks.create', compact('subjects', 'academicYear', 'teacher', 'gradeLevels'));
+        return view('guru.cbt.banks.create', compact('subjects', 'academicYear', 'teacher', 'gradeLevels', 'school'));
     }
 
     public function bankStore(Request $request)
     {
         $teacher = $this->resolveTeacher();
-        $teacher->load('school');
+        $school = $this->getEffectiveSchool($teacher);
 
-        $allowedGrades = $teacher->school->getGradeLevelsRule();
+        $allowedGrades = $school->getGradeLevelsRule();
 
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
@@ -193,7 +356,7 @@ class CbtController extends Controller
         $academicYear = AcademicYear::where('is_active', true)->firstOrFail();
 
         CbtQuestionBank::create(array_merge($validated, [
-            'school_id' => $teacher->school_id,
+            'school_id' => $school->id,
             'teacher_id' => $teacher->id,
             'academic_year_id' => $academicYear->id,
         ]));
@@ -216,8 +379,8 @@ class CbtController extends Controller
     public function importBank(Request $request)
     {
         $teacher = $this->resolveTeacher();
-        $teacher->load('school');
-        $allowedGrades = $teacher->school->getGradeLevelsRule();
+        $school = $this->getEffectiveSchool($teacher);
+        $allowedGrades = $school->getGradeLevelsRule();
 
         $request->validate([
             'bank_name'   => 'required|string|max:255',
@@ -286,7 +449,7 @@ class CbtController extends Controller
             $academicYear = AcademicYear::where('is_active', true)->firstOrFail();
 
             $bank = CbtQuestionBank::create([
-                'school_id'        => $teacher->school_id,
+                'school_id'        => $school->id,
                 'subject_id'       => $request->subject_id,
                 'teacher_id'       => $teacher->id,
                 'academic_year_id' => $academicYear->id,
@@ -317,9 +480,10 @@ class CbtController extends Controller
     public function bankShow(CbtQuestionBank $bank)
     {
         $teacher = $this->authorizeBank($bank);
-        $bank->load(['questions.options', 'subject']);
+        $bank->load(['questions.options', 'subject', 'school']);
 
-        $courses = \App\Models\LmsCourse::where('teacher_id', $teacher->id)
+        $tIds = $this->getAllTeacherIds($teacher);
+        $courses = \App\Models\LmsCourse::whereIn('teacher_id', $tIds)
             ->orWhere(fn($q) => $q->whereNull('teacher_id'))
             ->latest()
             ->get();
@@ -370,23 +534,19 @@ class CbtController extends Controller
     public function bankEdit(CbtQuestionBank $bank)
     {
         $teacher = $this->authorizeBank($bank);
-        $teacher->load('school');
+        $school = $bank->school ?? School::find($bank->school_id) ?? $this->getEffectiveSchool($teacher);
 
-        $subjects = $teacher->subjects;
-        if ($subjects->isEmpty()) {
-            $subjects = Subject::where('school_id', $teacher->school_id)->get();
-        }
+        $subjects = $this->getSubjectsForSchool($teacher, $school);
+        $gradeLevels = $school->getGradeLevels();
 
-        $gradeLevels = $teacher->school->getGradeLevels();
-
-        return view('guru.cbt.banks.edit', compact('bank', 'subjects', 'gradeLevels'));
+        return view('guru.cbt.banks.edit', compact('bank', 'subjects', 'gradeLevels', 'school'));
     }
 
     public function bankUpdate(Request $request, CbtQuestionBank $bank)
     {
         $teacher = $this->authorizeBank($bank);
-        $teacher->load('school');
-        $allowedGrades = $teacher->school->getGradeLevelsRule();
+        $school = $bank->school ?? School::find($bank->school_id) ?? $this->getEffectiveSchool($teacher);
+        $allowedGrades = $school->getGradeLevelsRule();
 
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
@@ -694,21 +854,28 @@ class CbtController extends Controller
     public function examIndex(Request $request)
     {
         $teacher = $this->resolveTeacher();
+        $school = $this->getEffectiveSchool($teacher);
+        $tIds = $this->getAllTeacherIds($teacher);
         $academicYear = AcademicYear::where('is_active', true)->first();
 
-        $teacherSubjectIds = $this->getTeacherSubjectIds($teacher);
+        $teacherSubjectIds = $this->getTeacherSubjectIds($teacher, $school->id);
         $filterScope = $request->query('scope', 'all'); // 'all', 'school', 'class'
 
         $examsQuery = CbtExam::query()
             ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
-            ->where(function ($q) use ($teacher, $teacherSubjectIds) {
-                // 1. Ujian Kelas milik guru
-                $q->where('teacher_id', $teacher->id);
+            ->where(function ($q) use ($tIds, $school, $teacherSubjectIds) {
+                // 1. Ujian Kelas milik guru di unit ini
+                $q->where(function ($sub) use ($tIds, $school) {
+                    $sub->whereIn('teacher_id', $tIds)
+                        ->where(function($sq) use ($school) {
+                            $sq->where('school_id', $school->id)->orWhereNull('school_id');
+                        });
+                });
 
-                // 2. Ujian Sekolah untuk mata pelajaran yang diampu guru ini
-                $q->orWhere(function ($sq) use ($teacher, $teacherSubjectIds) {
+                // 2. Ujian Sekolah untuk mata pelajaran yang diampu guru ini di unit ini
+                $q->orWhere(function ($sq) use ($school, $teacherSubjectIds) {
                     $sq->where('exam_scope', 'school')
-                       ->where('school_id', $teacher->school_id)
+                       ->where('school_id', $school->id)
                        ->whereIn('status', ['published', 'active', 'completed', 'archived']);
 
                     if (!empty($teacherSubjectIds)) {
@@ -729,27 +896,31 @@ class CbtController extends Controller
 
         $exams = $examsQuery->paginate(20)->withQueryString();
 
-        // Hitung total esai yang menunggu dikoreksi oleh guru ini
-        $totalPendingEssays = CbtAnswer::whereHas('session.exam', function ($q) use ($teacher, $teacherSubjectIds, $academicYear) {
+        // Hitung total esai yang menunggu dikoreksi oleh guru ini di unit ini
+        $totalPendingEssays = CbtAnswer::whereHas('session.exam', function ($q) use ($tIds, $school, $teacherSubjectIds, $academicYear) {
             $q->when($academicYear, fn($sq) => $sq->where('academic_year_id', $academicYear->id))
-              ->where(function ($subQ) use ($teacher, $teacherSubjectIds) {
-                  $subQ->where('teacher_id', $teacher->id)
-                       ->orWhere(function ($schoolQ) use ($teacher, $teacherSubjectIds) {
-                           $schoolQ->where('exam_scope', 'school')
-                                   ->where('school_id', $teacher->school_id)
-                                   ->whereIn('status', ['published', 'active', 'completed', 'archived']);
-                           if (!empty($teacherSubjectIds)) {
-                               $schoolQ->whereIn('subject_id', $teacherSubjectIds);
-                           }
-                       });
+              ->where(function ($subQ) use ($tIds, $school, $teacherSubjectIds) {
+                  $subQ->where(function($ownQ) use ($tIds, $school) {
+                      $ownQ->whereIn('teacher_id', $tIds)
+                           ->where(function($sq) use ($school) {
+                               $sq->where('school_id', $school->id)->orWhereNull('school_id');
+                           });
+                  })->orWhere(function ($schoolQ) use ($school, $teacherSubjectIds) {
+                      $schoolQ->where('exam_scope', 'school')
+                              ->where('school_id', $school->id)
+                              ->whereIn('status', ['published', 'active', 'completed', 'archived']);
+                      if (!empty($teacherSubjectIds)) {
+                          $schoolQ->whereIn('subject_id', $teacherSubjectIds);
+                      }
+                  });
               });
         })->needsGrading()->count();
 
         // Hitung kuota untuk tab filter
         $countSchoolExams = CbtExam::where('exam_scope', 'school')
-            ->where('school_id', $teacher->school_id)
-            ->where(function ($sq) use ($teacher, $teacherSubjectIds) {
-                $sq->where('teacher_id', $teacher->id);
+            ->where('school_id', $school->id)
+            ->where(function ($sq) use ($tIds, $teacherSubjectIds) {
+                $sq->whereIn('teacher_id', $tIds);
                 $sq->orWhere(function ($ssq) use ($teacherSubjectIds) {
                     $ssq->whereIn('status', ['published', 'active', 'completed', 'archived']);
                     if (!empty($teacherSubjectIds)) {
@@ -761,7 +932,10 @@ class CbtController extends Controller
             ->count();
 
         $countClassExams = CbtExam::where('exam_scope', 'class')
-            ->where('teacher_id', $teacher->id)
+            ->whereIn('teacher_id', $tIds)
+            ->where(function($sq) use ($school) {
+                $sq->where('school_id', $school->id)->orWhereNull('school_id');
+            })
             ->when($academicYear, fn($q) => $q->where('academic_year_id', $academicYear->id))
             ->count();
 
@@ -771,22 +945,23 @@ class CbtController extends Controller
     public function examCreate()
     {
         $teacher = $this->resolveTeacher();
-        $teacher->load('school');
+        $school = $this->getEffectiveSchool($teacher);
+        $tIds = $this->getAllTeacherIds($teacher);
 
-        // Subjects: prefer teacher's teaching subjects, fallback to school's subjects
-        $subjects = $teacher->subjects;
-        if ($subjects->isEmpty()) {
-            $subjects = Subject::where('school_id', $teacher->school_id)->get();
-        }
+        $subjects = $this->getSubjectsForSchool($teacher, $school);
 
         $banks = CbtQuestionBank::with('subject:id,name,subject_name')
             ->where('is_active', true)
-            ->where(function($q) use ($teacher) {
-                $q->where('teacher_id', $teacher->id)
-                  ->orWhere(function($sq) use ($teacher) {
-                      $sq->where('school_id', $teacher->school_id)
-                         ->where('is_shared', true);
-                  });
+            ->where(function($q) use ($tIds, $school) {
+                $q->where(function($sub) use ($tIds, $school) {
+                    $sub->whereIn('teacher_id', $tIds)
+                        ->where(function($sq) use ($school) {
+                            $sq->where('school_id', $school->id)->orWhereNull('school_id');
+                        });
+                })->orWhere(function($sq) use ($school) {
+                    $sq->where('school_id', $school->id)
+                       ->where('is_shared', true);
+                });
             })
             ->select('id', 'bank_name', 'subject_id', 'grade_level', 'total_questions')
             ->get()
@@ -798,31 +973,41 @@ class CbtController extends Controller
         $academicYear = AcademicYear::where('is_active', true)->first();
         $semester = Semester::where('is_active', true)->first();
 
-        // Classrooms filtered by teacher's schedule, teaching assignments, or homeroom
-        $classrooms = Classroom::where('is_active', true)
-            ->where(function ($q) use ($teacher, $academicYear, $semester) {
-                $q->whereHas('schedules', function ($sq) use ($teacher, $academicYear, $semester) {
-                    $sq->where('teacher_id', $teacher->id)
+        // Classrooms filtered by teacher's schedule, teaching assignments, or homeroom in this school
+        $classrooms = Classroom::where('school_id', $school->id)
+            ->where('is_active', true)
+            ->where(function ($q) use ($tIds, $academicYear, $semester) {
+                $q->whereHas('schedules', function ($sq) use ($tIds, $academicYear, $semester) {
+                    $sq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $academicYear?->id)
                        ->where('semester_id', $semester?->id);
                 })
-                ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $academicYear) {
-                    $tq->where('teacher_id', $teacher->id)
+                ->orWhereHas('teachingAssignments', function ($tq) use ($tIds, $academicYear) {
+                    $tq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $academicYear?->id)
                        ->where('is_active', true);
                 })
-                ->orWhere('homeroom_teacher_id', $teacher->id);
+                ->orWhereIn('homeroom_teacher_id', $tIds);
             })
             ->orderBy('grade_level')
             ->orderBy('class_name')
             ->get();
 
-        return view('guru.cbt.exams.create', compact('subjects', 'banks', 'classrooms', 'academicYear', 'semester', 'teacher'));
+        if ($classrooms->isEmpty()) {
+            $classrooms = Classroom::where('school_id', $school->id)
+                ->where('is_active', true)
+                ->orderBy('grade_level')
+                ->orderBy('class_name')
+                ->get();
+        }
+
+        return view('guru.cbt.exams.create', compact('subjects', 'banks', 'classrooms', 'academicYear', 'semester', 'teacher', 'school'));
     }
 
     public function examStore(StoreCbtExamRequest $request)
     {
         $teacher = $this->resolveTeacher();
+        $school = $this->getEffectiveSchool($teacher);
 
         $validated = $request->validated();
 
@@ -830,7 +1015,7 @@ class CbtController extends Controller
         $semester = Semester::where('is_active', true)->firstOrFail();
 
         $exam = CbtExam::create(array_merge($validated, [
-            'school_id' => $teacher->school_id,
+            'school_id' => $school->id,
             'teacher_id' => $teacher->id,
             'academic_year_id' => $academicYear->id,
             'semester_id' => $semester->id,
@@ -1142,43 +1327,55 @@ class CbtController extends Controller
 
         abort_unless($exam->isDraft(), 403, 'Hanya ujian berstatus draft yang dapat diedit.');
 
-        $teacher->load('school');
-        $subjects = $teacher->subjects;
-        if ($subjects->isEmpty()) {
-            $subjects = Subject::where('school_id', $teacher->school_id)->get();
-        }
+        $school = $exam->school ?? School::find($exam->school_id) ?? $this->getEffectiveSchool($teacher);
+        $tIds = $this->getAllTeacherIds($teacher);
+
+        $subjects = $this->getSubjectsForSchool($teacher, $school);
 
         $academicYear = AcademicYear::where('is_active', true)->first();
         $semester = Semester::where('is_active', true)->first();
 
         $banks = CbtQuestionBank::with('subject:id,name,subject_name')
             ->where('is_active', true)
-            ->where(function($q) use ($teacher) {
-                $q->where('teacher_id', $teacher->id)
-                  ->orWhere(function($sq) use ($teacher) {
-                      $sq->where('school_id', $teacher->school_id)
-                         ->where('is_shared', true);
-                  });
+            ->where(function($q) use ($tIds, $school) {
+                $q->where(function($sub) use ($tIds, $school) {
+                    $sub->whereIn('teacher_id', $tIds)
+                        ->where(function($sq) use ($school) {
+                            $sq->where('school_id', $school->id)->orWhereNull('school_id');
+                        });
+                })->orWhere(function($sq) use ($school) {
+                    $sq->where('school_id', $school->id)
+                       ->where('is_shared', true);
+                });
             })
             ->get();
-        // Classrooms filtered by teacher's schedule, teaching assignments, or homeroom
-        $classrooms = Classroom::where('is_active', true)
-            ->where(function ($q) use ($teacher, $academicYear, $semester) {
-                $q->whereHas('schedules', function ($sq) use ($teacher, $academicYear, $semester) {
-                    $sq->where('teacher_id', $teacher->id)
+        // Classrooms filtered by teacher's schedule, teaching assignments, or homeroom in this school
+        $classrooms = Classroom::where('school_id', $school->id)
+            ->where('is_active', true)
+            ->where(function ($q) use ($tIds, $academicYear, $semester) {
+                $q->whereHas('schedules', function ($sq) use ($tIds, $academicYear, $semester) {
+                    $sq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $academicYear?->id)
                        ->where('semester_id', $semester?->id);
                 })
-                ->orWhereHas('teachingAssignments', function ($tq) use ($teacher, $academicYear) {
-                    $tq->where('teacher_id', $teacher->id)
+                ->orWhereHas('teachingAssignments', function ($tq) use ($tIds, $academicYear) {
+                    $tq->whereIn('teacher_id', $tIds)
                        ->where('academic_year_id', $academicYear?->id)
                        ->where('is_active', true);
                 })
-                ->orWhere('homeroom_teacher_id', $teacher->id);
+                ->orWhereIn('homeroom_teacher_id', $tIds);
             })
             ->orderBy('grade_level')
             ->orderBy('class_name')
             ->get();
+
+        if ($classrooms->isEmpty()) {
+            $classrooms = Classroom::where('school_id', $school->id)
+                ->where('is_active', true)
+                ->orderBy('grade_level')
+                ->orderBy('class_name')
+                ->get();
+        }
 
         $selectedBanks = $exam->questionBanks->map(fn($b) => [
             'bank_id' => $b->id,

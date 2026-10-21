@@ -43,8 +43,21 @@ class LmsQuizController extends Controller
         $teacher->load('school');
 
         $modules = $course->modules()->orderBy('sequence')->get();
-        $cbtQuestionBanks = \App\Models\CbtQuestionBank::where('school_id', $teacher->school_id)
-            ->where('is_active', true)
+        $schoolId = $course->school_id ?? ($teacher ? $teacher->school_id : null);
+        $tIds = $teacher ? $teacher->allTeacherIds() : [];
+        if (Auth::user() && method_exists(Auth::user(), 'teacherIds')) {
+            $tIds = array_unique(array_merge($tIds, Auth::user()->teacherIds()));
+        }
+
+        $cbtQuestionBanks = \App\Models\CbtQuestionBank::where('is_active', true)
+            ->where(function($q) use ($schoolId, $tIds) {
+                if ($schoolId) {
+                    $q->where('school_id', $schoolId);
+                }
+                if (!empty($tIds)) {
+                    $q->orWhereIn('teacher_id', $tIds);
+                }
+            })
             ->get();
 
         return view('guru.lms.quiz-create', compact('teacher', 'course', 'modules', 'cbtQuestionBanks'));
@@ -137,8 +150,21 @@ class LmsQuizController extends Controller
         }
         $teacher->load('school');
         $modules = $course->modules()->where('is_active', true)->orderBy('sequence')->get();
-        $cbtQuestionBanks = CbtQuestionBank::where('school_id', $teacher->school_id)
-            ->where('is_active', true)
+        $schoolId = $course->school_id ?? ($teacher ? $teacher->school_id : null);
+        $tIds = $teacher ? $teacher->allTeacherIds() : [];
+        if (Auth::user() && method_exists(Auth::user(), 'teacherIds')) {
+            $tIds = array_unique(array_merge($tIds, Auth::user()->teacherIds()));
+        }
+
+        $cbtQuestionBanks = CbtQuestionBank::where('is_active', true)
+            ->where(function($q) use ($schoolId, $tIds) {
+                if ($schoolId) {
+                    $q->where('school_id', $schoolId);
+                }
+                if (!empty($tIds)) {
+                    $q->orWhereIn('teacher_id', $tIds);
+                }
+            })
             ->get();
 
         return view('guru.lms.quiz-edit', compact('teacher', 'course', 'quiz', 'modules', 'cbtQuestionBanks'));
