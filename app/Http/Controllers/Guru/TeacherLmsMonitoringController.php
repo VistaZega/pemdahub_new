@@ -18,13 +18,27 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TeacherLmsMonitoringController extends Controller
 {
+    use HasMultiSchool;
+
     /**
      * Get authenticated Teacher record
      */
     private function getTeacher(): ?Teacher
     {
         $user = Auth::user();
-        return Teacher::where('user_id', $user->id)->first();
+        if (!$user) return null;
+
+        $sessionSchoolId = session('active_school_id');
+        if ($sessionSchoolId) {
+            $teacher = Teacher::where('user_id', $user->id)
+                ->where('school_id', $sessionSchoolId)
+                ->first();
+            if ($teacher) {
+                return $teacher;
+            }
+        }
+
+        return Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
     }
 
     /**
@@ -37,15 +51,26 @@ class TeacherLmsMonitoringController extends Controller
             abort(403, 'Akses khusus Guru Pengajar.');
         }
 
+        $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
+        $user = Auth::user();
+        $tIds = $user ? $user->teacherIds() : $teacher->allTeacherIds();
+        if (empty($tIds)) {
+            $tIds = [$teacher->id];
+        }
+
         $activeYear = AcademicYear::where('is_active', true)->first() ?? AcademicYear::latest()->first();
         $activeYearId = $activeYear?->id;
 
-        // 1. Ambil seluruh kursus LMS yang diajarkan oleh Guru ini
-        $myCourses = LmsCourse::where('teacher_id', $teacher->id)
+        // 1. Ambil seluruh kursus LMS yang diajarkan oleh Guru ini di unit sekolah yang sedang aktif
+        $myCourses = LmsCourse::whereIn('teacher_id', $tIds)
             ->where(function ($q) {
                 $q->where('is_published', true)
                   ->orWhere('status', 'active')
                   ->orWhere('is_active', true);
+            })
+            ->where(function ($q) use ($effectiveSchoolId) {
+                $q->whereHas('lmsClasses.classroom', fn($sq) => $sq->where('school_id', $effectiveSchoolId))
+                  ->orWhere('school_id', $effectiveSchoolId);
             })
             ->with(['subject', 'lmsClasses.classroom', 'materials' => fn($q) => $q->where('is_published', true), 'assignments' => fn($q) => $q->where('is_published', true), 'quizzes' => fn($q) => $q->where('is_published', true)])
             ->orderBy('course_name')
@@ -363,7 +388,9 @@ class TeacherLmsMonitoringController extends Controller
     public function studentCourseDetail(Student $student, LmsCourse $course)
     {
         $teacher = $this->getTeacher();
-        if ($course->teacher_id != $teacher?->id && !Auth::user()->hasAnyRole(['admin', 'superadmin', 'kepala_sekolah'])) {
+        $user = Auth::user();
+        $tIds = $user ? $user->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+        if (!in_array($course->teacher_id, $tIds) && !$user->hasAnyRole(['admin', 'superadmin', 'kepala_sekolah'])) {
             return response()->json(['error' => 'Akses ditolak.'], 403);
         }
 
@@ -512,6 +539,13 @@ class TeacherLmsMonitoringController extends Controller
     public function exportExcel(Request $request): StreamedResponse
     {
         $teacher = $this->getTeacher();
+        $effectiveSchoolId = $teacher ? $this->getEffectiveSchoolId($teacher) : null;
+        $user = Auth::user();
+        $tIds = $user ? $user->teacherIds() : ($teacher ? $teacher->allTeacherIds() : []);
+        if (empty($tIds) && $teacher) {
+            $tIds = [$teacher->id];
+        }
+
         $courseId = $request->query('course_id', 'all');
         $selectedRombel = $request->query('rombel', $request->query('origin_class', $request->query('classroom_id', 'all')));
         if ($selectedRombel === '' || $selectedRombel === null) {
@@ -519,7 +553,13 @@ class TeacherLmsMonitoringController extends Controller
         }
 
         $isAll = ($courseId === 'all');
-        $coursesQuery = LmsCourse::where('teacher_id', $teacher->id)
+        $coursesQuery = LmsCourse::whereIn('teacher_id', $tIds)
+            ->when($effectiveSchoolId, function ($q) use ($effectiveSchoolId) {
+                $q->where(function ($sub) use ($effectiveSchoolId) {
+                    $sub->whereHas('lmsClasses.classroom', fn($sq) => $sq->where('school_id', $effectiveSchoolId))
+                        ->orWhere('school_id', $effectiveSchoolId);
+                });
+            })
             ->with(['subject', 'materials' => fn($q) => $q->where('is_published', true), 'assignments' => fn($q) => $q->where('is_published', true), 'quizzes' => fn($q) => $q->where('is_published', true), 'lmsClasses.classroom']);
 
         if (!$isAll) {

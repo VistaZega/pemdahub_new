@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 {{-- Alpine.js dimuat oleh master layout --}}
 
 <!-- PWA Manifest & App Shell Meta Tags -->
@@ -90,9 +90,13 @@
 
     /* Graph Canvas Background */
     .graph-canvas {
-        background-color: #faf8f5;
-        background-image: radial-gradient(#d8d4c7 1.2px, transparent 1.2px);
-        background-size: 20px 20px;
+        background-color: #faf7f2;
+        background-image: 
+            radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 35%),
+            radial-gradient(circle at 90% 85%, rgba(236, 72, 153, 0.08) 0%, transparent 35%),
+            radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 60%),
+            radial-gradient(#d1cfc7 1.2px, transparent 1.2px);
+        background-size: auto, auto, auto, 22px 22px;
     }
 </style>
 
@@ -102,7 +106,7 @@
     <!-- Header -->
     <div class="flex items-center gap-4 bg-white/95 backdrop-blur-xl p-3.5 sm:p-4 rounded-2xl border-2 border-[#121316] mb-6 sticky top-4 z-40 shadow-[3px_3px_0px_#121316]">
         <a href="{{ route('forum.index') }}" class="btn-tactile-white w-10 h-10 rounded-xl flex items-center justify-center text-[#121316] transition">
-            <i class="ph-bold ph-arrow-left text-lg"></i>
+            <i class="fa-solid fa-arrow-left text-lg"></i>
         </a>
         <div>
             <h1 class="forum-hdr text-base sm:text-xl font-black text-[#121316]">Buat Topik Baru</h1>
@@ -112,21 +116,21 @@
 
     @if(session('error'))
         <div class="mb-6 p-4 rounded-xl bg-rose-50 border-2 border-rose-600 text-rose-900 flex items-center gap-3 shadow-[2px_2px_0px_#e11d48]">
-            <i class="ph-bold ph-warning-circle text-2xl text-rose-600 shrink-0"></i>
+            <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-600 shrink-0"></i>
             <div class="text-xs sm:text-sm font-black">{{ session('error') }}</div>
         </div>
     @endif
 
     @if(session('success'))
         <div class="mb-6 p-4 rounded-xl bg-emerald-50 border-2 border-emerald-600 text-emerald-900 flex items-center gap-3 shadow-[2px_2px_0px_#059669]">
-            <i class="ph-bold ph-check-circle text-2xl text-emerald-600 shrink-0"></i>
+            <i class="fa-solid fa-circle-check text-2xl text-emerald-600 shrink-0"></i>
             <div class="text-xs sm:text-sm font-black">{{ session('success') }}</div>
         </div>
     @endif
 
     @if($errors->any())
         <div class="mb-6 p-4 rounded-xl bg-rose-50 border-2 border-rose-600 text-rose-900 shadow-[2px_2px_0px_#e11d48]">
-            <div class="font-black mb-1.5 flex items-center gap-2"><i class="ph-bold ph-warning"></i> Ada kesalahan:</div>
+            <div class="font-black mb-1.5 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Ada kesalahan:</div>
             <ul class="list-disc list-inside text-xs font-bold space-y-1">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -211,7 +215,7 @@
              x-transition:enter="transition ease-out duration-300"
              class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[3px_3px_0px_#121316] space-y-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316]"><i class="ph-bold ph-medal text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316]"><i class="fa-solid fa-medal text-xl"></i></div>
                 <div>
                     <h4 class="forum-hdr text-sm font-black text-[#121316]">Hubungkan Prestasi</h4>
                     <div class="text-xs font-mono-code text-[#2563eb] font-bold uppercase tracking-wider">Buktikan karya/skor kamu valid</div>
@@ -257,7 +261,7 @@
              x-transition:enter="transition ease-out duration-300"
              class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[3px_3px_0px_#121316]">
             <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316]"><i class="ph-bold ph-handshake text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316]"><i class="fa-solid fa-handshake-angle text-xl"></i></div>
                 <div>
                     <h4 class="forum-hdr text-sm font-black text-[#121316]">Rekrutmen Tim</h4>
                     <div class="text-xs font-mono-code text-[#2563eb] font-bold uppercase tracking-wider">Cari rekan kolaborasi</div>
@@ -274,7 +278,7 @@
              x-transition:enter="transition ease-out duration-300"
              class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[3px_3px_0px_#121316] space-y-4">
             <div class="flex items-center gap-3 mb-1">
-                <div class="w-10 h-10 rounded-xl bg-[#ff3823] border border-[#121316] flex items-center justify-center text-white"><i class="ph-bold ph-game-controller text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-[#ff3823] border border-[#121316] flex items-center justify-center text-white"><i class="fa-solid fa-gamepad text-xl"></i></div>
                 <div>
                     <h4 class="forum-hdr text-sm font-black text-[#121316]">Detail Lobi Mabar</h4>
                     <div class="text-xs font-mono-code text-[#ff3823] font-bold uppercase tracking-wider">Ajak kawan seangkatan mabar game pilihanmu</div>
@@ -306,7 +310,7 @@
              x-transition:enter="transition ease-out duration-300"
              class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[3px_3px_0px_#121316] space-y-4">
             <div class="flex items-center gap-3 mb-1">
-                <div class="w-10 h-10 rounded-xl bg-[#10b981] border border-[#121316] flex items-center justify-center text-white"><i class="ph-bold ph-folder-open text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl bg-[#10b981] border border-[#121316] flex items-center justify-center text-white"><i class="fa-solid fa-folder-open text-xl"></i></div>
                 <div>
                     <h4 class="forum-hdr text-sm font-black text-[#121316]">Kategori Dokumen / File</h4>
                     <div class="text-xs font-mono-code text-[#065f46] font-bold uppercase tracking-wider">Bagikan berkas belajar untuk seluruh kawan</div>
@@ -329,7 +333,7 @@
         <div class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[4px_4px_0px_#121316] grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- Image -->
             <div class="space-y-2.5">
-                <label class="block text-xs font-mono-code font-black text-[#121316] uppercase tracking-widest"><i class="ph-bold ph-image text-[#ff3823] mr-1"></i> Gambar Utama</label>
+                <label class="block text-xs font-mono-code font-black text-[#121316] uppercase tracking-widest"><i class="fa-solid fa-image text-[#ff3823] mr-1"></i> Gambar Utama</label>
                 <input type="file" name="image" accept="image/*" @change="fileChosen" 
                        class="w-full px-3 py-2 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-xs font-bold text-[#121316] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-2 file:border-[#121316] file:bg-[#fde047] file:text-[#121316] file:font-black cursor-pointer">
                 <p class="text-[10px] font-mono-code text-[#666]">Format JPG/PNG/WebP, Maks 10MB</p>
@@ -339,7 +343,7 @@
                         <img :src="imageUrl" class="h-28 w-auto object-cover">
                         <button type="button" @click="imageUrl = null; $event.target.closest('.space-y-2.5').querySelector('input[type=file]').value = ''" 
                                 class="absolute top-1.5 right-1.5 w-6 h-6 bg-white border border-[#121316] text-[#121316] hover:bg-rose-100 rounded-full flex items-center justify-center font-bold">
-                            <i class="ph-bold ph-x text-xs"></i>
+                            <i class="fa-solid fa-xmark text-xs"></i>
                         </button>
                     </div>
                 </template>
@@ -347,7 +351,7 @@
 
             <!-- File -->
             <div class="space-y-2.5">
-                <label class="block text-xs font-mono-code font-black text-[#121316] uppercase tracking-widest"><i class="ph-bold ph-file-arrow-up text-[#2563eb] mr-1"></i> Lampiran File</label>
+                <label class="block text-xs font-mono-code font-black text-[#121316] uppercase tracking-widest"><i class="fa-solid fa-cloud-arrow-up text-[#2563eb] mr-1"></i> Lampiran File</label>
                 <input type="file" name="attachment" 
                        class="w-full px-3 py-2 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-xs font-bold text-[#121316] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-2 file:border-[#121316] file:bg-[#faf8f5] file:text-[#121316] file:font-black cursor-pointer">
                 <p class="text-[10px] font-mono-code text-[#666]">PDF/ZIP/DOCS, Maks 10MB</p>
@@ -360,7 +364,7 @@
                 Batal
             </a>
             <button type="submit" class="btn-tactile-red flex-1 py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2">
-                <i class="ph-bold ph-rocket-launch text-base"></i> Posting Sekarang
+                <i class="fa-solid fa-rocket text-base"></i> Posting Sekarang
             </button>
         </div>
 

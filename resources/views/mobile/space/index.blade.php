@@ -7,11 +7,12 @@
     <!-- Header Title & Create Button -->
     <div class="flex items-center justify-between">
         <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#fde047] border border-[#121316] text-[#121316] text-[10px] font-mono font-black mb-1">
-                <span>✱ PEMBDA SPACE</span>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-[10px] font-mono font-black mb-1.5 shadow-xs">
+                <i class="fa-solid fa-shapes text-yellow-300 text-[10px]"></i>
+                <span>PEMBDA SPACE</span>
             </div>
             <h2 class="text-xl font-black text-[#121316] tracking-tight">Ruang Komunitas</h2>
-            <p class="text-[11px] text-[#555] font-bold">Class Squads & Wall Diskusi Sekolah</p>
+            <p class="text-[11px] text-slate-600 font-bold">Class Squads & Wall Diskusi Sekolah</p>
         </div>
         <a href="{{ route('mobile.space.create') }}" 
            class="px-4 py-2.5 bg-[#ff3823] text-white border-2 border-[#121316] rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
@@ -19,14 +20,14 @@
         </a>
     </div>
 
-    <!-- LIVE ACTIVITY TICKER BANNER (Neo-Brutalist) -->
-    <div class="p-2.5 bg-[#121316] text-white rounded-2xl shadow-[3px_3px_0px_#121316] border-2 border-[#121316] overflow-hidden relative">
+    <!-- LIVE ACTIVITY TICKER BANNER (Youth Vibrant) -->
+    <div class="p-2.5 bg-gradient-to-r from-violet-700 via-indigo-700 to-fuchsia-700 text-white rounded-2xl shadow-[3px_3px_0px_#121316] border-2 border-[#121316] overflow-hidden relative">
         <div class="flex items-center space-x-2 text-[10px] font-black">
-            <span class="px-2 py-0.5 rounded-lg bg-[#ff3823] text-white uppercase text-[8px] font-mono font-black tracking-wider shrink-0 flex items-center gap-1 border border-[#121316]">
-                <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> LIVE
+            <span class="px-2 py-0.5 rounded-lg bg-[#fde047] text-[#121316] uppercase text-[8px] font-mono font-black tracking-wider shrink-0 flex items-center gap-1 border border-[#121316]">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span> LIVE
             </span>
-            <marquee class="font-mono font-bold text-[#fde047] min-w-0" scrollamount="4">
-                ⚡ Rombel X-IPA 1 Aktif Berdiskusi! &nbsp;&bull;&nbsp; 🎉 Modul Baru & Kartu LMS Berhasil Dibagikan di Class Squads! &nbsp;&bull;&nbsp; 🏆 Ahmad Meraih Poin Reputasi Bintang Minggu Ini! &nbsp;&bull;&nbsp; 🧱 Menara Prestasi Aktif Dibangun!
+            <marquee class="font-mono font-bold text-yellow-200 min-w-0" scrollamount="4">
+                ⚡ Rombel X-IPA 1 Aktif Berdiskusi! &nbsp;&bull;&nbsp; 🎉 Modul Baru & Kartu LMS Berhasil Dibagikan di Class Squads! &nbsp;&bull;&nbsp; 🏆 Siswa Meraih Poin Reputasi Bintang Minggu Ini! &nbsp;&bull;&nbsp; 🧱 Menara Prestasi Aktif Dibangun!
             </marquee>
         </div>
     </div>
@@ -34,13 +35,15 @@
     <!-- MAIN TOP NAVIGATION TABS (CLASS SQUADS vs WALL) -->
     <div class="grid grid-cols-2 gap-2 bg-[#faf8f5] p-1.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">
         <a href="{{ route('mobile.space.index', ['tab' => 'groups']) }}" 
-           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'groups' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-[#555] hover:text-[#121316]' }}">
-            <span>👥 Class Squads</span>
+           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'groups' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
+            <i class="fa-solid fa-users-rectangle text-xs"></i>
+            <span>Class Squads</span>
             <span class="px-1.5 py-0.5 rounded-full bg-[#121316] text-white font-mono text-[10px] font-black">{{ count($groups) }}</span>
         </a>
         <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
-           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'kanal' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-[#555] hover:text-[#121316]' }}">
-            <span>🧱 Wall</span>
+           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'kanal' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
+            <i class="fa-solid fa-comments text-xs"></i>
+            <span>Wall Obrolan</span>
             <span class="px-1.5 py-0.5 rounded-full bg-[#121316] text-white font-mono text-[10px] font-black">{{ count($categories) }}</span>
         </a>
     </div>
@@ -54,8 +57,8 @@
             <div class="relative">
                 <input type="text" name="search" value="{{ $search ?? '' }}" 
                        placeholder="Cari nama Class Squad..." 
-                       class="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-[#121316] rounded-2xl text-[#121316] text-xs placeholder-[#777] font-bold focus:outline-none focus:shadow-[2px_2px_0px_#ff3823] shadow-[2px_2px_0px_#121316] transition">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#121316] text-xs"></i>
+                       class="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-[#121316] rounded-2xl text-[#121316] text-xs placeholder-slate-500 font-bold focus:outline-none focus:shadow-[2px_2px_0px_#ff3823] shadow-[2px_2px_0px_#121316] transition">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
             </div>
         </form>
 
@@ -83,39 +86,46 @@
                 @php
                     $latest = $grp->latestThread;
                     $memberCount = $grp->calculated_member_count ?? count($grp->members ?? []);
+                    $grpName = $grp->name ?? 'Class Squad';
+                    $cleanGrpName = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $grpName));
+                    $squadFa = match(true) {
+                        str_contains(strtolower($grpName), 'lobi') => ['fa-solid fa-school', 'bg-purple-100 text-purple-600 border-purple-200'],
+                        str_contains(strtolower($grpName), 'guru') => ['fa-solid fa-chalkboard-user', 'bg-emerald-100 text-emerald-600 border-emerald-200'],
+                        default => ['fa-solid fa-users', 'bg-sky-100 text-sky-600 border-sky-200']
+                    };
                 @endphp
                 <a href="{{ route('mobile.space.group.show', $grp->id) }}" 
                    class="p-4 block transition relative space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#121316]">
                     
                     <div class="flex items-center space-x-3">
                         <!-- Squad Icon Avatar -->
-                        <div class="w-12 h-12 rounded-2xl bg-[#fde047] flex items-center justify-center text-[#121316] text-xl font-black shadow-[1px_1px_0px_#121316] border-2 border-[#121316] shrink-0">
-                            {{ $grp->icon ?? '💬' }}
+                        <div class="w-12 h-12 rounded-2xl {{ $squadFa[1] }} flex items-center justify-center text-lg font-black shadow-[1px_1px_0px_#121316] border-2 border-[#121316] shrink-0">
+                            <i class="{{ $squadFa[0] }}"></i>
                         </div>
 
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between">
-                                <h4 class="text-xs font-black text-[#121316] leading-snug truncate">{{ $grp->name }}</h4>
-                                <span class="text-[9px] font-mono text-[#666] font-bold shrink-0">
+                                <h4 class="text-xs font-black text-[#121316] leading-snug truncate">{{ $cleanGrpName }}</h4>
+                                <span class="text-[9px] font-mono text-slate-500 font-bold shrink-0">
                                     {{ $latest?->created_at ? $latest->created_at->diffForHumans() : $grp->created_at->diffForHumans() }}
                                 </span>
                             </div>
 
-                            <p class="text-[11px] text-[#444] truncate font-medium mt-0.5">
+                            <p class="text-[11px] text-slate-600 truncate font-medium mt-0.5">
                                 @if($latest)
-                                    <strong class="text-[#2563eb]">{{ $latest->user->name ?? 'User' }}:</strong> {{ strip_tags($latest->content) }}
+                                    <strong class="text-indigo-600">{{ $latest->user->name ?? 'User' }}:</strong> {{ strip_tags($latest->content) }}
                                 @else
-                                    <span class="italic text-[#777]">Belum ada obrolan baru</span>
+                                    <span class="italic text-slate-400">Belum ada obrolan baru</span>
                                 @endif
                             </p>
 
                             <div class="flex items-center space-x-2 text-[9px] font-mono font-bold text-[#121316] mt-1">
                                 <span class="px-2 py-0.5 rounded-full bg-[#faf8f5] text-[#121316] border border-[#121316] font-black">
-                                    👥 {{ $memberCount }} Anggota
+                                    <i class="fa-solid fa-users text-[8px] text-indigo-600"></i> {{ $memberCount }} Anggota
                                 </span>
                                 @if($grp->only_admin_can_post)
                                     <span class="px-2 py-0.5 rounded-full bg-[#fde047] text-[#121316] border border-[#121316] font-black">
-                                        📢 Pengumuman Guru
+                                        <i class="fa-solid fa-bullhorn text-[8px] text-rose-600"></i> Pengumuman Guru
                                     </span>
                                 @endif
                             </div>
@@ -123,7 +133,7 @@
                     </div>
                 </a>
             @empty
-                <div class="p-8 text-center text-[#666] text-xs font-bold space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
+                <div class="p-8 text-center text-slate-500 text-xs font-bold space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
                     <div class="text-3xl">👥</div>
                     <p>Belum ada Class Squad terdaftar saat ini.</p>
                 </div>
@@ -131,7 +141,7 @@
         </div>
     @endif
 
-    <!-- TAB 2: WALL (12+ CATEGORIES & THREADS FEED) -->
+    <!-- TAB 2: WALL (CATEGORIES & THREADS FEED) -->
     @if($tab === 'kanal')
         <!-- Search Input -->
         <form action="{{ route('mobile.space.index') }}" method="GET" class="relative">
@@ -139,22 +149,26 @@
             @if($category)<input type="hidden" name="category" value="{{ $category }}">@endif
             <div class="relative">
                 <input type="text" name="search" value="{{ $search ?? '' }}" 
-                       placeholder="Cari ide atau postingan di Wall..." 
-                       class="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-[#121316] rounded-2xl text-[#121316] text-xs placeholder-[#777] font-bold focus:outline-none focus:shadow-[2px_2px_0px_#ff3823] shadow-[2px_2px_0px_#121316] transition">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#121316] text-xs"></i>
+                       placeholder="Cari ide, diskusi, atau karya di Wall..." 
+                       class="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-[#121316] rounded-2xl text-[#121316] text-xs placeholder-slate-500 font-bold focus:outline-none focus:shadow-[2px_2px_0px_#ff3823] shadow-[2px_2px_0px_#121316] transition">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
             </div>
         </form>
 
         <!-- Category Pills (All Wall Categories) -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ !$category ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
-                🧱 Semua Wall
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] flex items-center gap-1.5 {{ !$category ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
+                <i class="fa-solid fa-compass text-xs"></i>
+                <span>Semua Wall</span>
             </a>
             @foreach($categories as $key => $label)
+                @php
+                    $cleanLabel = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $label));
+                @endphp
                 <a href="{{ route('mobile.space.index', ['tab' => 'kanal', 'category' => $key]) }}" 
                    class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $category === $key ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
-                    {{ $label }}
+                    {{ $cleanLabel }}
                 </a>
             @endforeach
         </div>
@@ -174,9 +188,12 @@
                             $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=121316&color=fff&bold=true';
                         }
                     }
+
+                    $rawCat = \App\Models\ForumThread::CATEGORIES[$thread->category] ?? 'Diskusi';
+                    $cleanCat = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $rawCat));
                 @endphp
                 <a href="{{ route('mobile.space.show', $thread->id) }}" 
-                   class="p-4 block transition relative space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#121316]">
+                   class="p-4 block transition relative space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#121316] overflow-hidden">
                     
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2.5 min-w-0">
@@ -192,17 +209,17 @@
                                     </span>
                                     @endif
                                 </div>
-                                <span class="text-[9px] font-mono text-[#666] font-bold block mt-0.5">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
+                                <span class="text-[9px] font-mono text-slate-500 font-bold block mt-0.5">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
                             </div>
                         </div>
 
-                        <span class="px-2 py-0.5 rounded-md bg-[#faf8f5] text-[#121316] border border-[#121316] text-[9px] font-mono font-black uppercase">
-                            {{ \App\Models\ForumThread::CATEGORIES[$thread->category] ?? '💬 Diskusi' }}
+                        <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-[9px] font-mono font-black uppercase">
+                            {{ $cleanCat }}
                         </span>
                     </div>
 
                     <h3 class="text-xs font-black text-[#121316] leading-snug pt-0.5">{{ $thread->title }}</h3>
-                    <p class="text-[11px] text-[#444] line-clamp-2 leading-relaxed font-medium">
+                    <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-medium">
                         {{ strip_tags($thread->content) }}
                     </p>
 
@@ -213,12 +230,12 @@
                     @endif
 
                     <div class="flex items-center space-x-4 pt-1.5 text-[10px] font-mono font-black text-[#121316] border-t border-[#121316]/10">
-                        <span class="flex items-center gap-1 text-[#2563eb]"><i class="fa-regular fa-comment"></i> {{ $thread->replies_count ?? 0 }} Komentar</span>
-                        <span class="flex items-center gap-1 text-[#ff3823]"><i class="fa-regular fa-heart"></i> {{ $thread->likes_count ?? 0 }} Suka</span>
+                        <span class="flex items-center gap-1 text-indigo-600"><i class="fa-regular fa-comment"></i> {{ $thread->replies_count ?? 0 }} Komentar</span>
+                        <span class="flex items-center gap-1 text-rose-600"><i class="fa-regular fa-heart"></i> {{ $thread->likes_count ?? 0 }} Suka</span>
                     </div>
                 </a>
             @empty
-                <div class="p-8 text-center text-[#666] text-xs font-bold space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
+                <div class="p-8 text-center text-slate-500 text-xs font-bold space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
                     <div class="text-3xl">🧱</div>
                     <p>Belum ada postingan di Wall ini.</p>
                 </div>

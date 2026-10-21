@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 {{-- Alpine.js dimuat oleh master layout — JANGAN duplikasi --}}
 
 <!-- PWA Manifest & App Shell Meta Tags -->
@@ -128,9 +128,13 @@
 
     /* Graph Canvas Background */
     .graph-canvas {
-        background-color: #faf8f5;
-        background-image: radial-gradient(#d8d4c7 1.2px, transparent 1.2px);
-        background-size: 20px 20px;
+        background-color: #faf7f2;
+        background-image: 
+            radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 35%),
+            radial-gradient(circle at 90% 85%, rgba(236, 72, 153, 0.08) 0%, transparent 35%),
+            radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 60%),
+            radial-gradient(#d1cfc7 1.2px, transparent 1.2px);
+        background-size: auto, auto, auto, 22px 22px;
     }
 
     /* Tactile Cards */
@@ -185,7 +189,7 @@
     <div class="flex items-center justify-between bg-white/95 backdrop-blur-xl p-3.5 sm:p-4 rounded-2xl border-2 border-[#121316] mb-6 sticky top-4 z-40 shadow-[3px_3px_0px_#121316]">
         <div class="flex items-center gap-3.5 min-w-0">
             <a href="{{ route('forum.index') }}" class="btn-tactile-white w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" title="Kembali ke Daftar">
-                <i class="ph-bold ph-arrow-left text-lg"></i>
+                <i class="fa-solid fa-arrow-left text-lg"></i>
             </a>
             <div class="min-w-0">
                 <div class="text-[10px] font-mono-code font-black text-[#ff3823] uppercase tracking-wider">{{ $thread->category_label }}</div>
@@ -196,12 +200,12 @@
         <div class="flex items-center gap-2 flex-shrink-0">
             @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin())
                 <a href="{{ route('forum.edit', $thread) }}" class="btn-tactile-white w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[#121316]" title="Edit Topik">
-                    <i class="ph-bold ph-pencil-simple text-base sm:text-lg"></i>
+                    <i class="fa-solid fa-pen-to-square text-base sm:text-lg"></i>
                 </a>
                 <form action="{{ route('forum.destroy', $thread) }}" method="POST" onsubmit="return confirm('Yakin hapus postingan ini?')" class="inline">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-tactile-white w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-rose-600 hover:text-rose-700" title="Hapus Topik">
-                        <i class="ph-bold ph-trash text-base sm:text-lg"></i>
+                        <i class="fa-solid fa-trash text-base sm:text-lg"></i>
                     </button>
                 </form>
             @endif
@@ -210,12 +214,12 @@
 
     @if(session('success'))
     <div class="mb-6 p-4 rounded-xl bg-emerald-50 border-2 border-emerald-600 text-emerald-900 flex items-center gap-3 shadow-[2px_2px_0px_#059669]">
-        <i class="ph-bold ph-check-circle text-xl text-emerald-600"></i> <span class="text-xs sm:text-sm font-black">{{ session('success') }}</span>
+        <i class="fa-solid fa-circle-check text-xl text-emerald-600"></i> <span class="text-xs sm:text-sm font-black">{{ session('success') }}</span>
     </div>
     @endif
     @if(session('error'))
     <div class="mb-6 p-4 rounded-xl bg-rose-50 border-2 border-rose-600 text-rose-900 flex items-center gap-3 shadow-[2px_2px_0px_#e11d48]">
-        <i class="ph-bold ph-x-circle text-xl text-rose-600"></i> <span class="text-xs sm:text-sm font-black">{{ session('error') }}</span>
+        <i class="fa-solid fa-circle-xmark text-xl text-rose-600"></i> <span class="text-xs sm:text-sm font-black">{{ session('error') }}</span>
     </div>
     @endif
 
@@ -231,8 +235,8 @@
             @endif
         </div>
         <div class="flex items-center gap-3 text-xs font-mono-code font-black text-[#121316]">
-            <span class="flex items-center gap-1"><i class="ph-bold ph-chat-circle text-[#ff3823]"></i> {{ $thread->replies->count() }} Balasan</span>
-            <span class="flex items-center gap-1 text-[#666]"><i class="ph-bold ph-eye"></i> {{ $thread->views_count }} Views</span>
+            <span class="flex items-center gap-1"><i class="fa-solid fa-comment-dots text-[#ff3823]"></i> {{ $thread->replies->count() }} Balasan</span>
+            <span class="flex items-center gap-1 text-[#666]"><i class="fa-solid fa-eye"></i> {{ $thread->views_count }} Views</span>
         </div>
     </div>
 
@@ -272,7 +276,7 @@
                     @if($thread->attachment_path)
                         <a href="{{ asset('storage/' . $thread->attachment_path) }}" download class="mt-4 flex items-center gap-3 p-3 bg-[#faf8f5] hover:bg-[#fde047] border-2 border-[#121316] rounded-xl transition max-w-sm shadow-[2px_2px_0px_#121316] group">
                             <div class="w-10 h-10 rounded-lg bg-white border border-[#121316] flex items-center justify-center text-[#121316] flex-shrink-0">
-                                <i class="ph-bold ph-file-arrow-down text-xl"></i>
+                                <i class="fa-solid fa-download text-xl"></i>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="text-xs font-black text-[#121316] truncate">{{ $thread->attachment_name ?? 'Download Lampiran' }}</div>
@@ -285,7 +289,7 @@
                         <div class="mt-4 p-4 rounded-xl bg-rose-50 border-2 border-[#121316] flex items-center justify-between gap-4 shadow-[2px_2px_0px_#121316]">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 rounded-xl bg-[#ff3823] border border-[#121316] text-white flex items-center justify-center text-2xl flex-shrink-0">
-                                    <i class="ph-bold ph-game-controller"></i>
+                                    <i class="fa-solid fa-gamepad"></i>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-mono-code font-black text-[#ff3823] uppercase tracking-wider">Lobi Mabar {{ $thread->game_name }}</div>
@@ -294,7 +298,7 @@
                             </div>
                             @if($thread->game_room_code)
                             <button onclick="navigator.clipboard.writeText('{{ addslashes($thread->game_room_code) }}'); alert('Kode Room / ID berhasil disalin!');" class="btn-tactile-red px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5">
-                                <i class="ph-bold ph-copy"></i> Salin ID
+                                <i class="fa-solid fa-copy"></i> Salin ID
                             </button>
                             @endif
                         </div>
@@ -303,7 +307,7 @@
                     @if($thread->category === 'sharing' && $thread->file_category)
                         <div class="mt-4 p-3 bg-emerald-50 border-2 border-[#121316] rounded-xl flex items-center gap-3 shadow-[2px_2px_0px_#121316]">
                             <div class="w-9 h-9 rounded-lg bg-[#10b981] border border-[#121316] text-white flex items-center justify-center text-lg flex-shrink-0">
-                                <i class="ph-bold ph-folder-open"></i>
+                                <i class="fa-solid fa-folder-open"></i>
                             </div>
                             <div>
                                 <div class="text-[10px] font-mono-code font-black text-emerald-800 uppercase tracking-wider">Kategori Berkas Belajar</div>
@@ -315,7 +319,7 @@
                     @if($perfCard)
                         <div class="mt-4 p-4 rounded-xl bg-purple-50 border-2 border-[#121316] flex items-start gap-4 shadow-[2px_2px_0px_#121316]">
                             <div class="w-12 h-12 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316] flex-shrink-0">
-                                <i class="ph-bold ph-medal text-2xl"></i>
+                                <i class="fa-solid fa-medal text-2xl"></i>
                             </div>
                             <div>
                                 <div class="text-[10px] font-mono-code font-black text-purple-800 uppercase tracking-wider">Tautan Prestasi</div>
@@ -342,12 +346,12 @@
                             <div class="flex items-center justify-between gap-2 border-b-2 border-[#121316]/10 pb-2.5">
                                 <div class="flex items-center gap-2">
                                     <span class="w-7 h-7 rounded-lg bg-[#fde047] border border-[#121316] text-[#121316] flex items-center justify-center text-sm flex-shrink-0">
-                                        <i class="ph-bold ph-chart-bar"></i>
+                                        <i class="fa-solid fa-chart-simple"></i>
                                     </span>
                                     <span class="text-[10px] font-mono-code font-black tracking-wider uppercase text-[#121316] bg-[#faf8f5] border border-[#121316] px-2 py-0.5 rounded-md">📊 Polling Interaktif</span>
                                 </div>
                                 <span class="text-xs font-mono-code font-black text-[#121316] flex items-center gap-1">
-                                    <i class="ph-bold ph-users text-[#2563eb]"></i>
+                                    <i class="fa-solid fa-users text-[#2563eb]"></i>
                                     <span id="poll-total-votes">{{ $totalVotes }}</span> Suara
                                 </span>
                             </div>
@@ -370,7 +374,7 @@
                                             <div class="flex items-center gap-2.5 {{ $hasVoted ? 'text-[#121316]' : 'text-[#333]' }}">
                                                 <span class="w-5 h-5 rounded-full flex items-center justify-center border border-[#121316] text-[10px] font-mono-code font-black flex-shrink-0 {{ $hasVoted ? 'bg-[#121316] text-[#fde047]' : 'bg-white text-[#121316]' }}" id="poll-check-{{ $option->id }}">
                                                     @if($hasVoted)
-                                                        <i class="ph-bold ph-check"></i>
+                                                        <i class="fa-solid fa-check"></i>
                                                     @else
                                                         {{ $loop->iteration }}
                                                     @endif
@@ -388,7 +392,7 @@
                             
                             @if(!$poll->isOpen())
                                 <div class="text-[11px] font-mono-code font-black text-amber-700 flex items-center gap-1 pt-1">
-                                    <i class="ph-bold ph-lock-key"></i> Polling ini telah ditutup
+                                    <i class="fa-solid fa-lock"></i> Polling ini telah ditutup
                                 </div>
                             @endif
                         </div>
@@ -400,7 +404,7 @@
                     <!-- Picker Button -->
                     <div class="flex items-center relative">
                         <button @click="togglePicker('thread')" class="w-8 h-8 rounded-xl bg-white hover:bg-[#fde047] border-2 border-[#121316] shadow-[1px_1px_0px_#121316] flex items-center justify-center text-[#121316] transition">
-                            <i class="ph-bold ph-smiley text-base"></i>
+                            <i class="fa-regular fa-face-smile text-base"></i>
                         </button>
                         <!-- Picker Dropdown (Inline) -->
                         <div x-show="pickerOpen === 'thread'" class="ml-2 p-1.5 bg-white border-2 border-[#121316] rounded-xl flex gap-1 shadow-[3px_3px_0px_#121316] z-20">
@@ -428,7 +432,7 @@
         @if(in_array($thread->category, ['project_idea', 'committee']) && $thread->status !== 'completed')
             <div class="max-w-3xl ml-13 sm:ml-16 bg-white border-2 border-[#121316] rounded-2xl p-5 shadow-[3px_3px_0px_#121316] relative overflow-hidden">
                 <h3 class="forum-hdr text-sm font-black text-[#121316] flex items-center gap-2 mb-3">
-                    <i class="ph-bold ph-handshake text-[#2563eb] text-lg"></i> Rekrutmen Tim Kolaborasi
+                    <i class="fa-solid fa-handshake-angle text-[#2563eb] text-lg"></i> Rekrutmen Tim Kolaborasi
                 </h3>
                 @if(auth()->id() !== $thread->user_id && $thread->status === 'seeking_members')
                     @php $hasApplied = $thread->members()->where('user_id', auth()->id())->exists(); @endphp
@@ -481,7 +485,7 @@
                                 <span class="text-xs font-mono-code text-[#666]">&bull; {{ $reply->created_at->format('H:i') }}</span>
                                 @if($reply->is_accepted)
                                     <span class="text-[10px] font-mono-code font-black px-2 py-0.5 bg-[#fde047] text-[#121316] border border-[#121316] rounded-md flex items-center gap-1">
-                                        <i class="ph-bold ph-star text-[#ff3823]"></i> Jawaban Terbaik
+                                        <i class="fa-solid fa-star text-[#ff3823]"></i> Jawaban Terbaik
                                     </span>
                                 @endif
                             </div>
@@ -490,13 +494,13 @@
                             @if(auth()->id() === $reply->user_id || auth()->user()->isSuperAdmin())
                                 <div class="flex items-center gap-1 ml-auto">
                                     <button type="button" @click="editing = !editing" class="p-1 text-[#666] hover:text-[#121316] rounded-md transition text-xs font-black flex items-center gap-1" title="Edit Komentar">
-                                        <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
+                                        <i class="fa-solid fa-pen-to-square"></i> <span>Edit</span>
                                     </button>
                                     <form action="{{ route('forum.reply.destroy', $reply) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus komentar ini?');" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-1 text-[#666] hover:text-rose-600 rounded-md transition text-xs font-black flex items-center gap-1" title="Hapus Komentar">
-                                            <i class="ph-bold ph-trash"></i> <span>Hapus</span>
+                                            <i class="fa-solid fa-trash"></i> <span>Hapus</span>
                                         </button>
                                     </form>
                                 </div>
@@ -508,7 +512,7 @@
                             <div class="{{ $reply->is_accepted ? 'bg-amber-50 border-2 border-amber-600 shadow-[3px_3px_0px_#d97706]' : 'bg-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' }} rounded-2xl rounded-tl-none p-4 max-w-2xl text-xs sm:text-sm text-[#222] font-medium leading-relaxed">
                                 @if($reply->voice_note_path)
                                     <div class="mb-2 flex items-center gap-2 text-[#2563eb] font-mono-code font-black text-xs">
-                                        <i class="ph-bold ph-microphone text-lg"></i> Pesan Suara
+                                        <i class="fa-solid fa-microphone text-lg"></i> Pesan Suara
                                     </div>
                                     <audio controls class="w-full h-10 rounded-xl max-w-[250px] sm:max-w-xs mb-2 bg-[#faf8f5] border border-[#121316]" src="{{ asset('storage/' . $reply->voice_note_path) }}"></audio>
                                 @endif
@@ -523,7 +527,7 @@
                                 <div class="flex items-center gap-2">
                                     <div class="flex items-center relative">
                                         <button @click="togglePicker('reply-{{ $reply->id }}')" class="w-6 h-6 rounded-lg bg-white border border-[#121316] flex items-center justify-center text-[#666] hover:text-[#121316] transition">
-                                            <i class="ph-bold ph-smiley text-sm"></i>
+                                            <i class="fa-regular fa-face-smile text-sm"></i>
                                         </button>
                                         <div x-show="pickerOpen === 'reply-{{ $reply->id }}'" class="ml-2 p-1 bg-white border-2 border-[#121316] rounded-xl flex gap-1 shadow-[2px_2px_0px_#121316] z-20">
                                             @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
@@ -551,14 +555,14 @@
                                             data-snippet="{{ Str::limit(strip_tags($reply->content), 40) }}"
                                             onclick="quoteReplyFromBtn(this)" 
                                             class="text-xs font-mono-code font-black text-[#ff3823] hover:underline flex items-center gap-1">
-                                        <i class="ph-bold ph-arrow-bend-down-right"></i> Balas
+                                        <i class="fa-solid fa-reply"></i> Balas
                                     </button>
 
                                     @if(auth()->id() === $thread->user_id && $thread->category === 'tanya_jawab' && !$reply->is_accepted)
                                         <form action="{{ route('forum.reply.accept', $reply) }}" method="POST" class="inline">
                                             @csrf
                                             <button type="submit" class="px-2 py-0.5 bg-[#fde047] border border-[#121316] rounded-md text-[10px] font-mono-code font-black text-[#121316] hover:bg-[#facc15] flex items-center gap-1">
-                                                <i class="ph-bold ph-check"></i> Jadikan Terbaik
+                                                <i class="fa-solid fa-check"></i> Jadikan Terbaik
                                             </button>
                                         </form>
                                     @endif
@@ -612,7 +616,7 @@
                                                     <div class="flex items-center gap-1.5">
                                                         <div class="flex items-center relative">
                                                             <button @click="togglePicker('reply-{{ $child->id }}')" class="w-5 h-5 rounded hover:bg-slate-200 flex items-center justify-center text-[#666]">
-                                                                <i class="ph-bold ph-smiley text-xs"></i>
+                                                                <i class="fa-regular fa-face-smile text-xs"></i>
                                                             </button>
                                                             <div x-show="pickerOpen === 'reply-{{ $child->id }}'" class="ml-1 p-1 bg-white border-2 border-[#121316] rounded-lg flex gap-1 shadow z-20">
                                                                 @foreach(\App\Models\ForumReaction::EMOJIS as $emoji => $name)
@@ -670,7 +674,7 @@
             <div id="quote-preview" class="hidden p-2.5 bg-[#fde047] border-2 border-[#121316] rounded-xl flex items-center justify-between gap-3 shadow-[2px_2px_0px_#121316]">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-7 h-7 rounded-lg bg-[#121316] text-[#fde047] flex items-center justify-center text-sm flex-shrink-0">
-                        <i class="ph-bold ph-arrow-bend-down-right"></i>
+                        <i class="fa-solid fa-reply"></i>
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2">
@@ -681,7 +685,7 @@
                     </div>
                 </div>
                 <button type="button" onclick="cancelQuote()" class="btn-tactile-white px-2.5 py-1 text-xs font-black flex items-center gap-1 flex-shrink-0">
-                    <i class="ph-bold ph-x text-rose-600"></i> <span>Batal</span>
+                    <i class="fa-solid fa-xmark text-rose-600"></i> <span>Batal</span>
                 </button>
             </div>
         </div>
@@ -694,7 +698,7 @@
             <!-- Emoji Picker Trigger -->
             <div class="relative flex-shrink-0 mb-0.5">
                 <button type="button" onclick="toggleComposeEmojiVanilla(event)" class="compose-emoji-trigger btn-tactile-white w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-[#121316]">
-                    <i class="ph-bold ph-smiley text-xl"></i>
+                    <i class="fa-regular fa-face-smile text-xl"></i>
                 </button>
                 <div id="compose-emoji-picker" class="compose-emoji-picker" style="display: none;">
                     <button type="button" onclick="insertEmojiVanilla('😀')" class="compose-emoji-btn"><span>😀</span></button>
@@ -715,10 +719,10 @@
             <!-- Input Textarea & Voice Note Preview -->
             <div class="flex-1 bg-[#faf8f5] border-2 border-[#121316] rounded-xl overflow-hidden focus-within:bg-white shadow-[2px_2px_0px_#121316] flex flex-col justify-center min-h-[44px]">
                 <div id="vn-preview" class="w-full bg-transparent text-[#121316] px-4 py-2 flex items-center gap-3" style="display: none;">
-                    <i class="ph-bold ph-microphone text-[#ff3823] text-lg"></i>
+                    <i class="fa-solid fa-microphone text-[#ff3823] text-lg"></i>
                     <audio id="vn-audio" controls class="h-8 flex-1 max-w-[200px] sm:max-w-[300px]"></audio>
                     <button type="button" onclick="cancelVoiceNote()" class="p-1.5 bg-rose-100 text-rose-700 rounded-lg border border-rose-300 ml-auto" title="Hapus rekaman">
-                        <i class="ph-bold ph-trash text-base"></i>
+                        <i class="fa-solid fa-trash text-base"></i>
                     </button>
                 </div>
 
@@ -727,20 +731,20 @@
                     
                     <!-- Mic Button -->
                     <button type="button" id="record-btn" onclick="toggleRecord()" class="p-2.5 text-[#555] hover:text-[#ff3823] transition flex-shrink-0 mb-0.5 mr-0.5 rounded-lg flex items-center justify-center" title="Merekam voice note">
-                        <i class="ph-bold ph-microphone text-lg"></i>
+                        <i class="fa-solid fa-microphone text-lg"></i>
                     </button>
                 </div>
             </div>
 
             <button type="submit" class="btn-tactile-red w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 mb-0.5" title="Kirim Komentar">
-                <i class="ph-bold ph-paper-plane-right text-lg"></i>
+                <i class="fa-solid fa-paper-plane text-lg"></i>
             </button>
         </form>
     </div>
     @else
     <div class="fixed bottom-0 left-0 w-full bg-[#fde047] border-t-2 border-[#121316] p-4 z-50">
         <div class="max-w-[1200px] mx-auto text-center text-[#121316] font-black text-xs sm:text-sm font-mono-code">
-            <i class="ph-bold ph-lock-key mr-2"></i> Topik ini telah dikunci.
+            <i class="fa-solid fa-lock mr-2"></i> Topik ini telah dikunci.
         </div>
     </div>
     @endif
@@ -968,7 +972,7 @@ async function votePoll(optionId) {
                 if (checkEl) {
                     if (isSelected) {
                         checkEl.className = 'w-5 h-5 rounded-full flex items-center justify-center border border-[#121316] text-[10px] font-mono-code font-black flex-shrink-0 bg-[#121316] text-[#fde047]';
-                        checkEl.innerHTML = '<i class="ph-bold ph-check"></i>';
+                        checkEl.innerHTML = '<i class="fa-solid fa-check"></i>';
                     } else {
                         checkEl.className = 'w-5 h-5 rounded-full flex items-center justify-center border border-[#121316] text-[10px] font-mono-code font-black flex-shrink-0 bg-white text-[#121316]';
                         checkEl.textContent = (idx + 1);
@@ -1022,7 +1026,7 @@ async function toggleRecord() {
             
             stream.getTracks().forEach(track => track.stop());
             
-            recordBtn.innerHTML = '<i class="ph-bold ph-microphone text-lg"></i>';
+            recordBtn.innerHTML = '<i class="fa-solid fa-microphone text-lg"></i>';
             recordBtn.classList.remove('text-[#ff3823]', 'animate-pulse');
             recordBtn.style.display = 'none';
         };
@@ -1031,7 +1035,7 @@ async function toggleRecord() {
         isRecording = true;
         recordSeconds = 0;
         
-        recordBtn.innerHTML = '<i class="ph-bold ph-stop text-lg text-[#ff3823]"></i>';
+        recordBtn.innerHTML = '<i class="fa-solid fa-stop text-lg text-[#ff3823]"></i>';
         recordBtn.classList.add('text-[#ff3823]', 'animate-pulse');
         textarea.placeholder = "Merekam... (Maks 15 detik)";
         textarea.disabled = true;
