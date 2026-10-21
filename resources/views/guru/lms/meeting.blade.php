@@ -244,11 +244,58 @@
             {{-- 3. Tombol Pilihan Tampilan Layout (Tata Letak) --}}
             <div class="relative inline-block text-left" id="header-view-wrapper">
                 <button onclick="toggleViewMenu(event)" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Pilihan Tata Letak Tampilan Video">
-                    <i id="header-view-icon" class="fa-solid fa-table-cells-large text-sm text-black"></i>
+                    <i id="header-view-icon" class="fa-solid fa-chalkboard-user text-sm text-black"></i>
                     <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
                         Tata Letak: <span id="header-view-name">Ruang Kelas (5x8)</span>
                     </span>
                 </button>
+
+                {{-- DROPDOWN MENU TATA LETAK ZOOM --}}
+                <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-white p-2.5 z-50 transition-all shadow-xl" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
+                    <div class="px-3 py-1 text-[10px] font-mono-code font-extrabold uppercase tracking-wider mb-1.5 flex items-center justify-between" style="color: #777; border-bottom: 1.5px solid #e2ded5;">
+                        <span>TATA LETAK ZOOM</span>
+                        <span>⌜ ⌟</span>
+                    </div>
+                    
+                    <button onclick="changeLayout('classroom')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                        <span class="flex items-center gap-2.5">
+                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;"><i class="fa-solid fa-chalkboard-user"></i></span>
+                            <span>Model Ruang Kelas (5×8)</span>
+                        </span>
+                        <i id="check-classroom" class="fa-solid fa-check text-xs font-black" style="color: #ff3823;"></i>
+                    </button>
+
+                    <button onclick="changeLayout('gallery')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                        <span class="flex items-center gap-2.5">
+                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #2563eb; color: #ffffff;"><i class="fa-solid fa-table-cells"></i></span>
+                            <span>Tampilan Galeri</span>
+                        </span>
+                        <i id="check-gallery" class="fa-solid fa-check text-xs hidden font-black" style="color: #2563eb;"></i>
+                    </button>
+
+                    <button onclick="changeLayout('speaker')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                        <span class="flex items-center gap-2.5">
+                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #fbc02d; color: #121316;"><i class="fa-solid fa-user-tie"></i></span>
+                            <span>Tampilan Pembicara</span>
+                        </span>
+                        <i id="check-speaker" class="fa-solid fa-check text-xs hidden font-black" style="color: #fbc02d;"></i>
+                    </button>
+
+                    <button onclick="changeLayout('sidebyside')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                        <span class="flex items-center gap-2.5">
+                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #10b981; color: #ffffff;"><i class="fa-solid fa-columns"></i></span>
+                            <span>Berdampingan (KBM)</span>
+                        </span>
+                        <i id="check-sidebyside" class="fa-solid fa-check text-xs hidden font-black" style="color: #10b981;"></i>
+                    </button>
+
+                    <div class="h-px my-1.5" style="background-color: #e2ded5;"></div>
+
+                    <button onclick="toggleAppFullscreen()" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center gap-2.5 transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                        <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #fbc02d; color: #121316;"><i id="menu-fs-icon" class="fa-solid fa-expand"></i></span>
+                        <span id="menu-fs-text">Layar Penuh (F11)</span>
+                    </button>
+                </div>
             </div>
 
             {{-- 4. Tombol Toggle Panel Materi / Peserta --}}
@@ -285,65 +332,6 @@
         {{-- Conference Stage (Video Call Agora with Dotted Grid Graph Texture) --}}
         <main id="conference-panel" class="flex-1 relative graph-paper-box flex flex-col h-full overflow-hidden transition-all duration-150">
             
-            {{-- FLOATING ZOOM-STYLE VIEW SELECTOR (POJOK KANAN ATAS VIDEO) --}}
-            <div class="absolute top-4 right-4 z-30 flex items-center gap-2">
-                <div class="relative" id="video-view-dropdown-wrapper">
-                    <button id="btn-view-toggle" onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-2 btn-tactile-white px-3.5 py-1.5 rounded-xl text-xs font-mono-code font-black transition active:scale-95" title="Ganti Tata Letak Video (Zoom)">
-                        <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;">
-                            <i id="current-view-icon" class="fa-solid fa-chalkboard-user"></i>
-                        </div>
-                        <span>Tata Letak: <span id="current-view-name" style="color: #ff3823; font-weight: 900;">Ruang Kelas (5x8)</span></span>
-                        <i class="fa-solid fa-chevron-down text-[9px]" style="color: #121316;"></i>
-                    </button>
-
-                    <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-white p-2.5 z-50 transition-all" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
-                        <div class="px-3 py-1 text-[10px] font-mono-code font-extrabold uppercase tracking-wider mb-1.5 flex items-center justify-between" style="color: #777; border-bottom: 1.5px solid #e2ded5;">
-                            <span>TATA LETAK ZOOM</span>
-                            <span>⌜ ⌟</span>
-                        </div>
-                        
-                        <button onclick="changeLayout('classroom')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
-                            <span class="flex items-center gap-2.5">
-                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;"><i class="fa-solid fa-chalkboard-user"></i></span>
-                                <span>Model Ruang Kelas (5×8)</span>
-                            </span>
-                            <i id="check-classroom" class="fa-solid fa-check text-xs font-black" style="color: #ff3823;"></i>
-                        </button>
-
-                        <button onclick="changeLayout('gallery')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
-                            <span class="flex items-center gap-2.5">
-                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #2563eb; color: #ffffff;"><i class="fa-solid fa-table-cells"></i></span>
-                                <span>Tampilan Galeri</span>
-                            </span>
-                            <i id="check-gallery" class="fa-solid fa-check text-xs hidden font-black" style="color: #2563eb;"></i>
-                        </button>
-
-                        <button onclick="changeLayout('speaker')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
-                            <span class="flex items-center gap-2.5">
-                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #fbc02d; color: #121316;"><i class="fa-solid fa-user-tie"></i></span>
-                                <span>Tampilan Pembicara</span>
-                            </span>
-                            <i id="check-speaker" class="fa-solid fa-check text-xs hidden font-black" style="color: #fbc02d;"></i>
-                        </button>
-
-                        <button onclick="changeLayout('sidebyside')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
-                            <span class="flex items-center gap-2.5">
-                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #10b981; color: #ffffff;"><i class="fa-solid fa-columns"></i></span>
-                                <span>Berdampingan (KBM)</span>
-                            </span>
-                            <i id="check-sidebyside" class="fa-solid fa-check text-xs hidden font-black" style="color: #10b981;"></i>
-                        </button>
-
-                        <div class="h-px my-1.5" style="background-color: #e2ded5;"></div>
-
-                        <button onclick="toggleAppFullscreen()" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center gap-2.5 transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
-                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #fbc02d; color: #121316;"><i id="menu-fs-icon" class="fa-solid fa-expand"></i></span>
-                            <span id="menu-fs-text">Layar Penuh (F11)</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             {{-- STATUS INDIKATOR GURU (TENGAH ATAS - TACTILE PILL) --}}
             <div id="solo-teacher-banner" class="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto transition-all duration-300 hidden">
                 <div class="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono-code font-black" style="background-color: #fbc02d; color: #121316; border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
@@ -2048,11 +2036,10 @@
         }
 
         document.addEventListener('click', function(e) {
-            const dropdownWrapper = document.getElementById('video-view-dropdown-wrapper');
             const headerWrapper   = document.getElementById('header-view-wrapper');
             const menu            = document.getElementById('view-dropdown-menu');
             if (!menu) return;
-            if (dropdownWrapper && !dropdownWrapper.contains(e.target) && headerWrapper && !headerWrapper.contains(e.target)) {
+            if (headerWrapper && !headerWrapper.contains(e.target)) {
                 menu.classList.add('hidden');
             }
         });
