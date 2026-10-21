@@ -1285,7 +1285,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/puzzle', function() { return response()->json(['success' => false]); })->name('puzzle.state');
         Route::post('/puzzle/place', function() { return response()->json(['success' => false]); })->name('puzzle.place');
         Route::post('/puzzle/reset', function() { return response()->json(['success' => false]); })->name('puzzle.reset');
+        
+        // Realtime Feed Ticker
+        Route::get('/live-ticker', [App\Http\Controllers\ForumController::class, 'liveTicker'])->name('live-ticker');
+
         Route::get('/{thread}', [App\Http\Controllers\ForumController::class, 'show'])->name('show');
+        Route::get('/{thread}/live-updates', [App\Http\Controllers\ForumController::class, 'liveUpdates'])->name('live-updates');
         Route::post('/{thread}/reply', [App\Http\Controllers\ForumController::class, 'reply'])->name('reply');
         Route::post('/{thread}/like', [App\Http\Controllers\ForumController::class, 'like'])->name('like');
         Route::delete('/{thread}', [App\Http\Controllers\ForumController::class, 'destroy'])->name('destroy');

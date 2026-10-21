@@ -895,6 +895,26 @@
                 </div>
             @endif
 
+            <!-- FLOATING REALTIME NEW POSTS TICKER ALERT -->
+            <div id="live-new-posts-banner" style="display: none;" class="mb-4 p-3.5 bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 text-white border-2 border-[#121316] rounded-2xl shadow-[4px_4px_0px_#121316] flex items-center justify-between gap-3 animate-pulse">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="w-9 h-9 rounded-xl bg-[#fde047] text-[#121316] border-2 border-[#121316] flex items-center justify-center font-black text-base shadow-[1px_1px_0px_#121316] shrink-0">
+                        ⚡
+                    </span>
+                    <div class="min-w-0">
+                        <div class="text-xs sm:text-sm font-black text-white truncate" id="live-new-posts-text">
+                            Ada postingan baru di PembdaSPACE!
+                        </div>
+                        <div class="text-[10px] font-mono-code text-yellow-200 font-bold truncate">
+                            Civitas sekolah baru saja membagikan karya/diskusi baru
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="window.location.reload()" class="px-4 py-2 bg-[#fde047] hover:bg-yellow-300 text-[#121316] border-2 border-[#121316] rounded-xl text-xs font-mono-code font-black shadow-[2px_2px_0px_#121316] shrink-0 transition active:translate-x-0.5 active:translate-y-0.5">
+                    Muat Sekarang ↻
+                </button>
+            </div>
+
             <!-- Feed List (Youth Tinted Cards) -->
             <div class="space-y-4 pb-10">
                 @forelse($threads as $thread)
@@ -964,6 +984,15 @@
                                             @if($thread->category === 'sharing' && $thread->file_category)
                                                 <span class="text-[10px] font-mono-code font-black px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-[#121316] rounded-lg flex items-center gap-1">
                                                     <i class="fa-solid fa-folder-open text-[9px]"></i> {{ $thread->file_category }}
+                                                </span>
+                                            @endif
+                                            @if($thread->reference_type === \App\Models\LmsSubmission::class)
+                                                <span class="text-[10px] font-mono-code font-black px-2.5 py-0.5 rounded-lg border-2 border-slate-900 flex items-center gap-1 shadow-xs" style="background-color: #4338ca !important; color: #fde047 !important;">
+                                                    <i class="fa-solid fa-graduation-cap text-[10px] text-yellow-300"></i> <span>KARYA LMS TERVERIFIKASI</span>
+                                                </span>
+                                            @elseif($thread->reference_type === \App\Models\FinalProject::class)
+                                                <span class="text-[10px] font-mono-code font-black px-2.5 py-0.5 rounded-lg border-2 border-slate-900 flex items-center gap-1 shadow-xs" style="background-color: #0284c7 !important; color: #ffffff !important;">
+                                                    <i class="fa-solid fa-microscope text-[10px] text-cyan-200"></i> <span>PROJECT AKHIR / RISET</span>
                                                 </span>
                                             @endif
                                             @if($thread->is_pinned)
@@ -1674,6 +1703,30 @@ function pembdaTower() {
         }
     }
 }
+
+// Realtime Feed Live Ticker Engine
+let latestThreadIdOnFeed = {{ (int)($threads->max('id') ?? 0) }};
+async function checkLiveFeedUpdates() {
+    try {
+        const cat = "{{ request('category', '') }}";
+        const grp = "{{ request('group', '') }}";
+        const url = `{{ route('forum.live-ticker') }}?latest_thread_id=${latestThreadIdOnFeed}&category=${cat}&group=${grp}`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (data.success && data.new_threads_count > 0) {
+            const banner = document.getElementById('live-new-posts-banner');
+            const textEl = document.getElementById('live-new-posts-text');
+            if (banner && textEl) {
+                textEl.textContent = `Ada ${data.new_threads_count} postingan baru di PembdaSPACE!`;
+                banner.style.display = 'flex';
+            }
+        }
+    } catch(e) {}
+}
+
+setInterval(checkLiveFeedUpdates, 12000);
 </script>
 
 <!-- Mobile Floating Action Button (Buat Post) -->

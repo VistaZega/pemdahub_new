@@ -198,6 +198,12 @@
         </div>
         
         <div class="flex items-center gap-2 flex-shrink-0">
+            <!-- Realtime Live Sync Pill Indicator -->
+            <div id="live-sync-indicator" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-400 text-emerald-800 text-[10px] font-mono-code font-black shadow-xs" title="Sinkronisasi balasan & reaksi aktif otomatis secara realtime">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="hidden sm:inline">LIVE SYNC</span>
+            </div>
+
             @if(auth()->id() === $thread->user_id || auth()->user()->isSuperAdmin())
                 <a href="{{ route('forum.edit', $thread) }}" class="btn-tactile-white w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[#121316]" title="Edit Topik">
                     <i class="fa-solid fa-pen-to-square text-base sm:text-lg"></i>
@@ -317,21 +323,147 @@
                     @endif
 
                     @if($perfCard)
-                        <div class="mt-4 p-4 rounded-xl bg-purple-50 border-2 border-[#121316] flex items-start gap-4 shadow-[2px_2px_0px_#121316]">
-                            <div class="w-12 h-12 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316] flex-shrink-0">
-                                <i class="fa-solid fa-medal text-2xl"></i>
+                        @if($thread->reference_type === \App\Models\LmsSubmission::class)
+                            {{-- KARTU KARYA LMS TERVERIFIKASI --}}
+                            <div class="mt-4 p-5 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-purple-50/70 to-amber-50/60 border-2 border-[#121316] shadow-[3px_3px_0px_#121316] space-y-3">
+                                <div class="flex items-center justify-between gap-2 flex-wrap border-b-2 border-[#121316]/10 pb-2.5">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-9 h-9 rounded-xl bg-[#fde047] border-2 border-[#121316] flex items-center justify-center text-[#121316] shadow-[1px_1px_0px_#121316] shrink-0">
+                                            <i class="fa-solid fa-graduation-cap text-lg"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="text-[10px] font-mono-code font-black text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span>✦ KARYA TERVERIFIKASI LMS PEMBDA</span>
+                                                <i class="fa-solid fa-circle-check text-blue-600 text-xs"></i>
+                                            </div>
+                                            <div class="text-xs font-black text-[#121316] truncate">
+                                                {{ $perfCard->assignment->course->subject->name ?? 'Mata Pelajaran' }} &bull; {{ $perfCard->assignment->course->title ?? 'Course LMS' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if($perfCard->score !== null)
+                                        <div class="px-3 py-1 rounded-xl bg-emerald-500 text-white font-mono-code font-black text-xs border border-[#121316] shadow-[1px_1px_0px_#121316] flex items-center gap-1">
+                                            <i class="fa-solid fa-star text-yellow-300"></i>
+                                            <span>Skor: {{ $perfCard->score }} / {{ $perfCard->assignment->max_score ?? 100 }}</span>
+                                        </div>
+                                    @else
+                                        <div class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 font-mono-code font-black text-[10px] border border-indigo-300">
+                                            Terkumpul di LMS
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <h4 class="text-sm sm:text-base font-black text-[#121316]">
+                                        Tugas: {{ $perfCard->assignment->title ?? 'Tugas Pembelajaran' }}
+                                    </h4>
+                                    @if($perfCard->submission_text)
+                                        <div class="p-3 bg-white/90 rounded-xl border border-[#121316]/20 text-xs text-slate-800 font-medium leading-relaxed italic">
+                                            "{!! nl2br(e(Str::limit($perfCard->submission_text, 250))) !!}"
+                                        </div>
+                                    @endif
+                                </div>
+
+                                {{-- Catatan Apresiasi Guru jika ada --}}
+                                @if($perfCard->feedback || $perfCard->teacher_notes)
+                                    <div class="p-3 bg-[#fefce8] rounded-xl border-2 border-amber-300 flex items-start gap-2.5 text-xs text-amber-950 font-bold">
+                                        <i class="fa-solid fa-quote-left text-amber-500 text-base shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <span class="text-[10px] uppercase font-mono-code text-amber-800">Catatan Apresiasi Guru:</span>
+                                            <p class="mt-0.5">{{ $perfCard->feedback ?? $perfCard->teacher_notes }}</p>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Action Buttons --}}
+                                <div class="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                                    <div class="flex items-center gap-2">
+                                        @if($perfCard->file_path)
+                                            <a href="{{ asset('storage/' . $perfCard->file_path) }}" target="_blank" class="px-3 py-1.5 bg-white hover:bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-xs font-mono-code font-black text-[#121316] shadow-[2px_2px_0px_#121316] flex items-center gap-1.5 transition active:translate-x-0.5 active:translate-y-0.5">
+                                                <i class="fa-solid fa-download text-blue-600"></i> Unduh Lampiran Karya
+                                            </a>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="reactThreadAjax('👏')" class="px-3 py-1.5 bg-[#fde047] hover:bg-yellow-300 border-2 border-[#121316] rounded-xl text-xs font-mono-code font-black text-[#121316] shadow-[2px_2px_0px_#121316] flex items-center gap-1.5 transition active:translate-x-0.5 active:translate-y-0.5" title="Beri Apresiasi">
+                                            <span>👏 Beri Tepuk Tangan</span>
+                                        </button>
+                                        @if(auth()->user()->isSiswa() && isset($perfCard->assignment->course_id))
+                                            <a href="{{ route('siswa.lms.show', $perfCard->assignment->course_id) }}" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white border-2 border-[#121316] rounded-xl text-xs font-mono-code font-black shadow-[2px_2px_0px_#121316] flex items-center gap-1.5 transition">
+                                                <span>Buka Kursus LMS ↗</span>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="text-[10px] font-mono-code font-black text-purple-800 uppercase tracking-wider">Tautan Prestasi</div>
-                                @if($thread->reference_type === \App\Models\Badge::class)
+
+                        @elseif($thread->reference_type === \App\Models\FinalProject::class)
+                            {{-- KARTU TUGAS AKHIR / PENELITIAN SISWA --}}
+                            <div class="mt-4 p-5 rounded-2xl bg-gradient-to-br from-blue-50/90 via-cyan-50/70 to-purple-50/60 border-2 border-[#121316] shadow-[3px_3px_0px_#121316] space-y-3">
+                                <div class="flex items-center justify-between gap-2 flex-wrap border-b-2 border-[#121316]/10 pb-2.5">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-9 h-9 rounded-xl bg-[#38bdf8] border-2 border-[#121316] flex items-center justify-center text-white shadow-[1px_1px_0px_#121316] shrink-0">
+                                            <i class="fa-solid fa-microscope text-lg"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="text-[10px] font-mono-code font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span>✦ {{ $perfCard->type === 'penelitian_ilmiah' ? 'PENELITIAN ILMIAH SMA' : 'PROJECT AKHIR SMK' }} TERVERIFIKASI</span>
+                                                <i class="fa-solid fa-circle-check text-blue-600 text-xs"></i>
+                                            </div>
+                                            <div class="text-xs font-black text-[#121316] truncate">
+                                                Pembimbing: {{ $perfCard->advisor->user->name ?? 'Guru Pembimbing' }} &bull; Siswa: {{ $perfCard->student->user->name ?? '-' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-3 py-1 rounded-xl bg-indigo-600 text-white font-mono-code font-black text-xs border border-[#121316] shadow-[1px_1px_0px_#121316]">
+                                        Tahap: {{ strtoupper($perfCard->current_stage) }}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <h4 class="text-sm sm:text-base font-black text-[#121316]">
+                                        {{ $perfCard->title }}
+                                    </h4>
+                                    @if($perfCard->abstract)
+                                        <p class="text-xs text-slate-700 font-medium leading-relaxed">
+                                            {{ Str::limit($perfCard->abstract, 250) }}
+                                        </p>
+                                    @endif
+                                </div>
+
+                                <div class="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                                    <span class="text-[11px] font-mono-code text-slate-600 font-bold">
+                                        Perguruan Pembda Nias &bull; Generasi Vokasi & STEAM
+                                    </span>
+                                    <button type="button" onclick="reactThreadAjax('🔥')" class="px-3 py-1.5 bg-[#fde047] hover:bg-yellow-300 border-2 border-[#121316] rounded-xl text-xs font-mono-code font-black text-[#121316] shadow-[2px_2px_0px_#121316] flex items-center gap-1.5 transition active:translate-x-0.5 active:translate-y-0.5">
+                                        <span>🔥 Keren Banget</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                        @elseif($thread->reference_type === \App\Models\Badge::class)
+                            <div class="mt-4 p-4 rounded-xl bg-purple-50 border-2 border-[#121316] flex items-start gap-4 shadow-[2px_2px_0px_#121316]">
+                                <div class="w-12 h-12 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316] flex-shrink-0">
+                                    <i class="fa-solid fa-medal text-2xl"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-mono-code font-black text-purple-800 uppercase tracking-wider">Tautan Lencana Prestasi</div>
                                     <div class="text-sm font-black text-[#121316]">{{ $perfCard->name }}</div>
                                     <div class="text-xs text-[#555] font-semibold">{{ $perfCard->description }}</div>
-                                @else
+                                </div>
+                            </div>
+                        @else
+                            <div class="mt-4 p-4 rounded-xl bg-purple-50 border-2 border-[#121316] flex items-start gap-4 shadow-[2px_2px_0px_#121316]">
+                                <div class="w-12 h-12 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316] flex-shrink-0">
+                                    <i class="fa-solid fa-award text-2xl"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-mono-code font-black text-purple-800 uppercase tracking-wider">Tautan Nilai CBT</div>
                                     <div class="text-sm font-black text-[#121316]">CBT: {{ $perfCard->exam->title ?? 'Ujian' }}</div>
                                     <div class="text-xs font-mono-code text-[#ff3823] font-black">Nilai: {{ $perfCard->final_score }}</div>
-                                @endif
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     @endif
 
                     <!-- EMBEDDED INTERACTIVE POLL -->
@@ -1076,5 +1208,291 @@ function cancelVoiceNote() {
     textarea.value = '';
     recordBtn.style.display = 'flex';
 }
+
+/* ==========================================================================
+   REALTIME LIVE UPDATES ENGINE & INSTANT AJAX COMMENT SUBMISSION
+   ========================================================================== */
+let lastKnownReplyId = {{ (int)($thread->replies->max('id') ?? 0) }};
+let pollIntervalMs = 3500;
+let pollTimer = null;
+let isPolling = false;
+
+// Subtle notification chime using Web Audio API (zero external assets)
+function playLiveChime() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.28);
+    } catch (e) {}
+}
+
+// Function to construct and insert reply card dynamically
+function renderReplyCardHtml(r, isChild = false) {
+    const voiceNoteHtml = r.voice_note_url ? `
+        <div class="mb-2 flex items-center gap-2 text-[#2563eb] font-mono-code font-black text-xs">
+            <i class="fa-solid fa-microphone text-lg"></i> Pesan Suara
+        </div>
+        <audio controls class="w-full h-10 rounded-xl max-w-[250px] sm:max-w-xs mb-2 bg-[#faf8f5] border border-[#121316]" src="${r.voice_note_url}"></audio>
+    ` : '';
+
+    if (isChild) {
+        return `
+        <div class="flex gap-2.5 sm:gap-3 transition-all duration-700" id="reply-${r.id}" x-data="{ editingChild: false }">
+            <img src="${r.avatar_url}" class="w-8 h-8 rounded-lg border-2 border-[#121316] object-cover flex-shrink-0">
+            <div class="flex-1 min-w-0 space-y-1.5">
+                <div class="flex items-center justify-between gap-1 flex-wrap">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-extrabold text-[#121316] text-xs sm:text-sm">${r.user_name}</span>
+                        <span class="text-[9px] font-mono-code font-bold px-1 py-0.2 rounded bg-[#faf8f5] border border-[#121316] text-[#121316] uppercase">${r.user_role}</span>
+                        <span class="text-[11px] font-mono-code text-[#666]">&bull; ${r.time_str}</span>
+                        <span class="text-[9px] font-mono-code font-black px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-400">BARU</span>
+                    </div>
+                </div>
+                <div class="bg-white border-2 border-[#121316] rounded-xl rounded-tl-none p-3 max-w-xl text-xs text-[#222] font-medium leading-relaxed shadow-[1px_1px_0px_#121316]">
+                    ${voiceNoteHtml}
+                    ${r.content_html}
+                </div>
+                <div class="flex items-center justify-between gap-2 mt-1.5 max-w-xl">
+                    <div class="flex items-center gap-1.5">
+                        <div id="reply-reactions-${r.id}" class="flex flex-wrap gap-1"></div>
+                    </div>
+                    <button type="button" 
+                            data-reply-id="${r.parent_reply_id || r.id}"
+                            data-user-name="${r.user_name}"
+                            data-snippet="${r.content_html.replace(/<[^>]*>?/gm, '').substring(0, 30)}"
+                            onclick="quoteReplyFromBtn(this)" 
+                            class="text-[11px] font-mono-code font-black text-[#ff3823] hover:underline">
+                        Balas
+                    </button>
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
+    return `
+    <div class="flex gap-3 sm:gap-4 transition-all duration-700" id="reply-${r.id}" x-data="{ editing: false }">
+        <img src="${r.avatar_url}" class="w-10 h-10 rounded-xl border-2 border-[#121316] shadow-[1px_1px_0px_#121316] flex-shrink-0 object-cover">
+        <div class="flex-1 min-w-0 space-y-2">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                    <span class="font-extrabold text-[#121316] text-sm">${r.user_name}</span>
+                    <span class="text-[10px] font-mono-code font-black px-1.5 py-0.5 rounded bg-[#faf8f5] border border-[#121316] text-[#121316] uppercase tracking-wider">${r.user_role}</span>
+                    <span class="text-xs font-mono-code text-[#666]">&bull; ${r.time_str}</span>
+                    <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400">BARU SAJA</span>
+                </div>
+            </div>
+            <div class="bg-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] rounded-2xl rounded-tl-none p-4 max-w-2xl text-xs sm:text-sm text-[#222] font-medium leading-relaxed">
+                ${voiceNoteHtml}
+                ${r.content_html}
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mt-2 w-full max-w-2xl">
+                <div class="flex items-center gap-2">
+                    <div id="reply-reactions-${r.id}" class="flex flex-wrap gap-1"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" 
+                            data-reply-id="${r.id}"
+                            data-user-name="${r.user_name}"
+                            data-snippet="${r.content_html.replace(/<[^>]*>?/gm, '').substring(0, 40)}"
+                            onclick="quoteReplyFromBtn(this)" 
+                            class="text-xs font-mono-code font-black text-[#ff3823] hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-reply"></i> Balas
+                    </button>
+                </div>
+            </div>
+            <div class="child-replies-container mt-4 space-y-4 pl-4 sm:pl-6 border-l-2 border-[#121316]" style="display: none;"></div>
+        </div>
+    </div>
+    `;
+}
+
+function insertReplyIntoDOM(r, isSelf = false) {
+    if (document.getElementById(`reply-${r.id}`)) return; // Already exists
+
+    let newCardWrapper = document.createElement('div');
+    const isChild = !!(r.parent_reply_id && parseInt(r.parent_reply_id) > 0);
+
+    newCardWrapper.innerHTML = renderReplyCardHtml(r, isChild);
+    const newCard = newCardWrapper.firstElementChild;
+
+    // Yellow glow flash animation
+    newCard.style.backgroundColor = '#fef08a';
+    newCard.style.padding = '8px';
+    newCard.style.borderRadius = '16px';
+
+    if (isChild) {
+        const parentEl = document.getElementById(`reply-${r.parent_reply_id}`);
+        if (parentEl) {
+            let childContainer = parentEl.querySelector('.child-replies-container');
+            if (!childContainer) {
+                // Find or create child container
+                childContainer = document.createElement('div');
+                childContainer.className = 'child-replies-container mt-4 space-y-4 pl-4 sm:pl-6 border-l-2 border-[#121316]';
+                parentEl.querySelector('.flex-1').appendChild(childContainer);
+            }
+            childContainer.style.display = 'block';
+            childContainer.appendChild(newCard);
+        } else {
+            document.getElementById('replies')?.appendChild(newCard);
+        }
+    } else {
+        document.getElementById('replies')?.appendChild(newCard);
+    }
+
+    setTimeout(() => {
+        newCard.style.backgroundColor = 'transparent';
+        newCard.style.padding = '';
+    }, 2800);
+
+    lastKnownReplyId = Math.max(lastKnownReplyId, parseInt(r.id));
+    playLiveChime();
+
+    if (isSelf) {
+        newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// Live polling function
+async function pollLiveUpdates() {
+    if (isPolling) return;
+    isPolling = true;
+
+    try {
+        const url = `{{ route('forum.live-updates', $thread) }}?since_reply_id=${lastKnownReplyId}`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (data.success) {
+            // Update thread reactions if any
+            if (data.thread_reactions) {
+                updateReactionUI('thread-reactions', data.thread_reactions, true);
+            }
+
+            // Update reply reactions
+            if (data.reply_reactions) {
+                for (const [replyId, counts] of Object.entries(data.reply_reactions)) {
+                    updateReactionUI(`reply-reactions-${replyId}`, counts, false, replyId);
+                }
+            }
+
+            // Insert new replies if received
+            if (data.new_replies && data.new_replies.length > 0) {
+                data.new_replies.forEach(r => {
+                    insertReplyIntoDOM(r, false);
+                });
+
+                // Flash sync badge
+                const indicator = document.getElementById('live-sync-indicator');
+                if (indicator) {
+                    indicator.classList.add('bg-emerald-200', 'border-emerald-600');
+                    setTimeout(() => indicator.classList.remove('bg-emerald-200', 'border-emerald-600'), 1500);
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Live poll sync notice:", e);
+    } finally {
+        isPolling = false;
+    }
+}
+
+// Intercept reply form submission for instant AJAX response
+document.addEventListener('DOMContentLoaded', () => {
+    const replyForm = document.getElementById('reply-form');
+    if (!replyForm) return;
+
+    replyForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const textarea = document.getElementById('reply-textarea');
+        const fileInput = document.getElementById('voice_note_input');
+        const submitBtn = replyForm.querySelector('button[type="submit"]');
+
+        const hasText = textarea && textarea.value.trim().length > 0;
+        const hasVoice = fileInput && fileInput.files && fileInput.files.length > 0;
+
+        if (!hasText && !hasVoice) {
+            alert('Silakan tulis komentar atau rekam pesan suara terlebih dahulu.');
+            return;
+        }
+
+        const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-base"></i>';
+        }
+
+        const formData = new FormData(replyForm);
+
+        try {
+            const res = await fetch(replyForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': getCsrfToken()
+                }
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success && data.reply) {
+                insertReplyIntoDOM(data.reply, true);
+                
+                // Clear input
+                if (textarea) {
+                    textarea.value = '';
+                    textarea.style.height = '';
+                }
+                cancelVoiceNote();
+                cancelQuote();
+            } else {
+                alert(data.message || 'Gagal memposting komentar. Silakan periksa kembali pesan Anda.');
+            }
+        } catch (err) {
+            console.error('Reply submit error:', err);
+            // Fallback: submit standard form if fetch failed
+            replyForm.submit();
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = origBtnHtml;
+            }
+        }
+    });
+
+    // Start Realtime Polling
+    function startPollingTimer() {
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(pollLiveUpdates, pollIntervalMs);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            pollIntervalMs = 15000; // Slow down when in background
+            startPollingTimer();
+        } else {
+            pollIntervalMs = 3500; // Fast realtime when tab active
+            pollLiveUpdates();
+            startPollingTimer();
+        }
+    });
+
+    startPollingTimer();
+});
 </script>
 @endsection

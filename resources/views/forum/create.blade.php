@@ -210,22 +210,33 @@
             </div>
         </div>
 
-        <!-- Performance / Achievements -->
-        <div x-show="['performance', 'art_gallery', 'talent', 'portfolio'].includes(category)" style="display: none;"
+        <!-- Performance / LMS Showcase / Achievements -->
+        <div x-show="['performance', 'art_gallery', 'talent', 'portfolio', 'sharing', 'project_idea', 'diskusi'].includes(category)"
              x-transition:enter="transition ease-out duration-300"
              class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[3px_3px_0px_#121316] space-y-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316]"><i class="fa-solid fa-medal text-xl"></i></div>
-                <div>
-                    <h4 class="forum-hdr text-sm font-black text-[#121316]">Hubungkan Prestasi</h4>
-                    <div class="text-xs font-mono-code text-[#2563eb] font-bold uppercase tracking-wider">Buktikan karya/skor kamu valid</div>
+            <div class="flex items-center justify-between gap-3 border-b-2 border-[#121316]/10 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#fde047] border border-[#121316] flex items-center justify-center text-[#121316] shadow-[1px_1px_0px_#121316]">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="forum-hdr text-sm font-black text-[#121316]">Tautkan Karya Nyata & Prestasi</h4>
+                        <div class="text-[11px] font-mono-code text-[#2563eb] font-bold uppercase tracking-wider">Integrasi Otomatis dengan LMS & Tugas Akhir</div>
+                    </div>
                 </div>
+                <span class="text-[10px] font-mono-code font-black px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-400 rounded-full">
+                    RESMI TERVERIFIKASI
+                </span>
             </div>
             
             <div class="flex flex-wrap items-center gap-4">
                 <label class="flex items-center gap-2 cursor-pointer text-xs sm:text-sm font-bold text-[#121316]">
-                    <input type="radio" name="reference_type" value="badge" x-model="perfType" class="w-4 h-4 text-[#ff3823]">
-                    <span>🎖️ Lencana Terkunci</span>
+                    <input type="radio" name="reference_type" value="lms_submission" x-model="perfType" class="w-4 h-4 text-[#ff3823]">
+                    <span>📁 Tugas / Modul LMS</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-xs sm:text-sm font-bold text-[#121316]">
+                    <input type="radio" name="reference_type" value="final_project" x-model="perfType" class="w-4 h-4 text-[#ff3823]">
+                    <span>🚀 Tugas Akhir / Penelitian</span>
                 </label>
                 @if(auth()->user()->isSiswa())
                 <label class="flex items-center gap-2 cursor-pointer text-xs sm:text-sm font-bold text-[#121316]">
@@ -233,9 +244,53 @@
                     <span>💯 Nilai Ujian CBT</span>
                 </label>
                 @endif
+                <label class="flex items-center gap-2 cursor-pointer text-xs sm:text-sm font-bold text-[#121316]">
+                    <input type="radio" name="reference_type" value="badge" x-model="perfType" class="w-4 h-4 text-[#ff3823]">
+                    <span>🎖️ Lencana Terkunci</span>
+                </label>
             </div>
 
-            <div x-show="perfType === 'badge'" class="space-y-2">
+            <!-- LMS SUBMISSION SELECTOR -->
+            <div x-show="perfType === 'lms_submission'" class="space-y-2">
+                <select name="reference_id" class="w-full px-4 py-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-xs sm:text-sm font-bold text-[#121316] outline-none" @change="onLmsSelected($event)">
+                    <option value="">-- Pilih Karya / Tugas LMS Anda --</option>
+                    @foreach($lmsSubmissions as $sub)
+                        <option value="{{ $sub->id }}" data-title="{{ $sub->assignment->title ?? 'Tugas Pembelajaran' }}">
+                            @if(auth()->user()->isGuru())
+                                [Siswa: {{ $sub->student->user->name ?? '-' }} ({{ $sub->student->classroom->name ?? '-' }})] {{ $sub->assignment->course->subject->name ?? 'Mapel' }} &bull; {{ $sub->assignment->title ?? 'Tugas' }} (Skor: {{ $sub->score ?? 'Belum dinilai' }})
+                            @else
+                                {{ $sub->assignment->course->subject->name ?? 'Mapel' }} &bull; {{ $sub->assignment->title ?? 'Tugas' }} ({{ $sub->score ? 'Skor ' . $sub->score . ' ⭐' : 'Terkumpul di LMS' }})
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+                <div class="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-900 font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-sparkles text-purple-600"></i>
+                    <span>Postingan akan otomatis disematkan <b>Kartu Karya LMS Terverifikasi</b> lengkap dengan nilai, feedback guru, dan pratinjau berkas karya!</span>
+                </div>
+            </div>
+
+            <!-- FINAL PROJECT SELECTOR -->
+            <div x-show="perfType === 'final_project'" class="space-y-2" style="display: none;">
+                <select name="reference_id" class="w-full px-4 py-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-xs sm:text-sm font-bold text-[#121316] outline-none" @change="onProjectSelected($event)">
+                    <option value="">-- Pilih Project Akhir SMK / Penelitian SMA --</option>
+                    @foreach($finalProjects as $proj)
+                        <option value="{{ $proj->id }}" data-title="{{ $proj->title }}">
+                            @if(auth()->user()->isGuru())
+                                [Siswa: {{ $proj->student->user->name ?? '-' }}] {{ $proj->title }} ({{ strtoupper(str_replace('_', ' ', $proj->type)) }})
+                            @else
+                                {{ $proj->title }} &bull; Pembimbing: {{ $proj->advisor->user->name ?? '-' }} (Status: {{ strtoupper($proj->current_stage) }})
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-xs text-blue-900 font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-microscope text-blue-600"></i>
+                    <span>Mempublikasikan intisari riset atau perancangan sistem ke civitas sekolah di PembdaSPACE.</span>
+                </div>
+            </div>
+
+            <div x-show="perfType === 'badge'" class="space-y-2" style="display: none;">
                 <select name="reference_id" class="w-full px-4 py-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-xs sm:text-sm font-bold text-[#121316] outline-none">
                     <option value="">-- Pilih Lencana Terhebatmu --</option>
                     @foreach($badges as $badge)
@@ -375,7 +430,7 @@
 function createPost() {
     return {
         category: 'diskusi',
-        perfType: 'badge',
+        perfType: 'lms_submission',
         imageUrl: null,
         fileChosen(event) {
             const file = event.target.files[0];
@@ -383,6 +438,24 @@ function createPost() {
                 this.imageUrl = URL.createObjectURL(file);
             } else {
                 this.imageUrl = null;
+            }
+        },
+        onLmsSelected(event) {
+            const opt = event.target.selectedOptions[0];
+            if (opt && opt.getAttribute('data-title')) {
+                const titleInput = document.querySelector('input[name="title"]');
+                if (titleInput && !titleInput.value) {
+                    titleInput.value = 'Showcase Karya: ' + opt.getAttribute('data-title');
+                }
+            }
+        },
+        onProjectSelected(event) {
+            const opt = event.target.selectedOptions[0];
+            if (opt && opt.getAttribute('data-title')) {
+                const titleInput = document.querySelector('input[name="title"]');
+                if (titleInput && !titleInput.value) {
+                    titleInput.value = opt.getAttribute('data-title');
+                }
             }
         }
     }

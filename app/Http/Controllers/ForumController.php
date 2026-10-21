@@ -13,6 +13,8 @@ use App\Models\ForumReaction;
 use App\Models\ForumPoll;
 use App\Models\ForumPollOption;
 use App\Models\ForumPollVote;
+use App\Models\LmsSubmission;
+use App\Models\FinalProject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -143,15 +145,57 @@ class ForumController extends Controller
         $selectedGroup = $groupId ? \App\Models\ForumGroup::with('extracurricular')->find($groupId) : null;
         
         $cbtResults = collect([]);
+        $lmsSubmissions = collect([]);
+        $finalProjects = collect([]);
+
         if ($user->isSiswa() && $user->student) {
             $cbtResults = CbtExamResult::where('student_id', $user->student->id)
                 ->with('exam')
                 ->latest()
                 ->take(10)
                 ->get();
+
+            // Tugas & Karya LMS yang pernah dikumpulkan siswa
+            $lmsSubmissions = LmsSubmission::where('student_id', $user->student->id)
+                ->with(['assignment.course.subject', 'assignment.course.teacher.user'])
+                ->where(function($q) {
+                    $q->whereNotNull('file_path')
+                      ->orWhereNotNull('submission_text')
+                      ->orWhereNotNull('score');
+                })
+                ->latest('submitted_at')
+                ->take(15)
+                ->get();
+
+            // Tugas Akhir SMK atau Penelitian Ilmiah SMA siswa
+            $finalProjects = FinalProject::where('student_id', $user->student->id)
+                ->with('advisor.user')
+                ->latest()
+                ->get();
+
+        } elseif ($user->isGuru() && $user->teacher) {
+            // Guru dapat merekomendasikan karya terbaik siswa yang dikumpulkan di LMS
+            $lmsSubmissions = LmsSubmission::whereHas('assignment.course', function($q) use ($user) {
+                    $q->where('teacher_id', $user->teacher->id);
+                })
+                ->where(function($q) {
+                    $q->where('score', '>=', 75)
+                      ->orWhereNotNull('file_path');
+                })
+                ->with(['assignment.course.subject', 'student.user', 'student.classroom'])
+                ->latest('graded_at')
+                ->take(20)
+                ->get();
+
+            // Tugas Akhir yang dibimbing guru
+            $finalProjects = FinalProject::where('advisor_id', $user->teacher->id)
+                ->with(['student.user', 'student.classroom'])
+                ->latest()
+                ->take(15)
+                ->get();
         }
 
-        return view('forum.create', compact('badges', 'cbtResults', 'selectedGroup'));
+        return view('forum.create', compact('badges', 'cbtResults', 'lmsSubmissions', 'finalProjects', 'selectedGroup'));
     }
 
     /**
@@ -243,14 +287,19 @@ class ForumController extends Controller
                 $threadData['attachment_name'] = $file->getClientOriginalName();
             }
 
-            // Reference linking (Badges / Grades for visual & portfolio categories)
-            $perfCategories = ['performance', 'art_gallery', 'talent', 'portfolio'];
-            if (in_array($category, $perfCategories) && !empty($validated['reference_type']) && !empty($validated['reference_id'])) {
+            // Reference linking (Badges / Grades / LMS Submissions / Final Projects)
+            if (!empty($validated['reference_type']) && !empty($validated['reference_id'])) {
                 if ($validated['reference_type'] === 'badge') {
                     $threadData['reference_type'] = Badge::class;
                     $threadData['reference_id'] = $validated['reference_id'];
                 } elseif ($validated['reference_type'] === 'grade') {
                     $threadData['reference_type'] = CbtExamResult::class;
+                    $threadData['reference_id'] = $validated['reference_id'];
+                } elseif ($validated['reference_type'] === 'lms_submission') {
+                    $threadData['reference_type'] = LmsSubmission::class;
+                    $threadData['reference_id'] = $validated['reference_id'];
+                } elseif ($validated['reference_type'] === 'final_project') {
+                    $threadData['reference_type'] = FinalProject::class;
                     $threadData['reference_id'] = $validated['reference_id'];
                 }
             }
@@ -314,12 +363,24 @@ class ForumController extends Controller
 
         // Build the performance reference view representation if linked
         $perfCard = null;
-        $perfCategories = ['performance', 'art_gallery', 'talent', 'portfolio'];
-        if (in_array($thread->category, $perfCategories) && $thread->reference_type) {
+        if ($thread->reference_type && $thread->reference_id) {
             if ($thread->reference_type === Badge::class) {
                 $perfCard = Badge::find($thread->reference_id);
             } elseif ($thread->reference_type === CbtExamResult::class) {
                 $perfCard = CbtExamResult::with('exam')->find($thread->reference_id);
+            } elseif ($thread->reference_type === LmsSubmission::class) {
+                $perfCard = LmsSubmission::with([
+                    'assignment.course.subject',
+                    'assignment.course.teacher.user',
+                    'student.user',
+                    'student.classroom'
+                ])->find($thread->reference_id);
+            } elseif ($thread->reference_type === FinalProject::class) {
+                $perfCard = FinalProject::with([
+                    'student.user',
+                    'student.classroom',
+                    'advisor.user'
+                ])->find($thread->reference_id);
             }
         }
 
@@ -404,10 +465,38 @@ class ForumController extends Controller
 
             DB::commit();
 
+            if ($request->wantsJson() || $request->ajax()) {
+                $avatar = $user->avatar_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=121316&color=fff&bold=true';
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Komentar ditambahkan! (+5 Poin Reputasi)',
+                    'reply' => [
+                        'id' => $reply->id,
+                        'parent_reply_id' => $reply->parent_reply_id,
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'user_role' => strtoupper($user->role),
+                        'avatar_url' => $avatar,
+                        'is_author' => true,
+                        'content_html' => nl2br(e($reply->content)),
+                        'voice_note_url' => $reply->voice_note_path ? asset('storage/' . $reply->voice_note_path) : null,
+                        'time_str' => $reply->created_at->format('H:i'),
+                        'is_accepted' => false,
+                        'reaction_counts' => [],
+                    ]
+                ]);
+            }
+
             return back()->with('success', 'Komentar ditambahkan! (+5 Poin Reputasi)');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memposting komentar: ' . $e->getMessage()
+                ], 422);
+            }
             return back()->with('error', 'Gagal memposting komentar: ' . $e->getMessage());
         }
     }
@@ -1524,6 +1613,108 @@ class ForumController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Puzzle berhasil direset! 10 keping acak awal (20%) telah dipasang oleh Sistem.'
+        ]);
+    }
+
+    /**
+     * Realtime Polling Endpoint for Thread Show View
+     * Returns new replies, updated reaction counts, views, and live statistics
+     */
+    public function liveUpdates(Request $request, ForumThread $thread)
+    {
+        $sinceReplyId = (int) $request->get('since_reply_id', 0);
+
+        // Ambil balasan baru setelah ID terakhir yang ada di client
+        $newRepliesQuery = $thread->replies()
+            ->with(['user.student.classroom', 'user.teacher', 'parent', 'reactions'])
+            ->orderBy('id', 'asc');
+
+        if ($sinceReplyId > 0) {
+            $newRepliesQuery->where('id', '>', $sinceReplyId);
+        }
+
+        $newReplies = $newRepliesQuery->get();
+
+        $renderedReplies = $newReplies->map(function ($reply) {
+            $author = $reply->user;
+            $avatar = $author->avatar_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($author->name ?? 'User') . '&background=121316&color=fff&bold=true';
+            
+            return [
+                'id' => $reply->id,
+                'parent_reply_id' => $reply->parent_reply_id,
+                'user_id' => $reply->user_id,
+                'user_name' => $author->name,
+                'user_role' => strtoupper($author->role),
+                'avatar_url' => $avatar,
+                'is_author' => auth()->id() === $reply->user_id || (auth()->user() && auth()->user()->isSuperAdmin()),
+                'content_html' => nl2br(e($reply->content)),
+                'voice_note_url' => $reply->voice_note_path ? asset('storage/' . $reply->voice_note_path) : null,
+                'time_str' => $reply->created_at->format('H:i'),
+                'is_accepted' => (bool) $reply->is_accepted,
+                'reaction_counts' => $reply->getReactionCounts(),
+            ];
+        });
+
+        // Ambil pembaruan counter reaksi untuk seluruh balasan di thread ini
+        $allReplyReactions = [];
+        foreach ($thread->replies()->with('reactions')->get() as $rep) {
+            $counts = $rep->getReactionCounts();
+            if (!empty($counts)) {
+                $allReplyReactions[$rep->id] = $counts;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'thread_id' => $thread->id,
+            'latest_reply_id' => $thread->replies()->max('id') ?? 0,
+            'total_replies' => $thread->replies()->count(),
+            'views_count' => $thread->views_count,
+            'thread_reactions' => $thread->getReactionCounts(),
+            'reply_reactions' => $allReplyReactions,
+            'new_replies' => $renderedReplies,
+            'server_time' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Realtime Feed Ticker: Check for new threads on the wall
+     */
+    public function liveTicker(Request $request)
+    {
+        $latestThreadId = (int) $request->get('latest_thread_id', 0);
+        $category = $request->get('category');
+        $groupId = $request->get('group');
+
+        $query = ForumThread::query();
+        if ($category && array_key_exists($category, ForumThread::CATEGORIES)) {
+            $query->where('category', $category);
+        }
+        if ($groupId) {
+            $query->where('group_id', $groupId);
+        }
+
+        $newThreadsCount = 0;
+        $latestThreads = [];
+
+        if ($latestThreadId > 0) {
+            $newThreadsCount = (clone $query)->where('id', '>', $latestThreadId)->count();
+            if ($newThreadsCount > 0) {
+                $latestThreads = (clone $query)->where('id', '>', $latestThreadId)
+                    ->with('user')
+                    ->latest()
+                    ->take(3)
+                    ->get(['id', 'title', 'user_id', 'created_at']);
+            }
+        }
+
+        $currentMaxId = $query->max('id') ?? 0;
+
+        return response()->json([
+            'success' => true,
+            'new_threads_count' => $newThreadsCount,
+            'latest_thread_id' => $currentMaxId,
+            'latest_threads' => $latestThreads,
         ]);
     }
 }
