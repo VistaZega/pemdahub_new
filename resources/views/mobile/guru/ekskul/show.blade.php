@@ -15,7 +15,7 @@
             <p class="text-[10px] text-indigo-700 font-bold uppercase tracking-wider">{{ $extracurricular->school->short_name ?? 'Tingkat Yayasan' }}</p>
         </div>
         @if($extracurricular->forum_group_id)
-        <a href="{{ route('mobile.space.index') }}" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center text-sm active:scale-95 transition" title="Pembda Space">
+        <a href="{{ route('mobile.space.index') }}" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center text-sm active:scale-95 transition" title="PembdaSPACE">
             <i class="fa-solid fa-comments"></i>
         </a>
         @else
@@ -200,7 +200,7 @@
                 <div class="p-2.5 bg-purple-50 border border-purple-200 rounded-xl flex items-start gap-2.5">
                     <input type="checkbox" name="broadcast_to_space" value="1" id="m_chk_broadcast" checked class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 mt-0.5">
                     <label for="m_chk_broadcast" class="text-[11px] font-bold text-purple-950 cursor-pointer">
-                        <span>📢 Siarkan ke Pembda Space</span>
+                        <span>📢 Siarkan ke PembdaSPACE</span>
                         <p class="text-[10px] font-normal text-purple-800">Otomatis diposting sebagai showcase ekskul.</p>
                     </label>
                 </div>

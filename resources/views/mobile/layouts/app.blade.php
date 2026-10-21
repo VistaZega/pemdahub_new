@@ -315,11 +315,11 @@
                 <span class="text-[10px] tracking-tight">Beranda</span>
             </a>
 
-            <!-- Tab 2: Pembda Space -->
+            <!-- Tab 2: PembdaSPACE -->
             <a href="{{ route('mobile.space.index') }}" 
-               class="flex flex-col items-center py-1.5 px-3 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.space.*') ? 'text-blue-600 font-black bg-blue-50 scale-110 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-comments text-lg mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">Space</span>
+               class="flex flex-col items-center py-1.5 px-2.5 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.space.*') ? 'text-blue-600 font-black bg-blue-50 scale-105 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
+                <i class="fa-solid fa-bolt text-lg mb-0.5 {{ request()->routeIs('mobile.space.*') ? 'text-amber-500' : '' }}"></i>
+                <span class="text-[9px] font-black tracking-tight">PembdaSPACE</span>
             </a>
 
             <!-- Tab 3: LMS -->

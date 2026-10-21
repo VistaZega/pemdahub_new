@@ -414,7 +414,7 @@
 
             <div class="p-4 rounded-2xl bg-purple-50 border-2 border-black space-y-1">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-black text-purple-900 uppercase">Post Pembda Space</span>
+                    <span class="text-xs font-black text-purple-900 uppercase">Post PembdaSPACE</span>
                     <span class="px-2 py-0.5 bg-emerald-500 text-white rounded-lg font-black text-xs border border-black">+15 Pts</span>
                 </div>
                 <p class="text-[11px] text-slate-600 font-medium">Membuat postingan obrolan, karya seni, atau ide di saluran.</p>

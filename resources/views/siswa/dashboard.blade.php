@@ -576,7 +576,7 @@
                         </div>
                         <div>
                             <h3 style="font-size: 1.15rem; font-weight: 900; color: #0f172a; line-height: 1.3;">Ekstrakurikuler & Karakter</h3>
-                            <p style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 0.25rem;">Unit kegiatan dan ruang diskusi Pembda Space</p>
+                            <p style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 0.25rem;">Unit kegiatan dan ruang diskusi PembdaSPACE</p>
                         </div>
                     </div>
                     <a href="{{ route('siswa.ekskul.index') }}" style="font-size: 0.75rem; font-weight: 900; color: #4f46e5; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">

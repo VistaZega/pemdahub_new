@@ -784,12 +784,12 @@
                     <span class="text-[10px] font-black text-slate-800 text-center leading-none">Prestasi</span>
                 </a>
 
-                <!-- Pembda Space -->
+                <!-- PembdaSPACE -->
                 <a href="{{ route('mobile.space.index') }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
-                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-white shadow-md border-2 border-white/60 group-hover:scale-110 transition">
-                        🏛️
+                    <div class="w-12 h-12 rounded-full clay-purple flex items-center justify-center text-xl text-yellow-300 shadow-md border-2 border-white/60 group-hover:scale-110 transition">
+                        ⚡
                     </div>
-                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Space</span>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">PembdaSPACE</span>
                 </a>
 
                 <!-- Profil Pegawai -->
@@ -1020,7 +1020,7 @@
     <div x-data="{ spaceTab: 'terbaru' }">
         <div class="flex items-center justify-between mb-2.5 px-1">
             <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                💬 Pembda Space Live Feed
+                ⚡ PembdaSPACE Live Feed
             </h3>
             <a href="{{ route('mobile.space.index') }}" class="text-[11px] font-black text-purple-600 hover:text-purple-700">
                 Lihat Semua <i class="fa-solid fa-arrow-right text-[9px]"></i>
@@ -1109,7 +1109,7 @@
                 </div>
             @empty
                 <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
-                    Belum ada postingan terbaru di Pembda Space.
+                    Belum ada postingan terbaru di PembdaSPACE.
                 </div>
             @endforelse
         </div>
@@ -1187,7 +1187,7 @@
                 </div>
             @empty
                 <div class="clay-card p-6 text-center text-slate-500 text-xs font-bold">
-                    Belum ada postingan ramai di Pembda Space.
+                    Belum ada postingan ramai di PembdaSPACE.
                 </div>
             @endforelse
         </div>

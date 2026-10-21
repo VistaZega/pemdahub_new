@@ -14,7 +14,7 @@
             <h1 class="text-sm font-black text-slate-900 leading-tight">Manajemen Ekskul</h1>
             <p class="text-[10px] text-indigo-700 font-bold uppercase tracking-wider">Unit Kegiatan Siswa</p>
         </div>
-        <a href="{{ route('mobile.space.index') }}" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center text-sm active:scale-95 transition" title="Pembda Space">
+        <a href="{{ route('mobile.space.index') }}" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center text-sm active:scale-95 transition" title="PembdaSPACE">
             <i class="fa-solid fa-comments"></i>
         </a>
     </div>

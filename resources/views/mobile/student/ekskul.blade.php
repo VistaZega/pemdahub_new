@@ -14,7 +14,7 @@
             <h1 class="text-sm font-black text-slate-900 leading-tight">Ekstrakurikuler</h1>
             <p class="text-[10px] text-purple-700 font-bold uppercase tracking-wider">{{ $student->school->short_name ?: $student->school->name }}</p>
         </div>
-        <a href="{{ route('mobile.space.index') }}" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center text-sm active:scale-95 transition" title="Pembda Space">
+        <a href="{{ route('mobile.space.index') }}" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center text-sm active:scale-95 transition" title="PembdaSPACE">
             <i class="fa-solid fa-comments"></i>
         </a>
     </div>
@@ -33,7 +33,7 @@
         <div class="space-y-1">
             <h2 class="text-base font-black text-slate-900 leading-snug">Unit Kegiatan Siswa</h2>
             <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                Setiap keaktifan ekstrakurikuler otomatis mendongkrak profil <b>DNA 360°</b> dan membuka kanal diskusi ekskul di <b>Pembda Space</b>!
+                Setiap keaktifan ekstrakurikuler otomatis mendongkrak profil <b>DNA 360°</b> dan membuka kanal diskusi ekskul di <b>PembdaSPACE</b>!
             </p>
         </div>
 
@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    {{-- Sorotan Cerita Ekskul di Pembda Space --}}
+    {{-- Sorotan Cerita Ekskul di PembdaSPACE --}}
     @if(isset($showcaseThreads) && $showcaseThreads->isNotEmpty())
     <div class="space-y-2">
         <div class="flex items-center justify-between px-1">
@@ -214,7 +214,7 @@
                             <i class="fa-solid fa-sitemap text-indigo-600"></i>
                             <span>Struktur</span>
                         </button>
-                        <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 text-white rounded-xl text-xs font-black shadow-xs active:scale-95 transition flex items-center gap-1" title="Buka Squad Lounge Pembda Space">
+                        <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 text-white rounded-xl text-xs font-black shadow-xs active:scale-95 transition flex items-center gap-1" title="Buka Squad Lounge PembdaSPACE">
                             <i class="fa-solid fa-comments"></i>
                             <span>Space</span>
                         </a>
@@ -287,7 +287,7 @@
                     <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black flex items-center gap-1.5">
                         <i class="fa-solid fa-check-circle"></i> Sudah Terdaftar
                     </span>
-                    <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1" title="Buka Squad Lounge Pembda Space">
+                    <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1" title="Buka Squad Lounge PembdaSPACE">
                         <span>Buka Space</span> &rarr;
                     </a>
                 </div>
@@ -499,7 +499,7 @@
 
                 {{-- Footer --}}
                 <div class="bg-slate-50 p-3.5 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
-                    <a href="{{ route('siswa.ekskul.space', $modalEkskul->id) }}" class="px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-xs" title="Buka Squad Lounge Pembda Space">
+                    <a href="{{ route('siswa.ekskul.space', $modalEkskul->id) }}" class="px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-xs" title="Buka Squad Lounge PembdaSPACE">
                         <i class="fa-solid fa-comments"></i>
                         <span>Buka Space</span>
                     </a>

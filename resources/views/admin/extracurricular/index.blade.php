@@ -14,13 +14,13 @@
                 <div class="flex items-center gap-2 text-xs font-black tracking-wider uppercase text-purple-700">
                     <span>🌟 Pembinaan Bakat, Seni, Olahraga & Karakter</span>
                     <span>&bull;</span>
-                    <span class="bg-purple-100 text-purple-900 border border-purple-200 px-2.5 py-0.5 rounded-full font-black">DNA & Pembda Space</span>
+                    <span class="bg-purple-100 text-purple-900 border border-purple-200 px-2.5 py-0.5 rounded-full font-black">DNA & PembdaSPACE</span>
                 </div>
                 <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 flex items-center gap-3">
                     <span>🎨 Ekstrakurikuler & Unit Kegiatan</span>
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-600 font-semibold max-w-3xl leading-relaxed">
-                    Kelola unit kegiatan non-akademik, struktur pengurus (Manager Yayasan, Pembina PKS, Ketua Siswa, Sekretaris, Bendahara), persetujuan anggota, dan ruang interaksi Pembda Space.
+                    Kelola unit kegiatan non-akademik, struktur pengurus (Manager Yayasan, Pembina PKS, Ketua Siswa, Sekretaris, Bendahara), persetujuan anggota, dan ruang interaksi PembdaSPACE.
                 </p>
             </div>
             <button onclick="document.getElementById('modalAddEkskul').classList.remove('hidden')" class="px-6 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-2xl font-black text-xs shadow-lg transition flex items-center gap-2 flex-shrink-0 active:scale-95 border border-purple-400/40">
@@ -187,7 +187,7 @@
 
             <div class="bg-gradient-to-r from-slate-50 via-indigo-50/30 to-purple-50/30 px-5 py-3.5 border-t-2 border-indigo-100 flex items-center justify-between gap-2">
                 @if($ekskul->forum_group_id)
-                <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1.5" title="Kanal Diskusi Pembda Space">
+                <a href="{{ route('forum.index', ['group' => $ekskul->forum_group_id]) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1.5" title="Kanal Diskusi PembdaSPACE">
                     <i class="fas fa-comments text-purple-600"></i> Space Group
                 </a>
                 @else

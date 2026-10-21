@@ -184,7 +184,7 @@
     {{-- 6. GALERI FOTO MOMEN POLAROID BENTO --}}
     @include('landing.partials.galeri')
 
-    {{-- 7. PEMBDA SPACE & FORUM STEAM --}}
+    {{-- 7. PEMBDASPACE & FORUM STEAM --}}
     @include('landing.partials.pembda-space')
 
     {{-- 8. HALL OF FAME CIVITAS TERPILIH --}}

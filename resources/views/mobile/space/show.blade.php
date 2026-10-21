@@ -1,12 +1,12 @@
 @extends('mobile.layouts.app')
 
-@section('title', $thread->title . ' - Pembda Space')
+@section('title', $thread->title . ' - PembdaSPACE')
 
 @section('content')
 <div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">
     <!-- Back Button -->
     <a href="{{ route('mobile.space.index') }}" class="inline-flex items-center gap-1.5 text-xs font-mono font-black text-[#121316] hover:underline transition">
-        <i class="fa-solid fa-arrow-left"></i> Kembali ke Space
+        <i class="fa-solid fa-arrow-left"></i> Kembali ke PembdaSPACE
     </a>
 
     <!-- Main Thread Card (Neo-Brutalist) -->

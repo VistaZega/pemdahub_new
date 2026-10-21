@@ -1,6 +1,6 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Pembda Space - Class Squads & Wall Mobile')
+@section('title', 'PembdaSPACE - Class Squads & Wall Mobile')
 
 @section('content')
 <div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">
@@ -8,8 +8,8 @@
     <div class="flex items-center justify-between">
         <div>
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-[10px] font-mono font-black mb-1.5 shadow-xs">
-                <i class="fa-solid fa-shapes text-yellow-300 text-[10px]"></i>
-                <span>PEMBDA SPACE</span>
+                <i class="fa-solid fa-bolt text-yellow-300 text-[10px]"></i>
+                <span>PEMBDASPACE</span>
             </div>
             <h2 class="text-xl font-black text-[#121316] tracking-tight">Ruang Komunitas</h2>
             <p class="text-[11px] text-slate-600 font-bold">Class Squads & Wall Diskusi Sekolah</p>

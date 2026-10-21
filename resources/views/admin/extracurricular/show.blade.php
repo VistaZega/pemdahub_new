@@ -218,7 +218,7 @@
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-base font-black text-slate-900">Daftar Anggota & Klaim Keanggotaan</h3>
-                    <p class="text-xs text-slate-600 font-medium mt-0.5">Siswa yang disetujui otomatis mendapatkan +15 Poin Reputasi dan terkoneksi ke grup Pembda Space.</p>
+                    <p class="text-xs text-slate-600 font-medium mt-0.5">Siswa yang disetujui otomatis mendapatkan +15 Poin Reputasi dan terkoneksi ke grup PembdaSPACE.</p>
                 </div>
                 <button onclick="document.getElementById('modalAddMember').classList.remove('hidden')" class="px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95">
                     <i class="fas fa-user-plus"></i>
@@ -625,10 +625,10 @@
                 <input type="checkbox" name="broadcast_to_space" value="1" id="chk_broadcast" checked class="w-5 h-5 rounded-lg border-2 border-purple-400 text-purple-600 focus:ring-purple-500 mt-0.5 cursor-pointer">
                 <label for="chk_broadcast" class="cursor-pointer">
                     <div class="font-black text-purple-950 text-xs flex items-center gap-1.5">
-                        <span>📢 Siarkan ke Feed Pembda Space</span>
+                        <span>📢 Siarkan ke Feed PembdaSPACE</span>
                         <span class="px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 text-[10px] font-black">Showcase</span>
                     </div>
-                    <p class="text-[11px] text-purple-800 font-medium mt-0.5">Otomatis membuat postingan showcase di Pembda Space agar dapat dilihat dan diapresiasi seluruh siswa/guru.</p>
+                    <p class="text-[11px] text-purple-800 font-medium mt-0.5">Otomatis membuat postingan showcase di PembdaSPACE agar dapat dilihat dan diapresiasi seluruh siswa/guru.</p>
                 </label>
             </div>
 

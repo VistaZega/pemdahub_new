@@ -38,7 +38,7 @@
                     <a href="#showcase" class="hover:text-white transition-colors">Karya Siswa & PKL</a>
                     <a href="#ekskul" class="hover:text-white transition-colors">Ekstrakurikuler</a>
                     <a href="#galeri" class="hover:text-white transition-colors">Galeri Foto Momen</a>
-                    <a href="#pembda-space" class="hover:text-white transition-colors">Pembda Space (STEAM)</a>
+                    <a href="#pembda-space" class="hover:text-white transition-colors">PembdaSPACE (STEAM)</a>
                     <a href="#fame" class="hover:text-white transition-colors">Hall of Fame</a>
                     <a href="#mitra-industri" class="text-[#ff3823] hover:underline font-bold">Mitra Industri DUDI</a>
                 </div>

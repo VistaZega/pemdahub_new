@@ -1,6 +1,6 @@
 @extends('mobile.layouts.app')
 
-@section('title', 'Buat Postingan - Pembda Space')
+@section('title', 'Buat Postingan - PembdaSPACE')
 
 @section('content')
 <div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">

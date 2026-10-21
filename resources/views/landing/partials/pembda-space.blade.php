@@ -1,4 +1,4 @@
-{{-- PEMBDA SPACE & FORUM STEAM — Real Collaboration Hub --}}
+{{-- PEMBDASPACE & FORUM STEAM — Real Collaboration Hub --}}
 <section id="pembda-space" class="py-20 bg-[#f4f1ea] border-t border-[#e7e3d8]">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
         
@@ -9,7 +9,7 @@
                     ✱ RUANG KOLABORASI SISWA & GURU
                 </div>
                 <h2 class="text-3xl sm:text-4xl font-black text-[#121316] tracking-tight">
-                    Pembda Space & <span class="highlight-marker">Forum STEAM.</span>
+                    PembdaSPACE & <span class="highlight-marker">Forum STEAM.</span>
                 </h2>
                 <p class="text-xs sm:text-sm text-[#555] font-medium mt-2 max-w-xl">
                     Wadah interaksi aktif siswa dan bapak/ibu guru untuk berdiskusi sains, teknologi, seni, bimbingan masuk PTN, dan persiapan karir vokasi.

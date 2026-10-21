@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#121316">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pembda Space">
+<meta name="apple-mobile-web-app-title" content="PembdaSPACE">
 <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
 
 <script>

@@ -1,6 +1,6 @@
 @extends(auth()->user()->layout)
 
-@section('title', 'Pembda Space - Community & STEAM Lounge')
+@section('title', 'PembdaSPACE - Community & STEAM Lounge')
 
 @section('content')
 <!-- Dynamic Google Fonts (Plus Jakarta Sans & JetBrains Mono) & FontAwesome 6 Pro -->
@@ -15,16 +15,16 @@
 <meta name="theme-color" content="#4f46e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pembda Space">
+<meta name="apple-mobile-web-app-title" content="PembdaSPACE">
 <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
       navigator.serviceWorker.register('/sw.js').then(function(reg) {
-        console.log('PembdaSpace PWA Registered:', reg.scope);
+        console.log('PembdaSPACE PWA Registered:', reg.scope);
       }).catch(function(err) {
-        console.log('PembdaSpace PWA Registration Failed:', err);
+        console.log('PembdaSPACE PWA Registration Failed:', err);
       });
     });
   }
@@ -296,11 +296,11 @@
         <div class="md:hidden flex items-center justify-between bg-white p-4 border-b-2 border-[#121316]">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center flex-shrink-0 text-white font-black text-lg">
-                    <i class="fa-solid fa-shapes text-white text-base"></i>
+                    <i class="fa-solid fa-bolt text-yellow-300 text-base"></i>
                 </div>
                 <div class="flex flex-col justify-center">
                     <div class="flex items-center gap-1.5">
-                        <h1 class="forum-hdr text-base font-black text-[#121316] tracking-tight leading-tight m-0 p-0">Pembda Space</h1>
+                        <h1 class="forum-hdr text-base font-black text-[#121316] tracking-tight leading-tight m-0 p-0">PembdaSPACE</h1>
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     </div>
                     <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5">COMMUNITY & STEAM LOUNGE</span>
@@ -319,11 +319,11 @@
                 <div class="hidden md:flex items-center justify-between pb-3.5 border-b-2 border-[#121316]/10 px-0.5">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center flex-shrink-0 text-white font-black">
-                            <i class="fa-solid fa-shapes text-white text-base"></i>
+                            <i class="fa-solid fa-bolt text-yellow-300 text-base"></i>
                         </div>
                         <div class="flex flex-col justify-center min-w-0">
                             <div class="flex items-center gap-1.5">
-                                <h1 class="forum-hdr text-base font-black text-[#121316] tracking-tight leading-tight m-0 p-0">Pembda Space</h1>
+                                <h1 class="forum-hdr text-base font-black text-[#121316] tracking-tight leading-tight m-0 p-0">PembdaSPACE</h1>
                                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             </div>
                             <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5">COMMUNITY & STEAM</span>
@@ -546,8 +546,8 @@
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
                         <div class="flex-1">
                             <div class="inline-flex items-center gap-2 px-3 py-1 bg-[#fde047] border-2 border-[#121316] rounded-full text-[#121316] text-[10px] sm:text-[11px] font-mono-code font-black tracking-wider mb-3 shadow-[2px_2px_0px_#121316]">
-                                <i class="fa-solid fa-rocket text-indigo-700"></i>
-                                <span>PEMBDA SPACE</span>
+                                <i class="fa-solid fa-bolt text-amber-600"></i>
+                                <span>PEMBDASPACE</span>
                                 <span>·</span>
                                 <span>SOCIAL & STEAM LOUNGE</span>
                             </div>

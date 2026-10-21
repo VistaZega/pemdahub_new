@@ -21,7 +21,7 @@
                     <span>🎨 Ekstrakurikuler & Non-Akademik</span>
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-600 font-semibold max-w-3xl leading-relaxed">
-                    Kembangkan jiwa kepemimpinan, kreativitas seni, dan kebugaran jasmani. Keikutsertaan ekskul akan langsung memperkuat profil <b>DNA Akademik 360°</b> dan mengaktifkan kanal diskusi squad di <b>Pembda Space</b>!
+                    Kembangkan jiwa kepemimpinan, kreativitas seni, dan kebugaran jasmani. Keikutsertaan ekskul akan langsung memperkuat profil <b>DNA Akademik 360°</b> dan mengaktifkan kanal diskusi squad di <b>PembdaSPACE</b>!
                 </p>
             </div>
             
@@ -205,7 +205,7 @@
                                 <span>Struktur</span>
                             </button>
 
-                            <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="px-3.5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Buka Squad Lounge Pembda Space">
+                            <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="px-3.5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Buka Squad Lounge PembdaSPACE">
                                 <i class="fas fa-comments"></i>
                                 <span>Space</span>
                             </a>
@@ -225,13 +225,13 @@
         @endif
     </div>
 
-    {{-- SECTION: SOROTAN KEGIATAN & SHOWCASE EKSKUL TERKINI (PEMBDA SPACE INTEGRATION) --}}
+    {{-- SECTION: SOROTAN KEGIATAN & SHOWCASE EKSKUL TERKINI (PembdaSPACE INTEGRATION) --}}
     @if(isset($showcaseThreads) && $showcaseThreads->isNotEmpty())
     <div class="space-y-3 pt-2">
         <div class="flex items-center justify-between">
             <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                 <span class="p-1.5 rounded-lg bg-purple-100 text-purple-700 text-xs">🔥</span>
-                <span>Sorotan Kegiatan & Cerita Ekskul di Pembda Space</span>
+                <span>Sorotan Kegiatan & Cerita Ekskul di PembdaSPACE</span>
             </h2>
             <a href="{{ route('forum.index', ['category' => 'ekskul_showcase']) }}" class="text-xs font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1">
                 <span>Lihat Semua Cerita</span> &rarr;
@@ -344,7 +344,7 @@
                         <span class="px-3.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black flex items-center gap-1.5">
                             <i class="fas fa-check-circle"></i> Sudah Terdaftar
                         </span>
-                        <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1" title="Buka Squad Lounge Pembda Space">
+                        <a href="{{ route('siswa.ekskul.space', $ekskul->id) }}" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1" title="Buka Squad Lounge PembdaSPACE">
                             <span>Buka Space</span> &rarr;
                         </a>
                     </div>
@@ -576,7 +576,7 @@
                         <i class="fas fa-shield-alt text-emerald-600 mr-1"></i> Data Terverifikasi Sistem
                     </span>
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('siswa.ekskul.space', $modalEkskul->id) }}" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Buka Squad Lounge Pembda Space">
+                        <a href="{{ route('siswa.ekskul.space', $modalEkskul->id) }}" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Buka Squad Lounge PembdaSPACE">
                             <i class="fas fa-comments"></i>
                             <span>Buka Squad Lounge Space</span>
                         </a>
