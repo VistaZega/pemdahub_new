@@ -3,42 +3,45 @@
 @section('title', 'Pembda Space - Class Squads & Wall Mobile')
 
 @section('content')
-<div class="space-y-4">
+<div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">
     <!-- Header Title & Create Button -->
     <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-xl font-black text-slate-900">Pembda Space 💬</h2>
-            <p class="text-[11px] text-slate-500 font-bold">Class Squads & Wall Komunitas Sekolah</p>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#fde047] border border-[#121316] text-[#121316] text-[10px] font-mono font-black mb-1">
+                <span>✱ PEMBDA SPACE</span>
+            </div>
+            <h2 class="text-xl font-black text-[#121316] tracking-tight">Ruang Komunitas</h2>
+            <p class="text-[11px] text-[#555] font-bold">Class Squads & Wall Diskusi Sekolah</p>
         </div>
         <a href="{{ route('mobile.space.create') }}" 
-           class="clay-btn px-4 py-2.5 text-white text-xs font-black flex items-center gap-1.5 shadow-md">
+           class="px-4 py-2.5 bg-[#ff3823] text-white border-2 border-[#121316] rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
             <i class="fa-solid fa-plus text-xs"></i> Post Baru
         </a>
     </div>
 
-    <!-- LIVE ACTIVITY TICKER BANNER -->
-    <div class="clay-card p-2.5 bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-900 text-white rounded-2xl shadow-md border-2 border-purple-400/40 overflow-hidden relative">
+    <!-- LIVE ACTIVITY TICKER BANNER (Neo-Brutalist) -->
+    <div class="p-2.5 bg-[#121316] text-white rounded-2xl shadow-[3px_3px_0px_#121316] border-2 border-[#121316] overflow-hidden relative">
         <div class="flex items-center space-x-2 text-[10px] font-black">
-            <span class="px-2 py-0.5 rounded-lg bg-rose-500 text-white uppercase text-[8px] font-black tracking-wider shrink-0 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> LIVE TICKER
+            <span class="px-2 py-0.5 rounded-lg bg-[#ff3823] text-white uppercase text-[8px] font-mono font-black tracking-wider shrink-0 flex items-center gap-1 border border-[#121316]">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> LIVE
             </span>
-            <marquee class="font-bold text-purple-100 min-w-0" scrollamount="4">
-                🔥 ⚡ Rombel X-IPA 1 Aktif Berdiskusi! &nbsp;&bull;&nbsp; 🎉 Modul Baru & Kartu LMS Berhasil Dibagikan di Class Squads! &nbsp;&bull;&nbsp; 🏆 Ahmad Meraih Poin Reputasi Bintang Minggu Ini! &nbsp;&bull;&nbsp; 🔴 1-Click Virtual Room Siap Digunakan!
+            <marquee class="font-mono font-bold text-[#fde047] min-w-0" scrollamount="4">
+                ⚡ Rombel X-IPA 1 Aktif Berdiskusi! &nbsp;&bull;&nbsp; 🎉 Modul Baru & Kartu LMS Berhasil Dibagikan di Class Squads! &nbsp;&bull;&nbsp; 🏆 Ahmad Meraih Poin Reputasi Bintang Minggu Ini! &nbsp;&bull;&nbsp; 🧱 Menara Prestasi Aktif Dibangun!
             </marquee>
         </div>
     </div>
 
     <!-- MAIN TOP NAVIGATION TABS (CLASS SQUADS vs WALL) -->
-    <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+    <div class="grid grid-cols-2 gap-2 bg-[#faf8f5] p-1.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">
         <a href="{{ route('mobile.space.index', ['tab' => 'groups']) }}" 
-           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'groups' ? 'bg-white text-purple-700 shadow-md border-2 border-purple-200 scale-102' : 'text-slate-500 hover:text-slate-900' }}">
+           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'groups' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-[#555] hover:text-[#121316]' }}">
             <span>👥 Class Squads</span>
-            <span class="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-black">{{ count($groups) }}</span>
+            <span class="px-1.5 py-0.5 rounded-full bg-[#121316] text-white font-mono text-[10px] font-black">{{ count($groups) }}</span>
         </a>
         <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
-           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'kanal' ? 'bg-white text-purple-700 shadow-md border-2 border-purple-200 scale-102' : 'text-slate-500 hover:text-slate-900' }}">
+           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'kanal' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-[#555] hover:text-[#121316]' }}">
             <span>🧱 Wall</span>
-            <span class="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-black">{{ count($categories) }}</span>
+            <span class="px-1.5 py-0.5 rounded-full bg-[#121316] text-white font-mono text-[10px] font-black">{{ count($categories) }}</span>
         </a>
     </div>
 
@@ -51,30 +54,30 @@
             <div class="relative">
                 <input type="text" name="search" value="{{ $search ?? '' }}" 
                        placeholder="Cari nama Class Squad..." 
-                       class="w-full pl-10 pr-4 py-3 bg-white border-2 border-slate-200/90 rounded-2xl text-slate-900 text-xs placeholder-slate-400 font-bold focus:outline-none focus:border-purple-600 shadow-sm transition">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+                       class="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-[#121316] rounded-2xl text-[#121316] text-xs placeholder-[#777] font-bold focus:outline-none focus:shadow-[2px_2px_0px_#ff3823] shadow-[2px_2px_0px_#121316] transition">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#121316] text-xs"></i>
             </div>
         </form>
 
         <!-- Squad Filter Pills -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'semua']) }}" 
-               class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $groupFilter === 'semua' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'semua' ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 🔥 Semua Squad
             </a>
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'kelas']) }}" 
-               class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $groupFilter === 'kelas' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'kelas' ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 🏫 Class Squads Saya
             </a>
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'lobi']) }}" 
-               class="px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $groupFilter === 'lobi' ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'lobi' ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 📢 Lobi & Pengumuman
             </a>
         </div>
 
         <!-- CLASS SQUADS LIST FEED -->
         <div class="space-y-3">
-            <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider px-1">Daftar Class Squads Aktif</h3>
+            <h3 class="text-xs font-mono font-black text-[#121316] uppercase tracking-wider px-1">Daftar Class Squads Aktif</h3>
 
             @forelse($groups as $grp)
                 @php
@@ -82,36 +85,36 @@
                     $memberCount = $grp->calculated_member_count ?? count($grp->members ?? []);
                 @endphp
                 <a href="{{ route('mobile.space.group.show', $grp->id) }}" 
-                   class="clay-card p-4.5 block transition relative hover:border-purple-300 space-y-2.5 bg-white border-2 border-slate-200">
+                   class="p-4 block transition relative space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#121316]">
                     
                     <div class="flex items-center space-x-3">
                         <!-- Squad Icon Avatar -->
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-md border-2 border-white shrink-0">
+                        <div class="w-12 h-12 rounded-2xl bg-[#fde047] flex items-center justify-center text-[#121316] text-xl font-black shadow-[1px_1px_0px_#121316] border-2 border-[#121316] shrink-0">
                             {{ $grp->icon ?? '💬' }}
                         </div>
 
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between">
-                                <h4 class="text-xs font-black text-slate-900 leading-snug truncate">{{ $grp->name }}</h4>
-                                <span class="text-[9px] text-slate-400 font-bold shrink-0">
+                                <h4 class="text-xs font-black text-[#121316] leading-snug truncate">{{ $grp->name }}</h4>
+                                <span class="text-[9px] font-mono text-[#666] font-bold shrink-0">
                                     {{ $latest?->created_at ? $latest->created_at->diffForHumans() : $grp->created_at->diffForHumans() }}
                                 </span>
                             </div>
 
-                            <p class="text-[11px] text-slate-600 truncate font-medium mt-0.5">
+                            <p class="text-[11px] text-[#444] truncate font-medium mt-0.5">
                                 @if($latest)
-                                    <strong class="text-purple-700">{{ $latest->user->name ?? 'User' }}:</strong> {{ strip_tags($latest->content) }}
+                                    <strong class="text-[#2563eb]">{{ $latest->user->name ?? 'User' }}:</strong> {{ strip_tags($latest->content) }}
                                 @else
-                                    <span class="italic text-slate-400">Belum ada obrolan baru</span>
+                                    <span class="italic text-[#777]">Belum ada obrolan baru</span>
                                 @endif
                             </p>
 
-                            <div class="flex items-center space-x-2 text-[9px] font-bold text-slate-400 mt-1">
-                                <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-black">
-                                    👥 {{ $memberCount }} Anggota Squad
+                            <div class="flex items-center space-x-2 text-[9px] font-mono font-bold text-[#121316] mt-1">
+                                <span class="px-2 py-0.5 rounded-full bg-[#faf8f5] text-[#121316] border border-[#121316] font-black">
+                                    👥 {{ $memberCount }} Anggota
                                 </span>
                                 @if($grp->only_admin_can_post)
-                                    <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-black">
+                                    <span class="px-2 py-0.5 rounded-full bg-[#fde047] text-[#121316] border border-[#121316] font-black">
                                         📢 Pengumuman Guru
                                     </span>
                                 @endif
@@ -120,7 +123,7 @@
                     </div>
                 </a>
             @empty
-                <div class="clay-card p-8 text-center text-slate-500 text-xs font-bold space-y-2">
+                <div class="p-8 text-center text-[#666] text-xs font-bold space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
                     <div class="text-3xl">👥</div>
                     <p>Belum ada Class Squad terdaftar saat ini.</p>
                 </div>
@@ -137,20 +140,20 @@
             <div class="relative">
                 <input type="text" name="search" value="{{ $search ?? '' }}" 
                        placeholder="Cari ide atau postingan di Wall..." 
-                       class="w-full pl-10 pr-4 py-3 bg-white border-2 border-slate-200/90 rounded-2xl text-slate-900 text-xs placeholder-slate-400 font-bold focus:outline-none focus:border-purple-600 shadow-sm transition">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+                       class="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-[#121316] rounded-2xl text-[#121316] text-xs placeholder-[#777] font-bold focus:outline-none focus:shadow-[2px_2px_0px_#ff3823] shadow-[2px_2px_0px_#121316] transition">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#121316] text-xs"></i>
             </div>
         </form>
 
         <!-- Category Pills (All Wall Categories) -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
-               class="px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ !$category ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ !$category ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 🧱 Semua Wall
             </a>
             @foreach($categories as $key => $label)
                 <a href="{{ route('mobile.space.index', ['tab' => 'kanal', 'category' => $key]) }}" 
-                   class="px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition {{ $category === $key ? 'clay-purple text-white shadow-md scale-105' : 'bg-white text-slate-600 border-2 border-slate-200 hover:text-slate-900' }}">
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $category === $key ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                     {{ $label }}
                 </a>
             @endforeach
@@ -168,54 +171,54 @@
                         } elseif ($authorUser?->teacher?->photo_url) {
                             $authorPhoto = $authorUser->teacher->photo_url;
                         } else {
-                            $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=7c3aed&color=fff&bold=true';
+                            $authorPhoto = 'https://ui-avatars.com/api/?name=' . urlencode($authorUser?->name ?? 'User') . '&background=121316&color=fff&bold=true';
                         }
                     }
                 @endphp
                 <a href="{{ route('mobile.space.show', $thread->id) }}" 
-                   class="clay-card p-4.5 block transition relative hover:border-purple-300 space-y-2 bg-white border-2 border-slate-200">
+                   class="p-4 block transition relative space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#121316]">
                     
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2.5 min-w-0">
                             <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
-                                 onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
-                                 class="w-9 h-9 rounded-2xl object-cover border border-purple-200 shadow-xs shrink-0">
+                                 onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=121316&color=fff&bold=true';"
+                                 class="w-9 h-9 rounded-xl object-cover border-2 border-[#121316] shadow-xs shrink-0">
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                    <h4 class="text-xs font-black text-slate-900 leading-none truncate max-w-[140px]">{{ $authorUser?->name ?? 'Pengguna' }}</h4>
+                                    <h4 class="text-xs font-black text-[#121316] leading-none truncate max-w-[140px]">{{ $authorUser?->name ?? 'Pengguna' }}</h4>
                                     @if($authorUser?->ekskul_flair)
-                                    <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full border {{ $authorUser->ekskul_flair['badge_css'] }}" title="{{ $authorUser->ekskul_flair['label'] }}">
+                                    <span class="text-[8px] font-mono font-black px-1.5 py-0.2 rounded-full border border-[#121316] bg-[#fde047] text-[#121316]" title="{{ $authorUser->ekskul_flair['label'] }}">
                                         {{ $authorUser->ekskul_flair['short_label'] }}
                                     </span>
                                     @endif
                                 </div>
-                                <span class="text-[9px] text-slate-400 font-bold block mt-0.5">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
+                                <span class="text-[9px] font-mono text-[#666] font-bold block mt-0.5">{{ $thread->created_at ? $thread->created_at->diffForHumans() : '' }}</span>
                             </div>
                         </div>
 
-                        <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-black uppercase">
+                        <span class="px-2 py-0.5 rounded-md bg-[#faf8f5] text-[#121316] border border-[#121316] text-[9px] font-mono font-black uppercase">
                             {{ \App\Models\ForumThread::CATEGORIES[$thread->category] ?? '💬 Diskusi' }}
                         </span>
                     </div>
 
-                    <h3 class="text-xs font-black text-slate-900 leading-snug pt-1">{{ $thread->title }}</h3>
-                    <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-medium">
+                    <h3 class="text-xs font-black text-[#121316] leading-snug pt-0.5">{{ $thread->title }}</h3>
+                    <p class="text-[11px] text-[#444] line-clamp-2 leading-relaxed font-medium">
                         {{ strip_tags($thread->content) }}
                     </p>
 
                     @if($thread->image_path)
-                        <div class="h-32 w-full rounded-2xl overflow-hidden border border-purple-200">
+                        <div class="h-32 w-full rounded-xl overflow-hidden border-2 border-[#121316] shadow-[1px_1px_0px_#121316]">
                             <img src="{{ asset('storage/' . $thread->image_path) }}" alt="{{ $thread->title }}" class="w-full h-full object-cover">
                         </div>
                     @endif
 
-                    <div class="flex items-center space-x-4 pt-1.5 text-[10px] font-black text-slate-400 border-t border-slate-100">
-                        <span class="flex items-center gap-1 text-purple-600"><i class="fa-regular fa-comment"></i> {{ $thread->replies_count ?? 0 }} Komentar</span>
-                        <span class="flex items-center gap-1 text-rose-600"><i class="fa-regular fa-heart"></i> {{ $thread->likes_count ?? 0 }} Suka</span>
+                    <div class="flex items-center space-x-4 pt-1.5 text-[10px] font-mono font-black text-[#121316] border-t border-[#121316]/10">
+                        <span class="flex items-center gap-1 text-[#2563eb]"><i class="fa-regular fa-comment"></i> {{ $thread->replies_count ?? 0 }} Komentar</span>
+                        <span class="flex items-center gap-1 text-[#ff3823]"><i class="fa-regular fa-heart"></i> {{ $thread->likes_count ?? 0 }} Suka</span>
                     </div>
                 </a>
             @empty
-                <div class="clay-card p-8 text-center text-slate-500 text-xs font-bold space-y-2">
+                <div class="p-8 text-center text-[#666] text-xs font-bold space-y-2 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
                     <div class="text-3xl">🧱</div>
                     <p>Belum ada postingan di Wall ini.</p>
                 </div>

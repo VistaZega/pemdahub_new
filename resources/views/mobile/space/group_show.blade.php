@@ -19,14 +19,14 @@
 
             <!-- Member Count Badge -->
             <button @click="showMembers = true" 
-                    class="px-3 py-1.5 bg-purple-100 text-purple-900 rounded-xl text-[10px] font-black border border-purple-200 flex items-center gap-1">
+                    class="px-3 py-1.5 bg-purple-100 text-purple-900 rounded-xl text-[10px] font-black border border-[#121316]/20 flex items-center gap-1">
                 <i class="fa-solid fa-users"></i> {{ $group->calculated_member_count ?? count($group->members) }} Squad
             </button>
         </div>
     </div>
 
     <!-- Group Header Card -->
-    <div class="clay-card p-5 space-y-3 bg-gradient-to-br from-purple-50 via-indigo-50 to-white border-2 border-purple-300 relative overflow-hidden">
+    <div class="bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] p-5 space-y-3 bg-gradient-to-br from-purple-50 via-indigo-50 to-white border-2 border-[#121316] relative overflow-hidden">
         <div class="flex items-center space-x-3">
             <!-- Squad Avatar with Live Online Dot -->
             <div class="relative">
@@ -48,8 +48,8 @@
         </div>
 
         @if($group->type === 'extracurricular')
-            <div class="flex items-center gap-2 pt-1 border-t border-purple-200/60">
-                <a href="{{ in_array(auth()->user()->role ?? '', ['guru', 'admin', 'superadmin', 'kepala_sekolah', 'yayasan']) ? route('mobile.guru.ekskul') : route('mobile.ekskul') }}" class="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-black border border-purple-200 flex items-center gap-1.5 shadow-xs transition">
+            <div class="flex items-center gap-2 pt-1 border-t border-[#121316]/20/60">
+                <a href="{{ in_array(auth()->user()->role ?? '', ['guru', 'admin', 'superadmin', 'kepala_sekolah', 'yayasan']) ? route('mobile.guru.ekskul') : route('mobile.ekskul') }}" class="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-black border border-[#121316]/20 flex items-center gap-1.5 shadow-xs transition">
                     <i class="fa-solid fa-sitemap text-indigo-600"></i>
                     <span>Buka Direktori & Roster Ekskul</span>
                 </a>
@@ -88,7 +88,7 @@
                 $formattedContent = preg_replace('/@WaliKelas/i', '<span class="px-1.5 py-0.5 bg-amber-500 text-white rounded-md text-[10px] font-black">@WaliKelas</span>', $formattedContent);
                 $formattedContent = preg_replace('/@Guru/i', '<span class="px-1.5 py-0.5 bg-blue-600 text-white rounded-md text-[10px] font-black">@Guru</span>', $formattedContent);
             @endphp
-            <div class="clay-card p-4.5 space-y-3 bg-white border-2 border-slate-200">
+            <div class="bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] p-4.5 space-y-3 bg-white border-2 border-slate-200">
                 <!-- Author Header -->
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2.5">
@@ -96,7 +96,7 @@
                         <div class="relative">
                             <img src="{{ $authorPhoto }}" alt="{{ $authorUser?->name }}"
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($authorUser?->name ?? 'User') }}&background=7c3aed&color=fff&bold=true';"
-                                 class="w-9 h-9 rounded-2xl object-cover border-2 {{ $isTeacherOrAdmin ? 'border-amber-400 ring-2 ring-amber-300 shadow-md' : 'border-purple-200' }} shrink-0">
+                                 class="w-9 h-9 rounded-2xl object-cover border-2 {{ $isTeacherOrAdmin ? 'border-amber-400 ring-2 ring-amber-300 shadow-md' : 'border-[#121316]/20' }} shrink-0">
                             @if($isTeacherOrAdmin)
                                 <span class="absolute -top-1 -right-1 text-[10px]">👑</span>
                             @endif
@@ -213,7 +213,7 @@
                         $totalVotes = $poll->options->sum('votes_count');
                         $userVotedOptionId = $poll->votes->where('user_id', auth()->id())->first()?->forum_poll_option_id;
                     @endphp
-                    <div class="ml-11 p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-purple-300 space-y-3 shadow-md">
+                    <div class="ml-11 p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-[#121316] space-y-3 shadow-md">
                         <div class="flex items-center justify-between">
                             <span class="px-2 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-black uppercase tracking-wider">
                                 📊 POLLING 3D INTERAKTIF
@@ -233,7 +233,7 @@
                                     @csrf
                                     <input type="hidden" name="option_id" value="{{ $opt->id }}">
                                     <button type="submit" 
-                                            class="w-full text-left p-2.5 rounded-xl border-2 transition relative overflow-hidden group {{ $isSelected ? 'bg-purple-600 text-white border-purple-700 shadow-md' : 'bg-white text-slate-800 border-slate-200 hover:border-purple-300' }}">
+                                            class="w-full text-left p-2.5 rounded-xl border-2 transition relative overflow-hidden group {{ $isSelected ? 'bg-purple-600 text-white border-purple-700 shadow-md' : 'bg-white text-slate-800 border-slate-200 hover:border-[#121316]' }}">
                                         <!-- Progress Bar Background -->
                                         <div class="absolute left-0 top-0 bottom-0 {{ $isSelected ? 'bg-purple-800/40' : 'bg-purple-100' }} transition-all duration-500" 
                                              style="width: {{ $pct }}%"></div>
@@ -270,7 +270,7 @@
                 </div>
             </div>
         @empty
-            <div class="clay-card p-8 text-center text-slate-500 text-xs font-bold space-y-2">
+            <div class="bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] p-8 text-center text-slate-500 text-xs font-bold space-y-2">
                 <div class="text-3xl">👥</div>
                 <p>Belum ada pesan dikirim di Class Squad ini. Mulai obrolan pertama!</p>
             </div>
@@ -279,7 +279,7 @@
 
     <!-- Chat Input Form Card -->
     @if(!$group->only_admin_can_post || ($membership && $membership->role === 'admin'))
-        <div class="clay-card p-4 bg-white border-2 border-purple-200 sticky bottom-4 shadow-xl space-y-2.5" x-data="{ showPollForm: false }">
+        <div class="bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] p-4 bg-white border-2 border-[#121316]/20 sticky bottom-4 shadow-xl space-y-2.5" x-data="{ showPollForm: false }">
             @if($errors->any())
                 <div class="p-3 rounded-2xl bg-rose-500 text-white text-xs font-black shadow-md border-2 border-white">
                     <i class="fa-solid fa-circle-exclamation mr-1"></i>
@@ -303,7 +303,7 @@
             <div class="flex items-center space-x-1.5 overflow-x-auto pb-2 mb-2 text-[9px] font-black no-scrollbar border-b border-purple-100">
                 <span class="text-slate-400 uppercase tracking-wider shrink-0">Tag:</span>
                 <button type="button" onclick="document.getElementById('groupChatInput').value += ' @SemuaSiswa '" 
-                        class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-purple-200 shrink-0 hover:bg-purple-200 transition">
+                        class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-[#121316]/20 shrink-0 hover:bg-purple-200 transition">
                     +@SemuaSiswa
                 </button>
                 <button type="button" onclick="document.getElementById('groupChatInput').value += ' @WaliKelas '" 
@@ -325,7 +325,7 @@
                 <div class="flex items-end space-x-2">
                     <!-- Media Attachment Trigger Buttons -->
                     <button type="button" @click="showMediaPicker = !showMediaPicker" 
-                            class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 border border-purple-200 flex items-center justify-center text-sm font-black shrink-0 hover:bg-purple-200 transition">
+                            class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 border border-[#121316]/20 flex items-center justify-center text-sm font-black shrink-0 hover:bg-purple-200 transition">
                         <i class="fa-solid fa-paperclip"></i>
                     </button>
 
@@ -337,30 +337,30 @@
                     </div>
                     
                     <button type="submit" 
-                            class="clay-btn px-4 py-3.5 text-white font-black text-xs shrink-0 flex items-center gap-1">
+                            class="px-4 py-2 bg-[#ff3823] text-white border-2 border-[#121316] rounded-xl font-black shadow-[2px_2px_0px_#121316] px-4 py-3.5 text-white font-black text-xs shrink-0 flex items-center gap-1">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                     </button>
                 </div>
 
                 <!-- Media Attachments Selection Bar -->
-                <div x-show="showMediaPicker" x-transition class="p-3 bg-purple-50 border-2 border-purple-200 rounded-2xl space-y-2 text-xs">
+                <div x-show="showMediaPicker" x-transition class="p-3 bg-purple-50 border-2 border-[#121316]/20 rounded-2xl space-y-2 text-xs">
                     <span class="text-[10px] font-black text-purple-900 uppercase block">📷 Lampirkan Media / File Suara:</span>
                     
                     <div class="grid grid-cols-3 gap-2">
                         <!-- Foto Picker -->
-                        <label class="p-2 rounded-xl bg-white border border-purple-200 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
+                        <label class="p-2 rounded-xl bg-white border border-[#121316]/20 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
                             📷 Upload Foto
                             <input type="file" name="image" accept="image/*" class="hidden">
                         </label>
 
                         <!-- Document PDF Picker -->
-                        <label class="p-2 rounded-xl bg-white border border-purple-200 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
+                        <label class="p-2 rounded-xl bg-white border border-[#121316]/20 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
                             📁 File PDF / Doc
                             <input type="file" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx" class="hidden">
                         </label>
 
                         <!-- Voice Note Picker -->
-                        <label class="p-2 rounded-xl bg-white border border-purple-200 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
+                        <label class="p-2 rounded-xl bg-white border border-[#121316]/20 text-center font-black text-[10px] text-purple-700 cursor-pointer hover:bg-purple-100 transition block">
                             🎙️ Voice Note
                             <input type="file" name="voice_note" accept="audio/*" class="hidden">
                         </label>
@@ -423,7 +423,7 @@
          x-transition
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
          style="display: none;">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm max-h-[80vh] overflow-y-auto shadow-2xl border-4 border-purple-200 space-y-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm max-h-[80vh] overflow-y-auto shadow-2xl border-4 border-[#121316]/20 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="text-xs font-black text-slate-900 uppercase">Anggota {{ $group->name }} ({{ $group->calculated_member_count ?? count($group->members) }})</h3>
                 <button @click="showMembers = false" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-black text-xs">✕</button>
@@ -437,12 +437,12 @@
                     @endphp
                     <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                         <div class="flex items-center space-x-2">
-                            <img src="{{ $mPhoto }}" class="w-7 h-7 rounded-full object-cover border border-purple-200">
+                            <img src="{{ $mPhoto }}" class="w-7 h-7 rounded-full object-cover border border-[#121316]/20">
                             <span class="font-black text-slate-800">{{ $u?->name ?? 'Pengguna' }}</span>
                         </div>
 
                         @if($m->role === 'admin')
-                            <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 text-[9px] font-black uppercase border border-purple-200">
+                            <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 text-[9px] font-black uppercase border border-[#121316]/20">
                                 Wali Kelas / Admin
                             </span>
                         @endif
