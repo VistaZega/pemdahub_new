@@ -216,10 +216,21 @@
                 </div>
                 <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1">
                     @foreach($edutechInsights as $idx => $ins)
+                        @php
+                            $mTabLabels = [
+                                'ai-prompt-engineering' => 'AI Digital',
+                                'ev-motor-revolution' => 'Vokasi EV',
+                                'iot-gempa-nias' => 'IoT Nias',
+                                'beasiswa-kip-kuliah-2026' => 'Beasiswa',
+                                'sains-energi-terbarukan-nias' => 'Energi EBT',
+                                'cloud-network-security' => 'Cyber Sec',
+                            ];
+                            $mtLabel = $mTabLabels[$ins['id']] ?? explode(' ', $ins['category_label'])[0];
+                        @endphp
                         <button type="button" @click="mobileTab = {{ $idx }}" 
                                 :class="mobileTab === {{ $idx }} ? 'bg-[#121316] text-[#fde047]' : 'bg-slate-100 text-slate-700'"
                                 class="px-2.5 py-1 rounded-lg text-[9px] font-mono font-black border border-slate-300 shrink-0">
-                            #{{ $idx + 1 }} {{ Str::words($ins['category_label'], 2, '') }}
+                            #{{ $idx + 1 }} {{ $mtLabel }}
                         </button>
                     @endforeach
                 </div>

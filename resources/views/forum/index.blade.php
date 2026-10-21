@@ -172,6 +172,13 @@
         transform: translate(-1px, -1px);
         box-shadow: 5px 5px 0px #121316;
     }
+
+    /* Responsiveness: Auto-hide right sidebar on laptop screens (<1536px) if global app sidebar is open */
+    @media (max-width: 1535px) {
+        aside:not(.collapsed) ~ #main-content .forum-right-sidebar {
+            display: none !important;
+        }
+    }
 </style>
 
 @php
@@ -326,9 +333,9 @@
         </div>
 
         <!-- CHANNEL SIDEBAR (Left) -->
-        <div :class="mobileSidebarOpen ? 'block' : 'hidden'" class="md:block w-full md:w-64 lg:w-72 bg-white border-r-2 border-[#121316] flex-shrink-0 flex flex-col transition-all duration-300 relative z-20">
+        <div :class="mobileSidebarOpen ? 'block' : 'hidden'" class="md:block w-full md:w-56 lg:w-60 bg-white border-r-2 border-[#121316] flex-shrink-0 flex flex-col transition-all duration-300 relative z-20">
             
-            <div class="p-5 h-full flex flex-col gap-5 max-h-[85vh] overflow-y-auto no-scrollbar">
+            <div class="p-3.5 sm:p-4 h-full flex flex-col gap-4 max-h-[85vh] overflow-y-auto no-scrollbar">
                 <!-- Sleek Compact Header & Logo (Desktop) -->
                 <div class="hidden md:flex items-center justify-between pb-3.5 border-b-2 border-[#121316]/10 px-0.5">
                     <div class="flex items-center gap-3">
@@ -468,7 +475,7 @@
         </div>
 
         <!-- MAIN FEED (Center) -->
-        <div class="flex-1 flex flex-col min-w-[300px] w-full graph-canvas p-4 sm:p-6 lg:p-7 max-h-[85vh] overflow-y-auto no-scrollbar">
+        <div class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-3.5 sm:p-5 lg:p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
             
             @if(isset($activeGroup) && $activeGroup)
                 @php
@@ -552,51 +559,51 @@
                 </div>
             @else
                 <!-- HERO LOUNGE PEMBDA SPACE (WARNA-WARNI REMAJA CERAH & RAMAI) -->
-                <div class="mb-6 relative rounded-3xl overflow-hidden border-2 border-[#121316] bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 text-white shadow-[5px_5px_0px_#121316] p-6 sm:p-7 relative">
+                <div class="mb-5 sm:mb-6 rounded-3xl border-2 border-[#121316] bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 text-white shadow-[4px_4px_0px_#121316] p-4 sm:p-6 relative">
                     <!-- Ambient Glow Circles -->
-                    <div class="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-pink-400/20 blur-2xl pointer-events-none"></div>
-                    <div class="absolute -left-10 -top-10 w-44 h-44 rounded-full bg-yellow-300/20 blur-2xl pointer-events-none"></div>
+                    <div class="absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-pink-400/20 blur-2xl pointer-events-none"></div>
+                    <div class="absolute -left-8 -top-8 w-36 h-36 rounded-full bg-yellow-300/20 blur-2xl pointer-events-none"></div>
 
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-                        <div class="flex-1">
-                            <div class="inline-flex items-center gap-2 px-3 py-1 bg-[#fde047] border-2 border-[#121316] rounded-full text-[#121316] text-[10px] sm:text-[11px] font-mono-code font-black tracking-wider mb-3 shadow-[2px_2px_0px_#121316]">
-                                <i class="fa-solid fa-bolt text-amber-600"></i>
-                                <span>PEMBDASPACE</span>
-                                <span>·</span>
-                                <span>SOCIAL & STEAM LOUNGE</span>
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-5 relative z-10 w-full min-w-0">
+                        <div class="flex-1 min-w-0 space-y-2">
+                            <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 bg-[#fde047] border-2 border-[#121316] rounded-full text-[#121316] text-[10px] sm:text-[11px] font-mono-code font-black tracking-wider shadow-[2px_2px_0px_#121316] max-w-full">
+                                <i class="fa-solid fa-bolt text-amber-600 shrink-0"></i>
+                                <span class="truncate">PEMBDASPACE</span>
+                                <span class="hidden sm:inline">·</span>
+                                <span class="hidden sm:inline">SOCIAL & STEAM LOUNGE</span>
                             </div>
-                            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight leading-snug drop-shadow-sm">
+                            <h2 class="text-lg sm:text-2xl lg:text-3xl font-black text-white tracking-tight leading-snug drop-shadow-xs">
                                 Ruang Kolaborasi, Diskusi & <span class="bg-[#fde047] text-[#121316] px-2 py-0.5 rounded-lg border border-[#121316] shadow-xs">Karya Nyata.</span>
                             </h2>
-                            <p class="text-xs sm:text-sm text-indigo-100 font-semibold mt-2 max-w-xl leading-relaxed">
-                                Wadah seru & interaktif civitas akademika Perguruan Pembda Nias: Siswa SMA, SMP, SMK & Bapak/Ibu Guru. Diskusi pelajaran, pamer karya sains & seni, cari kawan projek, dan bangun Menara Prestasi bersama!
+                            <p class="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed max-w-2xl">
+                                Wadah seru civitas akademika Perguruan Pembda Nias: Siswa SMA, SMP, SMK & Guru. Diskusi pelajaran, pamer karya sains & seni, dan cari kawan kolaborasi.
                             </p>
                             
                             <!-- Quick Stats Chips -->
-                            <div class="flex items-center gap-2.5 mt-4 flex-wrap text-[11px] font-mono-code font-bold">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
+                            <div class="flex items-center gap-2 pt-1 flex-wrap text-[11px] font-mono-code font-bold">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
                                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                                     <span>{{ $onlineCount }} <span class="text-yellow-300 font-black">Online</span></span>
                                 </span>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
                                     <i class="fa-solid fa-comments text-yellow-300"></i>
-                                    <span>{{ $totalThreads }} <span class="text-yellow-300 font-black">Topik Diskusi</span></span>
+                                    <span>{{ $totalThreads }} <span class="text-yellow-300 font-black">Topik</span></span>
                                 </span>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-slate-900 font-black shadow-[1px_1px_0px_#121316]" style="background-color: #fde047 !important; color: #0f172a !important;">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 border-slate-900 font-black shadow-[1px_1px_0px_#121316]" style="background-color: #fde047 !important; color: #0f172a !important;">
                                     <i class="fa-solid fa-cubes-stacked text-amber-800"></i>
-                                    <span>Menara Prestasi Aktif</span>
+                                    <span>Menara Prestasi</span>
                                 </span>
                             </div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row md:flex-col items-stretch gap-2.5 shrink-0 w-full sm:w-auto">
-                            <a href="{{ route('forum.create') }}" class="btn-tactile-yellow px-5 py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 whitespace-nowrap">
-                                <i class="fa-solid fa-plus-circle text-base text-rose-600"></i>
-                                <span>+ Buat Topik Baru</span>
+                        <div class="flex flex-row lg:flex-col items-center lg:items-stretch gap-2 shrink-0 w-full sm:w-auto">
+                            <a href="{{ route('forum.create') }}" class="btn-tactile-yellow px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 flex-1 sm:flex-initial whitespace-nowrap shadow-[2px_2px_0px_#121316]">
+                                <i class="fa-solid fa-plus-circle text-sm text-rose-600"></i>
+                                <span>+ Buat Topik</span>
                             </a>
-                            <button onclick="triggerPwaInstall()" class="btn-tactile-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 whitespace-nowrap">
-                                <i class="fa-solid fa-mobile-screen text-sm text-indigo-600"></i>
-                                <span>Install App Mobile</span>
+                            <button onclick="triggerPwaInstall()" class="btn-tactile-white px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap shadow-[2px_2px_0px_#121316]">
+                                <i class="fa-solid fa-mobile-screen text-xs text-indigo-600"></i>
+                                <span>Install App</span>
                             </button>
                         </div>
                     </div>
@@ -622,8 +629,8 @@
             @endif
 
             <!-- Header & Search Topbar (Neo-Brutalist) -->
-            <div class="p-3.5 sm:p-4 mb-6 sticky top-0 z-30 flex flex-col sm:flex-row gap-3 items-center justify-between bg-white/95 backdrop-blur-md border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
-                <form method="GET" action="{{ route('forum.index') }}" class="w-full sm:max-w-md relative">
+            <div class="p-3 sm:p-4 mb-5 sm:mb-6 sticky top-0 z-30 flex flex-col sm:flex-row gap-3 items-center justify-between bg-white/95 backdrop-blur-md border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
+                <form method="GET" action="{{ route('forum.index') }}" class="w-full sm:max-w-md relative flex-1 min-w-0">
                     @if($category) <input type="hidden" name="category" value="{{ $category }}"> @endif
                     @if(isset($activeGroup) && $activeGroup) <input type="hidden" name="group" value="{{ $activeGroup->id }}"> @endif
                     <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#121316]">
@@ -631,37 +638,37 @@
                     </div>
                     <input type="text" name="search" value="{{ $search }}" 
                            class="w-full pl-10 pr-4 py-2 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-xs sm:text-sm font-bold text-[#121316] placeholder-slate-500 shadow-[2px_2px_0px_#121316] focus:outline-none focus:shadow-[3px_3px_0px_#ff3823] transition" 
-                           placeholder="{{ isset($activeGroup) && $activeGroup ? 'Cari di ' . $activeGroup->name . '...' : 'Cari obrolan, ide projek, PR, karya seni...' }}">
+                           placeholder="{{ isset($activeGroup) && $activeGroup ? 'Cari di ' . $activeGroup->name . '...' : 'Cari obrolan, ide, karya, tugas...' }}">
                 </form>
                 
-                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
                     @if($search || $category || (isset($activeGroup) && $activeGroup))
-                        <a href="{{ route('forum.index') }}" class="btn-tactile-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap">
+                        <a href="{{ route('forum.index') }}" class="btn-tactile-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1 whitespace-nowrap">
                             <i class="fa-solid fa-xmark text-rose-600"></i>
                             <span>Reset</span>
                         </a>
                     @endif
                     <a href="{{ route('forum.create', (isset($activeGroup) && $activeGroup) ? ['group' => $activeGroup->id] : []) }}" 
-                       class="btn-tactile-red px-4 sm:px-5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap">
+                       class="btn-tactile-red px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-plus text-xs"></i>
-                        <span>{{ isset($activeGroup) && $activeGroup ? 'Tulis di Squad' : 'Buat Post' }}</span>
+                        <span>{{ isset($activeGroup) && $activeGroup ? 'Tulis' : 'Buat Post' }}</span>
                     </a>
                 </div>
             </div>
 
             <!-- 🎯 TANTANGAN STEAM & INOVASI MINGGUAN -->
             @if(isset($weeklyChallenge))
-                <div class="mb-6 bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 border-2 border-[#121316] rounded-3xl p-5 sm:p-6 text-white shadow-[5px_5px_0px_#121316] relative overflow-hidden">
-                    <div class="absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-yellow-300/20 blur-xl pointer-events-none"></div>
+                <div class="mb-5 sm:mb-6 bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 border-2 border-[#121316] rounded-3xl p-4 sm:p-6 text-white shadow-[4px_4px_0px_#121316] relative">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-yellow-300/20 blur-xl pointer-events-none"></div>
                     
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative z-10">
-                        <div class="flex-1 space-y-2">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10 w-full min-w-0">
+                        <div class="flex-1 min-w-0 space-y-2">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="px-3 py-1 rounded-full bg-[#fde047] text-[#121316] border border-[#121316] text-[10px] font-mono-code font-black tracking-wider flex items-center gap-1.5 shadow-2xs">
+                                <span class="px-2.5 py-1 rounded-full bg-[#fde047] text-[#121316] border border-[#121316] text-[10px] font-mono-code font-black tracking-wider flex items-center gap-1.5 shadow-2xs">
                                     <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
-                                    <span>TANTANGAN STEAM MINGGU INI</span>
+                                    <span>TANTANGAN STEAM <span class="hidden sm:inline">MINGGU INI</span></span>
                                 </span>
-                                <span class="px-2.5 py-0.5 rounded-lg bg-emerald-400 text-slate-950 font-mono-code font-black text-[10px] border border-[#121316]">
+                                <span class="px-2 py-0.5 rounded-lg bg-emerald-400 text-slate-950 font-mono-code font-black text-[10px] border border-[#121316]">
                                     {{ $weeklyChallenge['points_reward'] }}
                                 </span>
                                 <span class="text-[11px] font-mono-code font-bold text-yellow-200">
@@ -669,24 +676,24 @@
                                 </span>
                             </div>
 
-                            <h3 class="text-base sm:text-xl font-black text-white leading-snug">
+                            <h3 class="text-base sm:text-lg lg:text-xl font-black text-white leading-snug">
                                 {{ $weeklyChallenge['title'] }}
                             </h3>
-                            <p class="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed max-w-3xl">
+                            <p class="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed max-w-2xl">
                                 {{ $weeklyChallenge['description'] }}
                             </p>
                         </div>
 
-                        <div class="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                        <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                             @if(!empty($weeklyChallenge['thread_id']))
-                                <a href="{{ route('forum.show', $weeklyChallenge['thread_id']) }}" class="btn-tactile-yellow px-5 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 w-full sm:w-auto whitespace-nowrap shadow-[3px_3px_0px_#121316]">
+                                <a href="{{ route('forum.show', $weeklyChallenge['thread_id']) }}" class="btn-tactile-yellow px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 w-full sm:w-auto whitespace-nowrap shadow-[2px_2px_0px_#121316]">
                                     <i class="fa-solid fa-paper-plane text-rose-600"></i>
-                                    <span>Kirimkan Solusi / Karya</span>
+                                    <span>Kirim Solusi</span>
                                 </a>
                             @else
-                                <a href="{{ route('forum.create', ['category' => 'steam_challenge', 'title' => 'Solusi: ' . $weeklyChallenge['title']]) }}" class="btn-tactile-yellow px-5 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 w-full sm:w-auto whitespace-nowrap shadow-[3px_3px_0px_#121316]">
+                                <a href="{{ route('forum.create', ['category' => 'steam_challenge', 'title' => 'Solusi: ' . $weeklyChallenge['title']]) }}" class="btn-tactile-yellow px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 w-full sm:w-auto whitespace-nowrap shadow-[2px_2px_0px_#121316]">
                                     <i class="fa-solid fa-paper-plane text-rose-600"></i>
-                                    <span>Ikuti Tantangan Ini</span>
+                                    <span>Ikuti Tantangan</span>
                                 </a>
                             @endif
                         </div>
@@ -696,29 +703,40 @@
 
             <!-- ⚡ RADAR EDUTECH & SAINS HARIAN (DAILY TECH BYTE) -->
             @if(isset($edutechInsights) && count($edutechInsights) > 0)
-                <div class="mb-6 bg-white border-2 border-[#121316] rounded-3xl p-5 sm:p-6 shadow-[5px_5px_0px_#121316]" x-data="{ activeTab: 0 }">
-                    <div class="flex items-center justify-between gap-3 border-b-2 border-[#121316]/10 pb-4 mb-5 flex-wrap">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-yellow-300 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center text-[#121316] text-xl font-black">
+                <div class="mb-5 sm:mb-6 bg-white border-2 border-[#121316] rounded-3xl p-4 sm:p-6 shadow-[4px_4px_0px_#121316]" x-data="{ activeTab: 0 }">
+                    <div class="flex items-center justify-between gap-3 border-b-2 border-[#121316]/10 pb-3 mb-4 flex-wrap">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-yellow-300 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center text-[#121316] text-lg sm:text-xl font-black shrink-0">
                                 ⚡
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h2 class="forum-hdr text-base sm:text-lg font-black text-[#121316] tracking-tight">Radar Edukasi, Riset & Teknologi</h2>
-                                    <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400">HARIAN</span>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h2 class="forum-hdr text-sm sm:text-base lg:text-lg font-black text-[#121316] tracking-tight">Radar Edukasi, Riset & Teknologi</h2>
+                                    <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 shrink-0">HARIAN</span>
                                 </div>
-                                <p class="text-xs text-slate-600 font-semibold mt-0.5">Wawasan sains, rekayasa kejuruan, dan tips karir masa depan untuk siswa & guru</p>
+                                <p class="text-[11px] sm:text-xs text-slate-600 font-semibold mt-0.5 truncate">Wawasan sains, rekayasa kejuruan, dan tips karir masa depan untuk siswa & guru</p>
                             </div>
                         </div>
 
                         <!-- Pill Switcher -->
                         <div class="flex items-center gap-1.5 flex-wrap">
                             @foreach($edutechInsights as $idx => $insight)
+                                @php
+                                    $tabLabels = [
+                                        'ai-prompt-engineering' => 'AI Digital',
+                                        'ev-motor-revolution' => 'Vokasi EV',
+                                        'iot-gempa-nias' => 'IoT Nias',
+                                        'beasiswa-kip-kuliah-2026' => 'Beasiswa',
+                                        'sains-energi-terbarukan-nias' => 'Energi EBT',
+                                        'cloud-network-security' => 'Cyber Sec',
+                                    ];
+                                    $tLabel = $tabLabels[$insight['id']] ?? explode(' ', $insight['category_label'])[0];
+                                @endphp
                                 <button type="button" 
                                         @click="activeTab = {{ $idx }}" 
                                         :class="activeTab === {{ $idx }} ? 'bg-[#121316] text-[#fde047] shadow-[2px_2px_0px_#121316]' : 'bg-[#faf8f5] text-[#121316] hover:bg-slate-100'"
-                                        class="px-3 py-1.5 rounded-xl border-2 border-[#121316] text-[11px] font-mono-code font-black transition">
-                                    <span>#{{ $idx + 1 }} {{ Str::words($insight['category_label'], 2, '') }}</span>
+                                        class="px-2.5 py-1 rounded-xl border-2 border-[#121316] text-[10px] sm:text-[11px] font-mono-code font-black transition">
+                                    <span>#{{ $idx + 1 }} {{ $tLabel }}</span>
                                 </button>
                             @endforeach
                         </div>
@@ -1376,7 +1394,7 @@
         </div>
 
         <!-- SIDEBAR WIDGETS (Right) -->
-        <div class="hidden xl:flex flex-col w-80 flex-shrink-0 bg-white border-l-2 border-[#121316] max-h-[85vh] overflow-hidden">
+        <div class="hidden xl:flex flex-col w-72 flex-shrink-0 bg-white border-l-2 border-[#121316] max-h-[85vh] overflow-hidden forum-right-sidebar">
             <!-- Pinned Top User Profile Card -->
             <div class="p-4 bg-white border-b-2 border-[#121316] shrink-0">
                 @php
