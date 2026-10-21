@@ -416,7 +416,7 @@
                                 Pintu Masuk ➜ Baris 1 Depan s/d Baris 5 Belakang
                             </span>
                         </div>
-                        <div id="classroom-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5">
+                        <div id="classroom-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 pb-24">
                             {{-- 40 slot kursi siswa (terisi / kosong) dirender dinamis di sini --}}
                         </div>
                     </div>
@@ -513,7 +513,7 @@
 
                 {{-- 7. Papan Tulis (Whiteboard) --}}
                 <button onclick="openTabDirect('whiteboard')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #7c3aed; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Papan Tulis Digital (Whiteboard)">
-                    <i class="fa-solid fa-pen-ruler text-sm" style="color: #fde047;"></i>
+                    <i class="fa-solid fa-chalkboard text-sm" style="color: #fde047;"></i>
                     <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis Digital</span>
                 </button>
 
@@ -539,7 +539,7 @@
 
                 {{-- 11. Q&A Antrean --}}
                 <button onclick="openTabDirect('qa')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ea580c; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Antrean Q&amp;A Siswa">
-                    <i class="fa-solid fa-clipboard-question text-sm text-white"></i>
+                    <i class="fa-solid fa-circle-question text-sm text-white"></i>
                     <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Antrean Q&amp;A</span>
                 </button>
 
@@ -574,7 +574,7 @@
 
                 {{-- Tab Papan Tulis --}}
                 <button id="tab-btn-whiteboard" onclick="switchTab('whiteboard')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Papan Tulis Digital (Whiteboard)">
-                    <i class="fa-solid fa-pen-ruler text-xs" style="color: #7c3aed;"></i>
+                    <i class="fa-solid fa-chalkboard text-xs" style="color: #7c3aed;"></i>
                     <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis</span>
                 </button>
 
@@ -601,7 +601,7 @@
 
                 {{-- Tab Q&A --}}
                 <button id="tab-btn-qa" onclick="switchTab('qa')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Antrean Tanya Jawab (Q&amp;A)">
-                    <i class="fa-solid fa-clipboard-question text-xs" style="color: #ea580c;"></i>
+                    <i class="fa-solid fa-circle-question text-xs" style="color: #ea580c;"></i>
                     <span id="qa-tab-badge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
                     <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Tanya Jawab (Q&amp;A)</span>
                 </button>
@@ -617,9 +617,6 @@
                 <button onclick="toggleClassroomHub()" type="button" class="group relative p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
                     <i class="fa-solid fa-xmark text-sm"></i>
                     <span class="absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">Tutup</span>
-                </button>
-            </div>
-                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 

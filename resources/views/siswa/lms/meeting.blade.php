@@ -554,7 +554,7 @@
 
                 {{-- 10. Q&A Tanya Guru --}}
                 <button onclick="openStudentTab('qa')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ea580c; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Tanya Guru (Q&A)">
-                    <i class="fa-solid fa-clipboard-question text-sm text-white"></i>
+                    <i class="fa-solid fa-circle-question text-sm text-white"></i>
                     <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Antrean Q&amp;A</span>
                 </button>
 
@@ -605,7 +605,7 @@
                     <span id="student-poll-tab-badge" class="hidden w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                 </button>
                 <button id="tab-btn-qa" onclick="switchStudentTab('qa')" type="button" class="flex-1 py-1.5 px-1.5 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl hover:bg-[#faf3e0] relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tanya Jawab Q&A">
-                    <i class="fa-solid fa-clipboard-question text-xs" style="color: #ea580c;"></i>
+                    <i class="fa-solid fa-circle-question text-xs" style="color: #ea580c;"></i>
                     <span class="hidden md:inline">Q&A</span>
                     <span id="student-qa-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
                 </button>
