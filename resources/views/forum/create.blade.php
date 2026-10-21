@@ -196,9 +196,9 @@
             <!-- Judul -->
             <div>
                 <label class="block text-xs font-mono-code font-black text-[#121316] uppercase tracking-widest mb-1.5">Judul Obrolan <span class="text-xs font-normal text-[#666]">(Opsional - otomatis dipotong dari isi jika kosong)</span></label>
-                <input type="text" name="title" value="{{ old('title') }}" 
+                <input type="text" name="title" value="{{ old('title', request('title')) }}" 
                        class="w-full px-4 py-2.5 bg-[#faf8f5] border-2 border-[#121316] focus:bg-white rounded-xl text-xs sm:text-sm text-[#121316] placeholder-[#888] font-bold outline-none focus:shadow-[3px_3px_0px_#ff3823] transition" 
-                       placeholder="Contoh: Sosialisasi Dinas / Seputar Ujian (Boleh dikosongkan)">
+                       placeholder="Contoh: Sosialisasi Dinas / Solusi Tantangan STEAM / Seputar Ujian">
             </div>
 
             <!-- Konten -->
@@ -429,7 +429,7 @@
 <script>
 function createPost() {
     return {
-        category: 'diskusi',
+        category: '{{ old('category', request('category', 'diskusi')) }}',
         perfType: 'lms_submission',
         imageUrl: null,
         fileChosen(event) {

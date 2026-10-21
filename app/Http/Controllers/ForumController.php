@@ -127,10 +127,15 @@ class ForumController extends Controller
             ->orderByDesc('replies_count')
             ->first();
 
+        // EduTech & Science Radar + Weekly STEAM Challenge
+        $edutechInsights = \App\Services\EduTechRadarService::getActiveInsights(4);
+        $weeklyChallenge = \App\Services\EduTechRadarService::getCurrentWeeklyChallenge();
+
         return view('forum.index', compact(
             'threads', 'counts', 'category', 'search', 
             'topStudents', 'activeCollabs', 'channelGroups',
-            'totalThreads', 'onlineCount', 'latestHighlight', 'trendingHighlight', 'userGroups', 'activeGroup'
+            'totalThreads', 'onlineCount', 'latestHighlight', 'trendingHighlight', 'userGroups', 'activeGroup',
+            'edutechInsights', 'weeklyChallenge'
         ));
     }
 
@@ -324,17 +329,34 @@ class ForumController extends Controller
 
             $thread = ForumThread::create($threadData);
 
-            // Gamification hook: +15 points for creating thread (non-blocking)
+            // Gamification hook: Pembobotan berbasis mutu & konten bernilai (Quality Over Quantity)
+            $repPoints = 5;
+            $repMsg = "Membuat topik diskusi: {$thread->title}";
+            $successMsg = "Topik diskusi berhasil diterbitkan! (+5 Poin Reputasi)";
+
+            if (!empty($thread->reference_type)) {
+                $repPoints = 35; // Karya LMS Terverifikasi / Project Akhir SMK / Riset
+                $repMsg = "Mempublikasikan Karya Nyata Terverifikasi: {$thread->title}";
+                $successMsg = "Karya nyata Anda berhasil dipublikasikan ke PembdaSPACE! (+35 Poin Reputasi Inovasi)";
+            } elseif ($category === 'steam_challenge') {
+                $repPoints = 30; // Tantangan STEAM
+                $repMsg = "Menerbitkan Tantangan STEAM & Inovasi: {$thread->title}";
+                $successMsg = "Tantangan STEAM & Inovasi berhasil diterbitkan! (+30 Poin Reputasi)";
+            } elseif (in_array($category, ['tanya_jawab', 'sharing', 'project_idea', 'edutech_radar'])) {
+                $repPoints = 15; // Konten berbobot akademik & pengetahuan
+                $repMsg = "Membagikan materi/ide proyek akademik: {$thread->title}";
+                $successMsg = "Topik akademik berhasil diterbitkan! (+15 Poin Reputasi)";
+            }
+
             try {
-                ReputationLog::log($user->id, 15, 'forum', "Membuat thread forum: {$thread->title}", $thread);
+                ReputationLog::log($user->id, $repPoints, 'forum', $repMsg, $thread);
             } catch (\Throwable $th) {
                 \Log::warning("Reputation log error for thread {$thread->id}: " . $th->getMessage());
             }
 
             DB::commit();
 
-            return redirect()->route('forum.show', $thread)
-                ->with('success', 'Topik diskusi berhasil diterbitkan! (+15 Poin Reputasi)');
+            return redirect()->route('forum.show', $thread)->with('success', $successMsg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -434,8 +456,22 @@ class ForumController extends Controller
                 'parent_reply_id' => $validated['parent_reply_id'] ?? null,
             ]);
 
-            // Gamification hook: +5 points for replying
-            ReputationLog::log($user->id, 5, 'forum', "Mengomentari diskusi: {$thread->title}", $reply);
+            // Gamification hook: apresiasi lebih tinggi untuk solusi Tantangan STEAM & jawaban akademik
+            $replyPoints = 5;
+            $replyDesc = "Mengomentari diskusi: {$thread->title}";
+            $replyMsg = "Komentar ditambahkan! (+5 Poin Reputasi)";
+
+            if ($thread->category === 'steam_challenge') {
+                $replyPoints = 20; // Mengirimkan solusi nyata untuk tantangan STEAM
+                $replyDesc = "Mengirimkan solusi Tantangan STEAM: {$thread->title}";
+                $replyMsg = "Solusi Tantangan STEAM berhasil dikirim! (+20 Poin Reputasi)";
+            } elseif ($thread->category === 'tanya_jawab') {
+                $replyPoints = 10; // Membantu menjawab pertanyaan belajar
+                $replyDesc = "Membantu menjawab di forum: {$thread->title}";
+                $replyMsg = "Jawaban berhasil dikirim! (+10 Poin Reputasi)";
+            }
+
+            ReputationLog::log($user->id, $replyPoints, 'forum', $replyDesc, $reply);
 
             // Notification: Send to thread author or parent reply author
             $targetUserId = null;
@@ -469,7 +505,7 @@ class ForumController extends Controller
                 $avatar = $user->avatar_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=121316&color=fff&bold=true';
                 return response()->json([
                     'success' => true,
-                    'message' => 'Komentar ditambahkan! (+5 Poin Reputasi)',
+                    'message' => $replyMsg,
                     'reply' => [
                         'id' => $reply->id,
                         'parent_reply_id' => $reply->parent_reply_id,
@@ -487,7 +523,7 @@ class ForumController extends Controller
                 ]);
             }
 
-            return back()->with('success', 'Komentar ditambahkan! (+5 Poin Reputasi)');
+            return back()->with('success', $replyMsg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -655,12 +691,12 @@ class ForumController extends Controller
 
             $reply->update(['is_accepted' => true]);
 
-            // Recipient gets +15 points for best answer
-            ReputationLog::log($reply->user_id, 15, 'forum_best_answer', "Komentar terpilih sebagai Jawaban Terbaik di topik: {$thread->title}", $reply);
+            // Recipient gets +30 points for verified best answer / solution
+            ReputationLog::log($reply->user_id, 30, 'forum_best_answer', "Komentar terpilih sebagai Solusi Terbaik & Terverifikasi di topik: {$thread->title}", $reply);
 
             DB::commit();
 
-            return back()->with('success', 'Telah ditetapkan sebagai Jawaban Terbaik! (+15 Poin untuk Penulis Komentar)');
+            return back()->with('success', 'Telah diverifikasi sebagai Solusi / Jawaban Terbaik! (+30 Poin Reputasi untuk Penulis)');
 
         } catch (\Exception $e) {
             DB::rollBack();

@@ -177,6 +177,20 @@
 @php
     // Metadata Icon & Visual Warna-Warni Remaja Canggih FontAwesome 6
     $channelMeta = [
+        'steam_challenge' => [
+            'icon' => 'fa-solid fa-bullseye',
+            'pill' => 'bg-rose-100 text-rose-600 border-rose-200',
+            'badge' => 'bg-rose-50 text-rose-800 border-rose-300',
+            'label' => 'Tantangan STEAM & Inovasi',
+            'accent' => '#e11d48'
+        ],
+        'edutech_radar' => [
+            'icon' => 'fa-solid fa-bolt',
+            'pill' => 'bg-amber-100 text-amber-600 border-amber-200',
+            'badge' => 'bg-amber-50 text-amber-800 border-amber-300',
+            'label' => 'Radar Edukasi & Teknologi',
+            'accent' => '#f59e0b'
+        ],
         'diskusi' => [
             'icon' => 'fa-solid fa-comments',
             'pill' => 'bg-blue-100 text-blue-600 border-blue-200',
@@ -634,6 +648,139 @@
                     </a>
                 </div>
             </div>
+
+            <!-- 🎯 TANTANGAN STEAM & INOVASI MINGGUAN -->
+            @if(isset($weeklyChallenge))
+                <div class="mb-6 bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 border-2 border-[#121316] rounded-3xl p-5 sm:p-6 text-white shadow-[5px_5px_0px_#121316] relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-yellow-300/20 blur-xl pointer-events-none"></div>
+                    
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative z-10">
+                        <div class="flex-1 space-y-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-3 py-1 rounded-full bg-[#fde047] text-[#121316] border border-[#121316] text-[10px] font-mono-code font-black tracking-wider flex items-center gap-1.5 shadow-2xs">
+                                    <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                                    <span>TANTANGAN STEAM MINGGU INI</span>
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-lg bg-emerald-400 text-slate-950 font-mono-code font-black text-[10px] border border-[#121316]">
+                                    {{ $weeklyChallenge['points_reward'] }}
+                                </span>
+                                <span class="text-[11px] font-mono-code font-bold text-yellow-200">
+                                    {{ $weeklyChallenge['deadline_text'] }}
+                                </span>
+                            </div>
+
+                            <h3 class="text-base sm:text-xl font-black text-white leading-snug">
+                                {{ $weeklyChallenge['title'] }}
+                            </h3>
+                            <p class="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed max-w-3xl">
+                                {{ $weeklyChallenge['description'] }}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                            @if(!empty($weeklyChallenge['thread_id']))
+                                <a href="{{ route('forum.show', $weeklyChallenge['thread_id']) }}" class="btn-tactile-yellow px-5 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 w-full sm:w-auto whitespace-nowrap shadow-[3px_3px_0px_#121316]">
+                                    <i class="fa-solid fa-paper-plane text-rose-600"></i>
+                                    <span>Kirimkan Solusi / Karya</span>
+                                </a>
+                            @else
+                                <a href="{{ route('forum.create', ['category' => 'steam_challenge', 'title' => 'Solusi: ' . $weeklyChallenge['title']]) }}" class="btn-tactile-yellow px-5 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 w-full sm:w-auto whitespace-nowrap shadow-[3px_3px_0px_#121316]">
+                                    <i class="fa-solid fa-paper-plane text-rose-600"></i>
+                                    <span>Ikuti Tantangan Ini</span>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- ⚡ RADAR EDUTECH & SAINS HARIAN (DAILY TECH BYTE) -->
+            @if(isset($edutechInsights) && count($edutechInsights) > 0)
+                <div class="mb-6 bg-white border-2 border-[#121316] rounded-3xl p-5 sm:p-6 shadow-[5px_5px_0px_#121316]" x-data="{ activeTab: 0 }">
+                    <div class="flex items-center justify-between gap-3 border-b-2 border-[#121316]/10 pb-4 mb-5 flex-wrap">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-yellow-300 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center text-[#121316] text-xl font-black">
+                                ⚡
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="forum-hdr text-base sm:text-lg font-black text-[#121316] tracking-tight">Radar Edukasi, Riset & Teknologi</h2>
+                                    <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400">HARIAN</span>
+                                </div>
+                                <p class="text-xs text-slate-600 font-semibold mt-0.5">Wawasan sains, rekayasa kejuruan, dan tips karir masa depan untuk siswa & guru</p>
+                            </div>
+                        </div>
+
+                        <!-- Pill Switcher -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            @foreach($edutechInsights as $idx => $insight)
+                                <button type="button" 
+                                        @click="activeTab = {{ $idx }}" 
+                                        :class="activeTab === {{ $idx }} ? 'bg-[#121316] text-[#fde047] shadow-[2px_2px_0px_#121316]' : 'bg-[#faf8f5] text-[#121316] hover:bg-slate-100'"
+                                        class="px-3 py-1.5 rounded-xl border-2 border-[#121316] text-[11px] font-mono-code font-black transition">
+                                    <span>#{{ $idx + 1 }} {{ Str::words($insight['category_label'], 2, '') }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Insight Content Cards -->
+                    @foreach($edutechInsights as $idx => $insight)
+                        <div x-show="activeTab === {{ $idx }}" x-transition:enter="transition ease-out duration-200" class="space-y-4">
+                            <div class="p-5 sm:p-6 rounded-2xl border-2 border-[#121316] bg-gradient-to-br from-slate-50 via-white to-amber-50/40 shadow-[3px_3px_0px_#121316] space-y-4">
+                                <div class="flex items-center justify-between gap-3 flex-wrap">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-mono-code font-black border border-slate-900 {{ $insight['badge_color'] }}">
+                                            <i class="{{ $insight['icon'] }} mr-1"></i> {{ $insight['category_label'] }}
+                                        </span>
+                                        <span class="text-xs font-mono-code font-bold text-slate-500">&bull; {{ $insight['read_time'] }} baca</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-600">Oleh: {{ $insight['author'] }}</span>
+                                </div>
+
+                                <h3 class="text-lg sm:text-xl font-black text-[#121316] leading-snug">
+                                    {{ $insight['title'] }}
+                                </h3>
+
+                                <p class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                                    {{ $insight['summary'] }}
+                                </p>
+
+                                <!-- Key Points -->
+                                <div class="p-4 bg-white rounded-xl border-2 border-[#121316]/15 space-y-2">
+                                    <div class="text-[10px] font-mono-code font-black text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-lightbulb text-amber-500"></i> Poin Kunci untuk Siswa & Pembelajaran:
+                                    </div>
+                                    <ul class="space-y-1.5 text-xs text-slate-800 font-semibold">
+                                        @foreach($insight['key_points'] as $pt)
+                                            <li class="flex items-start gap-2">
+                                                <i class="fa-solid fa-check text-emerald-600 text-xs mt-0.5 shrink-0"></i>
+                                                <span>{{ $pt }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+
+                                <!-- Discussion Prompt & Action -->
+                                <div class="p-4 rounded-xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div class="flex items-start gap-2.5 min-w-0">
+                                        <span class="text-lg shrink-0">💬</span>
+                                        <div class="min-w-0">
+                                            <span class="text-[10px] font-mono-code font-black text-amber-800 uppercase tracking-wider">Pemantik Diskusi:</span>
+                                            <p class="text-xs font-black text-[#121316] mt-0.5">{{ $insight['discussion_prompt'] }}</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('forum.create', ['category' => 'edutech_radar', 'title' => 'Diskusi EduTech: ' . $insight['title']]) }}" 
+                                       class="btn-tactile-yellow px-4 py-2 rounded-xl text-xs font-mono-code font-black whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#121316]">
+                                        <i class="fa-solid fa-comments text-indigo-700"></i>
+                                        <span>Buka Diskusi Topik Ini</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
 
             <!-- Pembda Tower (Menara Prestasi) Widget Neo-Brutalist -->
             <div class="mb-6 bg-white border-2 border-[#121316] rounded-3xl overflow-hidden shadow-[4px_4px_0px_#121316]" x-data="pembdaTower()">

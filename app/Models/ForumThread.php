@@ -42,29 +42,31 @@ class ForumThread extends Model
     ];
 
     public const CATEGORIES = [
+        'steam_challenge' => '🎯 Tantangan STEAM & Inovasi',
+        'edutech_radar' => '⚡ Radar Edukasi & Teknologi',
+        'tanya_jawab' => '❓ Tanya Jawab & Riset',
+        'sharing' => '📁 Bank Modul & File',
+        'project_idea' => '💡 Ide Proyek & Karya',
         'diskusi' => '💬 Wall Diskusi Publik',
         'info' => '📢 Wall Pengumuman',
         'ekskul_showcase' => '🏆 Ekskul & Prestasi',
         'ekskul_recruit' => '📢 Open Recruitment Ekskul',
-        'tanya_jawab' => '❓ Tanya Jawab',
-        'sharing' => '📁 Bank File',
-        'art_gallery' => '🎨 Karya Seni',
+        'art_gallery' => '🎨 Karya Seni & Desain',
         'talent' => '🎵 Musik & Bakat',
         'performance' => '🏆 Hall of Fame',
         'gaming' => '🎮 Gaming & Mabar',
         'trending' => '🔥 Trending & Viral',
-        'project_idea' => '💡 Ide Proyek',
         'committee' => '👥 Rekrut Panitia',
         'charity' => '❤️ Aksi Sosial',
     ];
 
     public const CHANNEL_GROUPS = [
-        '🧱 WALL OBROLAN' => ['diskusi', 'info'],
+        '🔬 STEAM & INOVASI' => ['steam_challenge', 'edutech_radar', 'project_idea'],
+        '📚 AKADEMIK & RISET' => ['tanya_jawab', 'sharing'],
+        '🎨 KARYA & SHOWCASE' => ['art_gallery', 'talent', 'performance'],
+        '🤝 KOLABORASI & PROJEK' => ['committee', 'charity'],
         '🏆 EKSTRAKURIKULER' => ['ekskul_showcase', 'ekskul_recruit'],
-        '📚 AKADEMIK' => ['tanya_jawab', 'sharing'],
-        '🎨 SHOWCASE' => ['art_gallery', 'talent', 'performance'],
-        '🎮 HANGOUT' => ['gaming', 'trending'],
-        '🤝 KOLABORASI' => ['project_idea', 'committee', 'charity'],
+        '🧱 WALL KOMUNITAS' => ['diskusi', 'info', 'trending', 'gaming'],
     ];
 
     // Relationships

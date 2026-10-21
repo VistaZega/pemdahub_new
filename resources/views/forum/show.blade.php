@@ -268,6 +268,33 @@
                 
                 <!-- Bubble (Neo-Brutalist) -->
                 <div class="bg-white border-2 border-[#121316] rounded-2xl rounded-tl-none p-5 sm:p-6 shadow-[4px_4px_0px_#121316] w-full max-w-3xl relative">
+                    @if($thread->category === 'steam_challenge')
+                        <div class="mb-4 p-4 rounded-xl bg-gradient-to-r from-rose-500 to-indigo-600 text-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-8 h-8 rounded-lg bg-[#fde047] text-[#121316] flex items-center justify-center font-black text-sm shrink-0">
+                                    🎯
+                                </span>
+                                <div>
+                                    <div class="text-xs font-black">Tantangan Resmi STEAM & Inovasi Sekolah</div>
+                                    <div class="text-[10px] font-mono-code text-yellow-200">Kirimkan solusi atau analisismu di balasan bawah untuk mendapatkan apresiasi!</div>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-400 text-slate-950 font-mono-code font-black text-[10px] border border-[#121316] shrink-0">
+                                +30 POIN REPUTASI
+                            </span>
+                        </div>
+                    @elseif($thread->category === 'edutech_radar')
+                        <div class="mb-4 p-3.5 rounded-xl bg-amber-50 border-2 border-[#121316] text-[#121316] flex items-center gap-2.5 shadow-[2px_2px_0px_#121316]">
+                            <span class="w-7 h-7 rounded-lg bg-[#fde047] text-[#121316] flex items-center justify-center font-black text-xs shrink-0">
+                                ⚡
+                            </span>
+                            <div class="text-xs font-bold leading-relaxed">
+                                <span class="font-black text-indigo-700 font-mono-code text-[10px] uppercase">Radar Edukasi & Sains:</span> 
+                                Diskusikan wawasan teknologi ini bersama teman dan bapak/ibu guru di bawah.
+                            </div>
+                        </div>
+                    @endif
+
                     <h2 class="forum-hdr text-xl sm:text-2xl font-black text-[#121316] mb-3 leading-snug">{{ $thread->title }}</h2>
                     <div class="prose prose-slate prose-sm sm:prose-base max-w-none text-[#222] font-medium leading-relaxed">
                         {!! nl2br(e($thread->content)) !!}

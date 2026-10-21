@@ -173,6 +173,69 @@
             @endforeach
         </div>
 
+        <!-- 🎯 TANTANGAN STEAM MINGGUAN (MOBILE) -->
+        @if(isset($weeklyChallenge))
+            <div class="p-4 bg-gradient-to-r from-rose-600 via-purple-700 to-indigo-700 text-white rounded-2xl border-2 border-[#121316] shadow-[3px_3px_0px_#121316] space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="px-2 py-0.5 rounded-lg bg-[#fde047] text-[#121316] text-[9px] font-mono font-black tracking-wider flex items-center gap-1 border border-[#121316]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span> TANTANGAN STEAM
+                    </span>
+                    <span class="text-[9px] font-mono font-black px-2 py-0.5 rounded-md bg-emerald-400 text-slate-950">
+                        {{ $weeklyChallenge['points_reward'] }}
+                    </span>
+                </div>
+                <h3 class="text-xs font-black text-white leading-snug">
+                    {{ $weeklyChallenge['title'] }}
+                </h3>
+                <p class="text-[11px] text-indigo-100 font-medium leading-relaxed line-clamp-2">
+                    {{ $weeklyChallenge['description'] }}
+                </p>
+                <div class="pt-1">
+                    @if(!empty($weeklyChallenge['thread_id']))
+                        <a href="{{ route('mobile.space.show', $weeklyChallenge['thread_id']) }}" class="w-full py-2 bg-[#fde047] text-[#121316] border border-[#121316] rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-paper-plane text-rose-600"></i> Kirimkan Solusi / Karya
+                        </a>
+                    @else
+                        <a href="{{ route('mobile.space.create', ['category' => 'steam_challenge', 'title' => 'Solusi: ' . $weeklyChallenge['title']]) }}" class="w-full py-2 bg-[#fde047] text-[#121316] border border-[#121316] rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-paper-plane text-rose-600"></i> Ikuti Tantangan Ini
+                        </a>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        <!-- ⚡ RADAR EDUTECH & SAINS HARIAN (MOBILE) -->
+        @if(isset($edutechInsights) && count($edutechInsights) > 0)
+            <div class="p-4 bg-white rounded-2xl border-2 border-[#121316] shadow-[3px_3px_0px_#121316] space-y-3" x-data="{ mobileTab: 0 }">
+                <div class="flex items-center justify-between border-b border-[#121316]/10 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">⚡</span>
+                        <h4 class="text-xs font-black text-[#121316]">Radar EduTech & Sains</h4>
+                    </div>
+                    <span class="text-[9px] font-mono font-bold text-slate-500">Wawasan Harian</span>
+                </div>
+                <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1">
+                    @foreach($edutechInsights as $idx => $ins)
+                        <button type="button" @click="mobileTab = {{ $idx }}" 
+                                :class="mobileTab === {{ $idx }} ? 'bg-[#121316] text-[#fde047]' : 'bg-slate-100 text-slate-700'"
+                                class="px-2.5 py-1 rounded-lg text-[9px] font-mono font-black border border-slate-300 shrink-0">
+                            #{{ $idx + 1 }} {{ Str::words($ins['category_label'], 2, '') }}
+                        </button>
+                    @endforeach
+                </div>
+                @foreach($edutechInsights as $idx => $ins)
+                    <div x-show="mobileTab === {{ $idx }}" class="space-y-2">
+                        <h5 class="text-xs font-black text-[#121316] leading-snug">{{ $ins['title'] }}</h5>
+                        <p class="text-[11px] text-slate-600 font-medium leading-relaxed">{{ $ins['summary'] }}</p>
+                        <a href="{{ route('mobile.space.create', ['category' => 'edutech_radar', 'title' => 'Diskusi EduTech: ' . $ins['title']]) }}" 
+                           class="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-700 hover:underline pt-1">
+                            <i class="fa-solid fa-comments"></i> Buka Diskusi Topik Ini &rarr;
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <!-- PUBLIC THREADS WALL FEED -->
         <div class="space-y-3">
             @forelse($threads as $thread)
@@ -213,9 +276,25 @@
                             </div>
                         </div>
 
-                        <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-[9px] font-mono font-black uppercase">
-                            {{ $cleanCat }}
-                        </span>
+                        <div class="flex items-center gap-1 shrink-0">
+                            @if($thread->reference_type === \App\Models\LmsSubmission::class)
+                                <span class="px-2 py-0.5 rounded-md text-[8px] font-mono font-black" style="background-color: #4338ca !important; color: #fde047 !important;">
+                                    📁 KARYA LMS
+                                </span>
+                            @elseif($thread->reference_type === \App\Models\FinalProject::class)
+                                <span class="px-2 py-0.5 rounded-md text-[8px] font-mono font-black bg-cyan-600 text-white">
+                                    🚀 PROJEK
+                                </span>
+                            @elseif($thread->category === 'steam_challenge')
+                                <span class="px-2 py-0.5 rounded-md text-[8px] font-mono font-black bg-rose-600 text-white animate-pulse">
+                                    🎯 STEAM
+                                </span>
+                            @else
+                                <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-[9px] font-mono font-black uppercase">
+                                    {{ $cleanCat }}
+                                </span>
+                            @endif
+                        </div>
                     </div>
 
                     <h3 class="text-xs font-black text-[#121316] leading-snug pt-0.5">{{ $thread->title }}</h3>

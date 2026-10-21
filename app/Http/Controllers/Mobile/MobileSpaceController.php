@@ -94,7 +94,11 @@ class MobileSpaceController extends Controller
             ->latest()
             ->paginate(15);
 
-        return view('mobile.space.index', compact('groups', 'tab', 'groupFilter', 'category', 'categories', 'search', 'threads'));
+        // EduTech & STEAM Radar
+        $edutechInsights = \App\Services\EduTechRadarService::getActiveInsights(3);
+        $weeklyChallenge = \App\Services\EduTechRadarService::getCurrentWeeklyChallenge();
+
+        return view('mobile.space.index', compact('groups', 'tab', 'groupFilter', 'category', 'categories', 'search', 'threads', 'edutechInsights', 'weeklyChallenge'));
     }
 
     /**
