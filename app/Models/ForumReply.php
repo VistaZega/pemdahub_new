@@ -62,6 +62,11 @@ class ForumReply extends Model
         return $mapped;
     }
 
+    public function reactionCounts(): array
+    {
+        return $this->getReactionCounts();
+    }
+
     public function hasReacted(User $user, string $emoji): bool
     {
         $alias = ForumReaction::getAlias($emoji);

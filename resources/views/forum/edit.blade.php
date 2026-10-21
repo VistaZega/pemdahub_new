@@ -246,7 +246,7 @@
              x-transition:enter="transition ease-out duration-300"
              class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[3px_3px_0px_#121316] space-y-4">
             <div class="flex items-center gap-3 mb-1">
-                <div class="w-10 h-10 rounded-xl bg-[#ff3823] border border-[#121316] flex items-center justify-center text-white"><i class="fa-solid fa-gamepad text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl border border-slate-900 flex items-center justify-center text-white" style="background-color: #dc2626 !important; color: #ffffff !important;"><i class="fa-solid fa-gamepad text-xl"></i></div>
                 <div>
                     <h4 class="forum-hdr text-sm font-black text-[#121316]">Detail Lobi Mabar</h4>
                     <div class="text-xs font-mono-code text-[#ff3823] font-bold uppercase tracking-wider">Ajak kawan seangkatan mabar game pilihanmu</div>
@@ -278,7 +278,7 @@
              x-transition:enter="transition ease-out duration-300"
              class="bg-white border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[3px_3px_0px_#121316] space-y-4">
             <div class="flex items-center gap-3 mb-1">
-                <div class="w-10 h-10 rounded-xl bg-[#10b981] border border-[#121316] flex items-center justify-center text-white"><i class="fa-solid fa-folder-open text-xl"></i></div>
+                <div class="w-10 h-10 rounded-xl border border-slate-900 flex items-center justify-center text-white" style="background-color: #059669 !important; color: #ffffff !important;"><i class="fa-solid fa-folder-open text-xl"></i></div>
                 <div>
                     <h4 class="forum-hdr text-sm font-black text-[#121316]">Kategori Dokumen / File</h4>
                     <div class="text-xs font-mono-code text-[#065f46] font-bold uppercase tracking-wider">Bagikan berkas belajar untuk seluruh kawan</div>

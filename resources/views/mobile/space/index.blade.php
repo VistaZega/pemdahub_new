@@ -15,7 +15,7 @@
             <p class="text-[11px] text-slate-600 font-bold">Class Squads & Wall Diskusi Sekolah</p>
         </div>
         <a href="{{ route('mobile.space.create') }}" 
-           class="px-4 py-2.5 bg-[#ff3823] text-white border-2 border-[#121316] rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
+           class="px-4 py-2.5 border-2 border-slate-900" style="background-color: #dc2626 !important; color: #ffffff !important; border-2 border-[#121316] rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
             <i class="fa-solid fa-plus text-xs"></i> Post Baru
         </a>
     </div>
@@ -38,13 +38,13 @@
            class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'groups' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
             <i class="fa-solid fa-users-rectangle text-xs"></i>
             <span>Class Squads</span>
-            <span class="px-1.5 py-0.5 rounded-full bg-[#121316] text-white font-mono text-[10px] font-black">{{ count($groups) }}</span>
+            <span class="px-1.5 py-0.5 rounded-full border border-slate-900 font-black" style="background-color: #0f172a !important; color: #fde047 !important; font-mono text-[10px] font-black">{{ count($groups) }}</span>
         </a>
         <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
            class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'kanal' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
             <i class="fa-solid fa-comments text-xs"></i>
             <span>Wall Obrolan</span>
-            <span class="px-1.5 py-0.5 rounded-full bg-[#121316] text-white font-mono text-[10px] font-black">{{ count($categories) }}</span>
+            <span class="px-1.5 py-0.5 rounded-full border border-slate-900 font-black" style="background-color: #0f172a !important; color: #fde047 !important; font-mono text-[10px] font-black">{{ count($categories) }}</span>
         </a>
     </div>
 
@@ -65,15 +65,15 @@
         <!-- Squad Filter Pills -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'semua']) }}" 
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'semua' ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'semua' ? 'border-2 border-slate-900" style="background-color: #dc2626 !important; color: #ffffff !important; shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 🔥 Semua Squad
             </a>
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'kelas']) }}" 
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'kelas' ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'kelas' ? 'border-2 border-slate-900" style="background-color: #dc2626 !important; color: #ffffff !important; shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 🏫 Class Squads Saya
             </a>
             <a href="{{ route('mobile.space.index', ['tab' => 'groups', 'filter' => 'lobi']) }}" 
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'lobi' ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $groupFilter === 'lobi' ? 'border-2 border-slate-900" style="background-color: #dc2626 !important; color: #ffffff !important; shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 📢 Lobi & Pengumuman
             </a>
         </div>
@@ -158,7 +158,7 @@
         <!-- Category Pills (All Wall Categories) -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] flex items-center gap-1.5 {{ !$category ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
+               class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] flex items-center gap-1.5 {{ !$category ? 'border-2 border-slate-900" style="background-color: #dc2626 !important; color: #ffffff !important; shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                 <i class="fa-solid fa-compass text-xs"></i>
                 <span>Semua Wall</span>
             </a>
@@ -167,7 +167,7 @@
                     $cleanLabel = trim(preg_replace('/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\s]+/u', '', $label));
                 @endphp
                 <a href="{{ route('mobile.space.index', ['tab' => 'kanal', 'category' => $key]) }}" 
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $category === $key ? 'bg-[#ff3823] text-white shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition border-2 border-[#121316] {{ $category === $key ? 'border-2 border-slate-900" style="background-color: #dc2626 !important; color: #ffffff !important; shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#faf8f5]' }}">
                     {{ $cleanLabel }}
                 </a>
             @endforeach

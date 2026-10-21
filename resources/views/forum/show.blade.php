@@ -288,7 +288,7 @@
                     @if($thread->category === 'gaming' && ($thread->game_name || $thread->game_room_code))
                         <div class="mt-4 p-4 rounded-xl bg-rose-50 border-2 border-[#121316] flex items-center justify-between gap-4 shadow-[2px_2px_0px_#121316]">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-xl bg-[#ff3823] border border-[#121316] text-white flex items-center justify-center text-2xl flex-shrink-0">
+                                <div class="w-12 h-12 rounded-xl border-2 border-slate-900 flex items-center justify-center text-2xl flex-shrink-0" style="background-color: #dc2626 !important; color: #ffffff !important;">
                                     <i class="fa-solid fa-gamepad"></i>
                                 </div>
                                 <div>
@@ -306,7 +306,7 @@
 
                     @if($thread->category === 'sharing' && $thread->file_category)
                         <div class="mt-4 p-3 bg-emerald-50 border-2 border-[#121316] rounded-xl flex items-center gap-3 shadow-[2px_2px_0px_#121316]">
-                            <div class="w-9 h-9 rounded-lg bg-[#10b981] border border-[#121316] text-white flex items-center justify-center text-lg flex-shrink-0">
+                            <div class="w-9 h-9 rounded-lg border border-slate-900 flex items-center justify-center text-lg flex-shrink-0" style="background-color: #059669 !important; color: #ffffff !important;">
                                 <i class="fa-solid fa-folder-open"></i>
                             </div>
                             <div>
@@ -539,7 +539,7 @@
                                     </div>
 
                                     <div id="reply-reactions-{{ $reply->id }}" class="flex flex-wrap gap-1">
-                                        @foreach($reply->reactionCounts() as $emoji => $count)
+                                        @foreach($reply->getReactionCounts() as $emoji => $count)
                                             <button onclick="reactReplyAjax({{ $reply->id }}, '{{ $emoji }}')" class="flex items-center gap-1 px-2 py-0.5 bg-white border border-[#121316] rounded-md text-[10px] font-mono-code font-black text-[#121316] transition shadow-[1px_1px_0px_#121316]">
                                                 <span>{{ $emoji }}</span> <span>{{ $count }}</span>
                                             </button>
@@ -627,7 +627,7 @@
                                                             </div>
                                                         </div>
                                                         <div id="reply-reactions-{{ $child->id }}" class="flex flex-wrap gap-1">
-                                                            @foreach($child->reactionCounts() as $emoji => $count)
+                                                            @foreach($child->getReactionCounts() as $emoji => $count)
                                                                 <button onclick="reactReplyAjax({{ $child->id }}, '{{ $emoji }}')" class="px-1.5 py-0.2 bg-white border border-[#121316] rounded text-[9px] font-mono-code font-black text-[#121316]">
                                                                     <span>{{ $emoji }}</span> <span>{{ $count }}</span>
                                                                 </button>
@@ -678,7 +678,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2">
-                            <span class="text-[9px] font-mono-code font-black uppercase px-1.5 py-0.2 rounded bg-[#121316] text-white">MODE BALAS</span>
+                            <span class="text-[9px] font-mono-code font-black uppercase px-2 py-0.5 rounded border border-slate-900" style="background-color: #0f172a !important; color: #fde047 !important;">MODE BALAS</span>
                             <div class="text-xs font-black text-[#121316] truncate" id="quote-user">Membalas @Pengguna</div>
                         </div>
                         <div class="text-xs text-[#121316]/80 truncate mt-0.5 italic font-bold" id="quote-text">...</div>

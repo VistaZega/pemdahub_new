@@ -345,7 +345,7 @@
                                 </div>
                                 <span class="text-xs sm:text-sm font-extrabold">Semua Saluran</span>
                             </div>
-                            <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border border-[#121316] {{ !$category && !(isset($activeGroup) && $activeGroup) ? 'bg-[#121316] text-white' : 'bg-[#faf8f5] text-[#121316]' }}">
+                            <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border {{ !$category && !(isset($activeGroup) && $activeGroup) ? 'border-slate-900' : 'border-slate-300' }}" style="{{ !$category && !(isset($activeGroup) && $activeGroup) ? 'background-color: #0f172a !important; color: #fde047 !important;' : 'background-color: #ffffff !important; color: #0f172a !important;' }}">
                                 {{ $totalThreads }}
                             </span>
                         </a>
@@ -388,7 +388,7 @@
                                             <span class="text-xs truncate font-extrabold leading-tight">{{ $cleanGrpName }}</span>
                                         </div>
                                         @if($memberCount > 0)
-                                            <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border border-[#121316] {{ $isGroupActive ? 'bg-[#121316] text-white' : 'bg-[#faf8f5] text-[#121316]' }} shrink-0 ml-1.5">{{ $memberCount }}</span>
+                                            <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border {{ $isGroupActive ? 'border-slate-900' : 'border-slate-300' }} shrink-0 ml-1.5" style="{{ $isGroupActive ? 'background-color: #0f172a !important; color: #fde047 !important;' : 'background-color: #ffffff !important; color: #0f172a !important;' }}">{{ $memberCount }}</span>
                                         @endif
                                     </a>
                                 @endforeach
@@ -431,7 +431,7 @@
                                         <span class="text-xs truncate font-extrabold">{{ $catLabel }}</span>
                                     </div>
                                     @if($count > 0)
-                                        <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border border-[#121316] {{ $isActive ? 'bg-[#121316] text-white' : 'bg-[#faf8f5] text-[#121316]' }}">{{ $count }}</span>
+                                        <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border {{ $isActive ? 'border-slate-900' : 'border-slate-300' }}" style="{{ $isActive ? 'background-color: #0f172a !important; color: #fde047 !important;' : 'background-color: #ffffff !important; color: #0f172a !important;' }}">{{ $count }}</span>
                                     @endif
                                 </a>
                             @endforeach
@@ -560,16 +560,16 @@
                             
                             <!-- Quick Stats Chips -->
                             <div class="flex items-center gap-2.5 mt-4 flex-wrap text-[11px] font-mono-code font-bold">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
                                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                    <span>{{ $onlineCount }} Pengguna Online</span>
+                                    <span>{{ $onlineCount }} <span class="text-yellow-300 font-black">Online</span></span>
                                 </span>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xs">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
                                     <i class="fa-solid fa-comments text-yellow-300"></i>
-                                    <span>{{ $totalThreads }} Topik Diskusi</span>
+                                    <span>{{ $totalThreads }} <span class="text-yellow-300 font-black">Topik Diskusi</span></span>
                                 </span>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#fde047] border-2 border-[#121316] text-[#121316] font-black shadow-[1px_1px_0px_#121316]">
-                                    <i class="fa-solid fa-cubes-stacked text-amber-700"></i>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-slate-900 font-black shadow-[1px_1px_0px_#121316]" style="background-color: #fde047 !important; color: #0f172a !important;">
+                                    <i class="fa-solid fa-cubes-stacked text-amber-800"></i>
                                     <span>Menara Prestasi Aktif</span>
                                 </span>
                             </div>
@@ -745,14 +745,14 @@
                         </div>
 
                         <!-- Tower Foundation / Fondasi (Neo-Brutalist) -->
-                        <div class="bg-[#121316] text-white text-xs sm:text-sm font-mono-code font-black uppercase tracking-wider text-center py-3 px-6 rounded-2xl shadow-[4px_4px_0px_#121316] border-2 border-[#121316] flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full max-w-xl">
-                            <span class="text-white flex items-center gap-1.5"><i class="fa-solid fa-cubes-stacked text-amber-400"></i> <span>FONDASI MENARA</span></span>
-                            <span class="text-[#fde047]">·</span>
-                            <span class="bg-[#fde047] text-[#121316] px-2.5 py-0.5 rounded-lg border border-[#121316] font-black">
+                        <div class="text-xs sm:text-sm font-mono-code font-black uppercase tracking-wider text-center py-3 px-6 rounded-2xl shadow-[4px_4px_0px_#121316] border-2 border-slate-900 flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full max-w-xl" style="background-color: #0f172a !important; color: #ffffff !important;">
+                            <span class="flex items-center gap-1.5" style="color: #ffffff;"><i class="fa-solid fa-cubes-stacked text-amber-400"></i> <span>FONDASI MENARA</span></span>
+                            <span style="color: #fde047;">·</span>
+                            <span class="px-2.5 py-0.5 rounded-lg border border-slate-900 font-black" style="background-color: #fde047 !important; color: #0f172a !important;">
                                 <span x-text="stats.total_bricks"></span> BATA TERPASANG
                             </span>
-                            <span class="text-[#fde047]">·</span>
-                            <span class="bg-white text-[#121316] px-2.5 py-0.5 rounded-lg border border-[#121316] font-black">
+                            <span style="color: #fde047;">·</span>
+                            <span class="px-2.5 py-0.5 rounded-lg border border-slate-900 font-black" style="background-color: #ffffff !important; color: #0f172a !important;">
                                 TINGGI <span x-text="stats.total_height"></span> LANTAI
                             </span>
                         </div>
@@ -863,8 +863,8 @@
                     @if(isset($latestHighlight))
                         <a href="{{ route('forum.show', $latestHighlight) }}" class="block bg-gradient-to-br from-rose-50 via-white to-orange-50 border-2 border-[#121316] rounded-2xl p-4 sm:p-5 shadow-[3px_3px_0px_#121316] hover:shadow-[5px_5px_0px_#121316] transition group relative overflow-hidden">
                             <div class="flex items-center gap-2 mb-2.5">
-                                <span class="bg-[#ff3823] text-white text-[10px] font-mono-code font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg border border-[#121316] flex items-center gap-1 shadow-xs">
-                                    <i class="fa-solid fa-sparkles text-[10px]"></i> TERBARU
+                                <span class="text-[10px] font-mono-code font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg border-2 border-slate-900 flex items-center gap-1 shadow-xs" style="background-color: #dc2626 !important; color: #ffffff !important;">
+                                    <i class="fa-solid fa-sparkles text-[10px] text-yellow-300"></i> <span>TERBARU</span>
                                 </span>
                                 <span class="text-[11px] font-mono-code font-bold text-slate-600">{{ $latestHighlight->created_at->diffForHumans() }}</span>
                             </div>
@@ -880,10 +880,10 @@
                     @if(isset($trendingHighlight))
                         <a href="{{ route('forum.show', $trendingHighlight) }}" class="block bg-gradient-to-br from-amber-50 via-white to-yellow-50 border-2 border-[#121316] rounded-2xl p-4 sm:p-5 shadow-[3px_3px_0px_#121316] hover:shadow-[5px_5px_0px_#121316] transition group relative overflow-hidden">
                             <div class="flex items-center gap-2 mb-2.5">
-                                <span class="bg-[#fde047] text-[#121316] text-[10px] font-mono-code font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg border border-[#121316] flex items-center gap-1 shadow-xs">
-                                    <i class="fa-solid fa-fire text-rose-600 text-xs"></i> HANGAT
+                                <span class="text-[10px] font-mono-code font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg border-2 border-slate-900 flex items-center gap-1 shadow-xs" style="background-color: #fde047 !important; color: #0f172a !important;">
+                                    <i class="fa-solid fa-fire text-rose-600 text-xs"></i> <span>HANGAT</span>
                                 </span>
-                                <span class="text-[11px] font-mono-code font-black text-[#121316] bg-white px-2 py-0.5 rounded-md border border-[#121316]">{{ $trendingHighlight->replies_count + $trendingHighlight->likes_count }} Interaksi</span>
+                                <span class="text-[11px] font-mono-code font-black px-2 py-0.5 rounded-md border border-slate-300" style="background-color: #ffffff !important; color: #0f172a !important;">{{ $trendingHighlight->replies_count + $trendingHighlight->likes_count }} Interaksi</span>
                             </div>
                             <h3 class="font-black text-[#121316] text-base sm:text-lg leading-tight mb-3 group-hover:text-amber-700 transition">{{ $trendingHighlight->title }}</h3>
                             <div class="flex items-center gap-2 mt-auto pt-2 border-t border-[#121316]/10">
@@ -941,14 +941,14 @@
                                                     <i class="fa-solid fa-trophy text-[9px] text-amber-900"></i> Official Ekskul
                                                 </span>
                                             @elseif($thread->category === 'ekskul_recruit')
-                                                <span class="text-[10px] font-mono-code font-black px-2 py-0.5 bg-[#ff3823] text-white border border-[#121316] rounded-lg flex items-center gap-1 animate-pulse">
-                                                    <i class="fa-solid fa-bullhorn text-[9px]"></i> Open Recruitment
+                                                <span class="text-[10px] font-mono-code font-black px-2.5 py-0.5 border-2 border-slate-900 rounded-lg flex items-center gap-1 animate-pulse" style="background-color: #dc2626 !important; color: #ffffff !important;">
+                                                    <i class="fa-solid fa-bullhorn text-[9px] text-yellow-300"></i> <span>Open Recruitment</span>
                                                 </span>
                                             @endif
                                             @if($thread->category === 'tanya_jawab')
                                                 @if($thread->hasAcceptedReply())
-                                                    <span class="text-[10px] font-mono-code font-black px-2 py-0.5 bg-emerald-500 text-white border border-[#121316] rounded-lg flex items-center gap-1">
-                                                        <i class="fa-solid fa-circle-check text-[9px]"></i> Terjawab
+                                                    <span class="text-[10px] font-mono-code font-black px-2.5 py-0.5 border-2 border-slate-900 rounded-lg flex items-center gap-1" style="background-color: #059669 !important; color: #ffffff !important;">
+                                                        <i class="fa-solid fa-circle-check text-[9px] text-emerald-200"></i> <span>Terjawab</span>
                                                     </span>
                                                 @else
                                                     <span class="text-[10px] font-mono-code font-black px-2 py-0.5 bg-[#fde047] text-[#121316] border border-[#121316] rounded-lg flex items-center gap-1">
@@ -1231,7 +1231,7 @@
                                     <i class="fa-solid fa-crown"></i>
                                 </div>
                             </div>
-                            <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-[#ff3823] text-white rounded-full flex items-center justify-center text-[10px] shadow-sm font-black border border-[#121316]" title="Pimpinan Terverifikasi">
+                            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm font-black border border-slate-900" style="background-color: #dc2626 !important; color: #ffffff !important;" title="Pimpinan Terverifikasi">
                                 👑
                             </span>
                         </div>
@@ -1678,7 +1678,8 @@ function pembdaTower() {
 
 <!-- Mobile Floating Action Button (Buat Post) -->
 <a href="{{ route('forum.create') }}" 
-   class="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#ff3823] text-white border-2 border-[#121316] rounded-2xl flex items-center justify-center shadow-[4px_4px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0px_#121316] transition-all"
+   class="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 border-2 border-slate-900 rounded-2xl flex items-center justify-center shadow-[4px_4px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0px_#121316] transition-all"
+   style="background-color: #dc2626 !important; color: #ffffff !important;"
    title="Buat Status Baru">
     <i class="fa-solid fa-plus text-xl"></i>
 </a>
