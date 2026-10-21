@@ -220,64 +220,61 @@
             </div>
         </div>
 
-        {{-- Right Controls (Tactile Buttons with Icon Boxes) --}}
-        <div class="flex items-center gap-2 flex-shrink-0">
+        {{-- Right Controls (Compact Icon-Only Tactile Buttons with Hover Tooltips) --}}
+        <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             
-            {{-- Tombol Salin Tautan (Sky Tactile) --}}
-            <button onclick="copyMeetingLink()" type="button" class="hidden sm:flex items-center gap-1.5 btn-tactile-white px-3.5 py-1.5 rounded-xl text-xs font-mono-code font-black active:scale-95" title="Salin link kelas untuk dibagikan ke siswa via WhatsApp">
-                <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #0284c7; color: #ffffff;">
-                    <i class="fa-solid fa-link"></i>
-                </div>
-                <span>Salin Tautan</span>
+            {{-- 1. Tombol Rekam Video KBM (Record Session) --}}
+            <button id="header-btn-record" onclick="toggleMeetingRecording()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Pembelajaran KBM (Record)">
+                <span id="header-record-dot" class="w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                </span>
+                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+                    <span id="header-record-tooltip">Rekam KBM</span>
+                </span>
             </button>
 
-            {{-- Tombol Papan Tulis Cepat (Purple Tactile) --}}
-            <button onclick="openTabDirect('whiteboard')" type="button" class="flex items-center gap-1.5 btn-tactile-white px-3.5 py-1.5 rounded-xl text-xs font-mono-code font-black active:scale-95" title="Buka Papan Tulis Digital KBM">
-                <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #7c3aed; color: #ffffff;">
-                    <i class="fa-solid fa-pen-ruler"></i>
-                </div>
-                <span class="hidden md:inline">Papan Tulis</span>
+            {{-- 2. Tombol Salin Tautan --}}
+            <button onclick="copyMeetingLink()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0284c7; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Salin tautan kelas untuk siswa">
+                <i class="fa-solid fa-link text-sm"></i>
+                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+                    Salin Tautan
+                </span>
             </button>
 
-            {{-- Tombol Polling Cepat (Amber Tactile) --}}
-            <button onclick="openTabDirect('polling')" type="button" class="flex items-center gap-1.5 btn-tactile-white px-3.5 py-1.5 rounded-xl text-xs font-mono-code font-black active:scale-95" title="Buka Polling Kilat KBM">
-                <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #d97706; color: #ffffff;">
-                    <i class="fa-solid fa-square-poll-vertical"></i>
-                </div>
-                <span class="hidden md:inline">Polling</span>
-            </button>
-
-            {{-- Tombol Pilihan Tampilan (Zoom View Selector - Amber Tactile) --}}
+            {{-- 3. Tombol Pilihan Tampilan Layout (Tata Letak) --}}
             <div class="relative inline-block text-left" id="header-view-wrapper">
-                <button onclick="toggleViewMenu(event)" type="button" class="flex items-center gap-1.5 btn-tactile-white px-3 py-1.5 rounded-xl text-xs font-mono-code font-black active:scale-95" title="Pilihan Tata Letak Tampilan (Zoom)">
-                    <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;">
-                        <i id="header-view-icon" class="fa-solid fa-chalkboard-user"></i>
-                    </div>
-                    <span class="hidden md:inline">Tata Letak: <span id="header-view-name" style="color: #ff3823; font-weight: 900;">Ruang Kelas (5x8)</span></span>
-                    <i class="fa-solid fa-chevron-down text-[9px] ml-0.5" style="color: #121316;"></i>
+                <button onclick="toggleViewMenu(event)" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Pilihan Tata Letak Tampilan Video">
+                    <i id="header-view-icon" class="fa-solid fa-table-cells-large text-sm text-black"></i>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+                        Tata Letak: <span id="header-view-name">Ruang Kelas (5x8)</span>
+                    </span>
                 </button>
             </div>
 
-            {{-- Tombol Toggle Panel Materi / Peserta (Indigo Tactile) --}}
-            <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="flex items-center gap-1.5 btn-tactile-white px-3.5 py-1.5 rounded-xl text-xs font-mono-code font-black active:scale-95" title="Buka atau sembunyikan panel modul dan siswa">
-                <div class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #4f46e5; color: #ffffff;">
-                    <i class="fa-solid fa-columns"></i>
-                </div>
-                <span class="hidden sm:inline">Panel KBM</span>
+            {{-- 4. Tombol Toggle Panel Materi / Peserta --}}
+            <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka / Sembunyikan Panel KBM">
+                <i class="fa-solid fa-table-columns text-sm"></i>
+                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+                    Panel KBM
+                </span>
             </button>
 
-            {{-- Profile Chip Guru --}}
-            <div class="hidden xl:flex items-center gap-2 bg-white px-2.5 py-1 rounded-xl text-xs" style="border: 2px solid #121316; box-shadow: 2px 2px 0px #121316; color: #121316;" title="{{ $displayName }}">
-                <div class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black uppercase shadow-xs border border-black" style="background-color: #ff3823; color: #ffffff;">
+            {{-- 5. Profile Chip Guru --}}
+            <div class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border-2 border-black bg-white select-none" style="box-shadow: 2px 2px 0px #121316;" title="{{ $displayName }}">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black uppercase text-white shadow-xs" style="background-color: #ff3823; border: 1px solid #121316;">
                     {{ substr($displayName, 0, 1) }}
                 </div>
-                <span class="font-mono-code font-black max-w-[100px] truncate" style="color: #121316;">{{ explode(' ', trim($displayName))[0] }}</span>
+                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+                    {{ $displayName }}
+                </span>
             </div>
 
-            {{-- Tombol Akhiri Kelas (Crimson Tactile) --}}
-            <button onclick="openEndMeetingModal()" type="button" class="btn-tactile-red px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-mono-code font-black flex items-center gap-1.5 active:scale-95">
-                <i class="fa-solid fa-power-off text-xs"></i>
-                <span>Akhiri Kelas</span>
+            {{-- 6. Tombol Akhiri Kelas --}}
+            <button onclick="openEndMeetingModal()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ff3823; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Akhiri Sesi PembdaTEMU">
+                <i class="fa-solid fa-power-off text-sm"></i>
+                <span class="absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">
+                    Akhiri Kelas
+                </span>
             </button>
         </div>
     </header>
@@ -471,67 +468,85 @@
                 </div>
             </div>
 
-            {{-- Floating Teacher Action Dock (Neo-Tactile Island Khas PembdaHUB - Tombol Kontras Tinggi) --}}
-            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 sm:gap-2.5 px-3.5 sm:px-5 py-2.5 rounded-2xl sm:rounded-full" style="background-color: #ffffff; border: 2.5px solid #121316; box-shadow: 6px 6px 0px #121316;">
+            {{-- Floating Teacher Action Dock (Compact Icon-Only Tactile Dock with Hover Tooltips) --}}
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-2xl sm:rounded-full bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
                 
-                {{-- Toggle Mic --}}
-                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative p-3 rounded-xl transition active:translate-x-0.5 active:translate-y-0.5" style="background-color: #10b981; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Mikrofon">
-                    <i id="mic-icon" class="fa-solid fa-microphone text-base text-white"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mic</span>
+                {{-- 1. Toggle Mic --}}
+                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #10b981; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Mikrofon (M)">
+                    <i id="mic-icon" class="fa-solid fa-microphone text-sm text-white"></i>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mikrofon (M)</span>
                 </button>
 
-                {{-- Toggle Camera --}}
-                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative p-3 rounded-xl transition active:translate-x-0.5 active:translate-y-0.5" style="background-color: #0891b2; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Kamera">
-                    <i id="cam-icon" class="fa-solid fa-video text-base text-white"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kamera</span>
+                {{-- 2. Toggle Camera --}}
+                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0891b2; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Kamera (V)">
+                    <i id="cam-icon" class="fa-solid fa-video text-sm text-white"></i>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kamera (V)</span>
                 </button>
 
-                {{-- Screen Share --}}
-                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="group relative p-3 rounded-xl transition active:translate-x-0.5 active:translate-y-0.5" style="background-color: #2563eb; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Bagikan Layar Anda">
-                    <i class="fa-solid fa-desktop text-base text-white"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Bagi Layar</span>
+                {{-- 3. Screen Share --}}
+                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Bagikan Layar Anda">
+                    <i class="fa-solid fa-desktop text-sm text-white"></i>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Bagi Layar</span>
                 </button>
 
-                <div class="w-px h-6 hidden sm:block" style="background-color: #121316;"></div>
+                {{-- 4. Rekam Video KBM (Record) --}}
+                <button id="btn-record-session" onclick="toggleMeetingRecording()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Video KBM ke Materi LMS">
+                    <span id="bottom-record-indicator" class="w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                    </span>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;"><span id="bottom-record-tooltip">Rekam KBM</span></span>
+                </button>
 
-                {{-- Mute All Button (Amber Tactile) --}}
-                <button onclick="teacherMuteEveryone()" type="button" class="flex items-center gap-1.5 btn-tactile-yellow px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black active:scale-95" title="Kondusifkan Kelas: Minta seluruh siswa mematikan mic">
+                <div class="w-px h-6 bg-slate-300"></div>
+
+                {{-- 5. Mute Semua Siswa --}}
+                <button onclick="teacherMuteEveryone()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #fde047; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Kondisikan Kelas: Minta seluruh siswa mematikan mic">
                     <i class="fa-solid fa-volume-xmark text-sm"></i>
-                    <span class="hidden sm:inline">Mute Semua</span>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mute Semua Siswa</span>
                 </button>
 
-                <div class="w-px h-6 hidden sm:block" style="background-color: #121316;"></div>
-
-                {{-- Quick Open Material (Indigo Tactile) --}}
-                <button onclick="openTabDirect('materi')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5" style="background-color: #4f46e5; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Buka silabus materi & modul kelas">
+                {{-- 6. Modul / Materi --}}
+                <button onclick="openTabDirect('materi')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Silabus Materi &amp; Modul">
                     <i class="fa-solid fa-book-open text-sm" style="color: #fde047;"></i>
-                    <span class="hidden sm:inline">Modul</span>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Silabus &amp; Modul</span>
                 </button>
 
-                {{-- Quick Open Whiteboard (Purple Tactile) --}}
-                <button onclick="openTabDirect('whiteboard')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5" style="background-color: #7c3aed; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Tulis rumus atau coretan di papan tulis">
+                {{-- 7. Papan Tulis (Whiteboard) --}}
+                <button onclick="openTabDirect('whiteboard')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #7c3aed; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Papan Tulis Digital (Whiteboard)">
                     <i class="fa-solid fa-pen-ruler text-sm" style="color: #fde047;"></i>
-                    <span class="hidden sm:inline">Papan Tulis</span>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis Digital</span>
                 </button>
 
-                {{-- Quick Open Attendees (White Tactile with Live Emerald Badge) --}}
-                <button onclick="openTabDirect('peserta')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5" style="background-color: #ffffff; color: #121316; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Lihat kehadiran siswa secara realtime">
-                    <i class="fa-solid fa-users-viewfinder text-sm" style="color: #2563eb;"></i>
-                    <span class="hidden sm:inline">Presensi</span>
-                    <span id="quick-attendee-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1px solid #121316;">0</span>
+                {{-- 8. Presensi Siswa --}}
+                <button onclick="openTabDirect('peserta')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Lihat Presensi Siswa Realtime">
+                    <i class="fa-solid fa-users text-sm text-emerald-600"></i>
+                    <span id="quick-attendee-badge" class="absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1px solid #121316;">0</span>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
                 </button>
 
-                {{-- Quick Open Chat (Blue Tactile with Unread Badge) --}}
-                <button onclick="openTabDirect('chat')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5 relative" style="background-color: #2563eb; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Buka obrolan kelas & tanya jawab">
+                {{-- 9. Chat Kelas --}}
+                <button onclick="openTabDirect('chat')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Obrolan Kelas &amp; Tanya Jawab">
                     <i class="fa-solid fa-comments text-sm" style="color: #fde047;"></i>
-                    <span class="hidden sm:inline">Chat</span>
-                    <span id="quick-chat-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
+                    <span id="quick-chat-badge" class="hidden absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Kelas</span>
                 </button>
 
-                {{-- Quick Open Live Quiz (Pink Tactile) --}}
-                <button onclick="openTabDirect('kuis')" type="button" class="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-mono-code font-black transition-all active:translate-x-0.5 active:translate-y-0.5 relative" style="background-color: #ec4899; color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;" title="Luncurkan Kuis Live Interaktif (Kahoot-style)">
+                {{-- 10. Polling Kilat --}}
+                <button onclick="openTabDirect('polling')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Buka Polling Kilat KBM">
+                    <i class="fa-solid fa-square-poll-vertical text-sm text-black"></i>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
+                </button>
+
+                {{-- 11. Q&A Antrean --}}
+                <button onclick="openTabDirect('qa')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ea580c; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Antrean Q&amp;A Siswa">
+                    <i class="fa-solid fa-clipboard-question text-sm text-white"></i>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Antrean Q&amp;A</span>
+                </button>
+
+                {{-- 12. Kuis Live --}}
+                <button onclick="openTabDirect('kuis')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ec4899; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Luncurkan Kuis Live Interaktif (Kahoot-style)">
                     <i class="fa-solid fa-gamepad text-sm" style="color: #fde047;"></i>
-                    <span class="hidden sm:inline">Kuis Live</span>
+                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Interaktif Live</span>
                 </button>
             </div>
         </main>
@@ -549,41 +564,61 @@
         {{-- 3. CLASSROOM MULTI-HUB PANEL (TACTILE BINDER STYLE KHAS PEMBDAHUB) --}}
         <aside id="classroom-hub" class="w-[520px] max-w-[90vw] flex flex-col h-full z-15 shadow-2xl relative" style="background-color: #faf8f5; border-left: 2.5px solid #121316;">
             
-            {{-- Tabs Header Bar (Tactile Binder Style) --}}
-            <div class="flex items-center p-2 gap-1.5 flex-shrink-0" style="background-color: #ede9df; border-bottom: 2px solid #121316;">
-                <button id="tab-btn-materi" onclick="switchTab('materi')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-black transition-all flex items-center justify-center gap-1.5 rounded-xl" style="background-color: #121316; color: #fde047; border: 2px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
-                    <i class="fa-solid fa-book text-xs" style="color: #ff3823;"></i>
-                    <span class="hidden sm:inline">Modul</span>
+            {{-- Tabs Header Bar (Tactile Binder Style - Compact Icons with Tooltips) --}}
+            <div class="flex items-center p-2 gap-1 flex-shrink-0" style="background-color: #ede9df; border-bottom: 2px solid #121316;">
+                {{-- Tab Modul --}}
+                <button id="tab-btn-materi" onclick="switchTab('materi')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-black transition-all flex items-center justify-center rounded-xl" style="background-color: #121316; color: #fde047; border: 2px solid #121316; box-shadow: 2px 2px 0px #ff3823;" title="Silabus Materi &amp; Modul">
+                    <i class="fa-solid fa-book-open text-xs" style="color: #ff3823;"></i>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Modul Materi</span>
                 </button>
-                <button id="tab-btn-whiteboard" onclick="switchTab('whiteboard')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+
+                {{-- Tab Papan Tulis --}}
+                <button id="tab-btn-whiteboard" onclick="switchTab('whiteboard')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Papan Tulis Digital (Whiteboard)">
                     <i class="fa-solid fa-pen-ruler text-xs" style="color: #7c3aed;"></i>
-                    <span class="hidden sm:inline">Papan Tulis</span>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis</span>
                 </button>
-                <button id="tab-btn-peserta" onclick="switchTab('peserta')" type="button" class="flex-1 py-2 px-2 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+
+                {{-- Tab Siswa --}}
+                <button id="tab-btn-peserta" onclick="switchTab('peserta')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Daftar Siswa Hadir">
                     <i class="fa-solid fa-users text-xs" style="color: #10b981;"></i>
-                    <span>Siswa (<span id="attendee-tab-count">0</span>)</span>
+                    <span id="attendee-tab-count" class="text-[10px] font-black text-emerald-700">0</span>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
                 </button>
-                <button id="tab-btn-chat" onclick="switchTab('chat')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;">
+
+                {{-- Tab Chat --}}
+                <button id="tab-btn-chat" onclick="switchTab('chat')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Obrolan Kelas &amp; DM">
                     <i class="fa-solid fa-comments text-xs" style="color: #2563eb;"></i>
-                    <span>Chat</span>
-                    <span id="chat-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ff3823; color: #ffffff;">0</span>
+                    <span id="chat-tab-badge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ff3823; color: #ffffff;">0</span>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Chat</span>
                 </button>
-                <button id="tab-btn-polling" onclick="switchTab('polling')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Polling Kilat KBM">
+
+                {{-- Tab Polling --}}
+                <button id="tab-btn-polling" onclick="switchTab('polling')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Polling Kilat KBM">
                     <i class="fa-solid fa-square-poll-vertical text-xs" style="color: #d97706;"></i>
-                    <span>Poll</span>
-                    <span id="poll-tab-badge" class="hidden w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                    <span id="poll-tab-badge" class="hidden absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
                 </button>
-                <button id="tab-btn-qa" onclick="switchTab('qa')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tanya Jawab Terstruktur">
+
+                {{-- Tab Q&A --}}
+                <button id="tab-btn-qa" onclick="switchTab('qa')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Antrean Tanya Jawab (Q&amp;A)">
                     <i class="fa-solid fa-clipboard-question text-xs" style="color: #ea580c;"></i>
-                    <span>Q&A</span>
-                    <span id="qa-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
+                    <span id="qa-tab-badge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Tanya Jawab (Q&amp;A)</span>
                 </button>
-                <button id="tab-btn-kuis" onclick="switchTab('kuis')" type="button" class="flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl relative" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Kuis Interaktif Live (Kahoot-style)">
+
+                {{-- Tab Kuis --}}
+                <button id="tab-btn-kuis" onclick="switchTab('kuis')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Kuis Interaktif Live (Kahoot)">
                     <i class="fa-solid fa-gamepad text-xs" style="color: #ec4899;"></i>
-                    <span>Kuis</span>
-                    <span id="quiz-tab-badge" class="hidden px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ec4899; color: #ffffff;">LIVE</span>
+                    <span id="quiz-tab-badge" class="hidden absolute -top-1 -right-1 px-1 py-0.2 rounded text-[8px] font-black" style="background-color: #ec4899; color: #ffffff;">LIVE</span>
+                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Live</span>
                 </button>
-                <button onclick="toggleClassroomHub()" type="button" class="p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
+
+                {{-- Tutup Panel --}}
+                <button onclick="toggleClassroomHub()" type="button" class="group relative p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                    <span class="absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">Tutup</span>
+                </button>
+            </div>
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
@@ -609,6 +644,7 @@
                     </div>
                     <div class="flex-1 relative bg-white overflow-hidden">
                         <iframe id="preview-iframe" class="w-full h-full border-none hidden" allow="autoplay; clipboard-write; clipboard-read"></iframe>
+                        <video id="preview-video" class="w-full h-full object-contain bg-black hidden" controls></video>
                         <div id="preview-text" class="p-4 text-xs overflow-y-auto h-full prose max-w-none hidden font-mono-code" style="color: #121316;"></div>
                     </div>
                 </div>
@@ -1291,6 +1327,85 @@
                         <i class="fa-solid fa-check"></i> Ya, Akhiri PembdaTEMU
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL SIMPAN REKAMAN PEMBELAJARAN KE MATERI LMS (FASE 4+ FEATURE) --}}
+    <div id="modal-save-recording" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" style="background-color: rgba(18, 19, 22, 0.8); backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 relative border-2 border-black" style="box-shadow: 8px 8px 0px #ff3823;">
+            <div class="flex items-center justify-between border-b-2 border-black pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-red-500 text-white flex items-center justify-center border border-black shadow-xs">
+                        <i class="fa-solid fa-video"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">Publikasikan Rekaman KBM</h3>
+                        <p class="text-[10px] font-mono-code font-bold text-slate-500">Rekaman akan otomatis tampil di Modul Materi Siswa</p>
+                    </div>
+                </div>
+                <button onclick="closeSaveRecordingModal()" type="button" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center border border-black transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            {{-- Video Preview Player --}}
+            <div class="rounded-2xl overflow-hidden bg-black border-2 border-black aspect-video flex items-center justify-center relative shadow-inner">
+                <video id="recording-preview-video" controls class="w-full h-full object-contain"></video>
+            </div>
+
+            {{-- Recording Info & Stats --}}
+            <div class="flex items-center justify-between text-[11px] font-mono-code px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-300">
+                <span class="text-slate-600">Durasi: <strong id="recording-preview-duration" class="text-black font-black">00:00</strong></span>
+                <span class="text-slate-600">Ukuran: <strong id="recording-preview-size" class="text-black font-black">0 MB</strong></span>
+            </div>
+
+            {{-- Form Fields --}}
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-mono-code font-black text-slate-700 uppercase mb-1">Judul Materi Rekaman:</label>
+                    <input type="text" id="rec-material-title" class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0" value="Rekaman KBM: {{ $course->course_name ?? $course->name }} ({{ now()->format('d M Y') }})">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-mono-code font-black text-slate-700 uppercase mb-1">Pilih Modul Pembelajaran:</label>
+                    <select id="rec-material-module-id" class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0">
+                        @if($course->modules && $course->modules->count() > 0)
+                            @foreach($course->modules as $mod)
+                                <option value="{{ $mod->id }}">{{ $mod->title }}</option>
+                            @endforeach
+                        @else
+                            <option value="">Buat Modul Baru Otomatis: Rekaman PembdaTEMU</option>
+                        @endif
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-mono-code font-black text-slate-700 uppercase mb-1">Deskripsi Singkat:</label>
+                    <textarea id="rec-material-desc" rows="2" class="w-full text-xs font-bold p-2.5 rounded-xl border-2 border-black bg-white focus:ring-0" placeholder="Catatan materi atau pembahasan pada sesi ini...">Video rekaman pembelajaran tatap muka PembdaTEMU mata pelajaran {{ $course->subject->name ?? 'ini' }} untuk dipelajari kembali secara mandiri.</textarea>
+                </div>
+            </div>
+
+            {{-- Upload Progress Bar (Hidden by default) --}}
+            <div id="recording-upload-progress-box" class="hidden space-y-1">
+                <div class="flex items-center justify-between text-[10px] font-mono-code font-bold">
+                    <span class="text-indigo-600 animate-pulse">Mengunggah rekaman ke server...</span>
+                    <span id="recording-upload-pct" class="font-black">0%</span>
+                </div>
+                <div class="w-full h-2.5 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
+                    <div id="recording-upload-bar" class="h-full bg-indigo-600 transition-all duration-200" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            {{-- Action Buttons --}}
+            <div class="flex items-center gap-2 pt-2 border-t border-slate-200">
+                <button type="button" onclick="downloadRecordingLocally()" class="px-3.5 py-2.5 rounded-xl text-xs font-mono-code font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition" title="Download salinan video ke laptop/komputer Anda">
+                    <i class="fa-solid fa-download mr-1"></i> Download
+                </button>
+                <button type="button" id="btn-save-recording-submit" onclick="uploadRecordingToLms()" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-mono-code font-black text-white bg-emerald-600 hover:bg-emerald-700 border-2 border-black transition active:scale-95 flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#121316]">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Simpan &amp; Terbitkan ke Siswa</span>
+                </button>
             </div>
         </div>
     </div>
@@ -2281,6 +2396,7 @@
         function displayMaterial(title, type, url, content) {
             const box = document.getElementById('material-preview-box');
             const iframe = document.getElementById('preview-iframe');
+            const videoEl = document.getElementById('preview-video');
             const textEl = document.getElementById('preview-text');
             const titleEl = document.getElementById('preview-title');
             const iconEl = document.getElementById('preview-icon');
@@ -2299,8 +2415,20 @@
 
             iframe.classList.add('hidden');
             textEl.classList.add('hidden');
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.classList.add('hidden');
+                videoEl.src = '';
+            }
 
-            if (type === 'text') {
+            if (type === 'video' && (url.endsWith('.webm') || url.endsWith('.mp4') || url.includes('/storage/lms/recordings/'))) {
+                if (videoEl) {
+                    videoEl.src = url;
+                    videoEl.classList.remove('hidden');
+                }
+                extLink.href = url;
+                extLink.classList.remove('hidden');
+            } else if (type === 'text') {
                 textEl.innerHTML = content;
                 textEl.classList.remove('hidden');
                 extLink.classList.add('hidden');
@@ -2317,8 +2445,13 @@
         function closeMaterialPreview() {
             const box = document.getElementById('material-preview-box');
             const iframe = document.getElementById('preview-iframe');
+            const videoEl = document.getElementById('preview-video');
             if (box) box.classList.add('hidden');
             if (iframe) iframe.src = 'about:blank';
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.src = '';
+            }
         }
 
         // ============================================================
@@ -3387,6 +3520,12 @@
         // 13. END MEETING MODAL
         // ============================================================
         function openEndMeetingModal() {
+            if (isRecordingActive) {
+                if (confirm("Perekaman KBM sedang aktif! Apakah Anda ingin menghentikan dan menyimpan rekaman terlebih dahulu?")) {
+                    stopMeetingRecording();
+                    return;
+                }
+            }
             document.getElementById('end-meeting-modal').classList.remove('hidden');
         }
         function closeEndMeetingModal() {
@@ -3427,7 +3566,374 @@
         });
 
         // ============================================================
-        // 15. CLEANUP & INIT SAAT LOAD
+        // 15. SISTEM RECORD VIDEO CONFERENCE & PUBLISH KE LMS (FASE 4+)
+        // ============================================================
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordingStream = null;
+        let recordingStartTime = null;
+        let recordingTimerInterval = null;
+        let recordedBlob = null;
+        let recordedDurationSeconds = 0;
+        let isRecordingActive = false;
+
+        async function toggleMeetingRecording() {
+            if (isRecordingActive) {
+                stopMeetingRecording();
+            } else {
+                await startMeetingRecording();
+            }
+        }
+
+        async function startMeetingRecording() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                alert("Browser Anda tidak mendukung perekaman layar WebRTC. Disarankan memakai Google Chrome atau Microsoft Edge versi terbaru.");
+                return;
+            }
+
+            try {
+                // Minta izin merekam layar / tab browser (termasuk audio sistem)
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        cursor: "always",
+                        displaySurface: "browser"
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100
+                    }
+                });
+
+                // Gabungkan audio: System / Tab Audio + Mic Guru dari Agora
+                let combinedAudioStream = null;
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        const audioCtx = new AudioContextClass();
+                        const dest = audioCtx.createMediaStreamDestination();
+
+                        let hasAudio = false;
+
+                        // Audio dari screen/tab (suara siswa & audio tab)
+                        if (displayStream.getAudioTracks().length > 0) {
+                            const screenAudioSource = audioCtx.createMediaStreamSource(new MediaStream([displayStream.getAudioTracks()[0]]));
+                            screenAudioSource.connect(dest);
+                            hasAudio = true;
+                        }
+
+                        // Audio mic guru dari localAudioTrack Agora
+                        if (localAudioTrack && typeof localAudioTrack.getMediaStreamTrack === 'function') {
+                            const micTrack = localAudioTrack.getMediaStreamTrack();
+                            if (micTrack) {
+                                const micAudioSource = audioCtx.createMediaStreamSource(new MediaStream([micTrack]));
+                                micAudioSource.connect(dest);
+                                hasAudio = true;
+                            }
+                        }
+
+                        if (hasAudio) {
+                            combinedAudioStream = dest.stream;
+                        }
+                    }
+                } catch (audioErr) {
+                    console.warn("Audio mixing warning:", audioErr);
+                }
+
+                // Susun track untuk MediaStream final
+                const finalTracks = [...displayStream.getVideoTracks()];
+                if (combinedAudioStream && combinedAudioStream.getAudioTracks().length > 0) {
+                    finalTracks.push(combinedAudioStream.getAudioTracks()[0]);
+                } else if (displayStream.getAudioTracks().length > 0) {
+                    finalTracks.push(displayStream.getAudioTracks()[0]);
+                } else if (localAudioTrack && typeof localAudioTrack.getMediaStreamTrack === 'function') {
+                    const micTrack = localAudioTrack.getMediaStreamTrack();
+                    if (micTrack) finalTracks.push(micTrack);
+                }
+
+                recordingStream = new MediaStream(finalTracks);
+
+                // Pilih format webm yang didukung browser
+                let mimeType = 'video/webm;codecs=vp9,opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm;codecs=vp8,opus';
+                }
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm';
+                }
+
+                mediaRecorder = new MediaRecorder(recordingStream, {
+                    mimeType: mimeType,
+                    videoBitsPerSecond: 1500000 // 1.5 Mbps bitrate stabil
+                });
+
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data && e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = function() {
+                    finalizeRecording();
+                };
+
+                // Jika guru menekan tombol stop sharing di banner floating browser
+                displayStream.getVideoTracks()[0].onended = function() {
+                    if (isRecordingActive) {
+                        stopMeetingRecording();
+                    }
+                };
+
+                mediaRecorder.start(1000); // chunk slice setiap 1 detik
+                isRecordingActive = true;
+                recordingStartTime = Date.now();
+
+                // UI Update: Mengubah tombol & indikator jadi merekam
+                updateRecordingUI(true);
+
+                recordingTimerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+                    recordedDurationSeconds = elapsed;
+                    const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                    const secs = String(elapsed % 60).padStart(2, '0');
+                    const timeStr = `${mins}:${secs}`;
+                    
+                    const headerTooltip = document.getElementById('header-record-tooltip');
+                    if (headerTooltip) headerTooltip.textContent = `Merekam [${timeStr}] (Klik Selesai)`;
+
+                    const bottomTooltip = document.getElementById('bottom-record-tooltip');
+                    if (bottomTooltip) bottomTooltip.textContent = `Merekam [${timeStr}] (Klik Selesai)`;
+                }, 1000);
+
+            } catch (err) {
+                console.error("Gagal memulai perekaman:", err);
+                if (err.name !== 'NotAllowedError' && err.name !== 'AbortError') {
+                    alert("Gagal memulai perekaman: " + (err.message || err.name));
+                }
+            }
+        }
+
+        function stopMeetingRecording() {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+
+            if (recordingTimerInterval) {
+                clearInterval(recordingTimerInterval);
+                recordingTimerInterval = null;
+            }
+
+            mediaRecorder.stop();
+            isRecordingActive = false;
+
+            // Hentikan screen capture track
+            if (recordingStream) {
+                recordingStream.getTracks().forEach(track => {
+                    try { track.stop(); } catch (e) {}
+                });
+                recordingStream = null;
+            }
+
+            updateRecordingUI(false);
+        }
+
+        function updateRecordingUI(recording) {
+            const headerBtn = document.getElementById('header-btn-record');
+            const headerDot = document.getElementById('header-record-dot');
+            const headerTooltip = document.getElementById('header-record-tooltip');
+
+            const bottomBtn = document.getElementById('btn-record-session');
+            const bottomDot = document.getElementById('bottom-record-indicator');
+            const bottomTooltip = document.getElementById('bottom-record-tooltip');
+
+            if (recording) {
+                if (headerBtn) {
+                    headerBtn.style.backgroundColor = '#ff3823';
+                    headerBtn.style.color = '#ffffff';
+                    headerBtn.classList.add('animate-pulse');
+                }
+                if (headerDot) headerDot.className = 'w-3.5 h-3.5 rounded-full bg-white border border-black flex items-center justify-center';
+                if (headerTooltip) headerTooltip.textContent = 'Merekam... (Klik Selesai)';
+
+                if (bottomBtn) {
+                    bottomBtn.style.backgroundColor = '#ff3823';
+                    bottomBtn.style.color = '#ffffff';
+                    bottomBtn.classList.add('animate-pulse');
+                }
+                if (bottomDot) bottomDot.className = 'w-3.5 h-3.5 rounded-full bg-white border border-black flex items-center justify-center';
+                if (bottomTooltip) bottomTooltip.textContent = 'Merekam... (Klik Selesai)';
+            } else {
+                if (headerBtn) {
+                    headerBtn.style.backgroundColor = '#ffffff';
+                    headerBtn.style.color = '#ff3823';
+                    headerBtn.classList.remove('animate-pulse');
+                }
+                if (headerDot) headerDot.className = 'w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center';
+                if (headerTooltip) headerTooltip.textContent = 'Rekam KBM';
+
+                if (bottomBtn) {
+                    bottomBtn.style.backgroundColor = '#ffffff';
+                    bottomBtn.style.color = '#ff3823';
+                    bottomBtn.classList.remove('animate-pulse');
+                }
+                if (bottomDot) bottomDot.className = 'w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center';
+                if (bottomTooltip) bottomTooltip.textContent = 'Rekam KBM';
+            }
+        }
+
+        function finalizeRecording() {
+            if (recordedChunks.length === 0) {
+                alert("Perekaman tidak menghasilkan data video.");
+                return;
+            }
+
+            recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+            const sizeInMb = (recordedBlob.size / (1024 * 1024)).toFixed(1);
+
+            const mins = String(Math.floor(recordedDurationSeconds / 60)).padStart(2, '0');
+            const secs = String(recordedDurationSeconds % 60).padStart(2, '0');
+            const durStr = `${mins}:${secs}`;
+
+            const durEl = document.getElementById('recording-preview-duration');
+            const sizeEl = document.getElementById('recording-preview-size');
+            const videoPreview = document.getElementById('recording-preview-video');
+
+            if (durEl) durEl.textContent = durStr;
+            if (sizeEl) sizeEl.textContent = `${sizeInMb} MB`;
+
+            if (videoPreview) {
+                videoPreview.src = URL.createObjectURL(recordedBlob);
+                videoPreview.load();
+            }
+
+            openSaveRecordingModal();
+        }
+
+        function openSaveRecordingModal() {
+            const modal = document.getElementById('modal-save-recording');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeSaveRecordingModal() {
+            const modal = document.getElementById('modal-save-recording');
+            if (modal) modal.classList.add('hidden');
+            const videoPreview = document.getElementById('recording-preview-video');
+            if (videoPreview) {
+                videoPreview.pause();
+            }
+        }
+
+        function downloadRecordingLocally() {
+            if (!recordedBlob) {
+                alert("Belum ada video rekaman yang siap didownload.");
+                return;
+            }
+            const url = URL.createObjectURL(recordedBlob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            const courseTitle = "{{ Str::slug($course->course_name ?? $course->name) }}";
+            a.download = `rekaman-pembdatemu-${courseTitle}-${Date.now()}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+
+        function uploadRecordingToLms() {
+            if (!recordedBlob) {
+                alert("Tidak ada file rekaman untuk diunggah.");
+                return;
+            }
+
+            const titleInput = document.getElementById('rec-material-title');
+            const moduleSelect = document.getElementById('rec-material-module-id');
+            const descInput = document.getElementById('rec-material-desc');
+
+            const title = titleInput ? titleInput.value.trim() : '';
+            if (!title) {
+                alert("Harap masukkan judul materi rekaman!");
+                if (titleInput) titleInput.focus();
+                return;
+            }
+
+            const moduleId = moduleSelect ? moduleSelect.value : '';
+            const desc = descInput ? descInput.value.trim() : '';
+
+            const formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('title', title);
+            if (moduleId) formData.append('module_id', moduleId);
+            if (desc) formData.append('description', desc);
+            formData.append('duration_seconds', recordedDurationSeconds);
+            formData.append('video_file', recordedBlob, `recording-${Date.now()}.webm`);
+
+            const progressBox = document.getElementById('recording-upload-progress-box');
+            const progressBar = document.getElementById('recording-upload-bar');
+            const progressPct = document.getElementById('recording-upload-pct');
+            const submitBtn = document.getElementById('btn-save-recording-submit');
+
+            if (progressBox) progressBox.classList.remove('hidden');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Sedang Mengunggah...</span>';
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', "{{ route('guru.lms.meeting.save-recording', $course->id) }}", true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    if (progressBar) progressBar.style.width = percentComplete + '%';
+                    if (progressPct) progressPct.textContent = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        if (res.success) {
+                            alert("Sukses! Video rekaman KBM berhasil disimpan dan otomatis diterbitkan di materi modul siswa.");
+                            closeSaveRecordingModal();
+                        } else {
+                            alert("Gagal menyimpan rekaman: " + (res.message || 'Terjadi kesalahan'));
+                        }
+                    } catch (e) {
+                        alert("Sukses mengunggah rekaman video!");
+                        closeSaveRecordingModal();
+                    }
+                } else {
+                    alert("Terjadi kesalahan saat mengunggah (HTTP " + xhr.status + "). Anda tetap dapat mengklik tombol 'Download' untuk menyimpan video ke komputer.");
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Simpan &amp; Terbitkan ke Siswa</span>';
+                }
+                if (progressBox) progressBox.classList.add('hidden');
+            };
+
+            xhr.onerror = function() {
+                alert("Gagal menghubungi server. Silakan klik tombol 'Download' untuk mengamankan rekaman di laptop Anda.");
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Simpan &amp; Terbitkan ke Siswa</span>';
+                }
+                if (progressBox) progressBox.classList.add('hidden');
+            };
+
+            xhr.send(formData);
+        }
+
+        // ============================================================
+        // 16. CLEANUP & INIT SAAT LOAD
         // ============================================================
         document.addEventListener('DOMContentLoaded', () => {
             initAgora().catch(err => {
@@ -3440,6 +3946,9 @@
         });
 
         window.addEventListener('beforeunload', async () => {
+            if (isRecordingActive) {
+                stopMeetingRecording();
+            }
             if (localAudioTrack) { localAudioTrack.stop(); localAudioTrack.close(); }
             if (localVideoTrack) { localVideoTrack.stop(); localVideoTrack.close(); }
             if (localScreenTrack) { localScreenTrack.stop(); localScreenTrack.close(); }

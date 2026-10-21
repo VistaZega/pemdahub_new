@@ -643,7 +643,7 @@ if (!function_exists('balanceHtmlTags')) {
                                         @if($material->fileExists())
                                         <div class="w-full rounded-2xl overflow-hidden shadow-lg border-2 border-black bg-black mb-4" style="height: 560px; width: 100%;">
                                             <video class="w-full h-full object-contain" controls preload="metadata">
-                                                <source src="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" type="video/mp4">
+                                                <source src="{{ $material->file_path ? route('guru.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" type="{{ (str_ends_with($material->file_path ?? '', '.webm') || str_ends_with($material->file_url ?? '', '.webm')) ? 'video/webm' : 'video/mp4' }}">
                                                 Browser Anda tidak mendukung pemutar video.
                                             </video>
                                         </div>

@@ -151,6 +151,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
         Route::post('/{course}/meeting/sync', [App\Http\Controllers\Guru\LmsCourseController::class, 'meetingSync'])->name('meeting.sync'); // AJAX sync (hands, mood, chat)
         Route::get('/{course}/meeting/attendance-report', [App\Http\Controllers\Guru\LmsCourseController::class, 'attendanceReport'])->name('meeting.attendance');
         Route::get('/{course}/meeting/session/{session}/print', [App\Http\Controllers\Guru\LmsCourseController::class, 'printSessionReport'])->name('meeting.session.print');
+        Route::post('/{course}/meeting/save-recording', [App\Http\Controllers\Guru\LmsCourseController::class, 'saveMeetingRecording'])->name('meeting.save-recording');
 
         // Modules
         Route::get('/{course}/modules/create', [App\Http\Controllers\Guru\LmsCourseController::class, 'createModule'])->name('modules.create');

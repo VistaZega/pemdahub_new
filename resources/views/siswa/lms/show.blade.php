@@ -532,7 +532,7 @@ if (!function_exists('balanceHtmlTags')) {
                                     @if($material->fileExists())
                                     <div class="w-full rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-black mb-4" style="height: 560px; width: 100%;">
                                         <video class="w-full h-full object-contain" controls preload="metadata">
-                                            <source src="{{ $material->file_path ? route('siswa.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" type="video/mp4">
+                                            <source src="{{ $material->file_path ? route('siswa.lms.materials.view', $material->id) : ($material->file_url ?? '') }}" type="{{ (str_ends_with($material->file_path ?? '', '.webm') || str_ends_with($material->file_url ?? '', '.webm')) ? 'video/webm' : 'video/mp4' }}">
                                             Browser Anda tidak mendukung tag video.
                                         </video>
                                     </div>

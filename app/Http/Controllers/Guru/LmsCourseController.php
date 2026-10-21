@@ -2116,7 +2116,7 @@ HTML;
             abort(403);
         }
 
-        $course->loadMissing(['school', 'subject', 'classroom', 'classes.classroom']);
+        $course->loadMissing(['school', 'subject', 'classroom', 'classes.classroom', 'modules.materials']);
         $roomName    = 'PembdaHub_Course_' . $course->id . '_' . md5($course->code . config('app.key'));
         $displayName = ($teacher->user->name ?? 'Guru') . ' (Guru)';
 
@@ -2368,7 +2368,7 @@ HTML;
             'startedBy',
         ]);
 
-        $course->loadMissing(['school', 'subject', 'classroom', 'classes.classroom']);
+        $course->loadMissing(['school', 'subject', 'classroom', 'classes.classroom', 'modules.materials']);
 
         // Data unit sekolah & Kepala Sekolah
         $school = $course->school;
@@ -2430,6 +2430,70 @@ HTML;
         }
 
         return response()->json(['success' => false, 'message' => 'Gagal mengunggah gambar.'], 400);
+    }
+
+    /**
+     * Simpan rekaman video PembdaTEMU langsung sebagai Materi Pembelajaran LMS
+     */
+    public function saveMeetingRecording(Request $request, LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'video_file'  => 'required|file|max:524288', // Max 512MB
+            'title'       => 'required|string|max:255',
+            'module_id'   => 'nullable',
+            'description' => 'nullable|string',
+        ], [
+            'video_file.required' => 'File rekaman video wajib dikirim.',
+            'video_file.max'      => 'Ukuran rekaman video maksimal 512 MB.',
+            'title.required'      => 'Judul materi rekaman wajib diisi.',
+        ]);
+
+        $moduleId = $request->input('module_id');
+        // Jika modul tidak dipilih atau invalid, pilih modul pertama atau buat modul baru
+        if (!$moduleId || !\App\Models\LmsModule::where('id', $moduleId)->where('course_id', $course->id)->exists()) {
+            $firstModule = $course->modules()->orderBy('order_number')->first();
+            if (!$firstModule) {
+                $firstModule = $course->modules()->create([
+                    'title'        => 'Rekaman Pembelajaran Tatap Muka (PembdaTEMU)',
+                    'description'  => 'Kumpulan arsip video rekaman KBM tatap muka virtual.',
+                    'order_number' => 1,
+                    'is_published' => true,
+                ]);
+            }
+            $moduleId = $firstModule->id;
+        }
+
+        $path = $request->file('video_file')->store('lms/recordings', 'public');
+        $fileSize = $request->file('video_file')->getSize();
+
+        $maxOrder = $course->materials()->where('module_id', $moduleId)->max('order_number') ?? 0;
+
+        $material = $course->materials()->create([
+            'module_id'     => $moduleId,
+            'title'         => $request->input('title'),
+            'content'       => $request->input('description') ?: 'Rekaman sesi pembelajaran virtual PembdaTEMU yang dapat dipelajari kembali secara mandiri.',
+            'material_type' => 'video',
+            'file_path'     => $path,
+            'file_url'      => asset('storage/' . $path),
+            'file_size'     => $fileSize,
+            'order_number'  => $maxOrder + 1,
+            'is_published'  => true,
+        ]);
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'Rekaman berhasil disimpan dan otomatis diterbitkan sebagai Materi Pembelajaran Siswa!',
+            'material' => [
+                'id'       => $material->id,
+                'title'    => $material->title,
+                'file_url' => $material->file_url,
+            ],
+        ]);
     }
 }
 
