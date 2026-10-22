@@ -512,6 +512,15 @@ class ForumController extends Controller
                     'related_model' => ForumThread::class,
                     'related_id' => $thread->id,
                 ]);
+
+                // Web Push Notification ke HP pengguna yang bersangkutan
+                \App\Services\WebPushService::sendToUser(
+                    $targetUserId,
+                    "⚡ " . $notifTitle,
+                    "Ada balasan baru di topik: \"{$thread->title}\"",
+                    route('forum.show', $thread->id),
+                    'forum'
+                );
             }
 
             DB::commit();
@@ -708,6 +717,9 @@ class ForumController extends Controller
 
             // Recipient gets +30 points for verified best answer / solution
             ReputationLog::log($reply->user_id, 30, 'forum_best_answer', "Komentar terpilih sebagai Solusi Terbaik & Terverifikasi di topik: {$thread->title}", $reply);
+
+            // Web Push Notifikasi ke penulis komentar terpilih
+            \App\Services\WebPushService::notifyForumBestAnswer($thread, $reply->user);
 
             DB::commit();
 

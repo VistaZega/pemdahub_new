@@ -250,7 +250,8 @@ class AuthController extends Controller
             default => url('/'),
         };
         
-        return redirect($url);
+        // Gunakan intended() agar link yang diklik dari notifikasi HP langsung dibuka setelah login
+        return redirect()->intended($url);
     }
 
     /**

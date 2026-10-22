@@ -463,6 +463,10 @@ class MobileSpaceController extends Controller
         // Gamification: +5 Poin Reputasi
         \App\Models\ReputationLog::log($user->id, 5, 'forum', "Mengomentari postingan Space: {$thread->title}", $reply);
 
+        if ($thread->user_id !== $user->id) {
+            \App\Services\WebPushService::notifyForumReply($thread, $reply, $thread->user);
+        }
+
         return back()->with('success', 'Komentar Anda berhasil dikirim! (+5 Poin Reputasi)');
     }
 

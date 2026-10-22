@@ -1215,6 +1215,16 @@ Route::middleware('auth')->group(function () {
             Route::get('/latest', [App\Http\Controllers\NotificationController::class, 'latest'])->name('latest');
         });
 
+        // Web Push Notification System (PWA & HP Push)
+        Route::prefix('push')->name('push.')->group(function () {
+            Route::post('/subscribe', [App\Http\Controllers\PushNotificationController::class, 'subscribe'])->name('subscribe');
+            Route::post('/unsubscribe', [App\Http\Controllers\PushNotificationController::class, 'unsubscribe'])->name('unsubscribe');
+            Route::get('/status', [App\Http\Controllers\PushNotificationController::class, 'status'])->name('status');
+            Route::post('/toggle', [App\Http\Controllers\PushNotificationController::class, 'toggle'])->name('toggle');
+            Route::get('/vapid-key', [App\Http\Controllers\PushNotificationController::class, 'getVapidKey'])->name('vapid-key');
+            Route::get('/latest', [App\Http\Controllers\PushNotificationController::class, 'latestPush'])->name('latest');
+        });
+
     // Profile Settings
     Route::get('/profile/settings', [App\Http\Controllers\ProfileSettingsController::class, 'edit'])->name('profile.settings');
     Route::put('/profile/settings', [App\Http\Controllers\ProfileSettingsController::class, 'update'])->name('profile.settings.update');

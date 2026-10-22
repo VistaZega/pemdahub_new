@@ -714,6 +714,8 @@
         });
     });
     </script>
+    <script src="{{ asset('js/pembda-push.js') }}"></script>
+    @include('partials.push_notification_prompt')
     @stack('scripts')
 </body>
 </html>

@@ -870,6 +870,22 @@ class User extends Authenticatable
         return $this->avatar_url;
     }
 
+    /**
+     * Web Push Subscriptions for mobile devices
+     */
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(\App\Models\PushSubscription::class);
+    }
+
+    /**
+     * User's push notification preferences
+     */
+    public function pushPreference()
+    {
+        return $this->hasOne(\App\Models\PushNotificationPreference::class);
+    }
+
     // ═══════════════ MULTI-SCHOOL SUPPORT ═══════════════
 
     /**
