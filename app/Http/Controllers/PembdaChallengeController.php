@@ -112,7 +112,22 @@ class PembdaChallengeController extends Controller
         }
 
         // Tentukan Bintang & Poin Reputasi berdasarkan game & efisiensi langkah
-        if ($gameKey === 'logic_gates') {
+        if ($gameKey === 'chemical_balance') {
+            if ($moves <= 5) {
+                $stars = 3;
+                $potentialPoints = 50;
+                $rankTitle = "Ahli Kimia Terkemuka (Hukum Lavoisier)! Stoikiometri Sempurna ({$moves} langkah) ⭐⭐⭐";
+            } elseif ($moves <= 10) {
+                $stars = 2;
+                $potentialPoints = 35;
+                $rankTitle = "Peneliti Laboratorium Hebat! Reaksi Setara ⭐⭐";
+            } else {
+                $stars = 1;
+                $potentialPoints = 20;
+                $rankTitle = "Reaksi Kimia Berhasil Diseimbangkan! ⭐";
+            }
+            $logTitle = "Menyelesaikan PembdaCHALLENGE: Penyeimbang Reaksi Kimia ({$moves} penyesuaian, {$stars} Bintang)";
+        } elseif ($gameKey === 'logic_gates') {
             if ($moves <= 4) {
                 $stars = 3;
                 $potentialPoints = 50;
@@ -259,6 +274,7 @@ class PembdaChallengeController extends Controller
         ]);
 
         $failMessage = match($gameKey) {
+            'chemical_balance' => "Reaksi tidak stabil / stoikiometri meleset! Analisis hukum kekekalan massa Lavoisier. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit.",
             'logic_gates' => "Konsleting arus logika! Analisis tabel kebenaran gerbang logika Anda. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit.",
             'water_jug' => "Kesempatan habis! Air tumpah atau perhitungan takaran meleset. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis takaran Anda.",
             'tower_of_hanoi' => "Kesempatan habis! Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi pemindahan rekursif Anda.",

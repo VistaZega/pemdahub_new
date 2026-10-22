@@ -1694,7 +1694,7 @@ setInterval(checkLiveFeedUpdates, 12000);
 <!-- Mobile Floating Action Pill: Buka PembdaCHALLENGE (Selalu Ada di Layar HP) -->
 <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
    class="md:hidden fixed bottom-22 right-6 z-40 px-3 py-2 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 border-2 border-[#121316] rounded-2xl flex items-center gap-2 shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer animate-pulse-slow select-none"
-   title="Buka PembdaCHALLENGE: Game Sains & Logika (Gerbang Logika, Tabung Air, Hanoi & Misionaris)">
+   title="Buka PembdaCHALLENGE: Game Sains & Logika (Reaksi Kimia, Gerbang Logika, Tabung Air, Hanoi & Misionaris)">
     <span class="text-base">⚡</span>
     <div class="flex flex-col text-left leading-none">
         <span class="text-[11px] font-black text-[#121316] tracking-tight">CHALLENGE</span>
