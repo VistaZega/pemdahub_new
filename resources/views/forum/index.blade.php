@@ -330,9 +330,19 @@
                     <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5 whitespace-nowrap">COMMUNITY & STEAM LOUNGE</span>
                 </div>
             </div>
-            <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition shrink-0">
-                <i class="fa-solid fa-bars text-lg"></i>
-            </button>
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="#pembda-challenge" 
+                   @click="openPembdaChallenge()"
+                   class="px-2.5 py-2 bg-[#fde047] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition flex items-center gap-1.5 text-xs font-black"
+                   title="Buka PembdaCHALLENGE">
+                    <span>⚡</span>
+                    <span class="text-[10px] font-mono-code font-black">CHALLENGE</span>
+                    <span class="text-[8px] px-1 py-0.2 bg-purple-800 text-white rounded-md font-mono-code">+50</span>
+                </a>
+                <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
         </div>
 
         <!-- CHANNEL SIDEBAR (Left) -->
@@ -370,6 +380,24 @@
                             </div>
                             <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border {{ !$category && !(isset($activeGroup) && $activeGroup) ? 'border-slate-900' : 'border-slate-300' }}" style="{{ !$category && !(isset($activeGroup) && $activeGroup) ? 'background-color: #0f172a !important; color: #fde047 !important;' : 'background-color: #ffffff !important; color: #0f172a !important;' }}">
                                 {{ $totalThreads }}
+                            </span>
+                        </a>
+
+                        <!-- Menu Khusus: PembdaCHALLENGE Arena Game & Logika -->
+                        <a href="#pembda-challenge" 
+                           @click="if (window.innerWidth < 768) mobileSidebarOpen = false; openPembdaChallenge();" 
+                           class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-100 border-2 border-[#121316] text-[#121316] font-black shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none group cursor-pointer">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 bg-[#121316] text-[#fde047] shadow-xs group-hover:scale-110 transition-transform">
+                                    ⚡
+                                </div>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-xs sm:text-sm font-black leading-tight truncate">PembdaCHALLENGE</span>
+                                    <span class="text-[9px] font-mono-code text-indigo-900 font-extrabold truncate">Game Sains & Logika</span>
+                                </div>
+                            </div>
+                            <span class="text-[9px] font-mono-code font-black px-1.5 py-0.5 rounded-md bg-purple-700 text-white shadow-xs shrink-0">
+                                +50 Poin
                             </span>
                         </a>
                     </div>
@@ -592,10 +620,15 @@
                                     <i class="fa-solid fa-comments text-yellow-300"></i>
                                     <span>{{ $totalThreads }} <span class="text-yellow-300 font-black">Topik</span></span>
                                 </span>
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 border-slate-900 font-black shadow-[1px_1px_0px_#121316]" style="background-color: #fde047 !important; color: #0f172a !important;">
-                                    <i class="fa-solid fa-brain text-purple-800"></i>
-                                    <span>PembdaCHALLENGE</span>
-                                </span>
+                                <a href="#pembda-challenge" 
+                                   onclick="openPembdaChallenge(); return false;" 
+                                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-slate-900 font-black shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition cursor-pointer group" 
+                                   style="background-color: #fde047 !important; color: #0f172a !important;"
+                                   title="Klik untuk membuka dan memainkan PembdaCHALLENGE">
+                                    <i class="fa-solid fa-brain text-purple-800 group-hover:scale-110 transition-transform"></i>
+                                    <span>🎮 Main PembdaCHALLENGE</span>
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-purple-800 text-white font-mono-code font-black">+50 POIN</span>
+                                </a>
                             </div>
                         </div>
 
@@ -1513,6 +1546,23 @@ function triggerPwaInstall() {
         document.getElementById('pwaGuideModal').style.display = 'flex';
     }
 }
+
+function openPembdaChallenge() {
+    window.dispatchEvent(new CustomEvent('open-challenge'));
+    const el = document.getElementById('pembda-challenge');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.classList.add('ring-4', 'ring-[#fde047]');
+        setTimeout(() => el.classList.remove('ring-4', 'ring-[#fde047]'), 1500);
+    }
+}
+
+// Cek jika halaman dibuka dengan anchor #pembda-challenge
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash === '#pembda-challenge' || window.location.search.includes('challenge=1')) {
+        setTimeout(openPembdaChallenge, 300);
+    }
+});
 
 // Realtime Feed Live Ticker Engine
 let latestThreadIdOnFeed = {{ (int)($threads->max('id') ?? 0) }};

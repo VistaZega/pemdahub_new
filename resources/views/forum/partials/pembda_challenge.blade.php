@@ -1,9 +1,11 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- ⚡ PembdaCHALLENGE: Misionaris vs Kanibal (River Crossing Logic Quest)  -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="mb-6 bg-white border-2 border-[#121316] rounded-3xl overflow-hidden shadow-[4px_4px_0px_#121316]" 
+<div id="pembda-challenge"
+     class="mb-6 bg-white border-2 border-[#121316] rounded-3xl overflow-hidden shadow-[4px_4px_0px_#121316] scroll-mt-24 transition-all duration-300" 
      x-data="pembdaChallenge()" 
-     x-init="initGame()">
+     x-init="initGame()"
+     @open-challenge.window="isCollapsed = false">
 
     <!-- Header Bar -->
     <div class="p-4 border-b-2 border-[#121316] flex flex-wrap justify-between items-center bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-200 cursor-pointer hover:opacity-95 transition" 
@@ -480,6 +482,19 @@ function pembdaChallenge() {
             this.resetGameFull();
             await this.fetchStatus();
             this.startTimer();
+
+            // Auto-expand jika URL mengandung anchor atau parameter challenge
+            if (window.location.hash === '#pembda-challenge' || window.location.search.includes('challenge=1')) {
+                this.isCollapsed = false;
+                setTimeout(() => {
+                    const el = document.getElementById('pembda-challenge');
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        el.classList.add('ring-4', 'ring-[#fde047]');
+                        setTimeout(() => el.classList.remove('ring-4', 'ring-[#fde047]'), 1500);
+                    }
+                }, 300);
+            }
         },
 
         async fetchStatus() {
