@@ -44,9 +44,9 @@
         </div>
 
         <div class="flex items-center gap-2 mt-2 sm:mt-0" @click.stop>
-            @if(request('view') === 'challenge')
-                <!-- Tombol Langsung Kembali ke Lobi Forum -->
-                <a href="{{ route('forum.index') }}" class="btn-tactile-white px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316]">
+            @if(request('view') === 'challenge' || request('tab') === 'challenge')
+                <!-- Tombol Langsung Kembali ke Lobi Forum / Space -->
+                <a href="{{ request()->routeIs('mobile.*') ? route('mobile.space.index') : route('forum.index') }}" class="btn-tactile-white px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316]">
                     <i class="fa-solid fa-arrow-left text-xs text-rose-600"></i>
                     <span>Lobi Utama</span>
                 </a>
@@ -985,6 +985,44 @@
 <!-- GAYA KHUSUS & ANIMASI PERAHU REALISTIS & GERAKAN GELOMBANG AIR        -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
+/* ── Neo-Brutalist Tactile Styles & Fonts ── */
+.forum-hdr { font-family: 'Plus Jakarta Sans', sans-serif; }
+.font-mono-code { font-family: 'JetBrains Mono', monospace, ui-monospace; }
+
+.btn-tactile-white {
+    background: #ffffff;
+    color: #121316;
+    border: 2px solid #121316;
+    box-shadow: 3px 3px 0px #121316;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-tactile-white:hover {
+    background: #faf8f5;
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px #121316;
+}
+.btn-tactile-white:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0px 0px 0px #121316;
+}
+
+.btn-tactile-yellow {
+    background: #fde047;
+    color: #121316;
+    border: 2px solid #121316;
+    box-shadow: 3px 3px 0px #121316;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-tactile-yellow:hover {
+    background: #fef08a;
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px #121316;
+}
+.btn-tactile-yellow:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0px 0px 0px #121316;
+}
+
 /* ── Mode Bioskop Fullscreen Landscape Khusus HP ── */
 @media (max-width: 768px) {
     #pembda-challenge.mobile-landscape-active {

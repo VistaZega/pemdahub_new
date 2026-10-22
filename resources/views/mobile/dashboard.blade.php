@@ -151,6 +151,51 @@
         @endif
     </div>
 
+    {{-- 🔴 PEMBDATEMU LIVE ALERT (DASHBOARD MOBILE) --}}
+    @php
+        $activeLiveTemu = null;
+        if ($isStudentRole && $student) {
+            $activeLiveTemu = \App\Models\LmsCourse::where('meeting_active', true)
+                ->where(function($q) use ($student) {
+                    $q->whereHas('enrollments', function($eq) use ($student) {
+                        $eq->where('student_id', $student->id);
+                    })
+                    ->orWhereHas('lmsClasses.classroom.students', function($cq) use ($student) {
+                        $cq->where('students.id', $student->id);
+                    });
+                })->first();
+        } elseif ($isTeacherRole && $teacher) {
+            $activeLiveTemu = \App\Models\LmsCourse::where('meeting_active', true)
+                ->where('teacher_id', $teacher->id)
+                ->first();
+        }
+    @endphp
+
+    @if($activeLiveTemu)
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-lg border-2 border-white/80 space-y-2 relative overflow-hidden animate-pulse">
+        <div class="flex items-center justify-between gap-2">
+            <span class="px-2.5 py-0.5 rounded-full bg-white text-rose-700 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> PEMBDATEMU LIVE
+            </span>
+            <span class="text-[10px] text-pink-100 font-bold bg-white/20 px-2 py-0.5 rounded-full">{{ $activeLiveTemu->code }}</span>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+                <h4 class="text-xs sm:text-sm font-black text-white truncate">{{ $activeLiveTemu->course_name }}</h4>
+                <p class="text-[10px] sm:text-[11px] text-pink-100 font-semibold truncate">
+                    {{ $isTeacherRole ? 'Sesi kelas tatap muka Anda sedang berlangsung.' : 'Guru Anda sedang membuka tatap muka virtual.' }}
+                </p>
+            </div>
+            <a href="{{ $isTeacherRole ? route('guru.lms.meeting.join', $activeLiveTemu->id) : route('siswa.lms.meeting.join', $activeLiveTemu->id) }}" 
+               class="px-3.5 py-2 bg-white text-rose-700 hover:bg-rose-50 rounded-xl font-black text-xs shrink-0 shadow-md active:scale-95 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-video text-rose-600"></i>
+                <span>Masuk</span>
+                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+            </a>
+        </div>
+    </div>
+    @endif
+
     <!-- 🕒 Compact Quick Presensi Bar (Guru / Pegawai / Siswa) -->
     @php
         $isNotCheckedOut = empty($todayAttendance) || !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';
@@ -360,6 +405,15 @@
                     📚
                 </div>
                 <span class="text-[10px] font-black text-slate-800 text-center leading-none">LMS</span>
+            </a>
+
+            <!-- Games STEAM (PembdaCHALLENGE) -->
+            <a href="{{ route('mobile.space.index', ['tab' => 'challenge']) }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 via-yellow-300 to-amber-400 flex items-center justify-center text-xl text-slate-900 shadow-md border-2 border-white/80 relative group-hover:scale-110 transition">
+                    <span class="absolute -top-1 -right-1 px-1 rounded-full bg-rose-500 text-white text-[7px] font-black animate-pulse shadow-xs">+50</span>
+                    🎮
+                </div>
+                <span class="text-[10px] font-black text-slate-800 text-center leading-none">Games</span>
             </a>
 
             <!-- Absensi -->
@@ -864,6 +918,14 @@
                         📜
                     </div>
                     <span class="text-[10px] font-black text-slate-800 text-center leading-none">Catatan</span>
+                </a>
+
+                <!-- Games STEAM (PembdaCHALLENGE) -->
+                <a href="{{ route('mobile.space.index', ['tab' => 'challenge']) }}" class="flex flex-col items-center gap-1 group transition active:scale-95">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 via-yellow-300 to-amber-400 flex items-center justify-center text-xl text-slate-900 shadow-md border-2 border-white/80 group-hover:scale-110 transition">
+                        🎮
+                    </div>
+                    <span class="text-[10px] font-black text-slate-800 text-center leading-none">Games</span>
                 </a>
 
                 <!-- Ekskul -->

@@ -32,21 +32,59 @@
         </div>
     </div>
 
-    <!-- MAIN TOP NAVIGATION TABS (CLASS SQUADS vs WALL) -->
-    <div class="grid grid-cols-2 gap-2 bg-[#faf8f5] p-1.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">
+    <!-- MAIN TOP NAVIGATION TABS (CLASS SQUADS vs WALL vs CHALLENGE) -->
+    <div class="grid grid-cols-3 gap-1.5 bg-[#faf8f5] p-1.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">
         <a href="{{ route('mobile.space.index', ['tab' => 'groups']) }}" 
-           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'groups' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
-            <i class="fa-solid fa-users-rectangle text-xs"></i>
-            <span>Class Squads</span>
-            <span class="px-1.5 py-0.5 rounded-full border border-slate-900 font-black" style="background-color: #0f172a !important; color: #fde047 !important; font-mono text-[10px] font-black">{{ count($groups) }}</span>
+           class="py-2 text-center text-xs font-black rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1 {{ $tab === 'groups' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-users-rectangle text-xs"></i>
+                <span class="text-[11px]">Squads</span>
+            </div>
+            <span class="px-1.5 py-0.2 rounded-full border border-slate-900 font-black text-[9px]" style="background-color: #0f172a !important; color: #fde047 !important;">{{ count($groups) }}</span>
         </a>
         <a href="{{ route('mobile.space.index', ['tab' => 'kanal']) }}" 
-           class="py-2.5 text-center text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 {{ $tab === 'kanal' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
-            <i class="fa-solid fa-comments text-xs"></i>
-            <span>Wall Obrolan</span>
-            <span class="px-1.5 py-0.5 rounded-full border border-slate-900 font-black" style="background-color: #0f172a !important; color: #fde047 !important; font-mono text-[10px] font-black">{{ count($categories) }}</span>
+           class="py-2 text-center text-xs font-black rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1 {{ $tab === 'kanal' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-comments text-xs"></i>
+                <span class="text-[11px]">Wall</span>
+            </div>
+            <span class="px-1.5 py-0.2 rounded-full border border-slate-900 font-black text-[9px]" style="background-color: #0f172a !important; color: #fde047 !important;">{{ count($categories) }}</span>
+        </a>
+        <a href="{{ route('mobile.space.index', ['tab' => 'challenge']) }}" 
+           class="py-2 text-center text-xs font-black rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1 {{ $tab === 'challenge' ? 'bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316]' : 'text-slate-600 hover:text-[#121316]' }}">
+            <div class="flex items-center gap-1">
+                <span class="text-xs">🎮</span>
+                <span class="text-[11px]">CHALLENGE</span>
+            </div>
+            <span class="px-1.5 py-0.2 rounded-full bg-rose-600 text-white font-black text-[8px] animate-pulse shadow-2xs">+50 Pts</span>
         </a>
     </div>
+
+    <!-- Banner Shortcut Game di Mobile (Tampil saat bukan di tab challenge) -->
+    @if($tab !== 'challenge')
+        <a href="{{ route('mobile.space.index', ['tab' => 'challenge']) }}" 
+           class="block p-3 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-200 border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition group">
+            <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-[#121316] text-[#fde047] flex items-center justify-center text-xl shrink-0 shadow-xs">
+                        ⚡
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-xs font-black text-[#121316]">PembdaCHALLENGE STEAM</span>
+                            <span class="text-[8px] font-mono font-black px-1.5 py-0.2 rounded-full bg-rose-600 text-white animate-pulse">5 GAME</span>
+                        </div>
+                        <p class="text-[10px] text-slate-800 font-bold truncate mt-0.5">
+                            🧪 Reaksi Kimia • 🔌 Gerbang Logika • 🚰 Tabung Air • 🏛️ Hanoi • 🚣 Misionaris
+                        </p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-black text-[#121316] bg-white px-2 py-1 rounded-xl border border-[#121316] shrink-0 shadow-2xs">
+                    Main ►
+                </span>
+            </div>
+        </a>
+    @endif
 
     <!-- TAB 1: CLASS SQUADS -->
     @if($tab === 'groups')
@@ -334,6 +372,13 @@
             <div class="pt-2">
                 {{ $threads->appends(request()->query())->links() }}
             </div>
+        </div>
+    @endif
+
+    <!-- TAB 3: PEMBDACHALLENGE (ARENA GAME SAINS & LOGIKA) -->
+    @if($tab === 'challenge')
+        <div class="pt-1">
+            @include('forum.partials.pembda_challenge')
         </div>
     @endif
 </div>

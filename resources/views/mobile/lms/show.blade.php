@@ -48,6 +48,91 @@
         </div>
     </div>
 
+    {{-- ═══════════════════════════════════════════════════════════════ --}}
+    {{-- 📹 PEMBDATEMU (LIVE VIDEO CONFERENCE KBM)                       --}}
+    {{-- ═══════════════════════════════════════════════════════════════ --}}
+    @if(!$isTeacher && $course->meeting_active)
+        <!-- Kartu Live Khusus Siswa saat Guru Membuka PembdaTEMU -->
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-xl border-2 border-white/80 space-y-3 relative overflow-hidden animate-pulse">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-lg shrink-0 border border-white/40">
+                        <i class="fa-solid fa-video text-yellow-300"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="px-2 py-0.5 rounded-full bg-white text-rose-700 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                                <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> LIVE SEKARANG
+                            </span>
+                        </div>
+                        <h3 class="text-xs font-black text-white mt-0.5">Sesi PembdaTEMU Sedang Berlangsung!</h3>
+                    </div>
+                </div>
+            </div>
+            <p class="text-[11px] text-pink-100 font-semibold leading-relaxed">
+                Guru pengampu Anda telah membuka kelas tatap muka virtual di mapel ini. Bergabung sekarang untuk presensi otomatis & interaksi KBM.
+            </p>
+            <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" 
+               class="w-full py-3 px-4 rounded-2xl bg-white text-rose-700 hover:bg-rose-50 font-black text-xs text-center shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-video text-rose-600"></i>
+                <span>Gabung PembdaTEMU Sekarang</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+    @elseif($isTeacher)
+        <!-- Kontrol Panel PembdaTEMU untuk Guru Pengampu -->
+        <div class="p-4 rounded-3xl {{ $course->meeting_active ? 'bg-gradient-to-r from-rose-600 via-purple-700 to-indigo-700 text-white border-2 border-white/80' : 'bg-white border-2 border-purple-200 text-slate-800' }} shadow-md space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl {{ $course->meeting_active ? 'bg-white/20 text-yellow-300' : 'bg-purple-100 text-purple-700' }} flex items-center justify-center text-base shrink-0">
+                        <i class="fa-solid fa-video"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black {{ $course->meeting_active ? 'text-white' : 'text-slate-900' }}">
+                            PembdaTEMU (Live Kelas Virtual)
+                        </h4>
+                        <span class="text-[10px] {{ $course->meeting_active ? 'text-pink-200' : 'text-slate-500' }} font-bold">
+                            {{ $course->meeting_active ? '🔴 Sesi tatap muka sedang aktif' : 'Mulai video conference KBM & presensi' }}
+                        </span>
+                    </div>
+                </div>
+                @if($course->meeting_active)
+                    <span class="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black animate-pulse border border-white/50">LIVE</span>
+                @endif
+            </div>
+
+            <div class="grid {{ $course->meeting_active ? 'grid-cols-3' : 'grid-cols-2' }} gap-2 pt-1">
+                @if($course->meeting_active)
+                    <a href="{{ route('guru.lms.meeting.join', $course->id) }}" 
+                       class="py-2.5 px-2 rounded-xl bg-white text-rose-700 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-video text-rose-600"></i> Masuk Kelas
+                    </a>
+                    <form action="{{ route('guru.lms.meeting.stop', $course->id) }}" method="POST" onsubmit="return confirm('Akhiri sesi PembdaTEMU sekarang? Presensi siswa akan tersimpan.')">
+                        @csrf
+                        <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-rose-900/80 text-white border border-rose-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-stop"></i> Akhiri
+                        </button>
+                    </form>
+                    <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" 
+                       class="py-2.5 px-2 rounded-xl bg-purple-900/60 text-white border border-purple-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-clipboard-user"></i> Presensi
+                    </a>
+                @else
+                    <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-video text-yellow-300"></i> Buka PembdaTEMU
+                        </button>
+                    </form>
+                    <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" 
+                       class="py-2.5 px-3 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 font-black text-xs text-center hover:bg-slate-200 active:scale-95 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-clipboard-user text-purple-600"></i> Rekap Presensi
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <!-- Navigation Clay Tabs -->
     <div class="flex items-center space-x-2 border-b-2 border-slate-200/80 pb-2">
         <button @click="tab = 'modul'" 

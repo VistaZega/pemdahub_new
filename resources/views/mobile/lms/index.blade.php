@@ -55,6 +55,38 @@
     </div>
 
     <!-- Quick Stats Banner Clay Card -->
+    @php
+        $activeLiveCourse = $enrolledCourses->firstWhere('meeting_active', true);
+    @endphp
+
+    {{-- ALERT BANNER: PEMBDATEMU LIVE AKTIF --}}
+    @if($activeLiveCourse)
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-xl border-2 border-white/80 space-y-2.5 relative overflow-hidden animate-pulse">
+            <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-white text-rose-700 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> PEMBDATEMU LIVE
+                </span>
+                <span class="text-[10px] text-pink-100 font-bold bg-white/20 px-2 py-0.5 rounded-full">{{ $activeLiveCourse->code }}</span>
+            </div>
+            <div>
+                <h3 class="text-sm font-black text-white leading-snug">
+                    {{ $activeLiveCourse->course_name }}
+                </h3>
+                <p class="text-[11px] text-pink-100 font-semibold mt-0.5">
+                    Sesi tatap muka virtual KBM sedang aktif sekarang! Klik untuk langsung masuk.
+                </p>
+            </div>
+            <div class="pt-0.5">
+                <a href="{{ $isTeacher ? route('guru.lms.meeting.join', $activeLiveCourse->id) : route('siswa.lms.meeting.join', $activeLiveCourse->id) }}" 
+                   class="w-full py-2.5 px-4 rounded-2xl bg-white text-rose-700 hover:bg-rose-50 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-video text-rose-600"></i>
+                    <span>Masuk Ruang PembdaTEMU Sekarang</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+    @endif
+
     <div class="clay-purple p-5 sm:p-6 space-y-3.5 rounded-3xl shadow-lg">
         <div class="flex items-center justify-between gap-3 px-1">
             <span class="text-[10px] font-black uppercase tracking-wider bg-white/25 px-3 py-1 rounded-full border border-white/35 text-white shadow-xs">
@@ -239,7 +271,12 @@
                                 @endif
                             </div>
 
-                            @if($course->is_sequential)
+                            @if($course->meeting_active)
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-rose-600 text-white border border-rose-300 shadow-sm flex items-center gap-1 animate-pulse shrink-0">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                    <span>LIVE TEMU</span>
+                                </span>
+                            @elseif($course->is_sequential)
                                 <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-amber-400/90 text-amber-950 border border-amber-300 shadow-2xs flex items-center gap-1 shrink-0">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Bertahap
                                 </span>
@@ -342,6 +379,14 @@
                                 <span class="text-[10px] font-extrabold text-slate-400">
                                     <i class="fa-solid fa-circle-check text-emerald-500 text-[9px] mr-0.5"></i> Terdaftar
                                 </span>
+                            @endif
+
+                            @if($course->meeting_active)
+                                <a href="{{ $isTeacher ? route('guru.lms.meeting.join', $course->id) : route('siswa.lms.meeting.join', $course->id) }}" 
+                                   class="py-3 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5 animate-pulse shrink-0">
+                                    <i class="fa-solid fa-video text-white"></i>
+                                    <span>LIVE</span>
+                                </a>
                             @endif
 
                             <a href="{{ route('mobile.lms.show', $course->id) }}" 
