@@ -1291,6 +1291,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/tower/brick', [App\Http\Controllers\TowerController::class, 'placeBrick'])->name('tower.place');
         Route::post('/tower/like/{id}', [App\Http\Controllers\TowerController::class, 'likeBrick'])->name('tower.like');
 
+        // PembdaCHALLENGE (Arena Logika & Sains: Misionaris vs Kanibal)
+        Route::prefix('challenge')->name('challenge.')->group(function () {
+            Route::get('/status', [App\Http\Controllers\PembdaChallengeController::class, 'status'])->name('status');
+            Route::post('/complete', [App\Http\Controllers\PembdaChallengeController::class, 'complete'])->name('complete');
+            Route::post('/fail', [App\Http\Controllers\PembdaChallengeController::class, 'fail'])->name('fail');
+        });
+
         // Legacy fallback puzzle routes to prevent stale view cache crashes
         Route::get('/puzzle', function() { return response()->json(['success' => false]); })->name('puzzle.state');
         Route::post('/puzzle/place', function() { return response()->json(['success' => false]); })->name('puzzle.place');
