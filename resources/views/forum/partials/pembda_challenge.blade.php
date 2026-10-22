@@ -105,207 +105,383 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- ARENA VISUAL SUNGAI & TEPI (RESPONSIVE PC & MOBILE OPTIMIZED) -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div class="relative w-full rounded-2xl border-2 border-[#121316] bg-gradient-to-b from-sky-200 via-sky-300 to-sky-400 shadow-[4px_4px_0px_#121316]">
-            
-            <!-- Gelombang Air Sungai CSS -->
-            <div class="absolute inset-0 opacity-25 pointer-events-none rounded-2xl" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 16px 16px;"></div>
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SVG ASSETS DEFINITIONS: KARAKTER FISIK UTUH & PERAHU 3D       -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <svg class="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
+            <defs>
+                <!-- 1. KARAKTER FISIK LENGKAP: MISIONARIS / ILMUWAN (THE SCHOLAR) -->
+                <g id="full-scholar-figure">
+                    <!-- Bayangan di Tanah -->
+                    <ellipse cx="27" cy="82" rx="13" ry="3" fill="rgba(18,19,22,0.3)" />
 
-            <!-- Kontainer Utama: 3 Kolom (Tepi Barat - Sungai & Perahu - Tepi Timur) -->
-            <div class="grid grid-cols-1 md:grid-cols-12 relative min-h-[360px]">
+                    <!-- Tongkat Petualang Kayu di Tangan Kiri -->
+                    <line x1="9" y1="30" x2="7" y2="83" stroke="#78350f" stroke-width="2.5" stroke-linecap="round" />
+                    <circle cx="9" cy="29" r="3" fill="#b45309" stroke="#451a03" stroke-width="1" />
+
+                    <!-- Kaki & Celana Lapangan Safari Khaki -->
+                    <!-- Kaki Kiri -->
+                    <path d="M 19 52 L 18 74 L 24 74 L 24 52 Z" fill="#6b5b3e" stroke="#3b2f1e" stroke-width="1" />
+                    <!-- Sepatu Bot Kiri -->
+                    <path d="M 16 73 L 25 73 L 26 81 L 14 81 Z" fill="#3e2311" stroke="#1f1007" stroke-width="1" />
+                    <line x1="14" y1="81" x2="26" y2="81" stroke="#121316" stroke-width="2" />
+
+                    <!-- Kaki Kanan -->
+                    <path d="M 28 52 L 28 74 L 34 74 L 34 52 Z" fill="#6b5b3e" stroke="#3b2f1e" stroke-width="1" />
+                    <!-- Sepatu Bot Kanan -->
+                    <path d="M 27 73 L 36 73 L 38 81 L 26 81 Z" fill="#3e2311" stroke="#1f1007" stroke-width="1" />
+                    <line x1="26" y1="81" x2="38" y2="81" stroke="#121316" stroke-width="2" />
+
+                    <!-- Tubuh: Kemeja & Rompi Safari Berkantung -->
+                    <!-- Kemeja Dalam Putih Khaki -->
+                    <path d="M 19 32 L 35 32 L 36 53 L 18 53 Z" fill="#fef9c3" stroke="#451a03" stroke-width="1" />
+                    <!-- Dasi Kupu/Scarf Petualang Merah Marun -->
+                    <path d="M 25 32 L 29 32 L 27 37 Z" fill="#b91c1c" />
+
+                    <!-- Rompi Lapangan Khaki Terbuka -->
+                    <path d="M 17 32 L 23 32 L 22 53 L 17 53 Z" fill="#bfa176" stroke="#451a03" stroke-width="1" />
+                    <path d="M 31 32 L 37 32 L 37 53 L 32 53 Z" fill="#bfa176" stroke="#451a03" stroke-width="1" />
+                    <!-- Saku Rompi Kiri & Kanan -->
+                    <rect x="18" y="44" width="4" height="4" rx="0.5" fill="#a18258" stroke="#451a03" stroke-width="0.8" />
+                    <rect x="32" y="44" width="4" height="4" rx="0.5" fill="#a18258" stroke="#451a03" stroke-width="0.8" />
+
+                    <!-- Sabuk Kulit Cokelat & Gesper Kuningan -->
+                    <rect x="17" y="50" width="20" height="3.5" fill="#451a03" />
+                    <rect x="25" y="49.5" width="4" height="4.5" fill="#fbbf24" stroke="#451a03" stroke-width="0.8" />
+
+                    <!-- Tali Selempang Jurnal Kulit -->
+                    <line x1="20" y1="32" x2="35" y2="52" stroke="#451a03" stroke-width="2" />
+
+                    <!-- Lengan & Tangan Memegang Buku Jurnal Lapangan -->
+                    <!-- Lengan Kiri (memegang tongkat) -->
+                    <path d="M 18 34 L 11 40 L 11 36 Z" fill="#bfa176" stroke="#451a03" stroke-width="0.8" />
+                    <!-- Lengan Kanan (memegang jurnal di dada) -->
+                    <path d="M 36 34 L 38 45 L 30 45 Z" fill="#bfa176" stroke="#451a03" stroke-width="0.8" />
+                    <!-- Buku Jurnal Penelitian Kulit Cokelat/Merah -->
+                    <rect x="26" y="40" width="8" height="9" rx="1" fill="#991b1b" stroke="#451a03" stroke-width="1" />
+                    <line x1="28" y1="40" x2="28" y2="49" stroke="#fbbf24" stroke-width="1" />
+                    <!-- Tangan Peneliti -->
+                    <circle cx="32" cy="44" r="2.5" fill="#fed7aa" stroke="#451a03" stroke-width="0.8" />
+
+                    <!-- Leher -->
+                    <rect x="25" y="28" width="4" height="4" fill="#fed7aa" />
+
+                    <!-- Kepala & Wajah -->
+                    <ellipse cx="27" cy="22" rx="7.5" ry="8" fill="#fed7aa" stroke="#451a03" stroke-width="1" />
+                    <!-- Kacamata Bulat Emas Ilmuwan -->
+                    <circle cx="24" cy="21" r="3" fill="#e0f2fe" stroke="#b45309" stroke-width="1" />
+                    <circle cx="30" cy="21" r="3" fill="#e0f2fe" stroke="#b45309" stroke-width="1" />
+                    <line x1="27" y1="21" x2="27" y2="21" stroke="#b45309" stroke-width="1.5" />
+                    <!-- Pupil Mata Pintar -->
+                    <circle cx="24.5" cy="21" r="1.2" fill="#1e293b" />
+                    <circle cx="30.5" cy="21" r="1.2" fill="#1e293b" />
+                    <!-- Senyum Ramah & Hidung -->
+                    <path d="M 27 22 L 28 24" stroke="#451a03" stroke-width="0.8" stroke-linecap="round" />
+                    <path d="M 25 26 Q 27 28 29 26" stroke="#451a03" stroke-width="1" stroke-linecap="round" fill="none" />
+                    <!-- Janggut Tipis Terpelajar -->
+                    <path d="M 26 28 Q 27 30 28 28" fill="#78350f" />
+
+                    <!-- Topi Safari Penjelajah (Pith Helmet) -->
+                    <!-- Kubah Topi -->
+                    <path d="M 19 18 Q 27 9 35 18 Z" fill="#eab308" stroke="#451a03" stroke-width="1.2" />
+                    <!-- Pita Topi Cokelat Tua -->
+                    <path d="M 18 17 Q 27 15 36 17 L 36 18 Q 27 16 18 18 Z" fill="#78350f" />
+                    <!-- Pinggiran Topi Melengkung Lebar (Brim) -->
+                    <ellipse cx="27" cy="18" rx="11" ry="3.5" fill="#facc15" stroke="#451a03" stroke-width="1.2" />
+                    <!-- Puncak Topi Penjelajah -->
+                    <circle cx="27" cy="10" r="1.5" fill="#b45309" />
+                </g>
+
+                <!-- 2. KARAKTER FISIK LENGKAP: PRAJURIT SUKU RIMBA / KANIBAL (THE TRIBAL WARRIOR) -->
+                <g id="full-tribal-figure">
+                    <!-- Bayangan di Tanah -->
+                    <ellipse cx="27" cy="82" rx="13" ry="3" fill="rgba(18,19,22,0.3)" />
+
+                    <!-- Tombak Bambu Rimba di Tangan Kanan -->
+                    <!-- Batang Tombak Bambu -->
+                    <line x1="42" y1="6" x2="40" y2="83" stroke="#854d0e" stroke-width="2.5" stroke-linecap="round" />
+                    <!-- Ruas-ruas Bambu -->
+                    <circle cx="41.5" cy="25" r="1.8" fill="#ca8a04" />
+                    <circle cx="41" cy="45" r="1.8" fill="#ca8a04" />
+                    <circle cx="40.5" cy="65" r="1.8" fill="#ca8a04" />
+                    <!-- Mata Tombak Batu Obsidian Hitam Runcing -->
+                    <path d="M 42 2 L 45 10 L 39 10 Z" fill="#1e293b" stroke="#0f172a" stroke-width="1" />
+                    <!-- Ikatan Bulu Merah di Leher Tombak -->
+                    <path d="M 39 10 Q 37 15 39 18 Q 42 14 42 10 Z" fill="#dc2626" />
+
+                    <!-- Kaki Atletis Kulit Sawo Matang Rimba -->
+                    <!-- Kaki Kiri -->
+                    <path d="M 20 62 L 19 79 L 24 79 L 24 62 Z" fill="#a16207" stroke="#451a03" stroke-width="1" />
+                    <!-- Gelang Kaki Serat Akar -->
+                    <rect x="18" y="76" width="6" height="2" rx="1" fill="#ca8a04" stroke="#451a03" stroke-width="0.8" />
+                    <!-- Kaki Kiri Telanjang -->
+                    <path d="M 17 79 L 25 79 L 26 82 L 16 82 Z" fill="#a16207" stroke="#451a03" stroke-width="1" />
+
+                    <!-- Kaki Kanan -->
+                    <path d="M 28 62 L 28 79 L 33 79 L 33 62 Z" fill="#a16207" stroke="#451a03" stroke-width="1" />
+                    <!-- Gelang Kaki Serat Akar -->
+                    <rect x="27" y="76" width="6" height="2" rx="1" fill="#ca8a04" stroke="#451a03" stroke-width="0.8" />
+                    <!-- Kaki Kanan Telanjang -->
+                    <path d="M 27 79 L 35 79 L 36 82 L 26 82 Z" fill="#a16207" stroke="#451a03" stroke-width="1" />
+
+                    <!-- Rok Rami Jerami / Dedaunan Rimba Hijau-Keemasan (Grass Skirt) -->
+                    <!-- Rumbai-rumbai Daun Hijau & Emas -->
+                    <path d="M 16 52 L 36 52 L 38 65 L 34 62 L 31 66 L 27 61 L 23 66 L 20 62 L 15 65 Z" fill="#65a30d" stroke="#365314" stroke-width="1" />
+                    <path d="M 18 53 L 34 53 L 36 63 L 33 60 L 30 64 L 26 59 L 22 64 L 17 61 Z" fill="#eab308" opacity="0.8" />
+                    <!-- Sabuk Anyaman Rotan Rimba -->
+                    <rect x="16" y="50" width="20" height="3" rx="1" fill="#854d0e" stroke="#451a03" stroke-width="0.8" />
+
+                    <!-- Tubuh Berotot Sawo Matang -->
+                    <path d="M 18 33 L 34 33 L 33 51 L 19 51 Z" fill="#a16207" stroke="#451a03" stroke-width="1" />
+                    <!-- Garis Otot Dada & Perut -->
+                    <line x1="26" y1="34" x2="26" y2="48" stroke="#78350f" stroke-width="1" stroke-linecap="round" />
+                    <path d="M 21 40 Q 26 42 31 40" stroke="#78350f" stroke-width="0.8" fill="none" />
+
+                    <!-- Kalung Taring Runcing Melingkar di Leher -->
+                    <path d="M 20 33 Q 26 38 32 33" stroke="#451a03" stroke-width="1" fill="none" />
+                    <polygon points="21,34 22,38 20,38" fill="#f8fafc" stroke="#451a03" stroke-width="0.6" />
+                    <polygon points="24,35 25,40 23,40" fill="#f8fafc" stroke="#451a03" stroke-width="0.6" />
+                    <polygon points="27,36 28,41 26,41" fill="#f8fafc" stroke="#451a03" stroke-width="0.6" />
+                    <polygon points="30,35 31,40 29,40" fill="#f8fafc" stroke="#451a03" stroke-width="0.6" />
+
+                    <!-- Lengan & Tangan Memegang Tombak -->
+                    <!-- Lengan Kiri (di pinggang) -->
+                    <path d="M 18 35 L 14 43 L 18 45" stroke="#a16207" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="16" cy="38" r="2" fill="#ca8a04" />
+                    <!-- Lengan Kanan (memegang tombak bambu) -->
+                    <path d="M 34 35 L 40 40 L 41 43" stroke="#a16207" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="36" cy="38" r="2" fill="#ca8a04" />
+                    <!-- Kepalan Tangan Menggenggam Tombak -->
+                    <circle cx="41" cy="42" r="2.5" fill="#a16207" stroke="#451a03" stroke-width="0.8" />
+
+                    <!-- Leher -->
+                    <rect x="24" y="28" width="4" height="5" fill="#a16207" />
+
+                    <!-- Kepala & Wajah Prajurit Rimba -->
+                    <ellipse cx="26" cy="22" rx="7.5" ry="8" fill="#a16207" stroke="#451a03" stroke-width="1" />
+                    <!-- Rambut Hitam Tebal Terikat -->
+                    <path d="M 18 20 Q 26 12 34 20 L 34 16 Q 26 8 18 16 Z" fill="#0f172a" />
+                    <circle cx="26" cy="11" r="3" fill="#0f172a" />
+
+                    <!-- Ikat Kepala Kulit Rimba -->
+                    <rect x="18" y="15" width="16" height="3" rx="0.5" fill="#dc2626" stroke="#451a03" stroke-width="0.8" />
+                    <!-- 3 Bulu Burung Eksotis di Kepala -->
+                    <!-- Bulu 1 (Merah Tengah) -->
+                    <path d="M 26 15 Q 26 3 24 0 Q 29 4 27 15 Z" fill="#ef4444" stroke="#451a03" stroke-width="0.8" />
+                    <!-- Bulu 2 (Emas Kiri) -->
+                    <path d="M 23 15 Q 21 5 17 2 Q 23 6 24 15 Z" fill="#eab308" stroke="#451a03" stroke-width="0.8" />
+                    <!-- Bulu 3 (Toska Kanan) -->
+                    <path d="M 29 15 Q 31 5 35 2 Q 29 6 28 15 Z" fill="#06b6d4" stroke="#451a03" stroke-width="0.8" />
+
+                    <!-- Mata Bersemangat & Hidup -->
+                    <ellipse cx="23" cy="21" rx="2" ry="1.5" fill="#f8fafc" stroke="#451a03" stroke-width="0.8" />
+                    <circle cx="23.5" cy="21" r="1" fill="#0f172a" />
+                    <ellipse cx="29" cy="21" rx="2" ry="1.5" fill="#f8fafc" stroke="#451a03" stroke-width="0.8" />
+                    <circle cx="28.5" cy="21" r="1" fill="#0f172a" />
+
+                    <!-- Cat Perang Tribal Merah & Putih di Pipi -->
+                    <path d="M 20 23 L 23 25" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round" />
+                    <path d="M 20 25 L 23 27" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" />
+                    <path d="M 32 23 L 29 25" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round" />
+                    <path d="M 32 25 L 29 27" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" />
+
+                    <!-- Mulut Tersenyum Gagah -->
+                    <path d="M 24 26 Q 26 28 28 26" stroke="#451a03" stroke-width="1.2" stroke-linecap="round" fill="none" />
+                </g>
+
+                <!-- 3. GRADIEN WARNA PERAHU & AIR -->
+                <linearGradient id="boatInnerWoodGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#1f0a02" />
+                    <stop offset="100%" stop-color="#3d1504" />
+                </linearGradient>
+                <linearGradient id="boatPlankTopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="25%" stop-color="#b45309" />
+                    <stop offset="100%" stop-color="#78350f" />
+                </linearGradient>
+                <linearGradient id="boatPlankMidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#92400e" />
+                    <stop offset="100%" stop-color="#5a2206" />
+                </linearGradient>
+                <linearGradient id="boatPlankBtmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#5a2206" />
+                    <stop offset="100%" stop-color="#2a0d01" />
+                </linearGradient>
+                <linearGradient id="boatRimLightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9" />
+                    <stop offset="50%" stop-color="#fbbf24" stop-opacity="1" />
+                    <stop offset="100%" stop-color="#fef08a" stop-opacity="0.9" />
+                </linearGradient>
+                <linearGradient id="boatOarShaft" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fef3c7" />
+                    <stop offset="50%" stop-color="#d97706" />
+                    <stop offset="100%" stop-color="#92400e" />
+                </linearGradient>
+                <linearGradient id="boatOarBlade" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#b45309" />
+                    <stop offset="100%" stop-color="#78350f" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- ARENA PANORAMA SUNGAI (HORIZONTAL FULL-VIEW PC & MOBILE)      -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div class="relative w-full rounded-2xl border-2 border-[#121316] bg-gradient-to-b from-sky-200 via-sky-300 to-sky-400 overflow-hidden shadow-[4px_4px_0px_#121316]">
+            
+            <div class="relative w-full h-[360px] sm:h-[400px] flex justify-between overflow-hidden">
                 
-                <!-- 1. TEPI BARAT (LEFT BANK) -->
-                <div class="md:col-span-4 p-3 sm:p-3.5 bg-emerald-100/90 border-b-2 md:border-b-0 md:border-r-2 border-[#121316] flex flex-col justify-between relative rounded-t-2xl md:rounded-tr-none md:rounded-l-2xl">
-                    <div class="flex items-center justify-between pb-1.5 border-b border-[#121316]/20">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-sm">🏝️</span>
-                            <span class="font-black text-xs sm:text-sm text-[#121316]">TEPI BARAT</span>
+                <!-- 1. DARATAN TEPI BARAT (KIRI) -->
+                <div class="w-[26%] sm:w-[22%] h-full bg-gradient-to-r from-emerald-100 via-emerald-50 to-amber-100/90 border-r-2 border-[#121316] relative flex flex-col justify-between p-2 sm:p-3 z-10 shadow-md">
+                    <!-- Header Tepi Barat -->
+                    <div class="flex items-center justify-between pb-1.5 border-b border-[#121316]/20 bg-white/70 backdrop-blur-xs px-2 py-1 rounded-lg border border-[#121316]/10">
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs sm:text-sm">🏝️</span>
+                            <span class="font-black text-[10px] sm:text-xs text-[#121316] tracking-tight">TEPI BARAT</span>
                         </div>
-                        <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md bg-white border border-[#121316]">
-                            M: <span x-text="westM"></span> | K: <span x-text="westC"></span>
+                        <span class="text-[9px] sm:text-[10px] font-mono-code font-black px-1.5 py-0.5 rounded bg-white border border-[#121316]">
+                            <span class="text-indigo-700">M:<span x-text="westM"></span></span>|<span class="text-amber-800">K:<span x-text="westC"></span></span>
                         </span>
                     </div>
 
-                    <!-- Area Karakter Tepi Barat (Grid 3 Kolom Rapi Anti-Potong) -->
-                    <div class="py-2.5 my-auto">
-                        <p class="text-[9px] font-mono-code font-bold text-slate-600 mb-1.5 uppercase tracking-wider text-center sm:text-left">
-                            Ketuk untuk naik perahu:
+                    <!-- Area Karakter Fisik Berdiri di Rumput Tepi Barat -->
+                    <div class="my-auto w-full flex flex-col items-center justify-center py-2">
+                        <p class="text-[8px] sm:text-[9px] font-mono-code font-bold text-slate-600 mb-2 uppercase tracking-wider text-center">
+                            Ketuk untuk naik:
                         </p>
                         
-                        <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
-                            <!-- Karakter Misionaris Barat -->
+                        <!-- Grid Karakter Fisik Utuh -->
+                        <div class="flex flex-wrap justify-center items-end gap-1 sm:gap-2 max-w-full">
+                            <!-- Karakter Misionaris / Ilmuwan Barat -->
                             <template x-for="i in westM" :key="'wm-' + i">
                                 <button type="button" 
                                         @click="boardBoat('M', 'west')"
                                         :disabled="boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="h-12 sm:h-13.5 rounded-xl bg-white border-2 border-[#121316] shadow-[1px_2px_0px_#121316] flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition disabled:opacity-40 disabled:hover:scale-100 cursor-pointer group p-1"
-                                        title="Misionaris (Ilmuwan)">
-                                    <span class="text-lg sm:text-xl group-hover:animate-bounce leading-none">🧙‍♂️</span>
-                                    <span class="text-[7.5px] font-mono-code font-black text-indigo-700 uppercase leading-none mt-1">ILMUWAN</span>
+                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        title="Misionaris (Ilmuwan) - Ketuk untuk naik perahu">
+                                    <span class="text-[7px] font-mono-code font-black text-indigo-900 bg-white/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-[#fde047]">
+                                        +NAIK
+                                    </span>
+                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 scholar-figure">
+                                        <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
+                                    </svg>
                                 </button>
                             </template>
 
-                            <!-- Karakter Kanibal Barat -->
+                            <!-- Karakter Kanibal / Prajurit Rimba Barat -->
                             <template x-for="i in westC" :key="'wc-' + i">
                                 <button type="button" 
                                         @click="boardBoat('C', 'west')"
                                         :disabled="boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="h-12 sm:h-13.5 rounded-xl bg-amber-100 border-2 border-[#121316] shadow-[1px_2px_0px_#121316] flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition disabled:opacity-40 disabled:hover:scale-100 cursor-pointer group p-1"
-                                        title="Kanibal">
-                                    <span class="text-lg sm:text-xl group-hover:animate-bounce leading-none">👹</span>
-                                    <span class="text-[7.5px] font-mono-code font-black text-amber-900 uppercase leading-none mt-1">KANIBAL</span>
+                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        title="Kanibal (Prajurit Rimba) - Ketuk untuk naik perahu">
+                                    <span class="text-[7px] font-mono-code font-black text-amber-900 bg-amber-100/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-[#fde047]">
+                                        +NAIK
+                                    </span>
+                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 tribal-figure">
+                                        <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
+                                    </svg>
                                 </button>
                             </template>
 
+                            <!-- Jika Kosong -->
                             <template x-if="westM === 0 && westC === 0">
-                                <div class="col-span-3 text-center py-4 text-xs font-mono-code text-slate-500 font-bold italic">
+                                <div class="text-center py-6 text-[10px] font-mono-code text-slate-500 font-bold italic">
                                     Tepi Barat Kosong ✓
                                 </div>
                             </template>
                         </div>
                     </div>
 
-                    <!-- Tombol Cepat HP untuk Tepi Barat -->
-                    <div class="flex gap-1.5 pt-1.5 border-t border-[#121316]/10 md:hidden">
-                        <button type="button" @click="boardBoat('M', 'west')" :disabled="westM === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving" class="flex-1 py-1 bg-white border border-[#121316] rounded-lg text-[10px] font-black">
-                            +1 Ilmuwan
-                        </button>
-                        <button type="button" @click="boardBoat('C', 'west')" :disabled="westC === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving" class="flex-1 py-1 bg-amber-200 border border-[#121316] rounded-lg text-[10px] font-black">
-                            +1 Kanibal
-                        </button>
+                    <!-- Dermaga Kayu Barat Menjorok ke Air -->
+                    <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-28 bg-amber-800 border-2 border-[#121316] rounded-r-lg z-20 shadow-md flex flex-col justify-around py-1">
+                        <div class="w-full h-1 bg-amber-950"></div>
+                        <div class="w-full h-1 bg-amber-950"></div>
+                        <div class="w-full h-1 bg-amber-950"></div>
+                    </div>
+
+                    <div class="text-[8px] font-mono-code font-bold text-slate-600 text-center">
+                        Daratan Awal
                     </div>
                 </div>
 
-                <!-- 2. SUNGAI & PERAHU (RIVER & BOAT) -->
-                <div class="md:col-span-4 p-3 sm:p-3.5 flex flex-col justify-between items-center relative bg-gradient-to-r from-blue-400/80 via-cyan-400/80 to-blue-400/80">
+                <!-- 2. BENTANGAN SUNGAI LUAS & PERAHU BERGERAK (TENGAH) -->
+                <div class="flex-1 h-full relative overflow-hidden bg-gradient-to-r from-sky-400 via-cyan-400 to-sky-400 flex flex-col justify-between p-2 sm:p-3 river-current-flow">
                     
-                    <!-- Status Posisi Perahu -->
-                    <div class="text-[9px] sm:text-[10px] font-mono-code font-black px-3 py-0.5 rounded-full bg-[#121316] text-white shadow-xs z-10 mb-1">
-                        PERAHU DI: <span class="text-yellow-300" x-text="boatPosition === 'west' ? 'TEPI BARAT ◄' : '► TEPI TIMUR'"></span>
+                    <!-- Status Lokasi Perahu -->
+                    <div class="w-full flex items-center justify-between z-10">
+                        <div class="text-[8.5px] sm:text-[9.5px] font-mono-code font-black px-2.5 py-0.5 rounded-full bg-[#121316] text-white shadow-xs">
+                            PERAHU DI: <span class="text-yellow-300" x-text="boatPosition === 'west' ? 'TEPI BARAT ◄' : '► TEPI TIMUR'"></span>
+                        </div>
+                        <div class="text-[8px] font-mono-code font-black px-2 py-0.5 rounded-full bg-white/80 border border-[#121316] text-[#121316]">
+                            KAPASITAS: <span x-text="boatPassengers.length + '/2'"></span>
+                        </div>
                     </div>
 
-                    <!-- Area Perahu Bergerak (Animated Realistic Boat) -->
-                    <div class="my-auto w-full py-2 flex flex-col items-center justify-center relative z-10">
+                    <!-- Lintasan Perahu Berlayar Melintasi Sungai yang Luas -->
+                    <div class="my-auto w-full relative h-36 flex items-center z-15">
                         
-                        <!-- Wrapper Animasi Gerak Perahu Melintasi Sungai -->
-                        <div class="w-full flex transition-all duration-800 ease-in-out px-1 sm:px-2"
+                        <!-- Wrapper Perahu Bergerak (Menyeberang Jarak Luas dari Barat ke Timur) -->
+                        <div class="w-full flex transition-all duration-1000 ease-in-out px-2 sm:px-6"
                              :class="boatPosition === 'west' ? 'justify-start' : 'justify-end'">
                             
-                            <!-- KONTEN PERAHU SAMPAN KAYU REALISTIS 3D & PENUMPANG -->
-                            <div class="w-60 sm:w-68 relative select-none transition-transform"
+                            <!-- PERAHU SAMPAN KAYU 3D & PENUMPANG FISIK DI DALAMNYA -->
+                            <div class="w-52 sm:w-64 relative select-none transition-transform"
                                  :class="isMoving ? 'boat-rowing scale-105' : 'boat-idle'">
                                 
-                                <!-- SVG DEFS (Gradien Warna Kayu & Efek Visual) -->
-                                <svg class="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
-                                    <defs>
-                                        <!-- Gradien Interior Lambung Dalam (Gelap & Berkedalaman) -->
-                                        <linearGradient id="boatInnerWoodGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                            <stop offset="0%" stop-color="#1f0a02" />
-                                            <stop offset="100%" stop-color="#3d1504" />
-                                        </linearGradient>
-
-                                        <!-- Gradien Papan Kayu Atas & Bibir Perahu (Warm Amber Teak) -->
-                                        <linearGradient id="boatPlankTopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                            <stop offset="0%" stop-color="#f59e0b" />
-                                            <stop offset="25%" stop-color="#b45309" />
-                                            <stop offset="100%" stop-color="#78350f" />
-                                        </linearGradient>
-
-                                        <!-- Gradien Papan Kayu Tengah (Mahoni) -->
-                                        <linearGradient id="boatPlankMidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                            <stop offset="0%" stop-color="#92400e" />
-                                            <stop offset="100%" stop-color="#5a2206" />
-                                        </linearGradient>
-
-                                        <!-- Gradien Papan Lunas Bawah (Kayu Basah Air Sungai) -->
-                                        <linearGradient id="boatPlankBtmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                            <stop offset="0%" stop-color="#5a2206" />
-                                            <stop offset="100%" stop-color="#2a0d01" />
-                                        </linearGradient>
-
-                                        <!-- Highlight Bibir Perahu (Keemasan Cahaya Matahari) -->
-                                        <linearGradient id="boatRimLightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9" />
-                                            <stop offset="50%" stop-color="#fbbf24" stop-opacity="1" />
-                                            <stop offset="100%" stop-color="#fef08a" stop-opacity="0.9" />
-                                        </linearGradient>
-
-                                        <!-- Gradien Batang Kayu Dayung -->
-                                        <linearGradient id="boatOarShaft" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stop-color="#fef3c7" />
-                                            <stop offset="50%" stop-color="#d97706" />
-                                            <stop offset="100%" stop-color="#92400e" />
-                                        </linearGradient>
-
-                                        <!-- Gradien Daun Dayung Kayu Pipih -->
-                                        <linearGradient id="boatOarBlade" x1="0%" y1="0%" x2="0%" y2="100%">
-                                            <stop offset="0%" stop-color="#b45309" />
-                                            <stop offset="100%" stop-color="#78350f" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-
                                 <!-- LAYER 1: INNER HULL (DINDING DALAM, LANTAI, BANGKU DUDUK, & DAYUNG KAYU) -->
                                 <svg viewBox="0 0 280 115" class="w-full h-auto block filter drop-shadow-sm pointer-events-none" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <!-- Dinding Dalam Belakang Perahu -->
                                     <path d="M 12 36 Q 140 48 268 36 L 265 43 Q 140 56 15 43 Z" fill="#2d1204" />
-                                    
                                     <!-- Rongga Lantai Dalam Sampan -->
                                     <path d="M 15 43 Q 140 56 265 43 L 248 68 Q 140 78 32 68 Z" fill="url(#boatInnerWoodGrad)" />
-                                    
                                     <!-- Gading-gading Balok Lantai Interior Kayu -->
                                     <line x1="75" y1="48" x2="75" y2="72" stroke="#150601" stroke-width="2.5" stroke-linecap="round" />
                                     <line x1="140" y1="52" x2="140" y2="76" stroke="#150601" stroke-width="2.5" stroke-linecap="round" />
                                     <line x1="205" y1="48" x2="205" y2="72" stroke="#150601" stroke-width="2.5" stroke-linecap="round" />
-                                    
                                     <!-- Bangku Kayu Penumpang (Thwarts) -->
-                                    <!-- Bangku Kursi 1 (Kiri) -->
                                     <rect x="52" y="50" width="60" height="7" rx="2" fill="#78350f" stroke="#451a03" stroke-width="1.2" />
                                     <line x1="54" y1="52" x2="110" y2="52" stroke="#b45309" stroke-width="1" />
-                                    <!-- Bangku Kursi 2 (Kanan) -->
                                     <rect x="168" y="50" width="60" height="7" rx="2" fill="#78350f" stroke="#451a03" stroke-width="1.2" />
                                     <line x1="170" y1="52" x2="226" y2="52" stroke="#b45309" stroke-width="1" />
-
                                     <!-- Dayung Kayu Asli (Oar) yang Menjulur Miring ke Air -->
                                     <g class="oar-assembly" :class="isMoving ? 'oar-active' : ''">
-                                        <!-- Batang Dayung Panjang -->
                                         <line x1="142" y1="36" x2="262" y2="92" stroke="url(#boatOarShaft)" stroke-width="4.5" stroke-linecap="round" />
-                                        <!-- Daun Dayung Oval Pipih di Permukaan Air -->
                                         <ellipse cx="264" cy="94" rx="15" ry="7" transform="rotate(32 264 94)" fill="url(#boatOarBlade)" stroke="#451a03" stroke-width="1.2" />
-                                        <!-- Cincin Pengait Dayung di Bibir Lambung -->
                                         <circle cx="218" cy="68" r="3.5" fill="#f59e0b" stroke="#78350f" stroke-width="1.5" />
                                     </g>
                                 </svg>
 
-                                <!-- LAYER 2: PENUMPANG DUDUK DI DALAM PERAHU (MENYATU DI LAMBUNG KAPAL) -->
+                                <!-- LAYER 2: PENUMPANG DUDUK DI DALAM PERAHU (SOSOK FISIK MENYATU DENGAN LAMBUNG) -->
                                 <div class="absolute inset-0 z-20 pointer-events-none">
                                     
                                     <!-- Kursi 1 (Kiri / Depan - Duduk di Bangku 1) -->
-                                    <div class="absolute left-[17%] w-[26%] top-0 bottom-[22px] flex flex-col items-center justify-end pointer-events-auto">
+                                    <div class="absolute left-[16%] w-[28%] top-0 bottom-[18px] flex flex-col items-center justify-end pointer-events-auto">
                                         <template x-if="boatPassengers.length > 0">
                                             <button type="button" 
                                                     @click="unboardBoat(0)"
                                                     :disabled="isMoving || isCooldown"
-                                                    class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-1.5 active:translate-y-0"
-                                                    title="Ketuk karakter untuk turunkan ke daratan">
-                                                
+                                                    class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0"
+                                                    title="Ketuk karakter untuk turun ke daratan">
                                                 <!-- Badge Aksi Mini di Atas Kepala Karakter -->
-                                                <div class="mb-0.5 px-1.5 py-0.5 rounded-full text-[7.5px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
+                                                <div class="mb-0.5 px-1 py-0.2 rounded-full text-[7px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
                                                      :class="boatPassengers[0] === 'M' ? 'bg-indigo-100 text-indigo-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
                                                     <span class="group-hover/pax:hidden" x-text="boatPassengers[0] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
                                                     <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
                                                 </div>
-
-                                                <!-- Karakter Duduk di Lambung (Setengah Badan Menyembul Keluar Perahu) -->
-                                                <div class="passenger-idle-bob transform group-hover/pax:scale-110 transition-transform">
-                                                    <span class="text-3xl sm:text-4xl filter drop-shadow-[0_3px_2px_rgba(0,0,0,0.4)] select-none leading-none block"
-                                                          x-text="boatPassengers[0] === 'M' ? '🧙‍♂️' : '👹'"></span>
+                                                <!-- Sosok Fisik Karakter di Dalam Perahu -->
+                                                <div class="transform group-hover/pax:scale-105 transition-transform"
+                                                     :class="boatPassengers[0] === 'M' ? 'scholar-figure' : 'tribal-figure'">
+                                                    <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20">
+                                                        <use :href="boatPassengers[0] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" />
+                                                    </svg>
                                                 </div>
                                             </button>
                                         </template>
 
                                         <template x-if="boatPassengers.length === 0">
                                             <div class="flex flex-col items-center justify-end w-full opacity-60 pb-1 select-none">
-                                                <span class="text-[7.5px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                                <span class="text-[7px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1 py-0.5 rounded border border-amber-500/30">
                                                     KOSONG
                                                 </span>
                                             </div>
@@ -313,32 +489,32 @@
                                     </div>
 
                                     <!-- Kursi 2 (Kanan / Belakang - Duduk di Bangku 2) -->
-                                    <div class="absolute left-[58%] w-[26%] top-0 bottom-[22px] flex flex-col items-center justify-end pointer-events-auto">
+                                    <div class="absolute left-[56%] w-[28%] top-0 bottom-[18px] flex flex-col items-center justify-end pointer-events-auto">
                                         <template x-if="boatPassengers.length > 1">
                                             <button type="button" 
                                                     @click="unboardBoat(1)"
                                                     :disabled="isMoving || isCooldown"
-                                                    class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-1.5 active:translate-y-0"
-                                                    title="Ketuk karakter untuk turunkan ke daratan">
-                                                
+                                                    class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0"
+                                                    title="Ketuk karakter untuk turun ke daratan">
                                                 <!-- Badge Aksi Mini di Atas Kepala Karakter -->
-                                                <div class="mb-0.5 px-1.5 py-0.5 rounded-full text-[7.5px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
+                                                <div class="mb-0.5 px-1 py-0.2 rounded-full text-[7px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
                                                      :class="boatPassengers[1] === 'M' ? 'bg-indigo-100 text-indigo-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
                                                     <span class="group-hover/pax:hidden" x-text="boatPassengers[1] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
                                                     <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
                                                 </div>
-
-                                                <!-- Karakter Duduk di Lambung (Setengah Badan Menyembul Keluar Perahu) -->
-                                                <div class="passenger-idle-bob transform group-hover/pax:scale-110 transition-transform" style="animation-delay: 0.6s;">
-                                                    <span class="text-3xl sm:text-4xl filter drop-shadow-[0_3px_2px_rgba(0,0,0,0.4)] select-none leading-none block"
-                                                          x-text="boatPassengers[1] === 'M' ? '🧙‍♂️' : '👹'"></span>
+                                                <!-- Sosok Fisik Karakter di Dalam Perahu -->
+                                                <div class="transform group-hover/pax:scale-105 transition-transform"
+                                                     :class="boatPassengers[1] === 'M' ? 'scholar-figure' : 'tribal-figure'">
+                                                    <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20">
+                                                        <use :href="boatPassengers[1] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" />
+                                                    </svg>
                                                 </div>
                                             </button>
                                         </template>
 
                                         <template x-if="boatPassengers.length <= 1">
                                             <div class="flex flex-col items-center justify-end w-full opacity-60 pb-1 select-none">
-                                                <span class="text-[7.5px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                                <span class="text-[7px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1 py-0.5 rounded border border-amber-500/30">
                                                     KOSONG
                                                 </span>
                                             </div>
@@ -347,18 +523,14 @@
 
                                 </div>
 
-                                <!-- LAYER 3: OUTER HULL (LAMBUNG LUAR KAYU SAMPAN 3D, PAKU PASAK & PROW POSTS) -->
+                                <!-- LAYER 3: OUTER HULL (LAMBUNG LUAR KAYU SAMPAN 3D MENUTUPI BAGIAN BAWAH PENUMPANG) -->
                                 <svg viewBox="0 0 280 115" class="w-full h-auto absolute inset-0 z-30 pointer-events-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    
                                     <!-- Bibir Lambung Luar Depan (Gunwale) -->
                                     <path d="M 8 32 Q 140 50 272 32 L 270 38 Q 140 56 10 38 Z" fill="url(#boatPlankTopGrad)" stroke="#451a03" stroke-width="1.2" />
-                                    <!-- Highlight Garis Kayu Emas Mengilap di Bibir -->
                                     <path d="M 12 33 Q 140 49 268 33" stroke="url(#boatRimLightGrad)" stroke-width="2" stroke-linecap="round" fill="none" />
-
-                                    <!-- Papan Lambung Lapisan 1 (Upper Lapstrake Plank) -->
+                                    <!-- Papan Lambung Lapisan 1 -->
                                     <path d="M 10 38 Q 140 56 270 38 L 262 52 Q 140 69 18 52 Z" fill="url(#boatPlankTopGrad)" stroke="#451a03" stroke-width="1" />
-                                    
-                                    <!-- Pasak Paku Rivet Kayu Kuningan di Sepanjang Lambung -->
+                                    <!-- Pasak Paku Rivet Kayu Kuningan -->
                                     <circle cx="35" cy="43" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
                                     <circle cx="70" cy="48" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
                                     <circle cx="105" cy="53" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
@@ -366,133 +538,193 @@
                                     <circle cx="175" cy="53" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
                                     <circle cx="210" cy="48" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
                                     <circle cx="245" cy="43" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
-
-                                    <!-- Papan Lambung Lapisan 2 (Middle Plank) -->
+                                    <!-- Papan Lambung Lapisan 2 -->
                                     <path d="M 18 52 Q 140 69 262 52 L 250 67 Q 140 83 30 67 Z" fill="url(#boatPlankMidGrad)" stroke="#3b1302" stroke-width="1" />
-
-                                    <!-- Papan Lambung Lapisan 3 / Lunas Bawah (Keel Plank) -->
+                                    <!-- Papan Lambung Lapisan 3 / Lunas Bawah -->
                                     <path d="M 30 67 Q 140 83 250 67 L 234 79 Q 140 93 46 79 Z" fill="url(#boatPlankBtmGrad)" stroke="#1f0a02" stroke-width="1.2" />
-
-                                    <!-- Haluan Runcing Kiri (Stem Bow Post) & Tali Tambat -->
+                                    <!-- Haluan Runcing Kiri & Kanan -->
                                     <path d="M 8 32 C 4 21 3 13 10 9 C 15 11 13 23 10 38 Z" fill="#78350f" stroke="#270f03" stroke-width="1.2" />
                                     <circle cx="10" cy="18" r="2.8" fill="none" stroke="#fef08a" stroke-width="1.5" />
-
-                                    <!-- Haluan Runcing Kanan (Stern Post) & Tali Tambat -->
                                     <path d="M 272 32 C 276 21 277 13 270 9 C 265 11 267 23 270 38 Z" fill="#78350f" stroke="#270f03" stroke-width="1.2" />
                                     <circle cx="270" cy="18" r="2.8" fill="none" stroke="#fef08a" stroke-width="1.5" />
-                                    
-                                    <!-- Ukiran Lambang Tradisional di Tengah Lambung -->
-                                    <path d="M 134 68 L 140 62 L 146 68 L 140 74 Z" fill="#b45309" stroke="#fde68a" stroke-width="0.8" />
                                 </svg>
 
-                                <!-- LAYER 4: RIANG AIR & OMBAK GELOMBANG SUNGAI DI BAWAH PERAHU -->
+                                <!-- LAYER 4: RIAK AIR & OMBAK GELOMBANG SUNGAI -->
                                 <svg viewBox="0 0 280 115" class="w-full h-auto absolute inset-0 z-10 pointer-events-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <!-- Bayangan Perahu di Dalam Air Sungai -->
                                     <ellipse cx="140" cy="91" rx="108" ry="8" fill="rgba(3, 105, 161, 0.45)" />
-                                    
-                                    <!-- Riak Air Gelombang Putih di Lunas -->
                                     <path d="M 36 86 Q 140 98 244 86" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" stroke-linecap="round" fill="none" class="water-wake-anim" />
                                     <path d="M 62 93 Q 140 103 218 93" stroke="rgba(255,255,255,0.5)" stroke-width="1.8" stroke-linecap="round" fill="none" class="water-wake-anim" style="animation-delay: 0.5s;" />
-                                    <!-- Percikan Buih Air di Belakang Dayung -->
-                                    <circle cx="265" cy="95" r="2.5" fill="rgba(255,255,255,0.8)" class="animate-ping" style="animation-duration: 2s;" />
                                 </svg>
 
                             </div>
                         </div>
 
-                        <!-- Status Kapasitas Perahu -->
-                        <div class="mt-2 flex items-center justify-center gap-1.5 z-10">
-                            <div class="text-[9px] font-mono-code font-black px-2.5 py-0.5 rounded-full bg-[#121316] text-amber-200 border border-amber-400/40 shadow-xs flex items-center gap-1.5">
-                                <span>KAPASITAS: 2 ORANG</span>
-                                <span class="text-amber-400">•</span>
-                                <span class="text-white" x-text="boatPassengers.length + '/2 TERISI'"></span>
-                            </div>
-                        </div>
-
-                        <!-- Tombol Eksekusi: DAYUNG PERAHU (Utuh & Terlihat Jelas) -->
-                        <div class="mt-2 flex flex-col items-center gap-1 w-full">
-                            <button type="button" 
-                                    @click="rowBoat()"
-                                    :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
-                                    class="w-full sm:w-auto px-5 py-2 rounded-xl text-xs sm:text-sm font-black border-2 border-[#121316] shadow-[2px_2px_0px_#121316] transition-all flex items-center justify-center gap-1.5"
-                                    :class="boatPassengers.length > 0 && !isMoving && !isCooldown ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-200 text-slate-400 border-slate-400 cursor-not-allowed shadow-none'">
-                                <span class="text-sm">⛵</span>
-                                <span x-text="isMoving ? 'Sedang Menyeberang Arus...' : (boatPosition === 'west' ? 'DAYUNG KE TIMUR ►' : '◄ DAYUNG KE BARAT')"></span>
-                            </button>
-                            <span class="text-[9px] font-mono-code font-bold text-slate-800" x-show="boatPassengers.length === 0">
-                                ⚠️ Naikkan minimal 1 orang ke perahu untuk mendayung
-                            </span>
-                        </div>
                     </div>
 
-                    <div class="text-[9px] font-mono-code font-bold text-slate-700 z-10 text-center mt-1 pb-1">
-                        Arus Sungai Cepat ~ Perahu Muat Maks 2
+                    <!-- Keterangan Arus Sungai & Indikator Jarak -->
+                    <div class="text-[8.5px] font-mono-code font-bold text-slate-800 z-10 text-center flex items-center justify-center gap-2">
+                        <span>🌊 Arus Sungai Menyeberang</span>
+                        <span>•</span>
+                        <span>Perahu Muat Maks 2 Orang</span>
                     </div>
                 </div>
 
-                <!-- 3. TEPI TIMUR (RIGHT BANK - GOAL) -->
-                <div class="md:col-span-4 p-3 sm:p-3.5 bg-emerald-100/90 border-t-2 md:border-t-0 md:border-l-2 border-[#121316] flex flex-col justify-between relative rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl">
-                    <div class="flex items-center justify-between pb-1.5 border-b border-[#121316]/20">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-sm">🏁</span>
-                            <span class="font-black text-xs sm:text-sm text-[#121316]">TEPI TIMUR (TUJUAN)</span>
+                <!-- 3. DARATAN TEPI TIMUR (KANAN - TUJUAN) -->
+                <div class="w-[26%] sm:w-[22%] h-full bg-gradient-to-l from-emerald-100 via-emerald-50 to-amber-100/90 border-l-2 border-[#121316] relative flex flex-col justify-between p-2 sm:p-3 z-10 shadow-md">
+                    <!-- Header Tepi Timur -->
+                    <div class="flex items-center justify-between pb-1.5 border-b border-[#121316]/20 bg-white/70 backdrop-blur-xs px-2 py-1 rounded-lg border border-[#121316]/10">
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs sm:text-sm">🏁</span>
+                            <span class="font-black text-[10px] sm:text-xs text-[#121316] tracking-tight">TEPI TIMUR</span>
                         </div>
-                        <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md bg-white border border-[#121316]">
-                            M: <span x-text="eastM"></span> | K: <span x-text="eastC"></span>
+                        <span class="text-[9px] sm:text-[10px] font-mono-code font-black px-1.5 py-0.5 rounded bg-white border border-[#121316]">
+                            <span class="text-indigo-700">M:<span x-text="eastM"></span></span>|<span class="text-amber-800">K:<span x-text="eastC"></span></span>
                         </span>
                     </div>
 
-                    <!-- Area Karakter Tepi Timur (Grid 3 Kolom Rapi Anti-Potong) -->
-                    <div class="py-2.5 my-auto">
-                        <p class="text-[9px] font-mono-code font-bold text-slate-600 mb-1.5 uppercase tracking-wider text-center sm:text-left">
-                            Karakter yang telah selamat sampai:
+                    <!-- Area Karakter Fisik yang Telah Selamat Sampai di Timur -->
+                    <div class="my-auto w-full flex flex-col items-center justify-center py-2">
+                        <p class="text-[8px] sm:text-[9px] font-mono-code font-bold text-slate-600 mb-2 uppercase tracking-wider text-center">
+                            Selamat Sampai:
                         </p>
-
-                        <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
-                            <!-- Karakter Misionaris Timur -->
+                        
+                        <!-- Grid Karakter Fisik Selamat -->
+                        <div class="flex flex-wrap justify-center items-end gap-1 sm:gap-2 max-w-full">
+                            <!-- Karakter Misionaris / Ilmuwan Timur -->
                             <template x-for="i in eastM" :key="'em-' + i">
                                 <button type="button" 
                                         @click="boardBoat('M', 'east')"
                                         :disabled="boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="h-12 sm:h-13.5 rounded-xl bg-white border-2 border-[#121316] shadow-[1px_2px_0px_#121316] flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition disabled:opacity-40 disabled:hover:scale-100 cursor-pointer group p-1"
-                                        title="Kembalikan ke perahu">
-                                    <span class="text-lg sm:text-xl group-hover:animate-bounce leading-none">🧙‍♂️</span>
-                                    <span class="text-[7.5px] font-mono-code font-black text-indigo-700 uppercase leading-none mt-1">ILMUWAN</span>
+                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        title="Kembalikan Ilmuwan ke perahu">
+                                    <span class="text-[7px] font-mono-code font-black text-indigo-900 bg-white/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-rose-400 group-hover:text-white">
+                                        NAIK
+                                    </span>
+                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 scholar-figure">
+                                        <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
+                                    </svg>
                                 </button>
                             </template>
 
-                            <!-- Karakter Kanibal Timur -->
+                            <!-- Karakter Kanibal / Prajurit Rimba Timur -->
                             <template x-for="i in eastC" :key="'ec-' + i">
                                 <button type="button" 
                                         @click="boardBoat('C', 'east')"
                                         :disabled="boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="h-12 sm:h-13.5 rounded-xl bg-amber-100 border-2 border-[#121316] shadow-[1px_2px_0px_#121316] flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition disabled:opacity-40 disabled:hover:scale-100 cursor-pointer group p-1"
-                                        title="Kembalikan ke perahu">
-                                    <span class="text-lg sm:text-xl group-hover:animate-bounce leading-none">👹</span>
-                                    <span class="text-[7.5px] font-mono-code font-black text-amber-900 uppercase leading-none mt-1">KANIBAL</span>
+                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        title="Kembalikan Kanibal ke perahu">
+                                    <span class="text-[7px] font-mono-code font-black text-amber-900 bg-amber-100/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-rose-400 group-hover:text-white">
+                                        NAIK
+                                    </span>
+                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 tribal-figure">
+                                        <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
+                                    </svg>
                                 </button>
                             </template>
 
+                            <!-- Jika Belum Ada -->
                             <template x-if="eastM === 0 && eastC === 0">
-                                <div class="col-span-3 text-center py-4 text-xs font-mono-code text-slate-500 font-bold italic">
-                                    Belum ada yang menyeberang
+                                <div class="text-center py-6 text-[10px] font-mono-code text-slate-500 font-bold italic">
+                                    Belum ada yang sampai
                                 </div>
                             </template>
                         </div>
                     </div>
 
-                    <!-- Tombol Cepat HP untuk Tepi Timur -->
-                    <div class="flex gap-1.5 pt-1.5 border-t border-[#121316]/10 md:hidden">
-                        <button type="button" @click="boardBoat('M', 'east')" :disabled="eastM === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving" class="flex-1 py-1 bg-white border border-[#121316] rounded-lg text-[10px] font-black">
-                            +1 Ilmuwan
-                        </button>
-                        <button type="button" @click="boardBoat('C', 'east')" :disabled="eastC === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving" class="flex-1 py-1 bg-amber-200 border border-[#121316] rounded-lg text-[10px] font-black">
-                            +1 Kanibal
-                        </button>
+                    <!-- Dermaga Kayu Timur Menjorok ke Air -->
+                    <div class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-28 bg-amber-800 border-2 border-[#121316] rounded-l-lg z-20 shadow-md flex flex-col justify-around py-1">
+                        <div class="w-full h-1 bg-amber-950"></div>
+                        <div class="w-full h-1 bg-amber-950"></div>
+                        <div class="w-full h-1 bg-amber-950"></div>
+                    </div>
+
+                    <div class="text-[8px] font-mono-code font-bold text-slate-600 text-center">
+                        Daratan Tujuan 🏁
                     </div>
                 </div>
 
             </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- CONTROL HUB PERMAINAN: DECK KENDALI ERGONOMIS PC & HP         -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div class="mt-3 grid grid-cols-1 md:grid-cols-12 gap-2.5">
+            
+            <!-- 1. KONTROL CEPAT TEPI BARAT (md:col-span-3) -->
+            <div class="md:col-span-3 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs font-mono-code font-black mb-1.5 pb-1 border-b border-[#121316]/10">
+                    <span class="text-[#121316]">🏝️ TEPI BARAT</span>
+                    <span class="text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200" x-text="'M:' + westM + ' | K:' + westC"></span>
+                </div>
+                <div class="flex gap-1.5">
+                    <button type="button" 
+                            @click="boardBoat('M', 'west')" 
+                            :disabled="westM === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                            class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                        +1 Ilmuwan
+                    </button>
+                    <button type="button" 
+                            @click="boardBoat('C', 'west')" 
+                            :disabled="westC === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                            class="flex-1 py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                        +1 Kanibal
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. KONTROL AKSI PERAHU & MENYEBERANG SUNGAI (md:col-span-6) -->
+            <div class="md:col-span-6 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col items-center justify-center gap-1.5">
+                <div class="flex items-center gap-2 w-full justify-center">
+                    <!-- Tombol Dayung Utama -->
+                    <button type="button" 
+                            @click="rowBoat()"
+                            :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
+                            class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-black border-2 border-[#121316] shadow-[2px_2px_0px_#121316] transition-all flex items-center justify-center gap-2"
+                            :class="boatPassengers.length > 0 && !isMoving && !isCooldown ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-200 text-slate-400 border-slate-400 cursor-not-allowed shadow-none'">
+                        <span class="text-sm">⛵</span>
+                        <span x-text="isMoving ? 'Sedang Menyeberang Sungai...' : (boatPosition === 'west' ? 'DAYUNG KE TEPI TIMUR ►' : '◄ DAYUNG KE TEPI BARAT')"></span>
+                    </button>
+
+                    <!-- Tombol Praktis: Turunkan Semua Penumpang -->
+                    <button type="button" 
+                            @click="unboardAll()"
+                            :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
+                            class="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-900 border-2 border-[#121316] rounded-xl text-xs font-black shadow-[2px_2px_0px_#121316] transition disabled:opacity-30 disabled:shadow-none"
+                            :title="'Turunkan seluruh penumpang ke ' + (boatPosition === 'west' ? 'Tepi Barat' : 'Tepi Timur')">
+                        <span x-text="boatPosition === 'west' ? 'Turun ke Barat ✕' : 'Turun ke Timur 🏁'"></span>
+                    </button>
+                </div>
+
+                <div class="text-[9px] font-mono-code font-bold text-slate-700 flex items-center gap-2">
+                    <span>KAPASITAS: 2 ORANG (<span class="font-black text-[#121316]" x-text="boatPassengers.length"></span>/2 TERISI)</span>
+                    <span class="text-slate-400">•</span>
+                    <span class="text-amber-800 font-black" x-text="boatPosition === 'west' ? 'Perahu Bersandar di Tepi Barat' : 'Perahu Bersandar di Tepi Timur'"></span>
+                </div>
+            </div>
+
+            <!-- 3. KONTROL CEPAT TEPI TIMUR (md:col-span-3) -->
+            <div class="md:col-span-3 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs font-mono-code font-black mb-1.5 pb-1 border-b border-[#121316]/10">
+                    <span class="text-[#121316]">🏁 TEPI TIMUR</span>
+                    <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" x-text="'M:' + eastM + ' | K:' + eastC"></span>
+                </div>
+                <div class="flex gap-1.5">
+                    <button type="button" 
+                            @click="boardBoat('M', 'east')" 
+                            :disabled="eastM === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                            class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                        +1 Ilmuwan
+                    </button>
+                    <button type="button" 
+                            @click="boardBoat('C', 'east')" 
+                            :disabled="eastC === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                            class="flex-1 py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                        +1 Kanibal
+                    </button>
+                </div>
+            </div>
+
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -684,6 +916,56 @@
     }
 }
 
+/* Animasi Napas & Gerak Fisik Karakter Misionaris / Ilmuwan */
+@keyframes scholarBreathingMotion {
+    0%, 100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-2.5px) scale(1.01);
+    }
+}
+
+/* Animasi Gerak Ritmis Prajurit Rimba / Kanibal */
+@keyframes tribalRhythmicMotion {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-2px) rotate(1deg);
+    }
+    50% {
+        transform: translateY(1px) rotate(-0.5deg);
+    }
+    75% {
+        transform: translateY(-1.5px) rotate(0.8deg);
+    }
+}
+
+/* Animasi Aliran Arus Sungai */
+@keyframes riverWaterFlow {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 40px 0;
+    }
+}
+
+.scholar-figure {
+    animation: scholarBreathingMotion 2.6s ease-in-out infinite;
+}
+
+.tribal-figure {
+    animation: tribalRhythmicMotion 2.2s ease-in-out infinite;
+}
+
+.river-current-flow {
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 10px, transparent 10px, transparent 20px);
+    background-size: 28px 28px;
+    animation: riverWaterFlow 2.5s linear infinite;
+}
+
 .boat-idle {
     animation: boatGentleBob 3.6s ease-in-out infinite;
 }
@@ -852,6 +1134,14 @@ function pembdaChallenge() {
 
             // Cek apakah kemenangan tercapai setelah orang turun di Timur
             this.checkVictoryCondition();
+        },
+
+        // Turunkan semua penumpang sekaligus ke tepi tempat perahu merapat
+        unboardAll() {
+            if (this.isMoving || this.isCooldown || this.boatPassengers.length === 0) return;
+            while (this.boatPassengers.length > 0) {
+                this.unboardBoat(0);
+            }
         },
 
         // Dayung Perahu menyeberang sungai
