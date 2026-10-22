@@ -315,45 +315,45 @@
         
         <!-- Mobile Header & Toggle -->
         <div class="md:hidden flex items-center justify-between bg-white p-4 border-b-2 border-[#121316]">
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center flex-shrink-0 text-white font-black text-lg">
                     <i class="fa-solid fa-bolt text-yellow-300 text-base"></i>
                 </div>
-                <div class="flex flex-col justify-center">
+                <div class="flex flex-col justify-center min-w-0">
                     <div class="flex items-center gap-2">
-                        <h1 class="forum-hdr text-base font-black text-[#121316] tracking-tight leading-tight m-0 p-0">PembdaSPACE</h1>
-                        <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 flex items-center gap-1 shadow-xs" title="{{ $onlineCount }} akun aktif di seluruh PembdaHUB">
+                        <h1 class="forum-hdr text-base font-black text-[#121316] tracking-tight leading-tight m-0 p-0 whitespace-nowrap">PembdaSPACE</h1>
+                        <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 flex items-center gap-1 shadow-xs whitespace-nowrap shrink-0" title="{{ $onlineCount }} akun aktif di seluruh PembdaHUB">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>{{ $onlineCount }} Online</span>
                         </span>
                     </div>
-                    <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5">COMMUNITY & STEAM LOUNGE</span>
+                    <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5 whitespace-nowrap">COMMUNITY & STEAM LOUNGE</span>
                 </div>
             </div>
-            <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
+            <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition shrink-0">
                 <i class="fa-solid fa-bars text-lg"></i>
             </button>
         </div>
 
         <!-- CHANNEL SIDEBAR (Left) -->
-        <div :class="mobileSidebarOpen ? 'block' : 'hidden'" class="md:block w-full md:w-56 lg:w-60 bg-white border-r-2 border-[#121316] flex-shrink-0 flex flex-col transition-all duration-300 relative z-20">
+        <div :class="mobileSidebarOpen ? 'block' : 'hidden'" class="md:block w-full md:w-64 lg:w-64 bg-white border-r-2 border-[#121316] flex-shrink-0 flex flex-col transition-all duration-300 relative z-20">
             
             <div class="p-3.5 sm:p-4 h-full flex flex-col gap-4 max-h-[85vh] overflow-y-auto no-scrollbar">
                 <!-- Sleek Compact Header & Logo (Desktop) -->
-                <div class="hidden md:flex items-center justify-between gap-2 pb-3.5 border-b-2 border-[#121316]/10 px-0.5">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center flex-shrink-0 text-white font-black">
-                            <i class="fa-solid fa-bolt text-yellow-300 text-base"></i>
+                <div class="hidden md:flex items-center justify-between gap-1.5 pb-3.5 border-b-2 border-[#121316]/10 px-0.5">
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center shrink-0 text-white font-black">
+                            <i class="fa-solid fa-bolt text-yellow-300 text-sm"></i>
                         </div>
-                        <div class="flex flex-col justify-center min-w-0">
-                            <h1 class="forum-hdr text-sm lg:text-base font-black text-[#121316] tracking-tight leading-tight m-0 p-0 truncate">PembdaSPACE</h1>
-                            <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5 truncate">COMMUNITY & STEAM</span>
+                        <div class="flex flex-col justify-center shrink-0">
+                            <h1 class="forum-hdr text-sm font-black text-[#121316] tracking-tight leading-tight m-0 p-0 whitespace-nowrap">PembdaSPACE</h1>
+                            <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5 whitespace-nowrap">COMMUNITY & STEAM</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 flex items-center gap-1.5 shadow-xs shrink-0 cursor-default" 
+                    <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 flex items-center gap-1 shadow-xs shrink-0 whitespace-nowrap cursor-default" 
                           title="{{ $onlineCount }} akun aktif di seluruh sistem PembdaHUB (LMS, CBT, KBM & PembdaSPACE) dalam 10 menit terakhir">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>{{ $onlineCount }} <span class="text-[9px]">Online</span></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>{{ $onlineCount }} Online</span>
                     </span>
                 </div>
 
