@@ -168,7 +168,7 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
                 @foreach(\App\Models\ForumThread::CATEGORIES as $key => $label)
-                    @if($key === 'info' && !(auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru()))
+                    @if(in_array($key, ['info', 'steam_challenge']) && !(auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru()))
                         @continue
                     @endif
                     @php

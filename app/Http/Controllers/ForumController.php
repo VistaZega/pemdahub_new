@@ -227,10 +227,10 @@ class ForumController extends Controller
         
         $isPrivileged = ($user->isSuperAdmin() || $user->isAdminSekolah() || $user->isGuru());
 
-        // Info/Announcement category is restricted to teachers/admins
+        // Info/Announcement & STEAM Challenge categories are restricted to teachers/admins
         $allowedCategories = array_keys(ForumThread::CATEGORIES);
         if (!$isPrivileged) {
-            $allowedCategories = array_diff($allowedCategories, ['info']);
+            $allowedCategories = array_diff($allowedCategories, ['info', 'steam_challenge']);
         }
 
         $rules = [
