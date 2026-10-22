@@ -90,7 +90,7 @@ class PembdaChallengeController extends Controller
 
         $validated = $request->validate([
             'game_key' => 'required|string',
-            'moves' => 'required|integer|min:7', // Minimal 7 langkah untuk Hanoi 3-cakram
+            'moves' => 'required|integer|min:4', // Minimal langkah untuk penyelesaian
             'lives_left' => 'required|integer|min:1|max:3',
             'seconds_taken' => 'required|integer|min:3',
             'disk_count' => 'nullable|integer|min:3|max:6',
@@ -112,7 +112,22 @@ class PembdaChallengeController extends Controller
         }
 
         // Tentukan Bintang & Poin Reputasi berdasarkan game & efisiensi langkah
-        if ($gameKey === 'tower_of_hanoi') {
+        if ($gameKey === 'water_jug') {
+            if ($moves <= 6) {
+                $stars = 3;
+                $potentialPoints = 50;
+                $rankTitle = "Detektif Air Genius (Die Hard 3)! Solusi Sempurna ({$moves} langkah) ⭐⭐⭐";
+            } elseif ($moves <= 9) {
+                $stars = 2;
+                $potentialPoints = 35;
+                $rankTitle = "Logika Pengukuran Efisien! ⭐⭐";
+            } else {
+                $stars = 1;
+                $potentialPoints = 20;
+                $rankTitle = "Tepat 4 Liter Terukur! ⭐";
+            }
+            $logTitle = "Menyelesaikan PembdaCHALLENGE: Teka-Teki Tabung Air ({$moves} langkah, {$stars} Bintang)";
+        } elseif ($gameKey === 'tower_of_hanoi') {
             $optimalMoves = (int) (pow(2, $diskCount) - 1);
             if ($moves <= $optimalMoves + 2) {
                 $stars = 3;
@@ -228,9 +243,11 @@ class PembdaChallengeController extends Controller
             'status' => 'failed',
         ]);
 
-        $failMessage = $gameKey === 'tower_of_hanoi'
-            ? "Kesempatan habis! Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi pemindahan rekursif Anda."
-            : "Kesempatan habis! Misionaris terancam. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi Anda.";
+        $failMessage = match($gameKey) {
+            'water_jug' => "Kesempatan habis! Air tumpah atau perhitungan takaran meleset. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis takaran Anda.",
+            'tower_of_hanoi' => "Kesempatan habis! Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi pemindahan rekursif Anda.",
+            default => "Kesempatan habis! Misionaris terancam. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi Anda.",
+        };
 
         return response()->json([
             'success' => true,
