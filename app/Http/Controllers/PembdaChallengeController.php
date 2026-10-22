@@ -90,15 +90,17 @@ class PembdaChallengeController extends Controller
 
         $validated = $request->validate([
             'game_key' => 'required|string',
-            'moves' => 'required|integer|min:11', // Solusi teoritis minimal 11 langkah
+            'moves' => 'required|integer|min:7', // Minimal 7 langkah untuk Hanoi 3-cakram
             'lives_left' => 'required|integer|min:1|max:3',
-            'seconds_taken' => 'required|integer|min:5',
+            'seconds_taken' => 'required|integer|min:3',
+            'disk_count' => 'nullable|integer|min:3|max:6',
         ]);
 
         $gameKey = $validated['game_key'];
         $moves = (int) $validated['moves'];
         $lives = (int) $validated['lives_left'];
         $seconds = (int) $validated['seconds_taken'];
+        $diskCount = (int) ($validated['disk_count'] ?? 3);
 
         // Cek cooldown
         $cooldownUntil = Cache::get("challenge_cooldown_{$user->id}_{$gameKey}");
@@ -109,22 +111,42 @@ class PembdaChallengeController extends Controller
             ], 429);
         }
 
-        // Tentukan Bintang & Poin Reputasi berdasarkan efisiensi langkah
-        if ($moves <= 13) {
-            $stars = 3;
-            $potentialPoints = 50;
-            $rankTitle = 'Genius STEAM! Solusi Sempurna ⭐⭐⭐';
-        } elseif ($moves <= 17) {
-            $stars = 2;
-            $potentialPoints = 35;
-            $rankTitle = 'Logika Hebat! Solusi Efisien ⭐⭐';
+        // Tentukan Bintang & Poin Reputasi berdasarkan game & efisiensi langkah
+        if ($gameKey === 'tower_of_hanoi') {
+            $optimalMoves = (int) (pow(2, $diskCount) - 1);
+            if ($moves <= $optimalMoves + 2) {
+                $stars = 3;
+                $potentialPoints = 50;
+                $rankTitle = "Master Hanoi! Solusi Optimal ({$moves}/{$optimalMoves} langkah) ⭐⭐⭐";
+            } elseif ($moves <= (int) ($optimalMoves * 1.5)) {
+                $stars = 2;
+                $potentialPoints = 35;
+                $rankTitle = "Logika Matematis Hebat! Solusi Efisien ⭐⭐";
+            } else {
+                $stars = 1;
+                $potentialPoints = 20;
+                $rankTitle = "Berhasil Memindahkan Menara! ⭐";
+            }
+            $logTitle = "Menyelesaikan PembdaCHALLENGE: Menara Hanoi ({$diskCount} Cakram, {$moves} langkah, {$stars} Bintang)";
         } else {
-            $stars = 1;
-            $potentialPoints = 20;
-            $rankTitle = 'Berhasil Menyeberang! ⭐';
+            // Misionaris vs Kanibal (default)
+            if ($moves <= 13) {
+                $stars = 3;
+                $potentialPoints = 50;
+                $rankTitle = 'Genius STEAM! Solusi Sempurna ⭐⭐⭐';
+            } elseif ($moves <= 17) {
+                $stars = 2;
+                $potentialPoints = 35;
+                $rankTitle = 'Logika Hebat! Solusi Efisien ⭐⭐';
+            } else {
+                $stars = 1;
+                $potentialPoints = 20;
+                $rankTitle = 'Berhasil Menyeberang! ⭐';
+            }
+            $logTitle = "Menyelesaikan PembdaCHALLENGE: Misionaris vs Kanibal ({$moves} langkah, {$stars} Bintang)";
         }
 
-        // Cek apakah sudah pernah klaim poin hari ini
+        // Cek apakah sudah pernah klaim poin hari ini untuk game ini
         $alreadyClaimedToday = ChallengeLog::where('user_id', $user->id)
             ->where('game_key', $gameKey)
             ->where('status', 'won')
@@ -142,7 +164,7 @@ class PembdaChallengeController extends Controller
                     $user->id,
                     $pointsAwarded,
                     'challenge_won',
-                    "Menyelesaikan PembdaCHALLENGE: Misionaris vs Kanibal ({$moves} langkah, {$stars} Bintang)",
+                    $logTitle,
                     null
                 );
             }
@@ -206,11 +228,15 @@ class PembdaChallengeController extends Controller
             'status' => 'failed',
         ]);
 
+        $failMessage = $gameKey === 'tower_of_hanoi'
+            ? "Kesempatan habis! Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi pemindahan rekursif Anda."
+            : "Kesempatan habis! Misionaris terancam. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi Anda.";
+
         return response()->json([
             'success' => true,
             'cooldown_minutes' => self::COOLDOWN_MINUTES,
             'cooldown_seconds' => self::COOLDOWN_MINUTES * 60,
-            'message' => "Kesempatan habis! Misionaris terancam. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi Anda.",
+            'message' => $failMessage,
         ]);
     }
 }

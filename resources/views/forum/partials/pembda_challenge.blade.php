@@ -21,10 +21,12 @@
                         <span>GAME SAINS & LOGIKA</span>
                     </span>
                     <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400">
-                        +50 POIN
+                        +50 POIN STEAM
                     </span>
                 </div>
-                <span class="text-[11px] sm:text-xs text-slate-800 font-bold block sm:inline mt-0.5">Misionaris vs Kanibal — Seberangkan 3 Ilmuwan & 3 Kanibal dengan selamat!</span>
+                <span class="text-[11px] sm:text-xs text-slate-800 font-bold block sm:inline mt-0.5" 
+                      x-text="activeGame === 'hanoi' ? '🏛️ Menara Hanoi — Pindahkan seluruh tumpukan cakram ke Tiang C dengan hukum rekursif!' : '🚣 Misionaris vs Kanibal — Seberangkan 3 Ilmuwan & 3 Kanibal dengan selamat!'">
+                </span>
             </div>
         </div>
 
@@ -37,8 +39,8 @@
                 </a>
             @endif
 
-            <!-- Status Nyawa -->
-            <div class="flex items-center gap-1 px-2.5 py-1 bg-white border-2 border-[#121316] rounded-xl shadow-[1px_1px_0px_#121316]" title="Sisa Kesempatan">
+            <!-- Status Nyawa (Game Misionaris vs Kanibal) -->
+            <div x-show="activeGame === 'river'" class="flex items-center gap-1 px-2.5 py-1 bg-white border-2 border-[#121316] rounded-xl shadow-[1px_1px_0px_#121316]" title="Sisa Kesempatan">
                 <template x-for="i in 3" :key="i">
                     <span class="text-xs sm:text-sm transition-transform" :class="i <= lives ? 'scale-100' : 'opacity-20 grayscale scale-75'">
                         ❤️
@@ -56,7 +58,7 @@
             </button>
 
             <!-- Tombol Instruksi -->
-            <button @click="showRulesModal = true" class="btn-tactile-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1">
+            <button x-show="activeGame === 'river'" @click="showRulesModal = true" class="btn-tactile-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1">
                 <i class="fa-solid fa-circle-question text-indigo-600"></i>
                 <span class="hidden sm:inline">Aturan</span>
             </button>
@@ -68,8 +70,49 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- BAR PEMILIH TANTANGAN (TAB SWITCHER GAME SAINS & LOGIKA)            -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="px-3 sm:px-4 py-2 bg-slate-900 border-b-2 border-[#121316] flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="text-[10px] font-mono-code font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">PILIH TANTANGAN:</span>
+            <!-- Tab Menara Hanoi -->
+            <button type="button" 
+                    @click="activeGame = 'hanoi'" 
+                    class="px-2.5 sm:px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border-2 border-[#121316] cursor-pointer"
+                    :class="activeGame === 'hanoi' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🏛️ Menara Hanoi</span>
+                <span class="text-[8px] font-mono-code font-black px-1.5 py-0.2 rounded-full bg-rose-500 text-white animate-pulse">BARU</span>
+            </button>
+            <!-- Tab Misionaris vs Kanibal -->
+            <button type="button" 
+                    @click="activeGame = 'river'" 
+                    class="px-2.5 sm:px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border-2 border-[#121316] cursor-pointer"
+                    :class="activeGame === 'river' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🚣 Misionaris vs Kanibal</span>
+            </button>
+        </div>
+
+        <div class="text-[10px] font-mono-code font-bold text-amber-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-trophy text-xs"></i>
+            <span x-text="activeGame === 'hanoi' ? 'Rekursi Logika Matematika (+50 Poin)' : 'Penyeberangan Sungai Logika (+50 Poin)'"></span>
+        </div>
+    </div>
+
     <!-- Arena Permainan -->
     <div x-show="!isCollapsed" x-transition.opacity.duration.300ms class="p-3 sm:p-4 bg-gradient-to-b from-sky-50/70 via-indigo-50/40 to-emerald-50/50 border-t border-[#121316]/10">
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- 1. TANTANGAN MENARA HANOI (TOWER OF HANOI)                      -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div x-show="activeGame === 'hanoi'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+            @include('forum.partials.challenge_hanoi')
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- 2. TANTANGAN MISIONARIS VS KANIBAL (RIVER CROSSING QUEST)       -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div x-show="activeGame === 'river'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
 
         <!-- Banner Cooldown (Jika Nyawa Habis) -->
         <div x-show="isCooldown" class="mb-3 p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-600 text-rose-900 shadow-[3px_3px_0px_#e11d48]">
@@ -868,6 +911,8 @@
             </div>
         </div>
 
+        </div> <!-- Akhir wrapper activeGame === 'river' -->
+
     </div>
 </div>
 
@@ -1019,6 +1064,7 @@
 function pembdaChallenge() {
     return {
         isCollapsed: false,
+        activeGame: 'hanoi', // 'hanoi' atau 'river'
         showRulesModal: false,
         isMoving: false,
         isCooldown: false,
@@ -1056,6 +1102,14 @@ function pembdaChallenge() {
         },
 
         async initGame() {
+            // Cek parameter game dari URL jika ada
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('game') === 'river' || urlParams.get('game') === 'missionaries') {
+                this.activeGame = 'river';
+            } else if (urlParams.get('game') === 'hanoi') {
+                this.activeGame = 'hanoi';
+            }
+
             this.resetGameFull();
             await this.fetchStatus();
             this.startTimer();
