@@ -331,13 +331,12 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <a href="#pembda-challenge" 
-                   @click="openPembdaChallenge()"
-                   class="px-2.5 py-2 bg-[#fde047] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition flex items-center gap-1.5 text-xs font-black"
+                <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
+                   class="px-2.5 py-1.5 bg-[#fde047] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition flex items-center gap-1.5 text-xs font-black shrink-0"
                    title="Buka PembdaCHALLENGE">
                     <span>⚡</span>
-                    <span class="text-[10px] font-mono-code font-black">CHALLENGE</span>
-                    <span class="text-[8px] px-1 py-0.2 bg-purple-800 text-white rounded-md font-mono-code">+50</span>
+                    <span class="text-[10px] font-mono-code font-black whitespace-nowrap">CHALLENGE</span>
+                    <span class="text-[8px] px-1 py-0.2 bg-purple-800 text-white rounded-md font-mono-code font-bold">+50</span>
                 </a>
                 <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
                     <i class="fa-solid fa-bars text-lg"></i>
@@ -371,34 +370,38 @@
                     <!-- All Channels (Semua Saluran) -->
                     <div class="space-y-1">
                         <a href="{{ route('forum.index', array_filter(['search' => $search])) }}" 
-                           class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 {{ !$category && !(isset($activeGroup) && $activeGroup) ? 'channel-active-tactile' : 'text-[#121316] font-bold channel-hover-tactile' }}">
+                           class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 {{ !$category && !(isset($activeGroup) && $activeGroup) && request('view') !== 'challenge' ? 'channel-active-tactile' : 'text-[#121316] font-bold channel-hover-tactile' }}">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 {{ !$category && !(isset($activeGroup) && $activeGroup) ? 'bg-[#121316] text-[#fde047]' : 'bg-indigo-100 text-indigo-600 border border-indigo-200' }}">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 {{ !$category && !(isset($activeGroup) && $activeGroup) && request('view') !== 'challenge' ? 'bg-[#121316] text-[#fde047]' : 'bg-indigo-100 text-indigo-600 border border-indigo-200' }}">
                                     <i class="fa-solid fa-compass"></i>
                                 </div>
                                 <span class="text-xs sm:text-sm font-extrabold">Semua Saluran</span>
                             </div>
-                            <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border {{ !$category && !(isset($activeGroup) && $activeGroup) ? 'border-slate-900' : 'border-slate-300' }}" style="{{ !$category && !(isset($activeGroup) && $activeGroup) ? 'background-color: #0f172a !important; color: #fde047 !important;' : 'background-color: #ffffff !important; color: #0f172a !important;' }}">
+                            <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full border {{ !$category && !(isset($activeGroup) && $activeGroup) && request('view') !== 'challenge' ? 'border-slate-900' : 'border-slate-300' }}" style="{{ !$category && !(isset($activeGroup) && $activeGroup) && request('view') !== 'challenge' ? 'background-color: #0f172a !important; color: #fde047 !important;' : 'background-color: #ffffff !important; color: #0f172a !important;' }}">
                                 {{ $totalThreads }}
                             </span>
                         </a>
 
-                        <!-- Menu Khusus: PembdaCHALLENGE Arena Game & Logika -->
-                        <a href="#pembda-challenge" 
-                           @click="if (window.innerWidth < 768) mobileSidebarOpen = false; openPembdaChallenge();" 
-                           class="flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-100 border-2 border-[#121316] text-[#121316] font-black shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none group cursor-pointer">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 bg-[#121316] text-[#fde047] shadow-xs group-hover:scale-110 transition-transform">
-                                    ⚡
+                        <!-- Menu Khusus: PembdaCHALLENGE Arena Game & Logika (Anti-Terpotong) -->
+                        <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
+                           @click="if (window.innerWidth < 768) mobileSidebarOpen = false;" 
+                           class="block p-2.5 rounded-xl transition-all duration-150 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none group cursor-pointer {{ request('view') === 'challenge' ? 'bg-[#121316] text-[#fde047]' : 'bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-100 text-[#121316]' }}">
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg flex items-center justify-center text-xs shrink-0 bg-[#121316] text-[#fde047] shadow-xs group-hover:scale-110 transition-transform">
+                                        ⚡
+                                    </div>
+                                    <span class="text-xs font-black tracking-tight whitespace-nowrap {{ request('view') === 'challenge' ? 'text-[#fde047]' : 'text-[#121316]' }}">
+                                        PembdaCHALLENGE
+                                    </span>
                                 </div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-xs sm:text-sm font-black leading-tight truncate">PembdaCHALLENGE</span>
-                                    <span class="text-[9px] font-mono-code text-indigo-900 font-extrabold truncate">Game Sains & Logika</span>
-                                </div>
+                                <span class="text-[9px] font-mono-code font-black px-1.5 py-0.5 rounded-md bg-purple-700 text-white shadow-xs shrink-0">
+                                    +50 Poin
+                                </span>
                             </div>
-                            <span class="text-[9px] font-mono-code font-black px-1.5 py-0.5 rounded-md bg-purple-700 text-white shadow-xs shrink-0">
-                                +50 Poin
-                            </span>
+                            <div class="text-[10px] font-mono-code font-bold {{ request('view') === 'challenge' ? 'text-amber-300' : 'text-indigo-900' }} pl-7.5 whitespace-nowrap">
+                                🎮 Game Sains & Logika IQ
+                            </div>
                         </a>
                     </div>
 
@@ -504,8 +507,34 @@
         </div>
 
         <!-- MAIN FEED (Center) -->
-        <div class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-3.5 sm:p-5 lg:p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
+        <div id="forum-main-feed" class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-3.5 sm:p-5 lg:p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
             
+            @if(request('view') === 'challenge')
+                <!-- ARENA DEDICATED VIEW PEMBDACHALLENGE (Fokus Penuh pada Permainan) -->
+                <div class="mb-4 flex items-center justify-between p-3.5 sm:p-4 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] flex items-center justify-center text-white text-lg font-black shadow-xs shrink-0">
+                            ⚡
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h1 class="forum-hdr text-base sm:text-lg font-black text-[#121316] m-0">PembdaCHALLENGE Arena</h1>
+                                <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400">
+                                    +50 POIN REPUTASI
+                                </span>
+                            </div>
+                            <span class="text-xs font-mono-code text-slate-600 font-bold block truncate">Teka-teki IQ & Sains: Misionaris vs Kanibal (Seberangkan dengan Selamat)</span>
+                        </div>
+                    </div>
+                    <a href="{{ route('forum.index') }}" class="btn-tactile-white px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap shadow-[2px_2px_0px_#121316] shrink-0">
+                        <i class="fa-solid fa-arrow-left text-xs text-rose-600"></i>
+                        <span>Lobi Utama</span>
+                    </a>
+                </div>
+
+                <!-- Arena Permainan PembdaCHALLENGE Utama -->
+                @include('forum.partials.pembda_challenge')
+            @else
             @if(isset($activeGroup) && $activeGroup)
                 @php
                     $isEkskulGroup = $activeGroup->type === 'extracurricular' || $activeGroup->extracurricular;
@@ -620,14 +649,13 @@
                                     <i class="fa-solid fa-comments text-yellow-300"></i>
                                     <span>{{ $totalThreads }} <span class="text-yellow-300 font-black">Topik</span></span>
                                 </span>
-                                <a href="#pembda-challenge" 
-                                   onclick="openPembdaChallenge(); return false;" 
-                                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-slate-900 font-black shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition cursor-pointer group" 
+                                <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-900 font-black shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition cursor-pointer group shrink-0" 
                                    style="background-color: #fde047 !important; color: #0f172a !important;"
                                    title="Klik untuk membuka dan memainkan PembdaCHALLENGE">
                                     <i class="fa-solid fa-brain text-purple-800 group-hover:scale-110 transition-transform"></i>
-                                    <span>🎮 Main PembdaCHALLENGE</span>
-                                    <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-purple-800 text-white font-mono-code font-black">+50 POIN</span>
+                                    <span class="whitespace-nowrap">🎮 Main PembdaCHALLENGE</span>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-purple-800 text-white font-mono-code font-black shrink-0">+50 POIN</span>
                                 </a>
                             </div>
                         </div>
@@ -1211,6 +1239,7 @@
                     </div>
                 @endif
             </div>
+            @endif
         </div>
 
         <!-- SIDEBAR WIDGETS (Right) -->
