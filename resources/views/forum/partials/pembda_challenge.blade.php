@@ -38,7 +38,7 @@
                     </span>
                 </div>
                 <span class="text-[10px] sm:text-[11px] text-slate-800 font-bold block sm:inline mt-0.5" 
-                      x-text="activeGame === 'water' ? '🚰 Tabung Air (Die Hard 3) — Takar tepat 4 Liter air dengan jeriken 3L & 5L!' : (activeGame === 'hanoi' ? '🏛️ Menara Hanoi — Pindahkan seluruh tumpukan cakram ke Tiang C dengan hukum rekursif!' : '🚣 Misionaris vs Kanibal — Seberangkan 3 Ilmuwan & 3 Kanibal dengan selamat!')">
+                      x-text="activeGame === 'logic' ? '🔌 Sirkuit Gerbang Logika IT — Alirkan arus biner dan nyalakan lampu LED target!' : (activeGame === 'water' ? '🚰 Tabung Air (Die Hard 3) — Takar tepat 4 Liter air dengan jeriken 3L & 5L!' : (activeGame === 'hanoi' ? '🏛️ Menara Hanoi — Pindahkan seluruh tumpukan cakram ke Tiang C dengan hukum rekursif!' : '🚣 Misionaris vs Kanibal — Seberangkan 3 Ilmuwan & 3 Kanibal dengan selamat!'))">
                 </span>
             </div>
         </div>
@@ -99,12 +99,13 @@
     <div class="px-2.5 sm:px-3 py-1.5 bg-slate-900 border-b-2 border-[#121316] flex flex-wrap items-center justify-between gap-1.5">
         <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
             <span class="text-[9.5px] font-mono-code font-bold text-slate-400 uppercase tracking-wider mr-0.5 hidden sm:inline">PILIH:</span>
-            <!-- Tab 1: Menara Hanoi -->
+            <!-- Tab 1: Gerbang Logika IT (BARU) -->
             <button type="button" 
-                    @click="activeGame = 'hanoi'" 
+                    @click="activeGame = 'logic'" 
                     class="px-2 sm:px-2.5 py-0.5 rounded-lg text-[11px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer"
-                    :class="activeGame === 'hanoi' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
-                <span>🏛️ Menara Hanoi</span>
+                    :class="activeGame === 'logic' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🔌 Gerbang Logika (IT)</span>
+                <span class="text-[7px] font-mono-code font-black px-1 py-0.2 rounded-full bg-emerald-500 text-white animate-pulse">BARU</span>
             </button>
             <!-- Tab 2: Tabung Air (Die Hard 3) -->
             <button type="button" 
@@ -112,9 +113,15 @@
                     class="px-2 sm:px-2.5 py-0.5 rounded-lg text-[11px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer"
                     :class="activeGame === 'water' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
                 <span>🚰 Tabung Air</span>
-                <span class="text-[7.5px] font-mono-code font-black px-1 py-0.2 rounded-full bg-cyan-500 text-white animate-pulse">BARU</span>
             </button>
-            <!-- Tab 3: Misionaris vs Kanibal -->
+            <!-- Tab 3: Menara Hanoi -->
+            <button type="button" 
+                    @click="activeGame = 'hanoi'" 
+                    class="px-2 sm:px-2.5 py-0.5 rounded-lg text-[11px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer"
+                    :class="activeGame === 'hanoi' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🏛️ Menara Hanoi</span>
+            </button>
+            <!-- Tab 4: Misionaris vs Kanibal -->
             <button type="button" 
                     @click="activeGame = 'river'" 
                     class="px-2 sm:px-2.5 py-0.5 rounded-lg text-[11px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer"
@@ -125,7 +132,7 @@
 
         <div class="text-[10px] font-mono-code font-bold text-amber-300 flex items-center gap-1.5">
             <i class="fa-solid fa-trophy text-xs"></i>
-            <span x-text="activeGame === 'water' ? 'Aljabar Linier & FPB (+50 Poin)' : (activeGame === 'hanoi' ? 'Rekursi Logika Matematika (+50 Poin)' : 'Penyeberangan Sungai Logika (+50 Poin)')"></span>
+            <span x-text="activeGame === 'logic' ? 'Arsitektur CPU & Aljabar Boolean (+50 Poin)' : (activeGame === 'water' ? 'Aljabar Linier & FPB (+50 Poin)' : (activeGame === 'hanoi' ? 'Rekursi Logika Matematika (+50 Poin)' : 'Penyeberangan Sungai Logika (+50 Poin)'))"></span>
         </div>
     </div>
 
@@ -133,7 +140,14 @@
     <div x-show="!isCollapsed" x-transition.opacity.duration.300ms class="p-2 sm:p-3 bg-gradient-to-b from-sky-50/70 via-indigo-50/40 to-emerald-50/50 border-t border-[#121316]/10">
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <!-- 1. TANTANGAN TABUNG AIR (WATER JUG RIDDLE - DIE HARD 3)         -->
+        <!-- 1. TANTANGAN SIRKUIT GERBANG LOGIKA IT (LOGIC GATES MASTER)     -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div x-show="activeGame === 'logic'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+            @include('forum.partials.challenge_logic_gates')
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- 2. TANTANGAN TABUNG AIR (WATER JUG RIDDLE - DIE HARD 3)         -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <div x-show="activeGame === 'water'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
             @include('forum.partials.challenge_water_jug')
@@ -1123,7 +1137,7 @@
 function pembdaChallenge() {
     return {
         isCollapsed: false,
-        activeGame: 'water', // 'water', 'hanoi', atau 'river'
+        activeGame: 'logic', // 'logic', 'water', 'hanoi', atau 'river'
         isLandscapeMode: false,
         showRulesModal: false,
         isMoving: false,
@@ -1195,6 +1209,8 @@ function pembdaChallenge() {
                 this.activeGame = 'hanoi';
             } else if (urlParams.get('game') === 'water' || urlParams.get('game') === 'water_jug' || urlParams.get('game') === 'diehard') {
                 this.activeGame = 'water';
+            } else if (urlParams.get('game') === 'logic' || urlParams.get('game') === 'logic_gates' || urlParams.get('game') === 'circuit') {
+                this.activeGame = 'logic';
             }
 
             this.resetGameFull();

@@ -90,9 +90,9 @@ class PembdaChallengeController extends Controller
 
         $validated = $request->validate([
             'game_key' => 'required|string',
-            'moves' => 'required|integer|min:4', // Minimal langkah untuk penyelesaian
+            'moves' => 'required|integer|min:1', // Minimal langkah untuk penyelesaian
             'lives_left' => 'required|integer|min:1|max:3',
-            'seconds_taken' => 'required|integer|min:3',
+            'seconds_taken' => 'required|integer|min:2',
             'disk_count' => 'nullable|integer|min:3|max:6',
         ]);
 
@@ -112,7 +112,22 @@ class PembdaChallengeController extends Controller
         }
 
         // Tentukan Bintang & Poin Reputasi berdasarkan game & efisiensi langkah
-        if ($gameKey === 'water_jug') {
+        if ($gameKey === 'logic_gates') {
+            if ($moves <= 4) {
+                $stars = 3;
+                $potentialPoints = 50;
+                $rankTitle = "Master Sirkuit Digital (Arsitek CPU IT)! Solusi Sempurna ({$moves} toggle) ⭐⭐⭐";
+            } elseif ($moves <= 7) {
+                $stars = 2;
+                $potentialPoints = 35;
+                $rankTitle = "Ahli Logika Biner Digital! ⭐⭐";
+            } else {
+                $stars = 1;
+                $potentialPoints = 20;
+                $rankTitle = "Sirkuit Berhasil Terhubung! ⭐";
+            }
+            $logTitle = "Menyelesaikan PembdaCHALLENGE: Sirkuit Gerbang Logika IT ({$moves} toggle, {$stars} Bintang)";
+        } elseif ($gameKey === 'water_jug') {
             if ($moves <= 6) {
                 $stars = 3;
                 $potentialPoints = 50;
@@ -244,6 +259,7 @@ class PembdaChallengeController extends Controller
         ]);
 
         $failMessage = match($gameKey) {
+            'logic_gates' => "Konsleting arus logika! Analisis tabel kebenaran gerbang logika Anda. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit.",
             'water_jug' => "Kesempatan habis! Air tumpah atau perhitungan takaran meleset. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis takaran Anda.",
             'tower_of_hanoi' => "Kesempatan habis! Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi pemindahan rekursif Anda.",
             default => "Kesempatan habis! Misionaris terancam. Istirahat sejenak selama " . self::COOLDOWN_MINUTES . " menit untuk menganalisis strategi Anda.",
