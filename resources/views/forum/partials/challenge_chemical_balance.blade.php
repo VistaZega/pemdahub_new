@@ -1,21 +1,14 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- 🧪 PembdaCHALLENGE: Penyeimbang Reaksi Kimia (Chemical Balancing Lab)     -->
+<!-- Tema Terang & Kontras Tinggi (High Contrast Clean Science Lab)           -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
-@keyframes bubble-rise {
-    0% { transform: translateY(0) scale(0.8); opacity: 0.6; }
-    50% { opacity: 0.9; }
-    100% { transform: translateY(-30px) scale(1.2); opacity: 0; }
-}
-.chem-bubble {
-    animation: bubble-rise 2s infinite ease-in;
-}
-@keyframes scale-glow {
+@keyframes chem-scale-glow {
     0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-    50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.8), 0 0 50px rgba(52, 211, 153, 0.4); }
+    50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.8), 0 0 45px rgba(52, 211, 153, 0.4); }
 }
 .chem-balanced-glow {
-    animation: scale-glow 1.5s infinite ease-in-out;
+    animation: chem-scale-glow 1.5s infinite ease-in-out;
 }
 </style>
 
@@ -27,7 +20,7 @@
             <span class="text-2xl">⏳</span>
             <div class="flex-1">
                 <h4 class="font-black text-xs sm:text-sm text-rose-950">Reaksi Tidak Stabil (Cooldown)</h4>
-                <p class="text-xs text-rose-800 mt-0.5">Analisis hukum kekekalan massa Lavoisier sebelum mencoba kembali.</p>
+                <p class="text-xs text-rose-800 mt-0.5 font-medium">Analisis hukum kekekalan massa Lavoisier sebelum mencoba kembali.</p>
                 <div class="mt-1 text-xs font-mono-code font-black text-rose-700">
                     Dapat mencoba kembali dalam: <span class="bg-rose-200 px-2 py-0.5 rounded-md text-rose-950" x-text="formatTime(cooldownSeconds)"></span>
                 </div>
@@ -49,11 +42,11 @@
             <span class="text-sm" x-text="alertToast.isSuccess ? '🧪' : '💡'"></span>
             <span x-text="alertToast.message"></span>
         </div>
-        <button type="button" @click="alertToast.show = false" class="text-inherit hover:opacity-75 text-sm font-black px-1">✕</button>
+        <button type="button" @click="alertToast.show = false" class="text-inherit hover:opacity-75 text-sm font-black px-1 cursor-pointer">✕</button>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- 💡 PANDUAN CEPAT (CARA MAIN)                                         -->
+    <!-- 💡 PANDUAN CEPAT (CARA MAIN) - KONTRAS TINGGI                        -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div class="mb-2 p-2 sm:p-2.5 rounded-xl bg-gradient-to-r from-cyan-50 via-teal-50 to-emerald-50 border-2 border-[#121316] text-[#121316] shadow-[2px_2px_0px_#121316]">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -61,20 +54,20 @@
                 <span class="text-xl">⚖️</span>
                 <div>
                     <span class="font-black text-xs text-[#121316] block sm:inline">PANDUAN STOIKIOMETRI:</span>
-                    <span class="text-[11px] text-slate-700">Setarakan jumlah atom di <b>Ruas Kiri (Reaktan)</b> dan <b>Ruas Kanan (Produk)</b>!</span>
+                    <span class="text-[11px] text-slate-800">Setarakan jumlah atom di <b>Ruas Kiri (Reaktan)</b> dan <b>Ruas Kanan (Produk)</b>!</span>
                 </div>
             </div>
             <div class="flex items-center gap-2 text-[10.5px] font-mono-code font-bold flex-wrap">
-                <div class="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-300">
-                    <span class="text-cyan-700 font-black">1.</span>
+                <div class="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-900 shadow-2xs">
+                    <span class="text-cyan-800 font-black">1.</span>
                     <span>Klik <b>[-] / [+]</b> atur koefisien</span>
                 </div>
-                <div class="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-300">
-                    <span class="text-amber-700 font-black">2.</span>
+                <div class="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-900 shadow-2xs">
+                    <span class="text-amber-800 font-black">2.</span>
                     <span>Samakan jumlah tiap atom</span>
                 </div>
-                <div class="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-300">
-                    <span class="text-emerald-700 font-black">3.</span>
+                <div class="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-900 shadow-2xs">
+                    <span class="text-emerald-800 font-black">3.</span>
                     <span>Neraca seimbang = <b>Menang</b>!</span>
                 </div>
             </div>
@@ -82,30 +75,30 @@
     </div>
 
     <!-- Top Dashboard: Level Selector, Target, Stats, Undo & Cheatsheet -->
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-2 p-2 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316]">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2 p-2 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] text-[#121316]">
         
         <!-- Pilihan Misi Reaksi Kimia -->
         <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-            <span class="text-[9.5px] font-mono-code font-bold text-slate-500 mr-0.5 hidden sm:inline">REAKSI:</span>
+            <span class="text-[9.5px] font-mono-code font-bold text-slate-600 mr-0.5 hidden sm:inline">REAKSI:</span>
             <button type="button" 
                     @click="changeLevel(1)" 
                     :disabled="isCooldown"
                     class="px-2 py-0.5 rounded-lg text-[11px] font-black border-2 border-[#121316] transition-all cursor-pointer"
-                    :class="level === 1 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-none'">
+                    :class="level === 1 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-none'">
                 <span>Lvl 1: Air (H₂ + O₂)</span>
             </button>
             <button type="button" 
                     @click="changeLevel(2)" 
                     :disabled="isCooldown"
                     class="px-2 py-0.5 rounded-lg text-[11px] font-black border-2 border-[#121316] transition-all cursor-pointer"
-                    :class="level === 2 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-none'">
+                    :class="level === 2 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-none'">
                 <span>Lvl 2: Metana (CH₄ + O₂)</span>
             </button>
             <button type="button" 
                     @click="changeLevel(3)" 
                     :disabled="isCooldown"
                     class="px-2 py-0.5 rounded-lg text-[11px] font-black border-2 border-[#121316] transition-all cursor-pointer"
-                    :class="level === 3 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-none'">
+                    :class="level === 3 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-none'">
                 <span>Lvl 3: Karat (Fe + O₂)</span>
             </button>
         </div>
@@ -121,15 +114,15 @@
 
             <!-- Langkah / Penyesuaian -->
             <div class="flex items-center gap-1" title="Jumlah kali koefisien diubah">
-                <span class="text-slate-500 text-[10px]">LANGKAH:</span>
-                <span class="px-1.5 py-0.2 rounded bg-[#faf8f5] border border-[#121316] text-[#121316] font-black text-xs" x-text="moves"></span>
-                <span class="text-[9px] text-slate-500" x-text="'(Opt: ' + optimalMoves + ')'"></span>
+                <span class="text-slate-600 text-[10px]">LANGKAH:</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-100 border border-[#121316] text-[#121316] font-black text-xs" x-text="moves"></span>
+                <span class="text-[9px] text-slate-600" x-text="'(Opt: ' + optimalMoves + ')'"></span>
             </div>
 
             <!-- Waktu -->
             <div class="flex items-center gap-1">
-                <span class="text-slate-500 text-[10px]">WAKTU:</span>
-                <span class="px-1.5 py-0.2 rounded bg-[#faf8f5] border border-[#121316] text-[#121316] font-black text-xs" x-text="formatTime(timerSeconds)"></span>
+                <span class="text-slate-600 text-[10px]">WAKTU:</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-100 border border-[#121316] text-[#121316] font-black text-xs" x-text="formatTime(timerSeconds)"></span>
             </div>
         </div>
 
@@ -140,44 +133,44 @@
                     :disabled="history.length === 0 || isCooldown || victoryModal.show" 
                     class="btn-tactile-white px-2 py-0.5 rounded-lg text-[11px] font-black disabled:opacity-40 cursor-pointer"
                     title="Batalkan 1 penyesuaian terakhir">
-                <i class="fa-solid fa-arrow-rotate-left mr-0.5"></i> Undo
+                <i class="fa-solid fa-arrow-rotate-left mr-0.5 text-slate-700"></i> Undo
             </button>
             <button type="button" 
                     @click="resetReaction()" 
                     :disabled="isCooldown || moves === 0" 
                     class="btn-tactile-white px-2 py-0.5 rounded-lg text-[11px] font-black disabled:opacity-40 cursor-pointer"
                     title="Kembalikan semua koefisien ke 1">
-                <i class="fa-solid fa-rotate-left mr-0.5"></i> Reset
+                <i class="fa-solid fa-rotate-left mr-0.5 text-slate-700"></i> Reset
             </button>
             <button type="button" 
                     @click="showRulesModal = true" 
                     class="p-1 px-2 rounded-lg bg-teal-50 border border-teal-300 text-teal-900 text-xs font-black hover:bg-teal-100 transition cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="Buka Hukum Kekekalan Massa Lavoisier & Tips Stoikiometri">
-                <i class="fa-solid fa-flask"></i>
+                <i class="fa-solid fa-flask text-teal-700"></i>
                 <span class="text-[10px] hidden sm:inline">Hukum Lavoisier</span>
             </button>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- ARENA LABORATORIUM KIMIA SAINS (FULL WIDTH)                          -->
+    <!-- ARENA LABORATORIUM KIMIA SAINS TERANG (HIGH CONTRAST CLEAN LAB)     -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div class="relative w-full rounded-2xl border-2 border-[#121316] bg-slate-950 p-3 sm:p-4 overflow-hidden shadow-[3px_3px_0px_#121316] select-none text-white">
+    <div class="relative w-full rounded-2xl border-2 border-[#121316] bg-gradient-to-b from-teal-50/80 via-sky-50/50 to-slate-100 p-3 sm:p-4 overflow-hidden shadow-[3px_3px_0px_#121316] select-none text-[#121316]">
         
-        <!-- Lab Grid Ambient Glow Effect -->
-        <div class="absolute inset-0 opacity-15 pointer-events-none" 
-             style="background-image: radial-gradient(#06b6d4 1px, transparent 1px); background-size: 16px 16px;"></div>
+        <!-- Lab Grid Ambient Glow Effect Lembut -->
+        <div class="absolute inset-0 opacity-20 pointer-events-none" 
+             style="background-image: radial-gradient(#0d9488 1.5px, transparent 1.5px); background-size: 16px 16px;"></div>
 
         <!-- Header Deskripsi Reaksi -->
-        <div class="relative z-10 mb-3 flex items-center justify-between text-[10.5px] sm:text-xs font-mono-code flex-wrap gap-2 pb-2 border-b border-slate-800">
+        <div class="relative z-10 mb-3 flex items-center justify-between text-[10.5px] sm:text-xs font-mono-code flex-wrap gap-2 pb-2 border-b border-slate-300">
             <div class="flex items-center gap-2">
-                <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-200">
-                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-                    <span>Reaksi: <b class="text-cyan-300" x-text="currentReaction.name"></b></span>
+                <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-300 text-slate-800 shadow-2xs">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-500 animate-ping"></span>
+                    <span>Reaksi: <b class="text-teal-900" x-text="currentReaction.name"></b></span>
                 </span>
             </div>
-            <div class="text-amber-300 font-bold flex items-center gap-1 text-[11px]">
-                <i class="fa-solid fa-scale-balanced"></i>
+            <div class="text-slate-700 font-bold flex items-center gap-1 text-[11px] bg-white px-2 py-0.5 rounded-md border border-slate-300">
+                <i class="fa-solid fa-scale-balanced text-teal-700"></i>
                 <span>Hukum Kekekalan Massa: Massa Reaktan = Massa Produk</span>
             </div>
         </div>
@@ -185,58 +178,58 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- PANGGUNG FORMULA REAKSI DENGAN KONTROL KOEFISIEN INTERAKTIF     -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div class="relative z-10 py-2">
+        <div class="relative z-10 py-1">
             
-            <div class="bg-slate-900/90 border-2 rounded-2xl p-3 sm:p-4 shadow-lg transition-all"
-                 :class="isBalanced ? 'border-emerald-500 chem-balanced-glow' : 'border-slate-700'">
+            <div class="bg-white border-2 rounded-2xl p-3 sm:p-4 shadow-[2px_2px_0px_#121316] transition-all"
+                 :class="isBalanced ? 'border-emerald-500 chem-balanced-glow bg-emerald-50/30' : 'border-[#121316]'">
                 
                 <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
                     
                     <!-- RUAS KIRI: REAKTAN (REACTANTS) -->
-                    <div class="flex-1 w-full bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-                        <div class="flex items-center justify-between mb-3 pb-1 border-b border-slate-800">
-                            <span class="text-xs font-black text-cyan-400 font-mono-code flex items-center gap-1">
-                                <i class="fa-solid fa-atom text-cyan-400"></i> RUAS KIRI (REAKTAN)
+                    <div class="flex-1 w-full bg-cyan-50/70 p-3 rounded-xl border-2 border-cyan-200">
+                        <div class="flex items-center justify-between mb-3 pb-1.5 border-b border-cyan-200">
+                            <span class="text-xs font-black text-cyan-950 font-mono-code flex items-center gap-1">
+                                <i class="fa-solid fa-atom text-cyan-700"></i> RUAS KIRI (REAKTAN)
                             </span>
-                            <span class="text-[9.5px] text-slate-400">Zat Awal Pereaksi</span>
+                            <span class="text-[9.5px] text-slate-600 font-bold">Zat Pereaksi Awal</span>
                         </div>
 
                         <!-- Daftar Molekul Reaktan -->
                         <div class="flex flex-wrap items-center justify-around gap-3">
                             <template x-for="(mol, idx) in currentReaction.reactants" :key="'react-' + idx">
-                                <div class="flex items-center gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-700 shadow-sm">
-                                    <!-- Stepper Koefisien -->
+                                <div class="flex items-center gap-2 bg-white p-2.5 rounded-xl border-2 border-slate-300 shadow-sm">
+                                    <!-- Stepper Koefisien Taktil -->
                                     <div class="flex flex-col items-center">
                                         <button type="button" 
                                                 @click="changeCoeff('reactants', idx, 1)"
                                                 :disabled="isCooldown || victoryModal.show || mol.coeff >= 8"
-                                                class="w-7 h-6 rounded bg-slate-800 hover:bg-slate-700 active:bg-cyan-600 text-white font-black text-xs border border-slate-600 disabled:opacity-30 cursor-pointer flex items-center justify-center transition">
+                                                class="w-7 h-6 rounded bg-slate-100 hover:bg-slate-200 active:bg-cyan-600 active:text-white text-slate-800 font-black text-xs border border-slate-300 disabled:opacity-30 cursor-pointer flex items-center justify-center transition shadow-2xs">
                                             +
                                         </button>
-                                        <div class="w-7 h-7 my-1 bg-[#fde047] text-[#121316] border border-[#121316] rounded-md font-mono-code font-black text-sm flex items-center justify-center shadow-xs"
+                                        <div class="w-7 h-7 my-1 bg-[#fde047] text-[#121316] border-2 border-[#121316] rounded-md font-mono-code font-black text-sm flex items-center justify-center shadow-xs"
                                              x-text="mol.coeff">
                                         </div>
                                         <button type="button" 
                                                 @click="changeCoeff('reactants', idx, -1)"
                                                 :disabled="isCooldown || victoryModal.show || mol.coeff <= 1"
-                                                class="w-7 h-6 rounded bg-slate-800 hover:bg-slate-700 active:bg-cyan-600 text-white font-black text-xs border border-slate-600 disabled:opacity-30 cursor-pointer flex items-center justify-center transition">
+                                                class="w-7 h-6 rounded bg-slate-100 hover:bg-slate-200 active:bg-cyan-600 active:text-white text-slate-800 font-black text-xs border border-slate-300 disabled:opacity-30 cursor-pointer flex items-center justify-center transition shadow-2xs">
                                             -
                                         </button>
                                     </div>
 
-                                    <!-- Rumus Molekul & Visual Atom -->
+                                    <!-- Rumus Molekul & Visual Atom (Teks Gelap Kontras Tinggi) -->
                                     <div class="flex flex-col items-center pl-1">
-                                        <span class="text-xl sm:text-2xl font-black font-mono-code tracking-wide text-white" x-html="mol.display"></span>
-                                        <span class="text-[9px] text-slate-400 mt-0.5" x-text="mol.name"></span>
+                                        <span class="text-xl sm:text-2xl font-black font-mono-code tracking-wide text-[#121316]" x-html="mol.display"></span>
+                                        <span class="text-[9.5px] text-slate-600 font-bold mt-0.5" x-text="mol.name"></span>
                                         
-                                        <!-- Visualisasi Bola Atom Sederhana -->
-                                        <div class="flex items-center gap-1 mt-1">
+                                        <!-- Visualisasi Bola Atom -->
+                                        <div class="flex items-center gap-1 mt-1.5">
                                             <template x-for="(atomCount, atomName) in mol.atoms" :key="'atom-dot-' + atomName">
                                                 <div class="flex items-center gap-0.5">
-                                                    <span class="w-3 h-3 rounded-full border border-slate-950 flex items-center justify-center text-[7px] font-black"
-                                                          :style="'background:' + getAtomColor(atomName) + '; color:' + (atomName === 'H' ? '#0f172a' : '#ffffff')"
+                                                    <span class="w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center text-[8px] font-black shadow-xs"
+                                                          :style="'background:' + getAtomColor(atomName) + '; color:' + getAtomTextColor(atomName)"
                                                           x-text="atomName"></span>
-                                                    <span class="text-[8px] text-slate-400 font-mono-code" x-text="'×' + (atomCount * mol.coeff)"></span>
+                                                    <span class="text-[9px] text-slate-700 font-black font-mono-code" x-text="'×' + (atomCount * mol.coeff)"></span>
                                                 </div>
                                             </template>
                                         </div>
@@ -247,61 +240,61 @@
                     </div>
 
                     <!-- SIMBOL REAKSI: PANAH TRANSISI (➔) & STATUS NERACA -->
-                    <div class="flex flex-col items-center justify-center px-2">
+                    <div class="flex flex-col items-center justify-center px-1">
                         <div class="w-12 h-12 rounded-full border-2 flex items-center justify-center text-xl transition-all shadow-md"
-                             :class="isBalanced ? 'bg-emerald-500 text-slate-950 border-emerald-400 animate-bounce' : 'bg-slate-800 text-cyan-400 border-slate-700'">
+                             :class="isBalanced ? 'bg-emerald-500 text-white border-emerald-600 animate-bounce' : 'bg-slate-100 text-teal-800 border-slate-300'">
                             <i class="fa-solid" :class="isBalanced ? 'fa-check' : 'fa-arrow-right'"></i>
                         </div>
                         <span class="text-[9.5px] font-mono-code font-black mt-1"
-                              :class="isBalanced ? 'text-emerald-400' : 'text-slate-400'"
+                              :class="isBalanced ? 'text-emerald-800' : 'text-slate-600'"
                               x-text="isBalanced ? 'SETARA ✓' : 'BEREAKSI'"></span>
                     </div>
 
                     <!-- RUAS KANAN: PRODUK (PRODUCTS) -->
-                    <div class="flex-1 w-full bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-                        <div class="flex items-center justify-between mb-3 pb-1 border-b border-slate-800">
-                            <span class="text-xs font-black text-emerald-400 font-mono-code flex items-center gap-1">
-                                <i class="fa-solid fa-flask-vial text-emerald-400"></i> RUAS KANAN (PRODUK)
+                    <div class="flex-1 w-full bg-emerald-50/70 p-3 rounded-xl border-2 border-emerald-200">
+                        <div class="flex items-center justify-between mb-3 pb-1.5 border-b border-emerald-200">
+                            <span class="text-xs font-black text-emerald-950 font-mono-code flex items-center gap-1">
+                                <i class="fa-solid fa-flask-vial text-emerald-700"></i> RUAS KANAN (PRODUK)
                             </span>
-                            <span class="text-[9.5px] text-slate-400">Hasil Akhir Reaksi</span>
+                            <span class="text-[9.5px] text-slate-600 font-bold">Hasil Akhir Reaksi</span>
                         </div>
 
                         <!-- Daftar Molekul Produk -->
                         <div class="flex flex-wrap items-center justify-around gap-3">
                             <template x-for="(mol, idx) in currentReaction.products" :key="'prod-' + idx">
-                                <div class="flex items-center gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-700 shadow-sm">
-                                    <!-- Stepper Koefisien -->
+                                <div class="flex items-center gap-2 bg-white p-2.5 rounded-xl border-2 border-slate-300 shadow-sm">
+                                    <!-- Stepper Koefisien Taktil -->
                                     <div class="flex flex-col items-center">
                                         <button type="button" 
                                                 @click="changeCoeff('products', idx, 1)"
                                                 :disabled="isCooldown || victoryModal.show || mol.coeff >= 8"
-                                                class="w-7 h-6 rounded bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white font-black text-xs border border-slate-600 disabled:opacity-30 cursor-pointer flex items-center justify-center transition">
+                                                class="w-7 h-6 rounded bg-slate-100 hover:bg-slate-200 active:bg-emerald-600 active:text-white text-slate-800 font-black text-xs border border-slate-300 disabled:opacity-30 cursor-pointer flex items-center justify-center transition shadow-2xs">
                                             +
                                         </button>
-                                        <div class="w-7 h-7 my-1 bg-[#fde047] text-[#121316] border border-[#121316] rounded-md font-mono-code font-black text-sm flex items-center justify-center shadow-xs"
+                                        <div class="w-7 h-7 my-1 bg-[#fde047] text-[#121316] border-2 border-[#121316] rounded-md font-mono-code font-black text-sm flex items-center justify-center shadow-xs"
                                              x-text="mol.coeff">
                                         </div>
                                         <button type="button" 
                                                 @click="changeCoeff('products', idx, -1)"
                                                 :disabled="isCooldown || victoryModal.show || mol.coeff <= 1"
-                                                class="w-7 h-6 rounded bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white font-black text-xs border border-slate-600 disabled:opacity-30 cursor-pointer flex items-center justify-center transition">
+                                                class="w-7 h-6 rounded bg-slate-100 hover:bg-slate-200 active:bg-emerald-600 active:text-white text-slate-800 font-black text-xs border border-slate-300 disabled:opacity-30 cursor-pointer flex items-center justify-center transition shadow-2xs">
                                             -
                                         </button>
                                     </div>
 
                                     <!-- Rumus Molekul & Visual Atom -->
                                     <div class="flex flex-col items-center pl-1">
-                                        <span class="text-xl sm:text-2xl font-black font-mono-code tracking-wide text-white" x-html="mol.display"></span>
-                                        <span class="text-[9px] text-slate-400 mt-0.5" x-text="mol.name"></span>
+                                        <span class="text-xl sm:text-2xl font-black font-mono-code tracking-wide text-[#121316]" x-html="mol.display"></span>
+                                        <span class="text-[9.5px] text-slate-600 font-bold mt-0.5" x-text="mol.name"></span>
                                         
-                                        <!-- Visualisasi Bola Atom Sederhana -->
-                                        <div class="flex items-center gap-1 mt-1">
+                                        <!-- Visualisasi Bola Atom -->
+                                        <div class="flex items-center gap-1 mt-1.5">
                                             <template x-for="(atomCount, atomName) in mol.atoms" :key="'atom-dot-p-' + atomName">
                                                 <div class="flex items-center gap-0.5">
-                                                    <span class="w-3 h-3 rounded-full border border-slate-950 flex items-center justify-center text-[7px] font-black"
-                                                          :style="'background:' + getAtomColor(atomName) + '; color:' + (atomName === 'H' ? '#0f172a' : '#ffffff')"
+                                                    <span class="w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center text-[8px] font-black shadow-xs"
+                                                          :style="'background:' + getAtomColor(atomName) + '; color:' + getAtomTextColor(atomName)"
                                                           x-text="atomName"></span>
-                                                    <span class="text-[8px] text-slate-400 font-mono-code" x-text="'×' + (atomCount * mol.coeff)"></span>
+                                                    <span class="text-[9px] text-slate-700 font-black font-mono-code" x-text="'×' + (atomCount * mol.coeff)"></span>
                                                 </div>
                                             </template>
                                         </div>
@@ -320,13 +313,13 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- TIMBANGAN NERACA KIMIA (CHEMICAL BALANCE BEAM)                   -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div class="relative z-10 my-3 p-3 bg-slate-900/90 border-2 border-slate-700 rounded-2xl">
-            <div class="flex items-center justify-between mb-2 pb-1 border-b border-slate-800">
-                <span class="text-xs font-black text-amber-300 font-mono-code flex items-center gap-1">
-                    <i class="fa-solid fa-scale-unbalanced text-amber-400"></i> NERACA MASSA ATOM
+        <div class="relative z-10 my-3 p-3 bg-white border-2 border-[#121316] rounded-2xl shadow-[2px_2px_0px_#121316]">
+            <div class="flex items-center justify-between mb-2 pb-1 border-b border-slate-200">
+                <span class="text-xs font-black text-amber-950 font-mono-code flex items-center gap-1">
+                    <i class="fa-solid fa-scale-unbalanced text-amber-700"></i> NERACA MASSA ATOM
                 </span>
-                <span class="text-[10px] font-mono-code"
-                      :class="isBalanced ? 'text-emerald-400 font-bold' : 'text-slate-400'">
+                <span class="text-[10px] font-mono-code font-bold"
+                      :class="isBalanced ? 'text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300' : 'text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300'">
                     <span x-text="isBalanced ? '✨ NERACA TEPAT SEIMBANG (0°)' : (scaleAngle < 0 ? '◀ Berat di Reaktan (Kiri)' : 'Berat di Produk (Kanan) ▶')"></span>
                 </span>
             </div>
@@ -338,26 +331,26 @@
                 <div class="relative w-full max-w-md h-16 flex items-center justify-center">
                     
                     <!-- Lengan Neraca (Beam) yang miring dinamis -->
-                    <div class="w-full h-2.5 rounded-full border-2 border-slate-950 transition-transform duration-500 ease-out flex items-center justify-between px-2 relative"
-                         :style="'transform: rotate(' + scaleAngle + 'deg); background: ' + (isBalanced ? '#10b981' : '#f59e0b') + '; box-shadow: ' + (isBalanced ? '0 0 15px #10b981' : 'none')">
+                    <div class="w-full h-2.5 rounded-full border-2 border-[#121316] transition-transform duration-500 ease-out flex items-center justify-between px-2 relative"
+                         :style="'transform: rotate(' + scaleAngle + 'deg); background: ' + (isBalanced ? '#10b981' : '#f59e0b') + '; box-shadow: ' + (isBalanced ? '0 0 15px rgba(16, 185, 129, 0.6)' : 'none')">
                         
                         <!-- Piringan Kiri (Reaktan) -->
                         <div class="absolute -left-2 top-2 flex flex-col items-center">
-                            <div class="w-0.5 h-6 bg-slate-400"></div>
-                            <div class="w-16 h-4 rounded-b-xl border-2 border-slate-950 flex items-center justify-center text-[9px] font-mono-code font-black"
-                                 :class="isBalanced ? 'bg-emerald-400 text-slate-950' : 'bg-slate-700 text-white'">
+                            <div class="w-0.5 h-6 bg-slate-500"></div>
+                            <div class="w-16 h-4.5 rounded-b-xl border-2 border-[#121316] flex items-center justify-center text-[9px] font-mono-code font-black shadow-xs"
+                                 :class="isBalanced ? 'bg-emerald-400 text-slate-950' : 'bg-slate-100 text-slate-900'">
                                 <span x-text="totalReactantAtoms + ' Atom'"></span>
                             </div>
                         </div>
 
                         <!-- Jarum Penunjuk Tengah -->
-                        <div class="w-1 h-6 bg-rose-500 rounded-full mx-auto absolute left-1/2 -top-4 -translate-x-1/2"></div>
+                        <div class="w-1 h-6 bg-rose-600 rounded-full mx-auto absolute left-1/2 -top-4 -translate-x-1/2 border border-rose-800"></div>
 
                         <!-- Piringan Kanan (Produk) -->
                         <div class="absolute -right-2 top-2 flex flex-col items-center">
-                            <div class="w-0.5 h-6 bg-slate-400"></div>
-                            <div class="w-16 h-4 rounded-b-xl border-2 border-slate-950 flex items-center justify-center text-[9px] font-mono-code font-black"
-                                 :class="isBalanced ? 'bg-emerald-400 text-slate-950' : 'bg-slate-700 text-white'">
+                            <div class="w-0.5 h-6 bg-slate-500"></div>
+                            <div class="w-16 h-4.5 rounded-b-xl border-2 border-[#121316] flex items-center justify-center text-[9px] font-mono-code font-black shadow-xs"
+                                 :class="isBalanced ? 'bg-emerald-400 text-slate-950' : 'bg-slate-100 text-slate-900'">
                                 <span x-text="totalProductAtoms + ' Atom'"></span>
                             </div>
                         </div>
@@ -366,40 +359,40 @@
 
                     <!-- Dudukan Neraca (Stand) -->
                     <div class="absolute bottom-0 w-8 h-8 border-l-4 border-r-4 border-b-8 border-slate-700 rounded-t-lg z-0"></div>
-                    <div class="absolute bottom-0 w-16 h-2 bg-slate-600 rounded-full"></div>
+                    <div class="absolute bottom-0 w-16 h-2 bg-slate-800 rounded-full"></div>
                 </div>
 
             </div>
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <!-- TABEL KOMPARASI JUMLAH ATOM REAL-TIME                           -->
+        <!-- TABEL KOMPARASI JUMLAH ATOM REAL-TIME (KONTRAS TINGGI)          -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             <template x-for="(stat, atomSymbol) in atomStats" :key="'stat-' + atomSymbol">
-                <div class="p-2.5 rounded-xl border-2 transition-all flex items-center justify-between"
-                     :class="stat.left === stat.right ? 'bg-emerald-950/40 border-emerald-500/80' : 'bg-slate-900 border-slate-800'">
+                <div class="p-2.5 rounded-xl border-2 transition-all flex items-center justify-between shadow-xs"
+                     :class="stat.left === stat.right ? 'bg-emerald-50 border-emerald-500 text-emerald-950' : 'bg-white border-slate-300 text-slate-900'">
                     
                     <!-- Simbol & Nama Unsur -->
                     <div class="flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-lg border-2 border-slate-950 flex items-center justify-center text-xs font-black"
-                              :style="'background:' + getAtomColor(atomSymbol) + '; color:' + (atomSymbol === 'H' ? '#0f172a' : '#ffffff')"
+                        <span class="w-8 h-8 rounded-lg border-2 border-slate-900 flex items-center justify-center text-xs font-black shadow-xs"
+                              :style="'background:' + getAtomColor(atomSymbol) + '; color:' + getAtomTextColor(atomSymbol)"
                               x-text="atomSymbol"></span>
                         <div>
-                            <span class="text-xs font-black font-mono-code block text-white" x-text="getAtomFullName(atomSymbol)"></span>
-                            <span class="text-[9.5px] text-slate-400" x-text="'Unsur ' + atomSymbol"></span>
+                            <span class="text-xs font-black font-mono-code block text-[#121316]" x-text="getAtomFullName(atomSymbol)"></span>
+                            <span class="text-[9.5px] text-slate-600 font-bold" x-text="'Unsur ' + atomSymbol"></span>
                         </div>
                     </div>
 
                     <!-- Jumlah Kiri vs Kanan -->
                     <div class="text-right">
-                        <div class="text-xs font-mono-code font-black">
-                            <span :class="stat.left === stat.right ? 'text-emerald-400' : 'text-cyan-400'" x-text="stat.left"></span>
-                            <span class="text-slate-500 mx-0.5">:</span>
-                            <span :class="stat.left === stat.right ? 'text-emerald-400' : 'text-amber-400'" x-text="stat.right"></span>
+                        <div class="text-xs font-mono-code font-black text-[#121316]">
+                            <span :class="stat.left === stat.right ? 'text-emerald-800' : 'text-cyan-800'" x-text="stat.left"></span>
+                            <span class="text-slate-400 mx-0.5">:</span>
+                            <span :class="stat.left === stat.right ? 'text-emerald-800' : 'text-amber-800'" x-text="stat.right"></span>
                         </div>
-                        <span class="text-[9px] font-mono-code font-black px-1.5 py-0.2 rounded"
-                              :class="stat.left === stat.right ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'"
+                        <span class="text-[9px] font-mono-code font-black px-1.5 py-0.2 rounded border"
+                              :class="stat.left === stat.right ? 'bg-emerald-100 text-emerald-900 border-emerald-400' : 'bg-rose-100 text-rose-900 border-rose-300'"
                               x-text="stat.left === stat.right ? '✓ SETARA' : (stat.left > stat.right ? 'Kurang ' + (stat.left - stat.right) + ' Kanan' : 'Kurang ' + (stat.right - stat.left) + ' Kiri')">
                         </span>
                     </div>
@@ -411,15 +404,15 @@
     </div>
 
     <!-- Footer Tips Teori Kimia -->
-    <div class="mt-2 p-2 bg-teal-50/70 border border-teal-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-teal-900 font-mono-code">
+    <div class="mt-2 p-2 bg-teal-50 border border-teal-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-teal-950 font-mono-code">
         <div class="flex items-center gap-1.5">
             <span class="text-xs">💡</span>
             <span class="font-bold">Hukum Kekekalan Massa (Antoine Lavoisier, 1789):</span>
-            <span class="bg-white px-1.5 py-0.2 rounded border border-teal-300 font-black text-teal-950">
+            <span class="bg-white px-1.5 py-0.2 rounded border border-teal-300 font-black text-teal-950 shadow-2xs">
                 Massa zat sebelum reaksi SAMA DENGAN massa zat sesudah reaksi.
             </span>
         </div>
-        <div class="text-[10px] text-teal-700 hidden sm:block">
+        <div class="text-[10px] text-teal-800 font-bold hidden sm:block">
             Dalam reaksi kimia, atom tidak diciptakan atau dimusnahkan, hanya diatur ulang!
         </div>
     </div>
@@ -443,16 +436,16 @@
             <div class="p-3.5 space-y-2.5 overflow-y-auto font-mono-code text-xs text-slate-800">
                 <div class="space-y-2 text-[11px]">
                     <div class="p-2.5 rounded-xl bg-teal-50 border border-teal-200">
-                        <span class="font-black text-teal-900 block mb-1">1. Aturan Koefisien vs Indeks Subscript</span>
-                        <p class="text-[10.5px] text-slate-700">
+                        <span class="font-black text-teal-950 block mb-1">1. Aturan Koefisien vs Indeks Subscript</span>
+                        <p class="text-[10.5px] text-slate-800">
                             • <b>Koefisien (Angka Depan):</b> Angka yang boleh kita ubah (misal: <b>2</b>H₂O artinya ada 2 molekul air).<br>
                             • <b>Indeks (Angka Kecil):</b> <b>DILARANG</b> diubah karena mengubah jenis zat (H₂O adalah air, sedangkan H₂O₂ adalah racun hidrogen peroksida!).
                         </p>
                     </div>
 
                     <div class="p-2.5 rounded-xl bg-cyan-50 border border-cyan-200">
-                        <span class="font-black text-cyan-900 block mb-1">2. Strategi Cepat Menyetarakan Reaksi</span>
-                        <p class="text-[10.5px] text-slate-700">
+                        <span class="font-black text-cyan-950 block mb-1">2. Strategi Cepat Menyetarakan Reaksi</span>
+                        <p class="text-[10.5px] text-slate-800">
                             <b>Langkah 1:</b> Setarakan terlebih dahulu unsur logam/non-logam utama (selain H dan O, seperti C atau Fe).<br>
                             <b>Langkah 2:</b> Setarakan atom Hidrogen (H).<br>
                             <b>Langkah 3:</b> Terakhir, setarakan atom Oksigen (O).
@@ -460,8 +453,8 @@
                     </div>
 
                     <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-                        <span class="font-black text-amber-900 block mb-1">3. Contoh Reaksi Air</span>
-                        <div class="bg-white p-2 rounded border border-amber-200 text-[10px]">
+                        <span class="font-black text-amber-950 block mb-1">3. Contoh Reaksi Air</span>
+                        <div class="bg-white p-2 rounded border border-amber-200 text-[10px] text-slate-800">
                             Reaksi belum setara: H₂ + O₂ ➔ H₂O (Atom O kiri 2, kanan cuma 1)<br>
                             Reaksi setara: <b class="text-emerald-700">2 H₂ + 1 O₂ ➔ 2 H₂O</b><br>
                             Total H: 4 di kiri, 4 di kanan. Total O: 2 di kiri, 2 di kanan ✓
@@ -483,14 +476,14 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <div x-show="victoryModal.show" class="fixed inset-0 z-[130] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs" style="display: none;">
         <div class="bg-white border-3 border-[#121316] rounded-2xl w-full max-w-sm overflow-hidden shadow-[6px_6px_0px_#121316] p-4 text-center animate-bounce-short">
-            <div class="w-16 h-16 rounded-full bg-teal-100 border-2 border-teal-500 text-teal-600 flex items-center justify-center mx-auto mb-2 text-2xl shadow-md">
+            <div class="w-16 h-16 rounded-full bg-teal-100 border-2 border-teal-500 text-teal-700 flex items-center justify-center mx-auto mb-2 text-2xl shadow-md">
                 <i class="fa-solid fa-flask-vial animate-pulse"></i>
             </div>
 
             <h3 class="text-base font-black text-[#121316]">REAKSI KIMIA BERHASIL DISETARAKAN!</h3>
-            <p class="text-xs text-slate-600 mt-0.5">Hukum Kekekalan Massa Lavoisier terpenuhi dengan sempurna!</p>
+            <p class="text-xs text-slate-700 mt-0.5 font-medium">Hukum Kekekalan Massa Lavoisier terpenuhi dengan sempurna!</p>
 
-            <div class="my-3 py-2 px-3 bg-teal-50 rounded-xl border border-teal-300">
+            <div class="my-3 py-2 px-3 bg-teal-50 rounded-xl border-2 border-teal-300">
                 <!-- Bintang -->
                 <div class="flex items-center justify-center gap-1 text-amber-500 text-lg mb-1">
                     <template x-for="i in victoryModal.stars" :key="'star-' + i">
@@ -502,7 +495,7 @@
                     +<span x-text="victoryModal.points"></span> Poin STEAM Reputasi
                 </div>
                 <!-- Gelar -->
-                <div class="text-[11px] font-bold text-teal-800 mt-1" x-text="victoryModal.rankTitle"></div>
+                <div class="text-[11px] font-bold text-teal-900 mt-1" x-text="victoryModal.rankTitle"></div>
             </div>
 
             <div class="flex gap-2">
@@ -518,9 +511,9 @@
 
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 <!-- SCRIPT ENGINE PENYEIMBANG REAKSI KIMIA (ALPINE.JS)                      -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 <script>
 function chemicalBalanceGame() {
     return {
@@ -594,12 +587,10 @@ function chemicalBalanceGame() {
             return this.currentReaction.optimalMoves;
         },
 
-        // Perhitungan Total Atom Tiap Unsur di Ruas Kiri dan Kanan
         get atomStats() {
             const stats = {};
             const rx = this.currentReaction;
 
-            // Kumpulkan semua unsur unik
             [...rx.reactants, ...rx.products].forEach(mol => {
                 Object.keys(mol.atoms).forEach(atom => {
                     if (!stats[atom]) {
@@ -608,14 +599,12 @@ function chemicalBalanceGame() {
                 });
             });
 
-            // Hitung atom di ruas kiri
             rx.reactants.forEach(mol => {
                 Object.entries(mol.atoms).forEach(([atom, count]) => {
                     stats[atom].left += (count * mol.coeff);
                 });
             });
 
-            // Hitung atom di ruas kanan
             rx.products.forEach(mol => {
                 Object.entries(mol.atoms).forEach(([atom, count]) => {
                     stats[atom].right += (count * mol.coeff);
@@ -625,7 +614,6 @@ function chemicalBalanceGame() {
             return stats;
         },
 
-        // Cek Apakah Seluruh Unsur Sudah Setara
         get isBalanced() {
             const stats = this.atomStats;
             const atoms = Object.keys(stats);
@@ -649,7 +637,6 @@ function chemicalBalanceGame() {
             return total;
         },
 
-        // Sudut Kemiringan Neraca Timbangan (-12deg s.d. +12deg)
         get scaleAngle() {
             if (this.isBalanced) return 0;
             const diff = this.totalProductAtoms - this.totalReactantAtoms;
@@ -671,7 +658,6 @@ function chemicalBalanceGame() {
         },
 
         resetReaction() {
-            // Reset koefisien ke 1
             const rx = this.reactions[this.level];
             rx.reactants.forEach(m => m.coeff = 1);
             rx.products.forEach(m => m.coeff = 1);
@@ -688,7 +674,6 @@ function chemicalBalanceGame() {
 
             if (newCoeff < 1 || newCoeff > 8) return;
 
-            // Simpan snapshot untuk undo
             this.history.push({
                 reactants: this.currentReaction.reactants.map(m => m.coeff),
                 products: this.currentReaction.products.map(m => m.coeff)
@@ -792,13 +777,24 @@ function chemicalBalanceGame() {
 
         getAtomColor(symbol) {
             const colors = {
-                'H': '#38bdf8', // Biru muda langit
-                'O': '#ef4444', // Merah
-                'C': '#475569', // Abu-abu gelap / arang
-                'Fe': '#d97706', // Karat besi / amber
-                'N': '#818cf8'  // Indigo
+                'H': '#bae6fd', // Biru muda cyan
+                'O': '#fecdd3', // Merah muda lembut
+                'C': '#cbd5e1', // Slate abu perak
+                'Fe': '#fde68a', // Amber keemasan
+                'N': '#c7d2fe'  // Indigo pastel
             };
-            return colors[symbol] || '#64748b';
+            return colors[symbol] || '#e2e8f0';
+        },
+
+        getAtomTextColor(symbol) {
+            const textColors = {
+                'H': '#0369a1', // Biru pekat
+                'O': '#9f1239', // Merah tua
+                'C': '#0f172a', // Hitam arang
+                'Fe': '#78350f', // Cokelat tua besi
+                'N': '#3730a3'  // Indigo tua
+            };
+            return textColors[symbol] || '#0f172a';
         },
 
         getAtomFullName(symbol) {
