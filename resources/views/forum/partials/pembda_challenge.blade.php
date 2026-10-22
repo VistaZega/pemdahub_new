@@ -183,73 +183,244 @@
                         PERAHU DI: <span class="text-yellow-300" x-text="boatPosition === 'west' ? 'TEPI BARAT ◄' : '► TEPI TIMUR'"></span>
                     </div>
 
-                    <!-- Area Perahu Bergerak (Animated Boat) -->
+                    <!-- Area Perahu Bergerak (Animated Realistic Boat) -->
                     <div class="my-auto w-full py-2 flex flex-col items-center justify-center relative z-10">
                         
-                        <!-- Wrapper Animasi Perahu -->
-                        <div class="w-full flex transition-all duration-700 ease-in-out px-1 sm:px-2"
+                        <!-- Wrapper Animasi Gerak Perahu Melintasi Sungai -->
+                        <div class="w-full flex transition-all duration-800 ease-in-out px-1 sm:px-2"
                              :class="boatPosition === 'west' ? 'justify-start' : 'justify-end'">
                             
-                            <!-- Bodi Perahu Kayu Neo-Brutalist -->
-                            <div class="w-44 sm:w-52 bg-amber-800 border-2 border-[#121316] rounded-xl p-2 shadow-[2px_3px_0px_#121316] flex flex-col items-center gap-1 transition-transform"
-                                 :class="isMoving ? 'scale-105 animate-pulse' : ''">
+                            <!-- KONTEN PERAHU SAMPAN KAYU REALISTIS 3D & PENUMPANG -->
+                            <div class="w-60 sm:w-68 relative select-none transition-transform"
+                                 :class="isMoving ? 'boat-rowing scale-105' : 'boat-idle'">
                                 
-                                <div class="w-full flex items-center justify-between text-[8px] font-mono-code font-black text-amber-200 px-1">
-                                    <span>KAPASITAS: 2 ORANG</span>
-                                    <span x-text="boatPassengers.length + '/2'"></span>
-                                </div>
+                                <!-- SVG DEFS (Gradien Warna Kayu & Efek Visual) -->
+                                <svg class="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
+                                    <defs>
+                                        <!-- Gradien Interior Lambung Dalam (Gelap & Berkedalaman) -->
+                                        <linearGradient id="boatInnerWoodGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#1f0a02" />
+                                            <stop offset="100%" stop-color="#3d1504" />
+                                        </linearGradient>
 
-                                <!-- Kursi Penumpang di Perahu -->
-                                <div class="grid grid-cols-2 gap-1.5 w-full">
-                                    <!-- Kursi 1 -->
-                                    <div class="h-12 sm:h-13 rounded-lg border-2 border-dashed border-amber-400/60 bg-amber-900/50 flex items-center justify-center relative overflow-hidden">
+                                        <!-- Gradien Papan Kayu Atas & Bibir Perahu (Warm Amber Teak) -->
+                                        <linearGradient id="boatPlankTopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#f59e0b" />
+                                            <stop offset="25%" stop-color="#b45309" />
+                                            <stop offset="100%" stop-color="#78350f" />
+                                        </linearGradient>
+
+                                        <!-- Gradien Papan Kayu Tengah (Mahoni) -->
+                                        <linearGradient id="boatPlankMidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#92400e" />
+                                            <stop offset="100%" stop-color="#5a2206" />
+                                        </linearGradient>
+
+                                        <!-- Gradien Papan Lunas Bawah (Kayu Basah Air Sungai) -->
+                                        <linearGradient id="boatPlankBtmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#5a2206" />
+                                            <stop offset="100%" stop-color="#2a0d01" />
+                                        </linearGradient>
+
+                                        <!-- Highlight Bibir Perahu (Keemasan Cahaya Matahari) -->
+                                        <linearGradient id="boatRimLightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9" />
+                                            <stop offset="50%" stop-color="#fbbf24" stop-opacity="1" />
+                                            <stop offset="100%" stop-color="#fef08a" stop-opacity="0.9" />
+                                        </linearGradient>
+
+                                        <!-- Gradien Batang Kayu Dayung -->
+                                        <linearGradient id="boatOarShaft" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#fef3c7" />
+                                            <stop offset="50%" stop-color="#d97706" />
+                                            <stop offset="100%" stop-color="#92400e" />
+                                        </linearGradient>
+
+                                        <!-- Gradien Daun Dayung Kayu Pipih -->
+                                        <linearGradient id="boatOarBlade" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#b45309" />
+                                            <stop offset="100%" stop-color="#78350f" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+
+                                <!-- LAYER 1: INNER HULL (DINDING DALAM, LANTAI, BANGKU DUDUK, & DAYUNG KAYU) -->
+                                <svg viewBox="0 0 280 115" class="w-full h-auto block filter drop-shadow-sm pointer-events-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Dinding Dalam Belakang Perahu -->
+                                    <path d="M 12 36 Q 140 48 268 36 L 265 43 Q 140 56 15 43 Z" fill="#2d1204" />
+                                    
+                                    <!-- Rongga Lantai Dalam Sampan -->
+                                    <path d="M 15 43 Q 140 56 265 43 L 248 68 Q 140 78 32 68 Z" fill="url(#boatInnerWoodGrad)" />
+                                    
+                                    <!-- Gading-gading Balok Lantai Interior Kayu -->
+                                    <line x1="75" y1="48" x2="75" y2="72" stroke="#150601" stroke-width="2.5" stroke-linecap="round" />
+                                    <line x1="140" y1="52" x2="140" y2="76" stroke="#150601" stroke-width="2.5" stroke-linecap="round" />
+                                    <line x1="205" y1="48" x2="205" y2="72" stroke="#150601" stroke-width="2.5" stroke-linecap="round" />
+                                    
+                                    <!-- Bangku Kayu Penumpang (Thwarts) -->
+                                    <!-- Bangku Kursi 1 (Kiri) -->
+                                    <rect x="52" y="50" width="60" height="7" rx="2" fill="#78350f" stroke="#451a03" stroke-width="1.2" />
+                                    <line x1="54" y1="52" x2="110" y2="52" stroke="#b45309" stroke-width="1" />
+                                    <!-- Bangku Kursi 2 (Kanan) -->
+                                    <rect x="168" y="50" width="60" height="7" rx="2" fill="#78350f" stroke="#451a03" stroke-width="1.2" />
+                                    <line x1="170" y1="52" x2="226" y2="52" stroke="#b45309" stroke-width="1" />
+
+                                    <!-- Dayung Kayu Asli (Oar) yang Menjulur Miring ke Air -->
+                                    <g class="oar-assembly" :class="isMoving ? 'oar-active' : ''">
+                                        <!-- Batang Dayung Panjang -->
+                                        <line x1="142" y1="36" x2="262" y2="92" stroke="url(#boatOarShaft)" stroke-width="4.5" stroke-linecap="round" />
+                                        <!-- Daun Dayung Oval Pipih di Permukaan Air -->
+                                        <ellipse cx="264" cy="94" rx="15" ry="7" transform="rotate(32 264 94)" fill="url(#boatOarBlade)" stroke="#451a03" stroke-width="1.2" />
+                                        <!-- Cincin Pengait Dayung di Bibir Lambung -->
+                                        <circle cx="218" cy="68" r="3.5" fill="#f59e0b" stroke="#78350f" stroke-width="1.5" />
+                                    </g>
+                                </svg>
+
+                                <!-- LAYER 2: PENUMPANG DUDUK DI DALAM PERAHU (MENYATU DI LAMBUNG KAPAL) -->
+                                <div class="absolute inset-0 z-20 pointer-events-none">
+                                    
+                                    <!-- Kursi 1 (Kiri / Depan - Duduk di Bangku 1) -->
+                                    <div class="absolute left-[17%] w-[26%] top-0 bottom-[22px] flex flex-col items-center justify-end pointer-events-auto">
                                         <template x-if="boatPassengers.length > 0">
                                             <button type="button" 
                                                     @click="unboardBoat(0)"
                                                     :disabled="isMoving || isCooldown"
-                                                    class="w-full h-full flex flex-col items-center justify-center bg-white border border-[#121316] rounded-md shadow-2xs hover:bg-rose-50 cursor-pointer p-0.5"
-                                                    title="Ketuk untuk turunkan">
-                                                <span class="text-lg sm:text-xl leading-none" x-text="boatPassengers[0] === 'M' ? '🧙‍♂️' : '👹'"></span>
-                                                <span class="text-[7px] font-mono-code font-black text-slate-700 leading-none mt-0.5" x-text="boatPassengers[0] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
+                                                    class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-1.5 active:translate-y-0"
+                                                    title="Ketuk karakter untuk turunkan ke daratan">
+                                                
+                                                <!-- Badge Aksi Mini di Atas Kepala Karakter -->
+                                                <div class="mb-0.5 px-1.5 py-0.5 rounded-full text-[7.5px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
+                                                     :class="boatPassengers[0] === 'M' ? 'bg-indigo-100 text-indigo-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
+                                                    <span class="group-hover/pax:hidden" x-text="boatPassengers[0] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
+                                                    <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
+                                                </div>
+
+                                                <!-- Karakter Duduk di Lambung (Setengah Badan Menyembul Keluar Perahu) -->
+                                                <div class="passenger-idle-bob transform group-hover/pax:scale-110 transition-transform">
+                                                    <span class="text-3xl sm:text-4xl filter drop-shadow-[0_3px_2px_rgba(0,0,0,0.4)] select-none leading-none block"
+                                                          x-text="boatPassengers[0] === 'M' ? '🧙‍♂️' : '👹'"></span>
+                                                </div>
                                             </button>
                                         </template>
+
                                         <template x-if="boatPassengers.length === 0">
-                                            <span class="text-[8px] font-mono-code text-amber-300/70 font-bold">KOSONG</span>
+                                            <div class="flex flex-col items-center justify-end w-full opacity-60 pb-1 select-none">
+                                                <span class="text-[7.5px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                                    KOSONG
+                                                </span>
+                                            </div>
                                         </template>
                                     </div>
 
-                                    <!-- Kursi 2 -->
-                                    <div class="h-12 sm:h-13 rounded-lg border-2 border-dashed border-amber-400/60 bg-amber-900/50 flex items-center justify-center relative overflow-hidden">
+                                    <!-- Kursi 2 (Kanan / Belakang - Duduk di Bangku 2) -->
+                                    <div class="absolute left-[58%] w-[26%] top-0 bottom-[22px] flex flex-col items-center justify-end pointer-events-auto">
                                         <template x-if="boatPassengers.length > 1">
                                             <button type="button" 
                                                     @click="unboardBoat(1)"
                                                     :disabled="isMoving || isCooldown"
-                                                    class="w-full h-full flex flex-col items-center justify-center bg-white border border-[#121316] rounded-md shadow-2xs hover:bg-rose-50 cursor-pointer p-0.5"
-                                                    title="Ketuk untuk turunkan">
-                                                <span class="text-lg sm:text-xl leading-none" x-text="boatPassengers[1] === 'M' ? '🧙‍♂️' : '👹'"></span>
-                                                <span class="text-[7px] font-mono-code font-black text-slate-700 leading-none mt-0.5" x-text="boatPassengers[1] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
+                                                    class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-1.5 active:translate-y-0"
+                                                    title="Ketuk karakter untuk turunkan ke daratan">
+                                                
+                                                <!-- Badge Aksi Mini di Atas Kepala Karakter -->
+                                                <div class="mb-0.5 px-1.5 py-0.5 rounded-full text-[7.5px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
+                                                     :class="boatPassengers[1] === 'M' ? 'bg-indigo-100 text-indigo-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
+                                                    <span class="group-hover/pax:hidden" x-text="boatPassengers[1] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
+                                                    <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
+                                                </div>
+
+                                                <!-- Karakter Duduk di Lambung (Setengah Badan Menyembul Keluar Perahu) -->
+                                                <div class="passenger-idle-bob transform group-hover/pax:scale-110 transition-transform" style="animation-delay: 0.6s;">
+                                                    <span class="text-3xl sm:text-4xl filter drop-shadow-[0_3px_2px_rgba(0,0,0,0.4)] select-none leading-none block"
+                                                          x-text="boatPassengers[1] === 'M' ? '🧙‍♂️' : '👹'"></span>
+                                                </div>
                                             </button>
                                         </template>
+
                                         <template x-if="boatPassengers.length <= 1">
-                                            <span class="text-[8px] font-mono-code text-amber-300/70 font-bold">KOSONG</span>
+                                            <div class="flex flex-col items-center justify-end w-full opacity-60 pb-1 select-none">
+                                                <span class="text-[7.5px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                                    KOSONG
+                                                </span>
+                                            </div>
                                         </template>
                                     </div>
+
                                 </div>
+
+                                <!-- LAYER 3: OUTER HULL (LAMBUNG LUAR KAYU SAMPAN 3D, PAKU PASAK & PROW POSTS) -->
+                                <svg viewBox="0 0 280 115" class="w-full h-auto absolute inset-0 z-30 pointer-events-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    
+                                    <!-- Bibir Lambung Luar Depan (Gunwale) -->
+                                    <path d="M 8 32 Q 140 50 272 32 L 270 38 Q 140 56 10 38 Z" fill="url(#boatPlankTopGrad)" stroke="#451a03" stroke-width="1.2" />
+                                    <!-- Highlight Garis Kayu Emas Mengilap di Bibir -->
+                                    <path d="M 12 33 Q 140 49 268 33" stroke="url(#boatRimLightGrad)" stroke-width="2" stroke-linecap="round" fill="none" />
+
+                                    <!-- Papan Lambung Lapisan 1 (Upper Lapstrake Plank) -->
+                                    <path d="M 10 38 Q 140 56 270 38 L 262 52 Q 140 69 18 52 Z" fill="url(#boatPlankTopGrad)" stroke="#451a03" stroke-width="1" />
+                                    
+                                    <!-- Pasak Paku Rivet Kayu Kuningan di Sepanjang Lambung -->
+                                    <circle cx="35" cy="43" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
+                                    <circle cx="70" cy="48" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
+                                    <circle cx="105" cy="53" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
+                                    <circle cx="140" cy="55" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
+                                    <circle cx="175" cy="53" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
+                                    <circle cx="210" cy="48" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
+                                    <circle cx="245" cy="43" r="1.6" fill="#fde68a" stroke="#78350f" stroke-width="0.6" />
+
+                                    <!-- Papan Lambung Lapisan 2 (Middle Plank) -->
+                                    <path d="M 18 52 Q 140 69 262 52 L 250 67 Q 140 83 30 67 Z" fill="url(#boatPlankMidGrad)" stroke="#3b1302" stroke-width="1" />
+
+                                    <!-- Papan Lambung Lapisan 3 / Lunas Bawah (Keel Plank) -->
+                                    <path d="M 30 67 Q 140 83 250 67 L 234 79 Q 140 93 46 79 Z" fill="url(#boatPlankBtmGrad)" stroke="#1f0a02" stroke-width="1.2" />
+
+                                    <!-- Haluan Runcing Kiri (Stem Bow Post) & Tali Tambat -->
+                                    <path d="M 8 32 C 4 21 3 13 10 9 C 15 11 13 23 10 38 Z" fill="#78350f" stroke="#270f03" stroke-width="1.2" />
+                                    <circle cx="10" cy="18" r="2.8" fill="none" stroke="#fef08a" stroke-width="1.5" />
+
+                                    <!-- Haluan Runcing Kanan (Stern Post) & Tali Tambat -->
+                                    <path d="M 272 32 C 276 21 277 13 270 9 C 265 11 267 23 270 38 Z" fill="#78350f" stroke="#270f03" stroke-width="1.2" />
+                                    <circle cx="270" cy="18" r="2.8" fill="none" stroke="#fef08a" stroke-width="1.5" />
+                                    
+                                    <!-- Ukiran Lambang Tradisional di Tengah Lambung -->
+                                    <path d="M 134 68 L 140 62 L 146 68 L 140 74 Z" fill="#b45309" stroke="#fde68a" stroke-width="0.8" />
+                                </svg>
+
+                                <!-- LAYER 4: RIANG AIR & OMBAK GELOMBANG SUNGAI DI BAWAH PERAHU -->
+                                <svg viewBox="0 0 280 115" class="w-full h-auto absolute inset-0 z-10 pointer-events-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Bayangan Perahu di Dalam Air Sungai -->
+                                    <ellipse cx="140" cy="91" rx="108" ry="8" fill="rgba(3, 105, 161, 0.45)" />
+                                    
+                                    <!-- Riak Air Gelombang Putih di Lunas -->
+                                    <path d="M 36 86 Q 140 98 244 86" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" stroke-linecap="round" fill="none" class="water-wake-anim" />
+                                    <path d="M 62 93 Q 140 103 218 93" stroke="rgba(255,255,255,0.5)" stroke-width="1.8" stroke-linecap="round" fill="none" class="water-wake-anim" style="animation-delay: 0.5s;" />
+                                    <!-- Percikan Buih Air di Belakang Dayung -->
+                                    <circle cx="265" cy="95" r="2.5" fill="rgba(255,255,255,0.8)" class="animate-ping" style="animation-duration: 2s;" />
+                                </svg>
+
+                            </div>
+                        </div>
+
+                        <!-- Status Kapasitas Perahu -->
+                        <div class="mt-2 flex items-center justify-center gap-1.5 z-10">
+                            <div class="text-[9px] font-mono-code font-black px-2.5 py-0.5 rounded-full bg-[#121316] text-amber-200 border border-amber-400/40 shadow-xs flex items-center gap-1.5">
+                                <span>KAPASITAS: 2 ORANG</span>
+                                <span class="text-amber-400">•</span>
+                                <span class="text-white" x-text="boatPassengers.length + '/2 TERISI'"></span>
                             </div>
                         </div>
 
                         <!-- Tombol Eksekusi: DAYUNG PERAHU (Utuh & Terlihat Jelas) -->
-                        <div class="mt-2.5 flex flex-col items-center gap-1 w-full">
+                        <div class="mt-2 flex flex-col items-center gap-1 w-full">
                             <button type="button" 
                                     @click="rowBoat()"
                                     :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
                                     class="w-full sm:w-auto px-5 py-2 rounded-xl text-xs sm:text-sm font-black border-2 border-[#121316] shadow-[2px_2px_0px_#121316] transition-all flex items-center justify-center gap-1.5"
                                     :class="boatPassengers.length > 0 && !isMoving && !isCooldown ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-200 text-slate-400 border-slate-400 cursor-not-allowed shadow-none'">
                                 <span class="text-sm">⛵</span>
-                                <span x-text="isMoving ? 'Menyeberang...' : (boatPosition === 'west' ? 'DAYUNG KE TIMUR ►' : '◄ DAYUNG KE BARAT')"></span>
+                                <span x-text="isMoving ? 'Sedang Menyeberang Arus...' : (boatPosition === 'west' ? 'DAYUNG KE TIMUR ►' : '◄ DAYUNG KE BARAT')"></span>
                             </button>
                             <span class="text-[9px] font-mono-code font-bold text-slate-800" x-show="boatPassengers.length === 0">
-                                ⚠️ Minimal 1 pendayung di perahu
+                                ⚠️ Naikkan minimal 1 orang ke perahu untuk mendayung
                             </span>
                         </div>
                     </div>
@@ -444,6 +615,97 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- GAYA KHUSUS & ANIMASI PERAHU REALISTIS & GERAKAN GELOMBANG AIR        -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<style>
+/* Animasi Mengapung Halus Perahu di Air (Gentle Idle Floating) */
+@keyframes boatGentleBob {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    30% {
+        transform: translateY(-3.5px) rotate(-0.8deg);
+    }
+    60% {
+        transform: translateY(1.5px) rotate(0.6deg);
+    }
+    85% {
+        transform: translateY(-1.5px) rotate(0.9deg);
+    }
+}
+
+/* Animasi Mendayung saat Perahu Bergerak Menyeberang */
+@keyframes boatRowingMotion {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg) scale(1.02);
+    }
+    25% {
+        transform: translateY(-5px) rotate(-2deg) scale(1.04);
+    }
+    50% {
+        transform: translateY(2px) rotate(1.5deg) scale(1.03);
+    }
+    75% {
+        transform: translateY(-4px) rotate(-1deg) scale(1.04);
+    }
+}
+
+/* Animasi Ayunan Dayung Kayu saat Berlayar */
+@keyframes oarRowingCycle {
+    0%, 100% {
+        transform: rotate(0deg);
+        transform-origin: 55% 45%;
+    }
+    50% {
+        transform: rotate(-16deg) translateY(-2px);
+        transform-origin: 55% 45%;
+    }
+}
+
+/* Animasi Riak Air Sungai Bawah Perahu */
+@keyframes waterWakePulsing {
+    0%, 100% {
+        transform: scaleX(0.96) scaleY(0.9);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scaleX(1.08) scaleY(1.25);
+        opacity: 0.95;
+    }
+}
+
+/* Animasi Napas Karakter di Perahu */
+@keyframes passengerBobbing {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-2.5px);
+    }
+}
+
+.boat-idle {
+    animation: boatGentleBob 3.6s ease-in-out infinite;
+}
+
+.boat-rowing {
+    animation: boatRowingMotion 0.8s ease-in-out infinite;
+}
+
+.oar-active {
+    animation: oarRowingCycle 0.8s ease-in-out infinite;
+}
+
+.water-wake-anim {
+    animation: waterWakePulsing 2.2s ease-in-out infinite;
+}
+
+.passenger-idle-bob {
+    animation: passengerBobbing 2.4s ease-in-out infinite;
+}
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- SCRIPT ENGINE LOGIKA PEMBDACHALLENGE (ALPINE.JS & TOUCH HANDLING)     -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <script>
@@ -610,14 +872,14 @@ function pembdaChallenge() {
             this.isMoving = true;
             this.moves++;
 
-            // Animasi perahu berlayar selama 700ms
+            // Animasi perahu berlayar selama 800ms
             setTimeout(() => {
                 this.boatPosition = this.boatPosition === 'west' ? 'east' : 'west';
                 this.isMoving = false;
 
                 // Evaluasi kondisi bahaya di kedua tepi sungai
                 this.evaluateBankSafety();
-            }, 700);
+            }, 800);
         },
 
         // Evaluasi apakah jumlah Kanibal > Misionaris di salah satu tepi
