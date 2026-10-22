@@ -528,7 +528,7 @@
         </div>
 
         <!-- MAIN FEED (Center) -->
-        <div id="forum-main-feed" class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-3.5 sm:p-5 lg:p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
+        <div id="forum-main-feed" class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-2.5 sm:p-4 lg:p-5 {{ request('view') === 'challenge' ? 'min-h-[85vh] overflow-visible' : 'max-h-[85vh] overflow-y-auto no-scrollbar' }}">
             
             <!-- QUICK DOCK: TOMBOL BUKA/TUTUP SIDEBAR (MUNCUL JIKA SIDEBAR DITUTUP ATAU MODE GAME) -->
             <div class="mb-3 flex items-center justify-between gap-2 z-10 select-none" x-show="!leftSidebarOpen || !rightSidebarOpen || '{{ request('view') }}' === 'challenge'">
@@ -1306,7 +1306,7 @@
 
         <!-- SIDEBAR WIDGETS (Right) - Bisa Buka/Tutup -->
         <div x-show="rightSidebarOpen"
-             :class="rightSidebarOpen ? 'xl:flex' : 'hidden'"
+             :class="rightSidebarOpen ? 'xl:flex' : '!hidden'"
              class="hidden flex-col w-72 flex-shrink-0 bg-white border-l-2 border-[#121316] max-h-[85vh] overflow-hidden forum-right-sidebar transition-all duration-300 relative">
             <!-- Pinned Top User Profile Card -->
             <div class="p-3 sm:p-4 bg-white border-b-2 border-[#121316] shrink-0">
