@@ -464,9 +464,9 @@
                 <!-- Stats Footer -->
                 <div class="mt-auto pt-3 border-t-2 border-[#121316]/10 pb-1 font-mono-code">
                     <div class="flex justify-between items-center px-1 text-[11px] font-bold text-[#121316]">
-                        <div class="flex items-center gap-1.5" title="Online dalam 15 menit terakhir">
+                        <div class="flex items-center gap-1.5" title="Akun aktif di seluruh sistem PembdaHUB (LMS, CBT, KBM & PembdaSPACE) dalam 10 menit terakhir">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>{{ $onlineCount }} Online</span>
+                            <span>{{ $onlineCount }} Online di PembdaHUB</span>
                         </div>
                         <div class="px-2 py-0.5 bg-[#faf8f5] border border-[#121316] rounded-md font-black">{{ $totalThreads }} Topik</div>
                     </div>
@@ -581,9 +581,11 @@
                             
                             <!-- Quick Stats Chips -->
                             <div class="flex items-center gap-2 pt-1 flex-wrap text-[11px] font-mono-code font-bold">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-xs cursor-default" 
+                                      title="Akun aktif di seluruh sistem PembdaHUB (LMS, CBT, KBM & PembdaSPACE) dalam 10 menit terakhir"
+                                      style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
                                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                    <span>{{ $onlineCount }} <span class="text-yellow-300 font-black">Online</span></span>
+                                    <span>{{ $onlineCount }} <span class="text-yellow-300 font-black">Online di PembdaHUB</span></span>
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl shadow-xs" style="background-color: rgba(15, 23, 42, 0.7) !important; color: #ffffff !important; border: 1.5px solid rgba(255, 255, 255, 0.25) !important;">
                                     <i class="fa-solid fa-comments text-yellow-300"></i>

@@ -102,11 +102,26 @@ class ForumController extends Controller
         // Total threads count
         $totalThreads = ForumThread::count();
 
-        // Online users approximation (users active in last 15 min)
+        // Online users approximation across the entire PembdaHUB ecosystem (active in last 10 minutes)
         try {
-            $onlineCount = \App\Models\User::where('last_login_at', '>=', now()->subMinutes(15))->count();
-        } catch (\Exception $e) {
-            $onlineCount = 0;
+            $threshold = now()->subMinutes(10)->timestamp;
+            $onlineCount = (int) \Illuminate\Support\Facades\DB::table('sessions')
+                ->whereNotNull('user_id')
+                ->where('last_activity', '>=', $threshold)
+                ->distinct('user_id')
+                ->count('user_id');
+
+            // Fallback jika database sessions kosong atau session driver non-database
+            if ($onlineCount === 0) {
+                $onlineCount = (int) \App\Models\User::where('last_login', '>=', now()->subMinutes(15))->count();
+            }
+
+            // Jika user yang membuka halaman ini terautentikasi, pastikan minimal 1
+            if ($user && $onlineCount < 1) {
+                $onlineCount = 1;
+            }
+        } catch (\Throwable $e) {
+            $onlineCount = $user ? 1 : 0;
         }
 
         // Fetch Pembda Space Groups for PC Sidebar
