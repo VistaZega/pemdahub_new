@@ -3,9 +3,22 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div id="pembda-challenge"
      class="mb-6 bg-white border-2 border-[#121316] rounded-3xl overflow-hidden shadow-[4px_4px_0px_#121316] scroll-mt-24 transition-all duration-300" 
+     :class="isLandscapeMode ? 'mobile-landscape-active' : ''"
      x-data="pembdaChallenge()" 
      x-init="initGame()"
-     @open-challenge.window="isCollapsed = false">
+     @open-challenge.window="isCollapsed = false"
+     @toggle-mobile-landscape.window="toggleLandscapeMode()">
+
+    <!-- Floating Exit Button khusus saat Mode Landscape Aktif di Mobile -->
+    <div x-show="isLandscapeMode" 
+         class="fixed top-3 right-3 z-[999999] flex items-center gap-2">
+        <button type="button" 
+                @click="toggleLandscapeMode()" 
+                class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs border-2 border-white shadow-xl flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Kembali Normal</span>
+        </button>
+    </div>
 
     <!-- Header Bar -->
     <div class="p-3 sm:p-3.5 border-b-2 border-[#121316] flex flex-wrap justify-between items-center bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-200 cursor-pointer hover:opacity-95 transition" 
@@ -47,6 +60,16 @@
                     </span>
                 </template>
             </div>
+
+            <!-- Tombol Fullscreen Landscape (Khusus Layar HP / Tablet) -->
+            <button type="button" 
+                    @click="toggleLandscapeMode()" 
+                    class="btn-tactile-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1.5 md:hidden"
+                    :class="isLandscapeMode ? 'bg-[#fde047] text-[#121316]' : 'bg-white text-[#121316]'"
+                    title="Putar Arena Game Menjadi Fullscreen Landscape">
+                <i class="fa-solid fa-arrows-rotate text-purple-700"></i>
+                <span class="text-[10px] font-mono-code font-black" x-text="isLandscapeMode ? 'Tutup' : 'Landscape HP'"></span>
+            </button>
 
             <!-- Tombol Toggle Mode Layar Penuh (Tutup/Buka Sidebar Samping) -->
             <button type="button" 
@@ -920,6 +943,28 @@
 <!-- GAYA KHUSUS & ANIMASI PERAHU REALISTIS & GERAKAN GELOMBANG AIR        -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
+/* ── Mode Bioskop Fullscreen Landscape Khusus HP ── */
+@media (max-width: 768px) {
+    #pembda-challenge.mobile-landscape-active {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vh !important;
+        height: 100vw !important;
+        max-height: 100vw !important;
+        transform: rotate(90deg) translateY(-100vw) !important;
+        transform-origin: top left !important;
+        z-index: 99999 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+    }
+}
+
 /* Animasi Mengapung Halus Perahu di Air (Gentle Idle Floating) */
 @keyframes boatGentleBob {
     0%, 100% {
@@ -1065,11 +1110,37 @@ function pembdaChallenge() {
     return {
         isCollapsed: false,
         activeGame: 'hanoi', // 'hanoi' atau 'river'
+        isLandscapeMode: false,
         showRulesModal: false,
         isMoving: false,
         isCooldown: false,
         cooldownSeconds: 0,
         hasWonToday: false,
+
+        toggleLandscapeMode() {
+            this.isLandscapeMode = !this.isLandscapeMode;
+            const el = document.getElementById('pembda-challenge');
+            if (this.isLandscapeMode) {
+                this.isCollapsed = false;
+                if (el && el.requestFullscreen) {
+                    el.requestFullscreen().catch(() => {});
+                } else if (el && el.webkitRequestFullscreen) {
+                    el.webkitRequestFullscreen().catch(() => {});
+                }
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {});
+                }
+            } else {
+                if (document.exitFullscreen && document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen && document.webkitFullscreenElement) {
+                    document.webkitExitFullscreen().catch(() => {});
+                }
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            }
+        },
         
         // Kondisi Permainan
         lives: 3,

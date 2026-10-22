@@ -340,11 +340,11 @@
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
-                   class="px-2.5 py-1.5 bg-[#fde047] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition flex items-center gap-1.5 text-xs font-black shrink-0"
-                   title="Buka PembdaCHALLENGE">
-                    <span>⚡</span>
-                    <span class="text-[10px] font-mono-code font-black whitespace-nowrap">CHALLENGE</span>
-                    <span class="text-[8px] px-1 py-0.2 bg-purple-800 text-white rounded-md font-mono-code font-bold">+50</span>
+                   class="px-2.5 py-1.5 bg-[#fde047] hover:bg-yellow-300 border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition flex items-center gap-1.5 text-xs font-black shrink-0"
+                   title="Buka PembdaCHALLENGE: Game Sains & Logika">
+                    <span class="text-sm">🎮</span>
+                    <span class="text-[10px] font-mono-code font-black whitespace-nowrap">GAMES</span>
+                    <span class="text-[8px] px-1 py-0.2 bg-rose-600 text-white rounded-md font-mono-code font-bold animate-pulse">+50</span>
                 </a>
                 <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
                     <i class="fa-solid fa-bars text-lg"></i>
@@ -572,6 +572,31 @@
                 <!-- Arena Permainan PembdaCHALLENGE Utama (Fokus Penuh pada Layar) -->
                 @include('forum.partials.pembda_challenge')
             @else
+                <!-- Banner Shortcut Game di Atas Feed Forum (Mobile & PC) -->
+                <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
+                   class="mb-4 block p-3 sm:p-3.5 bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-300 border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition group cursor-pointer">
+                    <div class="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-[#121316] text-[#fde047] flex items-center justify-center text-xl font-black shrink-0 shadow-xs group-hover:scale-110 transition-transform">
+                                🏛️
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-xs sm:text-sm font-black text-[#121316]">PembdaCHALLENGE: 🏛️ Menara Hanoi & 🚣 Misionaris</span>
+                                    <span class="text-[8px] font-mono-code font-black px-1.5 py-0.2 rounded-full bg-rose-600 text-white animate-pulse">GAME BARU</span>
+                                </div>
+                                <p class="text-[10px] sm:text-xs font-mono-code font-bold text-slate-800 truncate mt-0.5">
+                                    Uji IQ & logika rekursif matematika untuk mengklaim +50 Poin Reputasi STEAM!
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                            <span class="text-xs font-black text-[#121316] bg-white px-2.5 py-1 rounded-xl border border-[#121316] shadow-2xs group-hover:bg-[#121316] group-hover:text-[#fde047] transition">
+                                Mainkan Game ►
+                            </span>
+                        </div>
+                    </div>
+                </a>
             @if(isset($activeGroup) && $activeGroup)
                 @php
                     $isEkskulGroup = $activeGroup->type === 'extracurricular' || $activeGroup->extracurricular;
@@ -1665,6 +1690,17 @@ async function checkLiveFeedUpdates() {
 
 setInterval(checkLiveFeedUpdates, 12000);
 </script>
+
+<!-- Mobile Floating Action Pill: Buka PembdaCHALLENGE (Selalu Ada di Layar HP) -->
+<a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
+   class="md:hidden fixed bottom-22 right-6 z-40 px-3 py-2 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 border-2 border-[#121316] rounded-2xl flex items-center gap-2 shadow-[3px_3px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer animate-pulse-slow select-none"
+   title="Buka PembdaCHALLENGE: Game Sains & Logika">
+    <span class="text-base">🏛️</span>
+    <div class="flex flex-col text-left leading-none">
+        <span class="text-[11px] font-black text-[#121316] tracking-tight">CHALLENGE</span>
+        <span class="text-[8px] font-mono-code font-bold text-indigo-950">+50 Poin STEAM</span>
+    </div>
+</a>
 
 <!-- Mobile Floating Action Button (Buat Post) -->
 <a href="{{ route('forum.create') }}" 
