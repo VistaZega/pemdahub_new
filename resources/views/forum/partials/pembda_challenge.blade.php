@@ -354,24 +354,24 @@
                     </div>
 
                     <!-- Area Karakter Fisik Berdiri di Rumput Tepi Barat -->
-                    <div class="my-auto w-full flex flex-col items-center justify-center py-2">
-                        <p class="text-[8px] sm:text-[9px] font-mono-code font-bold text-slate-600 mb-2 uppercase tracking-wider text-center">
+                    <div class="my-auto w-full flex flex-col items-center justify-center py-1">
+                        <p class="text-[8px] sm:text-[9px] font-mono-code font-bold text-slate-600 mb-1.5 uppercase tracking-wider text-center">
                             Ketuk untuk naik:
                         </p>
                         
-                        <!-- Grid Karakter Fisik Utuh -->
-                        <div class="flex flex-wrap justify-center items-end gap-1 sm:gap-2 max-w-full">
+                        <!-- Grid Karakter Fisik Utuh: 3 Kolom Simetris (Maksimal 2 Baris) -->
+                        <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full max-w-[170px] mx-auto justify-items-center items-end">
                             <!-- Karakter Misionaris / Ilmuwan Barat -->
                             <template x-for="i in westM" :key="'wm-' + i">
                                 <button type="button" 
                                         @click="boardBoat('M', 'west')"
                                         :disabled="boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        class="w-full flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
                                         title="Misionaris (Ilmuwan) - Ketuk untuk naik perahu">
-                                    <span class="text-[7px] font-mono-code font-black text-indigo-900 bg-white/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-[#fde047]">
+                                    <span class="text-[6.5px] sm:text-[7px] font-mono-code font-black text-indigo-900 bg-white/95 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-[#fde047]">
                                         +NAIK
                                     </span>
-                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 scholar-figure">
+                                    <svg viewBox="0 0 54 86" class="w-7 sm:w-9 h-12 sm:h-15 scholar-figure">
                                         <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
                                     </svg>
                                 </button>
@@ -382,24 +382,24 @@
                                 <button type="button" 
                                         @click="boardBoat('C', 'west')"
                                         :disabled="boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        class="w-full flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
                                         title="Kanibal (Prajurit Rimba) - Ketuk untuk naik perahu">
-                                    <span class="text-[7px] font-mono-code font-black text-amber-900 bg-amber-100/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-[#fde047]">
+                                    <span class="text-[6.5px] sm:text-[7px] font-mono-code font-black text-amber-900 bg-amber-100/95 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-[#fde047]">
                                         +NAIK
                                     </span>
-                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 tribal-figure">
+                                    <svg viewBox="0 0 54 86" class="w-7 sm:w-9 h-12 sm:h-15 tribal-figure">
                                         <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
                                     </svg>
                                 </button>
                             </template>
-
-                            <!-- Jika Kosong -->
-                            <template x-if="westM === 0 && westC === 0">
-                                <div class="text-center py-6 text-[10px] font-mono-code text-slate-500 font-bold italic">
-                                    Tepi Barat Kosong ✓
-                                </div>
-                            </template>
                         </div>
+
+                        <!-- Jika Kosong -->
+                        <template x-if="westM === 0 && westC === 0">
+                            <div class="text-center py-6 text-[10px] font-mono-code text-slate-500 font-bold italic">
+                                Tepi Barat Kosong ✓
+                            </div>
+                        </template>
                     </div>
 
                     <!-- Dermaga Kayu Barat Menjorok ke Air -->
@@ -465,7 +465,7 @@
                                 <div class="absolute inset-0 z-20 pointer-events-none">
                                     
                                     <!-- Kursi 1 (Kiri / Depan - Duduk di Bangku 1) -->
-                                    <div class="absolute left-[16%] w-[28%] top-0 bottom-[18px] flex flex-col items-center justify-end pointer-events-auto">
+                                    <div style="position: absolute; left: 16%; width: 30%; top: 0; bottom: 32px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
                                         <template x-if="boatPassengers.length > 0">
                                             <button type="button" 
                                                     @click="unboardBoat(0)"
@@ -479,26 +479,32 @@
                                                     <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
                                                 </div>
                                                 <!-- Sosok Fisik Karakter di Dalam Perahu -->
-                                                <div class="transform group-hover/pax:scale-105 transition-transform"
-                                                     :class="boatPassengers[0] === 'M' ? 'scholar-figure' : 'tribal-figure'">
-                                                    <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20">
-                                                        <use :href="boatPassengers[0] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" />
-                                                    </svg>
+                                                <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center">
+                                                    <template x-if="boatPassengers[0] === 'M'">
+                                                        <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20 scholar-figure">
+                                                            <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="boatPassengers[0] === 'C'">
+                                                        <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20 tribal-figure">
+                                                            <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
+                                                        </svg>
+                                                    </template>
                                                 </div>
                                             </button>
                                         </template>
 
                                         <template x-if="boatPassengers.length === 0">
-                                            <div class="flex flex-col items-center justify-end w-full opacity-60 pb-1 select-none">
-                                                <span class="text-[7px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1 py-0.5 rounded border border-amber-500/30">
-                                                    KOSONG
+                                            <div class="flex flex-col items-center justify-end w-full opacity-70 pb-1 select-none pointer-events-none">
+                                                <span class="text-[7.5px] font-mono-code font-bold text-amber-900 bg-amber-200/90 px-1.5 py-0.5 rounded border border-amber-600/40 shadow-xs">
+                                                    Bangku 1
                                                 </span>
                                             </div>
                                         </template>
                                     </div>
 
                                     <!-- Kursi 2 (Kanan / Belakang - Duduk di Bangku 2) -->
-                                    <div class="absolute left-[56%] w-[28%] top-0 bottom-[18px] flex flex-col items-center justify-end pointer-events-auto">
+                                    <div style="position: absolute; left: 54%; width: 30%; top: 0; bottom: 32px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
                                         <template x-if="boatPassengers.length > 1">
                                             <button type="button" 
                                                     @click="unboardBoat(1)"
@@ -512,19 +518,25 @@
                                                     <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
                                                 </div>
                                                 <!-- Sosok Fisik Karakter di Dalam Perahu -->
-                                                <div class="transform group-hover/pax:scale-105 transition-transform"
-                                                     :class="boatPassengers[1] === 'M' ? 'scholar-figure' : 'tribal-figure'">
-                                                    <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20">
-                                                        <use :href="boatPassengers[1] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" />
-                                                    </svg>
+                                                <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center">
+                                                    <template x-if="boatPassengers[1] === 'M'">
+                                                        <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20 scholar-figure">
+                                                            <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="boatPassengers[1] === 'C'">
+                                                        <svg viewBox="0 0 54 86" class="w-10 sm:w-12 h-16 sm:h-20 tribal-figure">
+                                                            <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
+                                                        </svg>
+                                                    </template>
                                                 </div>
                                             </button>
                                         </template>
 
                                         <template x-if="boatPassengers.length <= 1">
-                                            <div class="flex flex-col items-center justify-end w-full opacity-60 pb-1 select-none">
-                                                <span class="text-[7px] font-mono-code font-extrabold text-amber-200 bg-amber-950/70 px-1 py-0.5 rounded border border-amber-500/30">
-                                                    KOSONG
+                                            <div class="flex flex-col items-center justify-end w-full opacity-70 pb-1 select-none pointer-events-none">
+                                                <span class="text-[7.5px] font-mono-code font-bold text-amber-900 bg-amber-200/90 px-1.5 py-0.5 rounded border border-amber-600/40 shadow-xs">
+                                                    Bangku 2
                                                 </span>
                                             </div>
                                         </template>
@@ -592,24 +604,24 @@
                     </div>
 
                     <!-- Area Karakter Fisik yang Telah Selamat Sampai di Timur -->
-                    <div class="my-auto w-full flex flex-col items-center justify-center py-2">
-                        <p class="text-[8px] sm:text-[9px] font-mono-code font-bold text-slate-600 mb-2 uppercase tracking-wider text-center">
+                    <div class="my-auto w-full flex flex-col items-center justify-center py-1">
+                        <p class="text-[8px] sm:text-[9px] font-mono-code font-bold text-slate-600 mb-1.5 uppercase tracking-wider text-center">
                             Selamat Sampai:
                         </p>
                         
-                        <!-- Grid Karakter Fisik Selamat -->
-                        <div class="flex flex-wrap justify-center items-end gap-1 sm:gap-2 max-w-full">
+                        <!-- Grid Karakter Fisik Selamat: 3 Kolom Simetris (Maksimal 2 Baris) -->
+                        <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full max-w-[170px] mx-auto justify-items-center items-end">
                             <!-- Karakter Misionaris / Ilmuwan Timur -->
                             <template x-for="i in eastM" :key="'em-' + i">
                                 <button type="button" 
                                         @click="boardBoat('M', 'east')"
                                         :disabled="boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        class="w-full flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
                                         title="Kembalikan Ilmuwan ke perahu">
-                                    <span class="text-[7px] font-mono-code font-black text-indigo-900 bg-white/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-rose-400 group-hover:text-white">
+                                    <span class="text-[6.5px] sm:text-[7px] font-mono-code font-black text-indigo-900 bg-white/95 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-rose-400 group-hover:text-white">
                                         NAIK
                                     </span>
-                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 scholar-figure">
+                                    <svg viewBox="0 0 54 86" class="w-7 sm:w-9 h-12 sm:h-15 scholar-figure">
                                         <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
                                     </svg>
                                 </button>
@@ -620,24 +632,24 @@
                                 <button type="button" 
                                         @click="boardBoat('C', 'east')"
                                         :disabled="boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                                        class="flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
+                                        class="w-full flex flex-col items-center justify-end cursor-pointer group focus:outline-none transition-transform hover:-translate-y-2 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
                                         title="Kembalikan Kanibal ke perahu">
-                                    <span class="text-[7px] font-mono-code font-black text-amber-900 bg-amber-100/90 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-rose-400 group-hover:text-white">
+                                    <span class="text-[6.5px] sm:text-[7px] font-mono-code font-black text-amber-900 bg-amber-100/95 border border-[#121316] px-1 rounded-sm shadow-2xs mb-0.5 group-hover:bg-rose-400 group-hover:text-white">
                                         NAIK
                                     </span>
-                                    <svg viewBox="0 0 54 86" class="w-9 sm:w-11 h-15 sm:h-19 tribal-figure">
+                                    <svg viewBox="0 0 54 86" class="w-7 sm:w-9 h-12 sm:h-15 tribal-figure">
                                         <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
                                     </svg>
                                 </button>
                             </template>
-
-                            <!-- Jika Belum Ada -->
-                            <template x-if="eastM === 0 && eastC === 0">
-                                <div class="text-center py-6 text-[10px] font-mono-code text-slate-500 font-bold italic">
-                                    Belum ada yang sampai
-                                </div>
-                            </template>
                         </div>
+
+                        <!-- Jika Belum Ada -->
+                        <template x-if="eastM === 0 && eastC === 0">
+                            <div class="text-center py-6 text-[10px] font-mono-code text-slate-500 font-bold italic">
+                                Belum ada yang sampai
+                            </div>
+                        </template>
                     </div>
 
                     <!-- Dermaga Kayu Timur Menjorok ke Air -->
