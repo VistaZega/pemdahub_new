@@ -311,7 +311,15 @@
 <!-- App Window Wrapper (Embedded in Global Layout) -->
 <div class="w-full text-[#121316] font-['Plus_Jakarta_Sans',sans-serif] rounded-3xl overflow-hidden border-2 border-[#121316] shadow-[6px_6px_0px_#121316] bg-[#faf7f2]" style="min-height: 85vh;">
     
-    <div class="flex flex-col md:flex-row h-full w-full" x-data="{ mobileSidebarOpen: false }">
+    <div class="flex flex-col md:flex-row h-full w-full" 
+         x-data="{ 
+             mobileSidebarOpen: false, 
+             leftSidebarOpen: {{ request('view') === 'challenge' ? 'false' : 'true' }}, 
+             rightSidebarOpen: {{ request('view') === 'challenge' ? 'false' : 'true' }} 
+         }"
+         @toggle-theatre-mode.window="leftSidebarOpen = !leftSidebarOpen; rightSidebarOpen = leftSidebarOpen;"
+         @toggle-left-sidebar.window="leftSidebarOpen = !leftSidebarOpen"
+         @toggle-right-sidebar.window="rightSidebarOpen = !rightSidebarOpen">
         
         <!-- Mobile Header & Toggle -->
         <div class="md:hidden flex items-center justify-between bg-white p-4 border-b-2 border-[#121316]">
@@ -344,8 +352,10 @@
             </div>
         </div>
 
-        <!-- CHANNEL SIDEBAR (Left) -->
-        <div :class="mobileSidebarOpen ? 'block' : 'hidden'" class="md:block w-full md:w-64 lg:w-64 bg-white border-r-2 border-[#121316] flex-shrink-0 flex flex-col transition-all duration-300 relative z-20">
+        <!-- CHANNEL SIDEBAR (Left) - Bisa Buka/Tutup -->
+        <div x-show="leftSidebarOpen || mobileSidebarOpen"
+             :class="mobileSidebarOpen ? 'block' : (leftSidebarOpen ? 'md:block' : 'hidden')"
+             class="w-full md:w-64 lg:w-64 bg-white border-r-2 border-[#121316] flex-shrink-0 flex flex-col transition-all duration-300 relative z-20">
             
             <div class="p-3.5 sm:p-4 h-full flex flex-col gap-4 max-h-[85vh] overflow-y-auto no-scrollbar">
                 <!-- Sleek Compact Header & Logo (Desktop) -->
@@ -359,11 +369,20 @@
                             <span class="text-[9px] text-indigo-600 font-mono-code font-black uppercase tracking-wider leading-none mt-0.5 whitespace-nowrap">COMMUNITY & STEAM</span>
                         </div>
                     </div>
-                    <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 flex items-center gap-1 shadow-xs shrink-0 whitespace-nowrap cursor-default" 
-                          title="{{ $onlineCount }} akun aktif di seluruh sistem PembdaHUB (LMS, CBT, KBM & PembdaSPACE) dalam 10 menit terakhir">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>{{ $onlineCount }} Online</span>
-                    </span>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <span class="text-[9px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 flex items-center gap-1 shadow-xs whitespace-nowrap cursor-default" 
+                              title="{{ $onlineCount }} akun aktif di seluruh sistem PembdaHUB">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>{{ $onlineCount }}</span>
+                        </span>
+                        <!-- Tombol Tutup Menu Saluran Kiri -->
+                        <button type="button" 
+                                @click="leftSidebarOpen = false" 
+                                class="w-7 h-7 rounded-lg bg-[#faf8f5] hover:bg-slate-200 border border-[#121316] text-[#121316] flex items-center justify-center text-xs transition" 
+                                title="Sembunyikan Menu Saluran (Perluas Layar)">
+                            <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <nav class="flex-1 space-y-5">
@@ -511,6 +530,44 @@
         <!-- MAIN FEED (Center) -->
         <div id="forum-main-feed" class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-3.5 sm:p-5 lg:p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
             
+            <!-- QUICK DOCK: TOMBOL BUKA/TUTUP SIDEBAR (MUNCUL JIKA SIDEBAR DITUTUP ATAU MODE GAME) -->
+            <div class="mb-3 flex items-center justify-between gap-2 z-10 select-none" x-show="!leftSidebarOpen || !rightSidebarOpen || '{{ request('view') }}' === 'challenge'">
+                <!-- Kiri: Buka Menu Saluran -->
+                <div class="flex items-center gap-2">
+                    <button type="button" 
+                            x-show="!leftSidebarOpen" 
+                            @click="leftSidebarOpen = true" 
+                            class="btn-tactile-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316] hover:bg-yellow-50"
+                            title="Buka Menu Saluran Kiri">
+                        <i class="fa-solid fa-bars text-indigo-600"></i>
+                        <span class="text-[11px] font-mono-code font-bold">Saluran</span>
+                    </button>
+
+                    <!-- Toggle Mode Layar Penuh Arena Game -->
+                    @if(request('view') === 'challenge')
+                        <button type="button" 
+                                @click="leftSidebarOpen = !leftSidebarOpen; rightSidebarOpen = leftSidebarOpen;" 
+                                class="btn-tactile-yellow px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316]"
+                                title="Buka / Tutup Layar Penuh Arena Game">
+                            <i class="fa-solid" :class="(!leftSidebarOpen && !rightSidebarOpen) ? 'fa-compress text-purple-800' : 'fa-expand text-slate-900'"></i>
+                            <span class="text-[11px] font-mono-code font-black" x-text="(!leftSidebarOpen && !rightSidebarOpen) ? 'Tampilkan Menu Samping' : 'Mode Layar Penuh (Fokus Game)'"></span>
+                        </button>
+                    @endif
+                </div>
+
+                <!-- Kanan: Buka Widget Leaderboard & Profil -->
+                <div class="flex items-center gap-2">
+                    <button type="button" 
+                            x-show="!rightSidebarOpen" 
+                            @click="rightSidebarOpen = true" 
+                            class="btn-tactile-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#121316] hover:bg-yellow-50"
+                            title="Buka Leaderboard & Profil Kanan">
+                        <span class="text-[11px] font-mono-code font-bold">Leaderboard</span>
+                        <i class="fa-solid fa-trophy text-amber-500"></i>
+                    </button>
+                </div>
+            </div>
+
             @if(request('view') === 'challenge')
                 <!-- Arena Permainan PembdaCHALLENGE Utama (Fokus Penuh pada Layar) -->
                 @include('forum.partials.pembda_challenge')
@@ -1222,10 +1279,21 @@
             @endif
         </div>
 
-        <!-- SIDEBAR WIDGETS (Right) -->
-        <div class="hidden xl:flex flex-col w-72 flex-shrink-0 bg-white border-l-2 border-[#121316] max-h-[85vh] overflow-hidden forum-right-sidebar">
+        <!-- SIDEBAR WIDGETS (Right) - Bisa Buka/Tutup -->
+        <div x-show="rightSidebarOpen"
+             :class="rightSidebarOpen ? 'xl:flex' : 'hidden'"
+             class="hidden flex-col w-72 flex-shrink-0 bg-white border-l-2 border-[#121316] max-h-[85vh] overflow-hidden forum-right-sidebar transition-all duration-300 relative">
             <!-- Pinned Top User Profile Card -->
-            <div class="p-4 bg-white border-b-2 border-[#121316] shrink-0">
+            <div class="p-3 sm:p-4 bg-white border-b-2 border-[#121316] shrink-0">
+                <div class="flex items-center justify-between pb-1.5 mb-2 border-b border-[#121316]/10">
+                    <span class="text-[10px] font-mono-code font-black text-slate-500 uppercase tracking-wider">PROFIL & PERINGKAT</span>
+                    <button type="button" 
+                            @click="rightSidebarOpen = false" 
+                            class="w-6 h-6 rounded-md bg-[#faf8f5] hover:bg-slate-200 border border-[#121316] text-[#121316] flex items-center justify-center text-[10px] transition" 
+                            title="Sembunyikan Widget Kanan (Perluas Layar)">
+                        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                    </button>
+                </div>
                 @php
                     $user = auth()->user();
                     $isYayasan = $user->username === 'yulzega' || str_contains(strtolower($user->name ?? ''), 'yulianus zega');

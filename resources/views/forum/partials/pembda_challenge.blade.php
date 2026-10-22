@@ -46,6 +46,15 @@
                 </template>
             </div>
 
+            <!-- Tombol Toggle Mode Layar Penuh (Tutup/Buka Sidebar Samping) -->
+            <button type="button" 
+                    @click="$dispatch('toggle-theatre-mode')" 
+                    class="btn-tactile-yellow px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1.5"
+                    title="Buka / Tutup Menu Samping (Perluas Arena Permainan)">
+                <i class="fa-solid fa-up-right-and-down-left-from-center text-xs text-[#121316]"></i>
+                <span class="hidden sm:inline">Layar Penuh</span>
+            </button>
+
             <!-- Tombol Instruksi -->
             <button @click="showRulesModal = true" class="btn-tactile-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1">
                 <i class="fa-solid fa-circle-question text-indigo-600"></i>
@@ -647,12 +656,12 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <!-- CONTROL HUB PERMAINAN: DECK KENDALI ERGONOMIS PC & HP         -->
+        <!-- CONTROL HUB PERMAINAN: DECK KENDALI FLEKSIBEL (ANTI-MELUAP)  -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div class="mt-3 grid grid-cols-1 md:grid-cols-12 gap-2.5">
+        <div class="mt-3 flex flex-col sm:flex-row items-stretch gap-2.5 w-full">
             
-            <!-- 1. KONTROL CEPAT TEPI BARAT (md:col-span-3) -->
-            <div class="md:col-span-3 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between">
+            <!-- 1. KONTROL CEPAT TEPI BARAT (KIRI) -->
+            <div class="w-full sm:w-44 lg:w-56 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between shrink-0">
                 <div class="flex items-center justify-between text-xs font-mono-code font-black mb-1.5 pb-1 border-b border-[#121316]/10">
                     <span class="text-[#121316]">🏝️ TEPI BARAT</span>
                     <span class="text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200" x-text="'M:' + westM + ' | K:' + westC"></span>
@@ -661,50 +670,52 @@
                     <button type="button" 
                             @click="boardBoat('M', 'west')" 
                             :disabled="westM === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                            class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40"
+                            title="Naikkan 1 Ilmuwan dari Tepi Barat">
                         +1 Ilmuwan
                     </button>
                     <button type="button" 
                             @click="boardBoat('C', 'west')" 
                             :disabled="westC === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                            class="flex-1 py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40"
+                            title="Naikkan 1 Kanibal dari Tepi Barat">
                         +1 Kanibal
                     </button>
                 </div>
             </div>
 
-            <!-- 2. KONTROL AKSI PERAHU & MENYEBERANG SUNGAI (md:col-span-6) -->
-            <div class="md:col-span-6 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col items-center justify-center gap-1.5">
-                <div class="flex items-center gap-2 w-full justify-center">
+            <!-- 2. KONTROL AKSI PERAHU & MENYEBERANG SUNGAI (TENGAH) -->
+            <div class="flex-1 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col items-center justify-center gap-1.5 min-w-0">
+                <div class="flex items-center gap-2 w-full justify-center flex-wrap sm:flex-nowrap">
                     <!-- Tombol Dayung Utama -->
                     <button type="button" 
                             @click="rowBoat()"
                             :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
-                            class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-black border-2 border-[#121316] shadow-[2px_2px_0px_#121316] transition-all flex items-center justify-center gap-2"
+                            class="flex-1 min-w-[140px] py-2 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black border-2 border-[#121316] shadow-[2px_2px_0px_#121316] transition-all flex items-center justify-center gap-1.5"
                             :class="boatPassengers.length > 0 && !isMoving && !isCooldown ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-200 text-slate-400 border-slate-400 cursor-not-allowed shadow-none'">
                         <span class="text-sm">⛵</span>
-                        <span x-text="isMoving ? 'Sedang Menyeberang Sungai...' : (boatPosition === 'west' ? 'DAYUNG KE TEPI TIMUR ►' : '◄ DAYUNG KE TEPI BARAT')"></span>
+                        <span class="truncate" x-text="isMoving ? 'Sedang Menyeberang...' : (boatPosition === 'west' ? 'DAYUNG KE TIMUR ►' : '◄ DAYUNG KE BARAT')"></span>
                     </button>
 
                     <!-- Tombol Praktis: Turunkan Semua Penumpang -->
                     <button type="button" 
                             @click="unboardAll()"
                             :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
-                            class="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-900 border-2 border-[#121316] rounded-xl text-xs font-black shadow-[2px_2px_0px_#121316] transition disabled:opacity-30 disabled:shadow-none"
+                            class="py-2 px-2.5 sm:px-3 bg-rose-50 hover:bg-rose-100 text-rose-900 border-2 border-[#121316] rounded-xl text-xs font-black shadow-[2px_2px_0px_#121316] transition disabled:opacity-30 disabled:shadow-none shrink-0"
                             :title="'Turunkan seluruh penumpang ke ' + (boatPosition === 'west' ? 'Tepi Barat' : 'Tepi Timur')">
                         <span x-text="boatPosition === 'west' ? 'Turun ke Barat ✕' : 'Turun ke Timur 🏁'"></span>
                     </button>
                 </div>
 
-                <div class="text-[9px] font-mono-code font-bold text-slate-700 flex items-center gap-2">
-                    <span>KAPASITAS: 2 ORANG (<span class="font-black text-[#121316]" x-text="boatPassengers.length"></span>/2 TERISI)</span>
+                <div class="text-[9px] font-mono-code font-bold text-slate-700 flex items-center gap-2 text-center">
+                    <span>KAPASITAS: 2 (<span class="font-black text-[#121316]" x-text="boatPassengers.length"></span>/2)</span>
                     <span class="text-slate-400">•</span>
-                    <span class="text-amber-800 font-black" x-text="boatPosition === 'west' ? 'Perahu Bersandar di Tepi Barat' : 'Perahu Bersandar di Tepi Timur'"></span>
+                    <span class="text-amber-800 font-black truncate" x-text="boatPosition === 'west' ? 'Perahu di Tepi Barat' : 'Perahu di Tepi Timur'"></span>
                 </div>
             </div>
 
-            <!-- 3. KONTROL CEPAT TEPI TIMUR (md:col-span-3) -->
-            <div class="md:col-span-3 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between">
+            <!-- 3. KONTROL CEPAT TEPI TIMUR (KANAN) -->
+            <div class="w-full sm:w-44 lg:w-56 p-2.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between shrink-0">
                 <div class="flex items-center justify-between text-xs font-mono-code font-black mb-1.5 pb-1 border-b border-[#121316]/10">
                     <span class="text-[#121316]">🏁 TEPI TIMUR</span>
                     <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" x-text="'M:' + eastM + ' | K:' + eastC"></span>
@@ -713,13 +724,15 @@
                     <button type="button" 
                             @click="boardBoat('M', 'east')" 
                             :disabled="eastM === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                            class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40"
+                            title="Naikkan kembali 1 Ilmuwan ke perahu">
                         +1 Ilmuwan
                     </button>
                     <button type="button" 
                             @click="boardBoat('C', 'east')" 
                             :disabled="eastC === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40">
+                            class="flex-1 py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[10px] font-black transition disabled:opacity-40"
+                            title="Naikkan kembali 1 Kanibal ke perahu">
                         +1 Kanibal
                     </button>
                 </div>
