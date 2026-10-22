@@ -1359,6 +1359,149 @@ Route::prefix('mentor')->name('mentor.')->group(function () {
     Route::post('/pkl/{token}/grade', [App\Http\Controllers\PklMentorController::class, 'submitGrade'])->name('pkl.grade.store');
 });
 
+// ══════════════════════════════════════════════════════════════
+// Cleanup STEAM Challenge posts yang tidak relevan
+// Pindahkan post pendek/spam ke kategori 'diskusi' (TIDAK dihapus)
+// Usage: /cleanup-steam-posts?secret=pembda99           (dry run / preview)
+//        /cleanup-steam-posts?secret=pembda99&execute=1  (eksekusi pindah)
+// ══════════════════════════════════════════════════════════════
+Route::get('/cleanup-steam-posts', function () {
+    if (request('secret') !== 'pembda99') {
+        abort(403, 'Unauthorized.');
+    }
+
+    $isDryRun = !request('execute');
+
+    // Daftar kata kunci STEAM (minimal cocok 2)
+    $steamKeywords = [
+        'sains','ilmu','eksperimen','hipotesis','penelitian','laboratorium','biologi','kimia','fisika',
+        'reaksi','energi','atom','molekul','sel','ekosistem','observasi','analisis','variabel','data',
+        'percobaan','teori','listrik','magnet','optik','genetika','mikroskop',
+        'teknologi','kode','programming','robot','iot','aplikasi','software','hardware','digital',
+        'komputer','algoritma','coding','web','internet','ai','machine learning','database','sensor',
+        'mikrokontroler','arduino','raspberry','python','javascript','html','jaringan','server','program',
+        'teknik','rancang','prototipe','prototype','konstruksi','mesin','rangkaian','sirkuit','bangunan',
+        'struktur','mekanik','elektronika','otomotif','simulasi','manufaktur','instalasi','komponen',
+        'motor','generator','transmisi','hidrolik',
+        'seni','kreatif','kreativitas','desain','grafis','animasi','multimedia','visual','estetika',
+        'inovasi','arsitektur','fotografi','render','3d','modelling',
+        'matematika','hitung','rumus','statistik','geometri','aljabar','kalkulus','logika','pola',
+        'grafik','persamaan','probabilitas','trigonometri','matriks','vektor',
+        'steam','stem','proyek','project','solusi','karya','tantangan','challenge','riset',
+        'penemuan','pengembangan','rancangan','metode','hasil','kesimpulan','uji coba','diagram',
+        'lingkungan','daur ulang','renewable','sustainable','energi terbarukan',
+    ];
+
+    $allSteamPosts = \App\Models\ForumThread::where('category', 'steam_challenge')->with('user')->latest()->get();
+
+    $willMove = collect();
+    $willKeep = collect();
+
+    foreach ($allSteamPosts as $post) {
+        $contentPlain = strtolower(strip_tags($post->content));
+        $contentLength = mb_strlen(trim($contentPlain));
+
+        $foundKeywords = [];
+        foreach ($steamKeywords as $kw) {
+            if (mb_strpos($contentPlain, $kw) !== false) {
+                $foundKeywords[] = $kw;
+            }
+        }
+
+        $isRelevant = $contentLength >= 80 && count($foundKeywords) >= 2;
+
+        if ($isRelevant) {
+            $willKeep->push([
+                'id' => $post->id,
+                'title' => \Illuminate\Support\Str::limit($post->title, 50),
+                'author' => $post->user->name ?? '-',
+                'chars' => $contentLength,
+                'keywords' => implode(', ', array_slice($foundKeywords, 0, 5)),
+            ]);
+        } else {
+            $willMove->push([
+                'id' => $post->id,
+                'title' => \Illuminate\Support\Str::limit($post->title, 50),
+                'author' => $post->user->name ?? '-',
+                'chars' => $contentLength,
+                'keywords' => count($foundKeywords) > 0 ? implode(', ', $foundKeywords) : '(tidak ada)',
+                'reason' => $contentLength < 80 ? "Terlalu pendek ({$contentLength} chars)" : 'Kurang kata kunci STEAM (' . count($foundKeywords) . '/2)',
+            ]);
+        }
+    }
+
+    // Eksekusi jika bukan dry run
+    $movedCount = 0;
+    if (!$isDryRun && $willMove->isNotEmpty()) {
+        $movedCount = \App\Models\ForumThread::where('category', 'steam_challenge')
+            ->whereIn('id', $willMove->pluck('id'))
+            ->update(['category' => 'diskusi']);
+    }
+
+    // Render output
+    $html = "<html><head><title>STEAM Cleanup</title></head><body style='background:#0f172a;color:#e2e8f0;font-family:monospace;padding:30px;'>";
+    $html .= "<h1 style='color:#fbbf24;'>🔬 Cleanup Post STEAM Challenge</h1>";
+    $html .= "<p style='color:#94a3b8;'>Total post steam_challenge: <b style='color:#fff;'>{$allSteamPosts->count()}</b></p>";
+
+    if ($isDryRun) {
+        $html .= "<div style='background:#1e3a5f;padding:12px 18px;border-radius:8px;border:1px solid #3b82f6;margin:15px 0;'>";
+        $html .= "<b style='color:#60a5fa;'>🔍 MODE DRY RUN (Preview)</b> — Belum ada perubahan. ";
+        $html .= "Tambahkan <code>&execute=1</code> ke URL untuk eksekusi.</div>";
+    } else {
+        $html .= "<div style='background:#14532d;padding:12px 18px;border-radius:8px;border:1px solid #22c55e;margin:15px 0;'>";
+        $html .= "<b style='color:#4ade80;'>✅ EKSEKUSI SELESAI</b> — {$movedCount} post dipindahkan ke kategori 'diskusi'.</div>";
+    }
+
+    // Tabel post yang akan dipindahkan
+    $html .= "<h2 style='color:#f87171;margin-top:25px;'>❌ Post Tidak Relevan — Akan Dipindahkan ke 'diskusi' ({$willMove->count()})</h2>";
+    if ($willMove->isEmpty()) {
+        $html .= "<p style='color:#6b7280;'>Tidak ada post yang perlu dipindahkan. Semua sudah relevan! 🎉</p>";
+    } else {
+        $html .= "<table style='width:100%;border-collapse:collapse;font-size:13px;'>";
+        $html .= "<tr style='background:#1e293b;'><th style='padding:8px;border:1px solid #334155;text-align:left;'>ID</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Judul</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Penulis</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Karakter</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Alasan</th></tr>";
+        foreach ($willMove as $p) {
+            $html .= "<tr style='background:#1a1a2e;'>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['id']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['title']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['author']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['chars']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;color:#fca5a5;'>{$p['reason']}</td>";
+            $html .= "</tr>";
+        }
+        $html .= "</table>";
+    }
+
+    // Tabel post yang lolos (tetap di steam_challenge)
+    $html .= "<h2 style='color:#4ade80;margin-top:25px;'>✅ Post Relevan — Tetap di 'steam_challenge' ({$willKeep->count()})</h2>";
+    if ($willKeep->isEmpty()) {
+        $html .= "<p style='color:#6b7280;'>Belum ada post STEAM yang memenuhi syarat.</p>";
+    } else {
+        $html .= "<table style='width:100%;border-collapse:collapse;font-size:13px;'>";
+        $html .= "<tr style='background:#1e293b;'><th style='padding:8px;border:1px solid #334155;text-align:left;'>ID</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Judul</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Penulis</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Karakter</th>";
+        $html .= "<th style='padding:8px;border:1px solid #334155;text-align:left;'>Kata Kunci STEAM</th></tr>";
+        foreach ($willKeep as $p) {
+            $html .= "<tr style='background:#0a2e1a;'>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['id']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['title']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['author']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;'>{$p['chars']}</td>";
+            $html .= "<td style='padding:6px 8px;border:1px solid #334155;color:#86efac;'>{$p['keywords']}</td>";
+            $html .= "</tr>";
+        }
+        $html .= "</table>";
+    }
+
+    $html .= "</body></html>";
+    return $html;
+});
+
 Route::get('/run-migrations', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Unauthorized.');
