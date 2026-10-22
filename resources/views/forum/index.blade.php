@@ -386,21 +386,23 @@
                         <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
                            @click="if (window.innerWidth < 768) mobileSidebarOpen = false;" 
                            class="block p-2.5 rounded-xl transition-all duration-150 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none group cursor-pointer {{ request('view') === 'challenge' ? 'bg-[#121316] text-[#fde047]' : 'bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-100 text-[#121316]' }}">
-                            <div class="flex items-center justify-between gap-1 mb-1">
-                                <div class="flex items-center gap-1.5 min-w-0">
-                                    <div class="w-6 h-6 rounded-lg flex items-center justify-center text-xs shrink-0 bg-[#121316] text-[#fde047] shadow-xs group-hover:scale-110 transition-transform">
-                                        ⚡
-                                    </div>
-                                    <span class="text-xs font-black tracking-tight whitespace-nowrap {{ request('view') === 'challenge' ? 'text-[#fde047]' : 'text-[#121316]' }}">
-                                        PembdaCHALLENGE
-                                    </span>
+                            <!-- Baris 1: Ikon + Nama Utuh Bebas Hambatan (100% Tidak Terpotong) -->
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-6 h-6 rounded-lg flex items-center justify-center text-xs shrink-0 bg-[#121316] text-[#fde047] shadow-xs group-hover:scale-110 transition-transform">
+                                    ⚡
                                 </div>
-                                <span class="text-[9px] font-mono-code font-black px-1.5 py-0.5 rounded-md bg-purple-700 text-white shadow-xs shrink-0">
-                                    +50 Poin
+                                <span class="text-xs font-black tracking-tight whitespace-nowrap {{ request('view') === 'challenge' ? 'text-[#fde047]' : 'text-[#121316]' }}">
+                                    PembdaCHALLENGE
                                 </span>
                             </div>
-                            <div class="text-[10px] font-mono-code font-bold {{ request('view') === 'challenge' ? 'text-amber-300' : 'text-indigo-900' }} pl-7.5 whitespace-nowrap">
-                                🎮 Game Sains & Logika IQ
+                            <!-- Baris 2: Sub-keterangan & Badge Poin -->
+                            <div class="flex items-center justify-between text-[10px] font-mono-code font-bold pl-8">
+                                <span class="{{ request('view') === 'challenge' ? 'text-amber-300' : 'text-indigo-900' }} truncate">
+                                    Game Sains & Logika
+                                </span>
+                                <span class="text-[9px] font-mono-code font-black px-1.5 py-0.2 rounded-md bg-purple-700 text-white shadow-xs shrink-0 ml-1">
+                                    +50 Poin
+                                </span>
                             </div>
                         </a>
                     </div>
@@ -510,29 +512,7 @@
         <div id="forum-main-feed" class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-3.5 sm:p-5 lg:p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
             
             @if(request('view') === 'challenge')
-                <!-- ARENA DEDICATED VIEW PEMBDACHALLENGE (Fokus Penuh pada Permainan) -->
-                <div class="mb-4 flex items-center justify-between p-3.5 sm:p-4 bg-white border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316]">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] flex items-center justify-center text-white text-lg font-black shadow-xs shrink-0">
-                            ⚡
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <h1 class="forum-hdr text-base sm:text-lg font-black text-[#121316] m-0">PembdaCHALLENGE Arena</h1>
-                                <span class="text-[10px] font-mono-code font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400">
-                                    +50 POIN REPUTASI
-                                </span>
-                            </div>
-                            <span class="text-xs font-mono-code text-slate-600 font-bold block truncate">Teka-teki IQ & Sains: Misionaris vs Kanibal (Seberangkan dengan Selamat)</span>
-                        </div>
-                    </div>
-                    <a href="{{ route('forum.index') }}" class="btn-tactile-white px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap shadow-[2px_2px_0px_#121316] shrink-0">
-                        <i class="fa-solid fa-arrow-left text-xs text-rose-600"></i>
-                        <span>Lobi Utama</span>
-                    </a>
-                </div>
-
-                <!-- Arena Permainan PembdaCHALLENGE Utama -->
+                <!-- Arena Permainan PembdaCHALLENGE Utama (Fokus Penuh pada Layar) -->
                 @include('forum.partials.pembda_challenge')
             @else
             @if(isset($activeGroup) && $activeGroup)
