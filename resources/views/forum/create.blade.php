@@ -168,7 +168,7 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
                 @foreach(\App\Models\ForumThread::CATEGORIES as $key => $label)
-                    @if(in_array($key, ['info', 'steam_challenge']) && !(auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru()))
+                    @if($key === 'info' && !(auth()->user()->isSuperAdmin() || auth()->user()->isAdminSekolah() || auth()->user()->isGuru()))
                         @continue
                     @endif
                     @php
@@ -188,6 +188,34 @@
                         </div>
                     </button>
                 @endforeach
+            </div>
+        </div>
+
+        {{-- STEAM Challenge Content Guide --}}
+        <div x-show="category === 'steam_challenge'" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-2xl p-5 shadow-[3px_3px_0px_#d97706]">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center flex-shrink-0 border-2 border-amber-600 shadow-[2px_2px_0px_#92400e]">
+                    <span class="text-lg">🔬</span>
+                </div>
+                <div>
+                    <h4 class="font-black text-sm text-amber-900 mb-1.5">Panduan Post Tantangan STEAM</h4>
+                    <p class="text-xs text-amber-800 leading-relaxed mb-2">
+                        Kategori ini khusus untuk konten yang berkaitan dengan <strong>STEAM</strong> 
+                        (Sains, Teknologi, Engineering, Seni, Matematika). Postinganmu harus:
+                    </p>
+                    <ul class="text-xs text-amber-800 space-y-1 ml-1">
+                        <li>✅ Minimal <strong>80 karakter</strong> — jelaskan idemu secara detail</li>
+                        <li>✅ Membahas <strong>ide, eksperimen, proyek, atau inovasi STEAM</strong></li>
+                        <li>❌ Sapaan umum seperti "Halo teman-teman" tanpa konten STEAM akan <strong>ditolak otomatis</strong></li>
+                    </ul>
+                    <p class="text-xs text-amber-700 mt-2 italic">
+                        💡 Contoh: "Saya merancang prototipe sensor suhu menggunakan Arduino untuk memantau temperatur ruang kelas..."
+                    </p>
+                </div>
             </div>
         </div>
 

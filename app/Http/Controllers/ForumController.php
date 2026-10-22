@@ -227,10 +227,10 @@ class ForumController extends Controller
         
         $isPrivileged = ($user->isSuperAdmin() || $user->isAdminSekolah() || $user->isGuru());
 
-        // Info/Announcement & STEAM Challenge categories are restricted to teachers/admins
+        // Info/Announcement category is restricted to teachers/admins
         $allowedCategories = array_keys(ForumThread::CATEGORIES);
         if (!$isPrivileged) {
-            $allowedCategories = array_diff($allowedCategories, ['info', 'steam_challenge']);
+            $allowedCategories = array_diff($allowedCategories, ['info']);
         }
 
         $rules = [
@@ -268,6 +268,74 @@ class ForumController extends Controller
         $category = (!empty($validated['category']) && in_array($validated['category'], $allowedCategories)) 
             ? $validated['category'] 
             : 'diskusi';
+
+        // ══════════════════════════════════════════════════════════════
+        // STEAM Challenge Content Relevance Filter
+        // Pastikan post di kategori steam_challenge benar-benar relevan
+        // dengan topik STEAM, bukan sapaan/spam yang tidak ada hubungannya
+        // ══════════════════════════════════════════════════════════════
+        if ($category === 'steam_challenge') {
+            $contentPlain = strtolower(strip_tags($validated['content']));
+            $contentLength = mb_strlen(trim($contentPlain));
+
+            // 1. Minimal 80 karakter (sapaan pendek seperti "Halo teman-teman" akan ditolak)
+            if ($contentLength < 80) {
+                return back()->withInput()->with('error', 
+                    '🔬 Post Tantangan STEAM harus berisi minimal 80 karakter agar bermakna. '
+                    . 'Jelaskan ide, eksperimen, proyek, atau tanggapanmu terhadap tantangan STEAM secara detail. '
+                    . "(Kontenmu saat ini: {$contentLength} karakter)");
+            }
+
+            // 2. Harus mengandung minimal 2 kata kunci terkait STEAM
+            $steamKeywords = [
+                // Science (Sains)
+                'sains', 'ilmu', 'eksperimen', 'hipotesis', 'penelitian', 'laboratorium', 'biologi',
+                'kimia', 'fisika', 'reaksi', 'energi', 'atom', 'molekul', 'sel', 'ekosistem',
+                'observasi', 'analisis', 'variabel', 'data', 'percobaan', 'teori', 'hukum newton',
+                'listrik', 'magnet', 'optik', 'genetika', 'evolusi', 'mikroskop',
+                // Technology (Teknologi)
+                'teknologi', 'kode', 'programming', 'robot', 'iot', 'aplikasi', 'software',
+                'hardware', 'digital', 'komputer', 'algoritma', 'coding', 'web', 'internet',
+                'ai', 'artificial intelligence', 'machine learning', 'database', 'sensor',
+                'mikrokontroler', 'arduino', 'raspberry', 'python', 'javascript', 'html',
+                'cyber', 'jaringan', 'server', 'cloud', 'program',
+                // Engineering (Teknik/Rekayasa)
+                'teknik', 'rancang', 'prototipe', 'prototype', 'konstruksi', 'mesin', 'rangkaian',
+                'sirkuit', 'bangunan', 'struktur', 'mekanik', 'elektronika', 'otomotif',
+                'desain teknik', 'cad', 'simulasi', 'manufaktur', 'instalasi', 'komponen',
+                'motor', 'generator', 'transmisi', 'hidrolik', 'pneumatik',
+                // Arts (Seni & Kreativitas)
+                'seni', 'kreatif', 'kreativitas', 'desain', 'grafis', 'animasi', 'multimedia',
+                'visual', 'estetika', 'inovasi', 'arsitektur', 'fotografi', 'video', 'render',
+                '3d', 'modelling', 'ui', 'ux',
+                // Mathematics (Matematika)
+                'matematika', 'hitung', 'rumus', 'statistik', 'geometri', 'aljabar', 'kalkulus',
+                'logika', 'pola', 'grafik', 'persamaan', 'probabilitas', 'trigonometri',
+                'matriks', 'vektor', 'integral', 'diferensial', 'bilangan',
+                // General STEAM / Project terms
+                'steam', 'stem', 'proyek', 'project', 'solusi', 'karya', 'tantangan',
+                'challenge', 'riset', 'discovery', 'penemuan', 'pengembangan', 'rancangan',
+                'presentasi', 'poster', 'laporan', 'metode', 'hasil', 'kesimpulan',
+                'hipotesa', 'uji coba', 'prototype', 'model', 'skema', 'diagram',
+                'lingkungan', 'daur ulang', 'renewable', 'sustainable', 'energi terbarukan',
+            ];
+
+            $foundKeywords = [];
+            foreach ($steamKeywords as $keyword) {
+                if (mb_strpos($contentPlain, $keyword) !== false) {
+                    $foundKeywords[] = $keyword;
+                }
+            }
+
+            if (count($foundKeywords) < 2) {
+                return back()->withInput()->with('error', 
+                    '🔬 Post di kategori Tantangan STEAM harus berkaitan dengan topik STEAM '
+                    . '(Sains, Teknologi, Engineering, Seni, Matematika). '
+                    . 'Pastikan kontenmu membahas ide, eksperimen, proyek, atau inovasi yang relevan. '
+                    . 'Contoh: jelaskan prototipe yang kamu rancang, eksperimen sains yang kamu lakukan, '
+                    . 'atau solusi teknologi untuk masalah di sekolah.');
+            }
+        }
 
         // Judul otomatis jika dikosongkan
         $title = !empty($validated['title']) 

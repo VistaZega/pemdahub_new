@@ -151,12 +151,10 @@ class EduTechRadarService
     public static function getCurrentWeeklyChallenge(): array
     {
         // Cek apakah ada thread resmi bertipe steam_challenge di database yang masih aktif
-        // Hanya tampilkan post dari admin/guru untuk mencegah spam dari siswa
+        // Filter: hanya tampilkan post yang relevan (minimal 80 karakter, bukan sapaan/spam pendek)
         $dbChallenge = ForumThread::where('category', 'steam_challenge')
             ->where('is_locked', false)
-            ->whereHas('user', function ($q) {
-                $q->whereIn('role', ['super_admin', 'admin_sekolah', 'guru']);
-            })
+            ->whereRaw('CHAR_LENGTH(content) >= 80')
             ->with(['user', 'replies.user'])
             ->latest()
             ->first();
