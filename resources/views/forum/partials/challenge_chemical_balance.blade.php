@@ -3,6 +3,7 @@
 <!-- Tema Terang & Kontras Tinggi (High Contrast Clean Science Lab)           -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
+[x-cloak] { display: none !important; }
 @keyframes chem-scale-glow {
     0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
     50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.8), 0 0 45px rgba(52, 211, 153, 0.4); }
@@ -29,13 +30,15 @@
     </div>
 
     <!-- Alert / Toast Notifikasi -->
-    <div x-show="alertToast.show" 
+    <div x-cloak
+         x-show="alertToast.show" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 -translate-y-2"
          x-transition:enter-end="opacity-100 translate-y-0"
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
+         style="display: none;"
          class="mb-2 p-2 rounded-xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-between gap-2 text-xs font-bold"
          :class="alertToast.isSuccess ? 'bg-emerald-500 text-white' : 'bg-[#fde047] text-[#121316]'">
         <div class="flex items-center gap-2">
@@ -417,7 +420,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- MODAL CHEATSHEET HUKUM LAVOISIER & STOIKIOMETRI                     -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div x-show="showRulesModal" class="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs" style="display: none;">
+    <div x-cloak x-show="showRulesModal" class="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs" style="display: none;">
         <div @click.away="showRulesModal = false" class="bg-white border-2 border-[#121316] rounded-2xl w-full max-w-xl overflow-hidden shadow-[6px_6px_0px_#121316] max-h-[88vh] flex flex-col">
             <div class="p-3 bg-gradient-to-r from-teal-600 via-cyan-700 to-indigo-700 text-white flex items-center justify-between border-b-2 border-[#121316]">
                 <div class="flex items-center gap-2">
@@ -471,7 +474,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- MODAL KEMENANGAN (VICTORY MODAL)                                    -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div x-show="victoryModal.show" class="fixed inset-0 z-[130] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs" style="display: none;">
+    <div x-cloak x-show="victoryModal.show" class="fixed inset-0 z-[130] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs" style="display: none;">
         <div class="bg-white border-3 border-[#121316] rounded-2xl w-full max-w-sm overflow-hidden shadow-[6px_6px_0px_#121316] p-4 text-center animate-bounce-short">
             <div class="w-16 h-16 rounded-full bg-teal-100 border-2 border-teal-500 text-teal-700 flex items-center justify-center mx-auto mb-2 text-2xl shadow-md">
                 <i class="fa-solid fa-flask-vial animate-pulse"></i>

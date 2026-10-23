@@ -9,19 +9,8 @@
      @open-challenge.window="isCollapsed = false"
      @toggle-mobile-landscape.window="toggleLandscapeMode()">
 
-    <!-- Floating Exit Button khusus saat Mode Landscape Aktif di Mobile -->
-    <div x-show="isLandscapeMode || isPhysicalLandscape" 
-         class="fixed top-2 right-2 z-[999999] flex items-center gap-2">
-        <button type="button" 
-                @click="toggleLandscapeMode()" 
-                class="px-2.5 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs border-2 border-white shadow-xl flex items-center gap-1 cursor-pointer">
-            <i class="fa-solid fa-xmark text-xs"></i>
-            <span class="text-[11px]" x-text="isLandscapeMode ? 'Tutup Layar Penuh' : 'Mode Biasa'"></span>
-        </button>
-    </div>
-
     <!-- Header Bar -->
-    <div class="px-2.5 py-1.5 sm:py-2 border-b-2 border-[#121316] flex items-center justify-between gap-2 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-200 cursor-pointer hover:opacity-95 transition" 
+    <div class="px-2.5 py-1.5 sm:py-2 border-b-2 border-[#121316] flex items-center justify-between gap-2 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-200 cursor-pointer hover:opacity-95 transition shrink-0" 
          @click="isCollapsed = !isCollapsed">
         <div class="flex items-center gap-2 min-w-0">
             <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-pink-500 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-center text-white font-black text-sm shrink-0">
@@ -37,8 +26,8 @@
                         +50 POIN
                     </span>
                 </div>
-                <span class="text-[10px] text-slate-800 font-bold block truncate max-w-[160px] xs:max-w-[220px] sm:max-w-md md:max-w-xl" 
-                      x-text="activeGame === 'chemistry' ? '🧪 Penyeimbang Reaksi Kimia (Hukum Lavoisier)' : (activeGame === 'logic' ? '🔌 Sirkuit Gerbang Logika IT (Arsitektur CPU)' : (activeGame === 'water' ? '🚰 Tabung Air (Die Hard 3)' : (activeGame === 'hanoi' ? '🏛️ Menara Hanoi (Rekursi Logika)' : '🚣 Misionaris vs Kanibal (River Crossing)')))">
+                <span class="text-[10px] text-slate-800 font-bold block truncate max-w-[150px] xs:max-w-[200px] sm:max-w-md md:max-w-xl" 
+                      x-text="activeGame === 'river' ? '🚣 Misionaris vs Kanibal (River Crossing)' : (activeGame === 'hanoi' ? '🏛️ Menara Hanoi (Rekursi Logika)' : (activeGame === 'water' ? '🚰 H2O / Tabung Air (Die Hard 3)' : (activeGame === 'chemistry' ? '🧪 Penyeimbang Reaksi Kimia (Hukum Lavoisier)' : '🔌 Sirkuit Gerbang Logika IT (Arsitektur CPU)')))">
                 </span>
             </div>
         </div>
@@ -64,11 +53,11 @@
             <!-- Tombol Fullscreen Landscape (Khusus Layar HP / Tablet) -->
             <button type="button" 
                     @click="toggleLandscapeMode()" 
-                    class="btn-tactile-white px-2 py-1 rounded-xl text-xs font-black flex items-center gap-1"
-                    :class="isLandscapeMode ? 'bg-[#fde047] text-[#121316]' : 'bg-white text-[#121316]'"
+                    class="px-2 py-1 rounded-xl text-xs font-black flex items-center gap-1 border-2 border-[#121316] shadow-xs cursor-pointer transition"
+                    :class="isLandscapeMode ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-900 shadow-none' : 'bg-white text-[#121316] hover:bg-amber-100'"
                     title="Putar Arena Game Menjadi Fullscreen Landscape">
-                <i class="fa-solid fa-arrows-rotate text-purple-700 text-xs"></i>
-                <span class="text-[10px] font-mono-code font-black" x-text="isLandscapeMode ? 'Normal' : 'Landscape'"></span>
+                <i :class="isLandscapeMode ? 'fa-solid fa-compress text-xs' : 'fa-solid fa-arrows-rotate text-purple-700 text-xs'"></i>
+                <span class="text-[10px] font-mono-code font-black" x-text="isLandscapeMode ? 'Keluar' : 'Landscape'"></span>
             </button>
 
             <!-- Tombol Toggle Mode Layar Penuh (Tutup/Buka Sidebar Samping) -->
@@ -96,50 +85,49 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- BAR PEMILIH TANTANGAN (TAB SWITCHER GAME SAINS & LOGIKA)            -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div class="px-2 py-1 bg-slate-900 border-b-2 border-[#121316] flex items-center justify-between gap-1.5 overflow-hidden">
+    <div class="px-2 py-1 bg-slate-900 border-b-2 border-[#121316] flex items-center justify-between gap-1.5 overflow-hidden shrink-0">
         <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
             <span class="text-[9px] font-mono-code font-bold text-slate-400 uppercase tracking-wider mr-0.5 hidden md:inline shrink-0">PILIH:</span>
-            <!-- Tab 1: Reaksi Kimia (BARU) -->
-            <button type="button" 
-                    @click="activeGame = 'chemistry'" 
-                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
-                    :class="activeGame === 'chemistry' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
-                <span>🧪 <span class="hidden sm:inline">Reaksi</span> Kimia</span>
-                <span class="text-[6.5px] font-mono-code font-black px-1 py-0.2 rounded-full bg-emerald-500 text-white animate-pulse">BARU</span>
-            </button>
-            <!-- Tab 2: Gerbang Logika IT -->
-            <button type="button" 
-                    @click="activeGame = 'logic'" 
-                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
-                    :class="activeGame === 'logic' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
-                <span>🔌 <span class="hidden sm:inline">Gerbang</span> Logika</span>
-            </button>
-            <!-- Tab 3: Tabung Air (Die Hard 3) -->
-            <button type="button" 
-                    @click="activeGame = 'water'" 
-                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
-                    :class="activeGame === 'water' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
-                <span>🚰 Tabung Air</span>
-            </button>
-            <!-- Tab 4: Menara Hanoi -->
-            <button type="button" 
-                    @click="activeGame = 'hanoi'" 
-                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
-                    :class="activeGame === 'hanoi' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
-                <span>🏛️ <span class="hidden sm:inline">Menara</span> Hanoi</span>
-            </button>
-            <!-- Tab 5: Misionaris vs Kanibal -->
+            <!-- Tab 1: Misionaris vs Kanibal -->
             <button type="button" 
                     @click="activeGame = 'river'" 
                     class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
                     :class="activeGame === 'river' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
                 <span>🚣 Misionaris</span>
             </button>
+            <!-- Tab 2: Menara Hanoi -->
+            <button type="button" 
+                    @click="activeGame = 'hanoi'" 
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
+                    :class="activeGame === 'hanoi' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🏛️ <span class="hidden sm:inline">Menara</span> Hanoi</span>
+            </button>
+            <!-- Tab 3: H2O Tabung Air -->
+            <button type="button" 
+                    @click="activeGame = 'water'" 
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
+                    :class="activeGame === 'water' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🚰 H2O</span>
+            </button>
+            <!-- Tab 4: Reaksi Kimia -->
+            <button type="button" 
+                    @click="activeGame = 'chemistry'" 
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
+                    :class="activeGame === 'chemistry' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🧪 <span class="hidden sm:inline">Reaksi</span> Kimia</span>
+            </button>
+            <!-- Tab 5: Gerbang Logika IT -->
+            <button type="button" 
+                    @click="activeGame = 'logic'" 
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black transition-all flex items-center gap-1 border-2 border-[#121316] cursor-pointer whitespace-nowrap shrink-0"
+                    :class="activeGame === 'logic' ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#ffffff]' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700'">
+                <span>🔌 <span class="hidden sm:inline">Gerbang</span> Logika</span>
+            </button>
         </div>
 
         <div class="text-[9.5px] font-mono-code font-bold text-amber-300 hidden md:flex items-center gap-1 shrink-0">
             <i class="fa-solid fa-trophy text-xs"></i>
-            <span x-text="activeGame === 'chemistry' ? 'Lavoisier (+50)' : (activeGame === 'logic' ? 'Boolean (+50)' : (activeGame === 'water' ? 'FPB (+50)' : (activeGame === 'hanoi' ? 'Rekursi (+50)' : 'Logika (+50)')))"></span>
+            <span x-text="activeGame === 'river' ? 'Logika (+50)' : (activeGame === 'hanoi' ? 'Rekursi (+50)' : (activeGame === 'water' ? 'FPB (+50)' : (activeGame === 'chemistry' ? 'Lavoisier (+50)' : 'Boolean (+50)')))"></span>
         </div>
     </div>
 
@@ -528,25 +516,25 @@
                 <!-- 2. BENTANGAN SUNGAI LUAS & PERAHU BERGERAK (TENGAH) -->
                 <div class="flex-1 h-full relative overflow-hidden bg-gradient-to-r from-sky-400 via-cyan-400 to-sky-400 flex flex-col justify-between p-1 sm:p-2 river-current-flow">
                     
-                    <!-- Status Lokasi Perahu -->
-                    <div class="w-full flex items-center justify-between z-10">
+                    <!-- Status Lokasi & Kapasitas Perahu (Baris Atas Bersih) -->
+                    <div class="w-full flex items-center justify-between z-10 shrink-0 px-0.5 pointer-events-none">
                         <div class="text-[7.5px] sm:text-[9px] font-mono-code font-black px-1.5 py-0.2 rounded-full bg-[#121316] text-white shadow-xs">
                             PERAHU: <span class="text-yellow-300" x-text="boatPosition === 'west' ? 'BARAT ◄' : '► TIMUR'"></span>
                         </div>
-                        <div class="text-[7px] sm:text-[7.5px] font-mono-code font-black px-1 py-0.2 rounded-full bg-white/80 border border-[#121316] text-[#121316]">
-                            KAPASITAS: <span x-text="boatPassengers.length + '/2'"></span>
+                        <div class="text-[7px] sm:text-[8px] font-mono-code font-black px-1.5 py-0.2 rounded-full bg-white/90 border border-[#121316] text-[#121316] shadow-2xs">
+                            KAPASITAS: <span class="text-indigo-900 font-extrabold" x-text="boatPassengers.length + '/2'"></span>
                         </div>
                     </div>
 
                     <!-- Lintasan Perahu Berlayar Melintasi Sungai yang Luas -->
-                    <div class="my-auto w-full relative h-22 sm:h-26 flex items-center z-15">
+                    <div class="my-auto w-full relative h-20 sm:h-24 flex items-center z-15">
                         
                         <!-- Wrapper Perahu Bergerak (Menyeberang Jarak Luas dari Barat ke Timur) -->
                         <div class="w-full flex transition-all duration-1000 ease-in-out px-1 sm:px-3"
                              :class="boatPosition === 'west' ? 'justify-start' : 'justify-end'">
                             
                             <!-- PERAHU SAMPAN KAYU 3D & PENUMPANG FISIK DI DALAMNYA -->
-                            <div class="w-40 sm:w-50 relative select-none transition-transform"
+                            <div class="boat-unit-container w-38 sm:w-48 relative select-none transition-transform"
                                  :class="isMoving ? 'boat-rowing scale-105' : 'boat-idle'">
                                 
                                 <!-- LAYER 1: INNER HULL (DINDING DALAM, LANTAI, BANGKU DUDUK, & DAYUNG KAYU) -->
@@ -571,7 +559,7 @@
                                 <div class="absolute inset-0 z-20 pointer-events-none">
                                     
                                     <!-- Kursi 1 (Kiri / Depan - Duduk di Bangku 1) -->
-                                    <div style="position: absolute; left: 16%; width: 30%; top: 0; bottom: 30px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
+                                    <div style="position: absolute; left: 16%; width: 30%; top: 0; bottom: 28px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
                                         <template x-if="boatPassengers.length > 0">
                                             <button type="button" 
                                                     @click="unboardBoat(0)"
@@ -585,30 +573,22 @@
                                                 </div>
                                                 <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center">
                                                     <template x-if="boatPassengers[0] === 'M'">
-                                                        <svg viewBox="0 0 54 86" class="w-8 sm:w-11 h-13 sm:h-18 scholar-figure">
+                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 scholar-figure">
                                                             <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
                                                         </svg>
                                                     </template>
                                                     <template x-if="boatPassengers[0] === 'C'">
-                                                        <svg viewBox="0 0 54 86" class="w-8 sm:w-11 h-13 sm:h-18 tribal-figure">
+                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 tribal-figure">
                                                             <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
                                                         </svg>
                                                     </template>
                                                 </div>
                                             </button>
                                         </template>
-
-                                        <template x-if="boatPassengers.length === 0">
-                                            <div class="flex flex-col items-center justify-end w-full opacity-70 pb-0.5 select-none pointer-events-none">
-                                                <span class="text-[7px] font-mono-code font-bold text-amber-900 bg-amber-200/90 px-1 py-0.2 rounded border border-amber-600/40 shadow-xs">
-                                                    Kursi 1
-                                                </span>
-                                            </div>
-                                        </template>
                                     </div>
 
                                     <!-- Kursi 2 (Kanan / Belakang - Duduk di Bangku 2) -->
-                                    <div style="position: absolute; left: 54%; width: 30%; top: 0; bottom: 30px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
+                                    <div style="position: absolute; left: 54%; width: 30%; top: 0; bottom: 28px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
                                         <template x-if="boatPassengers.length > 1">
                                             <button type="button" 
                                                     @click="unboardBoat(1)"
@@ -622,25 +602,17 @@
                                                 </div>
                                                 <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center">
                                                     <template x-if="boatPassengers[1] === 'M'">
-                                                        <svg viewBox="0 0 54 86" class="w-8 sm:w-11 h-13 sm:h-18 scholar-figure">
+                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 scholar-figure">
                                                             <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
                                                         </svg>
                                                     </template>
                                                     <template x-if="boatPassengers[1] === 'C'">
-                                                        <svg viewBox="0 0 54 86" class="w-8 sm:w-11 h-13 sm:h-18 tribal-figure">
+                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 tribal-figure">
                                                             <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
                                                         </svg>
                                                     </template>
                                                 </div>
                                             </button>
-                                        </template>
-
-                                        <template x-if="boatPassengers.length <= 1">
-                                            <div class="flex flex-col items-center justify-end w-full opacity-70 pb-0.5 select-none pointer-events-none">
-                                                <span class="text-[7px] font-mono-code font-bold text-amber-900 bg-amber-200/90 px-1 py-0.2 rounded border border-amber-600/40 shadow-xs">
-                                                    Kursi 2
-                                                </span>
-                                            </div>
                                         </template>
                                     </div>
 
@@ -676,13 +648,6 @@
                             </div>
                         </div>
 
-                    </div>
-
-                    <!-- Keterangan Arus Sungai -->
-                    <div class="text-[8px] font-mono-code font-bold text-slate-800 z-10 text-center flex items-center justify-center gap-1.5">
-                        <span>🌊 Arus Sungai Menyeberang</span>
-                        <span>•</span>
-                        <span>Maks 2 Orang</span>
                     </div>
                 </div>
 
@@ -764,86 +729,70 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <!-- CONTROL HUB PERMAINAN: 3 KOLOM SEJAJAR (TIDAK BERTUMPUK)      -->
+        <!-- CONTROL HUB PERMAINAN: ZERO-OVERLAP RESPONSIVE DOCK            -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div class="mt-1 sm:mt-1.5 grid grid-cols-3 gap-1 sm:gap-1.5 w-full items-stretch shrink-0">
+        <div class="mt-1 sm:mt-1.5 p-1 sm:p-1.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex items-center justify-between gap-1 sm:gap-2 shrink-0">
             
             <!-- 1. KONTROL CEPAT TEPI BARAT (KIRI) -->
-            <div class="p-1 sm:p-1.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between">
-                <div class="flex items-center justify-between text-[10px] font-mono-code font-black mb-0.5 pb-0.5 border-b border-[#121316]/10">
-                    <span class="text-[#121316] truncate">🏝️ BARAT</span>
-                    <span class="text-indigo-700 bg-indigo-50 px-1 py-0.2 rounded border border-indigo-200 text-[8.5px]" x-text="'M:' + westM + '|K:' + westC"></span>
-                </div>
-                <div class="flex gap-0.5 sm:gap-1">
-                    <button type="button" 
-                            @click="boardBoat('M', 'west')" 
-                            :disabled="westM === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1 px-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[9px] sm:text-[10px] font-black transition disabled:opacity-40 cursor-pointer text-center"
-                            title="Naikkan 1 Ilmuwan dari Tepi Barat">
-                        +M
-                    </button>
-                    <button type="button" 
-                            @click="boardBoat('C', 'west')" 
-                            :disabled="westC === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1 px-0.5 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[9px] sm:text-[10px] font-black transition disabled:opacity-40 cursor-pointer text-center"
-                            title="Naikkan 1 Kanibal dari Tepi Barat">
-                        +K
-                    </button>
-                </div>
+            <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                <span class="text-[9px] font-mono-code font-black text-slate-700 hidden xs:inline mr-0.5">🏝️ BARAT:</span>
+                <button type="button" 
+                        @click="boardBoat('M', 'west')" 
+                        :disabled="westM === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                        class="py-1 px-1.5 sm:px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[9.5px] sm:text-[10.5px] font-black transition disabled:opacity-30 cursor-pointer shadow-xs active:translate-y-0.5"
+                        title="Naikkan 1 Misionaris dari Tepi Barat">
+                    +M (<span x-text="westM"></span>)
+                </button>
+                <button type="button" 
+                        @click="boardBoat('C', 'west')" 
+                        :disabled="westC === 0 || boatPosition !== 'west' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                        class="py-1 px-1.5 sm:px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[9.5px] sm:text-[10.5px] font-black transition disabled:opacity-30 cursor-pointer shadow-xs active:translate-y-0.5"
+                        title="Naikkan 1 Kanibal dari Tepi Barat">
+                    +K (<span x-text="westC"></span>)
+                </button>
             </div>
 
-            <!-- 2. KONTROL AKSI PERAHU & MENYEBERANG SUNGAI (TENGAH) -->
-            <div class="p-1 sm:p-1.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col items-center justify-center gap-0.5 sm:gap-1 min-w-0">
-                <div class="flex items-center gap-1 w-full justify-center">
-                    <!-- Tombol Dayung Utama -->
-                    <button type="button" 
-                            @click="rowBoat()"
-                            :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
-                            class="flex-1 py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-black border-2 border-[#121316] shadow-[2px_2px_0px_#121316] transition-all flex items-center justify-center gap-1 cursor-pointer"
-                            :class="boatPassengers.length > 0 && !isMoving && !isCooldown ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-200 text-slate-400 border-slate-400 cursor-not-allowed shadow-none'">
-                        <span>⛵</span>
-                        <span class="truncate" x-text="isMoving ? 'Menyeberang...' : (boatPosition === 'west' ? 'DAYUNG ►' : '◄ DAYUNG')"></span>
-                    </button>
+            <!-- 2. KONTROL AKSI PERAHU (TENGAH - MANDIRI & LUAS) -->
+            <div class="flex-1 flex items-center justify-center gap-1 min-w-0 max-w-[220px]">
+                <!-- Tombol Dayung Utama -->
+                <button type="button" 
+                        @click="rowBoat()"
+                        :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
+                        class="flex-1 py-1 sm:py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-black border-2 border-[#121316] shadow-[2px_2px_0px_#121316] transition-all flex items-center justify-center gap-1 cursor-pointer"
+                        :class="boatPassengers.length > 0 && !isMoving && !isCooldown ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-200 text-slate-400 border-slate-300 shadow-none cursor-not-allowed'">
+                    <span>⛵</span>
+                    <span class="truncate" x-text="isMoving ? 'Menyeberang...' : (boatPosition === 'west' ? 'DAYUNG ►' : '◄ DAYUNG')"></span>
+                </button>
 
-                    <!-- Tombol Praktis: Turunkan Semua Penumpang -->
+                <!-- Tombol Praktis: Turunkan Semua Penumpang (Hanya muncul jika ada isi) -->
+                <template x-if="boatPassengers.length > 0">
                     <button type="button" 
                             @click="unboardAll()"
-                            :disabled="boatPassengers.length === 0 || isMoving || isCooldown"
-                            class="py-1 sm:py-1.5 px-1.5 sm:px-2 bg-rose-50 hover:bg-rose-100 text-rose-900 border-2 border-[#121316] rounded-xl text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#121316] transition disabled:opacity-30 disabled:shadow-none shrink-0 cursor-pointer"
+                            :disabled="isMoving || isCooldown"
+                            class="py-1 sm:py-1.5 px-1.5 sm:px-2 bg-rose-50 hover:bg-rose-100 text-rose-900 border border-[#121316] rounded-xl text-[9.5px] sm:text-[10.5px] font-black shadow-xs transition cursor-pointer shrink-0 active:translate-y-0.5"
                             title="Turunkan seluruh penumpang">
-                        <span>Turun</span>
+                        ✕ Turun
                     </button>
-                </div>
-
-                <div class="text-[7.5px] sm:text-[8.5px] font-mono-code font-bold text-slate-700 flex items-center gap-1 text-center truncate">
-                    <span>Isi: (<b class="text-[#121316]" x-text="boatPassengers.length"></b>/2)</span>
-                    <span>•</span>
-                    <span class="text-amber-800 font-black truncate" x-text="boatPosition === 'west' ? 'Di Barat' : 'Di Timur'"></span>
-                </div>
+                </template>
             </div>
 
             <!-- 3. KONTROL CEPAT TEPI TIMUR (KANAN) -->
-            <div class="p-1 sm:p-1.5 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] flex flex-col justify-between">
-                <div class="flex items-center justify-between text-[10px] font-mono-code font-black mb-0.5 pb-0.5 border-b border-[#121316]/10">
-                    <span class="text-[#121316] truncate">🏁 TIMUR</span>
-                    <span class="text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200 text-[8.5px]" x-text="'M:' + eastM + '|K:' + eastC"></span>
-                </div>
-                <div class="flex gap-0.5 sm:gap-1">
-                    <button type="button" 
-                            @click="boardBoat('M', 'east')" 
-                            :disabled="eastM === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1 px-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[9px] sm:text-[10px] font-black transition disabled:opacity-40 cursor-pointer text-center"
-                            title="Naikkan kembali 1 Ilmuwan ke perahu">
-                        +M
-                    </button>
-                    <button type="button" 
-                            @click="boardBoat('C', 'east')" 
-                            :disabled="eastC === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
-                            class="flex-1 py-1 px-0.5 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[9px] sm:text-[10px] font-black transition disabled:opacity-40 cursor-pointer text-center"
-                            title="Naikkan kembali 1 Kanibal ke perahu">
-                        +K
-                    </button>
-                </div>
+            <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                <span class="text-[9px] font-mono-code font-black text-slate-700 hidden xs:inline mr-0.5">🏁 TIMUR:</span>
+                <button type="button" 
+                        @click="boardBoat('M', 'east')" 
+                        :disabled="eastM === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                        class="py-1 px-1.5 sm:px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-[#121316] rounded-lg text-[9.5px] sm:text-[10.5px] font-black transition disabled:opacity-30 cursor-pointer shadow-xs active:translate-y-0.5"
+                        title="Naikkan kembali 1 Misionaris ke perahu">
+                    +M (<span x-text="eastM"></span>)
+                </button>
+                <button type="button" 
+                        @click="boardBoat('C', 'east')" 
+                        :disabled="eastC === 0 || boatPosition !== 'east' || boatPassengers.length >= 2 || isMoving || isCooldown"
+                        class="py-1 px-1.5 sm:px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-[#121316] rounded-lg text-[9.5px] sm:text-[10.5px] font-black transition disabled:opacity-30 cursor-pointer shadow-xs active:translate-y-0.5"
+                        title="Naikkan kembali 1 Kanibal ke perahu">
+                    +K (<span x-text="eastC"></span>)
+                </button>
             </div>
 
         </div>
@@ -851,7 +800,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- MODAL BAHAYA / PELANGGARAN ATURAN (KANIBAL MEMANGSA MISIONARIS) -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div x-show="dangerAlert.show" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+        <div x-cloak x-show="dangerAlert.show" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
             <div class="bg-white border-2 border-[#121316] rounded-3xl w-full max-w-sm overflow-hidden shadow-[8px_8px_0px_#e11d48] animate-bounce">
                 <div class="p-4 bg-rose-500 text-white flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -877,7 +826,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- MODAL KEMENANGAN (VICTORY & REPUTATION REWARD CLAIM)          -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div x-show="victoryModal.show" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+        <div x-cloak x-show="victoryModal.show" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
             <div class="bg-white border-2 border-[#121316] rounded-3xl w-full max-w-md overflow-hidden shadow-[8px_8px_0px_#10b981]">
                 <div class="p-4 bg-gradient-to-r from-emerald-400 to-teal-400 text-[#121316] flex items-center justify-between border-b-2 border-[#121316]">
                     <div class="flex items-center gap-2">
@@ -930,7 +879,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- MODAL ATURAN PERMAINAN                                        -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div x-show="showRulesModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
+        <div x-cloak x-show="showRulesModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;">
             <div @click.away="showRulesModal = false" class="bg-white border-2 border-[#121316] rounded-3xl w-full max-w-md overflow-hidden shadow-[8px_8px_0px_#121316]">
                 <div class="p-4 bg-[#fde047] border-b-2 border-[#121316] flex items-center justify-between">
                     <h3 class="font-black text-sm text-[#121316] flex items-center gap-2">
@@ -973,6 +922,8 @@
 <!-- GAYA KHUSUS & ANIMASI PERAHU REALISTIS & GERAKAN GELOMBANG AIR        -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
+[x-cloak] { display: none !important; }
+
 /* ── Neo-Brutalist Tactile Styles & Fonts ── */
 .forum-hdr { font-family: 'Plus Jakarta Sans', sans-serif; }
 .font-mono-code { font-family: 'JetBrains Mono', monospace, ui-monospace; }
@@ -1065,14 +1016,40 @@
         display: none !important;
     }
     #pembda-challenge .river-panorama-height {
-        height: 120px !important;
-        min-height: 120px !important;
+        height: 96px !important;
+        min-height: 96px !important;
+    }
+    #pembda-challenge .scholar-figure,
+    #pembda-challenge .tribal-figure {
+        height: 24px !important;
+        width: 16px !important;
+    }
+    #pembda-challenge .boat-unit-container {
+        width: 125px !important;
+    }
+    #pembda-challenge .challenge-arena-container {
+        padding: 4px !important;
     }
 }
 #pembda-challenge.mobile-landscape-active .river-panorama-height,
 #pembda-challenge.mobile-physical-landscape .river-panorama-height {
-    height: 120px !important;
-    min-height: 120px !important;
+    height: 96px !important;
+    min-height: 96px !important;
+}
+#pembda-challenge.mobile-landscape-active .scholar-figure,
+#pembda-challenge.mobile-landscape-active .tribal-figure,
+#pembda-challenge.mobile-physical-landscape .scholar-figure,
+#pembda-challenge.mobile-physical-landscape .tribal-figure {
+    height: 24px !important;
+    width: 16px !important;
+}
+#pembda-challenge.mobile-landscape-active .boat-unit-container,
+#pembda-challenge.mobile-physical-landscape .boat-unit-container {
+    width: 125px !important;
+}
+#pembda-challenge.mobile-landscape-active .challenge-arena-container,
+#pembda-challenge.mobile-physical-landscape .challenge-arena-container {
+    padding: 4px !important;
 }
 
 /* Animasi Mengapung Halus Perahu di Air (Gentle Idle Floating) */
@@ -1219,7 +1196,7 @@
 function pembdaChallenge() {
     return {
         isCollapsed: false,
-        activeGame: 'chemistry', // 'chemistry', 'logic', 'water', 'hanoi', atau 'river'
+        activeGame: 'river', // Default: 'river' (Misionaris vs Kanibal)
         isLandscapeMode: false,
         isPhysicalLandscape: false,
         showRulesModal: false,

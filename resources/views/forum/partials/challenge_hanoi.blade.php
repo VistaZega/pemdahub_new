@@ -2,6 +2,7 @@
 <!-- 🏛️ PembdaCHALLENGE: Menara Hanoi (Tower of Hanoi - Logic Quest)         -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
+[x-cloak] { display: none !important; }
 #pembda-challenge.mobile-landscape-active .hanoi-tower-stage,
 #pembda-challenge.mobile-physical-landscape .hanoi-tower-stage {
     height: 85px !important;
@@ -37,13 +38,15 @@
     </div>
 
     <!-- Alert Pelanggaran Aturan Hanoi (Shake Animation & Red Glow) -->
-    <div x-show="illegalMoveAlert.show" 
+    <div x-cloak
+         x-show="illegalMoveAlert.show" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 -translate-y-2"
          x-transition:enter-end="opacity-100 translate-y-0"
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
+         style="display: none;"
          class="mb-3 p-2.5 sm:p-3 rounded-xl bg-rose-500 text-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] flex items-center justify-between gap-2 text-xs font-bold">
         <div class="flex items-center gap-2">
             <span class="text-base">⚠️</span>
@@ -263,8 +266,10 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- MODAL KEMENANGAN MENARA HANOI                                       -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div x-show="victoryModal.show" 
+    <div x-cloak
+         x-show="victoryModal.show" 
          x-transition.opacity 
+         style="display: none;"
          class="fixed inset-0 z-50 bg-[#121316]/70 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white border-2 border-[#121316] rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-[6px_6px_0px_#121316] text-center" @click.stop>
             <div class="w-16 h-16 rounded-2xl bg-[#fde047] border-2 border-[#121316] shadow-[3px_3px_0px_#121316] flex items-center justify-center text-3xl mx-auto mb-3">
@@ -309,8 +314,10 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- MODAL ATURAN & TEORI REKURSI MENARA HANOI                           -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div x-show="showRulesModal" 
+    <div x-cloak
+         x-show="showRulesModal" 
          x-transition.opacity 
+         style="display: none;"
          class="fixed inset-0 z-50 bg-[#121316]/70 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white border-2 border-[#121316] rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-[6px_6px_0px_#121316]" @click.stop>
             <div class="flex items-center justify-between pb-3 border-b-2 border-[#121316] mb-3">
