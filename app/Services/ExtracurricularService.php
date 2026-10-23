@@ -84,6 +84,21 @@ class ExtracurricularService
                 ]);
             }
 
+            // Sinkronkan juga Guru Pembina (teacher_id) & nama course pada LmsCourse jika sudah ada
+            if ($ekskul->lms_course_id) {
+                $lmsCourse = LmsCourse::find($ekskul->lms_course_id);
+                if ($lmsCourse) {
+                    $courseUpdate = [
+                        'course_name' => 'Ekstrakurikuler: ' . $ekskul->name,
+                        'school_id' => $ekskul->school_id,
+                    ];
+                    if ($ekskul->advisor_teacher_id) {
+                        $courseUpdate['teacher_id'] = $ekskul->advisor_teacher_id;
+                    }
+                    $lmsCourse->update($courseUpdate);
+                }
+            }
+
             $this->syncLeadershipMembers($ekskul, $userId);
 
             return $ekskul;
@@ -321,8 +336,15 @@ class ExtracurricularService
                     if ($existingCourse->trashed()) {
                         $existingCourse->restore();
                     }
+                    $syncCols = [];
                     if (!$existingCourse->extracurricular_id) {
-                        $existingCourse->update(['extracurricular_id' => $ekskul->id]);
+                        $syncCols['extracurricular_id'] = $ekskul->id;
+                    }
+                    if ($ekskul->advisor_teacher_id && $existingCourse->teacher_id !== $ekskul->advisor_teacher_id) {
+                        $syncCols['teacher_id'] = $ekskul->advisor_teacher_id;
+                    }
+                    if (!empty($syncCols)) {
+                        $existingCourse->update($syncCols);
                     }
                     $this->seedStarterModulesForEkskul($ekskul, $existingCourse);
                     app(LmsEnrollmentService::class)->syncCourseEnrollments($existingCourse);

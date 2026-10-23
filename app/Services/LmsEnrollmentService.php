@@ -58,11 +58,17 @@ class LmsEnrollmentService
 
         foreach ($ekskulMemberships as $membership) {
             $ekskul = $membership->extracurricular;
-            if (!$ekskul || !$ekskul->lms_course_id) {
+            if (!$ekskul) {
                 continue;
             }
 
-            $ekskulCourse = LmsCourse::find($ekskul->lms_course_id);
+            if (!$ekskul->lms_course_id) {
+                $ekskulCourse = app(\App\Services\ExtracurricularService::class)->ensureLmsCourse($ekskul);
+            } else {
+                $ekskulCourse = LmsCourse::find($ekskul->lms_course_id)
+                    ?? app(\App\Services\ExtracurricularService::class)->ensureLmsCourse($ekskul);
+            }
+
             if (!$ekskulCourse) {
                 continue;
             }

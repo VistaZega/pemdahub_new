@@ -286,8 +286,13 @@
                             </div>
                             <div class="min-w-0 flex-1" style="min-width: 0; flex: 1;">
                                 <h3 class="font-black text-white text-base leading-snug line-clamp-2">{{ $course->course_name ?? $course->name }}</h3>
-                                <div class="flex items-center gap-2 mt-1">
+                                <div class="flex items-center gap-2 mt-1 flex-wrap">
                                     <span class="bg-slate-900 text-amber-300 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-black">{{ $course->getShortCode() }}</span>
+                                    @if($course->isExtracurricular())
+                                    <span class="bg-amber-400 text-black px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border border-black">
+                                        🏆 KELAS EKSKUL (NILAI EXTRA)
+                                    </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

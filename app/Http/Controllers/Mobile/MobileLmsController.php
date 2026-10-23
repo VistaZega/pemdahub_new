@@ -71,8 +71,24 @@ class MobileLmsController extends Controller
             ->latest()
             ->get();
         } else {
-            $teacherId = $teacher->id ?? 0;
-            $enrolledCourses = LmsCourse::where('teacher_id', $teacherId)
+            $tIds = $user && method_exists($user, 'teacherIds') ? $user->teacherIds() : [];
+            if (empty($tIds) && $teacher) {
+                $tIds = $teacher->allTeacherIds();
+            }
+            if (empty($tIds) && $teacher) {
+                $tIds = [$teacher->id];
+            }
+
+            if (!empty($tIds)) {
+                $advisedEkskuls = \App\Models\Extracurricular::whereIn('advisor_teacher_id', $tIds)
+                    ->where('is_active', true)
+                    ->get();
+                foreach ($advisedEkskuls as $advEkskul) {
+                    app(\App\Services\ExtracurricularService::class)->ensureLmsCourse($advEkskul, $user);
+                }
+            }
+
+            $enrolledCourses = LmsCourse::whereIn('teacher_id', !empty($tIds) ? $tIds : [0])
                 ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
                     $q->where(function($sq) use ($selectedClassroomId) {
                         $sq->where('classroom_id', $selectedClassroomId)
@@ -80,7 +96,7 @@ class MobileLmsController extends Controller
                     });
                 })
                 ->orWhere(fn($q) => $q->whereNull('teacher_id'))
-                ->with(['teacher.user', 'subject', 'classroom', 'modules.materials', 'materials', 'lmsClasses.classroom'])
+                ->with(['teacher.user', 'subject', 'classroom', 'modules.materials', 'materials', 'lmsClasses.classroom', 'extracurricular'])
                 ->withCount(['materials', 'assignments', 'quizzes', 'enrollments'])
                 ->latest()
                 ->get();

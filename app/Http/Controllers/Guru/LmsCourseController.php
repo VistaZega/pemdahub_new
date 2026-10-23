@@ -95,7 +95,17 @@ class LmsCourseController extends Controller
             $tIds = [$teacher->id];
         }
 
-        return in_array($course->teacher_id, $tIds);
+        if (in_array($course->teacher_id, $tIds)) {
+            return true;
+        }
+
+        // Izinkan juga jika guru ini adalah Pembina Ekstrakurikuler dari course tersebut
+        $ekskul = $course->extracurricular ?? \App\Models\Extracurricular::where('lms_course_id', $course->id)->first();
+        if ($ekskul && in_array($ekskul->advisor_teacher_id, $tIds)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -115,6 +125,14 @@ class LmsCourseController extends Controller
         }
         if (empty($tIds)) {
             $tIds = [$teacher->id];
+        }
+
+        // Auto-sync: Pastikan setiap Ekstrakurikuler yang dibina oleh guru ini otomatis memiliki Course LMS & ter-assign ke guru ini
+        $advisedEkskuls = \App\Models\Extracurricular::whereIn('advisor_teacher_id', $tIds)
+            ->where('is_active', true)
+            ->get();
+        foreach ($advisedEkskuls as $advEkskul) {
+            app(\App\Services\ExtracurricularService::class)->ensureLmsCourse($advEkskul, $user);
         }
 
         $effectiveSchoolId = $this->getEffectiveSchoolId($teacher);
@@ -152,7 +170,7 @@ class LmsCourseController extends Controller
             ->when($selectedClassroomId, function($q) use ($selectedClassroomId) {
                 $q->whereHas('lmsClasses', fn($sq) => $sq->where('classroom_id', $selectedClassroomId));
             })
-            ->with(['subject', 'semester', 'classroom', 'lmsClasses.classroom'])
+            ->with(['subject', 'semester', 'classroom', 'lmsClasses.classroom', 'extracurricular'])
             ->withCount(['materials', 'assignments', 'quizzes'])
             ->orderByDesc('created_at')
             ->paginate(12)->withQueryString();
@@ -160,12 +178,14 @@ class LmsCourseController extends Controller
         // Hitung total seluruh course milik guru lintas semua unit sekolah
         $totalAllUnitsCourses = LmsCourse::whereIn('teacher_id', $tIds)->count();
 
-        // Orphan courses: milik guru, tidak punya rombel pada unit sekolah aktif
+        // Orphan courses: milik guru, tidak punya rombel pada unit sekolah aktif (kecuali Kelas LMS Ekstrakurikuler)
         $orphanCourses = LmsCourse::whereIn('teacher_id', $tIds)
             ->where(function($q) use ($effectiveSchoolId) {
                 $q->where('school_id', $effectiveSchoolId)
                   ->orWhereNull('school_id');
             })
+            ->whereNull('extracurricular_id')
+            ->whereNotNull('subject_id')
             ->whereDoesntHave('lmsClasses')
             ->with(['subject', 'semester'])
             ->withCount(['materials', 'assignments', 'quizzes'])

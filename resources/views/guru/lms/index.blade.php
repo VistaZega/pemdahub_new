@@ -149,7 +149,13 @@
                             </div>
                             <div class="min-w-0 flex-1">
                                 <h3 class="font-black text-white text-base leading-snug line-clamp-2">{{ $course->name }}</h3>
-                                <p class="text-amber-400 text-[11px] font-black tracking-wide mt-0.5">{{ $course->subject->subject_name ?? '-' }}</p>
+                                <p class="text-amber-400 text-[11px] font-black tracking-wide mt-0.5">
+                                    @if($course->isExtracurricular())
+                                        🏆 EKSTRAKURIKULER &bull; {{ $course->extracurricular?->name ?? 'Nilai Extra Mandiri' }}
+                                    @else
+                                        {{ $course->subject->subject_name ?? '-' }}
+                                    @endif
+                                </p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
@@ -183,8 +189,20 @@
                         </div>
                     </div>
 
-                    {{-- Rombel Info --}}
-                    @if($classNames)
+                    {{-- Rombel / Ekskul Info --}}
+                    @if($course->isExtracurricular())
+                    <div class="flex items-center justify-between gap-2 text-xs text-purple-950 font-black mb-4 bg-purple-100 p-3 rounded-2xl border-2 border-black flex-shrink-0">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-medal text-purple-700 text-sm shrink-0"></i>
+                            <span class="font-black">Anggota Ekskul Lintas Kelas</span>
+                        </div>
+                        @if($course->extracurricular)
+                        <a href="{{ route('guru.extracurricular.show', $course->extracurricular->id) }}" class="px-2.5 py-1 bg-black text-amber-300 rounded-lg text-[10px] font-black uppercase hover:bg-purple-900 transition">
+                            Nilai Extra &rarr;
+                        </a>
+                        @endif
+                    </div>
+                    @elseif($classNames)
                     <div class="flex items-start gap-2 text-xs text-black font-black mb-4 bg-amber-50 p-3 rounded-2xl border-2 border-black flex-shrink-0">
                         <i class="fas fa-users text-black text-sm mt-0.5 shrink-0"></i>
                         <span class="font-bold leading-relaxed">{{ $classNames }}</span>
