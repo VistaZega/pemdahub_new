@@ -177,47 +177,131 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        /* Compact Video Tile inside Classroom Desk Grid (especially on Mobile) */
-        #classroom-grid .video-tile > .absolute.top-4.left-4 {
+        /* Compact Video Tile inside Classroom Desk Grid & Discussion Orbit (especially on Mobile) */
+        #classroom-grid .video-tile > .absolute.top-4.left-4,
+        #discussion-orbit-layer .video-tile > .absolute.top-4.left-4,
+        #discussion-overflow-strip .video-tile > .absolute.top-4.left-4 {
             top: auto !important;
-            bottom: 0.35rem !important;
-            left: 0.35rem !important;
-            right: 0.35rem !important;
+            bottom: 0.25rem !important;
+            left: 0.25rem !important;
+            right: 0.25rem !important;
+            padding: 0.15rem 0.35rem !important;
+            font-size: 8px !important;
+            border-radius: 0.4rem !important;
+            box-shadow: 1px 1px 0px #121316 !important;
+            gap: 0.2rem !important;
+        }
+        #classroom-grid .video-tile > .absolute.top-4.right-4,
+        #discussion-orbit-layer .video-tile > .absolute.top-4.right-4 {
+            top: 0.25rem !important;
+            right: 0.25rem !important;
+        }
+        #classroom-grid .video-tile [id^="remote-placeholder-"] > div,
+        #discussion-orbit-layer .video-tile [id^="remote-placeholder-"] > div {
+            width: 1.85rem !important;
+            height: 1.85rem !important;
+            font-size: 0.75rem !important;
+            margin-bottom: 1rem !important;
+            border-radius: 0.5rem !important;
+        }
+        #classroom-grid .video-tile [id^="remote-placeholder-"] > p,
+        #discussion-orbit-layer .video-tile [id^="remote-placeholder-"] > p {
+            display: none !important;
+        }
+        #discussion-center-slot .video-tile > .absolute.top-3.left-3,
+        #discussion-center-slot .video-tile > .absolute.top-4.left-4 {
+            top: auto !important;
+            bottom: 0.3rem !important;
+            left: 0.3rem !important;
+            right: 0.3rem !important;
             padding: 0.2rem 0.45rem !important;
             font-size: 9px !important;
-            border-radius: 0.5rem !important;
-            box-shadow: 1.5px 1.5px 0px #121316 !important;
-            gap: 0.25rem !important;
-        }
-        #classroom-grid .video-tile > .absolute.top-4.right-4 {
-            top: 0.35rem !important;
-            right: 0.35rem !important;
-        }
-        #classroom-grid .video-tile [id^="remote-placeholder-"] > div {
-            width: 2.25rem !important;
-            height: 2.25rem !important;
-            font-size: 0.875rem !important;
-            margin-bottom: 1.2rem !important;
-            border-radius: 0.65rem !important;
-        }
-        #classroom-grid .video-tile [id^="remote-placeholder-"] > p {
-            display: none !important;
         }
         @media (max-width: 640px) {
             #podium-teacher-slot .video-tile > .absolute.top-4.left-4,
+            #podium-teacher-slot .video-tile > .absolute.top-3.left-3,
             #podium-speaker-slot .video-tile > .absolute.top-4.left-4 {
-                top: 0.5rem !important;
-                left: 0.5rem !important;
-                padding: 0.25rem 0.5rem !important;
-                font-size: 10px !important;
+                top: 0.4rem !important;
+                left: 0.4rem !important;
+                padding: 0.2rem 0.45rem !important;
+                font-size: 9px !important;
             }
+        }
+
+        /* Mode Lanskap Paksa (Jika tombol Lanskap ditekan di HP saat auto-rotate terkunci) */
+        body.force-landscape-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 100vw !important;
+            width: 100dvh !important;
+            height: 100vw !important;
+            max-height: 100vw !important;
+            transform: rotate(90deg) !important;
+            transform-origin: top left !important;
+            z-index: 9999 !important;
+        }
+
+        /* Penyesuaian Otomatis Saat Layar Mobile Landscape (Horizontal) */
+        @media (max-height: 540px) and (orientation: landscape) {
+            header.meeting-top-header {
+                padding-top: 0.25rem !important;
+                padding-bottom: 0.25rem !important;
+            }
+            #stage-classroom-wrapper {
+                flex-direction: row !important;
+                align-items: stretch !important;
+                gap: 0.5rem !important;
+                padding: 0.35rem !important;
+            }
+            #classroom-podium-section {
+                width: 220px !important;
+                flex-shrink: 0 !important;
+                justify-content: flex-start !important;
+                padding: 0 !important;
+            }
+            #podium-teacher-slot, #podium-speaker-slot {
+                height: 125px !important;
+            }
+            #bottom-action-dock-wrapper {
+                padding-top: 0.25rem !important;
+                padding-bottom: 0.25rem !important;
+            }
+            #bottom-action-dock {
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                justify-content: flex-start !important;
+            }
+        }
+        body.force-landscape-mode header.meeting-top-header {
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+        }
+        body.force-landscape-mode #stage-classroom-wrapper {
+            flex-direction: row !important;
+            align-items: stretch !important;
+            gap: 0.5rem !important;
+            padding: 0.35rem !important;
+        }
+        body.force-landscape-mode #classroom-podium-section {
+            width: 230px !important;
+            flex-shrink: 0 !important;
+            justify-content: flex-start !important;
+            padding: 0 !important;
+        }
+        body.force-landscape-mode #podium-teacher-slot,
+        body.force-landscape-mode #podium-speaker-slot {
+            height: 135px !important;
+        }
+        body.force-landscape-mode #bottom-action-dock-wrapper {
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
         }
     </style>
 </head>
-<body class="bg-[#faf8f5] text-[#121316] h-screen flex flex-col overflow-hidden select-none font-sans antialiased">
+<body class="bg-[#faf8f5] text-[#121316] flex flex-col overflow-hidden select-none font-sans antialiased" style="height: 100vh; height: 100dvh; max-height: 100dvh;">
 
     {{-- 1. SMART CLASSROOM HEADER (PEMBDAHUB HOMEPAGE TACTILE STYLE - WARNA KONTRAS TINGGI) --}}
-    <header class="bg-[#faf8f5] border-b-2 border-[#121316] px-2.5 sm:px-6 py-2 flex items-center justify-between gap-2 z-30 flex-shrink-0 shadow-xs" style="background-color: #faf8f5; border-bottom: 2.5px solid #121316;">
+    <header class="meeting-top-header bg-[#faf8f5] border-b-2 border-[#121316] px-2 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 z-30 flex-shrink-0 shadow-xs" style="background-color: #faf8f5; border-bottom: 2.5px solid #121316;">
         
         {{-- Brand, Unit & Info Kelas --}}
         <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -276,7 +360,12 @@
                 </span>
             </button>
 
-            {{-- 2. Tombol Salin Tautan --}}
+            {{-- 2. Tombol Mode Lanskap (Putar Layar Horizontal untuk HP/Tablet) --}}
+            <button onclick="toggleLandscapeMode()" type="button" id="btn-landscape-header" class="lg:hidden group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0d9488; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Tampilan Lanskap (Horizontal)">
+                <i id="header-landscape-icon" class="fa-solid fa-mobile-screen-button rotate-90 text-xs sm:text-sm"></i>
+            </button>
+
+            {{-- 3. Tombol Salin Tautan --}}
             <button onclick="copyMeetingLink()" type="button" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0284c7; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Salin tautan kelas untuk siswa">
                 <i class="fa-solid fa-link text-xs sm:text-sm"></i>
                 <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
@@ -284,7 +373,7 @@
                 </span>
             </button>
 
-            {{-- 3. Tombol Pilihan Tampilan Layout (Tata Letak) --}}
+            {{-- 4. Tombol Pilihan Tampilan Layout (Tata Letak) --}}
             <div class="relative inline-block text-left" id="header-view-wrapper">
                 <button onclick="toggleViewMenu(event)" type="button" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Pilihan Tata Letak Tampilan Video">
                     <i id="header-view-icon" class="fa-solid fa-chalkboard-user text-xs sm:text-sm text-black"></i>
@@ -294,7 +383,7 @@
                 </button>
 
                 {{-- DROPDOWN MENU TATA LETAK ZOOM --}}
-                <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-60 sm:w-64 rounded-2xl bg-white p-2.5 z-50 transition-all shadow-xl" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
+                <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 sm:w-68 rounded-2xl bg-white p-2.5 z-50 transition-all shadow-xl" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
                     <div class="px-3 py-1 text-[10px] font-mono-code font-extrabold uppercase tracking-wider mb-1.5 flex items-center justify-between" style="color: #777; border-bottom: 1.5px solid #e2ded5;">
                         <span>TATA LETAK VIDEO</span>
                         <span>⌜ ⌟</span>
@@ -306,6 +395,14 @@
                             <span>Model Ruang Kelas</span>
                         </span>
                         <i id="check-classroom" class="fa-solid fa-check text-xs font-black" style="color: #ff3823;"></i>
+                    </button>
+
+                    <button onclick="changeLayout('discussion')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                        <span class="flex items-center gap-2.5">
+                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #0d9488; color: #ffffff;"><i class="fa-solid fa-people-arrows"></i></span>
+                            <span>Diskusi (Guru di Tengah)</span>
+                        </span>
+                        <i id="check-discussion" class="fa-solid fa-check text-xs hidden font-black" style="color: #0d9488;"></i>
                     </button>
 
                     <button onclick="changeLayout('gallery')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
@@ -334,6 +431,11 @@
 
                     <div class="h-px my-1.5" style="background-color: #e2ded5;"></div>
 
+                    <button onclick="toggleLandscapeMode()" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center gap-2.5 transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
+                        <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #0d9488; color: #ffffff;"><i id="menu-landscape-icon" class="fa-solid fa-mobile-screen-button rotate-90"></i></span>
+                        <span id="menu-landscape-text">Mode Lanskap (Horizontal)</span>
+                    </button>
+
                     <button onclick="toggleAppFullscreen()" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center gap-2.5 transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
                         <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #fbc02d; color: #121316;"><i id="menu-fs-icon" class="fa-solid fa-expand"></i></span>
                         <span id="menu-fs-text">Layar Penuh (F11)</span>
@@ -341,7 +443,7 @@
                 </div>
             </div>
 
-            {{-- 4. Tombol Toggle Panel Materi / Peserta --}}
+            {{-- 5. Tombol Toggle Panel Materi / Peserta --}}
             <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka / Sembunyikan Panel KBM">
                 <i class="fa-solid fa-table-columns text-xs sm:text-sm"></i>
                 <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
@@ -349,7 +451,7 @@
                 </span>
             </button>
 
-            {{-- 5. Profile Chip Guru (Hidden on XS to save space) --}}
+            {{-- 6. Profile Chip Guru (Hidden on XS to save space) --}}
             <div class="hidden sm:flex group relative w-10 h-10 rounded-xl items-center justify-center border-2 border-black bg-white select-none" style="box-shadow: 2px 2px 0px #121316;" title="{{ $displayName }}">
                 <div class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black uppercase text-white shadow-xs" style="background-color: #ff3823; border: 1px solid #121316;">
                     {{ substr($displayName, 0, 1) }}
@@ -359,7 +461,7 @@
                 </span>
             </div>
 
-            {{-- 6. Tombol Akhiri Kelas --}}
+            {{-- 7. Tombol Akhiri Kelas --}}
             <button onclick="openEndMeetingModal()" type="button" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ff3823; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Akhiri Sesi PembdaTEMU">
                 <i class="fa-solid fa-power-off text-xs sm:text-sm"></i>
                 <span class="hidden sm:block absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">
@@ -369,34 +471,34 @@
         </div>
     </header>
 
-    {{-- 2. MAIN WORKSPACE CONTAINER (SPLIT SCREEN) --}}
-    <div class="flex-1 flex flex-row overflow-hidden relative" style="height: calc(100vh - 56px);">
+    {{-- 2. MAIN WORKSPACE CONTAINER (SPLIT SCREEN - MENYESUAIKAN LAYAR PENUH DINAMIS) --}}
+    <div class="flex-1 min-h-0 flex flex-row overflow-hidden relative">
         
         {{-- Conference Stage (Video Call Agora with Dotted Grid Graph Texture) --}}
-        <main id="conference-panel" class="flex-1 relative graph-paper-box flex flex-col h-full overflow-hidden transition-all duration-150">
+        <main id="conference-panel" class="flex-1 min-h-0 relative graph-paper-box flex flex-col h-full overflow-hidden transition-all duration-150">
             
             {{-- STATUS INDIKATOR GURU (TENGAH ATAS - TACTILE PILL) --}}
-            <div id="solo-teacher-banner" class="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto transition-all duration-300 hidden">
-                <div class="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono-code font-black" style="background-color: #fbc02d; color: #121316; border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
-                    <span class="w-2.5 h-2.5 rounded-full animate-ping" style="background-color: #10b981;"></span>
+            <div id="solo-teacher-banner" class="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-auto transition-all duration-300 hidden">
+                <div class="flex items-center gap-2 px-3.5 py-1 rounded-full text-[11px] font-mono-code font-black" style="background-color: #fbc02d; color: #121316; border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
+                    <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #10b981;"></span>
                     <i class="fa-solid fa-video text-xs"></i>
                     <span>KAMERA AKTIF • MENUNGGU SISWA MASUK</span>
                 </div>
             </div>
 
             {{-- 1. CLASSROOM VIEW STAGE (DEFAULT: Model Ruang Kelas 5x8 Kursi Siswa + Meja Guru Depan) --}}
-            <div id="stage-classroom-wrapper" class="flex flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 pb-24 sm:pb-28 gap-2 relative min-h-0">
+            <div id="stage-classroom-wrapper" class="flex flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 gap-2 relative min-h-0">
                 
                 {{-- AREA MIMBAR DEPAN KELAS: DUAL PODIUM (GURU + SISWA BICARA / BERTANYA) --}}
-                <div class="w-full flex flex-col items-center justify-center flex-shrink-0 px-1 sm:px-4">
-                    <div class="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap justify-center">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                <div id="classroom-podium-section" class="w-full flex flex-col items-center justify-center flex-shrink-0 px-1 sm:px-4">
+                    <div class="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 flex-wrap justify-center">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ MIMBAR DEPAN KELAS
                         </span>
-                        <span id="classroom-occupancy-pill" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                        <span id="classroom-occupancy-pill" class="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             0 / 40 Kursi Terisi
                         </span>
-                        <span id="hand-raise-alert-pill" class="hidden items-center gap-1.5 px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black animate-bounce" style="background-color: #ef4444; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                        <span id="hand-raise-alert-pill" class="hidden items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black animate-bounce" style="background-color: #ef4444; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             <i class="fa-solid fa-hand"></i> <span id="hand-raise-count-text">0 Ingin Bertanya</span>
                         </span>
                     </div>
@@ -407,26 +509,26 @@
                             
                             {{-- PODIUM 1: GURU PENGAJAR --}}
                             <div id="podium-teacher-wrapper" class="flex flex-col items-center w-full transition-all duration-300">
-                                <div class="w-full flex items-center justify-between px-2.5 sm:px-3 py-1 mb-1 rounded-xl bg-white text-[9px] sm:text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
+                                <div class="w-full flex items-center justify-between px-2.5 sm:px-3 py-0.5 sm:py-1 mb-1 rounded-xl bg-white text-[9px] sm:text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
                                     <span class="flex items-center gap-1.5 text-[#ff3823]">
                                         <i class="fa-solid fa-chalkboard-user"></i> PODIUM GURU
                                     </span>
                                     <span class="text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded bg-[#ff3823] text-white">PENGAJAR</span>
                                 </div>
-                                <div id="podium-teacher-slot" class="w-full h-40 sm:h-52 md:h-56 flex items-center justify-center">
+                                <div id="podium-teacher-slot" class="w-full h-36 sm:h-48 md:h-52 flex items-center justify-center">
                                     {{-- Video tile guru masuk ke sini secara otomatis --}}
                                 </div>
                             </div>
 
                             {{-- PODIUM 2: SISWA BICARA / BERTANYA (ACTIVE SPEAKER & TANYA) - MUNCUL HANYA SAAT ADA SISWA BICARA/BERTANYA --}}
                             <div id="podium-speaker-wrapper" class="hidden flex-col items-center w-full transition-all duration-300">
-                                <div class="w-full flex items-center justify-between px-2.5 sm:px-3 py-1 mb-1 rounded-xl bg-white text-[9px] sm:text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #2563eb;">
+                                <div class="w-full flex items-center justify-between px-2.5 sm:px-3 py-0.5 sm:py-1 mb-1 rounded-xl bg-white text-[9px] sm:text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #2563eb;">
                                     <span class="flex items-center gap-1.5 text-[#2563eb]">
                                         <i class="fa-solid fa-microphone-lines"></i> <span id="podium-speaker-label">MIMBAR SISWA BICARA & TANYA</span>
                                     </span>
                                     <span id="podium-speaker-badge" class="text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded bg-[#2563eb] text-white">BICARA</span>
                                 </div>
-                                <div id="podium-speaker-slot" class="w-full h-40 sm:h-52 md:h-56 flex items-center justify-center relative">
+                                <div id="podium-speaker-slot" class="w-full h-36 sm:h-48 md:h-52 flex items-center justify-center relative">
                                     {{-- Video tile siswa masuk ke sini saat berbicara --}}
                                 </div>
                             </div>
@@ -436,7 +538,7 @@
                 </div>
 
                 {{-- DENAH TEMPAT DUDUK SISWA (5 BARIS X 8 KOLOM = 40 BANGKU) --}}
-                <div class="flex-1 overflow-y-auto px-1 sm:px-3 pt-1">
+                <div class="flex-1 min-h-0 overflow-y-auto px-1 sm:px-3 pt-1">
                     <div class="max-w-6xl mx-auto">
                         <div class="flex items-center justify-between px-2 py-1 mb-2 border-b-2 border-[#121316]/20">
                             <span class="text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider text-[#121316] flex items-center gap-1.5">
@@ -447,17 +549,60 @@
                                 Pintu Masuk ➜ Baris 1 Depan s/d Baris 5 Belakang
                             </span>
                         </div>
-                        <div id="classroom-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 pb-20">
+                        <div id="classroom-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 pb-4">
                             {{-- 40 slot kursi siswa (terisi / kosong) dirender dinamis di sini --}}
                         </div>
                     </div>
                 </div>
             </div>
 
+            {{-- 1B. DISCUSSION VIEW STAGE (Mode Diskusi: Guru di Tengah, Para Siswa Mengelilingi Guru) --}}
+            <div id="stage-discussion-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 gap-1.5 relative min-h-0">
+                <div class="flex items-center justify-between gap-2 px-2 py-0.5 flex-shrink-0 flex-wrap">
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #0d9488; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                            <i class="fa-solid fa-people-arrows"></i> ✱ DISKUSI MELINGKAR (GURU DI TENGAH)
+                        </span>
+                        <span id="discussion-occupancy-pill" class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                            0 Siswa Mengelilingi
+                        </span>
+                    </div>
+                    <span class="text-[9px] sm:text-[10px] font-mono-code font-bold text-[#555] hidden sm:inline">
+                        Guru di Pusat • Siswa Mengelilingi 360°
+                    </span>
+                </div>
+
+                {{-- ARENA LINGKARAN DISKUSI --}}
+                <div id="discussion-arena" class="relative flex-1 w-full min-h-[240px] rounded-3xl overflow-hidden flex items-center justify-center" style="background: radial-gradient(circle at center, #faf3e0 0%, #f3ede0 58%, #e6dfd1 100%); border: 2px solid #121316; box-shadow: inset 0 0 24px rgba(0,0,0,0.05);">
+                    {{-- Garis Orbit Meja Bundar Dekoratif --}}
+                    <div class="pointer-events-none absolute w-[76%] h-[74%] rounded-full border-2 border-dashed border-[#121316]/25"></div>
+                    <div class="pointer-events-none absolute w-[44%] h-[44%] rounded-full border-2 border-dotted border-[#ff3823]/40"></div>
+
+                    {{-- LAYER KURSI SISWA MENGELILINGI GURU (360 DERAJAT) --}}
+                    <div id="discussion-orbit-layer" class="absolute inset-0 pointer-events-auto">
+                        {{-- Kursi siswa mengelilingi guru dirender dinamis di sini --}}
+                    </div>
+
+                    {{-- TITIK TENGAH (CENTER): GURU MODERATOR DISKUSI --}}
+                    <div id="discussion-center-wrapper" class="relative z-10 flex flex-col items-center justify-center pointer-events-auto">
+                        <div class="px-2 py-0.5 mb-1 rounded-full text-[8px] sm:text-[9px] font-mono-code font-black uppercase tracking-wider flex items-center gap-1 shadow-sm" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                            <i class="fa-solid fa-chalkboard-user"></i> PUSAT DISKUSI (GURU)
+                        </div>
+                        <div id="discussion-center-slot" class="w-32 h-24 sm:w-48 sm:h-32 md:w-56 md:h-40 rounded-3xl overflow-hidden flex items-center justify-center bg-slate-900" style="border: 3px solid #121316; box-shadow: 0 0 0 3px #fde047, 4px 4px 0px #121316;">
+                            {{-- Video tile Guru berada tepat di tengah --}}
+                        </div>
+                    </div>
+                </div>
+
+                {{-- BARIS TAMBAHAN JIKA SISWA > 12 ORANG --}}
+                <div id="discussion-overflow-strip" class="hidden items-center gap-2 overflow-x-auto px-2 py-1.5 h-20 shrink-0 rounded-2xl bg-white/80 border-2 border-[#121316]">
+                </div>
+            </div>
+
             {{-- 2. SPEAKER VIEW STAGE (Active when currentLayout === 'speaker') --}}
-            <div id="stage-speaker-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-3 pb-28 gap-2.5 relative min-h-0">
+            <div id="stage-speaker-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-2.5 sm:p-3 gap-2.5 relative min-h-0">
                 {{-- Top Filmstrip Bar: Thumbnail peserta lain --}}
-                <div id="speaker-filmstrip" class="flex items-center gap-2.5 overflow-x-auto p-2 h-28 shrink-0 rounded-2xl backdrop-blur-sm scroll-smooth" style="background-color: rgba(255,255,255,0.9); border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
+                <div id="speaker-filmstrip" class="flex items-center gap-2.5 overflow-x-auto p-2 h-24 sm:h-28 shrink-0 rounded-2xl backdrop-blur-sm scroll-smooth" style="background-color: rgba(255,255,255,0.9); border: 2px solid #121316; box-shadow: 3px 3px 0px #121316;">
                     {{-- Non-pinned tiles live here --}}
                 </div>
                 {{-- Main Spotlight Screen: 1 Peserta Terfokus (Guru/Siswa) --}}
@@ -467,8 +612,7 @@
             </div>
 
             {{-- 3. GALLERY VIEW STAGE (Active when currentLayout === 'gallery' or 'sidebyside') --}}
-            {{-- pb-28 memastikan video tile TIDAK PERNAH tertutup oleh dock mengambang di bawah --}}
-            <div id="stage-gallery-wrapper" class="hidden flex-1 items-center justify-center overflow-hidden h-full p-2.5 sm:p-4 pb-28 min-h-0 relative">
+            <div id="stage-gallery-wrapper" class="hidden flex-1 items-center justify-center overflow-hidden h-full p-2 sm:p-4 min-h-0 relative">
                 <div id="gallery-grid" class="w-full h-full flex items-center justify-center gap-3.5 transition-all duration-300">
                     {{-- Local video tile (Guru) --}}
                     <div id="video-tile-local" class="video-tile group relative rounded-3xl overflow-hidden flex items-center justify-center w-full h-full max-h-[82vh] transition-all" style="background-color: #0f172a; border: 2.5px solid #121316; box-shadow: 4px 4px 0px #121316;">
@@ -482,7 +626,7 @@
                             <p class="text-xs font-mono-code font-bold" style="color: #fde047;">Mengaktifkan kamera...</p>
                         </div>
                         
-                        {{-- 🎯 BADGE NAMA GURU: TEPAT DI POJOK KIRI ATAS - 100% AMAN DARI MENU BAR BAWAH --}}
+                        {{-- 🎯 BADGE NAMA GURU: TEPAT DI POJOK KIRI ATAS --}}
                         <div class="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-black shadow-md" style="background-color: #121316; color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #ff3823;" title="{{ $displayName }}">
                             <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #10b981;"></span>
                             <i id="tile-mic-local" class="fa-solid fa-microphone text-[10px] sm:text-xs" style="color: #10b981;"></i>
@@ -499,86 +643,88 @@
                 </div>
             </div>
 
-            {{-- Floating Teacher Action Dock (Compact Icon-Only Tactile Dock with Hover Tooltips - Scrollable on Mobile) --}}
-            <div class="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 max-w-[96vw] overflow-x-auto no-scrollbar flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
-                
-                {{-- 1. Toggle Mic --}}
-                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #10b981; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Mikrofon (M)">
-                    <i id="mic-icon" class="fa-solid fa-microphone text-xs sm:text-sm text-white"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mikrofon (M)</span>
-                </button>
+            {{-- DEDICATED BOTTOM TEACHER ACTION DOCK (SELALU TERLIHAT 100% DI LAYAR MOBILE MAUPUN DESKTOP) --}}
+            <div id="bottom-action-dock-wrapper" class="shrink-0 w-full px-2 py-1.5 sm:py-2 bg-[#faf8f5] border-t-2 border-[#121316] z-20 flex items-center justify-center">
+                <div id="bottom-action-dock" class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-2xl sm:rounded-full bg-white border-2 border-black max-w-full" style="box-shadow: 3px 3px 0px #121316;">
+                    
+                    {{-- 1. Toggle Mic --}}
+                    <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #10b981; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Mikrofon (M)">
+                        <i id="mic-icon" class="fa-solid fa-microphone text-xs sm:text-sm text-white"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mikrofon (M)</span>
+                    </button>
 
-                {{-- 2. Toggle Camera --}}
-                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0891b2; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Kamera (V)">
-                    <i id="cam-icon" class="fa-solid fa-video text-xs sm:text-sm text-white"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kamera (V)</span>
-                </button>
+                    {{-- 2. Toggle Camera --}}
+                    <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0891b2; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Kamera (V)">
+                        <i id="cam-icon" class="fa-solid fa-video text-xs sm:text-sm text-white"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kamera (V)</span>
+                    </button>
 
-                {{-- 3. Screen Share --}}
-                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Bagikan Layar Anda">
-                    <i class="fa-solid fa-desktop text-xs sm:text-sm text-white"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Bagi Layar</span>
-                </button>
+                    {{-- 3. Screen Share --}}
+                    <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Bagikan Layar Anda">
+                        <i class="fa-solid fa-desktop text-xs sm:text-sm text-white"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Bagi Layar</span>
+                    </button>
 
-                {{-- 4. Rekam Video KBM (Record) --}}
-                <button id="btn-record-session" onclick="toggleMeetingRecording()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Video KBM ke Materi LMS">
-                    <span id="bottom-record-indicator" class="w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center">
-                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                    </span>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;"><span id="bottom-record-tooltip">Rekam KBM</span></span>
-                </button>
+                    {{-- 4. Rekam Video KBM (Record) --}}
+                    <button id="btn-record-session" onclick="toggleMeetingRecording()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Video KBM ke Materi LMS">
+                        <span id="bottom-record-indicator" class="w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center">
+                            <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                        </span>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;"><span id="bottom-record-tooltip">Rekam KBM</span></span>
+                    </button>
 
-                <div class="w-px h-5 sm:h-6 bg-slate-300 shrink-0"></div>
+                    <div class="hidden sm:block w-px h-5 sm:h-6 bg-slate-300 shrink-0"></div>
 
-                {{-- 5. Mute Semua Siswa --}}
-                <button onclick="teacherMuteEveryone()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #fde047; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Kondisikan Kelas: Minta seluruh siswa mematikan mic">
-                    <i class="fa-solid fa-volume-xmark text-xs sm:text-sm"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mute Semua Siswa</span>
-                </button>
+                    {{-- 5. Mute Semua Siswa --}}
+                    <button onclick="teacherMuteEveryone()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #fde047; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Kondisikan Kelas: Minta seluruh siswa mematikan mic">
+                        <i class="fa-solid fa-volume-xmark text-xs sm:text-sm"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mute Semua Siswa</span>
+                    </button>
 
-                {{-- 6. Modul / Materi --}}
-                <button onclick="openTabDirect('materi')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Silabus Materi &amp; Modul">
-                    <i class="fa-solid fa-book-open text-xs sm:text-sm" style="color: #fde047;"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Silabus &amp; Modul</span>
-                </button>
+                    {{-- 6. Modul / Materi --}}
+                    <button onclick="openTabDirect('materi')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Silabus Materi &amp; Modul">
+                        <i class="fa-solid fa-book-open text-xs sm:text-sm" style="color: #fde047;"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Silabus &amp; Modul</span>
+                    </button>
 
-                {{-- 7. Papan Tulis (Whiteboard) --}}
-                <button onclick="openTabDirect('whiteboard')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #7c3aed; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Papan Tulis Digital (Whiteboard)">
-                    <i class="fa-solid fa-chalkboard text-xs sm:text-sm" style="color: #fde047;"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis Digital</span>
-                </button>
+                    {{-- 7. Papan Tulis (Whiteboard) --}}
+                    <button onclick="openTabDirect('whiteboard')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #7c3aed; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Papan Tulis Digital (Whiteboard)">
+                        <i class="fa-solid fa-chalkboard text-xs sm:text-sm" style="color: #fde047;"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis Digital</span>
+                    </button>
 
-                {{-- 8. Presensi Siswa --}}
-                <button onclick="openTabDirect('peserta')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Lihat Presensi Siswa Realtime">
-                    <i class="fa-solid fa-users text-xs sm:text-sm text-emerald-600"></i>
-                    <span id="quick-attendee-badge" class="absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1px solid #121316;">0</span>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
-                </button>
+                    {{-- 8. Presensi Siswa --}}
+                    <button onclick="openTabDirect('peserta')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Lihat Presensi Siswa Realtime">
+                        <i class="fa-solid fa-users text-xs sm:text-sm text-emerald-600"></i>
+                        <span id="quick-attendee-badge" class="absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1px solid #121316;">0</span>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
+                    </button>
 
-                {{-- 9. Chat Kelas --}}
-                <button onclick="openTabDirect('chat')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Obrolan Kelas &amp; Tanya Jawab">
-                    <i class="fa-solid fa-comments text-xs sm:text-sm" style="color: #fde047;"></i>
-                    <span id="quick-chat-badge" class="hidden absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Kelas</span>
-                </button>
+                    {{-- 9. Chat Kelas --}}
+                    <button onclick="openTabDirect('chat')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Obrolan Kelas &amp; Tanya Jawab">
+                        <i class="fa-solid fa-comments text-xs sm:text-sm" style="color: #fde047;"></i>
+                        <span id="quick-chat-badge" class="hidden absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Kelas</span>
+                    </button>
 
-                {{-- 10. Polling Kilat --}}
-                <button onclick="openTabDirect('polling')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Buka Polling Kilat KBM">
-                    <i class="fa-solid fa-square-poll-vertical text-xs sm:text-sm text-black"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
-                </button>
+                    {{-- 10. Polling Kilat --}}
+                    <button onclick="openTabDirect('polling')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Buka Polling Kilat KBM">
+                        <i class="fa-solid fa-square-poll-vertical text-xs sm:text-sm text-black"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
+                    </button>
 
-                {{-- 11. Q&A Antrean --}}
-                <button onclick="openTabDirect('qa')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ea580c; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Antrean Q&amp;A Siswa">
-                    <i class="fa-solid fa-circle-question text-xs sm:text-sm text-white"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Antrean Q&amp;A</span>
-                </button>
+                    {{-- 11. Q&A Antrean --}}
+                    <button onclick="openTabDirect('qa')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ea580c; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Antrean Q&amp;A Siswa">
+                        <i class="fa-solid fa-circle-question text-xs sm:text-sm text-white"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Antrean Q&amp;A</span>
+                    </button>
 
-                {{-- 12. Kuis Live --}}
-                <button onclick="openTabDirect('kuis')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ec4899; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Luncurkan Kuis Live Interaktif (Kahoot-style)">
-                    <i class="fa-solid fa-gamepad text-xs sm:text-sm" style="color: #fde047;"></i>
-                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Interaktif Live</span>
-                </button>
+                    {{-- 12. Kuis Live --}}
+                    <button onclick="openTabDirect('kuis')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ec4899; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Luncurkan Kuis Live Interaktif (Kahoot-style)">
+                        <i class="fa-solid fa-gamepad text-xs sm:text-sm" style="color: #fde047;"></i>
+                        <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Interaktif Live</span>
+                    </button>
+                </div>
             </div>
         </main>
 
@@ -1597,13 +1743,13 @@
         function promoteStudentToSpeakerPodium(uid) {
             activeStudentSpeakerUid = String(uid);
             if (activeSpeakerTimer) clearTimeout(activeSpeakerTimer);
-            if (currentLayout === 'classroom') {
+            if (currentLayout === 'classroom' || currentLayout === 'discussion') {
                 rearrangeTiles();
             }
             // Tetap di mimbar selama 7 detik setelah hening bicara
             activeSpeakerTimer = setTimeout(() => {
                 activeStudentSpeakerUid = null;
-                if (currentLayout === 'classroom') {
+                if (currentLayout === 'classroom' || currentLayout === 'discussion') {
                     rearrangeTiles();
                 }
             }, 7000);
@@ -1660,22 +1806,24 @@
 
         // Susun ulang posisi tile video berdasarkan mode tata letak Zoom
         function rearrangeTiles() {
-            const isClassroom = (currentLayout === 'classroom');
-            const isSpeaker   = (currentLayout === 'speaker');
-            const classroomStage = document.getElementById('stage-classroom-wrapper');
-            const galleryStage   = document.getElementById('stage-gallery-wrapper');
-            const speakerStage   = document.getElementById('stage-speaker-wrapper');
-            const classroomGrid  = document.getElementById('classroom-grid');
-            const teacherSlot    = document.getElementById('podium-teacher-slot');
-            const speakerSlot    = document.getElementById('podium-speaker-slot');
-            const speakerIdle    = document.getElementById('podium-speaker-idle');
-            const speakerLabel   = document.getElementById('podium-speaker-label');
-            const speakerBadge   = document.getElementById('podium-speaker-badge');
-            const galleryGrid    = document.getElementById('gallery-grid');
-            const filmstrip      = document.getElementById('speaker-filmstrip');
-            const mainStage      = document.getElementById('speaker-main-stage');
-            const soloBanner     = document.getElementById('solo-teacher-banner');
-            const occupancyPill  = document.getElementById('classroom-occupancy-pill');
+            const isClassroom  = (currentLayout === 'classroom');
+            const isDiscussion = (currentLayout === 'discussion');
+            const isSpeaker    = (currentLayout === 'speaker');
+            const classroomStage  = document.getElementById('stage-classroom-wrapper');
+            const discussionStage = document.getElementById('stage-discussion-wrapper');
+            const galleryStage    = document.getElementById('stage-gallery-wrapper');
+            const speakerStage    = document.getElementById('stage-speaker-wrapper');
+            const classroomGrid   = document.getElementById('classroom-grid');
+            const teacherSlot     = document.getElementById('podium-teacher-slot');
+            const speakerSlot     = document.getElementById('podium-speaker-slot');
+            const speakerIdle     = document.getElementById('podium-speaker-idle');
+            const speakerLabel    = document.getElementById('podium-speaker-label');
+            const speakerBadge    = document.getElementById('podium-speaker-badge');
+            const galleryGrid     = document.getElementById('gallery-grid');
+            const filmstrip       = document.getElementById('speaker-filmstrip');
+            const mainStage       = document.getElementById('speaker-main-stage');
+            const soloBanner      = document.getElementById('solo-teacher-banner');
+            const occupancyPill   = document.getElementById('classroom-occupancy-pill');
 
             const allTiles = Array.from(document.querySelectorAll('.video-tile'));
             const teacherTile = document.getElementById('video-tile-local');
@@ -1685,6 +1833,10 @@
             if (isClassroom) {
                 if (galleryStage) galleryStage.classList.add('hidden');
                 if (speakerStage) speakerStage.classList.add('hidden');
+                if (discussionStage) {
+                    discussionStage.classList.add('hidden');
+                    discussionStage.classList.remove('flex');
+                }
                 if (classroomStage) {
                     classroomStage.classList.remove('hidden');
                     classroomStage.classList.add('flex');
@@ -1825,8 +1977,110 @@
                         }
                     }
                 }
+            } else if (isDiscussion) {
+                // ============================================================
+                // MODE DISKUSI MELINGKAR: GURU DI TENGAH, SISWA MENGELILINGI GURU
+                // ============================================================
+                if (classroomStage) {
+                    classroomStage.classList.add('hidden');
+                    classroomStage.classList.remove('flex');
+                }
+                if (galleryStage) galleryStage.classList.add('hidden');
+                if (speakerStage) speakerStage.classList.add('hidden');
+                if (discussionStage) {
+                    discussionStage.classList.remove('hidden');
+                    discussionStage.classList.add('flex');
+                }
+                if (soloBanner) soloBanner.classList.add('hidden');
+
+                const centerSlot    = document.getElementById('discussion-center-slot');
+                const orbitLayer    = document.getElementById('discussion-orbit-layer');
+                const overflowStrip = document.getElementById('discussion-overflow-strip');
+                const discPill      = document.getElementById('discussion-occupancy-pill');
+
+                if (discPill) {
+                    discPill.textContent = `${studentTiles.length} Siswa Mengelilingi`;
+                }
+
+                // 1. Tempatkan Guru tepat di TENGAH lingkaran diskusi
+                if (teacherTile && centerSlot) {
+                    centerSlot.appendChild(teacherTile);
+                    teacherTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-full transition-all';
+                    teacherTile.style.backgroundColor = '#0f172a';
+                    teacherTile.style.border = 'none';
+                    teacherTile.style.boxShadow = 'none';
+                    teacherTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                    teacherTile.onclick = null;
+                }
+
+                // 2. Susun kursi siswa mengelilingi Guru secara melingkar 360 derajat
+                if (orbitLayer) {
+                    orbitLayer.innerHTML = '';
+                    const ringCount = Math.min(Math.max(8, studentTiles.length), 12);
+                    const rx = 38; // radius horizontal (%)
+                    const ry = 37; // radius vertikal (%)
+
+                    for (let i = 0; i < ringCount; i++) {
+                        const theta = (2 * Math.PI * i / ringCount) - (Math.PI / 2); // Mulai dari Atas (12 o'clock) searah jarum jam
+                        const leftPct = 50 + rx * Math.cos(theta);
+                        const topPct  = 50 + ry * Math.sin(theta);
+                        const seatNum = String(i + 1).padStart(2, '0');
+
+                        const orbitSeat = document.createElement('div');
+                        orbitSeat.className = 'absolute -translate-x-1/2 -translate-y-1/2 w-[74px] h-[54px] sm:w-[106px] sm:h-[72px] md:w-[130px] md:h-[86px] flex items-center justify-center transition-all duration-300';
+                        orbitSeat.style.left = `${leftPct.toFixed(2)}%`;
+                        orbitSeat.style.top  = `${topPct.toFixed(2)}%`;
+
+                        if (i < studentTiles.length) {
+                            const sTile = studentTiles[i];
+                            const uid = sTile.id.replace('video-tile-', '');
+                            const isSpeaking = (String(activeStudentSpeakerUid) === String(uid));
+                            sTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-full transition-all';
+                            sTile.style.backgroundColor = '#0f172a';
+                            sTile.style.border = isSpeaking ? '2.5px solid #2563eb' : '2px solid #121316';
+                            sTile.style.boxShadow = isSpeaking ? '0 0 0 3px #60a5fa, 3px 3px 0px #121316' : '2.5px 2.5px 0px #121316';
+                            sTile.classList.remove('filmstrip-tile', 'pinned-speaker');
+                            sTile.onclick = null;
+                            let deskTag = sTile.querySelector('.seat-desk-tag');
+                            if (deskTag) deskTag.textContent = `#${seatNum}`;
+                            orbitSeat.appendChild(sTile);
+                        } else {
+                            orbitSeat.innerHTML = `
+                                <div class="w-full h-full rounded-2xl flex flex-col items-center justify-center p-1 text-center bg-white/85 select-none" style="border: 2px dashed #94a3b8; box-shadow: 2px 2px 0px rgba(18,19,22,0.08);">
+                                    <span class="text-[8px] sm:text-[9px] font-mono-code font-black text-slate-600">Kursi #${seatNum}</span>
+                                    <i class="fa-solid fa-user-graduate text-xs sm:text-sm my-0.5 text-slate-300"></i>
+                                    <span class="text-[7px] sm:text-[8px] font-mono-code font-bold uppercase text-slate-400">Diskusi</span>
+                                </div>
+                            `;
+                        }
+                        orbitLayer.appendChild(orbitSeat);
+                    }
+                }
+
+                // 3. Jika peserta siswa > 12, tampilkan sisanya di strip lingkar luar bawah
+                if (overflowStrip) {
+                    overflowStrip.innerHTML = '';
+                    if (studentTiles.length > 12) {
+                        overflowStrip.classList.remove('hidden');
+                        overflowStrip.classList.add('flex');
+                        for (let j = 12; j < studentTiles.length; j++) {
+                            const extraTile = studentTiles[j];
+                            extraTile.className = 'video-tile relative rounded-xl overflow-hidden flex items-center justify-center h-full aspect-video shrink-0 transition-all';
+                            extraTile.style.backgroundColor = '#0f172a';
+                            extraTile.style.border = '2px solid #121316';
+                            overflowStrip.appendChild(extraTile);
+                        }
+                    } else {
+                        overflowStrip.classList.add('hidden');
+                        overflowStrip.classList.remove('flex');
+                    }
+                }
             } else if (isSpeaker) {
                 if (classroomStage) classroomStage.classList.add('hidden');
+                if (discussionStage) {
+                    discussionStage.classList.add('hidden');
+                    discussionStage.classList.remove('flex');
+                }
                 if (galleryStage)   galleryStage.classList.add('hidden');
                 if (speakerStage) {
                     speakerStage.classList.remove('hidden');
@@ -1868,6 +2122,10 @@
             } else {
                 // Mode Galeri atau Mode Berdampingan (KBM)
                 if (classroomStage) classroomStage.classList.add('hidden');
+                if (discussionStage) {
+                    discussionStage.classList.add('hidden');
+                    discussionStage.classList.remove('flex');
+                }
                 if (speakerStage) {
                     speakerStage.classList.add('hidden');
                     speakerStage.classList.remove('flex');
@@ -2132,11 +2390,13 @@
             const headerIcon = document.getElementById('header-view-icon');
             const headerName = document.getElementById('header-view-name');
             const checkCls   = document.getElementById('check-classroom');
+            const checkDsc   = document.getElementById('check-discussion');
             const checkGal   = document.getElementById('check-gallery');
             const checkSpk   = document.getElementById('check-speaker');
             const checkSbs   = document.getElementById('check-sidebyside');
 
             if (checkCls) checkCls.classList.add('hidden');
+            if (checkDsc) checkDsc.classList.add('hidden');
             if (checkGal) checkGal.classList.add('hidden');
             if (checkSpk) checkSpk.classList.add('hidden');
             if (checkSbs) checkSbs.classList.add('hidden');
@@ -2144,28 +2404,114 @@
             if (mode === 'classroom') {
                 if (iconEl) iconEl.className = 'fa-solid fa-chalkboard-user text-xs';
                 if (nameEl) nameEl.textContent = 'Ruang Kelas (5x8)';
-                if (headerIcon) headerIcon.className = 'fa-solid fa-chalkboard-user';
+                if (headerIcon) headerIcon.className = 'fa-solid fa-chalkboard-user text-xs sm:text-sm text-black';
                 if (headerName) headerName.textContent = 'Ruang Kelas (5x8)';
                 if (checkCls) checkCls.classList.remove('hidden');
+            } else if (mode === 'discussion') {
+                if (iconEl) iconEl.className = 'fa-solid fa-people-arrows text-xs';
+                if (nameEl) nameEl.textContent = 'Diskusi (Melingkar)';
+                if (headerIcon) headerIcon.className = 'fa-solid fa-people-arrows text-xs sm:text-sm text-black';
+                if (headerName) headerName.textContent = 'Diskusi (Melingkar)';
+                if (checkDsc) checkDsc.classList.remove('hidden');
             } else if (mode === 'speaker') {
                 if (iconEl) iconEl.className = 'fa-solid fa-user-tie text-xs';
                 if (nameEl) nameEl.textContent = 'Pembicara';
-                if (headerIcon) headerIcon.className = 'fa-solid fa-user-tie';
+                if (headerIcon) headerIcon.className = 'fa-solid fa-user-tie text-xs sm:text-sm text-black';
                 if (headerName) headerName.textContent = 'Pembicara';
                 if (checkSpk) checkSpk.classList.remove('hidden');
             } else if (mode === 'sidebyside') {
                 if (iconEl) iconEl.className = 'fa-solid fa-columns text-xs';
                 if (nameEl) nameEl.textContent = 'Berdampingan';
-                if (headerIcon) headerIcon.className = 'fa-solid fa-columns';
+                if (headerIcon) headerIcon.className = 'fa-solid fa-columns text-xs sm:text-sm text-black';
                 if (headerName) headerName.textContent = 'Berdampingan';
                 if (checkSbs) checkSbs.classList.remove('hidden');
             } else {
                 if (iconEl) iconEl.className = 'fa-solid fa-table-cells text-xs';
                 if (nameEl) nameEl.textContent = 'Galeri';
-                if (headerIcon) headerIcon.className = 'fa-solid fa-table-cells';
+                if (headerIcon) headerIcon.className = 'fa-solid fa-table-cells text-xs sm:text-sm text-black';
                 if (headerName) headerName.textContent = 'Galeri';
                 if (checkGal) checkGal.classList.remove('hidden');
             }
+        }
+
+        // ============================================================
+        // 7B. SINKRONISASI UKURAN LAYAR MOBILE & TOMBOL MODE LANSKAP
+        // ============================================================
+        let isForcedLandscape = false;
+
+        function syncMobileViewport() {
+            if (isForcedLandscape) {
+                document.body.style.width = window.innerHeight + 'px';
+                document.body.style.height = window.innerWidth + 'px';
+                document.body.style.maxHeight = window.innerWidth + 'px';
+            } else {
+                document.body.style.width = '';
+                document.body.style.height = window.innerHeight + 'px';
+                document.body.style.maxHeight = window.innerHeight + 'px';
+            }
+        }
+        window.addEventListener('resize', syncMobileViewport);
+        window.addEventListener('orientationchange', () => setTimeout(syncMobileViewport, 150));
+        syncMobileViewport();
+
+        async function toggleLandscapeMode() {
+            const menu = document.getElementById('view-dropdown-menu');
+            if (menu) menu.classList.add('hidden');
+
+            const headerBtn = document.getElementById('btn-landscape-header');
+            const menuText  = document.getElementById('menu-landscape-text');
+
+            // Cek jika sedang dalam mode paksa lanskap CSS
+            if (isForcedLandscape) {
+                isForcedLandscape = false;
+                document.body.classList.remove('force-landscape-mode');
+                syncMobileViewport();
+                if (headerBtn) headerBtn.style.backgroundColor = '#0d9488';
+                if (menuText) menuText.textContent = 'Mode Lanskap (Horizontal)';
+                rearrangeTiles();
+                return;
+            }
+
+            // Cek jika sedang native landscape lock -> kembalikan ke portrait
+            if (screen.orientation && screen.orientation.type && screen.orientation.type.startsWith('landscape') && document.fullscreenElement) {
+                try {
+                    if (screen.orientation.unlock) screen.orientation.unlock();
+                    if (document.exitFullscreen) await document.exitFullscreen();
+                    if (headerBtn) headerBtn.style.backgroundColor = '#0d9488';
+                    if (menuText) menuText.textContent = 'Mode Lanskap (Horizontal)';
+                    setTimeout(syncMobileViewport, 150);
+                    return;
+                } catch (e) {}
+            }
+
+            // Coba kunci orientasi lanskap native via Fullscreen API
+            let nativeLocked = false;
+            try {
+                const el = document.documentElement;
+                if (!document.fullscreenElement) {
+                    if (el.requestFullscreen) await el.requestFullscreen();
+                    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                }
+                if (screen.orientation && screen.orientation.lock) {
+                    await screen.orientation.lock('landscape');
+                    nativeLocked = true;
+                }
+            } catch (err) {
+                nativeLocked = false;
+            }
+
+            // Fallback: Jika browser HP / WebView mengunci rotasi, gunakan rotasi lanskap CSS otomatis
+            if (!nativeLocked && window.innerHeight > window.innerWidth) {
+                isForcedLandscape = true;
+                document.body.classList.add('force-landscape-mode');
+            }
+
+            if (headerBtn) headerBtn.style.backgroundColor = '#ff3823';
+            if (menuText) menuText.textContent = 'Kembali ke Potret (Vertikal)';
+            setTimeout(() => {
+                syncMobileViewport();
+                rearrangeTiles();
+            }, 150);
         }
 
         function toggleAppFullscreen() {
