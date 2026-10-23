@@ -301,7 +301,7 @@
 <body class="bg-[#faf8f5] text-[#121316] flex flex-col overflow-hidden select-none font-sans antialiased" style="height: 100vh; height: 100dvh; max-height: 100dvh;">
 
     {{-- 1. SMART CLASSROOM HEADER (PEMBDAHUB HOMEPAGE TACTILE STYLE - WARNA KONTRAS TINGGI) --}}
-    <header class="meeting-top-header bg-[#faf8f5] border-b-2 border-[#121316] px-2 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 z-30 flex-shrink-0 shadow-xs" style="background-color: #faf8f5; border-bottom: 2.5px solid #121316;">
+    <header class="meeting-top-header relative bg-[#faf8f5] border-b-2 border-[#121316] px-2 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 z-50 flex-shrink-0 shadow-xs" style="background-color: #faf8f5; border-bottom: 2.5px solid #121316; position: relative; z-index: 60;">
         
         {{-- Brand, Unit & Info Kelas --}}
         <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -383,7 +383,7 @@
                 </button>
 
                 {{-- DROPDOWN MENU TATA LETAK ZOOM --}}
-                <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 sm:w-68 rounded-2xl bg-white p-2.5 z-50 transition-all shadow-xl" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
+                <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 sm:w-68 rounded-2xl bg-white p-2.5 z-50 transition-all shadow-xl" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316; z-index: 70;">
                     <div class="px-3 py-1 text-[10px] font-mono-code font-extrabold uppercase tracking-wider mb-1.5 flex items-center justify-between" style="color: #777; border-bottom: 1.5px solid #e2ded5;">
                         <span>TATA LETAK VIDEO</span>
                         <span>⌜ ⌟</span>
@@ -556,45 +556,42 @@
                 </div>
             </div>
 
-            {{-- 1B. DISCUSSION VIEW STAGE (Mode Diskusi: Guru di Tengah, Para Siswa Mengelilingi Guru) --}}
-            <div id="stage-discussion-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 gap-1.5 relative min-h-0">
+            {{-- 1B. DISCUSSION VIEW STAGE (Mode Diskusi 40 Kursi: Guru di Tengah, Para Siswa Mengelilingi Guru 2 Lingkar) --}}
+            <div id="stage-discussion-wrapper" class="hidden flex-1 flex-col h-full overflow-hidden p-1.5 sm:p-2.5 gap-1.5 relative min-h-0">
                 <div class="flex items-center justify-between gap-2 px-2 py-0.5 flex-shrink-0 flex-wrap">
-                    <div class="flex items-center gap-1.5">
+                    <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #0d9488; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             <i class="fa-solid fa-people-arrows"></i> ✱ DISKUSI MELINGKAR (GURU DI TENGAH)
                         </span>
                         <span id="discussion-occupancy-pill" class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
-                            0 Siswa Mengelilingi
+                            0 / 40 Kursi Mengelilingi
+                        </span>
+                        <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono-code font-bold bg-teal-50 text-teal-900 border border-teal-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-teal-600"></span> Lingkar Dalam: #01–#16 • Lingkar Luar: #17–#40
                         </span>
                     </div>
                     <span class="text-[9px] sm:text-[10px] font-mono-code font-bold text-[#555] hidden sm:inline">
-                        Guru di Pusat • Siswa Mengelilingi 360°
+                        Guru di Pusat • 40 Kursi Siswa Mengelilingi 360°
                     </span>
                 </div>
 
-                {{-- ARENA LINGKARAN DISKUSI --}}
-                <div id="discussion-arena" class="relative flex-1 w-full min-h-[240px] rounded-3xl overflow-hidden flex items-center justify-center" style="background: radial-gradient(circle at center, #faf3e0 0%, #f3ede0 58%, #e6dfd1 100%); border: 2px solid #121316; box-shadow: inset 0 0 24px rgba(0,0,0,0.05);">
-                    {{-- Garis Orbit Meja Bundar Dekoratif --}}
-                    <div class="pointer-events-none absolute w-[76%] h-[74%] rounded-full border-2 border-dashed border-[#121316]/25"></div>
-                    <div class="pointer-events-none absolute w-[44%] h-[44%] rounded-full border-2 border-dotted border-[#ff3823]/40"></div>
-
-                    {{-- LAYER KURSI SISWA MENGELILINGI GURU (360 DERAJAT) --}}
-                    <div id="discussion-orbit-layer" class="absolute inset-0 pointer-events-auto">
-                        {{-- Kursi siswa mengelilingi guru dirender dinamis di sini --}}
-                    </div>
-
-                    {{-- TITIK TENGAH (CENTER): GURU MODERATOR DISKUSI --}}
-                    <div id="discussion-center-wrapper" class="relative z-10 flex flex-col items-center justify-center pointer-events-auto">
-                        <div class="px-2 py-0.5 mb-1 rounded-full text-[8px] sm:text-[9px] font-mono-code font-black uppercase tracking-wider flex items-center gap-1 shadow-sm" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
-                            <i class="fa-solid fa-chalkboard-user"></i> PUSAT DISKUSI (GURU)
-                        </div>
-                        <div id="discussion-center-slot" class="w-32 h-24 sm:w-48 sm:h-32 md:w-56 md:h-40 rounded-3xl overflow-hidden flex items-center justify-center bg-slate-900" style="border: 3px solid #121316; box-shadow: 0 0 0 3px #fde047, 4px 4px 0px #121316;">
-                            {{-- Video tile Guru berada tepat di tengah --}}
+                {{-- ARENA LINGKARAN DISKUSI 40 KURSI (2 LINGKAR KONSENTRIS MENGELILINGI GURU DI TENGAH) --}}
+                <div id="discussion-arena" class="relative flex-1 w-full min-h-0 rounded-2xl sm:rounded-3xl overflow-y-auto p-1.5 sm:p-2.5" style="background: radial-gradient(circle at center, #faf3e0 0%, #f3ede0 58%, #e6dfd1 100%); border: 2px solid #121316; box-shadow: inset 0 0 24px rgba(0,0,0,0.05);">
+                    {{-- GRID 40 KURSI MENGELILINGI GURU DI PUSAT --}}
+                    <div id="discussion-orbit-layer" class="w-full min-h-full grid gap-1.5 sm:gap-2">
+                        {{-- TITIK TENGAH (CENTER): GURU MODERATOR DISKUSI --}}
+                        <div id="discussion-center-wrapper" class="relative z-10 flex flex-col items-center justify-center p-1 sm:p-1.5 rounded-2xl sm:rounded-3xl pointer-events-auto" style="background: radial-gradient(circle at center, rgba(253,224,71,0.28) 0%, rgba(13,148,136,0.12) 100%); border: 2px dashed #0d9488;">
+                            <div class="px-2 py-0.5 mb-1 rounded-full text-[8px] sm:text-[9px] font-mono-code font-black uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                                <i class="fa-solid fa-chalkboard-user"></i> PUSAT DISKUSI (GURU)
+                            </div>
+                            <div id="discussion-center-slot" class="w-full flex-1 min-h-[110px] sm:min-h-[130px] rounded-2xl overflow-hidden flex items-center justify-center bg-slate-900" style="border: 3px solid #121316; box-shadow: 0 0 0 3px #fde047, 4px 4px 0px #121316;">
+                                {{-- Video tile Guru berada tepat di tengah --}}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- BARIS TAMBAHAN JIKA SISWA > 12 ORANG --}}
+                {{-- BARIS TAMBAHAN JIKA SISWA MELEBIHI KAPASITAS MAKSIMUM 40 ORANG --}}
                 <div id="discussion-overflow-strip" class="hidden items-center gap-2 overflow-x-auto px-2 py-1.5 h-20 shrink-0 rounded-2xl bg-white/80 border-2 border-[#121316]">
                 </div>
             </div>
@@ -739,7 +736,7 @@
         <div id="resize-overlay" class="fixed inset-0 z-40 hidden cursor-col-resize"></div>
 
         {{-- 3. CLASSROOM MULTI-HUB PANEL (TACTILE BINDER STYLE KHAS PEMBDAHUB - OVERLAY DI HP, SIDEBAR DI DESKTOP) --}}
-        <aside id="classroom-hub" class="hidden lg:flex fixed inset-x-0 bottom-0 top-[54px] z-40 w-full max-w-none lg:static lg:w-[480px] lg:max-w-[45vw] flex-col lg:h-full lg:z-15 shadow-2xl" style="background-color: #faf8f5; border-left: 2.5px solid #121316;">
+        <aside id="classroom-hub" class="hidden lg:flex fixed inset-x-0 bottom-0 top-[54px] z-30 w-full max-w-none lg:static lg:w-[480px] lg:max-w-[45vw] flex-col lg:h-full lg:z-20 shadow-2xl" style="background-color: #faf8f5; border-left: 2.5px solid #121316;">
             
             {{-- Mobile Top Close Bar (Hanya muncul di HP agar guru mudah kembali ke Video) --}}
             <div class="flex lg:hidden items-center justify-between px-3 py-2 bg-[#121316] text-white border-b-2 border-black shrink-0">
@@ -1993,13 +1990,15 @@
                 }
                 if (soloBanner) soloBanner.classList.add('hidden');
 
+                const centerWrapper = document.getElementById('discussion-center-wrapper');
                 const centerSlot    = document.getElementById('discussion-center-slot');
                 const orbitLayer    = document.getElementById('discussion-orbit-layer');
                 const overflowStrip = document.getElementById('discussion-overflow-strip');
                 const discPill      = document.getElementById('discussion-occupancy-pill');
+                const discArena     = document.getElementById('discussion-arena');
 
                 if (discPill) {
-                    discPill.textContent = `${studentTiles.length} Siswa Mengelilingi`;
+                    discPill.textContent = `${studentTiles.length} / 40 Kursi Mengelilingi`;
                 }
 
                 // 1. Tempatkan Guru tepat di TENGAH lingkaran diskusi
@@ -2013,57 +2012,125 @@
                     teacherTile.onclick = null;
                 }
 
-                // 2. Susun kursi siswa mengelilingi Guru secara melingkar 360 derajat
+                // 2. Susun 40 kursi siswa mengelilingi Guru dalam 2 Lingkar Konsentris:
+                //    - Lingkar Dalam (#01 s/d #16): 16 kursi langsung mengelilingi Guru (Atas, Kanan, Bawah, Kiri)
+                //    - Lingkar Luar  (#17 s/d #40): 24 kursi mengelilingi Lingkar Dalam
                 if (orbitLayer) {
-                    orbitLayer.innerHTML = '';
-                    const ringCount = Math.min(Math.max(8, studentTiles.length), 12);
-                    const rx = 38; // radius horizontal (%)
-                    const ry = 37; // radius vertikal (%)
+                    // Bersihkan hanya slot kursi (pertahankan #discussion-center-wrapper)
+                    Array.from(orbitLayer.querySelectorAll('.discussion-seat-cell')).forEach(el => el.remove());
 
-                    for (let i = 0; i < ringCount; i++) {
-                        const theta = (2 * Math.PI * i / ringCount) - (Math.PI / 2); // Mulai dari Atas (12 o'clock) searah jarum jam
-                        const leftPct = 50 + rx * Math.cos(theta);
-                        const topPct  = 50 + ry * Math.sin(theta);
+                    const isWideArena = (window.innerWidth >= 640) || isForcedLandscape || (window.innerWidth > window.innerHeight);
+
+                    // Peta Koordinat [row, col] untuk 40 Kursi Mengelilingi Guru
+                    let seatCoords = [];
+                    if (isWideArena) {
+                        // Mode Desktop / Tablet / Lanskap: Grid 8 Kolom x 6 Baris = 48 Sel (Guru di Pusat 4x2 = 8 Sel, Siswa = 40 Kursi)
+                        orbitLayer.style.gridTemplateColumns = 'repeat(8, minmax(0, 1fr))';
+                        orbitLayer.style.gridTemplateRows    = 'repeat(6, minmax(66px, 1fr))';
+                        if (centerWrapper) {
+                            centerWrapper.style.gridColumn = '3 / span 4';
+                            centerWrapper.style.gridRow    = '3 / span 2';
+                        }
+                        seatCoords = [
+                            // LINGKAR DALAM (16 Kursi: #01 - #16 tepat mengelilingi Guru searah jarum jam)
+                            [2,3], [2,4], [2,5], [2,6], [2,7],
+                            [3,7], [4,7],
+                            [5,7], [5,6], [5,5], [5,4], [5,3], [5,2],
+                            [4,2], [3,2],
+                            [2,2],
+                            // LINGKAR LUAR (24 Kursi: #17 - #40 mengelilingi Lingkar Dalam searah jarum jam)
+                            [1,1], [1,2], [1,3], [1,4], [1,5], [1,6], [1,7], [1,8],
+                            [2,8], [3,8], [4,8], [5,8],
+                            [6,8], [6,7], [6,6], [6,5], [6,4], [6,3], [6,2], [6,1],
+                            [5,1], [4,1], [3,1], [2,1]
+                        ];
+                    } else {
+                        // Mode Mobile Portrait: Grid 4 Kolom x 12 Baris = 48 Sel (Guru di Pusat 2x4 = 8 Sel, Siswa = 40 Kursi)
+                        orbitLayer.style.gridTemplateColumns = 'repeat(4, minmax(0, 1fr))';
+                        orbitLayer.style.gridTemplateRows    = 'repeat(12, minmax(58px, 1fr))';
+                        if (centerWrapper) {
+                            centerWrapper.style.gridColumn = '2 / span 2';
+                            centerWrapper.style.gridRow    = '5 / span 4';
+                        }
+                        seatCoords = [
+                            // LINGKAR DALAM (16 Kursi: #01 - #16 tepat mengelilingi Guru di Atas, Kanan, Bawah, Kiri)
+                            [4,1], [4,2], [4,3], [4,4],
+                            [5,4], [6,4], [7,4], [8,4],
+                            [9,4], [9,3], [9,2], [9,1],
+                            [8,1], [7,1], [6,1], [5,1],
+                            // LINGKAR LUAR (24 Kursi: #17 - #40 mengelilingi Lingkar Dalam)
+                            [3,1], [3,2], [3,3], [3,4],
+                            [10,1], [10,2], [10,3], [10,4],
+                            [2,1], [2,2], [2,3], [2,4],
+                            [11,1], [11,2], [11,3], [11,4],
+                            [1,1], [1,2], [1,3], [1,4],
+                            [12,1], [12,2], [12,3], [12,4]
+                        ];
+                    }
+
+                    for (let i = 0; i < 40; i++) {
+                        const [r, c] = seatCoords[i];
                         const seatNum = String(i + 1).padStart(2, '0');
+                        const isInnerRing = (i < 16);
 
                         const orbitSeat = document.createElement('div');
-                        orbitSeat.className = 'absolute -translate-x-1/2 -translate-y-1/2 w-[74px] h-[54px] sm:w-[106px] sm:h-[72px] md:w-[130px] md:h-[86px] flex items-center justify-center transition-all duration-300';
-                        orbitSeat.style.left = `${leftPct.toFixed(2)}%`;
-                        orbitSeat.style.top  = `${topPct.toFixed(2)}%`;
+                        orbitSeat.className = 'discussion-seat-cell relative w-full h-full min-h-[56px] sm:min-h-[66px] flex items-center justify-center transition-all duration-200';
+                        orbitSeat.style.gridRow    = String(r);
+                        orbitSeat.style.gridColumn = String(c);
 
                         if (i < studentTiles.length) {
                             const sTile = studentTiles[i];
                             const uid = sTile.id.replace('video-tile-', '');
                             const isSpeaking = (String(activeStudentSpeakerUid) === String(uid));
-                            sTile.className = 'video-tile relative rounded-2xl overflow-hidden flex items-center justify-center w-full h-full transition-all';
+                            sTile.className = 'video-tile relative rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center w-full h-full transition-all';
                             sTile.style.backgroundColor = '#0f172a';
-                            sTile.style.border = isSpeaking ? '2.5px solid #2563eb' : '2px solid #121316';
-                            sTile.style.boxShadow = isSpeaking ? '0 0 0 3px #60a5fa, 3px 3px 0px #121316' : '2.5px 2.5px 0px #121316';
+                            sTile.style.border = isSpeaking ? '2.5px solid #2563eb' : (isInnerRing ? '2px solid #0d9488' : '2px solid #121316');
+                            sTile.style.boxShadow = isSpeaking ? '0 0 0 3px #60a5fa, 2.5px 2.5px 0px #121316' : '2px 2px 0px #121316';
                             sTile.classList.remove('filmstrip-tile', 'pinned-speaker');
                             sTile.onclick = null;
                             let deskTag = sTile.querySelector('.seat-desk-tag');
+                            const badge = sTile.querySelector('.absolute.top-4.left-4') || sTile.querySelector('.rounded-xl');
+                            if (!deskTag && badge) {
+                                deskTag = document.createElement('span');
+                                deskTag.className = 'seat-desk-tag px-1 py-0.2 rounded text-[8px] font-mono-code font-black';
+                                deskTag.style.backgroundColor = '#fbc02d';
+                                deskTag.style.color = '#121316';
+                                deskTag.style.border = '1px solid #121316';
+                                badge.insertBefore(deskTag, badge.firstChild);
+                            }
                             if (deskTag) deskTag.textContent = `#${seatNum}`;
                             orbitSeat.appendChild(sTile);
                         } else {
+                            const ringColor  = isInnerRing ? '#0d9488' : '#94a3b8';
+                            const ringBg     = isInnerRing ? 'rgba(240, 253, 250, 0.9)' : 'rgba(255, 255, 255, 0.82)';
+                            const ringLabel  = isInnerRing ? 'Lingkar 1' : 'Lingkar 2';
                             orbitSeat.innerHTML = `
-                                <div class="w-full h-full rounded-2xl flex flex-col items-center justify-center p-1 text-center bg-white/85 select-none" style="border: 2px dashed #94a3b8; box-shadow: 2px 2px 0px rgba(18,19,22,0.08);">
-                                    <span class="text-[8px] sm:text-[9px] font-mono-code font-black text-slate-600">Kursi #${seatNum}</span>
-                                    <i class="fa-solid fa-user-graduate text-xs sm:text-sm my-0.5 text-slate-300"></i>
-                                    <span class="text-[7px] sm:text-[8px] font-mono-code font-bold uppercase text-slate-400">Diskusi</span>
+                                <div class="w-full h-full rounded-xl sm:rounded-2xl flex flex-col items-center justify-center p-1 text-center select-none transition-colors hover:bg-[#faf3e0]" style="background-color: ${ringBg}; border: 1.5px dashed ${ringColor}; box-shadow: 1.5px 1.5px 0px rgba(18,19,22,0.06);">
+                                    <span class="text-[8px] sm:text-[9px] font-mono-code font-black" style="color: ${isInnerRing ? '#0f766e' : '#475569'};">Kursi #${seatNum}</span>
+                                    <i class="fa-solid fa-user-graduate text-[10px] sm:text-xs my-0.5" style="color: ${isInnerRing ? '#5eead4' : '#cbd5e1'};"></i>
+                                    <span class="text-[7px] font-mono-code font-bold uppercase tracking-tighter" style="color: ${isInnerRing ? '#0d9488' : '#94a3b8'};">${ringLabel}</span>
                                 </div>
                             `;
                         }
                         orbitLayer.appendChild(orbitSeat);
                     }
+
+                    // Pada tampilan mobile portrait, posisikan scroll tepat di tengah agar Guru langsung terlihat dikelilingi siswa
+                    if (!isWideArena && discArena && !discArena.dataset.centeredOnce) {
+                        discArena.dataset.centeredOnce = '1';
+                        setTimeout(() => {
+                            discArena.scrollTop = Math.max(0, (discArena.scrollHeight - discArena.clientHeight) / 2);
+                        }, 60);
+                    }
                 }
 
-                // 3. Jika peserta siswa > 12, tampilkan sisanya di strip lingkar luar bawah
+                // 3. Jika peserta siswa melebihi 40 orang, tampilkan sisanya di strip bawah
                 if (overflowStrip) {
                     overflowStrip.innerHTML = '';
-                    if (studentTiles.length > 12) {
+                    if (studentTiles.length > 40) {
                         overflowStrip.classList.remove('hidden');
                         overflowStrip.classList.add('flex');
-                        for (let j = 12; j < studentTiles.length; j++) {
+                        for (let j = 40; j < studentTiles.length; j++) {
                             const extraTile = studentTiles[j];
                             extraTile.className = 'video-tile relative rounded-xl overflow-hidden flex items-center justify-center h-full aspect-video shrink-0 transition-all';
                             extraTile.style.backgroundColor = '#0f172a';
@@ -2438,6 +2505,7 @@
         // 7B. SINKRONISASI UKURAN LAYAR MOBILE & TOMBOL MODE LANSKAP
         // ============================================================
         let isForcedLandscape = false;
+        let lastWideArenaState = null;
 
         function syncMobileViewport() {
             if (isForcedLandscape) {
@@ -2449,6 +2517,11 @@
                 document.body.style.height = window.innerHeight + 'px';
                 document.body.style.maxHeight = window.innerHeight + 'px';
             }
+            const nowWide = (window.innerWidth >= 640) || isForcedLandscape || (window.innerWidth > window.innerHeight);
+            if (lastWideArenaState !== null && lastWideArenaState !== nowWide && typeof currentLayout !== 'undefined' && currentLayout === 'discussion') {
+                rearrangeTiles();
+            }
+            lastWideArenaState = nowWide;
         }
         window.addEventListener('resize', syncMobileViewport);
         window.addEventListener('orientationchange', () => setTimeout(syncMobileViewport, 150));
