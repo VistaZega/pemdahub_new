@@ -321,7 +321,10 @@ class MobileLmsController extends Controller
 
         $user = Auth::user();
         $teacher = \App\Models\Teacher::where('user_id', $user->id)->first() ?? $user->teacher;
-        $isTeacher = $teacher && ($course->teacher_id == $teacher->id);
+        $allTeacherIds = $teacher ? $teacher->allTeacherIds() : [];
+        $isTeacher = ($teacher && (in_array($course->teacher_id, $allTeacherIds) || empty($course->teacher_id)))
+            || session('active_role') === 'guru' 
+            || ($user && $user->isGuru());
 
         if ($isTeacher) {
             $course->assignments->loadMissing(['groups.leader.user', 'groups.members.user']);

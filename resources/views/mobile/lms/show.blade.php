@@ -81,23 +81,28 @@
         </div>
     @elseif($isTeacher)
         <!-- Kontrol Panel PembdaTEMU untuk Guru Pengampu -->
-        <div class="p-4 rounded-3xl {{ $course->meeting_active ? 'bg-gradient-to-r from-rose-600 via-purple-700 to-indigo-700 text-white border-2 border-white/80' : 'bg-white border-2 border-purple-200 text-slate-800' }} shadow-md space-y-3">
+        <div class="p-4 rounded-3xl {{ $course->meeting_active ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white border-2 border-white/80 shadow-xl animate-pulse' : 'bg-gradient-to-br from-rose-50 via-white to-purple-50 border-2 border-rose-300 text-slate-900 shadow-md' }} space-y-3">
             <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-2xl {{ $course->meeting_active ? 'bg-white/20 text-yellow-300' : 'bg-purple-100 text-purple-700' }} flex items-center justify-center text-base shrink-0">
+                    <div class="w-10 h-10 rounded-2xl {{ $course->meeting_active ? 'bg-white/20 text-yellow-300 border border-white/30' : 'bg-gradient-to-tr from-rose-600 to-pink-600 text-white shadow-sm' }} flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-video"></i>
                     </div>
                     <div>
-                        <h4 class="text-xs font-black {{ $course->meeting_active ? 'text-white' : 'text-slate-900' }}">
+                        <div class="flex items-center gap-1.5">
+                            <span class="px-2 py-0.5 rounded-full {{ $course->meeting_active ? 'bg-white text-rose-700' : 'bg-rose-100 text-rose-700 border border-rose-300' }} text-[9px] font-black uppercase tracking-wider">
+                                {{ $course->meeting_active ? '🔴 LIVE SEKARANG' : '📹 KBM TATAP MUKA' }}
+                            </span>
+                        </div>
+                        <h4 class="text-xs font-black {{ $course->meeting_active ? 'text-white' : 'text-slate-900' }} mt-0.5">
                             PembdaTEMU (Live Kelas Virtual)
                         </h4>
-                        <span class="text-[10px] {{ $course->meeting_active ? 'text-pink-200' : 'text-slate-500' }} font-bold">
-                            {{ $course->meeting_active ? '🔴 Sesi tatap muka sedang aktif' : 'Mulai video conference KBM & presensi' }}
+                        <span class="text-[10px] {{ $course->meeting_active ? 'text-pink-100 font-semibold' : 'text-slate-500 font-bold' }}">
+                            {{ $course->meeting_active ? 'Sesi sedang aktif. Presensi siswa otomatis dicatat.' : 'Mulai video conference WebRTC HD & presensi online' }}
                         </span>
                     </div>
                 </div>
                 @if($course->meeting_active)
-                    <span class="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black animate-pulse border border-white/50">LIVE</span>
+                    <span class="px-2.5 py-1 rounded-full bg-white text-rose-600 text-[10px] font-black animate-ping border border-rose-200">LIVE</span>
                 @endif
             </div>
 
@@ -109,23 +114,23 @@
                     </a>
                     <form action="{{ route('guru.lms.meeting.stop', $course->id) }}" method="POST" onsubmit="return confirm('Akhiri sesi PembdaTEMU sekarang? Presensi siswa akan tersimpan.')">
                         @csrf
-                        <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-rose-900/80 text-white border border-rose-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
+                        <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-rose-900/90 text-white border border-rose-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
                             <i class="fa-solid fa-stop"></i> Akhiri
                         </button>
                     </form>
                     <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" 
-                       class="py-2.5 px-2 rounded-xl bg-purple-900/60 text-white border border-purple-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
+                       class="py-2.5 px-2 rounded-xl bg-purple-900/70 text-white border border-purple-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
                         <i class="fa-solid fa-clipboard-user"></i> Presensi
                     </a>
                 @else
                     <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 hover:opacity-95 text-white font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-video text-yellow-300"></i> Buka PembdaTEMU
                         </button>
                     </form>
                     <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" 
-                       class="py-2.5 px-3 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 font-black text-xs text-center hover:bg-slate-200 active:scale-95 transition flex items-center justify-center gap-1.5">
+                       class="py-2.5 px-3 rounded-xl bg-white text-slate-700 border-2 border-slate-200 font-black text-xs text-center hover:bg-slate-50 active:scale-95 transition flex items-center justify-center gap-1.5 shadow-2xs">
                         <i class="fa-solid fa-clipboard-user text-purple-600"></i> Rekap Presensi
                     </a>
                 @endif
