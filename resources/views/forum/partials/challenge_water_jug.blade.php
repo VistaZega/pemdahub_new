@@ -1,6 +1,29 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- 🚰 PembdaCHALLENGE: Teka-Teki Tabung Air (Water Jug Riddle - Die Hard 3) -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<style>
+#pembda-challenge.mobile-landscape-active .jug-cylinder-a,
+#pembda-challenge.mobile-physical-landscape .jug-cylinder-a {
+    height: 85px !important;
+    width: 90px !important;
+}
+#pembda-challenge.mobile-landscape-active .jug-cylinder-b,
+#pembda-challenge.mobile-physical-landscape .jug-cylinder-b {
+    height: 100px !important;
+    width: 100px !important;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+    #pembda-challenge .jug-cylinder-a {
+        height: 85px !important;
+        width: 90px !important;
+    }
+    #pembda-challenge .jug-cylinder-b {
+        height: 100px !important;
+        width: 100px !important;
+    }
+}
+</style>
+
 <div x-data="waterJugGame()" x-init="init()" class="w-full">
     
     <!-- Banner Cooldown (Jika Nyawa Habis) -->
@@ -116,7 +139,7 @@
     <div class="relative w-full rounded-2xl border-2 border-[#121316] bg-gradient-to-b from-sky-100/70 via-slate-50 to-blue-100/60 p-2 sm:p-3 overflow-hidden shadow-[3px_3px_0px_#121316] select-none">
         
         <!-- Instruksi Singkat & Status Air -->
-        <div class="mb-2 flex items-center justify-between text-[9.5px] sm:text-[10.5px] font-mono-code flex-wrap gap-1.5">
+        <div class="hide-in-landscape mb-2 flex items-center justify-between text-[9.5px] sm:text-[10.5px] font-mono-code flex-wrap gap-1.5">
             <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 border border-[#121316] text-[#121316] font-black shadow-xs">
                 <span class="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></span>
                 <span>Tugas: Takar Tepat <span class="text-rose-600 font-black" x-text="targetLiters + ' Liter'"></span> pada salah satu tabung!</span>
@@ -127,49 +150,49 @@
         </div>
 
         <!-- GRID 2 TABUNG AIR DENGAN PUSAT INTERAKSI MENUANG (POURING CENTER) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-6 items-end relative py-1 sm:py-2 max-w-2xl mx-auto">
+        <div class="grid grid-cols-2 gap-2 sm:gap-4 items-end relative py-1 max-w-lg mx-auto">
             
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- 1. TABUNG A (KAPASITAS KECIL / 3 LITER)                     -->
             <!-- ═══════════════════════════════════════════════════════════ -->
-            <div class="flex flex-col items-center justify-end bg-white/85 backdrop-blur-xs p-2 sm:p-2.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316] relative">
+            <div class="flex flex-col items-center justify-end bg-white/85 backdrop-blur-xs p-1.5 sm:p-2.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316] relative">
                 
                 <!-- Header Tabung A -->
                 <div class="w-full flex items-center justify-between mb-1 pb-1 border-b border-[#121316]/15 font-mono-code">
                     <div class="flex items-center gap-1">
                         <span class="text-xs">🧪</span>
-                        <span class="font-black text-xs text-[#121316]">TABUNG A</span>
-                        <span class="text-[8.5px] px-1 py-0.2 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300 font-bold" x-text="'Maks ' + maxA + 'L'"></span>
+                        <span class="font-black text-[11px] sm:text-xs text-[#121316]">TABUNG A</span>
+                        <span class="text-[8px] sm:text-[8.5px] px-1 py-0.2 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300 font-bold" x-text="'Maks ' + maxA + 'L'"></span>
                     </div>
-                    <div class="text-[11px] font-black" :class="curA === targetLiters ? 'text-emerald-600 font-mono text-xs' : 'text-slate-800'">
-                        <span x-text="curA"></span> / <span x-text="maxA"></span> Liter
+                    <div class="text-[10px] sm:text-[11px] font-black" :class="curA === targetLiters ? 'text-emerald-600 font-mono text-xs' : 'text-slate-800'">
+                        <span x-text="curA"></span>/<span x-text="maxA"></span>L
                     </div>
                 </div>
 
                 <!-- Kran Air Atas (Faucet A) -->
                 <div class="flex flex-col items-center mb-0.5">
-                    <div class="w-4 h-4 rounded-md bg-amber-600 border border-[#121316] flex items-center justify-center text-[9px] text-white shadow-xs">
+                    <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-amber-600 border border-[#121316] flex items-center justify-center text-[8px] sm:text-[9px] text-white shadow-xs">
                         <i class="fa-solid fa-faucet-drip"></i>
                     </div>
                     <!-- Animasi Pancuran Air Mengalir saat Diisi -->
                     <div x-show="isFillingA" 
                          x-transition.opacity 
-                         style="width: 5px; height: 18px; background: linear-gradient(to bottom, #38bdf8, #0284c7); border-radius: 9999px;" 
+                         style="width: 4px; height: 14px; background: linear-gradient(to bottom, #38bdf8, #0284c7); border-radius: 9999px;" 
                          class="animate-pulse"></div>
-                    <div x-show="!isFillingA" style="width: 2px; height: 8px; background: rgba(0,0,0,0.1);"></div>
+                    <div x-show="!isFillingA" style="width: 2px; height: 6px; background: rgba(0,0,0,0.1);"></div>
                 </div>
 
-                <!-- Silinder Tabung Kaca Transparan Tabung A (Compact 135px) -->
-                <div style="width: 125px; height: 135px; position: relative; border: 2.5px solid #121316; border-radius: 0 0 14px 14px; background: rgba(240, 249, 255, 0.6); overflow: hidden; box-shadow: inset 0 0 12px rgba(186, 230, 253, 0.5);"
-                     class="group">
+                <!-- Silinder Tabung Kaca Transparan Tabung A -->
+                <div style="width: 110px; max-width: 100%; height: 125px; position: relative; border: 2.5px solid #121316; border-radius: 0 0 14px 14px; background: rgba(240, 249, 255, 0.6); overflow: hidden; box-shadow: inset 0 0 12px rgba(186, 230, 253, 0.5);"
+                     class="jug-cylinder-a group">
                     
                     <!-- Garis-Garis Takaran Liter (1L, 2L, 3L) -->
                     <template x-for="mark in maxA" :key="'mark-a-' + mark">
                         <div style="position: absolute; left: 0; right: 0; display: flex; items-center; justify-content: space-between; padding: 0 4px;"
                              :style="'bottom: ' + ((mark / maxA) * 100) + '%; transform: translateY(50%); z-index: 20; pointer-events: none;'">
-                            <span style="height: 1.5px; width: 10px; background: rgba(18, 19, 22, 0.45);"></span>
-                            <span class="text-[7.5px] font-mono-code font-bold text-slate-500" x-text="mark + 'L'"></span>
-                            <span style="height: 1.5px; width: 10px; background: rgba(18, 19, 22, 0.45);"></span>
+                            <span style="height: 1.5px; width: 8px; background: rgba(18, 19, 22, 0.45);"></span>
+                            <span class="text-[7px] font-mono-code font-bold text-slate-500" x-text="mark + 'L'"></span>
+                            <span style="height: 1.5px; width: 8px; background: rgba(18, 19, 22, 0.45);"></span>
                         </div>
                     </template>
 
@@ -192,12 +215,12 @@
                         
                         <!-- Permukaan Air (Riak Gelombang Atas) -->
                         <div x-show="curA > 0" 
-                             style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.55); border-radius: 50%; position: absolute; top: -3px;"></div>
+                             style="width: 100%; height: 5px; background: rgba(255, 255, 255, 0.55); border-radius: 50%; position: absolute; top: -2.5px;"></div>
                     </div>
 
                     <!-- Label Status di Tengah Air -->
                     <div class="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                        <span class="text-xs font-mono-code font-black px-1.5 py-0.2 rounded-md border border-[#121316] shadow-xs"
+                        <span class="text-[10px] sm:text-xs font-mono-code font-black px-1.5 py-0.2 rounded-md border border-[#121316] shadow-xs"
                               :class="curA === targetLiters ? 'bg-[#fde047] text-[#121316] ring-2 ring-emerald-500' : 'bg-white/90 text-[#121316]'">
                             <span x-text="curA + ' / ' + maxA + ' L'"></span>
                         </span>
@@ -206,38 +229,38 @@
                 </div>
 
                 <!-- Alas Dudukan Kayu Tabung A -->
-                <div style="width: 140px; height: 8px; background: #78350f; border: 2px solid #121316; border-radius: 4px; margin-top: 1.5px;" class="shadow-xs"></div>
+                <div style="width: 100%; max-width: 125px; height: 7px; background: #78350f; border: 2px solid #121316; border-radius: 4px; margin-top: 1.5px;" class="shadow-xs"></div>
 
                 <!-- DECK KONTROL AKSI TABUNG A -->
-                <div class="mt-2 grid grid-cols-3 gap-1 w-full">
+                <div class="mt-1.5 grid grid-cols-3 gap-0.5 sm:gap-1 w-full">
                     <!-- Tombol 1: Isi Penuh -->
                     <button type="button" 
                             @click="fillJug('A')" 
                             :disabled="curA === maxA || isAnimating || isCooldown"
-                            class="py-1 px-0.5 rounded-lg text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
+                            class="py-0.5 sm:py-1 px-0.5 rounded-lg text-[8.5px] sm:text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
                             :class="curA < maxA ? 'bg-sky-100 hover:bg-sky-200 text-sky-950 shadow-[1px_1px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-100 text-slate-400 border-slate-300 shadow-none'">
                         <span>🚰</span>
-                        <span>Isi Penuh</span>
+                        <span>Isi</span>
                     </button>
 
                     <!-- Tombol 2: Tuang ke B -->
                     <button type="button" 
                             @click="pourJug('A', 'B')" 
                             :disabled="curA === 0 || curB === maxB || isAnimating || isCooldown"
-                            class="py-1 px-0.5 rounded-lg text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
+                            class="py-0.5 sm:py-1 px-0.5 rounded-lg text-[8.5px] sm:text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
                             :class="curA > 0 && curB < maxB ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] shadow-[1px_1px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-100 text-slate-400 border-slate-300 shadow-none'">
                         <span>🌊</span>
-                        <span>Tuang B ►</span>
+                        <span>Tuang►</span>
                     </button>
 
                     <!-- Tombol 3: Kosongkan -->
                     <button type="button" 
                             @click="emptyJug('A')" 
                             :disabled="curA === 0 || isAnimating || isCooldown"
-                            class="py-1 px-0.5 rounded-lg text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
+                            class="py-0.5 sm:py-1 px-0.5 rounded-lg text-[8.5px] sm:text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
                             :class="curA > 0 ? 'bg-rose-50 hover:bg-rose-100 text-rose-900 shadow-[1px_1px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-100 text-slate-400 border-slate-300 shadow-none'">
                         <span>🗑️</span>
-                        <span>Kosongkan</span>
+                        <span>Buang</span>
                     </button>
                 </div>
 
@@ -246,44 +269,44 @@
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- 2. TABUNG B (KAPASITAS BESAR / 5 LITER)                     -->
             <!-- ═══════════════════════════════════════════════════════════ -->
-            <div class="flex flex-col items-center justify-end bg-white/85 backdrop-blur-xs p-2 sm:p-2.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316] relative">
+            <div class="flex flex-col items-center justify-end bg-white/85 backdrop-blur-xs p-1.5 sm:p-2.5 rounded-2xl border-2 border-[#121316] shadow-[2px_2px_0px_#121316] relative">
                 
                 <!-- Header Tabung B -->
                 <div class="w-full flex items-center justify-between mb-1 pb-1 border-b border-[#121316]/15 font-mono-code">
                     <div class="flex items-center gap-1">
                         <span class="text-xs">🧪</span>
-                        <span class="font-black text-xs text-[#121316]">TABUNG B</span>
-                        <span class="text-[8.5px] px-1 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-bold" x-text="'Maks ' + maxB + 'L'"></span>
+                        <span class="font-black text-[11px] sm:text-xs text-[#121316]">TABUNG B</span>
+                        <span class="text-[8px] sm:text-[8.5px] px-1 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-bold" x-text="'Maks ' + maxB + 'L'"></span>
                     </div>
-                    <div class="text-[11px] font-black" :class="curB === targetLiters ? 'text-emerald-600 font-mono text-xs' : 'text-slate-800'">
-                        <span x-text="curB"></span> / <span x-text="maxB"></span> Liter
+                    <div class="text-[10px] sm:text-[11px] font-black" :class="curB === targetLiters ? 'text-emerald-600 font-mono text-xs' : 'text-slate-800'">
+                        <span x-text="curB"></span>/<span x-text="maxB"></span>L
                     </div>
                 </div>
 
                 <!-- Kran Air Atas (Faucet B) -->
                 <div class="flex flex-col items-center mb-0.5">
-                    <div class="w-4 h-4 rounded-md bg-amber-600 border border-[#121316] flex items-center justify-center text-[9px] text-white shadow-xs">
+                    <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-amber-600 border border-[#121316] flex items-center justify-center text-[8px] sm:text-[9px] text-white shadow-xs">
                         <i class="fa-solid fa-faucet-drip"></i>
                     </div>
                     <!-- Animasi Pancuran Air Mengalir saat Diisi -->
                     <div x-show="isFillingB" 
                          x-transition.opacity 
-                         style="width: 5px; height: 18px; background: linear-gradient(to bottom, #38bdf8, #0284c7); border-radius: 9999px;" 
+                         style="width: 4px; height: 14px; background: linear-gradient(to bottom, #38bdf8, #0284c7); border-radius: 9999px;" 
                          class="animate-pulse"></div>
-                    <div x-show="!isFillingB" style="width: 2px; height: 8px; background: rgba(0,0,0,0.1);"></div>
+                    <div x-show="!isFillingB" style="width: 2px; height: 6px; background: rgba(0,0,0,0.1);"></div>
                 </div>
 
-                <!-- Silinder Tabung Kaca Transparan Tabung B (Compact 160px) -->
-                <div style="width: 135px; height: 160px; position: relative; border: 2.5px solid #121316; border-radius: 0 0 14px 14px; background: rgba(240, 249, 255, 0.6); overflow: hidden; box-shadow: inset 0 0 12px rgba(186, 230, 253, 0.5);"
-                     class="group">
+                <!-- Silinder Tabung Kaca Transparan Tabung B -->
+                <div style="width: 120px; max-width: 100%; height: 145px; position: relative; border: 2.5px solid #121316; border-radius: 0 0 14px 14px; background: rgba(240, 249, 255, 0.6); overflow: hidden; box-shadow: inset 0 0 12px rgba(186, 230, 253, 0.5);"
+                     class="jug-cylinder-b group">
                     
                     <!-- Garis-Garis Takaran Liter (1L, 2L, 3L, 4L, 5L) -->
                     <template x-for="mark in maxB" :key="'mark-b-' + mark">
                         <div style="position: absolute; left: 0; right: 0; display: flex; items-center; justify-content: space-between; padding: 0 4px;"
                              :style="'bottom: ' + ((mark / maxB) * 100) + '%; transform: translateY(50%); z-index: 20; pointer-events: none;'">
-                            <span style="height: 1.5px; width: 10px; background: rgba(18, 19, 22, 0.45);"></span>
-                            <span class="text-[7.5px] font-mono-code font-bold text-slate-500" x-text="mark + 'L'"></span>
-                            <span style="height: 1.5px; width: 10px; background: rgba(18, 19, 22, 0.45);"></span>
+                            <span style="height: 1.5px; width: 8px; background: rgba(18, 19, 22, 0.45);"></span>
+                            <span class="text-[7px] font-mono-code font-bold text-slate-500" x-text="mark + 'L'"></span>
+                            <span style="height: 1.5px; width: 8px; background: rgba(18, 19, 22, 0.45);"></span>
                         </div>
                     </template>
 
@@ -306,12 +329,12 @@
                         
                         <!-- Permukaan Air (Riak Gelombang Atas) -->
                         <div x-show="curB > 0" 
-                             style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.55); border-radius: 50%; position: absolute; top: -3px;"></div>
+                             style="width: 100%; height: 5px; background: rgba(255, 255, 255, 0.55); border-radius: 50%; position: absolute; top: -2.5px;"></div>
                     </div>
 
                     <!-- Label Status di Tengah Air -->
                     <div class="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                        <span class="text-xs font-mono-code font-black px-1.5 py-0.2 rounded-md border border-[#121316] shadow-xs"
+                        <span class="text-[10px] sm:text-xs font-mono-code font-black px-1.5 py-0.2 rounded-md border border-[#121316] shadow-xs"
                               :class="curB === targetLiters ? 'bg-[#fde047] text-[#121316] ring-2 ring-emerald-500' : 'bg-white/90 text-[#121316]'">
                             <span x-text="curB + ' / ' + maxB + ' L'"></span>
                         </span>
@@ -320,38 +343,38 @@
                 </div>
 
                 <!-- Alas Dudukan Kayu Tabung B -->
-                <div style="width: 150px; height: 8px; background: #78350f; border: 2px solid #121316; border-radius: 4px; margin-top: 1.5px;" class="shadow-xs"></div>
+                <div style="width: 100%; max-width: 135px; height: 7px; background: #78350f; border: 2px solid #121316; border-radius: 4px; margin-top: 1.5px;" class="shadow-xs"></div>
 
                 <!-- DECK KONTROL AKSI TABUNG B -->
-                <div class="mt-2 grid grid-cols-3 gap-1 w-full">
+                <div class="mt-1.5 grid grid-cols-3 gap-0.5 sm:gap-1 w-full">
                     <!-- Tombol 1: Isi Penuh -->
                     <button type="button" 
                             @click="fillJug('B')" 
                             :disabled="curB === maxB || isAnimating || isCooldown"
-                            class="py-1 px-0.5 rounded-lg text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
+                            class="py-0.5 sm:py-1 px-0.5 rounded-lg text-[8.5px] sm:text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
                             :class="curB < maxB ? 'bg-sky-100 hover:bg-sky-200 text-sky-950 shadow-[1px_1px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-100 text-slate-400 border-slate-300 shadow-none'">
                         <span>🚰</span>
-                        <span>Isi Penuh</span>
+                        <span>Isi</span>
                     </button>
 
                     <!-- Tombol 2: Tuang ke A -->
                     <button type="button" 
                             @click="pourJug('B', 'A')" 
                             :disabled="curB === 0 || curA === maxA || isAnimating || isCooldown"
-                            class="py-1 px-0.5 rounded-lg text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
+                            class="py-0.5 sm:py-1 px-0.5 rounded-lg text-[8.5px] sm:text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
                             :class="curB > 0 && curA < maxA ? 'bg-[#fde047] hover:bg-yellow-300 text-[#121316] shadow-[1px_1px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-100 text-slate-400 border-slate-300 shadow-none'">
                         <span>🌊</span>
-                        <span>◄ Tuang A</span>
+                        <span>◄Tuang</span>
                     </button>
 
                     <!-- Tombol 3: Kosongkan -->
                     <button type="button" 
                             @click="emptyJug('B')" 
                             :disabled="curB === 0 || isAnimating || isCooldown"
-                            class="py-1 px-0.5 rounded-lg text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
+                            class="py-0.5 sm:py-1 px-0.5 rounded-lg text-[8.5px] sm:text-[9.5px] font-black border-2 border-[#121316] transition-all flex flex-col items-center justify-center gap-0.5 disabled:opacity-40 cursor-pointer"
                             :class="curB > 0 ? 'bg-rose-50 hover:bg-rose-100 text-rose-900 shadow-[1px_1px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none' : 'bg-slate-100 text-slate-400 border-slate-300 shadow-none'">
                         <span>🗑️</span>
-                        <span>Kosongkan</span>
+                        <span>Buang</span>
                     </button>
                 </div>
 
@@ -362,7 +385,7 @@
     </div>
 
     <!-- Footer Bar Tips STEAM & Matematika Die Hard 3 -->
-    <div class="mt-2 p-1.5 bg-indigo-50/60 border border-indigo-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-indigo-900 font-mono-code">
+    <div class="hide-in-landscape mt-2 p-1.5 bg-indigo-50/60 border border-indigo-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-indigo-900 font-mono-code">
         <div class="flex items-center gap-1.5">
             <span class="text-xs">🧮</span>
             <span class="font-bold">Teorema Bézout:</span>

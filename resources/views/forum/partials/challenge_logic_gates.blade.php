@@ -16,6 +16,43 @@
 .bulb-glow-active {
     animation: bulb-pulse-glow 1.6s infinite ease-in-out;
 }
+
+#pembda-challenge.mobile-landscape-active .logic-circuit-row,
+#pembda-challenge.mobile-physical-landscape .logic-circuit-row {
+    flex-direction: row !important;
+    gap: 6px !important;
+}
+#pembda-challenge.mobile-landscape-active .logic-circuit-row > div,
+#pembda-challenge.mobile-physical-landscape .logic-circuit-row > div {
+    min-width: 0 !important;
+    padding: 6px !important;
+}
+#pembda-challenge.mobile-landscape-active .circuit-bulb,
+#pembda-challenge.mobile-physical-landscape .circuit-bulb {
+    width: 44px !important;
+    height: 44px !important;
+}
+#pembda-challenge.mobile-landscape-active .circuit-bulb i,
+#pembda-challenge.mobile-physical-landscape .circuit-bulb i {
+    font-size: 20px !important;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+    #pembda-challenge .logic-circuit-row {
+        flex-direction: row !important;
+        gap: 6px !important;
+    }
+    #pembda-challenge .logic-circuit-row > div {
+        min-width: 0 !important;
+        padding: 6px !important;
+    }
+    #pembda-challenge .circuit-bulb {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    #pembda-challenge .circuit-bulb i {
+        font-size: 20px !important;
+    }
+}
 </style>
 
 <div x-data="logicGatesGame()" x-init="init()" class="w-full">
@@ -54,7 +91,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- 💡 PANDUAN CEPAT (CARA BERMAIN) - KONTRAS TINGGI                     -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div class="mb-2 p-2 sm:p-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-yellow-50 to-emerald-50 border-2 border-[#121316] text-[#121316] shadow-[2px_2px_0px_#121316]">
+    <div class="hide-in-landscape mb-2 p-2 sm:p-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-yellow-50 to-emerald-50 border-2 border-[#121316] text-[#121316] shadow-[2px_2px_0px_#121316]">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div class="flex items-center gap-2">
                 <span class="text-xl">💡</span>
@@ -81,78 +118,75 @@
     </div>
 
     <!-- Top Dashboard: Level Selector, Target, Stats, Undo & Cheatsheet -->
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-2 p-2 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] text-[#121316]">
+    <div class="flex items-center justify-between gap-1.5 mb-1.5 p-1.5 sm:p-2 bg-white border-2 border-[#121316] rounded-xl shadow-[2px_2px_0px_#121316] text-[#121316] shrink-0">
         
         <!-- Pilihan Misi Sirkuit -->
-        <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-            <span class="text-[9.5px] font-mono-code font-bold text-slate-600 mr-0.5 hidden sm:inline">MISI:</span>
+        <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <span class="text-[9.5px] font-mono-code font-bold text-slate-600 mr-0.5 hidden md:inline shrink-0">MISI:</span>
             <button type="button" 
                     @click="changeLevel(1)" 
                     :disabled="isCooldown"
-                    class="px-2 py-0.5 rounded-lg text-[11px] font-black border-2 border-[#121316] transition-all cursor-pointer"
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black border-2 border-[#121316] transition-all cursor-pointer whitespace-nowrap shrink-0"
                     :class="level === 1 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-none'">
-                <span>Level 1: Dasar (AND/OR)</span>
+                <span>Lvl 1: AND/OR</span>
             </button>
             <button type="button" 
                     @click="changeLevel(2)" 
                     :disabled="isCooldown"
-                    class="px-2 py-0.5 rounded-lg text-[11px] font-black border-2 border-[#121316] transition-all cursor-pointer"
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black border-2 border-[#121316] transition-all cursor-pointer whitespace-nowrap shrink-0"
                     :class="level === 2 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-none'">
-                <span>Level 2: XOR & NOT</span>
+                <span>Lvl 2: XOR/NOT</span>
             </button>
             <button type="button" 
                     @click="changeLevel(3)" 
                     :disabled="isCooldown"
-                    class="px-2 py-0.5 rounded-lg text-[11px] font-black border-2 border-[#121316] transition-all cursor-pointer"
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-black border-2 border-[#121316] transition-all cursor-pointer whitespace-nowrap shrink-0"
                     :class="level === 3 ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-none'">
-                <span>Level 3: Master CPU (NAND/NOR)</span>
+                <span>Lvl 3: CPU (NAND)</span>
             </button>
         </div>
 
         <!-- Info Target Output & Langkah -->
-        <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap text-xs font-mono-code font-bold">
+        <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] font-mono-code font-bold shrink-0">
             <!-- Target LED -->
-            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-100 border border-emerald-400 rounded-lg text-emerald-950 font-black shadow-2xs">
-                <span class="text-[10px]">🎯 TARGET:</span>
-                <span class="text-xs text-emerald-900 underline font-black" x-text="level === 3 ? 'BOHLAM 1 & BOHLAM 2 MENYALA' : 'BOHLAM MENYALA (1)'"></span>
+            <div class="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 border border-emerald-400 rounded-lg text-emerald-950 font-black shadow-2xs text-[10px]">
+                <span class="text-emerald-900 font-black" x-text="level === 3 ? 'BOHLAM 1 & 2' : 'BOHLAM 1'"></span>
             </div>
 
             <!-- Langkah / Toggle Count -->
             <div class="flex items-center gap-1" title="Jumlah kali saklar dialihkan">
-                <span class="text-slate-600 text-[10px]">TOGGLE:</span>
-                <span class="px-1.5 py-0.2 rounded bg-slate-100 border border-[#121316] text-[#121316] font-black text-xs" x-text="moves"></span>
-                <span class="text-[9px] text-slate-600" x-text="'(Opt: ' + optimalMoves + ')'"></span>
+                <span class="text-slate-600 text-[9.5px]">TOGGLE:</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-100 border border-[#121316] text-[#121316] font-black text-[11px]" x-text="moves"></span>
             </div>
 
             <!-- Waktu -->
-            <div class="flex items-center gap-1">
-                <span class="text-slate-600 text-[10px]">WAKTU:</span>
-                <span class="px-1.5 py-0.2 rounded bg-slate-100 border border-[#121316] text-[#121316] font-black text-xs" x-text="formatTime(timerSeconds)"></span>
+            <div class="hidden sm:flex items-center gap-1">
+                <span class="text-slate-600 text-[9.5px]">WAKTU:</span>
+                <span class="px-1.5 py-0.2 rounded bg-slate-100 border border-[#121316] text-[#121316] font-black text-[11px]" x-text="formatTime(timerSeconds)"></span>
             </div>
         </div>
 
         <!-- Tombol Aksi: Undo, Reset, & Tabel Kebenaran -->
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 shrink-0">
             <button type="button" 
                     @click="undoMove()" 
                     :disabled="history.length === 0 || isCooldown || victoryModal.show" 
-                    class="btn-tactile-white px-2 py-0.5 rounded-lg text-[11px] font-black disabled:opacity-40 cursor-pointer"
+                    class="btn-tactile-white px-1.5 sm:px-2 py-0.5 rounded-lg text-[10.5px] font-black disabled:opacity-40 cursor-pointer"
                     title="Batalkan 1 saklar terakhir">
-                <i class="fa-solid fa-arrow-rotate-left mr-0.5 text-slate-700"></i> Undo
+                <i class="fa-solid fa-arrow-rotate-left mr-0.5 text-slate-700"></i> <span class="hidden sm:inline">Undo</span>
             </button>
             <button type="button" 
                     @click="resetSwitches()" 
                     :disabled="isCooldown || moves === 0" 
-                    class="btn-tactile-white px-2 py-0.5 rounded-lg text-[11px] font-black disabled:opacity-40 cursor-pointer"
+                    class="btn-tactile-white px-1.5 sm:px-2 py-0.5 rounded-lg text-[10.5px] font-black disabled:opacity-40 cursor-pointer"
                     title="Nol-kan semua saklar">
-                <i class="fa-solid fa-rotate-left mr-0.5 text-slate-700"></i> Reset
+                <i class="fa-solid fa-rotate-left mr-0.5 text-slate-700"></i> <span class="hidden sm:inline">Reset</span>
             </button>
             <button type="button" 
                     @click="showTruthTable = true" 
-                    class="p-1 px-2 rounded-lg bg-indigo-50 border border-indigo-300 text-indigo-900 text-xs font-black hover:bg-indigo-100 transition cursor-pointer flex items-center gap-1 shadow-2xs"
-                    title="Buka Cheatsheet Tabel Kebenaran (Truth Table) & Analogi Nyata">
+                    class="p-1 px-1.5 rounded-lg bg-indigo-50 border border-indigo-300 text-indigo-900 text-xs font-black hover:bg-indigo-100 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                    title="Buka Cheatsheet Tabel Kebenaran (Truth Table)">
                 <i class="fa-solid fa-table text-indigo-700"></i>
-                <span class="text-[10px] hidden sm:inline">Tabel Kebenaran</span>
             </button>
         </div>
     </div>
@@ -167,7 +201,7 @@
              style="background-image: radial-gradient(#64748b 1.5px, transparent 1.5px); background-size: 16px 16px;"></div>
 
         <!-- Header Petunjuk Aliran Arus Logika -->
-        <div class="relative z-10 mb-3 flex items-center justify-between text-[10.5px] sm:text-xs font-mono-code flex-wrap gap-2 pb-2 border-b border-slate-300">
+        <div class="hide-in-landscape relative z-10 mb-2 sm:mb-3 flex items-center justify-between text-[10.5px] sm:text-xs font-mono-code flex-wrap gap-2 pb-1.5 sm:pb-2 border-b border-slate-300">
             <div class="flex items-center gap-2">
                 <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-300 text-slate-800 shadow-2xs">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
@@ -183,179 +217,179 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- LEVEL 1: SIRKUIT 2 INPUT (A, B) DENGAN GERBANG AND & OR         -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div x-show="level === 1" class="relative z-10 py-1">
-            <div class="flex flex-col lg:flex-row items-stretch justify-between gap-3 sm:gap-4 w-full">
+        <div x-show="level === 1" class="relative z-10 py-0.5 sm:py-1">
+            <div class="logic-circuit-row flex flex-col lg:flex-row items-stretch justify-between gap-2 sm:gap-3 w-full">
                 
                 <!-- TAHAP 1: SAKLAR INPUT (SWITCH A & B) -->
-                <div class="flex-1 flex flex-col justify-between bg-white border-2 border-[#121316] p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[200px]">
-                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 font-mono-code">
+                <div class="flex-1 flex flex-col justify-between bg-white border-2 border-[#121316] p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0">
+                    <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200 font-mono-code">
                         <span class="text-xs font-black text-amber-900 flex items-center gap-1">
                             <i class="fa-solid fa-bolt text-amber-600"></i> 1. SUMBER INPUT
                         </span>
                         <span class="text-[9.5px] text-slate-500 font-bold">Klik Saklar</span>
                     </div>
 
-                    <div class="flex flex-col gap-3 my-auto">
+                    <div class="flex flex-col gap-2 sm:gap-2.5 my-auto">
                         <!-- Switch A -->
-                        <div class="bg-slate-50 p-2.5 rounded-xl border-2 border-slate-200 flex items-center justify-between gap-2 shadow-xs hover:border-slate-300 transition">
+                        <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border-2 border-slate-200 flex items-center justify-between gap-2 shadow-xs hover:border-slate-300 transition">
                             <div>
-                                <span class="text-[10px] font-mono-code text-slate-600 block font-bold">SAKLAR A</span>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="w-3 h-3 rounded-full border border-slate-400 transition-all"
+                                <span class="text-[9.5px] sm:text-[10px] font-mono-code text-slate-600 block font-bold">SAKLAR A</span>
+                                <div class="flex items-center gap-1 sm:gap-1.5 mt-0.5">
+                                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-slate-400 transition-all"
                                           :class="switches.A ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-300'"></span>
-                                    <span class="text-xs font-black font-mono-code" :class="switches.A ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.A ? '1 (ON)' : '0 (OFF)'"></span>
+                                    <span class="text-[11px] sm:text-xs font-black font-mono-code" :class="switches.A ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.A ? '1 (ON)' : '0 (OFF)'"></span>
                                 </div>
                             </div>
                             <button type="button" 
                                     @click="toggleSwitch('A')" 
-                                    class="px-3.5 py-1.5 rounded-xl border-2 border-[#121316] font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                    class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl border-2 border-[#121316] font-black text-[11px] sm:text-xs transition-all flex items-center gap-1 cursor-pointer shadow-xs active:scale-95 shrink-0"
                                     :class="switches.A ? 'bg-emerald-500 text-white shadow-[2px_2px_0px_#065f46]' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'">
                                 <span x-text="switches.A ? '● ON' : '○ OFF'"></span>
                             </button>
                         </div>
 
                         <!-- Switch B -->
-                        <div class="bg-slate-50 p-2.5 rounded-xl border-2 border-slate-200 flex items-center justify-between gap-2 shadow-xs hover:border-slate-300 transition">
+                        <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border-2 border-slate-200 flex items-center justify-between gap-2 shadow-xs hover:border-slate-300 transition">
                             <div>
-                                <span class="text-[10px] font-mono-code text-slate-600 block font-bold">SAKLAR B</span>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="w-3 h-3 rounded-full border border-slate-400 transition-all"
+                                <span class="text-[9.5px] sm:text-[10px] font-mono-code text-slate-600 block font-bold">SAKLAR B</span>
+                                <div class="flex items-center gap-1 sm:gap-1.5 mt-0.5">
+                                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-slate-400 transition-all"
                                           :class="switches.B ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-300'"></span>
-                                    <span class="text-xs font-black font-mono-code" :class="switches.B ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.B ? '1 (ON)' : '0 (OFF)'"></span>
+                                    <span class="text-[11px] sm:text-xs font-black font-mono-code" :class="switches.B ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.B ? '1 (ON)' : '0 (OFF)'"></span>
                                 </div>
                             </div>
                             <button type="button" 
                                     @click="toggleSwitch('B')" 
-                                    class="px-3.5 py-1.5 rounded-xl border-2 border-[#121316] font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                    class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl border-2 border-[#121316] font-black text-[11px] sm:text-xs transition-all flex items-center gap-1 cursor-pointer shadow-xs active:scale-95 shrink-0"
                                     :class="switches.B ? 'bg-emerald-500 text-white shadow-[2px_2px_0px_#065f46]' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'">
                                 <span x-text="switches.B ? '● ON' : '○ OFF'"></span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-slate-600 text-center font-mono-code font-bold">
-                        Listrik mengalir ke Gerbang 1 & 2 ►
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-slate-600 text-center font-mono-code font-bold">
+                        Listrik mengalir ke G1 & G2 ►
                     </div>
                 </div>
 
                 <!-- TAHAP 2: GERBANG LOGIKA TAHAP 1 (AND & OR) -->
-                <div class="flex-[1.4] flex flex-col justify-between gap-3 bg-white border-2 border-[#121316] p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[260px]">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-200 font-mono-code">
+                <div class="flex-[1.3] flex flex-col justify-between gap-2 bg-white border-2 border-[#121316] p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0">
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200 font-mono-code">
                         <span class="text-xs font-black text-indigo-950 flex items-center gap-1">
-                            <i class="fa-solid fa-microchip text-indigo-600"></i> 2. GERBANG LOGIKA TAHAP 1
+                            <i class="fa-solid fa-microchip text-indigo-600"></i> 2. GERBANG TAHAP 1
                         </span>
-                        <span class="text-[9.5px] text-slate-500 font-bold">Memproses Sinyal</span>
+                        <span class="text-[9.5px] text-slate-500 font-bold">Proses Sinyal</span>
                     </div>
 
-                    <div class="flex flex-col gap-3 my-auto">
+                    <div class="flex flex-col gap-2 my-auto">
                         <!-- Gerbang 1: AND -->
-                        <div class="bg-slate-50 p-2.5 rounded-xl border-2 transition-all shadow-xs"
+                        <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border-2 transition-all shadow-xs"
                              :class="gate1L1 ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200'">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-indigo-600 text-white font-mono-code shadow-2xs">GERBANG 1: AND (DAN)</span>
-                                <span class="text-xs font-mono-code font-black px-2 py-0.5 rounded border"
+                                <span class="px-1.5 sm:px-2 py-0.5 rounded text-[9.5px] sm:text-[10px] font-black bg-indigo-600 text-white font-mono-code shadow-2xs">GERBANG 1: AND</span>
+                                <span class="text-[10.5px] sm:text-xs font-mono-code font-black px-1.5 py-0.2 rounded border"
                                       :class="gate1L1 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'"
-                                      x-text="'Output: ' + (gate1L1 ? '1 (ON)' : '0 (OFF)')"></span>
+                                      x-text="'Out: ' + (gate1L1 ? '1' : '0')"></span>
                             </div>
-                            <p class="text-[10.5px] text-slate-700 mb-1.5 font-medium">
-                                Syarat: <b>Kedua Saklar A dan B harus ON (1 & 1)</b> agar arus lolos.
+                            <p class="text-[10px] text-slate-700 mb-1 font-medium">
+                                Syarat: <b>Saklar A & B harus ON (1 & 1)</b>.
                             </p>
-                            <div class="flex items-center justify-between text-[10px] font-mono-code bg-white px-2 py-1 rounded border border-slate-200">
+                            <div class="flex items-center justify-between text-[9.5px] font-mono-code bg-white px-1.5 py-0.5 rounded border border-slate-200">
                                 <span class="text-slate-800 font-bold">
-                                    Pin A: <b :class="switches.A ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.A ? '1' : '0'"></b>
+                                    A:<b :class="switches.A ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.A ? '1' : '0'"></b>
                                     &bull; 
-                                    Pin B: <b :class="switches.B ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.B ? '1' : '0'"></b>
+                                    B:<b :class="switches.B ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.B ? '1' : '0'"></b>
                                 </span>
-                                <span class="font-black" :class="gate1L1 ? 'text-emerald-700' : 'text-slate-500'" x-text="gate1L1 ? '✓ LOLOS (1)' : '✗ TERPUTUS (0)'"></span>
+                                <span class="font-black" :class="gate1L1 ? 'text-emerald-700' : 'text-slate-500'" x-text="gate1L1 ? '✓ LOLOS' : '✗ PUTUS'"></span>
                             </div>
                         </div>
 
                         <!-- Gerbang 2: OR -->
-                        <div class="bg-slate-50 p-2.5 rounded-xl border-2 transition-all shadow-xs"
+                        <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border-2 transition-all shadow-xs"
                              :class="gate2L1 ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200'">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500 text-[#121316] font-mono-code shadow-2xs">GERBANG 2: OR (ATAU)</span>
-                                <span class="text-xs font-mono-code font-black px-2 py-0.5 rounded border"
+                                <span class="px-1.5 sm:px-2 py-0.5 rounded text-[9.5px] sm:text-[10px] font-black bg-amber-500 text-[#121316] font-mono-code shadow-2xs">GERBANG 2: OR</span>
+                                <span class="text-[10.5px] sm:text-xs font-mono-code font-black px-1.5 py-0.2 rounded border"
                                       :class="gate2L1 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'"
-                                      x-text="'Output: ' + (gate2L1 ? '1 (ON)' : '0 (OFF)')"></span>
+                                      x-text="'Out: ' + (gate2L1 ? '1' : '0')"></span>
                             </div>
-                            <p class="text-[10.5px] text-slate-700 mb-1.5 font-medium">
-                                Syarat: <b>Cukup salah satu saklar (A atau B) ON</b> agar arus lolos.
+                            <p class="text-[10px] text-slate-700 mb-1 font-medium">
+                                Syarat: <b>Salah satu saklar (A/B) ON</b>.
                             </p>
-                            <div class="flex items-center justify-between text-[10px] font-mono-code bg-white px-2 py-1 rounded border border-slate-200">
+                            <div class="flex items-center justify-between text-[9.5px] font-mono-code bg-white px-1.5 py-0.5 rounded border border-slate-200">
                                 <span class="text-slate-800 font-bold">
-                                    Pin A: <b :class="switches.A ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.A ? '1' : '0'"></b>
+                                    A:<b :class="switches.A ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.A ? '1' : '0'"></b>
                                     + 
-                                    Pin B: <b :class="switches.B ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.B ? '1' : '0'"></b>
+                                    B:<b :class="switches.B ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.B ? '1' : '0'"></b>
                                 </span>
-                                <span class="font-black" :class="gate2L1 ? 'text-emerald-700' : 'text-slate-500'" x-text="gate2L1 ? '✓ LOLOS (1)' : '✗ TERPUTUS (0)'"></span>
+                                <span class="font-black" :class="gate2L1 ? 'text-emerald-700' : 'text-slate-500'" x-text="gate2L1 ? '✓ LOLOS' : '✗ PUTUS'"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-slate-600 text-center font-mono-code font-bold">
-                        Output G1 & G2 mengalir ke Gerbang Akhir ►
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-slate-600 text-center font-mono-code font-bold">
+                        G1 & G2 ke Gerbang Akhir ►
                     </div>
                 </div>
 
                 <!-- TAHAP 3: GERBANG AKHIR (XOR) & BOHLAM TARGET -->
-                <div class="flex-[1.2] flex flex-col justify-between bg-white border-2 p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[220px] transition-all"
+                <div class="flex-1 flex flex-col justify-between bg-white border-2 p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0 transition-all"
                      :class="outputL1 ? 'border-emerald-600 bg-emerald-50/40' : 'border-[#121316]'">
                     
                     <div>
                         <!-- Header Gerbang Akhir -->
-                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 font-mono-code">
+                        <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200 font-mono-code">
                             <span class="text-xs font-black text-fuchsia-950 flex items-center gap-1">
-                                <i class="fa-solid fa-code-fork text-fuchsia-600"></i> 3. GERBANG AKHIR: XOR
+                                <i class="fa-solid fa-code-fork text-fuchsia-600"></i> 3. AKHIR: XOR
                             </span>
-                            <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-fuchsia-100 text-fuchsia-900 border border-fuchsia-300 font-black">Beda = 1</span>
+                            <span class="text-[9px] px-1.5 py-0.2 rounded bg-fuchsia-100 text-fuchsia-900 border border-fuchsia-300 font-black">Beda = 1</span>
                         </div>
 
                         <!-- Keterangan XOR -->
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[10px] font-mono-code text-slate-800 mb-2">
-                            <div class="text-slate-700 text-[9.5px] mb-1 font-medium">
-                                Syarat: <b>Output G1 dan G2 harus BERBEDA</b> (satu 1, satu 0) untuk menyalakan lampu!
+                        <div class="bg-slate-50 p-1.5 sm:p-2 rounded-xl border border-slate-200 text-[9.5px] font-mono-code text-slate-800 mb-1.5">
+                            <div class="text-slate-700 text-[9px] mb-0.5 font-medium">
+                                Syarat: <b>Output G1 & G2 BERBEDA</b>.
                             </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-200 text-[9.5px]">
+                            <div class="flex items-center justify-between pt-0.5 border-t border-slate-200 text-[9px]">
                                 <span>G1: <b :class="gate1L1 ? 'text-emerald-700' : 'text-slate-600'" x-text="gate1L1 ? '1' : '0'"></b></span>
                                 <span class="font-bold text-slate-400">≠</span>
                                 <span>G2: <b :class="gate2L1 ? 'text-emerald-700' : 'text-slate-600'" x-text="gate2L1 ? '1' : '0'"></b></span>
                                 <span>➔</span>
-                                <span class="font-black" :class="outputL1 ? 'text-emerald-700' : 'text-rose-700'" x-text="outputL1 ? 'COCOK (1)' : 'SAMA (0)'"></span>
+                                <span class="font-black" :class="outputL1 ? 'text-emerald-700' : 'text-rose-700'" x-text="outputL1 ? '✓ 1' : '✗ 0'"></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- PUSAT TARGET UTAMA: LAMPU BOHLAM -->
-                    <div class="my-auto py-2 flex flex-col items-center justify-center bg-gradient-to-b from-amber-50/70 to-yellow-50/40 rounded-xl border border-amber-200 p-3">
+                    <div class="my-auto py-1 sm:py-2 flex flex-col items-center justify-center bg-gradient-to-b from-amber-50/70 to-yellow-50/40 rounded-xl border border-amber-200 p-2">
                         <div class="relative flex items-center justify-center">
                             <!-- Efek Pijar Lingkaran saat Lampu Menyala -->
                             <div x-show="outputL1" class="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl animate-pulse"></div>
                             
                             <!-- Bola Lampu -->
-                            <div class="w-20 h-20 rounded-full border-3 flex items-center justify-center transition-all duration-300 relative z-10"
+                            <div class="circuit-bulb w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full border-2 sm:border-3 flex items-center justify-center transition-all duration-300 relative z-10"
                                  :class="outputL1 ? 'bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border-amber-400 bulb-glow-active shadow-lg' : 'bg-slate-200 text-slate-400 border-slate-300 shadow-inner'">
-                                <i class="fa-solid fa-lightbulb text-4xl transition-all"
+                                <i class="fa-solid fa-lightbulb text-2xl sm:text-3xl lg:text-4xl transition-all"
                                    :class="outputL1 ? 'text-slate-950 scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]' : 'text-slate-400'"></i>
                             </div>
                         </div>
 
                         <!-- Label Status Lampu (Kontras Tinggi) -->
-                        <div class="text-center mt-2.5">
-                            <div class="text-xs font-mono-code font-black"
+                        <div class="text-center mt-1.5">
+                            <div class="text-[11px] sm:text-xs font-mono-code font-black"
                                  :class="outputL1 ? 'text-amber-950 font-black' : 'text-slate-600'">
-                                <span x-text="outputL1 ? '✨ BOHLAM MENYALA! (1)' : '○ BOHLAM MATI (0)'"></span>
+                                <span x-text="outputL1 ? '✨ NYALA! (1)' : '○ MATI (0)'"></span>
                             </div>
-                            <div class="text-[10px] font-black mt-0.5"
+                            <div class="text-[9.5px] font-black mt-0.5"
                                  :class="outputL1 ? 'text-emerald-800' : 'text-slate-500'">
-                                <span x-text="outputL1 ? '🎉 TARGET TERCAPAI! MISI SELESAI' : 'Nyalakan saklar agar lampu berpijar'"></span>
+                                <span x-text="outputL1 ? '🎉 TARGET TERCAPAI!' : 'Atur saklar agar nyala'"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-center font-mono-code font-bold"
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-center font-mono-code font-bold"
                          :class="outputL1 ? 'text-emerald-800' : 'text-slate-600'">
-                        <span x-text="outputL1 ? 'Target: 1 (HIGH) Tercapai ✓' : 'Target: Butuh Sinyal 1 (HIGH)'"></span>
+                        <span x-text="outputL1 ? 'Target: 1 (HIGH) ✓' : 'Target: 1 (HIGH)'"></span>
                     </div>
                 </div>
 
@@ -365,174 +399,174 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- LEVEL 2: SIRKUIT 3 INPUT (A, B, C) DENGAN NOT, XOR, & AND       -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div x-show="level === 2" class="relative z-10 py-1">
-            <div class="flex flex-col lg:flex-row items-stretch justify-between gap-3 sm:gap-4 w-full">
+        <div x-show="level === 2" class="relative z-10 py-0.5 sm:py-1">
+            <div class="logic-circuit-row flex flex-col lg:flex-row items-stretch justify-between gap-2 sm:gap-3 w-full">
                 
                 <!-- TAHAP 1: 3 SAKLAR INPUT (SWITCH A, B, C) -->
-                <div class="flex-1 flex flex-col justify-between bg-white border-2 border-[#121316] p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[200px]">
-                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 font-mono-code">
+                <div class="flex-1 flex flex-col justify-between bg-white border-2 border-[#121316] p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0">
+                    <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200 font-mono-code">
                         <span class="text-xs font-black text-amber-900 flex items-center gap-1">
-                            <i class="fa-solid fa-bolt text-amber-600"></i> 1. 3 SUMBER INPUT
+                            <i class="fa-solid fa-bolt text-amber-600"></i> 1. 3 INPUT
                         </span>
                         <span class="text-[9.5px] text-slate-500 font-bold">A, B, C</span>
                     </div>
 
-                    <div class="flex flex-col gap-2.5 my-auto">
+                    <div class="flex flex-col gap-1.5 sm:gap-2 my-auto">
                         <!-- Switch A -->
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-xs">
+                        <div class="bg-slate-50 p-1.5 sm:p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-xs">
                             <div>
-                                <span class="text-[9.5px] font-mono-code text-slate-600 block font-bold">INPUT A</span>
-                                <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-[9px] sm:text-[9.5px] font-mono-code text-slate-600 block font-bold">INPUT A</span>
+                                <div class="flex items-center gap-1 mt-0.5">
                                     <span class="w-2.5 h-2.5 rounded-full border border-slate-400"
                                           :class="switches.A ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-300'"></span>
-                                    <span class="text-xs font-black font-mono-code" :class="switches.A ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.A ? '1 (ON)' : '0 (OFF)'"></span>
+                                    <span class="text-[11px] font-black font-mono-code" :class="switches.A ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.A ? '1 (ON)' : '0 (OFF)'"></span>
                                 </div>
                             </div>
-                            <button type="button" @click="toggleSwitch('A')" class="px-2.5 py-1 rounded-lg border-2 border-[#121316] font-black text-[11px] cursor-pointer shadow-xs" :class="switches.A ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
+                            <button type="button" @click="toggleSwitch('A')" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border-2 border-[#121316] font-black text-[10px] sm:text-[11px] cursor-pointer shadow-xs" :class="switches.A ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
                                 <span x-text="switches.A ? 'ON' : 'OFF'"></span>
                             </button>
                         </div>
 
                         <!-- Switch B -->
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-xs">
+                        <div class="bg-slate-50 p-1.5 sm:p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-xs">
                             <div>
-                                <span class="text-[9.5px] font-mono-code text-slate-600 block font-bold">INPUT B</span>
-                                <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-[9px] sm:text-[9.5px] font-mono-code text-slate-600 block font-bold">INPUT B</span>
+                                <div class="flex items-center gap-1 mt-0.5">
                                     <span class="w-2.5 h-2.5 rounded-full border border-slate-400"
                                           :class="switches.B ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-300'"></span>
-                                    <span class="text-xs font-black font-mono-code" :class="switches.B ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.B ? '1 (ON)' : '0 (OFF)'"></span>
+                                    <span class="text-[11px] font-black font-mono-code" :class="switches.B ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.B ? '1 (ON)' : '0 (OFF)'"></span>
                                 </div>
                             </div>
-                            <button type="button" @click="toggleSwitch('B')" class="px-2.5 py-1 rounded-lg border-2 border-[#121316] font-black text-[11px] cursor-pointer shadow-xs" :class="switches.B ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
+                            <button type="button" @click="toggleSwitch('B')" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border-2 border-[#121316] font-black text-[10px] sm:text-[11px] cursor-pointer shadow-xs" :class="switches.B ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
                                 <span x-text="switches.B ? 'ON' : 'OFF'"></span>
                             </button>
                         </div>
 
                         <!-- Switch C -->
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-xs">
+                        <div class="bg-slate-50 p-1.5 sm:p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-xs">
                             <div>
-                                <span class="text-[9.5px] font-mono-code text-slate-600 block font-bold">INPUT C</span>
-                                <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-[9px] sm:text-[9.5px] font-mono-code text-slate-600 block font-bold">INPUT C</span>
+                                <div class="flex items-center gap-1 mt-0.5">
                                     <span class="w-2.5 h-2.5 rounded-full border border-slate-400"
                                           :class="switches.C ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-300'"></span>
-                                    <span class="text-xs font-black font-mono-code" :class="switches.C ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.C ? '1 (ON)' : '0 (OFF)'"></span>
+                                    <span class="text-[11px] font-black font-mono-code" :class="switches.C ? 'text-emerald-700' : 'text-slate-600'" x-text="switches.C ? '1 (ON)' : '0 (OFF)'"></span>
                                 </div>
                             </div>
-                            <button type="button" @click="toggleSwitch('C')" class="px-2.5 py-1 rounded-lg border-2 border-[#121316] font-black text-[11px] cursor-pointer shadow-xs" :class="switches.C ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
+                            <button type="button" @click="toggleSwitch('C')" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border-2 border-[#121316] font-black text-[10px] sm:text-[11px] cursor-pointer shadow-xs" :class="switches.C ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
                                 <span x-text="switches.C ? 'ON' : 'OFF'"></span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-slate-600 text-center font-mono-code font-bold">
-                        Input A & B ke G1, C ke G2 ►
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-slate-600 text-center font-mono-code font-bold">
+                        A & B ke G1, C ke G2 ►
                     </div>
                 </div>
 
                 <!-- TAHAP 2: GERBANG LOGIKA TAHAP 1 (XOR & NOT) -->
-                <div class="flex-[1.4] flex flex-col justify-between gap-3 bg-white border-2 border-[#121316] p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[260px]">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-200 font-mono-code">
+                <div class="flex-[1.3] flex flex-col justify-between gap-2 bg-white border-2 border-[#121316] p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0">
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200 font-mono-code">
                         <span class="text-xs font-black text-indigo-950 flex items-center gap-1">
                             <i class="fa-solid fa-microchip text-indigo-600"></i> 2. GERBANG TAHAP 1
                         </span>
-                        <span class="text-[9.5px] text-slate-500 font-bold">XOR & NOT (Inverter)</span>
+                        <span class="text-[9.5px] text-slate-500 font-bold">XOR & NOT</span>
                     </div>
 
-                    <div class="flex flex-col gap-3 my-auto">
+                    <div class="flex flex-col gap-2 my-auto">
                         <!-- Gerbang XOR (A XOR B) -->
-                        <div class="bg-slate-50 p-2.5 rounded-xl border-2 transition-all shadow-xs"
+                        <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border-2 transition-all shadow-xs"
                              :class="gate1L2 ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200'">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-fuchsia-600 text-white font-mono-code shadow-2xs">GERBANG 1: XOR (BEDA)</span>
-                                <span class="text-xs font-mono-code font-black px-2 py-0.5 rounded border"
+                                <span class="px-1.5 sm:px-2 py-0.5 rounded text-[9.5px] sm:text-[10px] font-black bg-fuchsia-600 text-white font-mono-code shadow-2xs">GERBANG 1: XOR</span>
+                                <span class="text-[10.5px] sm:text-xs font-mono-code font-black px-1.5 py-0.2 rounded border"
                                       :class="gate1L2 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'"
-                                      x-text="'Output: ' + (gate1L2 ? '1' : '0')"></span>
+                                      x-text="'Out: ' + (gate1L2 ? '1' : '0')"></span>
                             </div>
-                            <p class="text-[10.5px] text-slate-700 mb-1.5 font-medium">
-                                Syarat: <b>Input A dan B harus berbeda nilai</b> (satu 1, satu 0).
+                            <p class="text-[10px] text-slate-700 mb-1 font-medium">
+                                Syarat: <b>Input A & B harus beda nilai</b>.
                             </p>
-                            <div class="flex items-center justify-between text-[10px] font-mono-code bg-white px-2 py-1 rounded border border-slate-200">
+                            <div class="flex items-center justify-between text-[9.5px] font-mono-code bg-white px-1.5 py-0.5 rounded border border-slate-200">
                                 <span class="text-slate-800 font-bold">A (<b :class="switches.A ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.A ? '1' : '0'"></b>) ≠ B (<b :class="switches.B ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.B ? '1' : '0'"></b>)</span>
-                                <span class="font-black" :class="gate1L2 ? 'text-emerald-700' : 'text-slate-500'" x-text="gate1L2 ? '✓ BERBEDA (1)' : '✗ SAMA (0)'"></span>
+                                <span class="font-black" :class="gate1L2 ? 'text-emerald-700' : 'text-slate-500'" x-text="gate1L2 ? '✓ BEDA (1)' : '✗ SAMA (0)'"></span>
                             </div>
                         </div>
 
                         <!-- Gerbang NOT (NOT C) -->
-                        <div class="bg-slate-50 p-2.5 rounded-xl border-2 transition-all shadow-xs"
+                        <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border-2 transition-all shadow-xs"
                              :class="gate2L2 ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200'">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white font-mono-code shadow-2xs">GERBANG 2: NOT (PEMBALIK)</span>
-                                <span class="text-xs font-mono-code font-black px-2 py-0.5 rounded border"
+                                <span class="px-1.5 sm:px-2 py-0.5 rounded text-[9.5px] sm:text-[10px] font-black bg-rose-600 text-white font-mono-code shadow-2xs">GERBANG 2: NOT</span>
+                                <span class="text-[10.5px] sm:text-xs font-mono-code font-black px-1.5 py-0.2 rounded border"
                                       :class="gate2L2 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'"
-                                      x-text="'Output: ' + (gate2L2 ? '1' : '0')"></span>
+                                      x-text="'Out: ' + (gate2L2 ? '1' : '0')"></span>
                             </div>
-                            <p class="text-[10.5px] text-slate-700 mb-1.5 font-medium">
-                                Syarat: <b>Membalikkan nilai C</b>. Jika C bernilai OFF (0), maka gerbang ini menghasilkan 1 (ON).
+                            <p class="text-[10px] text-slate-700 mb-1 font-medium">
+                                Syarat: <b>Membalik nilai C</b> (0 ➔ 1).
                             </p>
-                            <div class="flex items-center justify-between text-[10px] font-mono-code bg-white px-2 py-1 rounded border border-slate-200">
-                                <span class="text-slate-800 font-bold">Input C: <b :class="switches.C ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.C ? '1' : '0'"></b> ➔ Dibalik:</span>
+                            <div class="flex items-center justify-between text-[9.5px] font-mono-code bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                                <span class="text-slate-800 font-bold">C: <b :class="switches.C ? 'text-emerald-700' : 'text-slate-500'" x-text="switches.C ? '1' : '0'"></b> ➔ Balik:</span>
                                 <span class="font-black" :class="gate2L2 ? 'text-emerald-700' : 'text-slate-500'" x-text="gate2L2 ? '✓ 1' : '✗ 0'"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-slate-600 text-center font-mono-code font-bold">
-                        Output G1 & G2 mengalir ke Gerbang Akhir AND ►
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-slate-600 text-center font-mono-code font-bold">
+                        G1 & G2 ke Gerbang AND ►
                     </div>
                 </div>
 
                 <!-- TAHAP 3: GERBANG AKHIR (AND) & BOHLAM TARGET -->
-                <div class="flex-[1.2] flex flex-col justify-between bg-white border-2 p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[220px] transition-all"
+                <div class="flex-1 flex flex-col justify-between bg-white border-2 p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0 transition-all"
                      :class="outputL2 ? 'border-emerald-600 bg-emerald-50/40' : 'border-[#121316]'">
                     
                     <div>
-                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 font-mono-code">
+                        <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200 font-mono-code">
                             <span class="text-xs font-black text-indigo-950 flex items-center gap-1">
-                                <i class="fa-solid fa-code-merge text-indigo-600"></i> 3. GERBANG AKHIR: AND
+                                <i class="fa-solid fa-code-merge text-indigo-600"></i> 3. AKHIR: AND
                             </span>
-                            <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-900 border border-indigo-300 font-black">Keduanya 1</span>
+                            <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-900 border border-indigo-300 font-black">Keduanya 1</span>
                         </div>
 
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[10px] font-mono-code text-slate-800 mb-2">
-                            <div class="text-slate-700 text-[9.5px] mb-1 font-medium">
-                                Syarat: <b>G1 dan G2 Keduanya Wajib bernilai 1</b> agar lampu dapat menyala!
+                        <div class="bg-slate-50 p-1.5 sm:p-2 rounded-xl border border-slate-200 text-[9.5px] font-mono-code text-slate-800 mb-1.5">
+                            <div class="text-slate-700 text-[9px] mb-0.5 font-medium">
+                                Syarat: <b>G1 & G2 Keduanya Wajib bernilai 1</b>!
                             </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-200 text-[9.5px]">
+                            <div class="flex items-center justify-between pt-0.5 border-t border-slate-200 text-[9px]">
                                 <span>G1: <b :class="gate1L2 ? 'text-emerald-700' : 'text-slate-600'" x-text="gate1L2 ? '1' : '0'"></b></span>
                                 <span class="font-bold text-slate-400">&bull;</span>
                                 <span>G2: <b :class="gate2L2 ? 'text-emerald-700' : 'text-slate-600'" x-text="gate2L2 ? '1' : '0'"></b></span>
                                 <span>➔</span>
-                                <span class="font-black" :class="outputL2 ? 'text-emerald-700' : 'text-rose-700'" x-text="outputL2 ? 'LENGKAP (1)' : 'BELUM (0)'"></span>
+                                <span class="font-black" :class="outputL2 ? 'text-emerald-700' : 'text-rose-700'" x-text="outputL2 ? '✓ 1' : '✗ 0'"></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- PUSAT TARGET BOHLAM LEVEL 2 -->
-                    <div class="my-auto py-2 flex flex-col items-center justify-center bg-gradient-to-b from-amber-50/70 to-yellow-50/40 rounded-xl border border-amber-200 p-3">
+                    <div class="my-auto py-1 sm:py-2 flex flex-col items-center justify-center bg-gradient-to-b from-amber-50/70 to-yellow-50/40 rounded-xl border border-amber-200 p-2">
                         <div class="relative flex items-center justify-center">
                             <div x-show="outputL2" class="absolute inset-0 rounded-full bg-yellow-400/40 blur-xl animate-pulse"></div>
-                            <div class="w-20 h-20 rounded-full border-3 flex items-center justify-center transition-all duration-300 relative z-10"
+                            <div class="circuit-bulb w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full border-2 sm:border-3 flex items-center justify-center transition-all duration-300 relative z-10"
                                  :class="outputL2 ? 'bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border-amber-400 bulb-glow-active shadow-lg' : 'bg-slate-200 text-slate-400 border-slate-300 shadow-inner'">
-                                <i class="fa-solid fa-lightbulb text-4xl transition-all"
+                                <i class="fa-solid fa-lightbulb text-2xl sm:text-3xl lg:text-4xl transition-all"
                                    :class="outputL2 ? 'text-slate-950 scale-110 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]' : 'text-slate-400'"></i>
                             </div>
                         </div>
 
-                        <div class="text-center mt-2.5">
-                            <div class="text-xs font-mono-code font-black"
+                        <div class="text-center mt-1.5">
+                            <div class="text-[11px] sm:text-xs font-mono-code font-black"
                                  :class="outputL2 ? 'text-amber-950' : 'text-slate-600'">
-                                <span x-text="outputL2 ? '✨ BOHLAM MENYALA! (1)' : '○ BOHLAM MATI (0)'"></span>
+                                <span x-text="outputL2 ? '✨ NYALA! (1)' : '○ MATI (0)'"></span>
                             </div>
-                            <div class="text-[10px] font-black mt-0.5"
+                            <div class="text-[9.5px] font-black mt-0.5"
                                  :class="outputL2 ? 'text-emerald-800' : 'text-slate-500'">
-                                <span x-text="outputL2 ? '🎉 LEVEL 2 BERHASIL DISELESAIKAN!' : 'Ubah Saklar A, B, atau C'"></span>
+                                <span x-text="outputL2 ? '🎉 LEVEL 2 BERHASIL!' : 'Ubah Saklar A, B, atau C'"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-center font-mono-code font-bold"
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-center font-mono-code font-bold"
                          :class="outputL2 ? 'text-emerald-800' : 'text-slate-600'">
-                        <span x-text="outputL2 ? 'Target: 1 (HIGH) Tercapai ✓' : 'Target: Butuh Sinyal 1 (HIGH)'"></span>
+                        <span x-text="outputL2 ? 'Target: 1 (HIGH) ✓' : 'Target: 1 (HIGH)'"></span>
                     </div>
                 </div>
 
@@ -542,120 +576,120 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- LEVEL 3: MASTER CPU (4 SAKLAR A,B,C,D & DUAL OUTPUT BOHLAM)     -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div x-show="level === 3" class="relative z-10 py-1">
-            <div class="flex flex-col lg:flex-row items-stretch justify-between gap-3 sm:gap-4 w-full">
+        <div x-show="level === 3" class="relative z-10 py-0.5 sm:py-1">
+            <div class="logic-circuit-row flex flex-col lg:flex-row items-stretch justify-between gap-2 sm:gap-3 w-full">
                 
                 <!-- TAHAP 1: 4 SAKLAR INPUT (A, B, C, D) -->
-                <div class="flex-1 flex flex-col justify-between bg-white border-2 border-[#121316] p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[200px]">
-                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 font-mono-code">
+                <div class="flex-1 flex flex-col justify-between bg-white border-2 border-[#121316] p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0">
+                    <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200 font-mono-code">
                         <span class="text-xs font-black text-amber-900 flex items-center gap-1">
-                            <i class="fa-solid fa-bolt text-amber-600"></i> 1. 4 INPUT BINER
+                            <i class="fa-solid fa-bolt text-amber-600"></i> 1. 4 INPUT
                         </span>
                         <span class="text-[9.5px] text-slate-500 font-bold">A, B, C, D</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 my-auto">
+                    <div class="grid grid-cols-2 gap-1.5 sm:gap-2 my-auto">
                         <template x-for="swKey in ['A', 'B', 'C', 'D']" :key="'sw-l3-' + swKey">
-                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex flex-col items-center justify-between gap-1.5 shadow-xs">
-                                <span class="text-[10px] font-mono-code text-slate-700 font-bold" x-text="'SAKLAR ' + swKey"></span>
+                            <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-200 flex flex-col items-center justify-between gap-1 shadow-xs">
+                                <span class="text-[9.5px] font-mono-code text-slate-700 font-bold" x-text="'SAKLAR ' + swKey"></span>
                                 <div class="flex items-center gap-1">
                                     <span class="w-2 h-2 rounded-full border border-slate-400"
                                           :class="switches[swKey] ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-slate-300'"></span>
-                                    <span class="text-[11px] font-mono-code font-black" :class="switches[swKey] ? 'text-emerald-700' : 'text-slate-600'" x-text="switches[swKey] ? '1' : '0'"></span>
+                                    <span class="text-[10px] font-mono-code font-black" :class="switches[swKey] ? 'text-emerald-700' : 'text-slate-600'" x-text="switches[swKey] ? '1' : '0'"></span>
                                 </div>
-                                <button type="button" @click="toggleSwitch(swKey)" class="w-full py-1 rounded-md text-[10px] font-black border-2 border-[#121316] cursor-pointer shadow-xs" :class="switches[swKey] ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
+                                <button type="button" @click="toggleSwitch(swKey)" class="w-full py-0.5 rounded text-[9.5px] font-black border-2 border-[#121316] cursor-pointer shadow-xs" :class="switches[swKey] ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-800'">
                                     <span x-text="switches[swKey] ? 'ON' : 'OFF'"></span>
                                 </button>
                             </div>
                         </template>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-slate-600 text-center font-mono-code font-bold">
-                        Arus mengalir ke 3 Gerbang Logika ►
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-slate-600 text-center font-mono-code font-bold">
+                        Arus ke 3 Gerbang Logika ►
                     </div>
                 </div>
 
                 <!-- TAHAP 2: GERBANG LOGIKA TAHAP 1 (NAND, NOR, XOR) -->
-                <div class="flex-[1.4] flex flex-col justify-between gap-2.5 bg-white border-2 border-[#121316] p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[260px]">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-200 font-mono-code">
+                <div class="flex-[1.3] flex flex-col justify-between gap-2 bg-white border-2 border-[#121316] p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0">
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200 font-mono-code">
                         <span class="text-xs font-black text-indigo-950 flex items-center gap-1">
                             <i class="fa-solid fa-microchip text-indigo-600"></i> 2. GERBANG TAHAP 1
                         </span>
                         <span class="text-[9.5px] text-slate-500 font-bold">NAND, NOR, XOR</span>
                     </div>
 
-                    <div class="flex flex-col gap-2 my-auto">
+                    <div class="flex flex-col gap-1.5 my-auto">
                         <!-- G1: NAND (A, B) -->
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between text-[10px] font-mono-code shadow-xs">
+                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-200 flex items-center justify-between text-[9.5px] font-mono-code shadow-xs">
                             <div>
-                                <span class="px-1.5 py-0.2 rounded bg-cyan-700 text-white font-bold">G1: NAND (A, B)</span>
-                                <span class="text-[9px] text-slate-600 ml-1">Mati jika keduanya 1</span>
+                                <span class="px-1.5 py-0.2 rounded bg-cyan-700 text-white font-bold">G1: NAND (A,B)</span>
+                                <span class="text-[8.5px] text-slate-600 ml-1">Mati bila 1 & 1</span>
                             </div>
-                            <span class="font-black px-2 py-0.5 rounded text-[11px] border" :class="gate1L3 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'" x-text="gate1L3 ? '1' : '0'"></span>
+                            <span class="font-black px-1.5 py-0.2 rounded text-[10px] border" :class="gate1L3 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'" x-text="gate1L3 ? '1' : '0'"></span>
                         </div>
 
                         <!-- G2: NOR (C, D) -->
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between text-[10px] font-mono-code shadow-xs">
+                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-200 flex items-center justify-between text-[9.5px] font-mono-code shadow-xs">
                             <div>
-                                <span class="px-1.5 py-0.2 rounded bg-teal-700 text-white font-bold">G2: NOR (C, D)</span>
-                                <span class="text-[9px] text-slate-600 ml-1">Nyala jika keduanya 0</span>
+                                <span class="px-1.5 py-0.2 rounded bg-teal-700 text-white font-bold">G2: NOR (C,D)</span>
+                                <span class="text-[8.5px] text-slate-600 ml-1">Nyala bila 0 & 0</span>
                             </div>
-                            <span class="font-black px-2 py-0.5 rounded text-[11px] border" :class="gate2L3 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'" x-text="gate2L3 ? '1' : '0'"></span>
+                            <span class="font-black px-1.5 py-0.2 rounded text-[10px] border" :class="gate2L3 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'" x-text="gate2L3 ? '1' : '0'"></span>
                         </div>
 
                         <!-- G3: XOR (B, C) -->
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between text-[10px] font-mono-code shadow-xs">
+                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-200 flex items-center justify-between text-[9.5px] font-mono-code shadow-xs">
                             <div>
-                                <span class="px-1.5 py-0.2 rounded bg-purple-700 text-white font-bold">G3: XOR (B, C)</span>
-                                <span class="text-[9px] text-slate-600 ml-1">Nyala jika B ≠ C</span>
+                                <span class="px-1.5 py-0.2 rounded bg-purple-700 text-white font-bold">G3: XOR (B,C)</span>
+                                <span class="text-[8.5px] text-slate-600 ml-1">Nyala bila B ≠ C</span>
                             </div>
-                            <span class="font-black px-2 py-0.5 rounded text-[11px] border" :class="gate3L3 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'" x-text="gate3L3 ? '1' : '0'"></span>
+                            <span class="font-black px-1.5 py-0.2 rounded text-[10px] border" :class="gate3L3 ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-slate-200 border-slate-300 text-slate-700'" x-text="gate3L3 ? '1' : '0'"></span>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-slate-600 text-center font-mono-code font-bold">
-                        Output dialirkan ke 2 Bohlam Target ►
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-slate-600 text-center font-mono-code font-bold">
+                        Output ke 2 Bohlam Target ►
                     </div>
                 </div>
 
                 <!-- TAHAP 3: DUA BOHLAM TARGET SEKALIGUS (OUT 1 & OUT 2) -->
-                <div class="flex-[1.2] flex flex-col justify-between bg-white border-2 p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-[220px] transition-all"
+                <div class="flex-1 flex flex-col justify-between bg-white border-2 p-2 sm:p-3 rounded-2xl shadow-[2px_2px_0px_#121316] min-w-0 transition-all"
                      :class="outputL3 ? 'border-emerald-600 bg-emerald-50/40' : 'border-[#121316]'">
                     
-                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 font-mono-code">
+                    <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200 font-mono-code">
                         <span class="text-xs font-black text-amber-900 flex items-center gap-1">
-                            <i class="fa-solid fa-trophy text-amber-600"></i> 3. DUA TARGET BOHLAM
+                            <i class="fa-solid fa-trophy text-amber-600"></i> 3. DUA TARGET
                         </span>
-                        <span class="text-[9.5px] text-emerald-800 font-black">Keduanya Wajib ON</span>
+                        <span class="text-[9px] text-emerald-800 font-black">Wajib ON</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2.5 my-auto py-2">
+                    <div class="grid grid-cols-2 gap-1.5 sm:gap-2 my-auto py-1">
                         <!-- OUT 1 (G1 AND G3) -->
-                        <div class="flex flex-col items-center justify-center p-2.5 bg-amber-50/50 rounded-xl border border-amber-200">
-                            <span class="text-[9px] font-mono-code text-slate-700 font-bold mb-1">BOHLAM 1 (SUM)</span>
-                            <div class="w-14 h-14 rounded-full border-2 flex items-center justify-center my-1 transition-all"
-                                 :class="out1L3 ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-[0_0_20px_#facc15]' : 'bg-slate-200 text-slate-400 border-slate-300'">
-                                <i class="fa-solid fa-lightbulb text-2xl" :class="out1L3 ? 'text-slate-950 scale-110' : 'text-slate-400'"></i>
+                        <div class="flex flex-col items-center justify-center p-1.5 bg-amber-50/50 rounded-xl border border-amber-200">
+                            <span class="text-[8.5px] font-mono-code text-slate-700 font-bold mb-0.5">BOHLAM 1 (SUM)</span>
+                            <div class="circuit-bulb w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center my-0.5 transition-all"
+                                 :class="out1L3 ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-[0_0_15px_#facc15]' : 'bg-slate-200 text-slate-400 border-slate-300'">
+                                <i class="fa-solid fa-lightbulb text-lg sm:text-xl" :class="out1L3 ? 'text-slate-950 scale-110' : 'text-slate-400'"></i>
                             </div>
-                            <span class="text-xs font-mono-code font-black mt-1" :class="out1L3 ? 'text-emerald-800' : 'text-slate-600'" x-text="out1L3 ? '1 (NYALA)' : '0 (MATI)'"></span>
-                            <span class="text-[8.5px] text-slate-600 mt-0.5 font-bold">Syarat: G1 &bull; G3 = 1</span>
+                            <span class="text-[10px] font-mono-code font-black mt-0.5" :class="out1L3 ? 'text-emerald-800' : 'text-slate-600'" x-text="out1L3 ? '1 (ON)' : '0 (OFF)'"></span>
+                            <span class="text-[8px] text-slate-600 font-bold">G1 &bull; G3 = 1</span>
                         </div>
 
                         <!-- OUT 2 (G2 OR G3) -->
-                        <div class="flex flex-col items-center justify-center p-2.5 bg-amber-50/50 rounded-xl border border-amber-200">
-                            <span class="text-[9px] font-mono-code text-slate-700 font-bold mb-1">BOHLAM 2 (CARRY)</span>
-                            <div class="w-14 h-14 rounded-full border-2 flex items-center justify-center my-1 transition-all"
-                                 :class="out2L3 ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-[0_0_20px_#facc15]' : 'bg-slate-200 text-slate-400 border-slate-300'">
-                                <i class="fa-solid fa-lightbulb text-2xl" :class="out2L3 ? 'text-slate-950 scale-110' : 'text-slate-400'"></i>
+                        <div class="flex flex-col items-center justify-center p-1.5 bg-amber-50/50 rounded-xl border border-amber-200">
+                            <span class="text-[8.5px] font-mono-code text-slate-700 font-bold mb-0.5">BOHLAM 2 (CARRY)</span>
+                            <div class="circuit-bulb w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center my-0.5 transition-all"
+                                 :class="out2L3 ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-[0_0_15px_#facc15]' : 'bg-slate-200 text-slate-400 border-slate-300'">
+                                <i class="fa-solid fa-lightbulb text-lg sm:text-xl" :class="out2L3 ? 'text-slate-950 scale-110' : 'text-slate-400'"></i>
                             </div>
-                            <span class="text-xs font-mono-code font-black mt-1" :class="out2L3 ? 'text-emerald-800' : 'text-slate-600'" x-text="out2L3 ? '1 (NYALA)' : '0 (MATI)'"></span>
-                            <span class="text-[8.5px] text-slate-600 mt-0.5 font-bold">Syarat: G2 + G3 = 1</span>
+                            <span class="text-[10px] font-mono-code font-black mt-0.5" :class="out2L3 ? 'text-emerald-800' : 'text-slate-600'" x-text="out2L3 ? '1 (ON)' : '0 (OFF)'"></span>
+                            <span class="text-[8px] text-slate-600 font-bold">G2 + G3 = 1</span>
                         </div>
                     </div>
 
-                    <div class="mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-center font-mono-code font-bold"
+                    <div class="mt-1.5 pt-1 border-t border-slate-200 text-[9.5px] text-center font-mono-code font-bold"
                          :class="outputL3 ? 'text-emerald-800 font-bold' : 'text-slate-600'">
-                        <span x-text="outputL3 ? '🎉 KEDUA BOHLAM MENYALA! TARGET TERCAPAI ✓' : 'Nyalakan kedua bohlam di atas'"></span>
+                        <span x-text="outputL3 ? '🎉 DUA BOHLAM MENYALA! ✓' : 'Nyalakan kedua bohlam'"></span>
                     </div>
                 </div>
 
@@ -665,7 +699,7 @@
     </div>
 
     <!-- Footer Tips Teori Gerbang Logika & Aljabar Boolean -->
-    <div class="mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-indigo-950 font-mono-code">
+    <div class="hide-in-landscape mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-indigo-950 font-mono-code">
         <div class="flex items-center gap-1.5">
             <span class="text-xs">💡</span>
             <span class="font-bold">Edukasi IT & Logika:</span>

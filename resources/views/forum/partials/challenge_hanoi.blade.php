@@ -1,6 +1,25 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- 🏛️ PembdaCHALLENGE: Menara Hanoi (Tower of Hanoi - Logic Quest)         -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<style>
+#pembda-challenge.mobile-landscape-active .hanoi-tower-stage,
+#pembda-challenge.mobile-physical-landscape .hanoi-tower-stage {
+    height: 85px !important;
+}
+#pembda-challenge.mobile-landscape-active .hanoi-pole,
+#pembda-challenge.mobile-physical-landscape .hanoi-pole {
+    height: 72px !important;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+    #pembda-challenge .hanoi-tower-stage {
+        height: 85px !important;
+    }
+    #pembda-challenge .hanoi-pole {
+        height: 72px !important;
+    }
+}
+</style>
+
 <div x-data="hanoiGame()" x-init="init()" class="w-full">
     
     <!-- Banner Cooldown (Jika Nyawa Habis) -->
@@ -124,7 +143,7 @@
     <div class="relative w-full rounded-2xl border-2 border-[#121316] bg-gradient-to-b from-amber-50/80 via-slate-50 to-amber-100/60 p-2 sm:p-3 overflow-hidden shadow-[3px_3px_0px_#121316] select-none">
         
         <!-- Hint Status Instruksi -->
-        <div class="mb-2 flex items-center justify-between text-[9.5px] sm:text-[10.5px] font-mono-code">
+        <div class="hide-in-landscape mb-1.5 sm:mb-2 flex items-center justify-between text-[9.5px] sm:text-[10.5px] font-mono-code">
             <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 border border-[#121316] text-[#121316] font-black shadow-xs">
                 <span class="w-2 h-2 rounded-full animate-ping" :class="selectedPeg === null ? 'bg-indigo-500' : 'bg-amber-500'"></span>
                 <span x-show="selectedPeg === null">Sentuh Tiang untuk <span class="text-indigo-700">MENGANGKAT CAKRAM</span></span>
@@ -136,7 +155,7 @@
         </div>
 
         <!-- PANGGUNG 3 TIANG (GRID 3 KOLOM) -->
-        <div class="grid grid-cols-3 gap-1.5 sm:gap-3 relative pt-1 pb-1.5">
+        <div class="grid grid-cols-3 gap-1.5 sm:gap-3 relative pt-1 pb-1">
             
             <!-- LOOP 3 TIANG (0: Tiang A, 1: Tiang B, 2: Tiang C) -->
             <template x-for="(tower, pegIndex) in towers" :key="'peg-' + pegIndex">
@@ -144,8 +163,8 @@
                      @click="handlePegClick(pegIndex)">
                     
                     <!-- 1. Header Tiang & Badge di Paling Atas (Normal Flow, Bersih & Bebas Tabrakan) -->
-                    <div class="w-full flex justify-center mb-1.5">
-                        <div class="px-1.5 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10.5px] font-mono-code font-black border-2 border-[#121316] shadow-xs transition-all text-center"
+                    <div class="w-full flex justify-center mb-1">
+                        <div class="px-1.5 sm:px-2 py-0.5 rounded-full text-[8.5px] sm:text-[10px] font-mono-code font-black border-2 border-[#121316] shadow-xs transition-all text-center"
                              :class="{
                                  'bg-indigo-100 text-indigo-900': pegIndex === 0 && selectedPeg !== pegIndex,
                                  'bg-slate-100 text-slate-800': pegIndex === 1 && selectedPeg !== pegIndex,
@@ -159,19 +178,19 @@
                     </div>
 
                     <!-- 2. Arena Tiang Vertikal & Tumpukan Cakram (Tinggi Compact 135px) -->
-                    <div style="position: relative; width: 100%; height: 135px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 2px;">
+                    <div class="hanoi-tower-stage" style="position: relative; width: 100%; height: 135px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 2px;">
                         
                         <!-- Batang Tiang Silinder Vertikal Kayu Jati / Emas -->
-                        <div style="position: absolute; bottom: 0; width: 12px; height: 115px; border-radius: 9999px 9999px 0 0; border: 2px solid #121316; z-index: 1;"
+                        <div class="hanoi-pole" style="position: absolute; bottom: 0; width: 12px; height: 115px; border-radius: 9999px 9999px 0 0; border: 2px solid #121316; z-index: 1;"
                              :class="selectedPeg === pegIndex ? 'bg-amber-400' : 'bg-gradient-to-b from-amber-600 via-amber-700 to-amber-900 shadow-inner'">
                             <!-- Puncak Kubah Emas -->
-                            <div style="width: 100%; height: 10px; border-radius: 9999px 9999px 0 0; background: rgba(254, 240, 138, 0.9); border-bottom: 1px solid #451a03;"></div>
+                            <div style="width: 100%; height: 8px; border-radius: 9999px 9999px 0 0; background: rgba(254, 240, 138, 0.9); border-bottom: 1px solid #451a03;"></div>
                         </div>
 
                         <!-- Tumpukan Cakram-Cakram (Piramida Terbalik: Cakram Dasar di Bawah, Terkecil di Atas) -->
                         <div style="width: 100%; display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; z-index: 10; gap: 2px; padding-bottom: 1px;">
                             <template x-for="(disk, dIndex) in tower" :key="'disk-' + pegIndex + '-' + disk">
-                                <div class="transition-all duration-300 ease-out flex items-center justify-center border-2 border-[#121316] rounded-lg shadow-[1px_1px_0px_#121316] text-[9px] sm:text-[10px] font-mono-code font-black cursor-pointer select-none"
+                                <div class="transition-all duration-300 ease-out flex items-center justify-center border-2 border-[#121316] rounded-lg shadow-[1px_1px_0px_#121316] text-[8.5px] sm:text-[10px] font-mono-code font-black cursor-pointer select-none"
                                      :class="getDiskClass(disk, pegIndex, dIndex)"
                                      :style="getDiskStyle(disk, pegIndex, dIndex)">
                                     
@@ -180,7 +199,7 @@
 
                                     <!-- Label Terangkat di Atas Cakram yang Melayang -->
                                     <template x-if="selectedPeg === pegIndex && dIndex === tower.length - 1">
-                                        <div class="absolute -top-4 px-1 py-0.2 rounded bg-[#121316] text-[#fde047] text-[6.5px] font-mono-code font-black tracking-wider shadow-md whitespace-nowrap animate-pulse">
+                                        <div class="absolute -top-3.5 px-1 py-0.2 rounded bg-[#121316] text-[#fde047] text-[6px] font-mono-code font-black tracking-wider shadow-md whitespace-nowrap animate-pulse">
                                             ▲ TERANGKAT
                                         </div>
                                     </template>
@@ -191,15 +210,15 @@
                     </div>
 
                     <!-- 3. Alas Dudukan Piringan Tiang Kayu Jati Bawah -->
-                    <div style="width: 100%; height: 12px; border: 2px solid #121316; border-radius: 5px; position: relative; z-index: 20; display: flex; align-items: center; justify-content: center;"
+                    <div style="width: 100%; height: 10px; border: 2px solid #121316; border-radius: 5px; position: relative; z-index: 20; display: flex; align-items: center; justify-content: center;"
                          class="bg-gradient-to-r from-amber-800 via-amber-700 to-amber-900 shadow-md">
                         <div style="width: 90%; height: 1.5px; background: rgba(69, 26, 3, 0.6); border-radius: 9999px;"></div>
                     </div>
 
                     <!-- 4. Tombol Sentuh Tiang (Interactive Button di Bawah) -->
-                    <div class="mt-1.5 w-full">
+                    <div class="mt-1 w-full">
                         <button type="button" 
-                                class="w-full py-1 px-1 rounded-lg text-[9.5px] sm:text-[10.5px] font-black border-2 border-[#121316] transition-all flex items-center justify-center gap-0.5 cursor-pointer"
+                                class="w-full py-0.5 sm:py-1 px-0.5 rounded-lg text-[8.5px] sm:text-[9.5px] font-black border-2 border-[#121316] transition-all flex items-center justify-center gap-0.5 cursor-pointer"
                                 :class="{
                                     'bg-[#fde047] text-[#121316] shadow-[1px_1px_0px_#121316] ring-2 ring-yellow-400': selectedPeg === pegIndex,
                                     'bg-white text-slate-800 hover:bg-[#faf8f5] shadow-[1px_1px_0px_#121316]': selectedPeg === null && tower.length > 0,
@@ -219,7 +238,7 @@
         </div>
 
         <!-- Papan Landasan Kayu Panggung Tebal -->
-        <div class="w-full h-2.5 sm:h-3 bg-gradient-to-r from-amber-900 via-amber-800 to-amber-950 rounded-b-xl border-2 border-t-0 border-[#121316] shadow-inner flex items-center justify-around">
+        <div class="w-full h-2 sm:h-2.5 bg-gradient-to-r from-amber-900 via-amber-800 to-amber-950 rounded-b-xl border-2 border-t-0 border-[#121316] shadow-inner flex items-center justify-around">
             <div class="w-1/4 h-0.5 bg-amber-950/80 rounded-full"></div>
             <div class="w-1/4 h-0.5 bg-amber-950/80 rounded-full"></div>
             <div class="w-1/4 h-0.5 bg-amber-950/80 rounded-full"></div>
@@ -228,7 +247,7 @@
     </div>
 
     <!-- Footer Bar Tips STEAM & Rumus Matematika Hanoi -->
-    <div class="mt-2 p-1.5 bg-indigo-50/60 border border-indigo-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-indigo-900 font-mono-code">
+    <div class="hide-in-landscape mt-2 p-1.5 bg-indigo-50/60 border border-indigo-200 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-indigo-900 font-mono-code">
         <div class="flex items-center gap-1.5">
             <span class="text-xs">📐</span>
             <span class="font-bold">Hukum Eksponensial:</span>
@@ -603,6 +622,10 @@ function hanoiGame() {
         },
 
         getDiskHeight() {
+            const isLandscape = window.innerHeight <= 520 && window.innerWidth > window.innerHeight;
+            if (isLandscape) {
+                return this.diskCount >= 5 ? '11px' : '13px';
+            }
             return this.diskCount >= 5 ? '18px' : '22px';
         },
 
@@ -610,9 +633,11 @@ function hanoiGame() {
             const width = this.getDiskWidth(disk);
             const height = this.getDiskHeight();
             const isFloating = this.selectedPeg === pegIndex && dIndex === this.towers[pegIndex].length - 1;
+            const isLandscape = window.innerHeight <= 520 && window.innerWidth > window.innerHeight;
+            const floatTranslate = isLandscape ? '-12px' : '-20px';
             
             if (isFloating) {
-                return `width: ${width}; height: ${height}; transform: translateY(-20px); box-shadow: 0 8px 16px rgba(0,0,0,0.35); position: relative; z-index: 40;`;
+                return `width: ${width}; height: ${height}; transform: translateY(${floatTranslate}); box-shadow: 0 8px 16px rgba(0,0,0,0.35); position: relative; z-index: 40;`;
             }
             return `width: ${width}; height: ${height}; position: relative; z-index: 10;`;
         },
