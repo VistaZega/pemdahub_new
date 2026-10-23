@@ -137,11 +137,11 @@
                                     <span class="text-[11px] text-amber-700 font-medium block mt-0.5">Rank #{{ $data['rank'] }} Reputasi</span>
                                 </div>
                                 <div class="bg-purple-50/60 border border-purple-200/60 rounded-2xl p-3.5">
-                                    <span class="text-[11px] font-bold text-purple-700 uppercase tracking-wider block">Tunggakan SPP</span>
-                                    <p class="text-sm font-black text-purple-900 mt-1 truncate">
-                                        {{ $data['outstanding'] > 0 ? 'Rp '.number_format($data['outstanding'], 0, ',', '.') : '✅ Bebas Tunggakan' }}
+                                    <span class="text-[11px] font-bold text-purple-700 uppercase tracking-wider block">Checklist SPP</span>
+                                    <p class="text-sm font-black {{ $data['outstanding'] > 0 ? 'text-rose-700' : 'text-emerald-700' }} mt-1 truncate">
+                                        {{ $data['outstanding'] > 0 ? '✕ Belum Lunas' : '✓ Sudah Lunas' }}
                                     </p>
-                                    <span class="text-[11px] text-purple-600 font-medium block mt-0.5">s.d. Bulan Ini</span>
+                                    <span class="text-[11px] text-purple-600 font-medium block mt-0.5">Status s.d. Bulan Ini</span>
                                 </div>
                             </div>
                         </div>
@@ -331,18 +331,18 @@
                     {{-- Card 4: Status Pembayaran Biaya (Purple/Rose Theme) --}}
                     <div class="bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-lg" style="padding: 1.75rem; border-radius: 1.75rem; border: 2px solid rgba(232, 121, 249, 0.5); display: flex; flex-direction: column; justify-content: space-between; min-height: 160px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                            <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #fae8ff;">Status Biaya Pendidikan</span>
+                            <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #fae8ff;">Checklist Pembayaran SPP</span>
                             <div style="width: 3rem; height: 3rem; border-radius: 1rem; background-color: #ffffff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-shrink: 0;">
-                                <i class="fas fa-wallet"></i>
+                                <i class="fas fa-clipboard-check"></i>
                             </div>
                         </div>
                         <div>
                             @if($outstanding > 0)
-                            <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Rp {{ number_format($outstanding, 0, ',', '.') }}</p>
-                            <p style="font-size: 0.75rem; font-weight: 700; color: #fbcfe8; margin-top: 0.6rem; line-height: 1.4;">Tunggakan s.d. Bulan Ini</p>
+                            <p style="font-size: 1.5rem; font-weight: 900; color: #ffffff; line-height: 1.1;">✕ Belum Lunas</p>
+                            <p style="font-size: 0.75rem; font-weight: 700; color: #fbcfe8; margin-top: 0.6rem; line-height: 1.4;">Ada bulan SPP yang belum lunas s.d. bulan ini</p>
                             @else
-                            <p style="font-size: 1.75rem; font-weight: 900; color: #ffffff; line-height: 1.1;">Lunas s.d. Bulan Ini</p>
-                            <p style="font-size: 0.75rem; font-weight: 700; color: #a7f3d0; margin-top: 0.6rem; line-height: 1.4;">Bebas tunggakan seluruh biaya (SPP, dll.)</p>
+                            <p style="font-size: 1.5rem; font-weight: 900; color: #ffffff; line-height: 1.1;">✓ Sudah Lunas</p>
+                            <p style="font-size: 0.75rem; font-weight: 700; color: #a7f3d0; margin-top: 0.6rem; line-height: 1.4;">SPP s.d. bulan ini sudah terchecklist Lunas</p>
                             @endif
                         </div>
                     </div>
@@ -677,13 +677,13 @@
                             <div class="bg-purple-50/60 border border-purple-200 rounded-2xl p-4 mb-4">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <span class="text-[11px] font-bold text-purple-700 uppercase">Tunggakan s.d. Bulan Ini</span>
-                                        <p class="text-xl font-black text-purple-900 mt-0.5">
-                                            {{ $outstanding > 0 ? 'Rp '.number_format($outstanding, 0, ',', '.') : '✅ Lunas (Rp 0)' }}
+                                        <span class="text-[11px] font-bold text-purple-700 uppercase">Status SPP s.d. Bulan Ini</span>
+                                        <p class="text-lg font-black {{ $outstanding > 0 ? 'text-rose-700' : 'text-emerald-700' }} mt-0.5">
+                                            {{ $outstanding > 0 ? '✕ Belum Lunas' : '✓ Sudah Lunas' }}
                                         </p>
                                     </div>
                                     <a href="{{ route('orangtua.anak.tagihan', $student->id) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-black text-xs px-3.5 py-2 rounded-xl transition shadow-sm">
-                                        Bayar / Detail
+                                        Lihat Checklist
                                     </a>
                                 </div>
                             </div>

@@ -62,9 +62,28 @@
                 <!-- Jumlah Bayar -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">💰 Jumlah Bayar (Rp)</label>
-                    <input type="number" name="amount_paid" id="amount_paid" value="{{ old('amount_paid') }}" required min="0" step="1000"
+                    <input type="number" name="amount_paid" id="amount_paid" value="{{ old('amount_paid') }}" required min="0" step="100"
                         placeholder="500000"
+                        oninput="onCreatePaymentAmountInput()"
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <!-- Opsi Diskon / Beasiswa Sampai Akhir Semester -->
+                <div id="create_discount_carryover_box" class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
+                    <label class="flex items-start gap-2.5 cursor-pointer">
+                        <input type="checkbox" name="apply_discount_carryover" id="create_apply_discount_carryover" value="1"
+                            class="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300">
+                        <span class="text-xs text-emerald-900 leading-snug">
+                            <strong>Tandai Lunas & berlakukan nominal baru (Diskon / Beasiswa SPP)</strong><br>
+                            Jika jumlah bayar lebih kecil dari tarif awal karena diskon/beasiswa, tandai bulan ini <strong>Lunas (✓)</strong> dan terapkan nominal ini ke bulan-bulan berikutnya:
+                        </span>
+                    </label>
+                    <div class="pl-6">
+                        <select name="carryover_scope" class="w-full md:w-80 px-3 py-1.5 text-xs border border-emerald-300 rounded-lg bg-white text-emerald-900 font-semibold">
+                            <option value="semester" selected>Berlaku sampai Akhir Semester Ini (Default)</option>
+                            <option value="academic_year">Berlaku sampai Akhir Tahun Pelajaran</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Payment Method & Date -->
@@ -179,12 +198,18 @@ function loadStudentBills(selectedBillId = '') {
     // Clear existing dynamic options (keep first option)
     billSelect.innerHTML = '<option value="">-- Pilih Tagihan (Kosongkan jika bayar tanpa tagihan) --</option>';
     
-    // Filter and add matching bills
+    let firstMatchingBillId = '';
+
+    // Filter and add matching bills (already sorted chronologically by academic month: Juli, Agustus, September...)
     allBills.forEach(bill => {
         if (bill.student_id === studentId) {
+            if (!firstMatchingBillId) {
+                firstMatchingBillId = String(bill.id);
+            }
+            const remaining = Math.max(0, parseFloat(bill.amount) - parseFloat(bill.paid_amount || 0));
             const option = document.createElement('option');
             option.value = bill.id;
-            option.setAttribute('data-amount', bill.amount);
+            option.setAttribute('data-amount', remaining > 0 ? remaining : bill.amount);
             option.setAttribute('data-student', bill.student_id);
             if (selectedBillId && String(bill.id) === String(selectedBillId)) {
                 option.selected = true;
@@ -201,8 +226,7 @@ function loadStudentBills(selectedBillId = '') {
             
             // Determine installment text
             let remainingText = '';
-            if (bill.status === 'cicilan') {
-                const remaining = bill.amount - bill.paid_amount;
+            if (bill.status === 'cicilan' || parseFloat(bill.paid_amount || 0) > 0) {
                 const formattedRemaining = new Intl.NumberFormat('id-ID').format(remaining);
                 remainingText = ` (Sisa: Rp ${formattedRemaining})`;
             }
@@ -212,8 +236,9 @@ function loadStudentBills(selectedBillId = '') {
         }
     });
     
-    if (selectedBillId) {
-        billSelect.value = selectedBillId;
+    const effectiveBillId = selectedBillId || firstMatchingBillId;
+    if (effectiveBillId) {
+        billSelect.value = effectiveBillId;
         fillBillAmount();
     } else {
         billSelect.value = '';
@@ -221,13 +246,26 @@ function loadStudentBills(selectedBillId = '') {
     }
 }
 
+let createSelectedBillAmount = 0;
+
 function fillBillAmount() {
     const billSelect = document.getElementById('bill_id');
     const selectedOption = billSelect.options[billSelect.selectedIndex];
     
     if (selectedOption && selectedOption.value) {
-        const amount = selectedOption.getAttribute('data-amount');
+        const amount = parseFloat(selectedOption.getAttribute('data-amount') || 0);
+        createSelectedBillAmount = amount;
         document.getElementById('amount_paid').value = amount;
+        const chk = document.getElementById('create_apply_discount_carryover');
+        if (chk) chk.checked = false;
+    }
+}
+
+function onCreatePaymentAmountInput() {
+    const val = parseFloat(document.getElementById('amount_paid').value || 0);
+    const chk = document.getElementById('create_apply_discount_carryover');
+    if (chk && createSelectedBillAmount > 0 && val > 0 && val < createSelectedBillAmount) {
+        chk.checked = true;
     }
 }
 

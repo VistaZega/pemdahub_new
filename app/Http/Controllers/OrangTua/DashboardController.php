@@ -386,6 +386,11 @@ class DashboardController extends Controller
             ? $request->academic_year_id
             : ($activeYear?->id ?? null);
 
+        app(\App\Services\StudentBillService::class)->healAndDeduplicateBills(
+            (int) $student->school_id,
+            $selectedYearId ? (int) $selectedYearId : null
+        );
+
         $query = StudentBill::where('student_id', $student->id)
             ->with(['paymentType', 'payments', 'academicYear', 'semester']);
 
@@ -393,11 +398,44 @@ class DashboardController extends Controller
             $query->where('academic_year_id', $selectedYearId);
         }
 
-        $bills = $query->get();
+        $bills = $query->get()
+            ->sortBy(function ($b) {
+                if ($b->status === 'lunas') return 0;
+                if ($b->paid_amount > 0) return 1;
+                return 2;
+            })
+            ->unique(function ($b) {
+                return $b->payment_type_id . '_' . $b->academic_year_id . '_' . ($b->month ?? ('id_' . $b->id));
+            })
+            ->values();
 
         $totalTagihan = $bills->sum('amount');
         $totalBayar = $bills->sum('paid_amount');
         $totalSisa = $bills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+
+        // Build month map for recurring bills: payment_type_id_month => bill
+        $monthMap = [];
+        foreach ($bills as $bill) {
+            if ($bill->paymentType && $bill->paymentType->is_recurring && $bill->month) {
+                $key = $bill->payment_type_id . '_' . $bill->month;
+                if (!isset($monthMap[$key]) || $bill->status === 'lunas' || ($monthMap[$key]->status !== 'lunas' && $bill->paid_amount > $monthMap[$key]->paid_amount)) {
+                    $monthMap[$key] = $bill;
+                }
+            }
+        }
+
+        $recurringTypes = collect();
+        foreach ($bills as $bill) {
+            if ($bill->paymentType && $bill->paymentType->is_recurring && !$recurringTypes->has($bill->payment_type_id)) {
+                $recurringTypes->put($bill->payment_type_id, $bill->paymentType->type_name);
+            }
+        }
+
+        $nonRecurringBills = $bills->filter(function ($b) {
+            return !$b->paymentType || !$b->paymentType->is_recurring;
+        })->values();
+
+        $months = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
         // Helper to resolve accurate bill year even if year column in DB is 0, null, or corrupted (e.g. 2001)
         $getResolvedYear = function($b) use ($activeYear) {
@@ -433,19 +471,26 @@ class DashboardController extends Controller
         };
 
         // Calculate Tunggakan s.d. Bulan Ini vs Mendatang
-        $tunggakanAmount = $bills->filter(function($b) use ($getDueDate) {
+        $tunggakanBills = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return true;
             $dueDate = $getDueDate($b);
             return $dueDate ? now()->isAfter($dueDate) : false;
-        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        });
+        $tunggakanAmount = $tunggakanBills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        $tunggakanCount = $tunggakanBills->count();
 
-        $upcomingAmount = $bills->filter(function($b) use ($getDueDate) {
+        $upcomingBills = $bills->filter(function($b) use ($getDueDate) {
             if ($b->status === 'lunas') return false;
             if ($b->isOverdue()) return false;
             $dueDate = $getDueDate($b);
             return $dueDate ? !now()->isAfter($dueDate) : true;
-        })->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        });
+        $upcomingAmount = $upcomingBills->sum(fn($b) => max(0, $b->amount - $b->paid_amount));
+        $upcomingCount = $upcomingBills->count();
+
+        $totalBillsCount = $bills->count();
+        $lunasCount = $bills->where('status', 'lunas')->count();
 
         // Group monthly bills per month (academic year sequence: 7,8,9,10,11,12,1,2,3,4,5,6)
         $academicMonths = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
@@ -506,6 +551,8 @@ class DashboardController extends Controller
         return view('orangtua.tagihan', compact(
             'student', 'classroom', 'children', 'bills', 'academicYears', 'selectedYearId',
             'totalTagihan', 'totalBayar', 'totalSisa', 'tunggakanAmount', 'upcomingAmount',
+            'totalBillsCount', 'lunasCount', 'tunggakanCount', 'upcomingCount',
+            'monthMap', 'recurringTypes', 'nonRecurringBills', 'months',
             'monthlyGroupedData', 'nonMonthlyBills'
         ));
     }

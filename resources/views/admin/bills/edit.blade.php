@@ -159,7 +159,7 @@
 
                 @if($bill->month)
                 <!-- Pilihan Bawa Potongan ke Bulan-Bulan Berikutnya -->
-                <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl">
+                <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl space-y-3">
                     <label class="flex items-start gap-3 cursor-pointer">
                         <input type="checkbox" name="apply_to_subsequent_months" value="1" checked
                             class="mt-1 w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
@@ -168,14 +168,49 @@
                                 <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Terapkan potongan & nominal ini ke bulan-bulan berikutnya di tahun ajaran ini
+                                Terapkan perubahan nominal / diskon / beasiswa ini ke bulan-bulan berikutnya
                             </span>
                             <p class="text-xs text-blue-800 mt-1 leading-relaxed">
-                                <strong>Sangat direkomendasikan:</strong> Jika diaktifkan, pengaturan potongan untuk bulan {{ $monthNames[$bill->month] ?? $bill->month }} ini otomatis akan dibawa dan diterapkan pada seluruh tagihan yang belum dibayar di bulan-bulan berikutnya hingga akhir Tahun Pelajaran {{ $bill->academicYear->year }}.
+                                Jika diaktifkan, pengaturan potongan/nominal untuk bulan {{ $monthNames[$bill->month] ?? $bill->month }} ini otomatis berlaku untuk bulan-bulan berikutnya sesuai cakupan periode di bawah ini.
                             </p>
                         </div>
                     </label>
+                    <div class="pl-8 grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border border-blue-300 bg-white cursor-pointer hover:bg-blue-50/50 transition">
+                            <input type="radio" name="carryover_scope" value="semester" checked class="text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="text-xs font-extrabold text-blue-950">Sampai Akhir Semester Ini (Default)</p>
+                                <p class="text-[11px] text-gray-500">{{ $bill->month >= 7 ? 'Semester Ganjil (s.d. Desember)' : 'Semester Genap (s.d. Juni)' }}</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border border-gray-200 bg-white cursor-pointer hover:bg-gray-50 transition">
+                            <input type="radio" name="carryover_scope" value="academic_year" class="text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="text-xs font-extrabold text-gray-800">Sampai Akhir Tahun Pelajaran</p>
+                                <p class="text-[11px] text-gray-500">Seluruh bulan tersisa di {{ $bill->academicYear->year }}</p>
+                            </div>
+                        </label>
+                    </div>
                 </div>
+
+                @if($bill->paid_amount > 0 || $bill->status === 'lunas')
+                <div class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl space-y-2">
+                    <label class="block text-sm font-extrabold text-amber-950">
+                        🔄 Pindahkan Status Lunas / Pembayaran Bulan Ini ke Bulan Lain (Opsional)
+                    </label>
+                    <p class="text-xs text-amber-800">
+                        Jika pembayaran bulan <strong>{{ $monthNames[$bill->month] ?? $bill->month }}</strong> ini sebenarnya dimaksudkan untuk bulan lain (misalnya <strong>Agustus</strong>), pilih bulan tujuan di bawah lalu klik <strong>Perbarui Tagihan</strong>:
+                    </p>
+                    <select name="move_payment_to_month" class="w-full md:w-72 px-3 py-2 text-sm border border-amber-400 rounded-xl bg-white font-bold text-gray-800">
+                        <option value="">-- Tetap di Bulan {{ $monthNames[$bill->month] ?? $bill->month }} (Jangan Pindahkan) --</option>
+                        @foreach([7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember', 1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni'] as $mNum => $mLabel)
+                            @if($mNum != $bill->month)
+                                <option value="{{ $mNum }}">Pindahkan Pembayaran ke Bulan {{ $mLabel }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 @endif
             </div>
         </div>

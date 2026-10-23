@@ -106,16 +106,26 @@ class PaymentController extends Controller
             ->get();
         
         $selectedStudentId = $request->get('student_id');
+        $selectedBillId = $request->get('bill_id');
         
+        $academicMonthOrder = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+
         $bills = StudentBill::where('status', '!=', 'lunas')
             ->whereHas('student', function ($q) use ($schoolId) {
                 $q->where('school_id', $schoolId);
             })
             ->with('student', 'paymentType')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->unique(function ($b) {
+                return $b->student_id . '_' . $b->payment_type_id . '_' . $b->academic_year_id . '_' . ($b->month ?? ('id_' . $b->id));
+            })
+            ->sortBy(function ($b) use ($academicMonthOrder) {
+                $pos = array_search((int) $b->month, $academicMonthOrder);
+                return sprintf('%06d_%02d_%08d', (int) $b->academic_year_id, $pos === false ? 99 : $pos, (int) $b->id);
+            })
+            ->values();
 
-        return view('treasurer.payments.create', compact('students', 'bills', 'selectedStudentId'));
+        return view('treasurer.payments.create', compact('students', 'bills', 'selectedStudentId', 'selectedBillId'));
     }
 
     public function store(StorePaymentRequest $request)
@@ -132,15 +142,72 @@ class PaymentController extends Controller
             abort(403, 'Unauthorized: Anda tidak memiliki akses ke data siswa sekolah ini.');
         }
 
+        $fromBillsPage = $request->boolean('from_bills_page') || str_contains((string) $request->headers->get('referer'), '/bills');
+
         try {
-            return DB::transaction(function () use ($validated, $request, $student) {
+            return DB::transaction(function () use ($validated, $request, $student, $fromBillsPage) {
+                $billService = app(\App\Services\StudentBillService::class);
+                $academicMonthOrder = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+                $monthNames = [
+                    1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                    5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                    9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                ];
+
+                // If bill_id was omitted in Catat Pembayaran, auto-attach to the earliest unpaid bill in chronological academic order
+                if (empty($validated['bill_id'])) {
+                    $activeAcademicYearId = AcademicYear::where('is_active', true)->value('id');
+                    $candidateBills = StudentBill::where('student_id', $student->id)
+                        ->where('status', '!=', 'lunas')
+                        ->when($activeAcademicYearId, fn($q) => $q->where('academic_year_id', $activeAcademicYearId))
+                        ->get()
+                        ->sortBy(function ($b) use ($academicMonthOrder) {
+                            $pos = array_search((int) $b->month, $academicMonthOrder);
+                            return $pos === false ? 99 : $pos;
+                        });
+
+                    if ($candidateBills->isEmpty()) {
+                        $candidateBills = StudentBill::where('student_id', $student->id)
+                            ->where('status', '!=', 'lunas')
+                            ->get()
+                            ->sortBy(function ($b) use ($academicMonthOrder) {
+                                $pos = array_search((int) $b->month, $academicMonthOrder);
+                                return $pos === false ? 99 : $pos;
+                            });
+                    }
+
+                    $autoBill = $candidateBills->first();
+                    if ($autoBill) {
+                        $validated['bill_id'] = $autoBill->id;
+                    }
+                }
+
+                // If target_month was explicitly chosen in Quick Pay modal and differs from the clicked bill's month
+                if (!empty($validated['bill_id']) && $request->filled('target_month')) {
+                    $clickedBill = StudentBill::find($validated['bill_id']);
+                    $targetMonth = (int) $request->input('target_month');
+                    if ($clickedBill && $clickedBill->month && (int) $clickedBill->month !== $targetMonth) {
+                        $monthBill = StudentBill::where('student_id', $student->id)
+                            ->where('payment_type_id', $clickedBill->payment_type_id)
+                            ->where('academic_year_id', $clickedBill->academic_year_id)
+                            ->where('month', $targetMonth)
+                            ->orderByRaw("CASE WHEN status = 'lunas' THEN 0 WHEN paid_amount > 0 THEN 1 ELSE 2 END")
+                            ->first();
+                        if ($monthBill) {
+                            $validated['bill_id'] = $monthBill->id;
+                        }
+                    }
+                }
+
                 // If applying discount carryover from Quick Pay / store form
+                $carriedCount = 0;
+                $carryScope = $request->input('carryover_scope', 'semester');
                 if ($request->boolean('apply_discount_carryover') && !empty($validated['bill_id'])) {
                     $targetBill = StudentBill::find($validated['bill_id']);
                     if ($targetBill) {
-                        $newBillAmount = (float) $validated['amount_paid'];
-                        $discountAmount = max(0, (float)$targetBill->amount - $newBillAmount);
-                        $discountReason = $request->input('discount_reason', 'Penyesuaian Potongan Pembayaran');
+                        $newBillAmount = (float) $targetBill->paid_amount + (float) $validated['amount_paid'];
+                        $discountAmount = max((float) $targetBill->discount_amount, (float) $targetBill->amount - $newBillAmount);
+                        $discountReason = $request->input('discount_reason') ?: ($targetBill->discount_reason ?: 'Penyesuaian Diskon / Beasiswa SPP');
 
                         $targetBill->update([
                             'amount' => $newBillAmount,
@@ -148,26 +215,28 @@ class PaymentController extends Controller
                             'discount_reason' => $discountReason,
                         ]);
 
-                        $billService = app(\App\Services\StudentBillService::class);
-                        $billService->carryOverDiscountToSubsequentMonths(
+                        $carriedCount = $billService->carryOverDiscountToSubsequentMonths(
                             $targetBill,
                             $newBillAmount,
                             $discountAmount,
                             $discountReason,
                             $validated['notes'] ?? null,
-                            auth()->id()
+                            auth()->id(),
+                            $carryScope
                         );
                     }
                 }
 
                 // Lock bill for update if bill_id exists and verify status
+                $bill = null;
                 if (!empty($validated['bill_id'])) {
                     $bill = StudentBill::where('id', $validated['bill_id'])->lockForUpdate()->first();
                     if ($bill) {
-                        $totalOwed = max(0, (float)$bill->amount - (float)$bill->paid_amount) + (float)$bill->late_fee;
+                        $totalOwed = max(0, (float) $bill->amount - (float) $bill->paid_amount) + (float) $bill->late_fee;
                         if (!$request->boolean('apply_discount_carryover') && ($bill->status === 'lunas' || ($totalOwed <= 0 && $bill->paid_amount > 0))) {
-                            return redirect()->route('treasurer.payments.index')
-                                ->with('warning', 'Tagihan ini sudah lunas.');
+                            $redirectRoute = $fromBillsPage ? 'treasurer.bills.index' : 'treasurer.payments.index';
+                            return redirect()->route($redirectRoute)
+                                ->with('warning', 'Tagihan bulan ini sudah berstatus Lunas.');
                         }
                     }
                 }
@@ -180,7 +249,8 @@ class PaymentController extends Controller
                     ->first();
 
                 if ($recentDuplicate) {
-                    return redirect()->route('treasurer.payments.index')
+                    $redirectRoute = $fromBillsPage ? 'treasurer.bills.index' : 'treasurer.payments.index';
+                    return redirect()->route($redirectRoute)
                         ->with('warning', 'Pembayaran yang sama baru saja dicatat beberapa detik lalu (mencegah pembayaran ganda).');
                 }
 
@@ -197,14 +267,15 @@ class PaymentController extends Controller
 
                 $payment = Payment::create($validated);
 
+                $periodLabel = '';
                 if ($payment->bill_id) {
                     $bill = StudentBill::find($payment->bill_id);
                     if ($bill) {
-                        $totalPaid = Payment::where('bill_id', $bill->id)
+                        $totalPaid = (float) Payment::where('bill_id', $bill->id)
                             ->where('is_verified', true)
                             ->sum('amount_paid');
 
-                        $bill->paid_amount = $totalPaid;
+                        $bill->paid_amount = max((float) $bill->paid_amount, $totalPaid);
 
                         if ($bill->amount <= 0 || $bill->paid_amount >= $bill->amount) {
                             $bill->status = 'lunas';
@@ -215,11 +286,37 @@ class PaymentController extends Controller
                         }
 
                         $bill->save();
+
+                        // Deduplicate any shadow duplicate bills for this student's academic year
+                        $billService->healAndDeduplicateBills((int) $student->school_id, (int) $bill->academic_year_id);
+
+                        $mName = $bill->month ? ($monthNames[$bill->month] ?? ('Bulan ' . $bill->month)) : '';
+                        $periodLabel = trim(($bill->paymentType->type_name ?? 'Tagihan') . ($mName ? " - {$mName} {$bill->year}" : ''));
                     }
                 }
 
+                $statusInfo = ($bill && $bill->status === 'lunas') ? 'Lunas ✓' : 'Cicilan (Belum Lunas Penuh)';
+                $successMsg = "Pembayaran {$student->full_name}" . ($periodLabel ? " ({$periodLabel})" : '') . " sebesar Rp " . number_format((float) $payment->amount_paid, 0, ',', '.') . " berhasil disimpan — Status: {$statusInfo}.";
+                if ($carriedCount > 0) {
+                    $scopeText = $carryScope === 'semester' ? 'sampai akhir semester ini' : 'sampai akhir Tahun Pelajaran';
+                    $successMsg .= " Nominal baru juga diterapkan ke {$carriedCount} bulan berikutnya ({$scopeText}).";
+                }
+
+                if ($fromBillsPage) {
+                    $referer = (string) $request->headers->get('referer');
+                    if ($referer && str_contains($referer, '/bills')) {
+                        return redirect()->to($referer)
+                            ->with('success', $successMsg)
+                            ->with('payment_id', $payment->id);
+                    }
+                    return redirect()->route('treasurer.bills.index', [
+                        'academic_year_id' => $bill?->academic_year_id,
+                        'payment_type_id' => $bill?->payment_type_id,
+                    ])->with('success', $successMsg)->with('payment_id', $payment->id);
+                }
+
                 return redirect()->route('treasurer.payments.index')
-                    ->with('success', 'Pembayaran berhasil dicatat.')
+                    ->with('success', $successMsg)
                     ->with('payment_id', $payment->id);
             });
         } catch (\Exception $e) {

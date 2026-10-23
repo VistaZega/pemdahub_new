@@ -30,6 +30,11 @@ class StudentBillController extends Controller
         $classroomId = $request->classroom_id;
         $search = $request->search;
 
+        // Auto-heal & deduplicate bills for this school and academic year
+        if ($academicYearId) {
+            app(\App\Services\StudentBillService::class)->healAndDeduplicateBills((int) $schoolId, (int) $academicYearId);
+        }
+
         // Get all bills for the academic year and this school
         $query = StudentBill::with(['student.classrooms', 'paymentType', 'academicYear'])
             ->where('academic_year_id', $academicYearId)
@@ -73,18 +78,31 @@ class StudentBillController extends Controller
                 $firstBill = $bills->first();
                 $months = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
                 
-                // Create structure for each month
+                // Create structure for each month (prioritize lunas -> paid_amount > 0 -> latest)
                 $monthlyData = [];
                 foreach ($months as $month) {
-                    $monthlyData[$month] = $bills->firstWhere('month', $month);
+                    $monthlyData[$month] = $bills->where('month', $month)
+                        ->sortBy(function ($b) {
+                            if ($b->status === 'lunas') return 0;
+                            if ($b->paid_amount > 0) return 1;
+                            return 2;
+                        })
+                        ->first();
+                }
+
+                $effectiveBills = ($firstBill->paymentType->is_recurring ?? true)
+                    ? collect($monthlyData)->filter()->values()
+                    : $bills;
+                if ($effectiveBills->isEmpty()) {
+                    $effectiveBills = $bills;
                 }
                 
                 // Calculate totals
-                $totalAmount = $bills->sum('amount');
-                $totalPaid = $bills->sum('paid_amount');
+                $totalAmount = $effectiveBills->sum('amount');
+                $totalPaid = $effectiveBills->sum('paid_amount');
                 
                 // Logika Tunggakan yang Tepat: Hanya tagihan yang lewat jatuh tempo / s.d. bulan berkenaan yang belum dibayar
-                $outstanding = $bills->filter(function($b) {
+                $outstanding = $effectiveBills->filter(function($b) {
                     if ($b->status === 'lunas') return false;
                     if ($b->isOverdue()) return true;
                     if ($b->month && $b->year) {
@@ -102,7 +120,7 @@ class StudentBillController extends Controller
                     'total_amount' => $totalAmount,
                     'total_paid' => $totalPaid,
                     'outstanding' => $outstanding,
-                    'bill_count' => $bills->count(),
+                    'bill_count' => max(1, $effectiveBills->count()),
                     'is_first_row' => $isFirstRow,
                     'rowspan' => $rowCount,
                     'first_bill' => $firstBill,
@@ -403,7 +421,7 @@ class StudentBillController extends Controller
             
             // Get base year from academic year
             $academicYear = AcademicYear::find($request->academic_year_id);
-            $baseYear = (int) $academicYear->year; // e.g., 2025 from "2025/2026"
+            $baseYear = app(\App\Services\StudentBillService::class)->parseAcademicBaseYear($academicYear);
 
             // Determine months to create bills for
             if ($request->billing_type == 'monthly' && $request->start_month && $request->generate_months) {
@@ -438,11 +456,10 @@ class StudentBillController extends Controller
                         $year = $baseYear;
                     }
 
-                    // Check if bill already exists
+                    // Check if bill already exists (match by academic_year_id + month regardless of year column)
                     $exists = StudentBill::where('student_id', $student->id)
                         ->where('payment_type_id', $request->payment_type_id)
                         ->where('academic_year_id', $request->academic_year_id)
-                        ->where('year', $year)
                         ->where('month', $month)
                         ->exists();
 
@@ -535,12 +552,20 @@ class StudentBillController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        if ($bill->paid_amount > 0 || $bill->payments()->exists()) {
-            return redirect()->back()->with('error', 'Tagihan tidak dapat diubah karena sudah memiliki riwayat pembayaran.');
-        }
+        $bill->load(['student', 'paymentType', 'academicYear', 'payments']);
 
-        $bill->load(['student', 'paymentType', 'academicYear']);
-        return view('treasurer.bills.edit', compact('bill'));
+        $academicMonthOrder = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+        $siblingBills = StudentBill::where('student_id', $bill->student_id)
+            ->where('payment_type_id', $bill->payment_type_id)
+            ->where('academic_year_id', $bill->academic_year_id)
+            ->get()
+            ->sortBy(function ($b) use ($academicMonthOrder) {
+                $pos = array_search((int) $b->month, $academicMonthOrder);
+                return $pos === false ? 99 : $pos;
+            })
+            ->values();
+
+        return view('treasurer.bills.edit', compact('bill', 'siblingBills'));
     }
 
     public function update(Request $request, StudentBill $bill)
@@ -550,10 +575,6 @@ class StudentBillController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        if ($bill->paid_amount > 0 || $bill->payments()->exists()) {
-            return redirect()->back()->with('error', 'Tagihan tidak dapat diubah karena sudah memiliki riwayat pembayaran.');
-        }
-
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
             'discount_amount' => 'nullable|numeric|min:0',
@@ -561,11 +582,42 @@ class StudentBillController extends Controller
             'due_date' => 'nullable|date',
             'notes' => 'nullable|string',
             'apply_to_subsequent_months' => 'nullable|boolean',
+            'carryover_scope' => 'nullable|in:semester,academic_year',
+            'move_payment_to_month' => 'nullable|integer|min:1|max:12',
         ]);
+
+        $billService = app(\App\Services\StudentBillService::class);
+
+        // Jika bendahara memindahkan pembayaran dari bulan ini (mis. September) ke bulan lain (mis. Agustus)
+        if ($request->filled('move_payment_to_month') && (int) $request->move_payment_to_month !== (int) $bill->month && ($bill->paid_amount > 0 || $bill->status === 'lunas')) {
+            $targetMonth = (int) $request->move_payment_to_month;
+            $movedTargetBill = $billService->movePaymentToMonth($bill, $targetMonth, auth()->id());
+            $monthNames = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ];
+            $fromName = $monthNames[$bill->month] ?? $bill->month;
+            $toName = $monthNames[$targetMonth] ?? $targetMonth;
+
+            return redirect()->route('treasurer.bills.index', [
+                'academic_year_id' => $bill->academic_year_id,
+                'payment_type_id' => $bill->payment_type_id,
+            ])->with('success', "Pembayaran {$bill->student->full_name} berhasil dipindahkan dari bulan {$fromName} ke bulan {$toName} (Status {$toName}: Lunas ✓).");
+        }
 
         $newAmount = (float) $validated['amount'];
         $discountAmount = (float) ($validated['discount_amount'] ?? 0);
         $discountReason = $validated['discount_reason'] ?? null;
+
+        $paidAmount = (float) $bill->paid_amount;
+        if ($newAmount <= 0 || $paidAmount >= $newAmount) {
+            $newStatus = 'lunas';
+        } elseif ($paidAmount > 0) {
+            $newStatus = 'cicilan';
+        } else {
+            $newStatus = 'belum_bayar';
+        }
 
         $bill->update([
             'amount' => $newAmount,
@@ -573,28 +625,32 @@ class StudentBillController extends Controller
             'discount_reason' => $discountReason,
             'due_date' => $validated['due_date'] ?? $bill->due_date,
             'notes' => $validated['notes'] ?? $bill->notes,
-            'status' => $newAmount <= 0 ? 'lunas' : $bill->status,
+            'status' => $newStatus,
         ]);
 
         $msg = 'Tagihan berhasil diperbarui.';
         if ($request->boolean('apply_to_subsequent_months') && $bill->month) {
-            $billService = app(\App\Services\StudentBillService::class);
+            $scope = $validated['carryover_scope'] ?? 'semester';
             $carried = $billService->carryOverDiscountToSubsequentMonths(
                 $bill,
                 $newAmount,
                 $discountAmount,
                 $discountReason,
                 $validated['notes'] ?? null,
-                auth()->id()
+                auth()->id(),
+                $scope
             );
 
             if ($carried > 0) {
-                $msg .= " Potongan dan nominal baru otomatis diterapkan ke {$carried} tagihan bulan berikutnya s.d. akhir Tahun Pelajaran.";
+                $scopeLabel = $scope === 'semester' ? 'sampai akhir semester ini' : 'sampai akhir Tahun Pelajaran';
+                $msg .= " Potongan dan nominal baru otomatis diterapkan ke {$carried} tagihan bulan lainnya {$scopeLabel}.";
             }
         }
 
-        return redirect()->route('treasurer.bills.index')
-            ->with('success', $msg);
+        return redirect()->route('treasurer.bills.index', [
+            'academic_year_id' => $bill->academic_year_id,
+            'payment_type_id' => $bill->payment_type_id,
+        ])->with('success', $msg);
     }
 
     public function destroy(StudentBill $bill)

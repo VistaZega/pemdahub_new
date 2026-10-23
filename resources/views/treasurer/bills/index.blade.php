@@ -57,6 +57,36 @@
         </div>
     </div>
 
+    @if(session('success'))
+    <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">✓</span>
+            <p class="text-sm font-semibold text-emerald-800">{{ session('success') }}</p>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 font-bold">✕</button>
+    </div>
+    @endif
+
+    @if(session('warning'))
+    <div class="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold">!</span>
+            <p class="text-sm font-semibold text-amber-800">{{ session('warning') }}</p>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-amber-500 hover:text-amber-700 font-bold">✕</button>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold">✕</span>
+            <p class="text-sm font-semibold text-red-800">{{ session('error') }}</p>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold">✕</button>
+    </div>
+    @endif
+
     <!-- Filter Form -->
     <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <form method="GET" action="{{ route('treasurer.bills.index') }}" id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -176,16 +206,20 @@
                                     @php
                                         $bill = $group['monthly_data'][$month];
                                         $isPaid = $bill->status == 'lunas';
-                                        $isPartial = $bill->status == 'cicilan';
+                                        $isPartial = !$isPaid && ($bill->status == 'cicilan' || $bill->paid_amount > 0);
+                                        $remainingAmount = max(0, (float) $bill->amount - (float) $bill->paid_amount);
                                         
                                         // Calculate if overdue
-                                        $dueDate = \Carbon\Carbon::create($bill->year, $bill->month, 10);
+                                        $dueDate = \Carbon\Carbon::create($bill->year ?: date('Y'), $bill->month ?: 7, 10);
                                         $isOverdue = !$isPaid && \Carbon\Carbon::now()->isAfter($dueDate);
                                         
                                         // Determine color
                                         if ($isPaid) {
                                             $color = 'bg-emerald-500 text-white'; // Paid = Green
-                                            $statusText = 'Lunas';
+                                            $statusText = 'Lunas (Klik untuk lihat/edit/pindah bulan)';
+                                        } elseif ($isPartial) {
+                                            $color = 'bg-blue-500 text-white'; // Partial/Cicilan = Blue
+                                            $statusText = 'Cicilan (Sudah bayar Rp ' . number_format($bill->paid_amount, 0, ',', '.') . ', Sisa Rp ' . number_format($remainingAmount, 0, ',', '.') . ')';
                                         } elseif ($isOverdue) {
                                             $color = 'bg-red-500 text-white'; // Overdue = Red
                                             $statusText = 'Lewat Jatuh Tempo';
@@ -200,7 +234,7 @@
                                                data-bill-id="{{ $bill->id }}"
                                                data-student-id="{{ $group['student']->id }}"
                                                data-student-name="{{ $group['student']->full_name }}"
-                                               data-amount="{{ $bill->amount }}"
+                                               data-amount="{{ $remainingAmount }}"
                                                data-late-fee="{{ $bill->late_fee }}"
                                                data-month="{{ $bill->month }}"
                                                data-year="{{ $bill->year }}"
@@ -211,7 +245,9 @@
                                              data-bill-id="{{ $bill->id }}"
                                              data-student-id="{{ $group['student']->id }}"
                                              data-student-name="{{ $group['student']->full_name }}"
-                                             data-amount="{{ $bill->amount }}"
+                                             data-amount="{{ $remainingAmount }}"
+                                             data-full-amount="{{ $bill->amount }}"
+                                             data-paid-amount="{{ $bill->paid_amount }}"
                                              data-late-fee="{{ $bill->late_fee }}"
                                              data-month="{{ $bill->month }}"
                                              data-year="{{ $bill->year }}"
@@ -222,6 +258,8 @@
                                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                             </svg>
+                                            @elseif($isPartial)
+                                            <span class="text-[9px] font-extrabold">½</span>
                                             @elseif($isOverdue)
                                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -333,27 +371,32 @@
                             </div>
                         </td>
                         <td class="px-4 py-3 align-middle">
+                            @php
+                                $editableBill = collect($group['monthly_data'] ?? [])->filter(fn($b) => $b && $b->status !== 'lunas')->first()
+                                    ?? collect($group['monthly_data'] ?? [])->filter()->first()
+                                    ?? ($group['first_bill'] ?? null);
+                                $deletableBill = collect($group['monthly_data'] ?? [])->filter(fn($b) => $b && $b->paid_amount == 0)->first()
+                                    ?? (isset($group['first_bill']) && $group['first_bill'] && $group['first_bill']->paid_amount == 0 ? $group['first_bill'] : null);
+                            @endphp
                             <div class="flex items-center justify-center gap-1.5">
-                                <a href="{{ route('treasurer.payments.create', ['student_id' => $group['student']->id]) }}" 
+                                <a href="{{ route('treasurer.payments.create', array_filter(['student_id' => $group['student']->id, 'bill_id' => $editableBill?->id])) }}" 
                                     class="w-7 h-7 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:scale-110 transform transition-all shadow-md hover:shadow-lg"
-                                    title="Bayar">
+                                    title="Bayar{{ $editableBill && $editableBill->month ? ' (Bulan ' . $editableBill->month . ')' : '' }}">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                                     </svg>
                                 </a>
-                                @php
-                                    $editableBill = collect($group['monthly_data'] ?? [])->filter(fn($b) => $b && $b->paid_amount == 0)->first() 
-                                        ?? (isset($group['first_bill']) && $group['first_bill'] && $group['first_bill']->paid_amount == 0 ? $group['first_bill'] : null);
-                                @endphp
                                 @if($editableBill)
                                 <a href="{{ route('treasurer.bills.edit', $editableBill->id) }}" 
                                     class="w-7 h-7 flex items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 text-white hover:scale-110 transform transition-all shadow-md hover:shadow-lg"
-                                    title="Edit Nominal Tagihan ({{ $editableBill->month ? 'Bulan ' . $editableBill->month : '' }})">
+                                    title="Edit Nominal / Diskon / Beasiswa ({{ $editableBill->month ? 'Bulan ' . $editableBill->month : 'Tagihan' }})">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </a>
-                                <form action="{{ route('treasurer.bills.destroy', $editableBill->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tagihan ini?')">
+                                @endif
+                                @if($deletableBill)
+                                <form action="{{ route('treasurer.bills.destroy', $deletableBill->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tagihan ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
@@ -493,7 +536,7 @@
 
 <!-- Quick Pay Modal -->
 <div id="quickPayModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-2xl bg-white">
+    <div class="relative top-12 mx-auto p-5 border w-full max-w-md shadow-lg rounded-2xl bg-white">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold text-gray-900">💳 Quick Pay</h3>
             <button onclick="closeQuickPayModal()" class="text-gray-400 hover:text-gray-500">
@@ -504,6 +547,7 @@
         </div>
         <form id="quickPayForm" method="POST" action="{{ route('treasurer.payments.store') }}">
             @csrf
+            <input type="hidden" name="from_bills_page" value="1">
             <input type="hidden" name="bill_id" id="quick_bill_id">
             <input type="hidden" name="student_id" id="quick_student_id">
             <input type="hidden" name="payment_date" id="quick_payment_date" value="{{ now()->format('Y-m-d H:i:s') }}">
@@ -517,6 +561,23 @@
                     <p class="text-sm text-gray-600">Tagihan</p>
                     <p class="font-semibold text-gray-900" id="quick_bill_detail"></p>
                 </div>
+                <div id="quick_month_selector_container" class="hidden">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Bulan Tagihan yang Dibayar</label>
+                    <select name="target_month" id="quick_target_month" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold text-gray-800">
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                    </select>
+                </div>
                 <div id="quick_late_fee_display" class="bg-orange-50 rounded-xl p-4 hidden">
                     <p class="text-sm text-gray-600">Denda Keterlambatan</p>
                     <p class="font-semibold text-orange-600" id="quick_late_fee_amount"></p>
@@ -524,7 +585,8 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Jumlah Bayar (Rp)</label>
-                    <input type="number" name="amount_paid" id="quick_amount" required min="0" step="1000"
+                    <input type="number" name="amount_paid" id="quick_amount" required min="0" step="100"
+                        oninput="onQuickAmountInput()"
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
                     <p class="text-xs text-gray-500 mt-1" id="quick_amount_note"></p>
                 </div>
@@ -544,15 +606,21 @@
                 </div>
 
                 <!-- Opsi Bawa Potongan / Penyesuaian ke Bulan Berikutnya -->
-                <div id="quick_discount_carryover_container" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl hidden">
+                <div id="quick_discount_carryover_container" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl hidden space-y-2">
                     <label class="flex items-start gap-2.5 cursor-pointer">
                         <input type="checkbox" name="apply_discount_carryover" id="quick_apply_discount_carryover" value="1"
                             class="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300">
                         <span class="text-xs text-emerald-900 leading-snug">
-                            <strong>Bawa penyesuaian nominal ke bulan-bulan berikutnya</strong><br>
-                            Jika nominal bayar berbeda dari tarif awal (ada potongan/beasiswa), otomatis sesuaikan tagihan bulan-bulan berikutnya di tahun ajaran ini ke nominal yang sama.
+                            <strong>Tandai Lunas & berlakukan nominal baru (Diskon/Beasiswa)</strong><br>
+                            Jika nominal bayar dikurangi karena diskon/beasiswa, tagihan bulan ini langsung ditandai <strong>Lunas (✓)</strong> dan tarif baru otomatis diterapkan ke bulan berikutnya.
                         </span>
                     </label>
+                    <div class="pl-6 pt-1">
+                        <select name="carryover_scope" id="quick_carryover_scope" class="w-full px-2.5 py-1.5 text-xs border border-emerald-300 rounded-lg bg-white text-emerald-900 font-semibold">
+                            <option value="semester" selected>Berlaku sampai Akhir Semester Ini (Rekomendasi)</option>
+                            <option value="academic_year">Berlaku sampai Akhir Tahun Pelajaran</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-1">
@@ -560,7 +628,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
-                        <span>Atur Rincian Potongan & Edit Tagihan Ini</span>
+                        <span>Atur Rincian Potongan / Pindah Bulan Tagihan</span>
                     </a>
                 </div>
             </div>
@@ -643,11 +711,22 @@ const monthNames = {
 };
 
 // Quick Pay Modal Functions
+let currentQuickDefaultAmount = 0;
+
 function openQuickPayModal(element) {
     const billId = element.dataset.billId;
+    const isPaid = element.dataset.paid === '1';
+
+    if (isPaid) {
+        window.location.href = `/treasurer/bills/${billId}/edit`;
+        return;
+    }
+
     const studentId = element.dataset.studentId;
     const studentName = element.dataset.studentName;
     const amount = parseFloat(element.dataset.amount);
+    const fullAmount = parseFloat(element.dataset.fullAmount || element.dataset.amount);
+    const paidAmount = parseFloat(element.dataset.paidAmount || 0);
     const lateFee = parseFloat(element.dataset.lateFee || 0);
     const month = element.dataset.month;
     const year = element.dataset.year;
@@ -660,19 +739,36 @@ function openQuickPayModal(element) {
     const monthName = (month && monthNames[month]) ? monthNames[month] : '';
     const detailText = monthName ? `${paymentType} (${monthName} ${year})` : `${paymentType} (${year})`;
     document.getElementById('quick_bill_detail').textContent = detailText;
+
+    const monthSelectorBox = document.getElementById('quick_month_selector_container');
+    const targetMonthSelect = document.getElementById('quick_target_month');
+    if (monthSelectorBox && targetMonthSelect) {
+        if (month) {
+            monthSelectorBox.classList.remove('hidden');
+            targetMonthSelect.disabled = false;
+            targetMonthSelect.value = String(month);
+        } else {
+            monthSelectorBox.classList.add('hidden');
+            targetMonthSelect.disabled = true;
+        }
+    }
     
     // Calculate total with late fee
     const totalWithLateFee = amount + lateFee;
+    currentQuickDefaultAmount = totalWithLateFee;
     document.getElementById('quick_amount').value = totalWithLateFee;
     
-    // Show late fee if exists
+    // Show late fee or partial payment note
     if (lateFee > 0) {
         document.getElementById('quick_late_fee_display').classList.remove('hidden');
         document.getElementById('quick_late_fee_amount').textContent = `Rp ${lateFee.toLocaleString('id-ID')}`;
         document.getElementById('quick_amount_note').textContent = `Tagihan: Rp ${amount.toLocaleString('id-ID')} + Denda: Rp ${lateFee.toLocaleString('id-ID')}`;
+    } else if (paidAmount > 0) {
+        document.getElementById('quick_late_fee_display').classList.add('hidden');
+        document.getElementById('quick_amount_note').textContent = `Sudah dibayar Rp ${paidAmount.toLocaleString('id-ID')} dari Rp ${fullAmount.toLocaleString('id-ID')} (Sisa: Rp ${amount.toLocaleString('id-ID')})`;
     } else {
         document.getElementById('quick_late_fee_display').classList.add('hidden');
-        document.getElementById('quick_amount_note').textContent = monthName ? `Tagihan bulan ${monthName}` : 'Tagihan 1 Kali';
+        document.getElementById('quick_amount_note').textContent = monthName ? `Tagihan bulan ${monthName} (Ubah nominal jika ada diskon/beasiswa)` : 'Tagihan 1 Kali';
     }
     
     // Configure discount carryover option and edit link
@@ -695,6 +791,17 @@ function openQuickPayModal(element) {
     }
     
     document.getElementById('quickPayModal').classList.remove('hidden');
+}
+
+function onQuickAmountInput() {
+    const val = parseFloat(document.getElementById('quick_amount').value || 0);
+    const carryoverCheck = document.getElementById('quick_apply_discount_carryover');
+    const carryoverBox = document.getElementById('quick_discount_carryover_container');
+    if (carryoverCheck && carryoverBox && !carryoverBox.classList.contains('hidden')) {
+        if (val > 0 && val < currentQuickDefaultAmount) {
+            carryoverCheck.checked = true;
+        }
+    }
 }
 
 function closeQuickPayModal() {

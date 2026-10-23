@@ -529,8 +529,8 @@
                                 <div class="flex items-center justify-center gap-2">
                                     @php 
                                         $firstBill = collect($group['monthly_data'])->filter()->first() ?? $group['first_bill'] ?? null;
-                                        $editableBill = collect($group['monthly_data'] ?? [])->filter(fn($b) => $b && $b->paid_amount == 0)->first() 
-                                            ?? ($firstBill && $firstBill->paid_amount == 0 ? $firstBill : null);
+                                        $editableBill = collect($group['monthly_data'] ?? [])->filter(fn($b) => $b && $b->status !== 'lunas')->first()
+                                            ?? $firstBill;
                                     @endphp
                                     <a href="{{ $firstBill ? route('admin.bills.show', $firstBill->id) : '#' }}" 
                                        title="Lihat Detail Tagihan"
@@ -550,7 +550,7 @@
                                     </a>
                                     @endif
                                     @if($group['outstanding'] > 0)
-                                    <a href="{{ route('admin.payments.create', ['student_id' => $group['student']->id]) }}" 
+                                    <a href="{{ route('admin.payments.create', array_filter(['student_id' => $group['student']->id, 'bill_id' => $editableBill?->id])) }}" 
                                        title="Input Pembayaran Baru"
                                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-all">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -218,7 +218,16 @@ class PaymentController extends Controller
             });
         }
         
-        $bills = $billsQuery->orderBy('created_at', 'desc')->get();
+        $academicMonthOrder = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+        $bills = $billsQuery->get()
+            ->unique(function ($b) {
+                return $b->student_id . '_' . $b->payment_type_id . '_' . $b->academic_year_id . '_' . ($b->month ?? ('id_' . $b->id));
+            })
+            ->sortBy(function ($b) use ($academicMonthOrder) {
+                $pos = array_search((int) $b->month, $academicMonthOrder);
+                return sprintf('%06d_%02d_%08d', (int) $b->academic_year_id, $pos === false ? 99 : $pos, (int) $b->id);
+            })
+            ->values();
 
         return view('admin.payments.create', compact('students', 'bills', 'selectedStudentId', 'selectedBillId'));
     }
@@ -234,14 +243,79 @@ class PaymentController extends Controller
         $validated['verified_at'] = now();
         $validated['processed_by'] = auth()->id();
 
+        $fromBillsPage = $request->boolean('from_bills_page') || str_contains((string) $request->headers->get('referer'), '/bills');
+
         try {
-            return DB::transaction(function () use ($validated) {
+            return DB::transaction(function () use ($validated, $request, $fromBillsPage) {
+                $billService = app(\App\Services\StudentBillService::class);
+                $academicMonthOrder = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+
+                if (empty($validated['bill_id'])) {
+                    $activeAcademicYearId = \App\Models\AcademicYear::where('is_active', true)->value('id');
+                    $autoBill = StudentBill::where('student_id', $validated['student_id'])
+                        ->where('status', '!=', 'lunas')
+                        ->when($activeAcademicYearId, fn($q) => $q->where('academic_year_id', $activeAcademicYearId))
+                        ->get()
+                        ->sortBy(function ($b) use ($academicMonthOrder) {
+                            $pos = array_search((int) $b->month, $academicMonthOrder);
+                            return $pos === false ? 99 : $pos;
+                        })
+                        ->first();
+                    if ($autoBill) {
+                        $validated['bill_id'] = $autoBill->id;
+                    }
+                }
+
+                if (!empty($validated['bill_id']) && $request->filled('target_month')) {
+                    $clickedBill = StudentBill::find($validated['bill_id']);
+                    $targetMonth = (int) $request->input('target_month');
+                    if ($clickedBill && $clickedBill->month && (int) $clickedBill->month !== $targetMonth) {
+                        $monthBill = StudentBill::where('student_id', $validated['student_id'])
+                            ->where('payment_type_id', $clickedBill->payment_type_id)
+                            ->where('academic_year_id', $clickedBill->academic_year_id)
+                            ->where('month', $targetMonth)
+                            ->orderByRaw("CASE WHEN status = 'lunas' THEN 0 WHEN paid_amount > 0 THEN 1 ELSE 2 END")
+                            ->first();
+                        if ($monthBill) {
+                            $validated['bill_id'] = $monthBill->id;
+                        }
+                    }
+                }
+
+                $carriedCount = 0;
+                $carryScope = $request->input('carryover_scope', 'semester');
+                if ($request->boolean('apply_discount_carryover') && !empty($validated['bill_id'])) {
+                    $targetBill = StudentBill::find($validated['bill_id']);
+                    if ($targetBill) {
+                        $newBillAmount = (float) $targetBill->paid_amount + (float) $validated['amount_paid'];
+                        $discountAmount = max((float) $targetBill->discount_amount, (float) $targetBill->amount - $newBillAmount);
+                        $discountReason = $request->input('discount_reason') ?: ($targetBill->discount_reason ?: 'Penyesuaian Diskon / Beasiswa SPP');
+
+                        $targetBill->update([
+                            'amount' => $newBillAmount,
+                            'discount_amount' => $discountAmount,
+                            'discount_reason' => $discountReason,
+                        ]);
+
+                        $carriedCount = $billService->carryOverDiscountToSubsequentMonths(
+                            $targetBill,
+                            $newBillAmount,
+                            $discountAmount,
+                            $discountReason,
+                            $validated['notes'] ?? null,
+                            auth()->id(),
+                            $carryScope
+                        );
+                    }
+                }
+
                 // Lock bill for update if bill_id exists and verify status
                 if (!empty($validated['bill_id'])) {
                     $bill = StudentBill::where('id', $validated['bill_id'])->lockForUpdate()->first();
                     if ($bill) {
-                        if ($bill->status === 'lunas' || $bill->paid_amount >= $bill->amount) {
-                            return redirect()->route('admin.payments.index')
+                        if (!$request->boolean('apply_discount_carryover') && ($bill->status === 'lunas' || ($bill->amount > 0 && $bill->paid_amount >= $bill->amount))) {
+                            $redirectRoute = $fromBillsPage ? 'admin.bills.index' : 'admin.payments.index';
+                            return redirect()->route($redirectRoute)
                                 ->with('warning', 'Tagihan ini sudah lunas.');
                         }
                     }
@@ -255,7 +329,8 @@ class PaymentController extends Controller
                     ->first();
 
                 if ($recentDuplicate) {
-                    return redirect()->route('admin.payments.index')
+                    $redirectRoute = $fromBillsPage ? 'admin.bills.index' : 'admin.payments.index';
+                    return redirect()->route($redirectRoute)
                         ->with('warning', 'Pembayaran yang sama baru saja dicatat beberapa detik lalu (mencegah pembayaran ganda).');
                 }
 
@@ -263,6 +338,7 @@ class PaymentController extends Controller
                 $validated['receipt_number'] = $this->generateReceiptNumber();
                 $payment = Payment::create($validated);
 
+                $bill = null;
                 if ($payment->bill_id) {
                     $this->updateBillStatus($payment->bill_id);
                     
@@ -282,8 +358,26 @@ class PaymentController extends Controller
                     }
                 }
 
+                $successMsg = 'Pembayaran berhasil dicatat.';
+                if ($carriedCount > 0) {
+                    $scopeText = $carryScope === 'semester' ? 'sampai akhir semester ini' : 'sampai akhir Tahun Pelajaran';
+                    $successMsg .= " Nominal baru otomatis diterapkan ke {$carriedCount} bulan berikutnya ({$scopeText}).";
+                }
+
+                if ($fromBillsPage) {
+                    $referer = (string) $request->headers->get('referer');
+                    if ($referer && str_contains($referer, '/bills')) {
+                        return redirect()->to($referer)
+                            ->with('success', $successMsg)
+                            ->with('payment_id', $payment->id);
+                    }
+                    return redirect()->route('admin.bills.index')
+                        ->with('success', $successMsg)
+                        ->with('payment_id', $payment->id);
+                }
+
                 return redirect()->route('admin.payments.index')
-                    ->with('success', 'Pembayaran berhasil dicatat.')
+                    ->with('success', $successMsg)
                     ->with('payment_id', $payment->id);
             });
         } catch (\Exception $e) {

@@ -71,7 +71,16 @@ class StudentBillingController extends Controller
 
         // Calculate stats per student and overall by item count
         $students->transform(function ($student) use (&$overallStats) {
-            $bills = $student->bills;
+            $bills = $student->bills
+                ->sortBy(function ($b) {
+                    if ($b->status === 'lunas') return 0;
+                    if ($b->paid_amount > 0) return 1;
+                    return 2;
+                })
+                ->unique(function ($b) {
+                    return $b->payment_type_id . '_' . $b->academic_year_id . '_' . ($b->month ?? ('id_' . $b->id));
+                })
+                ->values();
             
             $totalBills = $bills->count();
             $lunasBills = $bills->where('status', 'lunas')->count();
@@ -93,7 +102,9 @@ class StudentBillingController extends Controller
             foreach ($bills as $bill) {
                 if ($bill->paymentType && $bill->paymentType->is_recurring && $bill->month) {
                     $key = $bill->payment_type_id . '_' . $bill->month;
-                    $monthMap[$key] = $bill;
+                    if (!isset($monthMap[$key]) || $bill->status === 'lunas' || ($monthMap[$key]->status !== 'lunas' && $bill->paid_amount > $monthMap[$key]->paid_amount)) {
+                        $monthMap[$key] = $bill;
+                    }
                 }
             }
             $student->month_map = $monthMap;
