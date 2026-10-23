@@ -324,6 +324,7 @@ class ExtracurricularService
                     if (!$existingCourse->extracurricular_id) {
                         $existingCourse->update(['extracurricular_id' => $ekskul->id]);
                     }
+                    $this->seedStarterModulesForEkskul($ekskul, $existingCourse);
                     app(LmsEnrollmentService::class)->syncCourseEnrollments($existingCourse);
                     return $existingCourse;
                 }
@@ -333,6 +334,7 @@ class ExtracurricularService
             $existingByFk = LmsCourse::where('extracurricular_id', $ekskul->id)->first();
             if ($existingByFk) {
                 $ekskul->update(['lms_course_id' => $existingByFk->id]);
+                $this->seedStarterModulesForEkskul($ekskul, $existingByFk);
                 app(LmsEnrollmentService::class)->syncCourseEnrollments($existingByFk);
                 return $existingByFk;
             }
@@ -455,8 +457,8 @@ class ExtracurricularService
                 'course_id' => $course->id,
                 'title' => $mod['title'],
                 'description' => $mod['description'],
-                'order_number' => $mod['order'],
-                'is_published' => true,
+                'sequence' => $mod['order'],
+                'is_active' => true,
             ]);
         }
     }
