@@ -555,62 +555,58 @@
                                     </g>
                                 </svg>
 
-                                <!-- LAYER 2: PENUMPANG DUDUK DI DALAM PERAHU -->
-                                <div class="absolute inset-0 z-20 pointer-events-none">
+                                <!-- LAYER 2: PENUMPANG DUDUK DI ATAS PERAHU (TERLIHAT JELAS TANPA TERTUTUP) -->
+                                <div class="absolute inset-0 z-[35] pointer-events-none" style="z-index: 35;">
                                     
-                                    <!-- Kursi 1 (Kiri / Depan - Duduk di Bangku 1) -->
-                                    <div style="position: absolute; left: 16%; width: 30%; top: 0; bottom: 28px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
+                                    <!-- Kursi 1 (Kiri / Depan - Posisi Gagah di Atas Perahu) -->
+                                    <div style="position: absolute; left: 14%; width: 34%; bottom: 18px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
                                         <template x-if="boatPassengers.length > 0">
                                             <button type="button" 
                                                     @click="unboardBoat(0)"
                                                     :disabled="isMoving || isCooldown"
                                                     class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-1.5 active:translate-y-0"
                                                     title="Ketuk karakter untuk turun ke daratan">
-                                                <div class="mb-0.5 px-1 py-0.2 rounded-full text-[6.5px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
-                                                     :class="boatPassengers[0] === 'M' ? 'bg-indigo-100 text-indigo-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
-                                                    <span class="group-hover/pax:hidden" x-text="boatPassengers[0] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
+                                                <!-- Badge Nama Karakter -->
+                                                <div class="mb-0.5 px-1.5 py-0.5 rounded-full text-[7.5px] sm:text-[8px] font-mono-code font-black border border-[#121316] shadow-xs transition-all flex items-center gap-0.5 shrink-0"
+                                                     :class="boatPassengers[0] === 'M' ? 'bg-indigo-100 text-indigo-950 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-950 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
+                                                    <span class="group-hover/pax:hidden" x-text="boatPassengers[0] === 'M' ? 'MISIONARIS' : 'KANIBAL'"></span>
                                                     <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
                                                 </div>
-                                                <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center">
-                                                    <template x-if="boatPassengers[0] === 'M'">
-                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 scholar-figure">
-                                                            <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
-                                                        </svg>
-                                                    </template>
-                                                    <template x-if="boatPassengers[0] === 'C'">
-                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 tribal-figure">
-                                                            <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
-                                                        </svg>
-                                                    </template>
+                                                <!-- Figur Karakter Fisik Utuh -->
+                                                <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center shrink-0">
+                                                    <svg viewBox="0 0 54 86" 
+                                                         class="w-8 sm:w-11 h-13 sm:h-17 shrink-0 filter drop-shadow-md" 
+                                                         :class="boatPassengers[0] === 'M' ? 'scholar-figure' : 'tribal-figure'">
+                                                        <use :href="boatPassengers[0] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" 
+                                                             :xlink:href="boatPassengers[0] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" />
+                                                    </svg>
                                                 </div>
                                             </button>
                                         </template>
                                     </div>
 
-                                    <!-- Kursi 2 (Kanan / Belakang - Duduk di Bangku 2) -->
-                                    <div style="position: absolute; left: 54%; width: 30%; top: 0; bottom: 28px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
+                                    <!-- Kursi 2 (Kanan / Belakang - Posisi Gagah di Atas Perahu) -->
+                                    <div style="position: absolute; left: 52%; width: 34%; bottom: 18px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;" class="pointer-events-auto">
                                         <template x-if="boatPassengers.length > 1">
                                             <button type="button" 
                                                     @click="unboardBoat(1)"
                                                     :disabled="isMoving || isCooldown"
                                                     class="group/pax relative flex flex-col items-center justify-end w-full cursor-pointer focus:outline-none transition-transform hover:-translate-y-1.5 active:translate-y-0"
                                                     title="Ketuk karakter untuk turun ke daratan">
-                                                <div class="mb-0.5 px-1 py-0.2 rounded-full text-[6.5px] font-mono-code font-black border border-[#121316] shadow-2xs transition-all flex items-center gap-0.5"
-                                                     :class="boatPassengers[1] === 'M' ? 'bg-indigo-100 text-indigo-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-900 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
-                                                    <span class="group-hover/pax:hidden" x-text="boatPassengers[1] === 'M' ? 'ILMUWAN' : 'KANIBAL'"></span>
+                                                <!-- Badge Nama Karakter -->
+                                                <div class="mb-0.5 px-1.5 py-0.5 rounded-full text-[7.5px] sm:text-[8px] font-mono-code font-black border border-[#121316] shadow-xs transition-all flex items-center gap-0.5 shrink-0"
+                                                     :class="boatPassengers[1] === 'M' ? 'bg-indigo-100 text-indigo-950 group-hover/pax:bg-rose-500 group-hover/pax:text-white' : 'bg-amber-100 text-amber-950 group-hover/pax:bg-rose-500 group-hover/pax:text-white'">
+                                                    <span class="group-hover/pax:hidden" x-text="boatPassengers[1] === 'M' ? 'MISIONARIS' : 'KANIBAL'"></span>
                                                     <span class="hidden group-hover/pax:inline font-bold">✕ TURUN</span>
                                                 </div>
-                                                <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center">
-                                                    <template x-if="boatPassengers[1] === 'M'">
-                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 scholar-figure">
-                                                            <use href="#full-scholar-figure" xlink:href="#full-scholar-figure" />
-                                                        </svg>
-                                                    </template>
-                                                    <template x-if="boatPassengers[1] === 'C'">
-                                                        <svg viewBox="0 0 54 86" class="w-7 sm:w-10 h-11 sm:h-16 tribal-figure">
-                                                            <use href="#full-tribal-figure" xlink:href="#full-tribal-figure" />
-                                                        </svg>
-                                                    </template>
+                                                <!-- Figur Karakter Fisik Utuh -->
+                                                <div class="transform group-hover/pax:scale-105 transition-transform flex items-center justify-center shrink-0">
+                                                    <svg viewBox="0 0 54 86" 
+                                                         class="w-8 sm:w-11 h-13 sm:h-17 shrink-0 filter drop-shadow-md" 
+                                                         :class="boatPassengers[1] === 'M' ? 'scholar-figure' : 'tribal-figure'">
+                                                        <use :href="boatPassengers[1] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" 
+                                                             :xlink:href="boatPassengers[1] === 'M' ? '#full-scholar-figure' : '#full-tribal-figure'" />
+                                                    </svg>
                                                 </div>
                                             </button>
                                         </template>
