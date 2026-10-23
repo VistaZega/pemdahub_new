@@ -54,6 +54,9 @@
 
             {{-- Quick Actions --}}
             <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <button type="button" onclick="openTemuModal()" class="inline-flex items-center gap-2 bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 hover:opacity-90 text-white px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md border-2 border-black">
+                    <i class="fas fa-video text-amber-300 text-sm"></i> PembdaTEMU Live
+                </button>
                 <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-black hover:bg-amber-400 hover:text-black text-white px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md border-2 border-black">
                     <i class="fas fa-plus-circle text-amber-400 text-sm"></i> Buat Course Baru
                 </a>
@@ -190,8 +193,25 @@
 
                     {{-- CTA Actions --}}
                     <div class="mt-auto space-y-2">
+                        @if($course->meeting_active)
+                            <a href="{{ route('guru.lms.meeting.join', $course->id) }}" 
+                               class="flex items-center justify-center gap-2 w-full bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black animate-pulse">
+                                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                                <i class="fas fa-video text-amber-300"></i>
+                                Masuk PembdaTEMU (LIVE)
+                            </a>
+                        @else
+                            <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" onsubmit="return confirm('Mulai sesi tatap muka PembdaTEMU untuk kelas \'{{ addslashes($course->name) }}\'? Seluruh siswa akan otomatis mendapatkan notifikasi live.');">
+                                @csrf
+                                <button type="submit" class="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-95 text-white px-4 py-2 rounded-xl transition-all shadow-sm text-xs font-black uppercase tracking-wider border-2 border-black">
+                                    <i class="fas fa-video text-amber-300"></i>
+                                    Buka PembdaTEMU
+                                </button>
+                            </form>
+                        @endif
+
                         <a href="{{ route('guru.lms.show', $course->id) }}{{ $selectedClassroomId ? '?classroom_id='.$selectedClassroomId : '' }}"
-                           class="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black">
+                           class="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black">
                             <i class="fas fa-arrow-right-to-bracket text-xs text-amber-400"></i>
                             Kelola Ruang Ajar
                             @if($selectedClassroomId)
@@ -284,5 +304,97 @@
     </div>
     @endif
 
+    {{-- MODAL PEMBDATEMU DESKTOP --}}
+    <div id="modal-pembdatemu" class="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-black space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b-2 border-black">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 via-pink-600 to-rose-700 text-white flex items-center justify-center text-xl shadow-md border-2 border-black">
+                        <i class="fas fa-video text-amber-300"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-black uppercase tracking-wider">PembdaTEMU - Tatap Muka KBM</h3>
+                        <p class="text-xs text-gray-500 font-bold">Pilih mata pelajaran untuk membuka video conference KBM virtual</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTemuModal()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-100 hover:text-rose-700 text-black border-2 border-black flex items-center justify-center font-black">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-xs font-bold text-rose-900 leading-relaxed">
+                <p>💡 <strong>Alur Otomatis PembdaTEMU:</strong> Saat Anda memulai temu, server otomatis menyiarkan notifikasi live ke seluruh siswa yang terdaftar di kelas tersebut. Siswa akan melihat banner kedip live di aplikasi mereka untuk langsung masuk.</p>
+            </div>
+
+            <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                @forelse($courses as $c)
+                    <div class="p-4 rounded-2xl border-2 {{ $c->meeting_active ? 'border-rose-500 bg-rose-50/50' : 'border-black bg-white' }} shadow-xs flex items-center justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-black text-black text-sm truncate">{{ $c->name }}</h4>
+                                @if($c->meeting_active)
+                                    <span class="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-black uppercase animate-pulse border border-black">LIVE</span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-gray-600 font-bold truncate">
+                                {{ $c->subject->name ?? ($c->subject->subject_name ?? 'Mapel') }} &bull; {{ $c->classroom->class_name ?? ($c->classes->pluck('classroom.class_name')->implode(', ') ?: 'Semua Rombel') }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            @if($c->meeting_active)
+                                <a href="{{ route('guru.lms.meeting.join', $c->id) }}" class="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-black border-2 border-black shadow-xs animate-pulse">
+                                    <i class="fas fa-video text-amber-300"></i> Masuk Temu
+                                </a>
+                                <form action="{{ route('guru.lms.meeting.stop', $c->id) }}" method="POST" onsubmit="return confirm('Akhiri sesi PembdaTEMU?');">
+                                    @csrf
+                                    <button type="submit" class="bg-black hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-black border-2 border-black" title="Akhiri Sesi">
+                                        <i class="fas fa-stop"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <form action="{{ route('guru.lms.meeting.start', $c->id) }}" method="POST" onsubmit="return confirm('Mulai sesi PembdaTEMU untuk kelas \'{{ addslashes($c->name) }}\'? Seluruh siswa akan mendapatkan notifikasi live.');">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-black border-2 border-black shadow-xs">
+                                        <i class="fas fa-video text-amber-300"></i> Mulai Temu
+                                    </button>
+                                </form>
+                            @endif
+                            <button type="button" onclick="navigator.clipboard.writeText('{{ route('siswa.lms.meeting.join', $c->id) }}'); alert('Tautan siswa disalin ke clipboard! Bagikan ke WhatsApp:\n{{ route('siswa.lms.meeting.join', $c->id) }}');" class="bg-slate-100 hover:bg-amber-300 text-black border-2 border-black px-2.5 py-2 rounded-xl text-xs font-black" title="Salin Link Siswa">
+                                <i class="fas fa-share-nodes"></i>
+                            </button>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-8 text-center text-gray-500 font-bold text-xs">Belum ada course aktif.</div>
+                @endforelse
+            </div>
+
+            <div class="pt-3 border-t-2 border-black">
+                <button type="button" onclick="closeTemuModal()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-black border-2 border-black rounded-xl text-xs font-black">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+@push('scripts')
+<script>
+    function openTemuModal() {
+        const modal = document.getElementById('modal-pembdatemu');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+    function closeTemuModal() {
+        const modal = document.getElementById('modal-pembdatemu');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+</script>
+@endpush
 @endsection
