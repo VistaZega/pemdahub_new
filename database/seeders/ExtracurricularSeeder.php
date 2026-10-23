@@ -150,5 +150,41 @@ class ExtracurricularSeeder extends Seeder
                 }
             }
         }
+
+        // 3. PASTIKAN ENGLISH CLUB DI SMAS PEMBDA 1 TERSEDIA & KELAS LMS EKSKULNYA AKTIF OTOMATIS
+        $smaPembda1 = School::where('name', 'LIKE', '%SMA%')->first()
+            ?? School::schoolsOnly()->first();
+
+        if ($smaPembda1) {
+            $englishClub = Extracurricular::where('school_id', $smaPembda1->id)
+                ->where('name', 'LIKE', '%English Club%')
+                ->first();
+
+            $advisorTeacher = Teacher::where('school_id', $smaPembda1->id)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$englishClub) {
+                $shortSma = $smaPembda1->short_name ?: $smaPembda1->name;
+                $englishClub = $ekskulService->createExtracurricular([
+                    'school_id' => $smaPembda1->id,
+                    'scope' => 'sekolah',
+                    'name' => 'English Club ' . $shortSma,
+                    'category' => 'sains_it',
+                    'description' => 'Wadah pengembangan kompetensi Bahasa Inggris aktif (Public Speaking, Debate, Storytelling, Academic Writing & TOEFL Prep) melalui pembelajaran interaktif terintegrasi LMS.',
+                    'icon' => '🇬🇧',
+                    'color' => 'indigo',
+                    'schedule_day_time' => 'Rabu & Jumat, 15:00 - 16:30',
+                    'location' => 'Ruang Bahasa & Multimedia SMAS Pembda 1',
+                    'advisor_teacher_id' => $advisorTeacher?->id,
+                    'advisor_name' => $advisorTeacher?->full_name ?: 'Pembina English Club',
+                    'is_active' => true,
+                ]);
+            }
+
+            if ($englishClub) {
+                $ekskulService->ensureLmsCourse($englishClub);
+            }
+        }
     }
 }

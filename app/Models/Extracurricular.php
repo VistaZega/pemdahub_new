@@ -32,6 +32,7 @@ class Extracurricular extends Model
         'treasurer_student_id',
         'available_sections',
         'forum_group_id',
+        'lms_course_id',
         'is_active',
         'created_by',
     ];
@@ -136,6 +137,14 @@ class Extracurricular extends Model
         return $this->belongsTo(ForumGroup::class, 'forum_group_id');
     }
 
+    /**
+     * Kelas LMS Ekstrakurikuler (Materi, Tugas, Quiz & Nilai Extra)
+     */
+    public function lmsCourse()
+    {
+        return $this->belongsTo(LmsCourse::class, 'lms_course_id');
+    }
+
     public function isFoundationLevel(): bool
     {
         return $this->scope === 'yayasan' || empty($this->school_id);
@@ -188,8 +197,25 @@ class Extracurricular extends Model
      */
     public function getDisplayIconAttribute(): string
     {
-        if (!empty($this->icon)) {
+        if (!empty($this->icon) && !str_starts_with(trim($this->icon), 'fa-')) {
             return $this->icon;
+        }
+
+        $lowerName = strtolower($this->name ?? '');
+        if (str_contains($lowerName, 'english')) {
+            return '🇬🇧';
+        }
+        if (str_contains($lowerName, 'futsal') || str_contains($lowerName, 'tenis')) {
+            return '⚽';
+        }
+        if (str_contains($lowerName, 'vocal') || str_contains($lowerName, 'vokal') || str_contains($lowerName, 'paduan suara')) {
+            return '🎤';
+        }
+        if (str_contains($lowerName, 'robot') || str_contains($lowerName, 'it ')) {
+            return '💻';
+        }
+        if (str_contains($lowerName, 'sains') || str_contains($lowerName, 'cerdas cermat')) {
+            return '🔬';
         }
 
         return match($this->category) {

@@ -48,8 +48,48 @@ class LmsEnrollmentService
         }
 
         $classroomIds = array_unique(array_filter($classroomIds));
+        $enrolledCount = 0;
+
+        // 1b. Sinkronisasi otomatis Kelas LMS Ekstrakurikuler bagi anggota aktif (status = approved)
+        $ekskulMemberships = \App\Models\ExtracurricularMember::with('extracurricular')
+            ->where('student_id', $student->id)
+            ->where('status', 'approved')
+            ->get();
+
+        foreach ($ekskulMemberships as $membership) {
+            $ekskul = $membership->extracurricular;
+            if (!$ekskul || !$ekskul->lms_course_id) {
+                continue;
+            }
+
+            $ekskulCourse = LmsCourse::find($ekskul->lms_course_id);
+            if (!$ekskulCourse) {
+                continue;
+            }
+
+            $lmsClass = LmsClass::firstOrCreate([
+                'course_id' => $ekskulCourse->id,
+                'classroom_id' => null,
+            ], [
+                'school_id' => $ekskulCourse->school_id ?? $student->school_id,
+                'status' => 'active',
+            ]);
+
+            $enrollment = LmsEnrollment::firstOrCreate([
+                'lms_class_id' => $lmsClass->id,
+                'student_id' => $student->id,
+            ], [
+                'status' => 'enrolled',
+                'enrolled_at' => now(),
+            ]);
+
+            if ($enrollment->wasRecentlyCreated) {
+                $enrolledCount++;
+            }
+        }
+
         if (empty($classroomIds)) {
-            return 0;
+            return $enrolledCount;
         }
 
         // 2. Cari seluruh LmsCourse yang ditargetkan untuk rombel-rombel tersebut
@@ -67,8 +107,6 @@ class LmsEnrollmentService
                 });
             })
             ->get();
-
-        $enrolledCount = 0;
 
         foreach ($courses as $course) {
             // Cek apakah mata pelajaran ini adalah mapel kejuruan SMK
@@ -206,6 +244,45 @@ class LmsEnrollmentService
     {
         if (!$course || !$course->id) {
             return 0;
+        }
+
+        // 0. Jika course ini adalah Kelas LMS Ekstrakurikuler, sinkronkan dari anggota aktif Ekskul
+        $ekskul = $course->extracurricular ?? \App\Models\Extracurricular::where('lms_course_id', $course->id)->first();
+        if ($ekskul) {
+            $lmsClass = LmsClass::firstOrCreate([
+                'course_id' => $course->id,
+                'classroom_id' => null,
+            ], [
+                'school_id' => $course->school_id ?? $ekskul->school_id,
+                'status' => 'active',
+            ]);
+
+            $activeStudentIds = $ekskul->activeMembers()->pluck('student_id')->toArray();
+            $createdCount = 0;
+
+            foreach ($activeStudentIds as $studentId) {
+                $enrollment = LmsEnrollment::firstOrCreate([
+                    'lms_class_id' => $lmsClass->id,
+                    'student_id' => $studentId,
+                ], [
+                    'status' => 'enrolled',
+                    'enrolled_at' => now(),
+                ]);
+
+                if ($enrollment->wasRecentlyCreated) {
+                    $createdCount++;
+                }
+            }
+
+            if (!empty($activeStudentIds)) {
+                LmsEnrollment::where('lms_class_id', $lmsClass->id)
+                    ->whereNotIn('student_id', $activeStudentIds)
+                    ->delete();
+            } else {
+                LmsEnrollment::where('lms_class_id', $lmsClass->id)->delete();
+            }
+
+            return $createdCount;
         }
 
         // 1. Jika course memiliki classroom_id langsung, buat LmsClass

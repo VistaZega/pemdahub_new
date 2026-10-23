@@ -61,6 +61,21 @@
         </div>
     </div>
 
+    {{-- 1-Click Activate / Open LMS Button --}}
+    <div class="bg-white p-4 rounded-3xl border border-emerald-200 shadow-xs flex flex-col gap-2">
+        <form action="{{ route('guru.extracurricular.lms.activate', $extracurricular) }}" method="POST">
+            @csrf
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white rounded-2xl font-black text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>{{ $extracurricular->lms_course_id ? 'Buka Kelas LMS Ekskul (Materi, Tugas & Quiz)' : '⚡ 1-Klik Aktifkan Kelas LMS Ekskul' }}</span>
+            </button>
+        </form>
+        <a href="{{ route('guru.extracurricular.show', $extracurricular) }}" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-2xl font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-award text-amber-600"></i>
+            <span>Kelola Nilai Extra & Sertifikat Lulus</span>
+        </a>
+    </div>
+
     {{-- Leadership Structure Card --}}
     <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-xs space-y-2.5">
         <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">

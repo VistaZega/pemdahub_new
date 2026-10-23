@@ -200,13 +200,32 @@
                     </div>
                 </div>
 
+                {{-- Nilai Extra LMS Summary --}}
+                <div class="p-2.5 rounded-2xl border {{ $membership->final_score !== null ? 'bg-emerald-50/70 border-emerald-200' : 'bg-indigo-50/50 border-indigo-100' }} space-y-1 text-[11px]">
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-slate-800 flex items-center gap-1">
+                            <i class="fa-solid fa-award text-amber-500"></i> Nilai Extra LMS:
+                        </span>
+                        @if($membership->final_score !== null)
+                        <span class="font-black text-emerald-900 bg-white px-2 py-0.5 rounded-lg border border-emerald-200">
+                            {{ number_format($membership->final_score, 0) }} &bull; {{ $membership->predicate }} ({{ $membership->predicate_letter }})
+                        </span>
+                        @else
+                        <span class="text-[10px] font-bold text-slate-500">Belum Dinilai</span>
+                        @endif
+                    </div>
+                    @if($membership->grade_description)
+                    <p class="text-[10px] text-slate-600 italic leading-snug">"{{ $membership->grade_description }}"</p>
+                    @endif
+                </div>
+
                 {{-- Card Actions --}}
                 <div class="pt-1 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-100">
                     <span class="text-[11px] font-black text-indigo-700 flex items-center gap-1">
                         <i class="fa-solid fa-star text-amber-500"></i> +{{ $membership->points_awarded }} Poin
                     </span>
                     <div class="flex items-center gap-1.5">
-                        <button type="button" @click="activeModal = 'ecard-{{ $membership->id }}'" class="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1 active:scale-95">
+<a href="{{ route('siswa.ekskul.lms', $ekskul->id) }}" class="px-2.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1 active:scale-95"><i class="fa-solid fa-graduation-cap"></i><span>LMS</span></a>@if($membership->final_score !== null && $membership->final_score >= 60)<a href="{{ route('siswa.ekskul.certificate', $membership->id) }}" target="_blank" class="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1 active:scale-95"><i class="fa-solid fa-certificate"></i><span>Sertifikat</span></a>@endif<button type="button" @click="activeModal = 'ecard-{{ $membership->id }}'" class="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1 active:scale-95">
                             <i class="fa-solid fa-id-card"></i>
                             <span>E-Card</span>
                         </button>

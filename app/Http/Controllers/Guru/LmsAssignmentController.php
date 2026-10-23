@@ -24,7 +24,14 @@ class LmsAssignmentController extends Controller
 
     private function authorizeAccess(LmsCourse $course, Teacher $teacher): bool
     {
-        return $course->teacher_id === $teacher->id;
+        if ($course->teacher_id === $teacher->id) {
+            return true;
+        }
+        $user = Auth::user();
+        if ($user && method_exists($user, 'teacherIds') && in_array($course->teacher_id, $user->teacherIds())) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -210,7 +217,10 @@ class LmsAssignmentController extends Controller
                 if ($en->student) {
                     $std = $en->student;
                     $std->classroom_id = $en->lmsClass->classroom_id ?? null;
-                    $std->classroom_name = $en->lmsClass->classroom->name ?? null;
+                    $std->classroom_name = $en->lmsClass->classroom->name
+                        ?? $std->currentClassroom->first()?->class_name
+                        ?? $std->classroom?->class_name
+                        ?? null;
                     $students->push($std);
                 }
             }

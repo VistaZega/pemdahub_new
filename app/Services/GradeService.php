@@ -314,8 +314,19 @@ class GradeService
         $quiz = $attempt->quiz;
         $course = $quiz->course;
 
-        // Course must have a subject_id to sync
+        // Course must have a subject_id to sync to academic grades
         if (!$course || !$course->subject_id) {
+            if ($course) {
+                $ekskul = $course->extracurricular ?? \App\Models\Extracurricular::where('lms_course_id', $course->id)->first();
+                if ($ekskul) {
+                    $member = \App\Models\ExtracurricularMember::where('extracurricular_id', $ekskul->id)
+                        ->where('student_id', $attempt->student_id)
+                        ->first();
+                    if ($member) {
+                        app(\App\Services\ExtracurricularService::class)->syncMemberExtraGrade($member);
+                    }
+                }
+            }
             return null;
         }
 
@@ -407,8 +418,25 @@ class GradeService
         $assignment = $submission->assignment;
         $course = $assignment->course;
 
-        // Course must have subject_id
-        if (!$course->subject_id) {
+        // Course must have subject_id to sync to academic grades
+        if (!$course || !$course->subject_id) {
+            if ($course) {
+                $ekskul = $course->extracurricular ?? \App\Models\Extracurricular::where('lms_course_id', $course->id)->first();
+                if ($ekskul) {
+                    $studentIds = collect([$submission->student_id]);
+                    if ($submission->group_id && $submission->group) {
+                        $studentIds = $studentIds->merge($submission->group->members()->pluck('students.id'))->unique();
+                    }
+                    foreach ($studentIds as $sId) {
+                        $member = \App\Models\ExtracurricularMember::where('extracurricular_id', $ekskul->id)
+                            ->where('student_id', $sId)
+                            ->first();
+                        if ($member) {
+                            app(\App\Services\ExtracurricularService::class)->syncMemberExtraGrade($member, $submission->graded_by);
+                        }
+                    }
+                }
+            }
             return null;
         }
 

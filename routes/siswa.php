@@ -34,6 +34,8 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     Route::prefix('ekskul')->name('ekskul.')->group(function () {
         Route::get('/', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'index'])->name('index');
         Route::get('/{extracurricular}/space', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'openSpace'])->name('space');
+        Route::get('/{extracurricular}/lms', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'openLms'])->name('lms');
+        Route::get('/members/{member}/certificate', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'downloadCertificate'])->name('certificate');
         Route::post('/{extracurricular}/claim', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'claim'])->name('claim');
     });
  

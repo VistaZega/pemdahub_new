@@ -1,9 +1,9 @@
-@extends('layouts.admin')
+@extends(request()->routeIs('guru.*') ? 'layouts.guru' : 'layouts.admin')
 
 @section('title', 'Manajemen Ekstrakurikuler & Kegiatan Non-Akademik')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6">@php $routePrefix = request()->routeIs('guru.*') ? 'guru.extracurricular' : 'admin.extracurricular'; @endphp
     {{-- Header Banner (VIBRANT RAINBOW ACCENT) --}}
     <div class="bg-white rounded-3xl border-2 border-indigo-100 shadow-md relative overflow-hidden space-y-4">
         {{-- Rainbow Decorative Stripe --}}
@@ -112,7 +112,7 @@
                     <span class="{{ in_array(auth()->user()->role, ['superadmin', 'admin_yayasan', 'yayasan']) ? 'hidden xl:inline' : 'inline' }}">Cari</span>
                 </button>
                 @if(request('school_id') || request('category') || request('search'))
-                <a href="{{ route('admin.extracurricular.index') }}" class="py-3.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl transition border-2 border-slate-200 flex items-center justify-center text-xs font-bold" title="Reset Filter">
+                <a href="{{ route($routePrefix . '.index') }}" class="py-3.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl transition border-2 border-slate-200 flex items-center justify-center text-xs font-bold" title="Reset Filter">
                     <i class="fas fa-times"></i>
                 </a>
                 @endif
@@ -195,7 +195,7 @@
                 @endif
 
                 <div class="flex items-center gap-2">
-                    <form action="{{ route('admin.extracurricular.destroy', $ekskul) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit {{ addslashes($ekskul->name) }}?')">
+                    <form action="{{ route($routePrefix . '.destroy', $ekskul) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit {{ addslashes($ekskul->name) }}?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-100 rounded-xl transition" title="Hapus Unit Ekstrakurikuler">
@@ -203,7 +203,7 @@
                         </button>
                     </form>
 
-                    <a href="{{ route('admin.extracurricular.show', $ekskul) }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-md active:scale-95">
+                    <form action="{{ route($routePrefix . '.lms.activate', $ekskul) }}" method="POST" class="inline">@csrf<button type="submit" class="px-3 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-2xs {{ $ekskul->lms_course_id ? 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200 border border-emerald-300' : 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200 border border-indigo-300' }}" title="{{ $ekskul->lms_course_id ? 'Buka Ruang Kelas LMS' : '1-Klik Aktifkan Kelas LMS' }}"><i class="fas fa-graduation-cap"></i><span>{{ $ekskul->lms_course_id ? 'Kelas LMS' : 'Aktifkan LMS' }}</span></button></form><a href="{{ route($routePrefix . '.show', $ekskul) }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-md active:scale-95">
                         <span>Kelola Unit</span>
                         <i class="fas fa-arrow-right text-[10px]"></i>
                     </a>
@@ -237,7 +237,7 @@
             <button onclick="document.getElementById('modalAddEkskul').classList.add('hidden')" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
         </div>
 
-        <form action="{{ route('admin.extracurricular.store') }}" method="POST" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <form action="{{ route($routePrefix . '.store') }}" method="POST" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
             @csrf
 
             @if($isGlobal)

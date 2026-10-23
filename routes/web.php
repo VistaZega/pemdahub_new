@@ -3079,6 +3079,18 @@ Route::get('/run-migrations', function () {
         ]);
         $output .= "<h3>Seeder Badges PembdaTEMU Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
 
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\ExtracurricularSeeder',
+            '--force' => true,
+        ]);
+        $output .= "<h3>Seeder Ekstrakurikuler & English Club LMS Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+
+        // Pastikan seluruh unit English Club yang sudah ada di DB otomatis mendapatkan Kelas LMS-nya
+        $englishClubs = \App\Models\Extracurricular::where('name', 'LIKE', '%English%')->get();
+        foreach ($englishClubs as $ec) {
+            app(\App\Services\ExtracurricularService::class)->ensureLmsCourse($ec);
+        }
+
         $output .= "<p style='color:green;font-weight:bold;'>✔ Migrasi & Seeder Badges PembdaTEMU, Surat Edaran & Pengaturan PJJ Tanggap Bencana Kabut Asap berhasil dieksekusi dan cache dibersihkan.</p>";
     } catch (\Throwable $e) {
         $output .= "<h3>Migration Error:</h3><pre style='color:red;background:#fff0f0;padding:12px;border:1px solid #f99;'>" . $e->getMessage() . "</pre>";

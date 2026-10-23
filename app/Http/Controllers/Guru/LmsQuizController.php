@@ -28,7 +28,14 @@ class LmsQuizController extends Controller
 
     private function authorizeAccess(LmsCourse $course, Teacher $teacher): bool
     {
-        return $course->teacher_id === $teacher->id;
+        if ($course->teacher_id === $teacher->id) {
+            return true;
+        }
+        $user = Auth::user();
+        if ($user && method_exists($user, 'teacherIds') && in_array($course->teacher_id, $user->teacherIds())) {
+            return true;
+        }
+        return false;
     }
 
     /**

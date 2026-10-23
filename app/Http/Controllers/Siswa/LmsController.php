@@ -231,7 +231,7 @@ class LmsController extends Controller
         }
 
         // Cek otorisasi sekolah
-        if ($course->school_id && $student->school_id && $course->school_id != $student->school_id) {
+        if ($course->school_id && $student->school_id && $course->school_id != $student->school_id && $course->school_id != 4) {
             return redirect()->route('siswa.lms.index')->with('error', 'Anda tidak memiliki akses ke course sekolah lain.');
         }
 
@@ -1349,7 +1349,7 @@ class LmsController extends Controller
         }
 
         // Cek apakah siswa memiliki jadwal pelajaran dengan mata pelajaran & guru/sekolah yang sama
-        if (!empty($studentClassroomIds)) {
+        if (!empty($studentClassroomIds) && $course->subject_id) {
             $hasSchedule = \App\Models\Schedule::whereIn('classroom_id', $studentClassroomIds)
                 ->where('subject_id', $course->subject_id)
                 ->when($course->teacher_id, fn($q) => $q->where('teacher_id', $course->teacher_id))

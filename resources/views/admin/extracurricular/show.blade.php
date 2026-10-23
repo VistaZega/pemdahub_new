@@ -1,13 +1,13 @@
-@extends('layouts.admin')
+@extends(request()->routeIs('guru.*') ? 'layouts.guru' : 'layouts.admin')
 
 @section('title', $extracurricular->name . ' - Detail Unit Ekstrakurikuler')
 
 @section('content')
-<div class="space-y-8" x-data="{ activeTab: 'members', showDeleteModal: false }">
+<div class="space-y-8" x-data="{ activeTab: 'members', showDeleteModal: false }">@php $routePrefix = request()->routeIs('guru.*') ? 'guru.extracurricular' : 'admin.extracurricular'; $approvedMembers = $extracurricular->members->where('status', 'approved'); @endphp
 
     {{-- Breadcrumb & Back --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-        <a href="{{ route('admin.extracurricular.index') }}" class="font-black text-indigo-700 hover:text-indigo-900 flex items-center gap-2 transition text-sm">
+        <a href="{{ route($routePrefix . '.index') }}" class="font-black text-indigo-700 hover:text-indigo-900 flex items-center gap-2 transition text-sm">
             <i class="fas fa-arrow-left"></i>
             <span>Kembali ke Katalog Ekstrakurikuler</span>
         </a>
@@ -69,7 +69,7 @@
                     </a>
                     @endif
 
-                    <button onclick="document.getElementById('modalAssignLeadership').classList.remove('hidden')" class="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95 border border-blue-400/40">
+                    <form action="{{ route($routePrefix . '.lms.activate', $extracurricular) }}" method="POST" class="inline">@csrf<button type="submit" class="px-5 py-3 bg-gradient-to-r from-emerald-500 via-teal-600 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white rounded-2xl font-black text-xs shadow-lg transition flex items-center gap-2 active:scale-95 border border-emerald-300/60" title="Buka Ruang Kelas LMS (Materi, Tugas, Quiz & Nilai Extra)"><i class="fas fa-graduation-cap text-sm"></i><span>{{ $extracurricular->lms_course_id ? 'Buka Kelas LMS (' . ($extracurricular->lmsCourse?->modules?->count() ?? 0) . ' Modul)' : '⚡ 1-Klik Aktifkan Kelas LMS' }}</span></button></form><button type="button" @click="activeTab = 'grades'" class="px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95 border border-amber-400/40"><i class="fas fa-award text-sm"></i><span>Nilai Extra & Sertifikat</span></button><button onclick="document.getElementById('modalAssignLeadership').classList.remove('hidden')" class="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95 border border-blue-400/40">
                         <i class="fas fa-user-gear text-sm"></i>
                         <span>Struktur Pengurus</span>
                     </button>
@@ -203,6 +203,10 @@
                 <i class="fas fa-users"></i>
                 <span>Anggota Siswa ({{ $extracurricular->members->count() }})</span>
             </button>
+            <button @click="activeTab = 'grades'" :class="activeTab === 'grades' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-black' : 'text-slate-700 hover:text-slate-900 font-bold'" class="px-5 py-3 rounded-2xl transition flex items-center gap-2 text-xs">
+                <i class="fas fa-award"></i>
+                <span>Nilai Extra & Sertifikat ({{ $approvedMembers->whereNotNull('final_score')->count() }}/{{ $approvedMembers->count() }})</span>
+            </button>
             <button @click="activeTab = 'activities'" :class="activeTab === 'activities' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md font-black' : 'text-slate-700 hover:text-slate-900 font-bold'" class="px-5 py-3 rounded-2xl transition flex items-center gap-2 text-xs">
                 <i class="fas fa-calendar-check"></i>
                 <span>Log Latihan & Kegiatan ({{ $extracurricular->activities->count() }})</span>
@@ -290,7 +294,7 @@
                             <td class="p-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     @if($member->status !== 'approved')
-                                    <form action="{{ route('admin.extracurricular.members.approve', $member) }}" method="POST">
+                                    <form action="{{ route($routePrefix . '.members.approve', $member) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-black text-xs transition shadow-sm" title="Setujui Klaim">
                                             Setujui
@@ -298,7 +302,7 @@
                                     </form>
                                     @endif
 
-                                    <form action="{{ route('admin.extracurricular.members.remove', $member) }}" method="POST" onsubmit="return confirm('Hapus siswa ini dari unit ekskul?')">
+                                    <form action="{{ route($routePrefix . '.members.remove', $member) }}" method="POST" onsubmit="return confirm('Hapus siswa ini dari unit ekskul?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Hapus Anggota">
@@ -320,7 +324,186 @@
             </div>
         </div>
 
-        {{-- TAB 2: ACTIVITIES --}}
+        {{-- TAB 2: NILAI EXTRA & SERTIFIKAT LULUS (LMS TERINTEGRASI) --}}
+        <div x-show="activeTab === 'grades'" class="p-8 space-y-6" style="display: none;">
+            {{-- Panel Status Kelas LMS Ekstrakurikuler --}}
+            <div class="p-6 rounded-3xl border-2 {{ $extracurricular->lms_course_id ? 'bg-gradient-to-r from-emerald-50 via-teal-50/60 to-cyan-50/50 border-emerald-200' : 'bg-gradient-to-r from-indigo-50 via-purple-50/60 to-pink-50/50 border-indigo-200' }} flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+                <div class="space-y-1.5">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $extracurricular->lms_course_id ? 'bg-emerald-600 text-white' : 'bg-indigo-600 text-white' }}">
+                            {{ $extracurricular->lms_course_id ? '✓ KELAS LMS EKSKUL AKTIF' : '⚡ INTEGRASI LMS EKSKUL' }}
+                        </span>
+                        @if($extracurricular->lmsCourse)
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black bg-white text-slate-800 border border-slate-200">
+                            Kode: {{ $extracurricular->lmsCourse->code }}
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black bg-white text-indigo-800 border border-indigo-200">
+                            📚 {{ $extracurricular->lmsCourse->modules->count() }} Modul &bull; 📝 {{ $extracurricular->lmsCourse->assignments->count() }} Tugas &bull; 🧠 {{ $extracurricular->lmsCourse->quizzes->count() }} Quiz
+                        </span>
+                        @endif
+                    </div>
+                    <h3 class="text-base sm:text-lg font-black text-slate-900">
+                        Buku Nilai Extra & Sertifikat Kelulusan — {{ $extracurricular->name }}
+                    </h3>
+                    <p class="text-xs text-slate-600 font-semibold max-w-3xl leading-relaxed">
+                        Nilai Tugas & Quiz dari Kelas LMS Ekstrakurikuler direkap otomatis ke sini sebagai <b>Nilai Extra mandiri</b> (Angka 0–100 + Predikat + Deskripsi) tanpa mencemari nilai mata pelajaran akademik reguler. Anggota dengan nilai minimal <b>60 (Cukup/Baik/Sangat Baik)</b> otomatis berhak mendapatkan <b>Sertifikat Lulus {{ $extracurricular->name }}</b>.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <form action="{{ route($routePrefix . '.lms.activate', $extracurricular) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>{{ $extracurricular->lms_course_id ? 'Kelola Materi, Tugas & Quiz di LMS' : '1-Klik Aktifkan Kelas LMS Sekarang' }}</span>
+                        </button>
+                    </form>
+
+                    @if($extracurricular->lms_course_id)
+                    <form action="{{ route($routePrefix . '.grades.sync', $extracurricular) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="px-4 py-3 bg-white hover:bg-emerald-50 text-emerald-800 border-2 border-emerald-300 rounded-2xl font-black text-xs transition flex items-center gap-2 shadow-2xs active:scale-95" title="Tarik ulang skor Tugas & Quiz terbaru dari LMS">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Sinkron Nilai LMS</span>
+                        </button>
+                    </form>
+                    @endif
+
+                    <a href="{{ route($routePrefix . '.grades.print', $extracurricular) }}" target="_blank" class="px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs transition flex items-center gap-2 shadow-sm active:scale-95">
+                        <i class="fas fa-print"></i>
+                        <span>Cetak Rekap Nilai</span>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Form Rekap Nilai Extra Massal --}}
+            <form action="{{ route($routePrefix . '.grades.bulk', $extracurricular) }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="text-xs text-slate-600 font-bold flex flex-wrap items-center gap-2">
+                        <span>Standar Predikat:</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-black">85–100: Sangat Baik (A)</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 font-black">75–84: Baik (B)</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-black">60–74: Cukup (C)</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-900 font-black">&lt;60: Kurang (D)</span>
+                    </div>
+                    @if($approvedMembers->isNotEmpty())
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95">
+                        <i class="fas fa-save"></i>
+                        <span>Simpan Semua Nilai Extra & Terbitkan Sertifikat</span>
+                    </button>
+                    @endif
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white font-black uppercase text-[10px] tracking-wider">
+                                <th class="p-3.5 w-10 text-center">#</th>
+                                <th class="p-3.5 min-w-[200px]">Nama Siswa & Kelas</th>
+                                <th class="p-3.5 text-center w-24">Rata Tugas LMS</th>
+                                <th class="p-3.5 text-center w-24">Rata Quiz LMS</th>
+                                <th class="p-3.5 text-center w-28">Nilai Kehadiran (0-100)</th>
+                                <th class="p-3.5 text-center w-28">Nilai Akhir Extra (0-100)</th>
+                                <th class="p-3.5 text-center w-36">Predikat</th>
+                                <th class="p-3.5 min-w-[260px]">Deskripsi Capaian Kompetensi</th>
+                                <th class="p-3.5 text-center w-36">Sertifikat Lulus</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            @forelse($approvedMembers as $idx => $member)
+                            <tr class="hover:bg-emerald-50/30 transition align-top">
+                                <td class="p-3.5 text-center font-black text-slate-400">{{ $loop->iteration }}</td>
+                                <td class="p-3.5">
+                                    <div class="font-black text-slate-900 text-xs">{{ $member->student->full_name }}</div>
+                                    <div class="text-[11px] text-indigo-700 font-bold mt-0.5">
+                                        {{ $member->student->currentClassroom->first()->class_name ?? ($member->student->classroom->class_name ?? '-') }}
+                                        &bull; <span class="text-slate-500">{{ $member->role_label }}</span>
+                                    </div>
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    @if($member->avg_assignment_score !== null)
+                                    <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-900 font-black border border-indigo-200">
+                                        {{ number_format($member->avg_assignment_score, 1) }}
+                                    </span>
+                                    @else
+                                    <span class="text-slate-400 font-bold">-</span>
+                                    @endif
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    @if($member->avg_quiz_score !== null)
+                                    <span class="px-2.5 py-1 rounded-lg bg-purple-50 text-purple-900 font-black border border-purple-200">
+                                        {{ number_format($member->avg_quiz_score, 1) }}
+                                    </span>
+                                    @else
+                                    <span class="text-slate-400 font-bold">-</span>
+                                    @endif
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    <input type="number" step="0.01" min="0" max="100"
+                                        name="grades[{{ $member->id }}][attendance_score]"
+                                        value="{{ $member->attendance_score !== null ? number_format($member->attendance_score, 0, '.', '') : '' }}"
+                                        placeholder="0-100"
+                                        class="w-20 text-center rounded-xl border-2 border-slate-300 font-black text-slate-900 p-2 text-xs focus:border-indigo-600">
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    <input type="number" step="0.01" min="0" max="100"
+                                        name="grades[{{ $member->id }}][final_score]"
+                                        value="{{ $member->final_score !== null ? number_format($member->final_score, 0, '.', '') : '' }}"
+                                        placeholder="0-100"
+                                        class="w-22 text-center rounded-xl border-2 border-emerald-400 bg-emerald-50/40 font-black text-emerald-950 p-2 text-xs focus:border-emerald-600">
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    <select name="grades[{{ $member->id }}][predicate]" class="w-full rounded-xl border-2 border-slate-300 font-black text-slate-900 p-2 text-xs">
+                                        <option value="">Otomatis</option>
+                                        <option value="Sangat Baik" {{ $member->predicate === 'Sangat Baik' ? 'selected' : '' }}>Sangat Baik (A)</option>
+                                        <option value="Baik" {{ $member->predicate === 'Baik' ? 'selected' : '' }}>Baik (B)</option>
+                                        <option value="Cukup" {{ $member->predicate === 'Cukup' ? 'selected' : '' }}>Cukup (C)</option>
+                                        <option value="Kurang" {{ $member->predicate === 'Kurang' ? 'selected' : '' }}>Kurang (D)</option>
+                                    </select>
+                                    @if($member->predicate)
+                                    <div class="mt-1.5">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border {{ $member->predicate_badge_color }}">
+                                            {{ $member->predicate }} ({{ $member->predicate_letter }})
+                                        </span>
+                                    </div>
+                                    @endif
+                                </td>
+                                <td class="p-3.5">
+                                    <textarea name="grades[{{ $member->id }}][grade_description]" rows="2"
+                                        placeholder="Otomatis dibuat sesuai predikat & topik LMS jika dikosongkan..."
+                                        class="w-full rounded-xl border-2 border-slate-300 text-slate-800 font-medium p-2 text-xs leading-snug">{{ $member->grade_description }}</textarea>
+                                </td>
+                                <td class="p-3.5 text-center">
+                                    @if($member->final_score !== null && $member->final_score >= 60)
+                                    <a href="{{ route($routePrefix . '.members.certificate', $member) }}" target="_blank"
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl font-black text-[11px] shadow-sm transition active:scale-95"
+                                        title="Cetak Sertifikat Kelulusan {{ $extracurricular->name }}">
+                                        <i class="fas fa-certificate"></i>
+                                        <span>Sertifikat PDF</span>
+                                    </a>
+                                    @if($member->certificate_code)
+                                    <div class="text-[9px] font-mono font-bold text-slate-400 mt-1">{{ $member->certificate_code }}</div>
+                                    @endif
+                                    @else
+                                    <span class="text-[11px] text-slate-400 font-bold block">Belum Lulus / Belum Dinilai</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="9" class="p-10 text-center text-slate-400 text-sm font-bold bg-slate-50">
+                                    Belum ada anggota aktif yang disetujui untuk dinilai.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+
+        {{-- TAB 3: ACTIVITIES --}}
         <div x-show="activeTab === 'activities'" class="p-8 space-y-6" style="display: none;">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
@@ -360,7 +543,7 @@
             <div>
                 <h3 class="text-base font-black text-slate-900 border-b border-slate-200 pb-3">Edit Informasi Unit Ekstrakurikuler</h3>
 
-                <form action="{{ route('admin.extracurricular.update', $extracurricular) }}" method="POST" class="space-y-5 text-xs mt-5">
+                <form action="{{ route($routePrefix . '.update', $extracurricular) }}" method="POST" class="space-y-5 text-xs mt-5">
                     @csrf
                     @method('PUT')
 
@@ -455,7 +638,7 @@
                 <button type="button" @click="showDeleteModal = false" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold text-xs transition">
                     Batal
                 </button>
-                <form action="{{ route('admin.extracurricular.destroy', $extracurricular) }}" method="POST" class="flex-1">
+                <form action="{{ route($routePrefix . '.destroy', $extracurricular) }}" method="POST" class="flex-1">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="w-full py-3 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white rounded-2xl font-black text-xs transition shadow-md active:scale-95">
@@ -479,7 +662,7 @@
             <button onclick="document.getElementById('modalAssignLeadership').classList.add('hidden')" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
         </div>
 
-        <form action="{{ route('admin.extracurricular.leadership', $extracurricular) }}" method="POST" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <form action="{{ route($routePrefix . '.leadership', $extracurricular) }}" method="POST" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
             @csrf
 
             @if($extracurricular->isFoundationLevel() || $extracurricular->category === 'marching_band')
@@ -545,7 +728,7 @@
             <button onclick="document.getElementById('modalAddMember').classList.add('hidden')" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
         </div>
 
-        <form action="{{ route('admin.extracurricular.members.add', $extracurricular) }}" method="POST" class="p-6 space-y-4 text-xs">
+        <form action="{{ route($routePrefix . '.members.add', $extracurricular) }}" method="POST" class="p-6 space-y-4 text-xs">
             @csrf
 
             <div>
@@ -596,7 +779,7 @@
             <button onclick="document.getElementById('modalAddActivity').classList.add('hidden')" class="text-white hover:text-slate-200 text-2xl font-bold">&times;</button>
         </div>
 
-        <form action="{{ route('admin.extracurricular.activities.add', $extracurricular) }}" method="POST" class="p-6 space-y-4 text-xs">
+        <form action="{{ route($routePrefix . '.activities.add', $extracurricular) }}" method="POST" class="p-6 space-y-4 text-xs">
             @csrf
 
             <div>

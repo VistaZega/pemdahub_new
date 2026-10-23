@@ -30,10 +30,11 @@ class StudentExtracurricularController extends Controller
             return redirect()->route('siswa.dashboard')->with('error', 'Data profil siswa tidak ditemukan.');
         }
 
-        // Unit Ekskul yang Diikuti Siswa (dengan eager load Squad Roster & Pembina)
+        // Unit Ekskul yang Diikuti Siswa (dengan eager load Squad Roster, Pembina & LMS Course)
         $myMemberships = ExtracurricularMember::with([
             'extracurricular.school',
             'extracurricular.advisor',
+            'extracurricular.lmsCourse',
             'extracurricular.leader.classroom',
             'extracurricular.secretary.classroom',
             'extracurricular.treasurer.classroom',
@@ -43,6 +44,13 @@ class StudentExtracurricularController extends Controller
         ])
             ->where('student_id', $student->id)
             ->get();
+
+        // Auto-sync Nilai Extra untuk ekstrakurikuler yang sudah aktif LMS-nya
+        foreach ($myMemberships as $membership) {
+            if ($membership->extracurricular?->lms_course_id) {
+                $this->ekskulService->syncMemberExtraGrade($membership);
+            }
+        }
 
         $joinedEkskulIds = $myMemberships->pluck('extracurricular_id')->toArray();
 
@@ -145,5 +153,58 @@ class StudentExtracurricularController extends Controller
         }
 
         return redirect()->route('forum.index', ['group' => $forumGroup->id]);
+    }
+
+    /**
+     * Buka Kelas LMS Ekstrakurikuler bagi Siswa Anggota.
+     */
+    public function openLms(Request $request, Extracurricular $extracurricular)
+    {
+        $user = Auth::user();
+        $student = $user?->student;
+
+        if (!$student) {
+            return redirect()->route('siswa.dashboard')->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        $membership = ExtracurricularMember::where('extracurricular_id', $extracurricular->id)
+            ->where('student_id', $student->id)
+            ->where('status', 'approved')
+            ->first();
+
+        if (!$membership) {
+            return back()->with('error', 'Anda harus menjadi anggota aktif ' . $extracurricular->name . ' untuk mengakses Kelas LMS Ekskul.');
+        }
+
+        $course = $this->ekskulService->ensureLmsCourse($extracurricular);
+        app(\App\Services\LmsEnrollmentService::class)->syncStudentEnrollments($student);
+
+        if ($request->header('User-Agent') && (str_contains(strtolower($request->header('User-Agent')), 'mobile') || str_contains(strtolower($request->header('User-Agent')), 'android') || str_contains(strtolower($request->header('User-Agent')), 'iphone'))) {
+            return redirect()->route('mobile.lms.show', $course->id);
+        }
+
+        return redirect()->route('siswa.lms.show', $course->id);
+    }
+
+    /**
+     * Download Sertifikat Kelulusan Ekstrakurikuler oleh Siswa.
+     */
+    public function downloadCertificate(ExtracurricularMember $member)
+    {
+        $user = Auth::user();
+        $student = $user?->student;
+
+        if (!$student || (int) $member->student_id !== (int) $student->id) {
+            abort(403, 'Sertifikat ini hanya dapat diunduh oleh pemiliknya.');
+        }
+
+        $this->ekskulService->syncMemberExtraGrade($member);
+        $member->refresh();
+
+        if ($member->final_score === null || $member->final_score < 60) {
+            return back()->with('error', 'Sertifikat Lulus belum tersedia. Selesaikan Tugas & Quiz di Kelas LMS Ekskul hingga memperoleh nilai minimal Cukup (60).');
+        }
+
+        return app(\App\Http\Controllers\Admin\ExtracurricularController::class)->downloadCertificate($member);
     }
 }

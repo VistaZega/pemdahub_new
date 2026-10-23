@@ -188,6 +188,47 @@
                         </div>
                     </div>
 
+                    {{-- Nilai Extra & Deskripsi Capaian (Tersendiri dari Nilai Akademik) --}}
+                    <div class="p-3.5 rounded-2xl border-2 {{ $membership->final_score !== null ? 'bg-gradient-to-r from-emerald-50 via-teal-50/50 to-cyan-50/40 border-emerald-200' : 'bg-gradient-to-r from-indigo-50/60 to-purple-50/40 border-indigo-100' }} space-y-2 mt-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-black uppercase tracking-wider {{ $membership->final_score !== null ? 'text-emerald-900' : 'text-indigo-900' }} flex items-center gap-1.5">
+                                <i class="fas fa-star text-amber-500"></i> Nilai Extra LMS
+                            </span>
+                            @if($membership->final_score !== null)
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2.5 py-0.5 rounded-lg bg-slate-900 text-white font-black text-xs">
+                                    {{ number_format($membership->final_score, 0) }}
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border {{ $membership->predicate_badge_color }}">
+                                    {{ $membership->predicate }} ({{ $membership->predicate_letter }})
+                                </span>
+                            </div>
+                            @else
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-slate-500 border border-slate-200">
+                                Belum Dinilai
+                            </span>
+                            @endif
+                        </div>
+
+                        @if($membership->avg_assignment_score !== null || $membership->avg_quiz_score !== null)
+                        <div class="flex items-center gap-3 text-[10px] font-bold text-slate-600">
+                            <span>📝 Tugas: <b>{{ $membership->avg_assignment_score !== null ? number_format($membership->avg_assignment_score, 1) : '-' }}</b></span>
+                            <span>&bull;</span>
+                            <span>🧠 Quiz: <b>{{ $membership->avg_quiz_score !== null ? number_format($membership->avg_quiz_score, 1) : '-' }}</b></span>
+                            @if($membership->attendance_score !== null)
+                            <span>&bull;</span>
+                            <span>📅 Hadir: <b>{{ number_format($membership->attendance_score, 0) }}</b></span>
+                            @endif
+                        </div>
+                        @endif
+
+                        @if($membership->grade_description)
+                        <p class="text-[11px] text-slate-700 font-medium leading-snug italic border-t border-emerald-200/70 pt-1.5">
+                            "{{ $membership->grade_description }}"
+                        </p>
+                        @endif
+                    </div>
+
                     {{-- Card Footer --}}
                     <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 mt-3">
                         <span class="text-xs font-black text-indigo-700 flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl">
@@ -195,7 +236,7 @@
                         </span>
 
                         <div class="flex items-center gap-2">
-                            <button type="button" @click="activeModal = 'ecard-{{ $membership->id }}'" class="px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-xs active:scale-95 cursor-pointer" title="Download E-Card Anggota Digital">
+                        <div class="flex flex-wrap items-center gap-1.5"><a href="{{ route('siswa.ekskul.lms', $ekskul->id) }}" class="px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Buka Kelas LMS Ekskul (Materi, Tugas & Quiz)"><i class="fas fa-graduation-cap"></i><span>Kelas LMS</span></a>@if($membership->final_score !== null && $membership->final_score >= 60)<a href="{{ route('siswa.ekskul.certificate', $membership->id) }}" target="_blank" class="px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Download Sertifikat Lulus {{ $ekskul->name }}"><i class="fas fa-certificate"></i><span>Sertifikat</span></a>@endif<button type="button" @click="activeModal = 'ecard-{{ $membership->id }}'" class="px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-xs active:scale-95 cursor-pointer" title="Download E-Card Anggota Digital">
                                 <i class="fas fa-id-card"></i>
                                 <span>E-Card</span>
                             </button>
@@ -726,7 +767,48 @@
                             </div>
                         </div>
 
-                        {{-- Card Footer --}}
+                        {{-- Nilai Extra & Deskripsi Capaian (Tersendiri dari Nilai Akademik) --}}
+                    <div class="p-3.5 rounded-2xl border-2 {{ $membership->final_score !== null ? 'bg-gradient-to-r from-emerald-50 via-teal-50/50 to-cyan-50/40 border-emerald-200' : 'bg-gradient-to-r from-indigo-50/60 to-purple-50/40 border-indigo-100' }} space-y-2 mt-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-black uppercase tracking-wider {{ $membership->final_score !== null ? 'text-emerald-900' : 'text-indigo-900' }} flex items-center gap-1.5">
+                                <i class="fas fa-star text-amber-500"></i> Nilai Extra LMS
+                            </span>
+                            @if($membership->final_score !== null)
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2.5 py-0.5 rounded-lg bg-slate-900 text-white font-black text-xs">
+                                    {{ number_format($membership->final_score, 0) }}
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border {{ $membership->predicate_badge_color }}">
+                                    {{ $membership->predicate }} ({{ $membership->predicate_letter }})
+                                </span>
+                            </div>
+                            @else
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-slate-500 border border-slate-200">
+                                Belum Dinilai
+                            </span>
+                            @endif
+                        </div>
+
+                        @if($membership->avg_assignment_score !== null || $membership->avg_quiz_score !== null)
+                        <div class="flex items-center gap-3 text-[10px] font-bold text-slate-600">
+                            <span>📝 Tugas: <b>{{ $membership->avg_assignment_score !== null ? number_format($membership->avg_assignment_score, 1) : '-' }}</b></span>
+                            <span>&bull;</span>
+                            <span>🧠 Quiz: <b>{{ $membership->avg_quiz_score !== null ? number_format($membership->avg_quiz_score, 1) : '-' }}</b></span>
+                            @if($membership->attendance_score !== null)
+                            <span>&bull;</span>
+                            <span>📅 Hadir: <b>{{ number_format($membership->attendance_score, 0) }}</b></span>
+                            @endif
+                        </div>
+                        @endif
+
+                        @if($membership->grade_description)
+                        <p class="text-[11px] text-slate-700 font-medium leading-snug italic border-t border-emerald-200/70 pt-1.5">
+                            "{{ $membership->grade_description }}"
+                        </p>
+                        @endif
+                    </div>
+
+                    {{-- Card Footer --}}
                         <div class="relative z-10 pt-2.5 flex items-center justify-between gap-3 text-[8px]" style="border-top: 1px solid rgba(255, 255, 255, 0.15); color: #cbd5e1;">
                             <div class="flex items-center gap-2">
                                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=PEMBDA-EKS-{{ $membership->id }}-{{ $student->nisn }}&color=ffffff&bgcolor=00000000" 

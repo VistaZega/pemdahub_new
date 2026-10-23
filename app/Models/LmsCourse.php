@@ -18,6 +18,7 @@ class LmsCourse extends Model
         'school_id',
         'teacher_id',
         'subject_id',
+        'extracurricular_id',
         'classroom_id',
         'semester_id',
         'code',
@@ -100,6 +101,18 @@ class LmsCourse extends Model
      */
     public function getDesignAttribute(): array
     {
+        if ($this->isExtracurricular()) {
+            $ekskul = $this->extracurricular;
+            return [
+                'icon' => 'fa-solid fa-medal',
+                'emoji' => $ekskul?->display_icon ?? '🏆',
+                'gradient' => 'from-purple-600 via-indigo-600 to-pink-600',
+                'badgeBg' => 'bg-purple-50 text-purple-800 border-purple-200',
+                'accentColor' => 'purple',
+                'category' => 'Ekstrakurikuler • ' . ($ekskul?->category_label ?? 'Pengembangan Diri'),
+            ];
+        }
+
         $subjectName = $this->subject->name ?? '';
         $haystack = strtolower(($this->course_name ?? '') . ' ' . $subjectName);
 
@@ -532,11 +545,31 @@ class LmsCourse extends Model
      */
     public function getCourseSchedule()
     {
+        if (!$this->subject_id || !$this->classroom_id) {
+            return collect();
+        }
+
         return \App\Models\Schedule::where('subject_id', $this->subject_id)
             ->where('classroom_id', $this->classroom_id)
             ->where('teacher_id', $this->teacher_id)
             ->with(['timeSlot'])
             ->get();
+    }
+
+    /**
+     * Relationship: Extracurricular linked to this LMS Course
+     */
+    public function extracurricular()
+    {
+        if (!empty($this->extracurricular_id)) {
+            return $this->belongsTo(Extracurricular::class, 'extracurricular_id');
+        }
+        return $this->hasOne(Extracurricular::class, 'lms_course_id');
+    }
+
+    public function isExtracurricular(): bool
+    {
+        return !empty($this->extracurricular_id) || $this->subject_id === null;
     }
 
     /**

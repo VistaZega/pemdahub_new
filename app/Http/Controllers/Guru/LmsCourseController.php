@@ -138,12 +138,13 @@ class LmsCourseController extends Controller
                 $q->whereHas('lmsClasses.classroom', function($sq) use ($effectiveSchoolId) {
                     $sq->where('school_id', $effectiveSchoolId);
                 })
-                // Atau untuk course tanpa rombel / rombel lama, dipadankan dengan school_id pada tabel lms_courses atau classroom lama
+                // Atau untuk course tanpa rombel / rombel lama / kelas LMS Ekstrakurikuler, dipadankan dengan school_id pada tabel lms_courses atau classroom lama
                 ->orWhere(function($sq) use ($effectiveSchoolId) {
-                    $sq->whereDoesntHave('lmsClasses')
+                    $sq->whereDoesntHave('lmsClasses.classroom')
                        ->where(function($nsq) use ($effectiveSchoolId) {
                            $nsq->where('school_id', $effectiveSchoolId)
                                ->orWhereNull('school_id')
+                               ->orWhere('school_id', 4)
                                ->orWhereHas('classroom', fn($csq) => $csq->where('school_id', $effectiveSchoolId));
                        });
                 });
@@ -569,9 +570,9 @@ class LmsCourseController extends Controller
             }
         }
 
-        // Remove unselected classrooms
+        // Remove unselected classrooms (preserve null classroom_id for Extracurricular cohort)
         if (!empty($toRemove)) {
-            $classesToRemove = $currentClasses->whereIn('classroom_id', $toRemove);
+            $classesToRemove = $currentClasses->whereNotNull('classroom_id')->whereIn('classroom_id', $toRemove);
             foreach ($classesToRemove as $classToRemove) {
                 LmsEnrollment::where('lms_class_id', $classToRemove->id)->delete();
                 $classToRemove->delete();

@@ -383,6 +383,12 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::post('/members/{member}/approve', [App\Http\Controllers\Admin\ExtracurricularController::class, 'approveMember'])->name('members.approve');
         Route::delete('/members/{member}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'removeMember'])->name('members.remove');
         Route::post('/{extracurricular}/activities', [App\Http\Controllers\Admin\ExtracurricularController::class, 'addActivity'])->name('activities.add');
+        Route::post('/{extracurricular}/lms/activate', [App\Http\Controllers\Admin\ExtracurricularController::class, 'openOrActivateLms'])->name('lms.activate');
+        Route::post('/{extracurricular}/grades/sync', [App\Http\Controllers\Admin\ExtracurricularController::class, 'syncExtraGrades'])->name('grades.sync');
+        Route::post('/{extracurricular}/grades/bulk', [App\Http\Controllers\Admin\ExtracurricularController::class, 'bulkUpdateGrades'])->name('grades.bulk');
+        Route::post('/members/{member}/grade', [App\Http\Controllers\Admin\ExtracurricularController::class, 'updateMemberGrade'])->name('members.grade');
+        Route::get('/members/{member}/certificate', [App\Http\Controllers\Admin\ExtracurricularController::class, 'downloadCertificate'])->name('members.certificate');
+        Route::get('/{extracurricular}/grades/print', [App\Http\Controllers\Admin\ExtracurricularController::class, 'printGradesRecap'])->name('grades.print');
         Route::delete('/{extracurricular}', [App\Http\Controllers\Admin\ExtracurricularController::class, 'destroy'])->name('destroy');
     });
     

@@ -55,9 +55,17 @@ class ExtracurricularController extends Controller
             return;
         }
 
-        // If unit is foundation-level (empty school_id), allow access
-        if (empty($schoolId)) {
+        // If unit is foundation-level (empty school_id or Yayasan school_id = 4), allow access
+        if (empty($schoolId) || (int)$schoolId === 4) {
             return;
+        }
+
+        // If the current logged-in teacher is the assigned advisor of this extracurricular, allow access
+        if ($user->teacher) {
+            $tIds = method_exists($user, 'teacherIds') ? $user->teacherIds() : [$user->teacher->id];
+            if (!empty($tIds) && Extracurricular::where('school_id', $schoolId)->whereIn('advisor_teacher_id', $tIds)->exists()) {
+                return;
+            }
         }
 
         $userSchoolId = $this->getUserSchoolId();
@@ -74,7 +82,7 @@ class ExtracurricularController extends Controller
         $user = Auth::user();
         $isGlobal = $this->isGlobalAdmin();
 
-        $query = Extracurricular::with(['school', 'advisor', 'leader', 'secretary', 'treasurer', 'activeMembers'])
+        $query = Extracurricular::with(['school', 'advisor', 'leader', 'secretary', 'treasurer', 'activeMembers', 'lmsCourse'])
             ->withCount(['members', 'activeMembers', 'activities']);
 
         // Strict school filtering: PKS / Guru / Admin Sekolah can see their school + Yayasan units
@@ -179,7 +187,8 @@ class ExtracurricularController extends Controller
 
         $ekskul = $this->ekskulService->createExtracurricular($validated, Auth::id());
 
-        return redirect()->route('admin.extracurricular.show', $ekskul)
+        $showRoute = request()->routeIs('guru.*') ? 'guru.extracurricular.show' : 'admin.extracurricular.show';
+        return redirect()->route($showRoute, $ekskul)
             ->with('success', 'Unit Ekstrakurikuler berhasil dibuat dan kanal Pembda Space telah aktif!');
     }
 
@@ -190,6 +199,11 @@ class ExtracurricularController extends Controller
     {
         $this->checkSchoolAccess($extracurricular->school_id);
 
+        // Auto-sync nilai extra dari LMS jika kelas LMS sudah aktif
+        if ($extracurricular->lms_course_id) {
+            $this->ekskulService->syncAllMembersExtraGrades($extracurricular);
+        }
+
         $extracurricular->load([
             'school',
             'advisor',
@@ -197,6 +211,9 @@ class ExtracurricularController extends Controller
             'secretary',
             'treasurer',
             'forumGroup',
+            'lmsCourse.modules',
+            'lmsCourse.assignments',
+            'lmsCourse.quizzes',
             'members.student.currentClassroom',
             'members.student.school',
             'activities.creator'
@@ -385,5 +402,213 @@ class ExtracurricularController extends Controller
             : 'admin.extracurricular.index';
 
         return redirect()->route($redirectRoute)->with('success', "Unit Ekstrakurikuler '{$name}' berhasil dihapus.");
+    }
+
+    /**
+     * Tombol 1-Klik: Aktifkan atau Buka Kelas LMS Ekstrakurikuler (Materi, Tugas, Quiz & Nilai Extra).
+     */
+    public function openOrActivateLms(Request $request, Extracurricular $extracurricular)
+    {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
+        $course = $this->ekskulService->ensureLmsCourse($extracurricular, Auth::user());
+
+        // Redirect sesuai peran pengguna (Guru Pembina langsung ke Ruang Kelas LMS Guru, Admin ke Detail LMS / Ekskul)
+        $user = Auth::user();
+        if (request()->routeIs('guru.*') || ($user && $user->role === 'guru')) {
+            return redirect()->route('guru.lms.show', $course->id)
+                ->with('success', "Kelas LMS Ekstrakurikuler '{$extracurricular->name}' siap digunakan! Anda dapat mengelola Materi, Tugas, dan Quiz di sini.");
+        }
+
+        if ($request->boolean('stay')) {
+            return back()->with('success', "Kelas LMS '{$extracurricular->name}' telah diaktifkan dan seluruh anggota telah terdaftar otomatis!");
+        }
+
+        // Jika Admin juga memiliki profil Guru atau mengakses dari panel Guru
+        if ($user && $user->teacher) {
+            return redirect()->route('guru.lms.show', $course->id)
+                ->with('success', "Kelas LMS Ekstrakurikuler '{$extracurricular->name}' telah aktif!");
+        }
+
+        return back()->with('success', "Kelas LMS Ekstrakurikuler '{$extracurricular->name}' berhasil diaktifkan (Kode: {$course->code}) dan seluruh anggota aktif telah didaftarkan otomatis!");
+    }
+
+    /**
+     * Sinkronisasi & Hitung Ulang Nilai Extra Otomatis dari Rata-rata Tugas & Quiz LMS.
+     */
+    public function syncExtraGrades(Extracurricular $extracurricular)
+    {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
+        if (!$extracurricular->lms_course_id) {
+            return back()->with('error', 'Aktifkan Kelas LMS terlebih dahulu sebelum menyinkronkan nilai Tugas & Quiz.');
+        }
+
+        $count = $this->ekskulService->syncAllMembersExtraGrades($extracurricular, Auth::id());
+
+        return back()->with('success', "Berhasil menyinkronkan Nilai Extra (Tugas & Quiz LMS) untuk {$count} anggota {$extracurricular->name}!");
+    }
+
+    /**
+     * Simpan Nilai Extra Manual / Edit Nilai (Angka 0-100 + Predikat + Deskripsi) untuk 1 Anggota.
+     */
+    public function updateMemberGrade(Request $request, ExtracurricularMember $member)
+    {
+        $this->checkSchoolAccess($member->extracurricular->school_id);
+
+        $validated = $request->validate([
+            'avg_assignment_score' => 'nullable|numeric|min:0|max:100',
+            'avg_quiz_score' => 'nullable|numeric|min:0|max:100',
+            'attendance_score' => 'nullable|numeric|min:0|max:100',
+            'final_score' => 'required|numeric|min:0|max:100',
+            'predicate' => 'nullable|string|max:30',
+            'grade_description' => 'nullable|string|max:1000',
+            'issue_certificate' => 'nullable|boolean',
+        ]);
+
+        $finalScore = round((float) $validated['final_score'], 2);
+        $predicate = !empty($validated['predicate'])
+            ? $validated['predicate']
+            : ExtracurricularMember::calculatePredicate($finalScore);
+
+        $description = !empty($validated['grade_description'])
+            ? $validated['grade_description']
+            : ExtracurricularMember::generateDefaultDescription($member->extracurricular->name, $predicate);
+
+        $updateData = [
+            'avg_assignment_score' => $validated['avg_assignment_score'] ?? $member->avg_assignment_score,
+            'avg_quiz_score' => $validated['avg_quiz_score'] ?? $member->avg_quiz_score,
+            'attendance_score' => $validated['attendance_score'] ?? $member->attendance_score,
+            'final_score' => $finalScore,
+            'predicate' => $predicate,
+            'grade_description' => $description,
+            'graded_by' => Auth::id(),
+            'graded_at' => now(),
+        ];
+
+        if (($request->boolean('issue_certificate') || $finalScore >= 60) && empty($member->certificate_code)) {
+            $updateData['certificate_code'] = $this->ekskulService->generateCertificateCode($member->extracurricular, $member);
+            $updateData['certificate_issued_at'] = now();
+        }
+
+        $member->update($updateData);
+
+        return back()->with('success', "Nilai Extra untuk {$member->student->full_name} berhasil disimpan ({$finalScore} - {$predicate})!");
+    }
+
+    /**
+     * Simpan Nilai Extra Massal (Bulk Save) dari Tabel Rekap Nilai Ekskul.
+     */
+    public function bulkUpdateGrades(Request $request, Extracurricular $extracurricular)
+    {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
+        $gradesInput = $request->input('grades', []);
+        $updatedCount = 0;
+
+        foreach ($gradesInput as $memberId => $row) {
+            $member = ExtracurricularMember::where('extracurricular_id', $extracurricular->id)
+                ->where('id', $memberId)
+                ->first();
+
+            if (!$member) {
+                continue;
+            }
+
+            $rawFinal = $row['final_score'] ?? null;
+            $rawAttendance = $row['attendance_score'] ?? null;
+
+            if ($rawFinal === null || $rawFinal === '') {
+                continue;
+            }
+
+            $finalScore = min(100, max(0, round((float) $rawFinal, 2)));
+            $attendanceScore = ($rawAttendance !== null && $rawAttendance !== '')
+                ? min(100, max(0, round((float) $rawAttendance, 2)))
+                : $member->attendance_score;
+
+            $predicate = !empty($row['predicate'])
+                ? $row['predicate']
+                : ExtracurricularMember::calculatePredicate($finalScore);
+
+            $description = !empty($row['grade_description'])
+                ? $row['grade_description']
+                : ExtracurricularMember::generateDefaultDescription($extracurricular->name, $predicate);
+
+            $updateData = [
+                'attendance_score' => $attendanceScore,
+                'final_score' => $finalScore,
+                'predicate' => $predicate,
+                'grade_description' => $description,
+                'graded_by' => Auth::id(),
+                'graded_at' => now(),
+            ];
+
+            if ($finalScore >= 60 && empty($member->certificate_code)) {
+                $updateData['certificate_code'] = $this->ekskulService->generateCertificateCode($extracurricular, $member);
+                $updateData['certificate_issued_at'] = now();
+            }
+
+            $member->update($updateData);
+            $updatedCount++;
+        }
+
+        return back()->with('success', "Rekap Nilai Extra & Sertifikat berhasil diperbarui untuk {$updatedCount} anggota {$extracurricular->name}!");
+    }
+
+    /**
+     * Cetak / Download Sertifikat Kelulusan Ekstrakurikuler (Khususnya English Club dll.)
+     */
+    public function downloadCertificate(ExtracurricularMember $member)
+    {
+        $member->load(['extracurricular.school', 'extracurricular.advisor', 'student.school', 'student.currentClassroom']);
+        $ekskul = $member->extracurricular;
+
+        // Pastikan kode sertifikat tersedia
+        if (empty($member->certificate_code)) {
+            $member->update([
+                'certificate_code' => $this->ekskulService->generateCertificateCode($ekskul, $member),
+                'certificate_issued_at' => now(),
+            ]);
+        }
+
+        if ($member->final_score !== null && empty($member->predicate)) {
+            $member->update([
+                'predicate' => ExtracurricularMember::calculatePredicate($member->final_score),
+            ]);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('extracurricular.certificate-pdf', [
+            'member' => $member,
+            'ekskul' => $ekskul,
+            'student' => $member->student,
+            'school' => $ekskul->school ?? $member->student->school,
+        ])->setPaper('a4', 'landscape');
+
+        $safeStudent = \Illuminate\Support\Str::slug($member->student->full_name ?? 'siswa');
+        $safeEkskul = \Illuminate\Support\Str::slug($ekskul->name ?? 'ekskul');
+
+        return $pdf->stream("Sertifikat-{$safeEkskul}-{$safeStudent}.pdf");
+    }
+
+    /**
+     * Cetak Rekap Nilai Extra Ekstrakurikuler (PDF).
+     */
+    public function printGradesRecap(Extracurricular $extracurricular)
+    {
+        $this->checkSchoolAccess($extracurricular->school_id);
+
+        if ($extracurricular->lms_course_id) {
+            $this->ekskulService->syncAllMembersExtraGrades($extracurricular);
+        }
+
+        $extracurricular->load([
+            'school',
+            'advisor',
+            'lmsCourse',
+            'members' => fn($q) => $q->where('status', 'approved')->with(['student.currentClassroom', 'student.school']),
+        ]);
+
+        return view('admin.extracurricular.grades-print', compact('extracurricular'));
     }
 }
