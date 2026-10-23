@@ -170,33 +170,76 @@
             background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
             background-size: 16px 16px;
         }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Compact Video Tile inside Classroom Desk Grid (especially on Mobile) */
+        #classroom-grid .video-tile > .absolute.top-4.left-4 {
+            top: auto !important;
+            bottom: 0.35rem !important;
+            left: 0.35rem !important;
+            right: 0.35rem !important;
+            padding: 0.2rem 0.45rem !important;
+            font-size: 9px !important;
+            border-radius: 0.5rem !important;
+            box-shadow: 1.5px 1.5px 0px #121316 !important;
+            gap: 0.25rem !important;
+        }
+        #classroom-grid .video-tile > .absolute.top-4.right-4 {
+            top: 0.35rem !important;
+            right: 0.35rem !important;
+        }
+        #classroom-grid .video-tile [id^="remote-placeholder-"] > div {
+            width: 2.25rem !important;
+            height: 2.25rem !important;
+            font-size: 0.875rem !important;
+            margin-bottom: 1.2rem !important;
+            border-radius: 0.65rem !important;
+        }
+        #classroom-grid .video-tile [id^="remote-placeholder-"] > p {
+            display: none !important;
+        }
+        @media (max-width: 640px) {
+            #podium-teacher-slot .video-tile > .absolute.top-4.left-4,
+            #podium-speaker-slot .video-tile > .absolute.top-4.left-4 {
+                top: 0.5rem !important;
+                left: 0.5rem !important;
+                padding: 0.25rem 0.5rem !important;
+                font-size: 10px !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-[#faf8f5] text-[#121316] h-screen flex flex-col overflow-hidden select-none font-sans antialiased">
 
     {{-- 1. SMART CLASSROOM HEADER (PEMBDAHUB HOMEPAGE TACTILE STYLE - WARNA KONTRAS TINGGI) --}}
-    <header class="bg-[#faf8f5] border-b-2 border-[#121316] px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 z-30 flex-shrink-0 shadow-xs" style="background-color: #faf8f5; border-bottom: 2.5px solid #121316;">
+    <header class="bg-[#faf8f5] border-b-2 border-[#121316] px-2.5 sm:px-6 py-2 flex items-center justify-between gap-2 z-30 flex-shrink-0 shadow-xs" style="background-color: #faf8f5; border-bottom: 2.5px solid #121316;">
         
         {{-- Brand, Unit & Info Kelas --}}
-        <div class="flex items-center gap-3 min-w-0">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <div class="flex items-center gap-1.5 flex-shrink-0">
-                <a href="{{ route('guru.dashboard') }}" title="Kembali ke Dashboard Guru" class="hover:scale-105 transition-transform flex-shrink-0">
-                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB" class="w-9 h-9 object-contain rounded-xl border-2 border-[#121316] shadow-[2px_2px_0px_#ff3823] bg-white p-0.5">
+                <a href="{{ route('guru.lms.show', $course->id) }}" title="Kembali ke Kelas LMS" class="hover:scale-105 transition-transform flex-shrink-0">
+                    <img src="{{ asset('images/logo-pembda.png') }}" alt="Logo PembdaHUB" class="w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-xl border-2 border-[#121316] shadow-[2px_2px_0px_#ff3823] bg-white p-0.5">
                 </a>
             </div>
-            <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
-                        <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ PembdaTEMU LIVE
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 1.5px 1.5px 0px #121316;">
+                        <span class="w-1.5 h-1.5 rounded-full animate-ping" style="background-color: #fde047;"></span> <span>LIVE HOST</span>
                     </span>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-mono-code font-black lg:hidden" style="background-color: #121316; color: #fde047;" id="mobile-guru-timer">00:00</span>
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-mono-code font-extrabold hidden md:inline truncate" style="background-color: #fde047; color: #121316; border: 1.5px solid #121316;">
                         {{ $course->school?->name ?? 'SMKS Swasta Pembda Nias' }}
                     </span>
                 </div>
-                <h1 class="text-sm sm:text-base font-black truncate leading-tight mt-1 flex items-center gap-1.5" style="color: #121316;">
-                    <span class="highlight-marker">{{ $course->course_name ?? $course->name }}</span>
+                <h1 class="text-xs sm:text-base font-black truncate leading-tight mt-0.5 flex items-center gap-1.5" style="color: #121316;">
+                    <span class="highlight-marker truncate">{{ $course->course_name ?? $course->name }}</span>
                     @if($course->subject)
-                        <span class="text-xs font-bold hidden sm:inline" style="color: #555;">• {{ $course->subject->name }}</span>
+                        <span class="text-xs font-bold hidden sm:inline shrink-0" style="color: #555;">• {{ $course->subject->name }}</span>
                     @endif
                 </h1>
             </div>
@@ -221,46 +264,46 @@
         </div>
 
         {{-- Right Controls (Compact Icon-Only Tactile Buttons with Hover Tooltips) --}}
-        <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             
             {{-- 1. Tombol Rekam Video KBM (Record Session) --}}
-            <button id="header-btn-record" onclick="toggleMeetingRecording()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Pembelajaran KBM (Record)">
-                <span id="header-record-dot" class="w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center">
+            <button id="header-btn-record" onclick="toggleMeetingRecording()" type="button" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Pembelajaran KBM (Record)">
+                <span id="header-record-dot" class="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center">
                     <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                 </span>
-                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+                <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
                     <span id="header-record-tooltip">Rekam KBM</span>
                 </span>
             </button>
 
             {{-- 2. Tombol Salin Tautan --}}
-            <button onclick="copyMeetingLink()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0284c7; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Salin tautan kelas untuk siswa">
-                <i class="fa-solid fa-link text-sm"></i>
-                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+            <button onclick="copyMeetingLink()" type="button" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0284c7; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Salin tautan kelas untuk siswa">
+                <i class="fa-solid fa-link text-xs sm:text-sm"></i>
+                <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
                     Salin Tautan
                 </span>
             </button>
 
             {{-- 3. Tombol Pilihan Tampilan Layout (Tata Letak) --}}
             <div class="relative inline-block text-left" id="header-view-wrapper">
-                <button onclick="toggleViewMenu(event)" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Pilihan Tata Letak Tampilan Video">
-                    <i id="header-view-icon" class="fa-solid fa-chalkboard-user text-sm text-black"></i>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+                <button onclick="toggleViewMenu(event)" type="button" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Pilihan Tata Letak Tampilan Video">
+                    <i id="header-view-icon" class="fa-solid fa-chalkboard-user text-xs sm:text-sm text-black"></i>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
                         Tata Letak: <span id="header-view-name">Ruang Kelas (5x8)</span>
                     </span>
                 </button>
 
                 {{-- DROPDOWN MENU TATA LETAK ZOOM --}}
-                <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-white p-2.5 z-50 transition-all shadow-xl" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
+                <div id="view-dropdown-menu" class="hidden absolute right-0 mt-2 w-60 sm:w-64 rounded-2xl bg-white p-2.5 z-50 transition-all shadow-xl" style="border: 2px solid #121316; box-shadow: 5px 5px 0px #121316; color: #121316;">
                     <div class="px-3 py-1 text-[10px] font-mono-code font-extrabold uppercase tracking-wider mb-1.5 flex items-center justify-between" style="color: #777; border-bottom: 1.5px solid #e2ded5;">
-                        <span>TATA LETAK ZOOM</span>
+                        <span>TATA LETAK VIDEO</span>
                         <span>⌜ ⌟</span>
                     </div>
                     
                     <button onclick="changeLayout('classroom')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
                         <span class="flex items-center gap-2.5">
                             <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #ff3823; color: #ffffff;"><i class="fa-solid fa-chalkboard-user"></i></span>
-                            <span>Model Ruang Kelas (5×8)</span>
+                            <span>Model Ruang Kelas</span>
                         </span>
                         <i id="check-classroom" class="fa-solid fa-check text-xs font-black" style="color: #ff3823;"></i>
                     </button>
@@ -284,7 +327,7 @@
                     <button onclick="changeLayout('sidebyside')" type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-mono-code font-bold hover:bg-[#faf3e0] flex items-center justify-between transition-colors border border-transparent hover:border-[#121316]" style="color: #121316;">
                         <span class="flex items-center gap-2.5">
                             <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] border border-black" style="background-color: #10b981; color: #ffffff;"><i class="fa-solid fa-columns"></i></span>
-                            <span>Berdampingan (KBM)</span>
+                            <span>Buka Panel KBM</span>
                         </span>
                         <i id="check-sidebyside" class="fa-solid fa-check text-xs hidden font-black" style="color: #10b981;"></i>
                     </button>
@@ -299,15 +342,15 @@
             </div>
 
             {{-- 4. Tombol Toggle Panel Materi / Peserta --}}
-            <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka / Sembunyikan Panel KBM">
-                <i class="fa-solid fa-table-columns text-sm"></i>
-                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
+            <button onclick="toggleClassroomHub()" type="button" id="btn-toggle-hub" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka / Sembunyikan Panel KBM">
+                <i class="fa-solid fa-table-columns text-xs sm:text-sm"></i>
+                <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">
                     Panel KBM
                 </span>
             </button>
 
-            {{-- 5. Profile Chip Guru --}}
-            <div class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border-2 border-black bg-white select-none" style="box-shadow: 2px 2px 0px #121316;" title="{{ $displayName }}">
+            {{-- 5. Profile Chip Guru (Hidden on XS to save space) --}}
+            <div class="hidden sm:flex group relative w-10 h-10 rounded-xl items-center justify-center border-2 border-black bg-white select-none" style="box-shadow: 2px 2px 0px #121316;" title="{{ $displayName }}">
                 <div class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black uppercase text-white shadow-xs" style="background-color: #ff3823; border: 1px solid #121316;">
                     {{ substr($displayName, 0, 1) }}
                 </div>
@@ -317,9 +360,9 @@
             </div>
 
             {{-- 6. Tombol Akhiri Kelas --}}
-            <button onclick="openEndMeetingModal()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ff3823; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Akhiri Sesi PembdaTEMU">
-                <i class="fa-solid fa-power-off text-sm"></i>
-                <span class="absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">
+            <button onclick="openEndMeetingModal()" type="button" class="group relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ff3823; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Akhiri Sesi PembdaTEMU">
+                <i class="fa-solid fa-power-off text-xs sm:text-sm"></i>
+                <span class="hidden sm:block absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">
                     Akhiri Kelas
                 </span>
             </button>
@@ -327,7 +370,7 @@
     </header>
 
     {{-- 2. MAIN WORKSPACE CONTAINER (SPLIT SCREEN) --}}
-    <div class="flex-1 flex flex-row overflow-hidden relative" style="height: calc(100vh - 65px);">
+    <div class="flex-1 flex flex-row overflow-hidden relative" style="height: calc(100vh - 56px);">
         
         {{-- Conference Stage (Video Call Agora with Dotted Grid Graph Texture) --}}
         <main id="conference-panel" class="flex-1 relative graph-paper-box flex flex-col h-full overflow-hidden transition-all duration-150">
@@ -342,18 +385,18 @@
             </div>
 
             {{-- 1. CLASSROOM VIEW STAGE (DEFAULT: Model Ruang Kelas 5x8 Kursi Siswa + Meja Guru Depan) --}}
-            <div id="stage-classroom-wrapper" class="flex flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 pb-28 gap-2 relative min-h-0">
+            <div id="stage-classroom-wrapper" class="flex flex-1 flex-col h-full overflow-hidden p-2 sm:p-3 pb-24 sm:pb-28 gap-2 relative min-h-0">
                 
                 {{-- AREA MIMBAR DEPAN KELAS: DUAL PODIUM (GURU + SISWA BICARA / BERTANYA) --}}
-                <div class="w-full flex flex-col items-center justify-center flex-shrink-0 px-2 sm:px-4">
-                    <div class="flex items-center gap-2 mb-2 flex-wrap justify-center">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
-                            <span class="w-2 h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ MIMBAR DEPAN KELAS
+                <div class="w-full flex flex-col items-center justify-center flex-shrink-0 px-1 sm:px-4">
+                    <div class="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap justify-center">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-ping" style="background-color: #fde047;"></span> ✱ MIMBAR DEPAN KELAS
                         </span>
-                        <span id="classroom-occupancy-pill" class="px-2.5 py-1 rounded-full text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                        <span id="classroom-occupancy-pill" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono-code font-extrabold" style="background-color: #fbc02d; color: #121316; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             0 / 40 Kursi Terisi
                         </span>
-                        <span id="hand-raise-alert-pill" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono-code font-black animate-bounce" style="background-color: #ef4444; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
+                        <span id="hand-raise-alert-pill" class="hidden items-center gap-1.5 px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono-code font-black animate-bounce" style="background-color: #ef4444; color: #ffffff; border: 1.5px solid #121316; box-shadow: 2px 2px 0px #121316;">
                             <i class="fa-solid fa-hand"></i> <span id="hand-raise-count-text">0 Ingin Bertanya</span>
                         </span>
                     </div>
@@ -364,26 +407,26 @@
                             
                             {{-- PODIUM 1: GURU PENGAJAR --}}
                             <div id="podium-teacher-wrapper" class="flex flex-col items-center w-full transition-all duration-300">
-                                <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
+                                <div class="w-full flex items-center justify-between px-2.5 sm:px-3 py-1 mb-1 rounded-xl bg-white text-[9px] sm:text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #ff3823;">
                                     <span class="flex items-center gap-1.5 text-[#ff3823]">
                                         <i class="fa-solid fa-chalkboard-user"></i> PODIUM GURU
                                     </span>
-                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#ff3823] text-white">PENGAJAR</span>
+                                    <span class="text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded bg-[#ff3823] text-white">PENGAJAR</span>
                                 </div>
-                                <div id="podium-teacher-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center">
+                                <div id="podium-teacher-slot" class="w-full h-40 sm:h-52 md:h-56 flex items-center justify-center">
                                     {{-- Video tile guru masuk ke sini secara otomatis --}}
                                 </div>
                             </div>
 
                             {{-- PODIUM 2: SISWA BICARA / BERTANYA (ACTIVE SPEAKER & TANYA) - MUNCUL HANYA SAAT ADA SISWA BICARA/BERTANYA --}}
                             <div id="podium-speaker-wrapper" class="hidden flex-col items-center w-full transition-all duration-300">
-                                <div class="w-full flex items-center justify-between px-3 py-1 mb-1 rounded-xl bg-white text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #2563eb;">
+                                <div class="w-full flex items-center justify-between px-2.5 sm:px-3 py-1 mb-1 rounded-xl bg-white text-[9px] sm:text-[10px] font-mono-code font-black" style="border: 1.5px solid #121316; box-shadow: 2px 2px 0px #2563eb;">
                                     <span class="flex items-center gap-1.5 text-[#2563eb]">
                                         <i class="fa-solid fa-microphone-lines"></i> <span id="podium-speaker-label">MIMBAR SISWA BICARA & TANYA</span>
                                     </span>
-                                    <span id="podium-speaker-badge" class="text-[9px] px-1.5 py-0.2 rounded bg-[#2563eb] text-white">BICARA</span>
+                                    <span id="podium-speaker-badge" class="text-[8px] sm:text-[9px] px-1.5 py-0.2 rounded bg-[#2563eb] text-white">BICARA</span>
                                 </div>
-                                <div id="podium-speaker-slot" class="w-full h-44 sm:h-52 md:h-56 flex items-center justify-center relative">
+                                <div id="podium-speaker-slot" class="w-full h-40 sm:h-52 md:h-56 flex items-center justify-center relative">
                                     {{-- Video tile siswa masuk ke sini saat berbicara --}}
                                 </div>
                             </div>
@@ -396,15 +439,15 @@
                 <div class="flex-1 overflow-y-auto px-1 sm:px-3 pt-1">
                     <div class="max-w-6xl mx-auto">
                         <div class="flex items-center justify-between px-2 py-1 mb-2 border-b-2 border-[#121316]/20">
-                            <span class="text-[10px] font-mono-code font-black uppercase tracking-wider text-[#121316] flex items-center gap-1.5">
+                            <span class="text-[9px] sm:text-[10px] font-mono-code font-black uppercase tracking-wider text-[#121316] flex items-center gap-1.5">
                                 <i class="fa-solid fa-chalkboard-user text-[#ff3823]"></i>
-                                <span>DENAH BANGKU SISWA (5 BARIS × 8 KOLOM = 40 MEJA)</span>
+                                <span>DENAH BANGKU SISWA (40 MEJA)</span>
                             </span>
                             <span class="text-[10px] font-mono-code font-bold text-[#555] hidden sm:inline">
                                 Pintu Masuk ➜ Baris 1 Depan s/d Baris 5 Belakang
                             </span>
                         </div>
-                        <div id="classroom-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 pb-24">
+                        <div id="classroom-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-2.5 pb-20">
                             {{-- 40 slot kursi siswa (terisi / kosong) dirender dinamis di sini --}}
                         </div>
                     </div>
@@ -440,11 +483,11 @@
                         </div>
                         
                         {{-- 🎯 BADGE NAMA GURU: TEPAT DI POJOK KIRI ATAS - 100% AMAN DARI MENU BAR BAWAH --}}
-                        <div class="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black shadow-md" style="background-color: #121316; color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #ff3823;" title="{{ $displayName }}">
+                        <div class="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-black shadow-md" style="background-color: #121316; color: #ffffff; border: 2px solid #121316; box-shadow: 3px 3px 0px #ff3823;" title="{{ $displayName }}">
                             <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #10b981;"></span>
-                            <i id="tile-mic-local" class="fa-solid fa-microphone text-xs" style="color: #10b981;"></i>
-                            <span class="truncate max-w-[150px] font-mono-code font-bold" style="color: #fde047;">Pak {{ explode(' ', trim($displayName))[0] }}</span>
-                            <span class="px-2 py-0.5 rounded-md text-[9px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff;">HOST GURU</span>
+                            <i id="tile-mic-local" class="fa-solid fa-microphone text-[10px] sm:text-xs" style="color: #10b981;"></i>
+                            <span class="truncate max-w-[110px] sm:max-w-[150px] font-mono-code font-bold" style="color: #fde047;">Pak {{ explode(' ', trim($displayName))[0] }}</span>
+                            <span class="px-1.5 sm:px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-mono-code font-black uppercase tracking-wider" style="background-color: #ff3823; color: #ffffff;">HOST</span>
                         </div>
                         
                         <div class="absolute top-4 right-4 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -456,91 +499,91 @@
                 </div>
             </div>
 
-            {{-- Floating Teacher Action Dock (Compact Icon-Only Tactile Dock with Hover Tooltips) --}}
-            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-2xl sm:rounded-full bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
+            {{-- Floating Teacher Action Dock (Compact Icon-Only Tactile Dock with Hover Tooltips - Scrollable on Mobile) --}}
+            <div class="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 max-w-[96vw] overflow-x-auto no-scrollbar flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full bg-white border-2 border-black" style="box-shadow: 4px 4px 0px #121316;">
                 
                 {{-- 1. Toggle Mic --}}
-                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #10b981; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Mikrofon (M)">
-                    <i id="mic-icon" class="fa-solid fa-microphone text-sm text-white"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mikrofon (M)</span>
+                <button id="btn-toggle-mic" onclick="toggleMic()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #10b981; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Mikrofon (M)">
+                    <i id="mic-icon" class="fa-solid fa-microphone text-xs sm:text-sm text-white"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mikrofon (M)</span>
                 </button>
 
                 {{-- 2. Toggle Camera --}}
-                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0891b2; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Kamera (V)">
-                    <i id="cam-icon" class="fa-solid fa-video text-sm text-white"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kamera (V)</span>
+                <button id="btn-toggle-cam" onclick="toggleCam()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #0891b2; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Nyalakan/Matikan Kamera (V)">
+                    <i id="cam-icon" class="fa-solid fa-video text-xs sm:text-sm text-white"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kamera (V)</span>
                 </button>
 
                 {{-- 3. Screen Share --}}
-                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Bagikan Layar Anda">
-                    <i class="fa-solid fa-desktop text-sm text-white"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Bagi Layar</span>
+                <button onclick="toggleScreenShare()" id="btn-screenshare" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Bagikan Layar Anda">
+                    <i class="fa-solid fa-desktop text-xs sm:text-sm text-white"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Bagi Layar</span>
                 </button>
 
                 {{-- 4. Rekam Video KBM (Record) --}}
-                <button id="btn-record-session" onclick="toggleMeetingRecording()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Video KBM ke Materi LMS">
+                <button id="btn-record-session" onclick="toggleMeetingRecording()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #ff3823; box-shadow: 2px 2px 0px #121316;" title="Rekam Video KBM ke Materi LMS">
                     <span id="bottom-record-indicator" class="w-3.5 h-3.5 rounded-full bg-red-600 border border-black flex items-center justify-center">
                         <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                     </span>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;"><span id="bottom-record-tooltip">Rekam KBM</span></span>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;"><span id="bottom-record-tooltip">Rekam KBM</span></span>
                 </button>
 
-                <div class="w-px h-6 bg-slate-300"></div>
+                <div class="w-px h-5 sm:h-6 bg-slate-300 shrink-0"></div>
 
                 {{-- 5. Mute Semua Siswa --}}
-                <button onclick="teacherMuteEveryone()" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #fde047; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Kondisikan Kelas: Minta seluruh siswa mematikan mic">
-                    <i class="fa-solid fa-volume-xmark text-sm"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mute Semua Siswa</span>
+                <button onclick="teacherMuteEveryone()" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #fde047; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Kondisikan Kelas: Minta seluruh siswa mematikan mic">
+                    <i class="fa-solid fa-volume-xmark text-xs sm:text-sm"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Mute Semua Siswa</span>
                 </button>
 
                 {{-- 6. Modul / Materi --}}
-                <button onclick="openTabDirect('materi')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Silabus Materi &amp; Modul">
-                    <i class="fa-solid fa-book-open text-sm" style="color: #fde047;"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Silabus &amp; Modul</span>
+                <button onclick="openTabDirect('materi')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #4f46e5; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Silabus Materi &amp; Modul">
+                    <i class="fa-solid fa-book-open text-xs sm:text-sm" style="color: #fde047;"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Silabus &amp; Modul</span>
                 </button>
 
                 {{-- 7. Papan Tulis (Whiteboard) --}}
-                <button onclick="openTabDirect('whiteboard')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #7c3aed; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Papan Tulis Digital (Whiteboard)">
-                    <i class="fa-solid fa-chalkboard text-sm" style="color: #fde047;"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis Digital</span>
+                <button onclick="openTabDirect('whiteboard')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #7c3aed; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Papan Tulis Digital (Whiteboard)">
+                    <i class="fa-solid fa-chalkboard text-xs sm:text-sm" style="color: #fde047;"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis Digital</span>
                 </button>
 
                 {{-- 8. Presensi Siswa --}}
-                <button onclick="openTabDirect('peserta')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Lihat Presensi Siswa Realtime">
-                    <i class="fa-solid fa-users text-sm text-emerald-600"></i>
+                <button onclick="openTabDirect('peserta')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ffffff; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Lihat Presensi Siswa Realtime">
+                    <i class="fa-solid fa-users text-xs sm:text-sm text-emerald-600"></i>
                     <span id="quick-attendee-badge" class="absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #10b981; color: #ffffff; border: 1px solid #121316;">0</span>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
                 </button>
 
                 {{-- 9. Chat Kelas --}}
-                <button onclick="openTabDirect('chat')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Obrolan Kelas &amp; Tanya Jawab">
-                    <i class="fa-solid fa-comments text-sm" style="color: #fde047;"></i>
+                <button onclick="openTabDirect('chat')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #2563eb; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Obrolan Kelas &amp; Tanya Jawab">
+                    <i class="fa-solid fa-comments text-xs sm:text-sm" style="color: #fde047;"></i>
                     <span id="quick-chat-badge" class="hidden absolute -top-1.5 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono-code font-black" style="background-color: #ff3823; color: #ffffff; border: 1px solid #121316;">0</span>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Kelas</span>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Kelas</span>
                 </button>
 
                 {{-- 10. Polling Kilat --}}
-                <button onclick="openTabDirect('polling')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Buka Polling Kilat KBM">
-                    <i class="fa-solid fa-square-poll-vertical text-sm text-black"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
+                <button onclick="openTabDirect('polling')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #f59e0b; color: #121316; box-shadow: 2px 2px 0px #121316;" title="Buka Polling Kilat KBM">
+                    <i class="fa-solid fa-square-poll-vertical text-xs sm:text-sm text-black"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
                 </button>
 
                 {{-- 11. Q&A Antrean --}}
-                <button onclick="openTabDirect('qa')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ea580c; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Antrean Q&amp;A Siswa">
-                    <i class="fa-solid fa-circle-question text-sm text-white"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Antrean Q&amp;A</span>
+                <button onclick="openTabDirect('qa')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ea580c; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Buka Antrean Q&amp;A Siswa">
+                    <i class="fa-solid fa-circle-question text-xs sm:text-sm text-white"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Antrean Q&amp;A</span>
                 </button>
 
                 {{-- 12. Kuis Live --}}
-                <button onclick="openTabDirect('kuis')" type="button" class="group relative w-10 h-10 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ec4899; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Luncurkan Kuis Live Interaktif (Kahoot-style)">
-                    <i class="fa-solid fa-gamepad text-sm" style="color: #fde047;"></i>
-                    <span class="absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Interaktif Live</span>
+                <button onclick="openTabDirect('kuis')" type="button" class="group relative w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-full flex items-center justify-center transition active:scale-95 border-2 border-black" style="background-color: #ec4899; color: #ffffff; box-shadow: 2px 2px 0px #121316;" title="Luncurkan Kuis Live Interaktif (Kahoot-style)">
+                    <i class="fa-solid fa-gamepad text-xs sm:text-sm" style="color: #fde047;"></i>
+                    <span class="hidden sm:block absolute -top-9 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Interaktif Live</span>
                 </button>
             </div>
         </main>
 
-        {{-- Resize Handle Divider --}}
-        <div id="resize-handler" class="w-[10px] cursor-col-resize select-none z-20 flex items-center justify-center relative transition-colors duration-150 group" style="background-color: #ede9df; border-left: 1.5px solid #121316; border-right: 1.5px solid #121316;" title="Geser untuk mengatur lebar panel materi">
+        {{-- Resize Handle Divider (Hanya Desktop) --}}
+        <div id="resize-handler" class="hidden lg:flex w-[10px] cursor-col-resize select-none z-20 items-center justify-center relative transition-colors duration-150 group" style="background-color: #ede9df; border-left: 1.5px solid #121316; border-right: 1.5px solid #121316;" title="Geser untuk mengatur lebar panel materi">
             <div class="w-4 h-12 rounded-md flex items-center justify-center pointer-events-none" style="background-color: #ffffff; border: 2px solid #121316; box-shadow: 2px 2px 0px #121316;">
                 <i class="fa-solid fa-grip-lines-vertical text-[10px]" style="color: #121316;"></i>
             </div>
@@ -549,62 +592,73 @@
         {{-- Resize Overlay (Mencegah iframe menyerap pointer saat drag) --}}
         <div id="resize-overlay" class="fixed inset-0 z-40 hidden cursor-col-resize"></div>
 
-        {{-- 3. CLASSROOM MULTI-HUB PANEL (TACTILE BINDER STYLE KHAS PEMBDAHUB) --}}
-        <aside id="classroom-hub" class="w-[520px] max-w-[90vw] flex flex-col h-full z-15 shadow-2xl relative" style="background-color: #faf8f5; border-left: 2.5px solid #121316;">
+        {{-- 3. CLASSROOM MULTI-HUB PANEL (TACTILE BINDER STYLE KHAS PEMBDAHUB - OVERLAY DI HP, SIDEBAR DI DESKTOP) --}}
+        <aside id="classroom-hub" class="hidden lg:flex fixed inset-x-0 bottom-0 top-[54px] z-40 w-full max-w-none lg:static lg:w-[480px] lg:max-w-[45vw] flex-col lg:h-full lg:z-15 shadow-2xl" style="background-color: #faf8f5; border-left: 2.5px solid #121316;">
             
+            {{-- Mobile Top Close Bar (Hanya muncul di HP agar guru mudah kembali ke Video) --}}
+            <div class="flex lg:hidden items-center justify-between px-3 py-2 bg-[#121316] text-white border-b-2 border-black shrink-0">
+                <div class="flex items-center gap-2 text-xs font-mono-code font-bold text-[#fde047]">
+                    <i class="fa-solid fa-layer-group text-[#ff3823]"></i>
+                    <span>Panel KBM &amp; Interaksi Guru</span>
+                </div>
+                <button onclick="toggleClassroomHub()" type="button" class="px-2.5 py-1 rounded-lg bg-[#ff3823] text-white text-[11px] font-mono-code font-black flex items-center gap-1.5 border border-white/30 active:scale-95">
+                    <i class="fa-solid fa-video text-[10px]"></i> Kembali ke Video
+                </button>
+            </div>
+
             {{-- Tabs Header Bar (Tactile Binder Style - Compact Icons with Tooltips) --}}
             <div class="flex items-center p-2 gap-1 flex-shrink-0" style="background-color: #ede9df; border-bottom: 2px solid #121316;">
                 {{-- Tab Modul --}}
                 <button id="tab-btn-materi" onclick="switchTab('materi')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-black transition-all flex items-center justify-center rounded-xl" style="background-color: #121316; color: #fde047; border: 2px solid #121316; box-shadow: 2px 2px 0px #ff3823;" title="Silabus Materi &amp; Modul">
                     <i class="fa-solid fa-book-open text-xs" style="color: #ff3823;"></i>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Modul Materi</span>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Modul Materi</span>
                 </button>
 
                 {{-- Tab Papan Tulis --}}
                 <button id="tab-btn-whiteboard" onclick="switchTab('whiteboard')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Papan Tulis Digital (Whiteboard)">
                     <i class="fa-solid fa-chalkboard text-xs" style="color: #7c3aed;"></i>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis</span>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Papan Tulis</span>
                 </button>
 
                 {{-- Tab Siswa --}}
                 <button id="tab-btn-peserta" onclick="switchTab('peserta')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center gap-1 rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Daftar Siswa Hadir">
                     <i class="fa-solid fa-users text-xs" style="color: #10b981;"></i>
                     <span id="attendee-tab-count" class="text-[10px] font-black text-emerald-700">0</span>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Presensi Siswa</span>
                 </button>
 
                 {{-- Tab Chat --}}
                 <button id="tab-btn-chat" onclick="switchTab('chat')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Obrolan Kelas &amp; DM">
                     <i class="fa-solid fa-comments text-xs" style="color: #2563eb;"></i>
                     <span id="chat-tab-badge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ff3823; color: #ffffff;">0</span>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Chat</span>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Obrolan Chat</span>
                 </button>
 
                 {{-- Tab Polling --}}
                 <button id="tab-btn-polling" onclick="switchTab('polling')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Polling Kilat KBM">
                     <i class="fa-solid fa-square-poll-vertical text-xs" style="color: #d97706;"></i>
                     <span id="poll-tab-badge" class="hidden absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Polling Kilat</span>
                 </button>
 
                 {{-- Tab Q&A --}}
                 <button id="tab-btn-qa" onclick="switchTab('qa')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Antrean Tanya Jawab (Q&amp;A)">
                     <i class="fa-solid fa-circle-question text-xs" style="color: #ea580c;"></i>
                     <span id="qa-tab-badge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-black" style="background-color: #ea580c; color: #ffffff;">0</span>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Tanya Jawab (Q&amp;A)</span>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Tanya Jawab (Q&amp;A)</span>
                 </button>
 
                 {{-- Tab Kuis --}}
                 <button id="tab-btn-kuis" onclick="switchTab('kuis')" type="button" class="group relative flex-1 py-2 px-1 text-xs font-mono-code font-bold transition-all flex items-center justify-center rounded-xl" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Kuis Interaktif Live (Kahoot)">
                     <i class="fa-solid fa-gamepad text-xs" style="color: #ec4899;"></i>
                     <span id="quiz-tab-badge" class="hidden absolute -top-1 -right-1 px-1 py-0.2 rounded text-[8px] font-black" style="background-color: #ec4899; color: #ffffff;">LIVE</span>
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Live</span>
+                    <span class="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #fde047; border: 1.5px solid #000000;">Kuis Live</span>
                 </button>
 
                 {{-- Tutup Panel --}}
                 <button onclick="toggleClassroomHub()" type="button" class="group relative p-2 rounded-xl transition-colors shadow-xs" style="background-color: #ffffff; color: #121316; border: 2px solid #121316;" title="Tutup panel">
                     <i class="fa-solid fa-xmark text-sm"></i>
-                    <span class="absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">Tutup</span>
+                    <span class="hidden sm:block absolute -bottom-8 right-0 text-[10px] font-mono-code font-black px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md z-30" style="background-color: #121316; color: #ff3823; border: 1.5px solid #000000;">Tutup</span>
                 </button>
             </div>
 
@@ -2022,6 +2076,8 @@
             const s = String(totalSec % 60).padStart(2, '0');
             const timerEl = document.getElementById('class-timer');
             if (timerEl) timerEl.textContent = `${h}:${m}:${s}`;
+            const mobileTimerEl = document.getElementById('mobile-guru-timer');
+            if (mobileTimerEl) mobileTimerEl.textContent = totalSec >= 3600 ? `${h}:${m}:${s}` : `${m}:${s}`;
         }
         setInterval(updateMeetingTimer, 1000);
         updateMeetingTimer();
@@ -2052,15 +2108,15 @@
             const handler = document.getElementById('resize-handler');
 
             if (mode === 'sidebyside') {
-                if (hub && hub.classList.contains('hidden')) {
+                if (hub) {
                     hub.classList.remove('hidden');
-                    hub.classList.add('flex');
-                    if (handler) handler.classList.remove('hidden');
+                    hub.classList.add('flex', 'lg:flex');
+                    if (handler && window.innerWidth >= 1024) handler.classList.remove('hidden');
                 }
             } else {
-                if (hub && !hub.classList.contains('hidden')) {
+                if (hub) {
                     hub.classList.add('hidden');
-                    hub.classList.remove('flex');
+                    hub.classList.remove('flex', 'lg:flex');
                     if (handler) handler.classList.add('hidden');
                 }
             }
@@ -2154,17 +2210,19 @@
         function toggleClassroomHub() {
             const hub = document.getElementById('classroom-hub');
             const handler = document.getElementById('resize-handler');
-            if (hub.classList.contains('hidden')) {
+            if (!hub) return;
+            const isCurrentlyVisible = window.getComputedStyle(hub).display !== 'none';
+            if (!isCurrentlyVisible) {
                 hub.classList.remove('hidden');
-                hub.classList.add('flex');
-                if (handler) handler.classList.remove('hidden');
+                hub.classList.add('flex', 'lg:flex');
+                if (handler && window.innerWidth >= 1024) handler.classList.remove('hidden');
                 if (currentLayout === 'gallery') {
                     currentLayout = 'sidebyside';
                     updateViewLabel('sidebyside');
                 }
             } else {
                 hub.classList.add('hidden');
-                hub.classList.remove('flex');
+                hub.classList.remove('flex', 'lg:flex');
                 if (handler) handler.classList.add('hidden');
                 if (currentLayout === 'sidebyside') {
                     currentLayout = 'gallery';
@@ -2177,10 +2235,10 @@
         function switchTab(tabName) {
             const hub = document.getElementById('classroom-hub');
             const handler = document.getElementById('resize-handler');
-            if (hub.classList.contains('hidden')) {
+            if (hub && window.getComputedStyle(hub).display === 'none') {
                 hub.classList.remove('hidden');
-                hub.classList.add('flex');
-                if (handler) handler.classList.remove('hidden');
+                hub.classList.add('flex', 'lg:flex');
+                if (handler && window.innerWidth >= 1024) handler.classList.remove('hidden');
             }
 
             const tabs = ['materi', 'whiteboard', 'peserta', 'chat', 'polling', 'qa', 'kuis'];

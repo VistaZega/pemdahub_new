@@ -10,23 +10,23 @@
 @endphp
 <div class="space-y-4" x-data="{ tab: '{{ request('tab', 'modul') }}', showAddModule: false, showAddMaterial: false, showAddAssignment: false, showAddQuiz: false }">
     <!-- Back Link & Mode Web Switcher -->
-    <div class="flex items-center justify-between">
-        <a href="{{ route('mobile.lms.index') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-slate-500 hover:text-slate-900 transition">
-            <i class="fa-solid fa-arrow-left"></i> Kembali ke LMS
+    <div class="flex items-center justify-between gap-2 px-0.5">
+        <a href="{{ route('mobile.lms.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-700 hover:text-slate-900 shadow-2xs active:scale-95 transition">
+            <i class="fa-solid fa-arrow-left text-purple-600"></i> <span>Kembali ke LMS</span>
         </a>
         <a href="{{ route('siswa.lms.show', ['course' => $course->id, 'switch_mode' => 'desktop']) }}" 
-           class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-xl text-[11px] font-black shadow-xs hover:bg-blue-50 transition">
-            <i class="fa-solid fa-desktop text-xs"></i> Buka Mode Web
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-[11px] font-black shadow-2xs hover:bg-blue-100 active:scale-95 transition">
+            <i class="fa-solid fa-desktop text-[10px]"></i> <span>Mode Web</span>
         </a>
     </div>
 
     <!-- Course Banner Clay Card -->
-    <div class="clay-purple p-6 relative overflow-hidden">
-        <div class="flex items-center space-x-4">
-            <div class="w-14 h-14 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-white font-black text-2xl border-2 border-white shadow-md shrink-0">
+    <div class="clay-purple p-4 sm:p-5 rounded-3xl relative overflow-hidden shadow-lg">
+        <div class="flex items-start gap-3.5">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-white font-black text-xl sm:text-2xl border-2 border-white shadow-md shrink-0">
                 <i class="fa-solid fa-book-bookmark"></i>
             </div>
-            <div>
+            <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="px-2.5 py-0.5 rounded-full bg-white/30 text-white text-[9px] font-black border border-white/40 uppercase">
                         {{ $course->code }}
@@ -37,11 +37,11 @@
                         </span>
                     @endif
                 </div>
-                <h2 class="text-base font-black text-white mt-1 leading-snug tracking-tight">{{ $course->course_name }}</h2>
-                <p class="text-xs text-purple-100 mt-0.5 font-bold">
-                    <i class="fa-regular fa-user mr-1"></i>{{ $course->teacher->full_name ?? 'Pengajar' }}
+                <h2 class="text-sm sm:text-base font-black text-white mt-1 leading-snug tracking-tight break-words">{{ $course->course_name }}</h2>
+                <p class="text-[11px] text-purple-100 mt-1 font-bold flex items-center flex-wrap gap-1.5">
+                    <span><i class="fa-regular fa-user mr-1"></i>{{ $course->teacher->full_name ?? 'Pengajar' }}</span>
                     @if($isTeacher)
-                        <span class="ml-1.5 px-2 py-0.5 rounded-md bg-white/20 text-white text-[9px] font-black uppercase">Pengajar (Maker)</span>
+                        <span class="px-2 py-0.5 rounded-md bg-white/25 text-white text-[9px] font-black uppercase border border-white/30">Pengajar (Maker)</span>
                     @endif
                 </p>
             </div>
@@ -53,24 +53,24 @@
     {{-- ═══════════════════════════════════════════════════════════════ --}}
     @if(!$isTeacher && $course->meeting_active)
         <!-- Kartu Live Khusus Siswa saat Guru Membuka PembdaTEMU -->
-        <div class="p-4 rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-xl border-2 border-white/80 space-y-3 relative overflow-hidden animate-pulse">
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-xl border-2 border-white/80 space-y-3 relative overflow-hidden">
             <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-lg shrink-0 border border-white/40">
                         <i class="fa-solid fa-video text-yellow-300"></i>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <span class="px-2 py-0.5 rounded-full bg-white text-rose-700 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
                                 <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> LIVE SEKARANG
                             </span>
                         </div>
-                        <h3 class="text-xs font-black text-white mt-0.5">Sesi PembdaTEMU Sedang Berlangsung!</h3>
+                        <h3 class="text-xs font-black text-white mt-0.5 truncate">Sesi PembdaTEMU Sedang Berlangsung!</h3>
                     </div>
                 </div>
             </div>
             <p class="text-[11px] text-pink-100 font-semibold leading-relaxed">
-                Guru pengampu Anda telah membuka kelas tatap muka virtual di mapel ini. Bergabung sekarang untuk presensi otomatis & interaksi KBM.
+                Guru pengampu Anda telah membuka kelas tatap muka virtual di mapel ini. Bergabung sekarang untuk presensi otomatis &amp; interaksi KBM.
             </p>
             <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" 
                class="w-full py-3 px-4 rounded-2xl bg-white text-rose-700 hover:bg-rose-50 font-black text-xs text-center shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
@@ -81,57 +81,58 @@
         </div>
     @elseif($isTeacher)
         <!-- Kontrol Panel PembdaTEMU untuk Guru Pengampu -->
-        <div class="p-4 rounded-3xl {{ $course->meeting_active ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white border-2 border-white/80 shadow-xl animate-pulse' : 'bg-gradient-to-br from-rose-50 via-white to-purple-50 border-2 border-rose-300 text-slate-900 shadow-md' }} space-y-3">
+        <div class="p-4 rounded-3xl {{ $course->meeting_active ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white border-2 border-white/80 shadow-xl' : 'bg-gradient-to-br from-rose-50 via-white to-purple-50 border-2 border-rose-300 text-slate-900 shadow-md' }} space-y-3">
             <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-10 h-10 rounded-2xl {{ $course->meeting_active ? 'bg-white/20 text-yellow-300 border border-white/30' : 'bg-gradient-to-tr from-rose-600 to-pink-600 text-white shadow-sm' }} flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-video"></i>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
-                            <span class="px-2 py-0.5 rounded-full {{ $course->meeting_active ? 'bg-white text-rose-700' : 'bg-rose-100 text-rose-700 border border-rose-300' }} text-[9px] font-black uppercase tracking-wider">
-                                {{ $course->meeting_active ? '🔴 LIVE SEKARANG' : '📹 KBM TATAP MUKA' }}
+                            <span class="px-2 py-0.5 rounded-full {{ $course->meeting_active ? 'bg-white text-rose-700' : 'bg-rose-100 text-rose-700 border border-rose-300' }} text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1">
+                                @if($course->meeting_active)
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span> LIVE SEKARANG
+                                @else
+                                    📹 KBM TATAP MUKA
+                                @endif
                             </span>
                         </div>
-                        <h4 class="text-xs font-black {{ $course->meeting_active ? 'text-white' : 'text-slate-900' }} mt-0.5">
+                        <h4 class="text-xs font-black {{ $course->meeting_active ? 'text-white' : 'text-slate-900' }} mt-0.5 truncate">
                             PembdaTEMU (Live Kelas Virtual)
                         </h4>
-                        <span class="text-[10px] {{ $course->meeting_active ? 'text-pink-100 font-semibold' : 'text-slate-500 font-bold' }}">
+                        <span class="text-[10px] {{ $course->meeting_active ? 'text-pink-100 font-semibold' : 'text-slate-500 font-bold' }} block truncate">
                             {{ $course->meeting_active ? 'Sesi sedang aktif. Presensi siswa otomatis dicatat.' : 'Mulai video conference WebRTC HD & presensi online' }}
                         </span>
                     </div>
                 </div>
-                @if($course->meeting_active)
-                    <span class="px-2.5 py-1 rounded-full bg-white text-rose-600 text-[10px] font-black animate-ping border border-rose-200">LIVE</span>
-                @endif
             </div>
 
             <div class="grid {{ $course->meeting_active ? 'grid-cols-3' : 'grid-cols-2' }} gap-2 pt-1">
                 @if($course->meeting_active)
                     <a href="{{ route('guru.lms.meeting.join', $course->id) }}" 
-                       class="py-2.5 px-2 rounded-xl bg-white text-rose-700 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-video text-rose-600"></i> Masuk Kelas
+                       class="py-2.5 px-2 rounded-xl bg-white text-rose-700 font-black text-[11px] text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-video text-rose-600"></i> <span>Masuk Kelas</span>
                     </a>
                     <form action="{{ route('guru.lms.meeting.stop', $course->id) }}" method="POST" onsubmit="return confirm('Akhiri sesi PembdaTEMU sekarang? Presensi siswa akan tersimpan.')">
                         @csrf
-                        <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-rose-900/90 text-white border border-rose-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-stop"></i> Akhiri
+                        <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-rose-900/90 text-white border border-rose-400 font-black text-[11px] text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-stop"></i> <span>Akhiri</span>
                         </button>
                     </form>
                     <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" 
-                       class="py-2.5 px-2 rounded-xl bg-purple-900/70 text-white border border-purple-400 font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-clipboard-user"></i> Presensi
+                       class="py-2.5 px-2 rounded-xl bg-purple-900/70 text-white border border-purple-400 font-black text-[11px] text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-clipboard-user"></i> <span>Presensi</span>
                     </a>
                 @else
                     <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 hover:opacity-95 text-white font-black text-xs text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-video text-yellow-300"></i> Buka PembdaTEMU
+                            <i class="fa-solid fa-video text-yellow-300"></i> <span>Buka PembdaTEMU</span>
                         </button>
                     </form>
                     <a href="{{ route('guru.lms.meeting.attendance', $course->id) }}" 
                        class="py-2.5 px-3 rounded-xl bg-white text-slate-700 border-2 border-slate-200 font-black text-xs text-center hover:bg-slate-50 active:scale-95 transition flex items-center justify-center gap-1.5 shadow-2xs">
-                        <i class="fa-solid fa-clipboard-user text-purple-600"></i> Rekap Presensi
+                        <i class="fa-solid fa-clipboard-user text-purple-600"></i> <span>Rekap Presensi</span>
                     </a>
                 @endif
             </div>
@@ -139,20 +140,20 @@
     @endif
 
     <!-- Navigation Clay Tabs -->
-    <div class="flex items-center space-x-2 border-b-2 border-slate-200/80 pb-2">
+    <div class="grid grid-cols-3 gap-2 border-b-2 border-slate-200/80 pb-2.5">
         <button @click="tab = 'modul'" 
-                :class="tab === 'modul' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
-                class="flex-1 py-2.5 px-3 rounded-2xl text-xs transition text-center">
+                :class="tab === 'modul' ? 'clay-purple text-white shadow-md font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
+                class="py-2.5 px-2 rounded-2xl text-xs transition text-center truncate">
             📚 Modul
         </button>
         <button @click="tab = 'tugas'" 
-                :class="tab === 'tugas' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
-                class="flex-1 py-2.5 px-3 rounded-2xl text-xs transition text-center">
+                :class="tab === 'tugas' ? 'clay-purple text-white shadow-md font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
+                class="py-2.5 px-2 rounded-2xl text-xs transition text-center truncate">
             📝 Tugas ({{ count($course->assignments ?? []) }})
         </button>
         <button @click="tab = 'kuis'" 
-                :class="tab === 'kuis' ? 'clay-purple text-white shadow-md scale-105 font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
-                class="flex-1 py-2.5 px-3 rounded-2xl text-xs transition text-center">
+                :class="tab === 'kuis' ? 'clay-purple text-white shadow-md font-black' : 'bg-white text-slate-600 border-2 border-slate-200 font-bold'"
+                class="py-2.5 px-2 rounded-2xl text-xs transition text-center truncate">
             ❓ Kuis ({{ count($course->quizzes ?? []) }})
         </button>
     </div>

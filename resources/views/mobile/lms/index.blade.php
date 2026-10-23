@@ -13,45 +13,56 @@
     showAddCourse: false, 
     searchQuery: ''
 }">
-    <!-- Header Navigation -->
-    <div class="flex items-center justify-between gap-2 px-1 pt-1">
-        <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2.5">
-                <span class="w-9 h-9 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md shrink-0">
+    <!-- Header Navigation (2-Row Mobile-First Layout - Anti-Overlap) -->
+    <div class="space-y-2.5 px-1 pt-1">
+        <!-- Row 1: Brand Title & Mode Switcher -->
+        <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shrink-0 border-2 border-purple-200">
                     <i class="fa-solid fa-book-bookmark text-sm"></i>
                 </span>
                 <div class="min-w-0">
                     <h2 class="text-base font-black text-slate-900 leading-tight truncate">LMS Digital</h2>
-                    <p class="text-[10px] text-slate-500 font-bold truncate">Ruang Belajar & Materi Interaktif</p>
+                    <p class="text-[11px] text-slate-500 font-bold truncate">Ruang Belajar &amp; Materi Interaktif</p>
                 </div>
             </div>
-        </div>
 
-        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-            @if($isTeacher)
-                <a href="{{ route('guru.cbt.banks.index') }}" 
-                   class="px-2.5 py-2 rounded-xl bg-amber-400 text-black text-xs font-black hover:bg-amber-300 active:scale-95 transition flex items-center gap-1.5 shadow-2xs border border-amber-500">
-                    <i class="fa-solid fa-database text-xs"></i>
-                    <span>Bank Soal</span>
-                </a>
-                <button @click="showAddCourse = !showAddCourse" 
-                        class="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black shadow-md hover:opacity-90 active:scale-95 transition flex items-center gap-1.5">
-                    <i class="fa-solid" :class="showAddCourse ? 'fa-xmark' : 'fa-plus'"></i>
-                    <span x-text="showAddCourse ? 'Batal' : '+ Kelas'"></span>
-                </button>
-            @endif
-            <a href="{{ route('mobile.lms.catalog') }}" 
-               class="px-3 py-2 rounded-xl bg-white border-2 border-purple-200 text-purple-700 text-xs font-black hover:bg-purple-50 active:scale-95 transition flex items-center gap-1.5 shadow-2xs">
-                <i class="fa-solid fa-compass text-purple-600"></i>
-                <span>Katalog</span>
-            </a>
             <a href="{{ route('siswa.lms.index', ['switch_mode' => 'desktop']) }}" 
                title="Beralih ke Versi Web Desktop"
-               class="px-2.5 py-2 rounded-xl bg-blue-50 border-2 border-blue-200 text-blue-700 text-xs font-black hover:bg-blue-100 active:scale-95 transition flex items-center gap-1.5 shadow-2xs">
-                <i class="fa-solid fa-desktop text-blue-600"></i>
+               class="px-2.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-black hover:bg-blue-100 active:scale-95 transition flex items-center gap-1.5 shadow-2xs shrink-0">
+                <i class="fa-solid fa-desktop text-blue-600 text-[10px]"></i>
                 <span>Mode Web</span>
             </a>
         </div>
+
+        <!-- Row 2: Action Toolbar Buttons (Full Width Grid - 100% Never Overlaps Header) -->
+        @if($isTeacher)
+            <div class="grid grid-cols-3 gap-2">
+                <a href="{{ route('guru.cbt.banks.index') }}" 
+                   class="py-2 px-2.5 rounded-xl bg-amber-400 text-black text-xs font-black hover:bg-amber-300 active:scale-95 transition flex items-center justify-center gap-1.5 shadow-2xs border border-amber-500">
+                    <i class="fa-solid fa-database text-xs"></i>
+                    <span class="truncate">Bank Soal</span>
+                </a>
+                <button @click="showAddCourse = !showAddCourse" 
+                        class="py-2 px-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black shadow-md hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid" :class="showAddCourse ? 'fa-xmark' : 'fa-plus'"></i>
+                    <span class="truncate" x-text="showAddCourse ? 'Batal' : '+ Kelas Baru'"></span>
+                </button>
+                <a href="{{ route('mobile.lms.catalog') }}" 
+                   class="py-2 px-2.5 rounded-xl bg-white border-2 border-purple-200 text-purple-700 text-xs font-black hover:bg-purple-50 active:scale-95 transition flex items-center justify-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-compass text-purple-600"></i>
+                    <span class="truncate">Katalog</span>
+                </a>
+            </div>
+        @else
+            <div class="flex items-center gap-2">
+                <a href="{{ route('mobile.lms.catalog') }}" 
+                   class="flex-1 py-2.5 px-3 rounded-xl bg-white border-2 border-purple-200 text-purple-700 text-xs font-black hover:bg-purple-50 active:scale-95 transition flex items-center justify-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-compass text-purple-600"></i>
+                    <span>Jelajahi Katalog Kelas LMS</span>
+                </a>
+            </div>
+        @endif
     </div>
 
     <!-- Quick Stats Banner Clay Card -->
@@ -61,15 +72,15 @@
 
     {{-- ALERT BANNER: PEMBDATEMU LIVE AKTIF --}}
     @if($activeLiveCourse)
-        <div class="p-4 rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-xl border-2 border-white/80 space-y-2.5 relative overflow-hidden animate-pulse">
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white shadow-xl border-2 border-white/80 space-y-2.5 relative overflow-hidden">
             <div class="flex items-center justify-between gap-2">
-                <span class="px-2.5 py-0.5 rounded-full bg-white text-rose-700 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                <span class="px-2.5 py-0.5 rounded-full bg-white text-rose-700 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs shrink-0">
                     <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> PEMBDATEMU LIVE
                 </span>
-                <span class="text-[10px] text-pink-100 font-bold bg-white/20 px-2 py-0.5 rounded-full">{{ $activeLiveCourse->code }}</span>
+                <span class="text-[10px] text-pink-100 font-bold bg-white/20 px-2 py-0.5 rounded-full truncate">{{ $activeLiveCourse->code }}</span>
             </div>
             <div>
-                <h3 class="text-sm font-black text-white leading-snug">
+                <h3 class="text-sm font-black text-white leading-snug line-clamp-2">
                     {{ $activeLiveCourse->course_name }}
                 </h3>
                 <p class="text-[11px] text-pink-100 font-semibold mt-0.5">
@@ -87,28 +98,28 @@
         </div>
     @endif
 
-    <div class="clay-purple p-5 sm:p-6 space-y-3.5 rounded-3xl shadow-lg">
-        <div class="flex items-center justify-between gap-3 px-1">
-            <span class="text-[10px] font-black uppercase tracking-wider bg-white/25 px-3 py-1 rounded-full border border-white/35 text-white shadow-xs">
+    <div class="clay-purple p-4 sm:p-5 space-y-3 rounded-3xl shadow-lg">
+        <div class="flex items-center justify-between gap-2 px-0.5">
+            <span class="text-[10px] font-black uppercase tracking-wider bg-white/25 px-2.5 py-1 rounded-full border border-white/35 text-white shadow-xs truncate">
                 {{ $isTeacher ? '👨‍🏫 Panel Pengajar LMS' : '👨‍🎓 Ruang Belajar Siswa' }}
             </span>
-            <span class="text-[10px] font-black text-purple-100 bg-white/20 px-3 py-1 rounded-full border border-white/30">
+            <span class="text-[10px] font-black text-purple-100 bg-white/20 px-2.5 py-1 rounded-full border border-white/30 shrink-0">
                 {{ $enrolledCourses->count() }} Kelas Aktif
             </span>
         </div>
 
-        <div class="grid grid-cols-3 gap-2.5 pt-1 text-center">
-            <div class="py-3 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
-                <span class="text-xl font-black text-white leading-none block">{{ $enrolledCourses->count() }}</span>
+        <div class="grid grid-cols-3 gap-2 pt-0.5 text-center">
+            <div class="py-2.5 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
+                <span class="text-lg sm:text-xl font-black text-white leading-none block">{{ $enrolledCourses->count() }}</span>
                 <span class="text-[9px] font-extrabold text-purple-100 uppercase tracking-wider mt-1 block">Mapel</span>
             </div>
-            <div class="py-3 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
-                <span class="text-xl font-black text-white leading-none block">{{ $totalMaterials }}</span>
+            <div class="py-2.5 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
+                <span class="text-lg sm:text-xl font-black text-white leading-none block">{{ $totalMaterials }}</span>
                 <span class="text-[9px] font-extrabold text-purple-100 uppercase tracking-wider mt-1 block">Materi</span>
             </div>
-            <div class="py-3 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
-                <span class="text-xl font-black text-white leading-none block">{{ $totalAssignments + $totalQuizzes }}</span>
-                <span class="text-[9px] font-extrabold text-purple-100 uppercase tracking-wider mt-1 block">Tugas & Kuis</span>
+            <div class="py-2.5 px-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs">
+                <span class="text-lg sm:text-xl font-black text-white leading-none block">{{ $totalAssignments + $totalQuizzes }}</span>
+                <span class="text-[9px] font-extrabold text-purple-100 uppercase tracking-wider mt-1 block">Tugas &amp; Kuis</span>
             </div>
         </div>
     </div>
@@ -366,33 +377,34 @@
                         @endif
 
                         <!-- Action Footer -->
-                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                             @if($isTeacher)
-                                <form action="{{ route('mobile.lms.course.destroy', $course->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus seluruh kelas LMS {{ addslashes($course->course_name) }}?')">
+                                <form action="{{ route('mobile.lms.course.destroy', $course->id) }}" method="POST" class="inline shrink-0" onsubmit="return confirm('Hapus seluruh kelas LMS {{ addslashes($course->course_name) }}?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="px-3 py-2.5 rounded-xl bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 active:scale-95 transition flex items-center gap-1">
+                                    <button type="submit" class="px-2.5 py-2.5 rounded-xl bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200 hover:bg-rose-100 active:scale-95 transition flex items-center gap-1">
                                         <i class="fa-solid fa-trash-can"></i> Hapus
                                     </button>
                                 </form>
                             @else
-                                <span class="text-[10px] font-extrabold text-slate-400">
+                                <span class="text-[10px] font-extrabold text-slate-400 shrink-0">
                                     <i class="fa-solid fa-circle-check text-emerald-500 text-[9px] mr-0.5"></i> Terdaftar
                                 </span>
                             @endif
 
                             @if($course->meeting_active)
                                 <a href="{{ $isTeacher ? route('guru.lms.meeting.join', $course->id) : route('siswa.lms.meeting.join', $course->id) }}" 
-                                   class="py-3 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1.5 animate-pulse shrink-0">
-                                    <i class="fa-solid fa-video text-white"></i>
+                                   class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black text-center shadow-md active:scale-95 transition flex items-center justify-center gap-1 shrink-0">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                    <i class="fa-solid fa-video text-white text-[10px]"></i>
                                     <span>LIVE</span>
                                 </a>
                             @endif
 
                             <a href="{{ route('mobile.lms.show', $course->id) }}" 
-                               class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r {{ $theme['gradient'] }} text-white text-xs font-black text-center shadow-md active:scale-98 hover:opacity-95 transition flex items-center justify-center gap-1.5 group-hover:shadow-lg">
-                                <span>Masuk Kelas LMS</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                               class="flex-1 min-w-0 py-2.5 px-3 rounded-xl bg-gradient-to-r {{ $theme['gradient'] }} text-white text-xs font-black text-center shadow-md active:scale-98 hover:opacity-95 transition flex items-center justify-center gap-1.5 group-hover:shadow-lg">
+                                <span class="truncate">Masuk Kelas</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform shrink-0"></i>
                             </a>
                         </div>
                     </div>
