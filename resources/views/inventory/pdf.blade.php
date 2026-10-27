@@ -176,7 +176,7 @@
         <tbody>
             @foreach($assets as $index => $asset)
             <tr>
-                <td class="text-center text-bold">{{ $asset->item_number ?: ($index + 1) }}</td>
+                <td class="text-center text-bold">{{ $index + 1 }}</td>
                 <td class="text-bold" style="font-family: monospace;">{{ $asset->asset_code }}</td>
                 <td>
                     <b>{{ $asset->name }}</b>

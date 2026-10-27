@@ -187,13 +187,57 @@ class InventoryController extends Controller
     }
 
     /**
+     * Endpoint API JSON untuk generate kode aset otomatis secara real-time
+     */
+    public function generateCode(Request $request)
+    {
+        $schoolId = $request->get('school_id');
+        $schoolId = ($schoolId === 'yayasan' || empty($schoolId)) ? null : (int) $schoolId;
+        $year = (int) ($request->get('year') ?: date('Y'));
+
+        $code = InventoryAsset::generateAssetCode($schoolId, 'AST', $year);
+
+        // Cari tahu kode terakhir yang ada untuk referensi informasi
+        $unitCode = 'YYS';
+        $unitName = 'Yayasan Perguruan Pembda Nias (Pusat)';
+        if ($schoolId) {
+            $school = School::find($schoolId);
+            if ($school) {
+                $unitName = $school->name;
+                $name = strtoupper($school->name);
+                if (str_contains($name, 'SMK')) {
+                    $unitCode = 'SMK';
+                } elseif (str_contains($name, 'SMA')) {
+                    $unitCode = 'SMA';
+                } elseif (str_contains($name, 'SMP')) {
+                    $unitCode = 'SMP';
+                }
+            }
+        }
+        $prefix = "AST-{$unitCode}-{$year}-";
+        $lastAsset = InventoryAsset::where('asset_code', 'like', "{$prefix}%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        return response()->json([
+            'status' => 'success',
+            'code' => $code,
+            'prefix' => $prefix,
+            'last_code' => $lastAsset ? $lastAsset->asset_code : null,
+            'unit_code' => $unitCode,
+            'unit_name' => $unitName,
+            'year' => $year,
+        ]);
+    }
+
+    /**
      * Simpan Aset Baru ke Database
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'item_number' => 'required|integer|min:1',
-            'asset_code' => 'required|string|max:50|unique:inventory_assets,asset_code',
+            'item_number' => 'nullable|integer|min:1',
+            'asset_code' => 'nullable|string|max:50|unique:inventory_assets,asset_code',
             'school_id' => 'nullable',
             'category_id' => 'nullable|exists:inventory_categories,id',
             'location_id' => 'nullable|exists:inventory_locations,id',
@@ -221,6 +265,16 @@ class InventoryController extends Controller
         if ($validated['school_id'] === 'yayasan' || empty($validated['school_id'])) {
             $yayasanSchool = School::where('type', 'yayasan')->first();
             $validated['school_id'] = $yayasanSchool ? $yayasanSchool->id : null;
+        }
+
+        // Auto hitung No Urut jika tidak diisi user
+        if (empty($validated['item_number'])) {
+            $validated['item_number'] = ((int) InventoryAsset::max('item_number')) + 1;
+        }
+
+        // Auto generate Kode Aset jika tidak diisi user
+        if (empty($validated['asset_code'])) {
+            $validated['asset_code'] = InventoryAsset::generateAssetCode($validated['school_id'], 'AST', (int) ($validated['acquisition_year'] ?? date('Y')));
         }
 
         // Upload foto aset
@@ -298,7 +352,7 @@ class InventoryController extends Controller
     public function update(Request $request, InventoryAsset $asset)
     {
         $validated = $request->validate([
-            'item_number' => 'required|integer|min:1',
+            'item_number' => 'nullable|integer|min:1',
             'asset_code' => 'required|string|max:50|unique:inventory_assets,asset_code,' . $asset->id,
             'school_id' => 'nullable',
             'category_id' => 'nullable|exists:inventory_categories,id',
@@ -327,6 +381,10 @@ class InventoryController extends Controller
         if ($validated['school_id'] === 'yayasan' || empty($validated['school_id'])) {
             $yayasanSchool = School::where('type', 'yayasan')->first();
             $validated['school_id'] = $yayasanSchool ? $yayasanSchool->id : null;
+        }
+
+        if (empty($validated['item_number'])) {
+            $validated['item_number'] = $asset->item_number ?: (((int) InventoryAsset::max('item_number')) + 1);
         }
 
         // Cek mutasi lokasi atau kondisi
@@ -499,9 +557,10 @@ class InventoryController extends Controller
                 'Penanggung Jawab (PIC)',
             ]);
 
+            $no = 1;
             foreach ($assets as $asset) {
                 fputcsv($file, [
-                    $asset->item_number,
+                    $no++,
                     $asset->asset_code,
                     $asset->unit_name,
                     $asset->category ? $asset->category->name : '-',

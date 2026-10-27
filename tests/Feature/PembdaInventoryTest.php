@@ -100,4 +100,50 @@ class PembdaInventoryTest extends TestCase
         $this->assertGreaterThan(0, $asset->accumulated_depreciation);
         $this->assertLessThanOrEqual(20000000, $asset->current_book_value);
     }
+
+    public function test_generate_code_endpoint_returns_json()
+    {
+        $yayasanUser = User::factory()->create(['role' => 'ketua_yayasan', 'username' => 'ketua_test_gen']);
+
+        $response = $this->actingAs($yayasanUser)->get(route('inventory.generate_code', [
+            'school_id' => 'yayasan',
+            'year' => 2026,
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['status', 'code', 'prefix', 'unit_code', 'year']);
+        $this->assertStringContainsString('AST-YYS-2026-', $response->json('code'));
+    }
+
+    public function test_store_asset_auto_generates_code_and_item_number_when_omitted()
+    {
+        $yayasanUser = User::factory()->create(['role' => 'ketua_yayasan', 'username' => 'ketua_test_store']);
+        $category = InventoryCategory::create(['code' => 'UMU', 'name' => 'Umum', 'useful_life_years' => 5, 'depreciation_method' => 'straight_line']);
+
+        $response = $this->actingAs($yayasanUser)->post(route('inventory.store'), [
+            // Tanpa item_number dan tanpa asset_code
+            'school_id' => 'yayasan',
+            'category_id' => $category->id,
+            'name' => 'Meja Rapat Yayasan',
+            'acquisition_year' => 2026,
+            'funding_source' => 'Yayasan',
+            'quantity' => 1,
+            'unit' => 'Unit',
+            'unit_price' => 5000000,
+            'salvage_value' => 500000,
+            'useful_life_years' => 5,
+            'depreciation_method' => 'straight_line',
+            'condition' => 'baik',
+            'status' => 'aktif',
+        ]);
+
+        $this->assertDatabaseHas('inventory_assets', [
+            'name' => 'Meja Rapat Yayasan',
+        ]);
+
+        $createdAsset = InventoryAsset::where('name', 'Meja Rapat Yayasan')->first();
+        $this->assertNotNull($createdAsset);
+        $this->assertNotNull($createdAsset->item_number);
+        $this->assertStringContainsString('AST-YYS-2026-', $createdAsset->asset_code);
+    }
 }

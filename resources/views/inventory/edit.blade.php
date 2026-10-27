@@ -96,20 +96,19 @@
                     </select>
                 </div>
 
-                {{-- No Urut --}}
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700">
-                        No Urut <span class="text-rose-500">*</span>
-                    </label>
-                    <input type="number" name="item_number" value="{{ old('item_number', $asset->item_number) }}" required min="1" class="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-indigo-600 focus:bg-white text-xs font-bold text-slate-900 inv-mono transition">
-                </div>
-
                 {{-- Kode Aset --}}
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700">
-                        Kode Aset Registrasi <span class="text-rose-500">*</span>
-                    </label>
+                <div class="sm:col-span-2 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-black uppercase tracking-wider text-slate-700">
+                            Kode Aset Registrasi <span class="text-rose-500">*</span>
+                        </label>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                            <i class="fas fa-barcode text-[10px]"></i> Kode Identitas Unik
+                        </span>
+                    </div>
                     <input type="text" name="asset_code" value="{{ old('asset_code', $asset->asset_code) }}" required class="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-indigo-600 focus:bg-white text-xs font-bold text-indigo-700 inv-mono uppercase transition">
+                    {{-- No Urut Registrasi Ditangani Otomatis di Background --}}
+                    <input type="hidden" name="item_number" value="{{ old('item_number', $asset->item_number) }}">
                 </div>
 
                 {{-- Nama Aset --}}

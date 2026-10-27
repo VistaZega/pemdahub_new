@@ -89,25 +89,31 @@
                     </select>
                 </div>
 
-                {{-- No Urut --}}
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700">
-                        No Urut <span class="text-rose-500">*</span>
-                    </label>
-                    <input type="number" name="item_number" id="itemNumberInput" value="{{ old('item_number', $nextItemNumber) }}" required min="1" class="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-indigo-600 focus:bg-white text-xs font-bold text-slate-900 inv-mono transition">
-                </div>
-
-                {{-- Kode Aset --}}
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700">
-                        Kode Aset Registrasi <span class="text-rose-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <input type="text" name="asset_code" id="assetCodeInput" value="{{ old('asset_code', $suggestedCode) }}" required class="w-full py-2.5 px-3.5 pr-10 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-indigo-600 focus:bg-white text-xs font-bold text-indigo-700 inv-mono uppercase transition">
-                        <button type="button" id="btnGenCode" class="absolute right-2 top-2 p-1 text-slate-400 hover:text-indigo-600 text-xs" title="Generate Ulang Kode">
-                            <i class="fas fa-rotate"></i>
-                        </button>
+                {{-- Kode Aset (100% Otomatis Berdasarkan Unit & Tahun) --}}
+                <div class="sm:col-span-2 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-black uppercase tracking-wider text-slate-700">
+                            Kode Aset Registrasi <span class="text-rose-500">*</span>
+                        </label>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                            <i class="fas fa-magic text-[10px] text-emerald-600"></i> Dibuat Otomatis Sistem
+                        </span>
                     </div>
+                    <div class="relative">
+                        <input type="text" name="asset_code" id="assetCodeInput" value="{{ old('asset_code', $suggestedCode) }}" required class="w-full py-2.5 px-3.5 pr-28 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-indigo-600 focus:bg-white text-xs font-bold text-indigo-700 inv-mono uppercase transition">
+                        <div class="absolute right-1.5 top-1.5 flex items-center gap-1">
+                            <button type="button" id="btnGenCode" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-bold text-[11px] transition" title="Perbarui Kode Otomatis">
+                                <i class="fas fa-rotate text-xs"></i>
+                                <span>Perbarui</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-500 gap-2">
+                        <span>Pola Standar: <code class="inv-mono font-bold text-slate-700">AST-[UNIT]-[TAHUN]-[URUT]</code></span>
+                        <span id="lastCodeInfo" class="text-slate-500">Kode terakhir di database: <b id="lastCodeVal" class="text-indigo-700 inv-mono font-bold">Memeriksa...</b></span>
+                    </div>
+                    {{-- No Urut Registrasi Ditangani Otomatis di Background --}}
+                    <input type="hidden" name="item_number" id="itemNumberInput" value="{{ old('item_number', $nextItemNumber) }}">
                 </div>
 
                 {{-- Nama Aset --}}
@@ -491,6 +497,41 @@
                 }
             });
         }
+
+        // Auto-Generate Kode Aset Real-Time
+        function updateAssetCodeAuto() {
+            const schoolId = schoolSel ? schoolSel.value : 'yayasan';
+            const year = acqYearIn ? (acqYearIn.value || new Date().getFullYear()) : new Date().getFullYear();
+            const btnIcon = btnGenCode ? btnGenCode.querySelector('i') : null;
+            if (btnIcon) btnIcon.classList.add('fa-spin');
+
+            const url = `{{ route('inventory.generate_code') }}?school_id=${encodeURIComponent(schoolId)}&year=${encodeURIComponent(year)}`;
+
+            fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.code) {
+                        if (assetCodeIn) {
+                            assetCodeIn.value = data.code;
+                        }
+                        const lastCodeVal = document.getElementById('lastCodeVal');
+                        if (lastCodeVal) {
+                            lastCodeVal.textContent = data.last_code ? data.last_code : '(Belum ada di thn ' + year + ')';
+                        }
+                    }
+                })
+                .catch(err => console.error('Gagal generate kode aset otomatis:', err))
+                .finally(() => {
+                    if (btnIcon) btnIcon.classList.remove('fa-spin');
+                });
+        }
+
+        if (schoolSel) schoolSel.addEventListener('change', updateAssetCodeAuto);
+        if (acqYearIn) acqYearIn.addEventListener('change', updateAssetCodeAuto);
+        if (btnGenCode) btnGenCode.addEventListener('click', updateAssetCodeAuto);
+
+        // Panggil saat halaman pertama kali dibuka
+        updateAssetCodeAuto();
 
         // Initial calculation
         calculateLive();

@@ -18,6 +18,7 @@ use App\Http\Controllers\Inventory\InventoryLocationCategoryController;
 Route::prefix('inventory')->name('inventory.')->middleware(['auth', 'inventory.access'])->group(function () {
     Route::get('/', [InventoryController::class, 'index'])->name('index');
     Route::get('/create', [InventoryController::class, 'create'])->name('create');
+    Route::get('/generate-code', [InventoryController::class, 'generateCode'])->name('generate_code');
     Route::post('/store', [InventoryController::class, 'store'])->name('store');
     Route::post('/recalculate-all', [InventoryController::class, 'recalculateAll'])->name('recalculate');
     Route::get('/export-pdf', [InventoryController::class, 'exportPdf'])->name('export_pdf');

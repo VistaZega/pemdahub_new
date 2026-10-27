@@ -351,7 +351,7 @@
                         {{-- Kolom 1: Kode & Registrasi --}}
                         <td class="py-3 px-3 align-top">
                             <div class="flex items-center gap-1">
-                                <span class="text-[10px] font-black text-slate-400">#{{ $asset->item_number ?: ($assets->firstItem() + $index) }}</span>
+                                <span class="text-[10px] font-black text-slate-400">#{{ $assets->firstItem() + $index }}</span>
                                 <a href="{{ route('inventory.qr_label', $asset->id) }}" target="_blank" class="w-5 h-5 rounded bg-slate-100 hover:bg-indigo-600 text-slate-600 hover:text-white flex items-center justify-center text-[10px] transition" title="Cetak Label QR Stiker">
                                     <i class="fas fa-qrcode"></i>
                                 </a>

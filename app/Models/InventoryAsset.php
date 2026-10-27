@@ -197,7 +197,9 @@ class InventoryAsset extends Model
             $school = School::find($schoolId);
             if ($school) {
                 $name = strtoupper($school->name);
-                if (str_contains($name, 'SMK')) {
+                if ($school->type === 'yayasan' || str_contains($name, 'YAYASAN')) {
+                    $unitCode = 'YYS';
+                } elseif (str_contains($name, 'SMK')) {
                     $unitCode = 'SMK';
                 } elseif (str_contains($name, 'SMA')) {
                     $unitCode = 'SMA';
