@@ -135,6 +135,14 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-sm"><i class="fas fa-receipt text-[10px]"></i></div>
             <span>Realisasi Anggaran Belanja</span>
         </a>
+        <!-- PembdaINVENTORY -->
+        <a href="{{ route('inventory.index') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('inventory.*') ? $ac : $nc }}">
+            <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-slate-900 flex items-center justify-center text-white shadow-sm"><i class="fas fa-boxes-stacked text-[10px]"></i></div>
+                <span class="font-bold">PembdaINVENTORY</span>
+            </div>
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Aset</span>
+        </a>
     </div>
 </div>
 
@@ -664,6 +672,16 @@
         <a href="{{ route('admin.settings.late-fees') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.late-fees*') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white"><i class="fas fa-percent text-[10px]"></i></div>
             <span>Pengaturan Denda</span>
+        </a>
+        @endif
+
+        @if($user && $user->canManageInventory())
+        <a href="{{ route('inventory.index') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('inventory.*') ? $ac : $nc }}">
+            <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-slate-900 flex items-center justify-center text-white shadow-sm"><i class="fas fa-boxes-stacked text-[10px]"></i></div>
+                <span class="font-bold">PembdaINVENTORY</span>
+            </div>
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Aset</span>
         </a>
         @endif
     </div>

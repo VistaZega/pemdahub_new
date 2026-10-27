@@ -121,5 +121,17 @@
                 </a>
             </div>
         </div>
+
+        @if(auth()->user()?->canManageInventory())
+        <div class="pt-3">
+            <a href="{{ route('inventory.index') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('inventory.*') ? $ac : $nc }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-slate-900 flex items-center justify-center text-white"><i class="fas fa-boxes-stacked text-[10px]"></i></div>
+                    <span class="font-bold">PembdaINVENTORY</span>
+                </div>
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Aset</span>
+            </a>
+        </div>
+        @endif
     @endif
 @endsection

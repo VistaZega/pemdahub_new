@@ -445,6 +445,56 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship: Penunjukan sebagai Pengelola Aset (PembdaINVENTORY)
+     */
+    public function inventoryManager()
+    {
+        return $this->hasOne(InventoryManager::class, 'user_id');
+    }
+
+    /**
+     * Check if user can manage PembdaINVENTORY
+     * (Yayasan, SuperAdmin, atau Akun yang Ditunjuk oleh Yayasan)
+     */
+    public function canManageInventory(): bool
+    {
+        // 1. Super Admin, Owner, & Yayasan selalu punya akses penuh
+        if ($this->isOwnerOrSuperAdmin() || $this->isKetuaYayasan() || $this->canAccessYayasan()) {
+            return true;
+        }
+
+        // 2. Role eksplisit atau active role
+        if (in_array($this->role, ['superadmin', 'ketua_yayasan', 'pengelola_aset', 'sarpras', 'inventaris']) ||
+            in_array(session('active_role'), ['superadmin', 'ketua_yayasan', 'pengelola_aset', 'sarpras', 'inventaris'])) {
+            return true;
+        }
+
+        // 3. Cek posisi struktural / kepanitiaan / tugas tambahan (Sarpras / Inventaris)
+        if ($this->hasSpecialDuty(['SARPRAS', 'INVENTARIS', 'ASET', 'LOGISTIK', 'PENGELOLA ASET'])) {
+            return true;
+        }
+
+        if ($this->teacher) {
+            $pos = strtolower($this->teacher->position ?? '');
+            if (str_contains($pos, 'sarpras') || str_contains($pos, 'inventaris') || str_contains($pos, 'aset') || str_contains($pos, 'logistik')) {
+                return true;
+            }
+        }
+
+        // 4. Cek apakah ada di daftar penunjukan resmi Yayasan
+        return InventoryManager::where('user_id', $this->id)->where('is_active', true)->exists();
+    }
+
+    /**
+     * Check if user can appoint / designate other accounts for PembdaINVENTORY
+     * (Hanya Yayasan & Super Admin yang berhak menunjuk pengelola aset)
+     */
+    public function canDesignateInventoryManagers(): bool
+    {
+        return $this->isOwnerOrSuperAdmin() || $this->isKetuaYayasan() || $this->canAccessYayasan();
+    }
+
+    /**
      * Helper: Dapatkan seluruh ID profil guru milik pengguna yang sama (termasuk relasi via user_id & employee_id)
      */
     public function teacherIds(): array

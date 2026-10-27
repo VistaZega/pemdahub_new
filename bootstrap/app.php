@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 require __DIR__.'/../routes/treasurer.php';
                 require __DIR__.'/../routes/orangtua.php';
                 require __DIR__.'/../routes/yayasan.php';
+                require __DIR__.'/../routes/inventory.php';
                 require __DIR__.'/../routes/mobile.php';
             });
         },
@@ -52,6 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'treasurer' => \App\Http\Middleware\TreasurerMiddleware::class,
             'yayasan' => \App\Http\Middleware\YayasanMiddleware::class,
+            'inventory.access' => \App\Http\Middleware\InventoryAccessMiddleware::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'force.password.change' => \App\Http\Middleware\ForcePasswordChange::class,

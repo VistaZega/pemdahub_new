@@ -3085,6 +3085,12 @@ Route::get('/run-migrations', function () {
         ]);
         $output .= "<h3>Seeder Ekstrakurikuler & English Club LMS Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
 
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\InventorySeeder',
+            '--force' => true,
+        ]);
+        $output .= "<h3>Seeder PembdaINVENTORY Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+
         // Pastikan seluruh unit English Club yang sudah ada di DB otomatis mendapatkan Kelas LMS-nya
         $englishClubs = \App\Models\Extracurricular::where('name', 'LIKE', '%English%')->get();
         foreach ($englishClubs as $ec) {
