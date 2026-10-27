@@ -56,14 +56,17 @@
         </div>
 
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div class="space-y-2">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold tracking-wider uppercase">
-                    <i class="fas fa-shield-alt"></i> Khusus Yayasan & Akun Yang Ditunjuk
+            <div class="space-y-2.5">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-indigo-200 text-xs font-extrabold tracking-wider uppercase">
+                    <i class="fas fa-shield-alt text-amber-400"></i> Khusus Yayasan & Akun Yang Ditunjuk
                 </div>
-                <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-3">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 via-white to-amber-200">PembdaINVENTORY</span>
+                <h1 class="text-2xl sm:text-4xl font-black tracking-tight flex items-center gap-2.5">
+                    <span class="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-indigo-600 border border-indigo-400/40 text-white shadow-md">
+                        <i class="fas fa-boxes-stacked text-base sm:text-lg"></i>
+                    </span>
+                    <span style="color: #ffffff !important;" class="text-white drop-shadow-md">Pembda</span><span style="color: #fbbf24 !important;" class="text-amber-400 drop-shadow-md font-black">INVENTORY</span>
                 </h1>
-                <p class="text-sm sm:text-base text-slate-300 max-w-2xl font-medium leading-relaxed">
+                <p class="text-sm sm:text-base text-slate-200 max-w-2xl font-medium leading-relaxed">
                     Sistem Tata Kelola & Pencatatan Aset Terpadu Yayasan Perguruan Pembda Nias, SMAS Pembda 1, SMK Swasta Pembda Nias, dan SMPS Pembda 2 Gunungsitoli.
                 </p>
             </div>
