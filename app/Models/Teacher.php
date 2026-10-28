@@ -405,6 +405,7 @@ class Teacher extends Model
     public function allSchools()
     {
         $schools = collect();
+        $tIds = $this->allTeacherIds();
 
         // 1. Sekolah utama dari kolom school_id
         if ($this->school) {
@@ -416,24 +417,44 @@ class Teacher extends Model
             $schools->push($this->user->school);
         }
 
-        // 3. Sekolah tambahan dari pivot teacher_schools
+        // 3. Sekolah dari profil guru lain milik user/pegawai yang sama (multi-unit)
         try {
-            $additional = $this->additionalSchools()->get();
-            foreach ($additional as $addSchool) {
-                if (!$schools->contains('id', $addSchool->id)) {
-                    $schools->push($addSchool);
+            $siblingSchools = self::whereIn('id', $tIds)
+                ->whereNotNull('school_id')
+                ->with('school')
+                ->get()
+                ->pluck('school')
+                ->filter();
+            foreach ($siblingSchools as $ss) {
+                if (!$schools->contains('id', $ss->id)) {
+                    $schools->push($ss);
                 }
             }
         } catch (\Throwable $e) {}
 
-        // 4. Sekolah dari Teaching Assignments (Pembagian Tugas Mengajar)
+        // 4. Sekolah tambahan dari pivot teacher_schools
         try {
-            $taSchools = TeachingAssignment::where('teacher_id', $this->id)
+            $pivotSchoolIds = \Illuminate\Support\Facades\DB::table('teacher_schools')
+                ->whereIn('teacher_id', $tIds)
+                ->pluck('school_id')
+                ->toArray();
+            if (!empty($pivotSchoolIds)) {
+                $pSchools = School::whereIn('id', $pivotSchoolIds)->get();
+                foreach ($pSchools as $ps) {
+                    if (!$schools->contains('id', $ps->id)) {
+                        $schools->push($ps);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 5. Sekolah dari Teaching Assignments (Pembagian Tugas Mengajar)
+        try {
+            $taSchools = TeachingAssignment::whereIn('teacher_id', $tIds)
                 ->where('is_active', true)
-                ->whereHas('classroom.school')
-                ->with('classroom.school')
+                ->with(['classroom.school', 'subject.school'])
                 ->get()
-                ->pluck('classroom.school')
+                ->flatMap(fn($ta) => [$ta->classroom?->school, $ta->subject?->school])
                 ->filter();
             foreach ($taSchools as $taSchool) {
                 if (!$schools->contains('id', $taSchool->id)) {
@@ -442,9 +463,9 @@ class Teacher extends Model
             }
         } catch (\Throwable $e) {}
 
-        // 5. Sekolah dari Schedules (Jadwal Mengajar Harian)
+        // 6. Sekolah dari Schedules (Jadwal Mengajar Harian)
         try {
-            $schedSchools = Schedule::where('teacher_id', $this->id)
+            $schedSchools = Schedule::whereIn('teacher_id', $tIds)
                 ->whereHas('school')
                 ->with('school')
                 ->get()
@@ -457,24 +478,26 @@ class Teacher extends Model
             }
         } catch (\Throwable $e) {}
 
-        // 6. Sekolah dari LMS Courses & LMS Classes
+        // 7. Sekolah dari LMS Courses & LMS Classes
         try {
-            $lmsSchools = LmsCourse::where('teacher_id', $this->id)
-                ->with('classes.school')
-                ->get()
-                ->flatMap->classes
-                ->pluck('school')
-                ->filter();
-            foreach ($lmsSchools as $lmsSchool) {
-                if (!$schools->contains('id', $lmsSchool->id)) {
-                    $schools->push($lmsSchool);
+            $lmsCourses = LmsCourse::whereIn('teacher_id', $tIds)
+                ->with(['classes.school', 'school'])
+                ->get();
+            foreach ($lmsCourses as $course) {
+                if ($course->school && !$schools->contains('id', $course->school_id)) {
+                    $schools->push($course->school);
+                }
+                foreach ($course->classes as $cls) {
+                    if ($cls->school && !$schools->contains('id', $cls->school_id)) {
+                        $schools->push($cls->school);
+                    }
                 }
             }
         } catch (\Throwable $e) {}
 
-        // 7. Sekolah dari Wali Kelas (Homeroom Classroom)
+        // 8. Sekolah dari Wali Kelas (Homeroom Classroom)
         try {
-            $hrSchools = Classroom::where('homeroom_teacher_id', $this->id)
+            $hrSchools = Classroom::whereIn('homeroom_teacher_id', $tIds)
                 ->whereHas('school')
                 ->with('school')
                 ->get()
@@ -487,7 +510,28 @@ class Teacher extends Model
             }
         } catch (\Throwable $e) {}
 
-        return $schools->sortBy('name')->values();
+        // 9. Fallback: Cocokkan nama guru yang identik di unit lain jika ada duplikat data guru lama
+        try {
+            $cleanName = trim($this->full_name ?? '');
+            if (!empty($cleanName)) {
+                $nameMatchSchools = self::where('full_name', $cleanName)
+                    ->whereNotNull('school_id')
+                    ->with('school')
+                    ->get()
+                    ->pluck('school')
+                    ->filter();
+                foreach ($nameMatchSchools as $ms) {
+                    if (!$schools->contains('id', $ms->id)) {
+                        $schools->push($ms);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // Filter: Hanya sekolah aktif dan bukan Yayasan
+        return $schools->filter(function($s) {
+            return $s && strtolower($s->type ?? '') !== 'yayasan' && ($s->is_active ?? true);
+        })->sortBy('name')->values();
     }
 
     /**

@@ -449,9 +449,9 @@
                         @if($availableSchools->count() > 1)
                             <div class="relative" x-data="{ openSchool: false }">
                                 <button @click="openSchool = !openSchool" @click.away="openSchool = false"
-                                    class="hidden sm:flex items-center gap-1.5 bg-white/15 hover:bg-white/25 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-white transition border border-white/20 shadow-sm">
+                                    class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-white transition border border-white/20 shadow-sm">
                                     <i class="fas fa-school text-amber-300"></i>
-                                    <span class="max-w-[120px] truncate">{{ $activeSchool->name ?? 'Pilih Unit' }}</span>
+                                    <span class="max-w-[75px] sm:max-w-[120px] truncate">{{ $activeSchool->name ?? 'Pilih Unit' }}</span>
                                     <i class="fas fa-chevron-down text-[9px] ml-0.5 transition-transform" :class="{ 'rotate-180': openSchool }"></i>
                                 </button>
                                 <div x-show="openSchool" x-transition:enter="transition ease-out duration-100"

@@ -962,17 +962,53 @@ class User extends Authenticatable
             return School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
         }
 
-        // Guru biasa → sekolah utama + sekolah tambahan dari pivot
-        if ($this->teacher) {
-            return $this->teacher->allSchools();
+        $schools = collect();
+
+        // 1. Kumpulkan dari seluruh Teacher record yang berelasi dengan user ini
+        $tIds = $this->teacherIds();
+        if (!empty($tIds)) {
+            $teachers = Teacher::whereIn('id', $tIds)->get();
+            foreach ($teachers as $t) {
+                $tSchools = $t->allSchools();
+                foreach ($tSchools as $s) {
+                    if (!$schools->contains('id', $s->id)) {
+                        $schools->push($s);
+                    }
+                }
+            }
+        } elseif ($this->teacher) {
+            $schools = $this->teacher->allSchools();
         }
 
-        // Fallback → hanya sekolah sendiri
-        if ($this->school_id) {
-            return School::where('id', $this->school_id)->get();
+        // 2. Sekolah dari user itu sendiri
+        if ($this->school && !$schools->contains('id', $this->school_id)) {
+            $schools->push($this->school);
         }
 
-        return collect();
+        // 3. Sekolah dari employee jika ada
+        $employee = $this->employee ?? ($this->teacher?->employee_id ? \App\Models\Employee::find($this->teacher->employee_id) : null);
+        if ($employee && $employee->school && !$schools->contains('id', $employee->school_id)) {
+            $schools->push($employee->school);
+        }
+
+        // Filter: hanya unit sekolah (bukan yayasan) & aktif
+        $schools = $schools->filter(function($s) {
+            return $s && strtolower($s->type ?? '') !== 'yayasan' && ($s->is_active ?? true);
+        })->values();
+
+        if ($schools->isEmpty() && $this->school_id) {
+            $s = School::find($this->school_id);
+            if ($s && strtolower($s->type ?? '') !== 'yayasan') {
+                $schools->push($s);
+            }
+        }
+
+        // Fallback jika guru belum terhubung sekolah apapun: tampilkan 3 unit sekolah aktif
+        if ($schools->isEmpty() && ($this->isGuru() || !empty($tIds))) {
+            return School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
+        }
+
+        return $schools->sortBy('name')->values();
     }
 
     /**
@@ -999,11 +1035,7 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($this->teacher) {
-            return $this->teacher->allSchools()->count() > 1;
-        }
-
-        return false;
+        return $this->getAvailableSchools()->count() > 1;
     }
 
     /**

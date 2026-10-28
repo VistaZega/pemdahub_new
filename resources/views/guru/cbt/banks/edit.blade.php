@@ -1,18 +1,41 @@
 @extends('layouts.guru')
 @section('title', 'Edit Bank Soal')
 @section('content')
-<div class="space-y-8">
+<div class="space-y-8" x-data="{
+    schoolsData: {{ json_encode($schoolsData) }},
+    selectedSchoolId: '{{ old('school_id', $bank->school_id) }}',
+    selectedSubjectId: '{{ old('subject_id', $bank->subject_id) }}',
+    selectedGradeLevel: '{{ old('grade_level', $bank->grade_level) }}',
+    gradeLevels: [],
+    subjects: [],
+    init() {
+        this.updateSchoolData();
+    },
+    updateSchoolData() {
+        const sch = this.schoolsData[this.selectedSchoolId];
+        if (sch) {
+            this.gradeLevels = sch.grade_levels || [];
+            this.subjects = sch.subjects || [];
+        }
+    }
+}">
     {{-- Hero Header --}}
     <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 rounded-2xl p-8 text-white">
         <div class="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -mb-12 -ml-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative flex items-center gap-5">
-            <a href="{{ route('guru.cbt.banks.show', $bank) }}" class="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center hover:bg-white/25 transition border border-gray-200">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight">Edit Bank Soal</h1>
-                <p class="text-emerald-50 mt-1 text-base">{{ $bank->bank_name }}</p>
+        <div class="relative flex items-center justify-between gap-4">
+            <div class="flex items-center gap-5">
+                <a href="{{ route('guru.cbt.banks.show', $bank) }}" class="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center hover:bg-white/25 transition border border-gray-200">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Edit Bank Soal</h1>
+                    <p class="text-emerald-50 mt-1 text-base">{{ $bank->bank_name }}</p>
+                </div>
+            </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 text-white rounded-lg text-xs font-bold border border-white/20">
+                <i class="fas fa-school text-amber-300"></i>
+                <span x-text="schoolsData[selectedSchoolId]?.name || '{{ $school->name }}'"></span>
             </div>
         </div>
     </div>
@@ -47,22 +70,45 @@
                         placeholder="Contoh: UAS Matematika Kelas 10 Semester 1">
                     @error('bank_name')<p class="text-red-500 text-base mt-1">{{ $message }}</p>@enderror
                 </div>
+
+                {{-- Unit Sekolah --}}
+                <div class="md:col-span-2">
+                    <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Unit Sekolah <span class="text-red-500">*</span></label>
+                    @if(count($availableSchools) > 1)
+                    <select name="school_id" x-model="selectedSchoolId" @change="updateSchoolData()" required
+                        class="w-full rounded-xl border-2 border-emerald-500/60 shadow-sm focus:border-emerald-600 focus:ring-emerald-600 px-4 py-3 text-gray-900 font-bold text-base bg-emerald-50/50">
+                        @foreach($availableSchools as $sch)
+                        <option value="{{ $sch->id }}" {{ old('school_id', $bank->school_id) == $sch->id ? 'selected' : '' }}>
+                            {{ $sch->name }} ({{ strtoupper($sch->type) }})
+                        </option>
+                        @endforeach
+                    </select>
+                    @else
+                    <input type="hidden" name="school_id" :value="selectedSchoolId">
+                    <div class="flex items-center gap-2.5 p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-bold text-base">
+                        <i class="fas fa-school text-emerald-600"></i>
+                        <span>{{ $school->name }} ({{ strtoupper($school->type) }})</span>
+                    </div>
+                    @endif
+                    @error('school_id')<p class="text-red-500 text-base mt-1 font-bold">{{ $message }}</p>@enderror
+                </div>
+
                 <div>
                     <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Mata Pelajaran <span class="text-red-500">*</span></label>
-                    <select name="subject_id" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800">
+                    <select name="subject_id" x-model="selectedSubjectId" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800">
                         <option value="">-- Pilih Mapel --</option>
-                        @foreach($subjects as $subj)
-                        <option value="{{ $subj->id }}" {{ old('subject_id', $bank->subject_id) == $subj->id ? 'selected' : '' }}>{{ $subj->subject_name ?? $subj->name }}</option>
-                        @endforeach
+                        <template x-for="subj in subjects" :key="subj.id">
+                            <option :value="subj.id" x-text="subj.name" :selected="String(subj.id) === String(selectedSubjectId)"></option>
+                        </template>
                     </select>
                     @error('subject_id')<p class="text-red-500 text-base mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Tingkat Kelas <span class="text-red-500">*</span></label>
-                    <select name="grade_level" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800">
-                        @foreach($gradeLevels as $gl)
-                        <option value="{{ $gl }}" {{ old('grade_level', $bank->grade_level) == $gl ? 'selected' : '' }}>Kelas {{ $gl }}</option>
-                        @endforeach
+                    <select name="grade_level" x-model="selectedGradeLevel" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800">
+                        <template x-for="gl in gradeLevels" :key="gl">
+                            <option :value="gl" x-text="'Kelas ' + gl" :selected="String(gl) === String(selectedGradeLevel)"></option>
+                        </template>
                     </select>
                     @error('grade_level')<p class="text-red-500 text-base mt-1">{{ $message }}</p>@enderror
                 </div>

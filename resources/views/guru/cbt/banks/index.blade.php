@@ -1,7 +1,31 @@
 @extends('layouts.guru')
 @section('title', 'Bank Soal')
 @section('content')
-<div class="space-y-8" x-data="{ showModal: false }">
+<div class="space-y-8" x-data="{
+    showModal: false,
+    schoolsData: {{ json_encode($schoolsData) }},
+    selectedSchoolId: '{{ $selectedSchoolId ?: $school->id }}',
+    selectedSubjectId: '',
+    selectedGradeLevel: '',
+    gradeLevels: [],
+    subjects: [],
+    init() {
+        this.updateSchoolData();
+    },
+    updateSchoolData() {
+        const sch = this.schoolsData[this.selectedSchoolId];
+        if (sch) {
+            this.gradeLevels = sch.grade_levels || [];
+            this.subjects = sch.subjects || [];
+            if (!this.gradeLevels.map(String).includes(String(this.selectedGradeLevel))) {
+                this.selectedGradeLevel = this.gradeLevels.length > 0 ? String(this.gradeLevels[0]) : '';
+            }
+            if (!this.subjects.some(s => String(s.id) === String(this.selectedSubjectId))) {
+                this.selectedSubjectId = '';
+            }
+        }
+    }
+}">
     {{-- Hero Header (Neo-Brutalism) --}}
     <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 md:p-8 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #0f766e 100%) !important;">
         <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -19,12 +43,28 @@
                         class="px-5 py-2.5 bg-white text-black border-2 border-black rounded-2xl font-black text-xs uppercase tracking-wider transition flex items-center gap-2 shadow-md cursor-pointer">
                     <i class="fas fa-file-import text-black"></i><span>Import Soal</span>
                 </button>
-                <a href="{{ route('guru.cbt.banks.create') }}" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl font-black text-xs uppercase tracking-wider shadow-md transition flex items-center gap-2">
+                <a href="{{ route('guru.cbt.banks.create', $selectedSchoolId ? ['school_id' => $selectedSchoolId] : []) }}" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black border-2 border-black rounded-2xl font-black text-xs uppercase tracking-wider shadow-md transition flex items-center gap-2">
                     <i class="fas fa-plus text-black"></i><span>Buat Bank Soal</span>
                 </a>
             </div>
         </div>
     </div>
+
+    {{-- Filter Unit Sekolah (Multi-School Guru) --}}
+    @if(count($availableSchools) > 1)
+    <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <a href="{{ route('guru.cbt.banks.index') }}"
+           class="px-4 py-2.5 rounded-xl text-xs md:text-sm font-black transition flex items-center gap-2 whitespace-nowrap {{ !$selectedSchoolId ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200' }}">
+            <i class="fas fa-layer-group"></i> Semua Unit ({{ $banks->total() }})
+        </a>
+        @foreach($availableSchools as $sch)
+        <a href="{{ route('guru.cbt.banks.index', ['school_id' => $sch->id]) }}"
+           class="px-4 py-2.5 rounded-xl text-xs md:text-sm font-black transition flex items-center gap-2 whitespace-nowrap {{ $selectedSchoolId == $sch->id ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200' }}">
+            <i class="fas fa-school text-amber-500"></i> {{ $sch->name }} ({{ strtoupper($sch->type) }})
+        </a>
+        @endforeach
+    </div>
+    @endif
 
     @if(session('success'))
     <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm">
@@ -62,9 +102,16 @@
                 <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <i class="fas fa-book text-emerald-600 text-lg"></i>
                 </div>
-                <span class="px-2.5 py-1 rounded-xl text-base font-bold border {{ $bank->is_active ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-gray-50 text-gray-700 border-gray-200' }}">
-                    {{ $bank->is_active ? 'Aktif' : 'Nonaktif' }}
-                </span>
+                <div class="flex flex-col items-end gap-1">
+                    <span class="px-2.5 py-1 rounded-xl text-xs font-bold border {{ $bank->is_active ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-gray-50 text-gray-700 border-gray-200' }}">
+                        {{ $bank->is_active ? 'Aktif' : 'Nonaktif' }}
+                    </span>
+                    @if($bank->school)
+                    <span class="px-2 py-0.5 rounded-lg text-[11px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ $bank->school->name }}
+                    </span>
+                    @endif
+                </div>
             </div>
             <h3 class="font-bold text-gray-900 mb-1 group-hover:text-emerald-700 transition-colors">{{ $bank->bank_name }}</h3>
             <p class="text-base text-gray-700 mb-4">{{ $bank->subject->subject_name ?? $bank->subject->name ?? '-' }} &bull; Kelas {{ $bank->grade_level }}</p>
@@ -136,21 +183,42 @@
                             <label class="block text-sm font-bold text-gray-700 uppercase mb-1">Nama Bank Soal <span class="text-red-500">*</span></label>
                             <input type="text" name="bank_name" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5 text-gray-800 font-medium" placeholder="Contoh: UAS Matematika Kelas 10">
                         </div>
+
+                        {{-- Unit Sekolah (Multi-School Guru) --}}
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 uppercase mb-1">Unit Sekolah <span class="text-red-500">*</span></label>
+                            @if(count($availableSchools) > 1)
+                            <select name="school_id" x-model="selectedSchoolId" @change="updateSchoolData()" required
+                                class="w-full rounded-xl border-2 border-emerald-500/60 shadow-sm focus:border-emerald-600 focus:ring-emerald-600 px-4 py-2.5 text-gray-900 font-bold text-sm bg-emerald-50/50">
+                                @foreach($availableSchools as $sch)
+                                <option value="{{ $sch->id }}">{{ $sch->name }} ({{ strtoupper($sch->type) }})</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-gray-500 mt-1 font-medium"><i class="fas fa-info-circle text-emerald-600"></i> Pilih unit sekolah target (misal: SMK untuk Kelas 10-12 atau SMP untuk Kelas 7-9).</p>
+                            @else
+                            <input type="hidden" name="school_id" :value="selectedSchoolId">
+                            <div class="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-bold text-sm">
+                                <i class="fas fa-school text-emerald-600"></i>
+                                <span>{{ $school->name }} ({{ strtoupper($school->type) }})</span>
+                            </div>
+                            @endif
+                        </div>
+
                         <div>
                             <label class="block text-sm font-bold text-gray-700 uppercase mb-1">Mata Pelajaran <span class="text-red-500">*</span></label>
-                            <select name="subject_id" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5 text-gray-800 font-medium">
+                            <select name="subject_id" x-model="selectedSubjectId" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5 text-gray-800 font-medium">
                                 <option value="">-- Pilih Mapel --</option>
-                                @foreach($subjects as $subj)
-                                <option value="{{ $subj->id }}">{{ $subj->name }}</option>
-                                @endforeach
+                                <template x-for="subj in subjects" :key="subj.id">
+                                    <option :value="subj.id" x-text="subj.name" :selected="String(subj.id) === String(selectedSubjectId)"></option>
+                                </template>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 uppercase mb-1">Tingkat Kelas <span class="text-red-500">*</span></label>
-                            <select name="grade_level" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5 text-gray-800 font-medium">
-                                @foreach($gradeLevels as $gl)
-                                <option value="{{ $gl }}">Kelas {{ $gl }}</option>
-                                @endforeach
+                            <select name="grade_level" x-model="selectedGradeLevel" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5 text-gray-800 font-medium">
+                                <template x-for="gl in gradeLevels" :key="gl">
+                                    <option :value="gl" x-text="'Kelas ' + gl" :selected="String(gl) === String(selectedGradeLevel)"></option>
+                                </template>
                             </select>
                         </div>
                         <div class="md:col-span-2">

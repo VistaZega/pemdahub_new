@@ -47,6 +47,17 @@ class CbtController extends Controller
             abort(401);
         }
 
+        // 0. Coba ambil teacher berdasarkan school_id dari request jika ada
+        $reqSchoolId = request('school_id') ?: request('target_school_id') ?: request('unit_id');
+        if ($reqSchoolId && $user->canAccessSchool($reqSchoolId)) {
+            $teacher = Teacher::where('user_id', $user->id)
+                ->where('school_id', $reqSchoolId)
+                ->first();
+            if ($teacher) {
+                return $teacher;
+            }
+        }
+
         // 1. Coba ambil teacher berdasarkan active_school_id sesi saat ini
         $sessionSchoolId = session('active_school_id');
         if ($sessionSchoolId) {
@@ -299,70 +310,143 @@ class CbtController extends Controller
     // QUESTION BANKS
     // ==========================================
 
-    public function bankIndex()
+    public function bankIndex(Request $request)
     {
         $teacher = $this->resolveTeacher();
-        $school = $this->getEffectiveSchool($teacher);
-        $tIds = $this->getAllTeacherIds($teacher);
+        $user = Auth::user();
+        $availableSchools = $user ? $user->getAvailableSchools() : collect();
+        if ($availableSchools->isEmpty()) {
+            $availableSchools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
+        }
 
-        $banks = CbtQuestionBank::where(function ($q) use ($tIds, $school) {
-                $q->where(function ($sub) use ($tIds, $school) {
-                    $sub->whereIn('teacher_id', $tIds)
-                        ->where(function($sq) use ($school) {
-                            $sq->where('school_id', $school->id)->orWhereNull('school_id');
-                        });
-                })->orWhere(function ($sq) use ($school) {
-                    $sq->where('is_shared', true)
-                       ->where('school_id', $school->id);
-                });
+        $selectedSchoolId = $request->filled('school_id') && $user && $user->canAccessSchool($request->school_id)
+            ? (int) $request->school_id
+            : null;
+
+        $school = $selectedSchoolId ? School::find($selectedSchoolId) : $this->getEffectiveSchool($teacher);
+        $tIds = $this->getAllTeacherIds($teacher);
+        $accessibleSchoolIds = $availableSchools->pluck('id')->toArray();
+
+        $banks = CbtQuestionBank::where(function ($q) use ($tIds, $selectedSchoolId, $accessibleSchoolIds) {
+                if ($selectedSchoolId) {
+                    $q->where(function ($sub) use ($tIds, $selectedSchoolId) {
+                        $sub->whereIn('teacher_id', $tIds)
+                            ->where(function($sq) use ($selectedSchoolId) {
+                                $sq->where('school_id', $selectedSchoolId)->orWhereNull('school_id');
+                            });
+                    })->orWhere(function ($sq) use ($selectedSchoolId) {
+                        $sq->where('is_shared', true)
+                           ->where('school_id', $selectedSchoolId);
+                    });
+                } else {
+                    $q->whereIn('teacher_id', $tIds)
+                      ->orWhere(function ($sq) use ($accessibleSchoolIds) {
+                          $sq->where('is_shared', true)
+                             ->whereIn('school_id', $accessibleSchoolIds);
+                      });
+                }
             })
             ->with('subject', 'questions', 'school')
             ->orderByDesc('created_at')
             ->paginate(20)->withQueryString();
 
+        // Build schoolsData for modal import
+        $schoolsData = [];
+        foreach ($availableSchools as $sch) {
+            $schoolsData[$sch->id] = [
+                'id' => $sch->id,
+                'name' => $sch->name,
+                'type' => strtoupper($sch->type),
+                'grade_levels' => $sch->getGradeLevels(),
+                'subjects' => $this->getSubjectsForSchool($teacher, $sch)->map(fn($s) => [
+                    'id' => $s->id,
+                    'name' => $s->subject_name ?? $s->name,
+                ])->values()->all(),
+            ];
+        }
+
         $subjects = $this->getSubjectsForSchool($teacher, $school);
         $gradeLevels = $school->getGradeLevels();
 
-        return view('guru.cbt.banks.index', compact('banks', 'subjects', 'gradeLevels', 'school'));
+        return view('guru.cbt.banks.index', compact('banks', 'subjects', 'gradeLevels', 'school', 'availableSchools', 'schoolsData', 'selectedSchoolId'));
     }
 
-    public function bankCreate()
+    public function bankCreate(Request $request)
     {
         $teacher = $this->resolveTeacher();
-        $school = $this->getEffectiveSchool($teacher);
+        $user = Auth::user();
+        $availableSchools = $user ? $user->getAvailableSchools() : collect();
+        if ($availableSchools->isEmpty()) {
+            $availableSchools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
+        }
+
+        $selectedSchoolId = $request->filled('school_id') && $user && $user->canAccessSchool($request->school_id)
+            ? (int) $request->school_id
+            : $this->getEffectiveSchoolId($teacher);
+
+        $school = School::find($selectedSchoolId) ?? $this->getEffectiveSchool($teacher);
+
+        $schoolsData = [];
+        foreach ($availableSchools as $sch) {
+            $schoolsData[$sch->id] = [
+                'id' => $sch->id,
+                'name' => $sch->name,
+                'type' => strtoupper($sch->type),
+                'grade_levels' => $sch->getGradeLevels(),
+                'subjects' => $this->getSubjectsForSchool($teacher, $sch)->map(fn($s) => [
+                    'id' => $s->id,
+                    'name' => $s->subject_name ?? $s->name,
+                ])->values()->all(),
+            ];
+        }
 
         $subjects = $this->getSubjectsForSchool($teacher, $school);
         $gradeLevels = $school->getGradeLevels();
         $academicYear = AcademicYear::where('is_active', true)->first();
 
-        return view('guru.cbt.banks.create', compact('subjects', 'academicYear', 'teacher', 'gradeLevels', 'school'));
+        return view('guru.cbt.banks.create', compact('subjects', 'academicYear', 'teacher', 'gradeLevels', 'school', 'availableSchools', 'schoolsData'));
     }
 
     public function bankStore(Request $request)
     {
         $teacher = $this->resolveTeacher();
-        $school = $this->getEffectiveSchool($teacher);
+        $user = Auth::user();
 
+        $targetSchoolId = $request->input('school_id', $this->getEffectiveSchoolId($teacher));
+        if ($user && !$user->canAccessSchool($targetSchoolId)) {
+            abort(403, 'Anda tidak memiliki hak akses ke unit sekolah ini.');
+        }
+
+        $school = School::findOrFail($targetSchoolId);
         $allowedGrades = $school->getGradeLevelsRule();
 
         $validated = $request->validate([
+            'school_id' => 'nullable|exists:schools,id',
             'subject_id' => 'required|exists:subjects,id',
             'bank_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'grade_level' => "required|in:{$allowedGrades}",
             'is_shared' => 'boolean',
+        ], [
+            'grade_level.in' => "Tingkat kelas yang dipilih tidak valid untuk unit {$school->name} (Harus kelas: {$allowedGrades}).",
+            'subject_id.required' => 'Mata pelajaran wajib dipilih.',
+            'bank_name.required' => 'Nama bank soal wajib diisi.',
         ]);
 
         $academicYear = AcademicYear::where('is_active', true)->firstOrFail();
 
+        $targetTeacher = Teacher::where('user_id', $user?->id)
+            ->where('school_id', $school->id)
+            ->first() ?? $teacher;
+
         CbtQuestionBank::create(array_merge($validated, [
             'school_id' => $school->id,
-            'teacher_id' => $teacher->id,
+            'teacher_id' => $targetTeacher->id,
             'academic_year_id' => $academicYear->id,
         ]));
 
-        return redirect()->route('guru.cbt.banks.index')
-            ->with('success', 'Bank soal berhasil dibuat.');
+        return redirect()->route('guru.cbt.banks.index', ['school_id' => $school->id])
+            ->with('success', "Bank soal untuk {$school->name} (Kelas {$validated['grade_level']}) berhasil dibuat.");
     }
 
     /**
@@ -379,10 +463,18 @@ class CbtController extends Controller
     public function importBank(Request $request)
     {
         $teacher = $this->resolveTeacher();
-        $school = $this->getEffectiveSchool($teacher);
+        $user = Auth::user();
+
+        $targetSchoolId = $request->input('school_id', $this->getEffectiveSchoolId($teacher));
+        if ($user && !$user->canAccessSchool($targetSchoolId)) {
+            abort(403, 'Anda tidak memiliki hak akses ke unit sekolah ini.');
+        }
+
+        $school = School::findOrFail($targetSchoolId);
         $allowedGrades = $school->getGradeLevelsRule();
 
         $request->validate([
+            'school_id'   => 'nullable|exists:schools,id',
             'bank_name'   => 'required|string|max:255',
             'subject_id'  => 'required|exists:subjects,id',
             'grade_level' => "required|in:{$allowedGrades}",
@@ -396,6 +488,7 @@ class CbtController extends Controller
             'bank_name.required'   => 'Nama bank soal wajib diisi.',
             'subject_id.required'  => 'Mata pelajaran wajib dipilih.',
             'grade_level.required' => 'Tingkat kelas wajib dipilih.',
+            'grade_level.in'       => "Tingkat kelas yang dipilih tidak valid untuk unit {$school->name} (Harus kelas: {$allowedGrades}).",
         ]);
 
         $file = $request->file('import_file');
@@ -448,14 +541,18 @@ class CbtController extends Controller
 
             $academicYear = AcademicYear::where('is_active', true)->firstOrFail();
 
+            $targetTeacher = Teacher::where('user_id', $user?->id)
+                ->where('school_id', $school->id)
+                ->first() ?? $teacher;
+
             $bank = CbtQuestionBank::create([
                 'school_id'        => $school->id,
                 'subject_id'       => $request->subject_id,
-                'teacher_id'       => $teacher->id,
+                'teacher_id'       => $targetTeacher->id,
                 'academic_year_id' => $academicYear->id,
                 'bank_name'        => $request->bank_name,
                 'description'      => $request->description,
-                'grade_level'      => $request->grade_level,
+                'grade_level'      => (string) $request->grade_level,
                 'is_shared'        => $request->boolean('is_shared'),
                 'is_active'        => true,
             ]);
@@ -534,29 +631,63 @@ class CbtController extends Controller
     public function bankEdit(CbtQuestionBank $bank)
     {
         $teacher = $this->authorizeBank($bank);
+        $user = Auth::user();
+        $availableSchools = $user ? $user->getAvailableSchools() : collect();
+        if ($availableSchools->isEmpty()) {
+            $availableSchools = School::schoolsOnly()->where('is_active', true)->orderBy('name')->get();
+        }
+
         $school = $bank->school ?? School::find($bank->school_id) ?? $this->getEffectiveSchool($teacher);
+
+        $schoolsData = [];
+        foreach ($availableSchools as $sch) {
+            $schoolsData[$sch->id] = [
+                'id' => $sch->id,
+                'name' => $sch->name,
+                'type' => strtoupper($sch->type),
+                'grade_levels' => $sch->getGradeLevels(),
+                'subjects' => $this->getSubjectsForSchool($teacher, $sch)->map(fn($s) => [
+                    'id' => $s->id,
+                    'name' => $s->subject_name ?? $s->name,
+                ])->values()->all(),
+            ];
+        }
 
         $subjects = $this->getSubjectsForSchool($teacher, $school);
         $gradeLevels = $school->getGradeLevels();
 
-        return view('guru.cbt.banks.edit', compact('bank', 'subjects', 'gradeLevels', 'school'));
+        return view('guru.cbt.banks.edit', compact('bank', 'subjects', 'gradeLevels', 'school', 'availableSchools', 'schoolsData'));
     }
 
     public function bankUpdate(Request $request, CbtQuestionBank $bank)
     {
         $teacher = $this->authorizeBank($bank);
-        $school = $bank->school ?? School::find($bank->school_id) ?? $this->getEffectiveSchool($teacher);
+        $user = Auth::user();
+
+        $targetSchoolId = $request->input('school_id', $bank->school_id) ?: $this->getEffectiveSchoolId($teacher);
+        if ($user && !$user->canAccessSchool($targetSchoolId)) {
+            abort(403, 'Anda tidak memiliki hak akses ke unit sekolah ini.');
+        }
+
+        $school = School::findOrFail($targetSchoolId);
         $allowedGrades = $school->getGradeLevelsRule();
 
         $validated = $request->validate([
+            'school_id' => 'nullable|exists:schools,id',
             'subject_id' => 'required|exists:subjects,id',
             'bank_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'grade_level' => "required|in:{$allowedGrades}",
             'is_shared' => 'boolean',
+        ], [
+            'grade_level.in' => "Tingkat kelas yang dipilih tidak valid untuk unit {$school->name} (Harus kelas: {$allowedGrades}).",
+            'subject_id.required' => 'Mata pelajaran wajib dipilih.',
+            'bank_name.required' => 'Nama bank soal wajib diisi.',
         ]);
 
-        $bank->update($validated);
+        $bank->update(array_merge($validated, [
+            'school_id' => $school->id,
+        ]));
 
         return redirect()->route('guru.cbt.banks.show', $bank)
             ->with('success', 'Bank soal berhasil diperbarui.');

@@ -6,6 +6,34 @@
     isDragging: false,
     fileName: '',
     fileSize: '',
+    schoolsData: {{ json_encode($schoolsData) }},
+    selectedSchoolId: '{{ old('school_id', $school->id) }}',
+    selectedSubjectId: '{{ old('subject_id', '') }}',
+    selectedGradeLevel: '{{ old('grade_level', '') }}',
+    gradeLevels: [],
+    subjects: [],
+    init() {
+        this.updateSchoolData();
+    },
+    updateSchoolData() {
+        const sch = this.schoolsData[this.selectedSchoolId];
+        if (sch) {
+            this.gradeLevels = sch.grade_levels || [];
+            this.subjects = sch.subjects || [];
+            
+            // Check if current grade_level is valid for this school
+            const validGrades = this.gradeLevels.map(String);
+            if (!validGrades.includes(String(this.selectedGradeLevel))) {
+                this.selectedGradeLevel = this.gradeLevels.length > 0 ? String(this.gradeLevels[0]) : '';
+            }
+            
+            // Check if current subject is valid
+            const validSubjectIds = this.subjects.map(s => String(s.id));
+            if (!validSubjectIds.includes(String(this.selectedSubjectId))) {
+                this.selectedSubjectId = '';
+            }
+        }
+    },
     handleFileSelect(e) {
         const file = e.target.files[0];
         if (file) {
@@ -42,7 +70,7 @@
                     @if(isset($school))
                     <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-white/20 text-white rounded-lg text-xs font-bold border border-white/20 shadow-xs">
                         <i class="fas fa-school text-amber-300"></i>
-                        <span>Unit: {{ $school->name }} ({{ strtoupper($school->type) }})</span>
+                        <span>Unit: <span x-text="schoolsData[selectedSchoolId]?.name || '{{ $school->name }}'"></span> (<span x-text="schoolsData[selectedSchoolId]?.type || '{{ strtoupper($school->type) }}'"></span>)</span>
                     </div>
                     @endif
                 </div>
@@ -114,22 +142,50 @@
                             placeholder="Contoh: UAS Matematika Kelas 10 Semester 1">
                         @error('bank_name')<p class="text-red-500 text-base mt-1 font-bold">{{ $message }}</p>@enderror
                     </div>
+
+                    {{-- Unit Sekolah (Multi-School Support) --}}
+                    <div class="md:col-span-2">
+                        <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Unit Sekolah <span class="text-red-500">*</span></label>
+                        @if(count($availableSchools) > 1)
+                        <div class="relative">
+                            <select name="school_id" x-model="selectedSchoolId" @change="updateSchoolData()" required
+                                class="w-full rounded-xl border-2 border-emerald-500/60 shadow-sm focus:border-emerald-600 focus:ring-emerald-600 px-4 py-3 text-gray-900 font-bold text-base bg-emerald-50/50">
+                                @foreach($availableSchools as $sch)
+                                <option value="{{ $sch->id }}">{{ $sch->name }} ({{ strtoupper($sch->type) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1.5 font-medium flex items-center gap-1.5">
+                            <i class="fas fa-info-circle text-emerald-600"></i>
+                            <span>Pilih unit sekolah target (misal: <strong>SMK</strong> untuk Kelas 10, 11, 12 atau <strong>SMP</strong> untuk Kelas 7, 8, 9). Tingkat kelas & mapel akan otomatis menyesuaikan.</span>
+                        </p>
+                        @else
+                        <input type="hidden" name="school_id" :value="selectedSchoolId">
+                        <div class="flex items-center gap-2.5 p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-bold text-base">
+                            <i class="fas fa-school text-emerald-600"></i>
+                            <span>{{ $school->name }} ({{ strtoupper($school->type) }})</span>
+                        </div>
+                        @endif
+                        @error('school_id')<p class="text-red-500 text-base mt-1 font-bold">{{ $message }}</p>@enderror
+                    </div>
+
                     <div>
                         <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Mata Pelajaran <span class="text-red-500">*</span></label>
-                        <select name="subject_id" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800 font-medium text-base">
+                        <select name="subject_id" x-model="selectedSubjectId" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800 font-medium text-base">
                             <option value="">-- Pilih Mapel --</option>
-                            @foreach($subjects as $subj)
-                            <option value="{{ $subj->id }}" {{ old('subject_id') == $subj->id ? 'selected' : '' }}>{{ $subj->name }}</option>
-                            @endforeach
+                            <template x-for="subj in subjects" :key="subj.id">
+                                <option :value="subj.id" x-text="subj.name" :selected="String(subj.id) === String(selectedSubjectId)"></option>
+                            </template>
                         </select>
                         @error('subject_id')<p class="text-red-500 text-base mt-1 font-bold">{{ $message }}</p>@enderror
                     </div>
+
                     <div>
                         <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Tingkat Kelas <span class="text-red-500">*</span></label>
-                        <select name="grade_level" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800 font-medium text-base">
-                            @foreach($gradeLevels as $gl)
-                            <option value="{{ $gl }}" {{ old('grade_level') == $gl ? 'selected' : '' }}>Kelas {{ $gl }}</option>
-                            @endforeach
+                        <select name="grade_level" x-model="selectedGradeLevel" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-3 text-gray-800 font-medium text-base">
+                            <template x-for="gl in gradeLevels" :key="gl">
+                                <option :value="gl" x-text="'Kelas ' + gl" :selected="String(gl) === String(selectedGradeLevel)"></option>
+                            </template>
                         </select>
                         @error('grade_level')<p class="text-red-500 text-base mt-1 font-bold">{{ $message }}</p>@enderror
                     </div>
@@ -184,21 +240,48 @@
                             class="w-full rounded-xl border-gray-200 shadow-sm focus:border-teal-500 focus:ring-teal-500 px-4 py-3 text-gray-800 font-medium text-base"
                             placeholder="Contoh: UAS Matematika Kelas 10 Semester 1 (Import)">
                     </div>
+
+                    {{-- Unit Sekolah (Multi-School Support) --}}
+                    <div class="md:col-span-2">
+                        <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Unit Sekolah <span class="text-red-500">*</span></label>
+                        @if(count($availableSchools) > 1)
+                        <div class="relative">
+                            <select name="school_id" x-model="selectedSchoolId" @change="updateSchoolData()" required
+                                class="w-full rounded-xl border-2 border-teal-500/60 shadow-sm focus:border-teal-600 focus:ring-teal-600 px-4 py-3 text-gray-900 font-bold text-base bg-teal-50/50">
+                                @foreach($availableSchools as $sch)
+                                <option value="{{ $sch->id }}">{{ $sch->name }} ({{ strtoupper($sch->type) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1.5 font-medium flex items-center gap-1.5">
+                            <i class="fas fa-info-circle text-teal-600"></i>
+                            <span>Pilih unit sekolah target (misal: <strong>SMK</strong> untuk Kelas 10, 11, 12 atau <strong>SMP</strong> untuk Kelas 7, 8, 9). Tingkat kelas & mapel akan otomatis menyesuaikan.</span>
+                        </p>
+                        @else
+                        <input type="hidden" name="school_id" :value="selectedSchoolId">
+                        <div class="flex items-center gap-2.5 p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-bold text-base">
+                            <i class="fas fa-school text-teal-600"></i>
+                            <span>{{ $school->name }} ({{ strtoupper($school->type) }})</span>
+                        </div>
+                        @endif
+                    </div>
+
                     <div>
                         <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Mata Pelajaran <span class="text-red-500">*</span></label>
-                        <select name="subject_id" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-teal-500 focus:ring-teal-500 px-4 py-3 text-gray-800 font-medium text-base">
+                        <select name="subject_id" x-model="selectedSubjectId" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-teal-500 focus:ring-teal-500 px-4 py-3 text-gray-800 font-medium text-base">
                             <option value="">-- Pilih Mapel --</option>
-                            @foreach($subjects as $subj)
-                            <option value="{{ $subj->id }}" {{ old('subject_id') == $subj->id ? 'selected' : '' }}>{{ $subj->name }}</option>
-                            @endforeach
+                            <template x-for="subj in subjects" :key="subj.id">
+                                <option :value="subj.id" x-text="subj.name" :selected="String(subj.id) === String(selectedSubjectId)"></option>
+                            </template>
                         </select>
                     </div>
+
                     <div>
                         <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Tingkat Kelas <span class="text-red-500">*</span></label>
-                        <select name="grade_level" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-teal-500 focus:ring-teal-500 px-4 py-3 text-gray-800 font-medium text-base">
-                            @foreach($gradeLevels as $gl)
-                            <option value="{{ $gl }}" {{ old('grade_level') == $gl ? 'selected' : '' }}>Kelas {{ $gl }}</option>
-                            @endforeach
+                        <select name="grade_level" x-model="selectedGradeLevel" required class="w-full rounded-xl border-gray-200 shadow-sm focus:border-teal-500 focus:ring-teal-500 px-4 py-3 text-gray-800 font-medium text-base">
+                            <template x-for="gl in gradeLevels" :key="gl">
+                                <option :value="gl" x-text="'Kelas ' + gl" :selected="String(gl) === String(selectedGradeLevel)"></option>
+                            </template>
                         </select>
                     </div>
                     <div class="md:col-span-2">

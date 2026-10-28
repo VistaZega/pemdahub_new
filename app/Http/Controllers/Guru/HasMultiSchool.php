@@ -24,19 +24,37 @@ trait HasMultiSchool
     {
         $user = Auth::user();
 
+        // Prioritas 0: request input atau query parameter (misal saat submit form atau filter halaman)
+        $reqSchoolId = request('school_id') ?: request('target_school_id') ?: request('unit_id');
+        if ($reqSchoolId && $user && $user->canAccessSchool($reqSchoolId)) {
+            return (int) $reqSchoolId;
+        }
+
         // Prioritas 1: session active_school_id (dari school switcher)
         $sessionSchoolId = session('active_school_id');
-        if ($sessionSchoolId && $user->canAccessSchool($sessionSchoolId)) {
+        if ($sessionSchoolId && $user && $user->canAccessSchool($sessionSchoolId)) {
             return (int) $sessionSchoolId;
         }
 
         // Prioritas 2: school_id dari teacher record
-        if ($teacher && $teacher->school_id) {
+        if ($teacher && $teacher->school_id && (!$user || $user->canAccessSchool($teacher->school_id))) {
             return $teacher->school_id;
         }
 
         // Prioritas 3: school_id dari user
-        return $user->school_id ?? 1;
+        if ($user && $user->school_id && $user->canAccessSchool($user->school_id)) {
+            return $user->school_id;
+        }
+
+        // Prioritas 4: Sekolah pertama yang tersedia bagi user
+        if ($user) {
+            $firstAvailable = $user->getAvailableSchools()->first();
+            if ($firstAvailable) {
+                return (int) $firstAvailable->id;
+            }
+        }
+
+        return 1;
     }
 
     /**
