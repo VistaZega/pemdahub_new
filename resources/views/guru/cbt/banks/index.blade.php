@@ -184,10 +184,10 @@
                             <input type="text" name="bank_name" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 px-4 py-2.5 text-gray-800 font-medium" placeholder="Contoh: UAS Matematika Kelas 10">
                         </div>
 
-                        {{-- Unit Sekolah (Multi-School Guru) --}}
+                        {{-- Unit Sekolah: Hanya tampil bagi guru yang tercatat multi-sekolah --}}
+                        @if(count($availableSchools) > 1)
                         <div class="md:col-span-2">
                             <label class="block text-sm font-bold text-gray-700 uppercase mb-1">Unit Sekolah <span class="text-red-500">*</span></label>
-                            @if(count($availableSchools) > 1)
                             <select name="school_id" x-model="selectedSchoolId" @change="updateSchoolData()" required
                                 class="w-full rounded-xl border-2 border-emerald-500/60 shadow-sm focus:border-emerald-600 focus:ring-emerald-600 px-4 py-2.5 text-gray-900 font-bold text-sm bg-emerald-50/50">
                                 @foreach($availableSchools as $sch)
@@ -195,14 +195,10 @@
                                 @endforeach
                             </select>
                             <p class="text-[11px] text-gray-500 mt-1 font-medium"><i class="fas fa-info-circle text-emerald-600"></i> Pilih unit sekolah target (misal: SMK untuk Kelas 10-12 atau SMP untuk Kelas 7-9).</p>
-                            @else
-                            <input type="hidden" name="school_id" :value="selectedSchoolId">
-                            <div class="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-bold text-sm">
-                                <i class="fas fa-school text-emerald-600"></i>
-                                <span>{{ $school->name }} ({{ strtoupper($school->type) }})</span>
-                            </div>
-                            @endif
                         </div>
+                        @else
+                        <input type="hidden" name="school_id" :value="selectedSchoolId">
+                        @endif
 
                         <div>
                             <label class="block text-sm font-bold text-gray-700 uppercase mb-1">Mata Pelajaran <span class="text-red-500">*</span></label>

@@ -33,10 +33,12 @@
                     <p class="text-emerald-50 mt-1 text-base">{{ $bank->bank_name }}</p>
                 </div>
             </div>
+            @if(count($availableSchools) > 1)
             <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 text-white rounded-lg text-xs font-bold border border-white/20">
                 <i class="fas fa-school text-amber-300"></i>
                 <span x-text="schoolsData[selectedSchoolId]?.name || '{{ $school->name }}'"></span>
             </div>
+            @endif
         </div>
     </div>
 
@@ -71,10 +73,10 @@
                     @error('bank_name')<p class="text-red-500 text-base mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                {{-- Unit Sekolah --}}
+                {{-- Unit Sekolah: Hanya tampil bagi guru yang tercatat multi-sekolah --}}
+                @if(count($availableSchools) > 1)
                 <div class="md:col-span-2">
                     <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Unit Sekolah <span class="text-red-500">*</span></label>
-                    @if(count($availableSchools) > 1)
                     <select name="school_id" x-model="selectedSchoolId" @change="updateSchoolData()" required
                         class="w-full rounded-xl border-2 border-emerald-500/60 shadow-sm focus:border-emerald-600 focus:ring-emerald-600 px-4 py-3 text-gray-900 font-bold text-base bg-emerald-50/50">
                         @foreach($availableSchools as $sch)
@@ -83,15 +85,11 @@
                         </option>
                         @endforeach
                     </select>
-                    @else
-                    <input type="hidden" name="school_id" :value="selectedSchoolId">
-                    <div class="flex items-center gap-2.5 p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-bold text-base">
-                        <i class="fas fa-school text-emerald-600"></i>
-                        <span>{{ $school->name }} ({{ strtoupper($school->type) }})</span>
-                    </div>
-                    @endif
                     @error('school_id')<p class="text-red-500 text-base mt-1 font-bold">{{ $message }}</p>@enderror
                 </div>
+                @else
+                <input type="hidden" name="school_id" :value="selectedSchoolId">
+                @endif
 
                 <div>
                     <label class="block text-base font-bold text-gray-700 uppercase tracking-wider mb-1.5">Mata Pelajaran <span class="text-red-500">*</span></label>
