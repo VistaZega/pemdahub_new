@@ -33,6 +33,10 @@ Route::prefix('m')->name('mobile.')->group(function () {
         return redirect()->route('mobile.login');
     });
 
+    // Publikasi & Kampanye OSIS Mobile (Guest & Auth)
+    Route::get('/osis', [App\Http\Controllers\OsisElectionController::class, 'publicMobileIndex'])->name('osis');
+    Route::get('/osis/{slug}', [App\Http\Controllers\OsisElectionController::class, 'publicMobileIndex'])->name('osis.slug');
+
     Route::get('/pwa-reset', function () {
         return response('<!DOCTYPE html>
 <html lang="id">

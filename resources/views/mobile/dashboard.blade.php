@@ -196,6 +196,52 @@
     </div>
     @endif
 
+    {{-- 🗳️ PEMILIHAN OSIS LIVE ALERT (DASHBOARD MOBILE) --}}
+    @php
+        $activeOsisMobile = \App\Models\OsisElection::with('school')
+            ->where('is_active', true)
+            ->whereIn('status', ['voting_open', 'upcoming'])
+            ->latest()
+            ->first();
+        
+        $hasVotedMobile = false;
+        if ($activeOsisMobile && auth()->check()) {
+            $hasVotedMobile = \App\Models\OsisVoter::where('election_id', $activeOsisMobile->id)
+                ->where('user_id', auth()->id())
+                ->where('has_voted', true)
+                ->exists();
+        }
+    @endphp
+
+    @if($activeOsisMobile)
+    <div class="rounded-2xl p-3 border-2 border-slate-900 shadow-md relative overflow-hidden text-white mb-2"
+         style="background: linear-gradient(135deg, #090d16 0%, #1e3a8a 60%, #064e3b 100%);">
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-lg text-emerald-400 shrink-0">
+                    <i class="fa-solid fa-check-to-slot {{ !$hasVotedMobile ? 'animate-bounce' : '' }}"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full {{ $hasVotedMobile ? 'bg-emerald-500/30 text-emerald-300' : 'bg-amber-400 text-slate-950 font-black' }}">
+                            {{ $hasVotedMobile ? '✓ SUDAH MEMILIH' : '🗳️ PEMILIHAN OSIS' }}
+                        </span>
+                    </div>
+                    <h4 class="text-xs font-black text-white truncate mt-0.5">
+                        {{ $activeOsisMobile->title }}
+                    </h4>
+                </div>
+            </div>
+
+            <a href="{{ route('osis.booth') }}" 
+               class="px-3 py-1.5 rounded-xl {{ $hasVotedMobile ? 'bg-white/10 text-white' : 'bg-emerald-500 text-slate-950 font-black' }} text-xs shrink-0 flex items-center gap-1 shadow border border-black/20">
+                <span>{{ $hasVotedMobile ? 'Lihat' : 'Coblos' }}</span>
+                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+            </a>
+        </div>
+    </div>
+    @endif
+
     <!-- 🕒 Compact Quick Presensi Bar (Guru / Pegawai / Siswa) -->
     @php
         $isNotCheckedOut = empty($todayAttendance) || !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';

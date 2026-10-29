@@ -189,6 +189,14 @@
         <span>Perjanjian Kinerja</span>
     </a>
 
+    <!-- Pemilihan OSIS -->
+    <a href="{{ route('osis.booth') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('osis.*') ? $ac : $nc }}">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #059669 !important; color: #ffffff !important;">
+            <i class="fas fa-check-to-slot text-[10px] text-white"></i>
+        </div>
+        <span>Pemilihan OSIS</span>
+    </a>
+
     @if(!$isPegawaiOnly)
     <!-- Asisten AI -->
     <div data-menu-group="asisten-ai" class="menu-group">

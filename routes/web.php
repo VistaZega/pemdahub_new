@@ -1544,6 +1544,11 @@ Route::get('/run-migrations', function () {
         echo $output;
         echo "\nExit Code: " . $exitCode . "\n\n";
 
+        echo "<h1>=== RUNNING OSIS ELECTION SEEDER ===</h1>\n";
+        $osisSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\OsisElectionSeeder', '--force' => true]);
+        echo \Illuminate\Support\Facades\Artisan::output();
+        echo "\nOsis Election Seeder Exit Code: " . $osisSeederExitCode . "\n\n";
+
         echo "<h1>=== RUNNING SURVEY SEEDER ===</h1>\n";
         $surveySeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'SurveySeeder', '--force' => true]);
         echo \Illuminate\Support\Facades\Artisan::output();
@@ -3087,6 +3092,12 @@ Route::get('/run-migrations', function () {
         $output .= "<h3>Migration Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
 
         \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\OsisElectionSeeder',
+            '--force' => true,
+        ]);
+        $output .= "<h3>Seeder Pemilihan OSIS SMK Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
             '--class' => 'Database\\Seeders\\FoundationLetterKabutAsapSeeder',
             '--force' => true,
         ]);
@@ -3137,6 +3148,12 @@ Route::get('/seed-edaran-kabut-asap', function () {
 
     $output = "<h2>📜 PembdaHUB Surat Edaran Kabut Asap Seeder</h2>";
     try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\OsisElectionSeeder',
+            '--force' => true,
+        ]);
+        $output .= "<h3>Seeder Pemilihan OSIS SMK Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+
         \Illuminate\Support\Facades\Artisan::call('db:seed', [
             '--class' => 'Database\\Seeders\\FoundationLetterKabutAsapSeeder',
             '--force' => true,
@@ -3242,3 +3259,12 @@ Route::get('/cbt/{exam}/livescore', [App\Http\Controllers\Admin\CbtCompetitionCo
     ->name('admin.cbt.competition.livescore');
 Route::get('/cbt/{exam}/livescore/data', [App\Http\Controllers\Admin\CbtCompetitionController::class, 'livescoreData'])
     ->name('admin.cbt.competition.livescore-data');
+
+// ── PORTAL PEMILIHAN OSIS (E-VOTING & KAMPANYE MULTI-UNIT) ────────────────
+Route::get('/osis', [App\Http\Controllers\OsisElectionController::class, 'publicIndex'])->name('osis.public');
+Route::get('/osis/{slug}', [App\Http\Controllers\OsisElectionController::class, 'publicIndex'])->name('osis.public.slug');
+Route::get('/pemilihan-osis', [App\Http\Controllers\OsisElectionController::class, 'booth'])->middleware('auth')->name('osis.booth');
+Route::post('/pemilihan-osis/vote', [App\Http\Controllers\OsisElectionController::class, 'submitVote'])->middleware('auth')->name('osis.vote');
+Route::get('/pemilihan-osis/real-count/{slug?}', [App\Http\Controllers\OsisElectionController::class, 'realCount'])->name('osis.real-count');
+Route::get('/pemilihan-osis/laporan/{id}', [App\Http\Controllers\OsisElectionController::class, 'printReport'])->middleware('auth')->name('osis.report');
+

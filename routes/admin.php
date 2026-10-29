@@ -659,6 +659,21 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::get('/{id}', [App\Http\Controllers\Admin\FoundationLetterReaderController::class, 'show'])->name('show');
         Route::get('/{id}/print', [App\Http\Controllers\Admin\FoundationLetterReaderController::class, 'print'])->name('print');
     });
+
+    // Manajemen Pemilihan OSIS (E-Voting)
+    Route::prefix('osis')->name('osis.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'update'])->name('update');
+        Route::get('/{id}/candidates', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'candidates'])->name('candidates');
+        Route::post('/{id}/candidates', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'storeCandidate'])->name('store-candidate');
+        Route::put('/{electionId}/candidates/{candidateId}', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'updateCandidate'])->name('update-candidate');
+        Route::delete('/{electionId}/candidates/{candidateId}', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'destroyCandidate'])->name('destroy-candidate');
+        Route::post('/{id}/generate-voters', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'generateVoters'])->name('generate-voters');
+        Route::post('/{id}/toggle-status', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'toggleStatus'])->name('toggle-status');
+    });
 });
 
 // User Management routes with all role permissions (gates are handled by UserPolicy)

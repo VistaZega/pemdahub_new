@@ -176,6 +176,9 @@
     {{-- 2. HERO & LIVE INTERACTIVE MOCKUP TERMINAL --}}
     @include('landing.partials.hero')
 
+    {{-- HIGHLIGHT BANNER PEMILIHAN OSIS --}}
+    @include('landing.partials.osis-banner')
+
     {{-- 3. ALUR 4 LANGKAH KBM --}}
     @include('landing.partials.platform-overview')
 
