@@ -356,4 +356,70 @@ class AdminOsisElectionController extends Controller
 
         return back()->with('success', $msg);
     }
+
+    /**
+     * Halaman Pengesahan Pengurus OSIS Terpilih & Reward 150 Poin
+     */
+    public function officers($id)
+    {
+        $election = OsisElection::with(['school', 'candidates', 'winnerCandidate'])->findOrFail($id);
+        
+        // Calon pemenang default: paslon dengan suara terbanyak
+        $leadingCandidate = $election->candidates()->orderBy('vote_count', 'desc')->first();
+        $selectedWinner = $election->winnerCandidate ?? $leadingCandidate;
+
+        // Ambil daftar siswa aktif dari sekolah ini untuk dropdown akun
+        $students = Student::with('user')
+            ->where('school_id', $election->school_id)
+            ->where('status', 'aktif')
+            ->whereNotNull('user_id')
+            ->orderBy('full_name', 'asc')
+            ->get();
+
+        return view('admin.osis.officers', compact('election', 'selectedWinner', 'students'));
+    }
+
+    /**
+     * Simpan Pengesahan Pengurus OSIS & Berikan 150 Poin Reputasi
+     */
+    public function assignOfficers(Request $request, $id)
+    {
+        $election = OsisElection::findOrFail($id);
+
+        $request->validate([
+            'candidate_id' => 'required|exists:osis_candidates,id',
+            'leader_user_id' => 'nullable|exists:users,id',
+            'secretary_user_id' => 'nullable|exists:users,id',
+            'treasurer_user_id' => 'nullable|exists:users,id',
+            'vice_user_id' => 'nullable|exists:users,id',
+        ]);
+
+        $candidate = OsisCandidate::where('election_id', $election->id)->findOrFail($request->candidate_id);
+
+        // Update akun user pengurus di paslon
+        $candidate->update([
+            'leader_user_id' => $request->leader_user_id,
+            'secretary_user_id' => $request->secretary_user_id,
+            'treasurer_user_id' => $request->treasurer_user_id,
+            'vice_user_id' => $request->vice_user_id,
+            'is_winner' => true,
+        ]);
+
+        // Berikan 150 Poin ke masing-masing pengurus yang terhubung
+        $awardedList = $candidate->awardOfficerPoints(150);
+
+        // Update status election menjadi completed
+        $election->update([
+            'winner_candidate_id' => $candidate->id,
+            'status' => 'completed',
+            'announcement_date' => Carbon::now(),
+        ]);
+
+        $detailMsg = count($awardedList) > 0 
+            ? ' 150 Poin Reputasi berhasil diberikan kepada: ' . implode(', ', $awardedList) . '.'
+            : ' Pengurus telah disahkan.';
+
+        return redirect()->route('admin.osis.officers', $election->id)
+            ->with('success', '🏆 Selamat! Pengurus OSIS Terpilih resmi disahkan.' . $detailMsg);
+    }
 }

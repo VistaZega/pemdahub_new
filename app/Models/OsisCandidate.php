@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\ReputationLog;
+use Carbon\Carbon;
 
 class OsisCandidate extends Model
 {
@@ -32,6 +34,13 @@ class OsisCandidate extends Model
         'video_url',
         'color_badge',
         'vote_count',
+        'is_winner',
+        'leader_user_id',
+        'secretary_user_id',
+        'treasurer_user_id',
+        'vice_user_id',
+        'points_awarded',
+        'points_awarded_at',
     ];
 
     protected $casts = [
@@ -39,6 +48,9 @@ class OsisCandidate extends Model
         'mission' => 'array',
         'work_programs' => 'array',
         'vote_count' => 'integer',
+        'is_winner' => 'boolean',
+        'points_awarded' => 'boolean',
+        'points_awarded_at' => 'datetime',
     ];
 
     public function election(): BelongsTo
@@ -51,6 +63,27 @@ class OsisCandidate extends Model
         return $this->hasMany(OsisBallot::class, 'candidate_id');
     }
 
+    // Relasi Akun Pengurus
+    public function leaderUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'leader_user_id');
+    }
+
+    public function secretaryUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'secretary_user_id');
+    }
+
+    public function treasurerUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'treasurer_user_id');
+    }
+
+    public function viceUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'vice_user_id');
+    }
+
     // Helper untuk foto kartu paslon
     public function getPhotoUrlAttribute(): string
     {
@@ -60,7 +93,6 @@ class OsisCandidate extends Model
         if ($this->photo && file_exists(storage_path('app/public/' . $this->photo))) {
             return asset('storage/' . $this->photo);
         }
-        // Fallback placeholder elegan
         return asset('images/osis/paslon_' . $this->candidate_number . '.jpg');
     }
 
@@ -82,5 +114,70 @@ class OsisCandidate extends Model
         $total = $this->election?->total_votes ?? 0;
         if ($total <= 0) return 0;
         return round(($this->vote_count / $total) * 100, 1);
+    }
+
+    /**
+     * Berikan 150 Poin Reputasi ke Masing-Masing Pengurus Terpilih
+     */
+    public function awardOfficerPoints(int $points = 150): array
+    {
+        $period = $this->election?->period ?? date('Y');
+        $awardedList = [];
+
+        // 1. Ketua
+        if ($this->leader_user_id) {
+            ReputationLog::log(
+                $this->leader_user_id,
+                $points,
+                'prestasi',
+                "Penghargaan Ketua OSIS Terpilih Periode {$period} (+{$points} Poin)",
+                $this
+            );
+            $awardedList[] = "Ketua: {$this->leader_name}";
+        }
+
+        // 2. Sekretaris
+        if ($this->secretary_user_id) {
+            ReputationLog::log(
+                $this->secretary_user_id,
+                $points,
+                'prestasi',
+                "Penghargaan Sekretaris OSIS Terpilih Periode {$period} (+{$points} Poin)",
+                $this
+            );
+            $awardedList[] = "Sekretaris: {$this->secretary_name}";
+        }
+
+        // 3. Bendahara
+        if ($this->treasurer_user_id) {
+            ReputationLog::log(
+                $this->treasurer_user_id,
+                $points,
+                'prestasi',
+                "Penghargaan Bendahara OSIS Terpilih Periode {$period} (+{$points} Poin)",
+                $this
+            );
+            $awardedList[] = "Bendahara: {$this->treasurer_name}";
+        }
+
+        // 4. Wakil Ketua (jika ada)
+        if ($this->vice_user_id) {
+            ReputationLog::log(
+                $this->vice_user_id,
+                $points,
+                'prestasi',
+                "Penghargaan Wakil Ketua OSIS Terpilih Periode {$period} (+{$points} Poin)",
+                $this
+            );
+            $awardedList[] = "Wakil Ketua: {$this->vice_name}";
+        }
+
+        $this->update([
+            'is_winner' => true,
+            'points_awarded' => true,
+            'points_awarded_at' => Carbon::now(),
+        ]);
+
+        return $awardedList;
     }
 }

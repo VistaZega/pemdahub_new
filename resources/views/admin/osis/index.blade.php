@@ -102,6 +102,11 @@
                                         <i class="fas fa-users"></i> Paslon
                                     </a>
 
+                                    {{-- Pengurus Terpilih & 150 Poin --}}
+                                    <a href="{{ route('admin.osis.officers', $el->id) }}" class="p-2 rounded-xl bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 font-bold" title="Pengurus Terpilih & 150 Poin">
+                                        <i class="fas fa-crown text-amber-600"></i> Terpilih
+                                    </a>
+
                                     {{-- Sinkronkan DPT --}}
                                     <form action="{{ route('admin.osis.generate-voters', $el->id) }}" method="POST" onsubmit="return confirm('Generate / sinkronkan DPT dari database siswa dan guru sekolah ini?');" class="inline">
                                         @csrf

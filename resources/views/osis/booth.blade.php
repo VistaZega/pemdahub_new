@@ -185,6 +185,32 @@
         </div>
     @endif
 
+    @if($election->isCompleted() && $election->winnerCandidate)
+        {{-- PENGUMUMAN PENGURUS OSIS TERPILIH --}}
+        <div class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 rounded-3xl p-6 md:p-8 border-2 border-slate-900 shadow-xl text-slate-950 flex flex-col md:flex-row items-center gap-6">
+            <img src="{{ $election->winnerCandidate->photo_url }}" 
+                 alt="{{ $election->winnerCandidate->leader_name }}" 
+                 class="w-28 h-28 md:w-32 md:h-32 rounded-2xl object-cover border-4 border-slate-900 shadow-xl flex-shrink-0">
+            <div class="flex-1 text-center md:text-left space-y-1.5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-slate-900 text-amber-300 text-[10px] font-black uppercase tracking-wider shadow">
+                    👑 PENGURUS OSIS TERPILIH MASA BAKTI {{ $election->period }}
+                </span>
+                <h3 class="text-xl md:text-2xl font-black uppercase tracking-tight">
+                    PASLON 0{{ $election->winnerCandidate->candidate_number }} &mdash; {{ $election->winnerCandidate->leader_name }}
+                </h3>
+                <div class="text-xs font-bold text-slate-900 flex flex-wrap gap-3 justify-center md:justify-start">
+                    <span>Sek: <strong>{{ $election->winnerCandidate->secretary_name ?? '-' }}</strong></span>
+                    &bull;
+                    <span>Ben: <strong>{{ $election->winnerCandidate->treasurer_name ?? '-' }}</strong></span>
+                    &bull;
+                    <span class="bg-slate-900 text-amber-300 px-2.5 py-0.5 rounded-lg text-[10px] font-black">
+                        ⭐ Peraih +150 Poin Prestasi
+                    </span>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- 3. GRID PASANGAN CALON PENGURUS OSIS --}}
     <div>
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-6">

@@ -29,12 +29,15 @@ class OsisElection extends Model
         'allow_teachers',
         'allow_staff',
         'show_realtime_count',
+        'winner_candidate_id',
+        'announcement_date',
         'is_active',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
+        'announcement_date' => 'datetime',
         'allow_teachers' => 'boolean',
         'allow_staff' => 'boolean',
         'show_realtime_count' => 'boolean',
@@ -54,6 +57,11 @@ class OsisElection extends Model
     public function candidates(): HasMany
     {
         return $this->hasMany(OsisCandidate::class, 'election_id')->orderBy('candidate_number', 'asc');
+    }
+
+    public function winnerCandidate(): BelongsTo
+    {
+        return $this->belongsTo(OsisCandidate::class, 'winner_candidate_id');
     }
 
     public function voters(): HasMany
@@ -101,6 +109,11 @@ class OsisElection extends Model
             return true;
         }
         return false;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed' || $this->winner_candidate_id !== null;
     }
 
     // Statistik

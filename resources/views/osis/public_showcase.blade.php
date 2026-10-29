@@ -143,6 +143,48 @@
             </div>
         </div>
 
+        @if($election->isCompleted() && $election->winnerCandidate)
+        {{-- SECTION PENGURUS OSIS TERPILIH --}}
+        <section class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 rounded-[2.5rem] p-8 md:p-12 border-3 border-slate-900 shadow-2xl text-slate-950 relative overflow-hidden">
+            <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                <div class="relative flex-shrink-0">
+                    <img src="{{ $election->winnerCandidate->photo_url }}" 
+                         alt="{{ $election->winnerCandidate->leader_name }}" 
+                         class="w-44 h-44 md:w-52 md:h-52 rounded-3xl object-cover border-4 border-slate-900 shadow-2xl">
+                    <div class="absolute -top-3 -right-3 w-12 h-12 rounded-full bg-slate-900 text-amber-300 text-xl flex items-center justify-center border-2 border-white shadow-lg">
+                        👑
+                    </div>
+                </div>
+
+                <div class="flex-1 text-center md:text-left space-y-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-amber-300 text-xs font-black uppercase tracking-wider shadow">
+                        <span>PENGURUS OSIS TERPILIH & RESMI DISAHKAN</span>
+                    </div>
+
+                    <h2 class="text-3xl md:text-4xl font-black uppercase tracking-tight">
+                        {{ $election->winnerCandidate->leader_name }}
+                    </h2>
+
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-bold text-slate-900">
+                        <span class="bg-white/60 px-3 py-1 rounded-xl border border-black/10">
+                            Sekretaris: <strong>{{ $election->winnerCandidate->secretary_name ?? '-' }}</strong>
+                        </span>
+                        <span class="bg-white/60 px-3 py-1 rounded-xl border border-black/10">
+                            Bendahara: <strong>{{ $election->winnerCandidate->treasurer_name ?? '-' }}</strong>
+                        </span>
+                        <span class="bg-slate-900 text-amber-300 px-3 py-1 rounded-xl border border-black font-black">
+                            ⭐ Peraih +150 Poin Prestasi PembdaHUB
+                        </span>
+                    </div>
+
+                    <p class="text-xs md:text-sm text-slate-900 italic font-medium pt-1 max-w-2xl">
+                        &ldquo;{{ $election->winnerCandidate->quote_slogan }}&rdquo;
+                    </p>
+                </div>
+            </div>
+        </section>
+        @endif
+
         {{-- 2. GRID PASANGAN CALON KAMPANYE --}}
         <section id="kandidat" class="space-y-6 pt-4">
             <div class="text-center max-w-2xl mx-auto">
