@@ -672,6 +672,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
         Route::put('/{electionId}/candidates/{candidateId}', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'updateCandidate'])->name('update-candidate');
         Route::delete('/{electionId}/candidates/{candidateId}', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'destroyCandidate'])->name('destroy-candidate');
         Route::post('/{id}/generate-voters', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'generateVoters'])->name('generate-voters');
+        Route::post('/{id}/reset-candidates', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'resetCandidates'])->name('reset-candidates');
         Route::post('/{id}/toggle-status', [App\Http\Controllers\Admin\AdminOsisElectionController::class, 'toggleStatus'])->name('toggle-status');
     });
 });

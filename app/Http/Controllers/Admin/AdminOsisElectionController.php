@@ -265,6 +265,23 @@ class AdminOsisElectionController extends Controller
     }
 
     /**
+     * Hapus Semua Paslon & Suara (Reset Data Simulasi)
+     */
+    public function resetCandidates($id)
+    {
+        $election = OsisElection::findOrFail($id);
+        $election->candidates()->delete();
+        $election->ballots()->delete();
+        $election->voters()->update([
+            'has_voted' => false,
+            'voted_at' => null,
+            'vote_token' => null
+        ]);
+
+        return back()->with('success', 'Semua data paslon dan perolehan suara berhasil direset! Agenda kini bersih dan siap diisi data paslon asli.');
+    }
+
+    /**
      * Generate / Sinkronkan DPT Otomatis dari Database Siswa & Guru
      */
     public function generateVoters($id)
