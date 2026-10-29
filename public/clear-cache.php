@@ -270,6 +270,11 @@ if (isset($_GET['migrate']) && $_GET['migrate'] === 'yes') {
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'TefaEmployeeSeeder', '--force' => true], $output3);
         echo "<span class='ok'>" . htmlspecialchars($output3->fetch()) . "</span>\n";
 
+        echo "\n<span class='info'>--- Running OSIS Election Seeder (SMK Simulation) ---</span>\n";
+        $outputOsis = new \Symfony\Component\Console\Output\BufferedOutput();
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\OsisElectionSeeder', '--force' => true], $outputOsis);
+        echo "<span class='ok'>" . htmlspecialchars($outputOsis->fetch()) . "</span>\n";
+
         echo "\n<span class='info'>--- Step 1: Creating missing User accounts for Employees ---</span>\n";
         $unlinkedEmployees = \App\Models\Employee::whereNull('user_id')->get();
         $createdUsersCount = 0;
@@ -578,8 +583,8 @@ try {
     echo ($hasRestore2025 ? "<span class='ok'>✅ Route '/restore-tp-2025' TERDAFTAR DAN SIAP!</span>\n" : "<span class='err'>❌ Route '/restore-tp-2025' BELUM ADA! (Lakukan Git Pull di Hostinger & Clear Cache)</span>\n");
     echo "\n";
     
-    // Check if survey & game tables exist
-    $tables = ['surveys', 'survey_questions', 'survey_answers', 'survey_responses', 'lms_games', 'lms_game_attempts'];
+    // Check if survey, game & osis tables exist
+    $tables = ['surveys', 'survey_questions', 'survey_answers', 'survey_responses', 'lms_games', 'lms_game_attempts', 'osis_elections', 'osis_candidates', 'osis_voters', 'osis_ballots'];
     foreach ($tables as $table) {
         try {
             $exists = \Illuminate\Support\Facades\Schema::hasTable($table);
@@ -589,6 +594,27 @@ try {
         } catch (\Exception $e) {
             echo "<span class='warn'>⚠️  Tidak bisa cek tabel '{$table}': " . $e->getMessage() . "</span>\n";
         }
+    }
+
+    echo "\n<span class='info'>=== OSIS ELECTION DIAGNOSTIC ===</span>\n";
+    try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('osis_elections')) {
+            $totalElections = \App\Models\OsisElection::count();
+            echo "Total Agenda OSIS di Database: {$totalElections}\n";
+            $elections = \App\Models\OsisElection::with(['school', 'candidates'])->get();
+            foreach ($elections as $el) {
+                echo "  - [ID: {$el->id}] '{$el->title}' | Unit: " . ($el->school?->name ?? 'NULL') . " | Status: {$el->status} | Active: " . ($el->is_active ? 'YES' : 'NO') . " | Paslon: " . $el->candidates->count() . "\n";
+            }
+
+            // Simulasi getActiveCampaignForUser untuk akun Yulianus Zega
+            $yulUser = \App\Models\User::where('name', 'LIKE', '%Yulianus%')->orWhere('email', 'LIKE', '%yul%')->first();
+            if ($yulUser) {
+                $camp = \App\Models\OsisElection::getActiveCampaignForUser($yulUser);
+                echo "Simulasi getActiveCampaignForUser(User: {$yulUser->name}, Role: {$yulUser->role}): " . ($camp ? "DITEMUKAN ('{$camp->title}')" : "TIDAK DITEMUKAN (NULL)") . "\n";
+            }
+        }
+    } catch (\Throwable $e) {
+        echo "<span class='err'>OSIS Diag Error: " . $e->getMessage() . "</span>\n";
     }
     
     echo "\n<span class='info'>=== GURU MAPPING INTEGRITY CHECK ===</span>\n";
