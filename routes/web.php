@@ -615,9 +615,12 @@ Route::get('/perbaikan-final', function () {
 // Public routes
 Route::get('/', function () {
     $news = \App\Models\News::published()
+        ->with('author')
         ->orderByRaw('COALESCE(published_at, created_at) DESC')
-        ->take(3)
+        ->take(4)
         ->get();
+
+    $totalNewsCount = \App\Models\News::published()->count();
 
     $galleryItems = \App\Models\GalleryItem::active()
         ->ordered()
@@ -852,7 +855,7 @@ Route::get('/', function () {
     // agar status tombol "Login" vs "Dashboard" selalu ter-update secara real-time.
     return response(view('index', compact(
         'activeAcademicYear',
-        'news', 'galleryItems', 'trainingModules',
+        'news', 'totalNewsCount', 'galleryItems', 'trainingModules',
         'totalStudents', 'totalTeachers', 'totalSchools', 'totalAlumni',
         'totalCourses', 'totalExams', 'totalForumThreads',
         'achievements', 'totalAchievements',
@@ -867,6 +870,28 @@ Route::get('/', function () {
         ->header('Pragma', 'no-cache')
         ->header('X-LiteSpeed-Cache-Control', 'no-cache');
 })->name('home');
+
+// ============================================================
+//  WARTA & BERITA PUBLIK YAYASAN PERGURUAN PEMBDA NIAS
+// ============================================================
+Route::get('/berita/{slug}', function ($slug) {
+    $newsItem = \App\Models\News::published()
+        ->with('author')
+        ->where(function($q) use ($slug) {
+            $q->where('slug', $slug)->orWhere('id', $slug);
+        })
+        ->firstOrFail();
+
+    $otherNews = \App\Models\News::published()
+        ->where('id', '!=', $newsItem->id)
+        ->orderByRaw('COALESCE(published_at, created_at) DESC')
+        ->take(4)
+        ->get();
+
+    return view('public.news_detail', compact('newsItem', 'otherNews'));
+})->name('public.news.show');
+
+Route::get('/news/{slug}', fn($slug) => redirect()->route('public.news.show', $slug));
 
 // Public PKL Placements GPS Map (SMKS Swasta Pembda Nias)
 Route::get('/pkl/peta-sebaran', function () {

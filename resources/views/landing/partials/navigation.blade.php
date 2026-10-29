@@ -21,7 +21,11 @@
         </div>
 
         <!-- Desktop Navigation Links -->
-        <nav class="hidden xl:flex items-center gap-6 text-xs font-bold text-[#444]">
+        <nav class="hidden xl:flex items-center gap-5 text-xs font-bold text-[#444]">
+            <a href="#warta-pembda" class="hover:text-[#121316] transition-colors flex items-center gap-1 text-[#ff3823]">
+                <i class="fa-solid fa-newspaper text-[11px]"></i>
+                <span>Warta</span>
+            </a>
             <a href="#showcase" class="hover:text-[#121316] transition-colors">Karya & PKL</a>
             <a href="#ekskul" class="hover:text-[#121316] transition-colors flex items-center gap-1">
                 <span>Ekskul</span>
@@ -66,6 +70,10 @@
     <!-- Mobile Drawer -->
     <div id="mobile-nav-drawer" class="hidden xl:hidden bg-[#faf8f5] border-b-2 border-[#121316] px-6 py-6 transition-all shadow-lg">
         <div class="flex flex-col gap-4 text-sm font-bold text-[#121316]">
+            <a href="#warta-pembda" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1 text-[#ff3823] flex items-center gap-2">
+                <i class="fa-solid fa-newspaper"></i>
+                <span>Warta & Berita Yayasan</span>
+            </a>
             <a href="#showcase" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Karya Siswa & PKL</a>
             <a href="#ekskul" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Ekstrakurikuler ({{ isset($extracurriculars) ? $extracurriculars->count() : '16+' }})</a>
             <a href="#galeri" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Galeri Foto Momen</a>

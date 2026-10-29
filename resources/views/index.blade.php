@@ -7,10 +7,10 @@
     <meta name="description" content="Portal Smart School resmi Yayasan Perguruan PEMBDA Nias. Menghubungkan SMAS Pembda 1, SMPS Pembda 2, dan SMKS Pembda Nias dalam satu ekosistem digital terpadu (LMS, CBT, Presensi RFID, Logbook PKL, dan Rapor Merdeka).">
     <link rel="icon" href="{{ asset('images/logo-pembda.png') }}" type="image/png">
 
-    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <!-- Google Fonts: Plus Jakarta Sans, JetBrains Mono & Newsreader (Newspaper Editorial) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&display=swap" rel="stylesheet">
 
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -38,6 +38,10 @@
 
         .font-mono-code {
             font-family: 'JetBrains Mono', monospace;
+        }
+
+        .font-newspaper {
+            font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
         }
 
         /* Yellow Highlighter Stroke Effect (Khas Anthropic Frontend Style) */
