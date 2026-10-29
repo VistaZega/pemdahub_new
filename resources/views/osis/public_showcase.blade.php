@@ -67,6 +67,26 @@
     {{-- MAIN CONTAINER --}}
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
+        @if($election && $election->is_simulation)
+            {{-- BANNER SIMULASI PUBLIK --}}
+            <div class="rounded-2xl p-4 bg-amber-400 border-2 border-black shadow-[3px_3px_0px_#000] text-slate-950 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-black text-amber-300 flex items-center justify-center text-xl font-black shrink-0">
+                        🧪
+                    </span>
+                    <div>
+                        <h2 class="text-sm font-black uppercase tracking-wider">TAHAP UJI COBA & SIMULASI FITUR E-VOTING OSIS</h2>
+                        <p class="text-xs font-semibold text-slate-900 mt-0.5">
+                            Halaman publik ini merupakan <strong>tahap simulasi pengenalan fitur kampanye & voting digital</strong> bagi civitas sekolah. Data kandidat dan hak suara akan di-reset bersih saat Pemilihan OSIS Resmi sekolah diselenggarakan.
+                        </p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 rounded-xl bg-black text-amber-300 text-xs font-mono font-black uppercase shrink-0">
+                    Mode Simulasi
+                </span>
+            </div>
+        @endif
+
         {{-- 1. HERO BANNER KAMPANYE --}}
         <div class="relative overflow-hidden rounded-3xl p-8 md:p-12 border-2 border-slate-900 shadow-2xl"
              style="background: linear-gradient(135deg, #090d16 0%, #1e3a8a 50%, #064e3b 100%); color: #ffffff;">

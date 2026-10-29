@@ -45,6 +45,7 @@ class OsisElectionSeeder extends Seeder
                 'allow_teachers' => true,
                 'allow_staff' => true,
                 'show_realtime_count' => false,
+                'is_simulation' => true,
                 'is_active' => true,
             ]
         );

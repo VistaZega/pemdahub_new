@@ -31,6 +31,7 @@ class OsisElection extends Model
         'show_realtime_count',
         'winner_candidate_id',
         'announcement_date',
+        'is_simulation',
         'is_active',
     ];
 
@@ -41,6 +42,7 @@ class OsisElection extends Model
         'allow_teachers' => 'boolean',
         'allow_staff' => 'boolean',
         'show_realtime_count' => 'boolean',
+        'is_simulation' => 'boolean',
         'is_active' => 'boolean',
     ];
 
@@ -114,6 +116,13 @@ class OsisElection extends Model
     public function isCompleted(): bool
     {
         return $this->status === 'completed' || $this->winner_candidate_id !== null;
+    }
+
+    public function getIsSimulationAttribute(): bool
+    {
+        return array_key_exists('is_simulation', $this->attributes) 
+            ? (bool) $this->attributes['is_simulation'] 
+            : true;
     }
 
     // Statistik

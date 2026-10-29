@@ -46,6 +46,26 @@
         </div>
     </div>
 
+    @if($election->is_simulation)
+        {{-- BANNER SIMULASI PADA REAL COUNT --}}
+        <div class="rounded-2xl p-4 bg-amber-400 border-2 border-black shadow-[3px_3px_0px_#000] text-slate-950 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-black text-amber-300 flex items-center justify-center text-xl font-black shrink-0">
+                    🧪
+                </span>
+                <div>
+                    <h2 class="text-sm font-black uppercase tracking-wider">HASIL REAL COUNT TAHAP SIMULASI / UJI COBA</h2>
+                    <p class="text-xs font-semibold text-slate-900 mt-0.5">
+                        Diagram dan data perolehan suara di bawah ini merupakan <strong>hasil simulasi uji coba sistem</strong>. Data akan di-reset bersih saat Pemilihan OSIS Resmi sekolah dilaksanakan.
+                    </p>
+                </div>
+            </div>
+            <span class="px-3 py-1 rounded-xl bg-black text-amber-300 text-xs font-mono font-black uppercase shrink-0">
+                Mode Simulasi
+            </span>
+        </div>
+    @endif
+
     {{-- KONDISI JIKA MODE RAHASIA / BLIND VOTE SEDANG AKTIF --}}
     @if($hideResults)
         <div class="bg-white rounded-3xl p-10 border-2 border-slate-900 shadow-xl text-center max-w-2xl mx-auto space-y-4">

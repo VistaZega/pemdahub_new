@@ -47,6 +47,19 @@
     {{-- KONTEN UTAMA MOBILE --}}
     <main class="p-4 space-y-4 max-w-md mx-auto">
 
+        @if($election && $election->is_simulation)
+            <div class="rounded-2xl p-3 bg-amber-400 text-slate-950 font-black text-xs border-2 border-black flex items-center justify-between gap-2 shadow-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-base animate-bounce">🧪</span>
+                    <div>
+                        <span class="uppercase tracking-wider font-black block">Mode Uji Coba E-Voting</span>
+                        <p class="text-[10px] font-semibold text-slate-900 leading-tight">Seluruh suara simulasi ini akan di-reset saat Pemilihan Resmi dimulai.</p>
+                    </div>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-black text-amber-300 font-mono text-[9px] uppercase font-black shrink-0">Simulasi</span>
+            </div>
+        @endif
+
         {{-- BANNER HERO MOBILE --}}
         <div class="rounded-3xl p-5 border-2 border-slate-900 shadow-xl relative overflow-hidden"
              style="background: linear-gradient(135deg, #090d16 0%, #1e3a8a 60%, #064e3b 100%); color: #ffffff;">

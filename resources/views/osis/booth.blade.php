@@ -14,6 +14,29 @@
         <span class="text-slate-800 font-bold">Pemilihan OSIS</span>
     </div>
 
+    @if($election->is_simulation)
+        {{-- BANNER DISCLAIMER SIMULASI / UJI COBA --}}
+        <div class="rounded-2xl p-4 bg-amber-400 border-2 border-black shadow-[3px_3px_0px_#000] text-slate-950 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-black text-amber-300 flex items-center justify-center text-xl font-black shrink-0">
+                    🧪
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-sm md:text-base font-black uppercase tracking-wider">TAHAP UJI COBA & SIMULASI E-VOTING</h2>
+                        <span class="px-2 py-0.5 rounded bg-black text-amber-300 font-mono text-[9px] font-black uppercase">Simulasi</span>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-900 mt-0.5">
+                        Agenda ini merupakan <strong>tahap pengenalan dan uji coba sistem digital</strong> bagi seluruh guru dan siswa. Seluruh perolehan suara simulasi akan di-reset bersih kembali ke 0 menjelang Pemilihan OSIS Resmi sekolah dibuka.
+                    </p>
+                </div>
+            </div>
+            <span class="hidden md:inline-block px-3 py-1 rounded-xl bg-black/10 border border-black/20 text-xs font-mono font-bold shrink-0">
+                Mode Uji Coba
+            </span>
+        </div>
+    @endif
+
     {{-- 1. HERO BANNER + WIDGET WAKTU --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         

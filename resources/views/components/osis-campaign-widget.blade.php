@@ -66,6 +66,19 @@
         {{-- Rainbow Accent Bar --}}
         <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-500 via-amber-500 via-emerald-500 to-blue-600"></div>
 
+        @if($campaign->is_simulation)
+            <div class="mb-4 px-3.5 py-2 rounded-2xl bg-amber-400 text-slate-950 font-black text-xs border-2 border-black flex items-center justify-between gap-3 shadow-sm">
+                <div class="flex items-center gap-2">
+                    <span class="text-base animate-bounce">🧪</span>
+                    <div>
+                        <span class="uppercase tracking-wider font-black">Mode Uji Coba / Simulasi E-Voting</span>
+                        <p class="text-[11px] font-semibold text-slate-900 leading-tight">Ini adalah tahap uji coba sistem. Seluruh hak suara saat ini bersifat simulasi dan akan di-reset saat Pemilihan Resmi dimulai.</p>
+                    </div>
+                </div>
+                <span class="hidden sm:inline-block px-2.5 py-1 rounded-xl bg-black text-amber-300 font-mono text-[10px] uppercase font-black shrink-0">SIMULASI</span>
+            </div>
+        @endif
+
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 border-2 border-emerald-300 flex items-center justify-center text-lg flex-shrink-0">
@@ -150,6 +163,24 @@
 @elseif($variant === 'teacher')
     <div class="rounded-3xl p-5 md:p-6 border-2 border-black shadow-xl mb-6 relative overflow-hidden"
          style="background: linear-gradient(135deg, #090d16 0%, #064e3b 50%, #047857 100%); color: #ffffff;">
+
+        @if($campaign->is_simulation)
+            <div class="mb-4 px-3.5 py-2.5 rounded-2xl bg-amber-400 text-slate-950 font-black text-xs border-2 border-black flex items-center justify-between gap-3 shadow-md relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-lg animate-bounce">🧪</span>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="uppercase tracking-wider font-black">Mode Uji Coba / Simulasi E-Voting</span>
+                            <span class="px-2 py-0.5 rounded-md bg-black text-amber-300 font-mono text-[9px] uppercase font-black">Tahap Uji Coba</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-900 leading-tight mt-0.5">
+                            Bapak/Ibu Guru dapat mencoba alur bilik suara digital. Hak suara saat ini bersifat simulasi dan akan di-reset bersih saat Pemilihan OSIS Resmi sekolah dibuka.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5 pb-4 border-b border-white/10">
             <div class="flex items-center gap-4 text-center md:text-left flex-col sm:flex-row">
                 <div class="w-14 h-14 rounded-2xl bg-emerald-400 text-slate-950 border-2 border-black flex items-center justify-center text-2xl font-black shadow-md flex-shrink-0 animate-bounce">
@@ -264,9 +295,15 @@
                 </span>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-200/60 px-2 py-0.5 rounded border border-emerald-300">
-                            Spotlight Demokrasi Sekolah
-                        </span>
+                        @if($campaign->is_simulation)
+                            <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-300 px-2 py-0.5 rounded border border-black shadow-2xs">
+                                🧪 Simulasi E-Voting
+                            </span>
+                        @else
+                            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-200/60 px-2 py-0.5 rounded border border-emerald-300">
+                                Spotlight Demokrasi Sekolah
+                            </span>
+                        @endif
                         <span class="text-[11px] font-mono text-slate-600 font-bold">OSIS {{ $campaign->period }}</span>
                     </div>
                     <h3 class="text-sm font-black text-slate-900 leading-tight mt-0.5">{{ $campaign->title }}</h3>
