@@ -204,12 +204,7 @@ class OsisElection extends Model
         }
 
         // 3. Logika Auto-Expire:
-        // Jika status ditutup (voting_closed) tanpa ada penetapan pemenang, sembunyikan widget
-        if ($campaign->status === 'voting_closed' && !$campaign->winner_candidate_id) {
-            return null;
-        }
-
-        // Jika status selesai (completed) dan sudah lewat 3 hari setelah pengumuman, sembunyikan widget
+        // Banner hanya disembunyikan jika agenda sudah selesai (completed) dan telah melewati grace period 3 hari setelah pengumuman
         if ($campaign->isCompleted() && $campaign->announcement_date) {
             $announceTime = Carbon::parse($campaign->announcement_date);
             if (Carbon::now()->gt($announceTime->addDays(3))) {

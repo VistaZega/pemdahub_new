@@ -83,7 +83,15 @@
             </div>
 
             <div class="flex items-center gap-2">
-                @if($hasVoted)
+                @if($campaign->status === 'voting_closed')
+                    <span class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 font-black text-xs border border-amber-300 flex items-center gap-1.5">
+                        <i class="fas fa-lock text-amber-600"></i> TPS Ditutup
+                    </span>
+                    <a href="{{ route('osis.real-count', $campaign->slug) }}" class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition flex items-center gap-1">
+                        <i class="fas fa-chart-pie text-emerald-400"></i>
+                        <span>Hasil Real Count</span>
+                    </a>
+                @elseif($hasVoted)
                     <span class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 font-black text-xs border border-emerald-300 flex items-center gap-1.5">
                         <i class="fas fa-check-double text-emerald-600"></i> Suara Anda Sah Tercatat
                     </span>
@@ -168,7 +176,18 @@
                     <span class="text-sm font-black text-emerald-400 font-mono">{{ $campaign->turnout_percentage }}%</span>
                 </div>
 
-                @if($hasVoted)
+                @if($campaign->status === 'voting_closed')
+                    <div class="flex items-center gap-2">
+                        <span class="px-3.5 py-2 rounded-2xl bg-amber-500/30 text-amber-300 text-xs font-bold border border-amber-400/40 flex items-center gap-1.5">
+                            <i class="fas fa-lock text-amber-300"></i>
+                            <span>Pemungutan Ditutup</span>
+                        </span>
+                        <a href="{{ route('osis.real-count', $campaign->slug) }}" class="px-4 py-2.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-black shadow-lg border-2 border-black transition hover:scale-105 flex items-center gap-1.5">
+                            <i class="fas fa-chart-pie text-slate-950"></i>
+                            <span>Pantau Real Count</span>
+                        </a>
+                    </div>
+                @elseif($hasVoted)
                     <div class="flex items-center gap-2">
                         <span class="px-3.5 py-2 rounded-2xl bg-emerald-500/30 text-emerald-200 text-xs font-bold border border-emerald-400/40 flex items-center gap-1.5">
                             <i class="fas fa-check-double text-emerald-300"></i>

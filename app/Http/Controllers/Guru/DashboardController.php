@@ -327,14 +327,10 @@ class DashboardController extends Controller
                         ->first();
                 }
 
-                // Auto-expire check
-                if ($osisCampaign) {
-                    if ($osisCampaign->status === 'voting_closed' && !$osisCampaign->winner_candidate_id) {
+                // Auto-expire check: hanya jika completed dan lewat 3 hari
+                if ($osisCampaign && $osisCampaign->isCompleted() && $osisCampaign->announcement_date) {
+                    if (\Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($osisCampaign->announcement_date)->addDays(3))) {
                         $osisCampaign = null;
-                    } elseif ($osisCampaign->isCompleted() && $osisCampaign->announcement_date) {
-                        if (\Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($osisCampaign->announcement_date)->addDays(3))) {
-                            $osisCampaign = null;
-                        }
                     }
                 }
             }

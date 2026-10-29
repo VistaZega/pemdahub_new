@@ -1527,6 +1527,12 @@ Route::get('/cleanup-steam-posts', function () {
     return $html;
 });
 
+// Shortcut Buka Bilik Suara OSIS
+Route::get('/osis-buka-voting', function () {
+    \App\Models\OsisElection::where('is_active', true)->update(['status' => 'voting_open']);
+    return redirect('/guru/dashboard')->with('success', 'Bilik Suara Pemilihan OSIS SMK Berhasil DIBUKA kembali!');
+})->middleware(['web', 'auth']);
+
 // Debug Diagnostic OSIS Widget
 Route::get('/debug-osis-widget', function () {
     $user = auth()->user();
@@ -1608,6 +1614,12 @@ Route::get('/run-migrations', function () {
         $osisSeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\OsisElectionSeeder', '--force' => true]);
         echo \Illuminate\Support\Facades\Artisan::output();
         echo "\nOsis Election Seeder Exit Code: " . $osisSeederExitCode . "\n\n";
+
+        \App\Models\OsisElection::where('slug', 'pemilihan-osis-smk-2026-2027')->update([
+            'status' => 'voting_open',
+            'is_active' => true,
+        ]);
+        echo "✅ Osis Election SMK status automatically ensured: VOTING_OPEN\n\n";
 
         echo "<h1>=== RUNNING SURVEY SEEDER ===</h1>\n";
         $surveySeederExitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'SurveySeeder', '--force' => true]);
