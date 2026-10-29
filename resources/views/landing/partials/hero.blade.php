@@ -9,21 +9,53 @@
                 
                 <div>
                     <!-- Tagline Asterisk -->
-                    <div class="text-[11px] font-mono-code font-extrabold text-[#ff3823] uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <div class="text-[11px] font-mono-code font-extrabold text-[#ff3823] uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
                         <span class="text-base">✱</span>
                         <span>YAYASAN PERGURUAN PEMBDA NIAS &bull; SMART SCHOOL</span>
                     </div>
 
-                    <!-- Display Headline -->
+                    <!-- Display Headline (Berkelas & Bernas) -->
                     <h1 class="text-3xl sm:text-5xl xl:text-6xl font-black text-[#121316] leading-[1.08] tracking-tight mb-5">
                         Belajar apa pun bisa, <br>
-                        <span class="highlight-marker">sistemnya tersedia.</span>
+                        <span class="highlight-marker">sistemnya siap membersamai.</span>
                     </h1>
 
-                    <!-- Subheadline dengan Chip Kode -->
-                    <p class="text-xs sm:text-sm text-[#4b5563] leading-relaxed mb-6 max-w-xl font-medium">
-                        Di <strong>Yayasan Perguruan PEMBDA Nias</strong>, potensi belajarmu tidak bisa dibendung. Kami menghadirkan <strong>ekosistem riset terpadu</strong> dan <strong>orientasi <em>project</em> nyata</strong> — memadukan keahlian <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-[11px] font-bold">IT & Rekayasa</code>, inovasi <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-[11px] font-bold">IoT & AI</code>, hingga <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-[11px] font-bold">16+ Ekstrakurikuler</code> dengan dukungan sistem digital yang siap mengawalmu untuk berhasil dan berkembang tanpa batas.
-                    </p>
+                    <!-- Narasi Utama: Berkelas, Kekinian, Rendah Hati (2 Paragraf Mengalir) -->
+                    <div class="space-y-3 mb-6 text-xs sm:text-[13.5px] text-[#4b5563] leading-relaxed font-medium max-w-xl">
+                        <p>
+                            Di <strong>Yayasan Perguruan PEMBDA Nias</strong>, kami meyakini bahwa setiap anak membawa keunikan serta potensi berharga yang patut dirawat dengan sepenuh hati. Tidak ada mimpi yang terlalu dini dan tiada cita-cita yang mustahil ketika ruang belajar dibangun atas dasar <strong>ketulusan, rasa ingin tahu yang sehat, serta kesempatan yang setara bagi semua</strong>.
+                        </p>
+                        <p>
+                            Melalui <strong>tiga unit sekolah terpadu</strong> (SMPS Pembda 2, SMAS Pembda 1, dan SMKS Pembda Nias), kami menghadirkan ekosistem belajar yang membumi namun adaptif zaman — memadukan penguasaan <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-[11px] font-bold">Riset Sains & Rekayasa</code>, eksplorasi <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-[11px] font-bold">Teknologi Terapan IoT & AI</code>, hingga <code class="px-2 py-0.5 bg-[#ede9df] text-[#121316] rounded font-mono-code text-[11px] font-bold">16+ Ruang Minat & Bakat</code>. Bersama semangat luhur <em>'Maju Terus Pantang Mundur'</em>, kami hadir mengawal setiap langkahmu untuk tumbuh menjadi pribadi yang berilmu, berbudi pekerti mulia, dan siap memberi manfaat nyata bagi keluarga, Nias, serta bangsa.
+                        </p>
+                    </div>
+
+                    <!-- Pilar Keunggulan 3 Unit Sekolah (Penyelaras Keseimbangan Tinggi Visual) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-6 max-w-xl">
+                        <div class="bg-white/80 border-2 border-[#121316] rounded-xl p-2.5 shadow-[2px_2px_0px_#121316]">
+                            <div class="text-[9px] font-mono-code font-bold text-[#ff3823] uppercase flex items-center gap-1 mb-0.5">
+                                <i class="fa-solid fa-school text-[8px]"></i> 3 Unit Terpadu
+                            </div>
+                            <div class="text-xs font-black text-[#121316]">SMP &bull; SMA &bull; SMK</div>
+                            <div class="text-[10px] font-mono-code text-[#71717a] mt-0.5">Satu Ekosistem Harmonis</div>
+                        </div>
+
+                        <div class="bg-white/80 border-2 border-[#121316] rounded-xl p-2.5 shadow-[2px_2px_0px_#121316]">
+                            <div class="text-[9px] font-mono-code font-bold text-[#2563eb] uppercase flex items-center gap-1 mb-0.5">
+                                <i class="fa-solid fa-microchip text-[8px]"></i> Praktik & Riset
+                            </div>
+                            <div class="text-xs font-black text-[#121316]">Kelas Industri & AI</div>
+                            <div class="text-[10px] font-mono-code text-[#71717a] mt-0.5">{{ $totalDudi ?? '45+' }} Mitra Industri</div>
+                        </div>
+
+                        <div class="bg-white/80 border-2 border-[#121316] rounded-xl p-2.5 shadow-[2px_2px_0px_#121316]">
+                            <div class="text-[9px] font-mono-code font-bold text-emerald-600 uppercase flex items-center gap-1 mb-0.5">
+                                <i class="fa-solid fa-seedling text-[8px]"></i> Karakter & Bakat
+                            </div>
+                            <div class="text-xs font-black text-[#121316]">16+ Ekskul Juara</div>
+                            <div class="text-[10px] font-mono-code text-[#71717a] mt-0.5">Asah Potensi Terbaik</div>
+                        </div>
+                    </div>
 
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap items-center gap-3 mb-6">
@@ -57,6 +89,8 @@
                 <!-- Micro Proof Strip -->
                 <div class="text-[11px] font-mono-code text-[#71717a] flex flex-wrap items-center gap-3 pt-4 border-t border-[#e7e3d8]/80">
                     <span class="font-bold text-[#121316]">{{ isset($totalStudents) ? number_format($totalStudents) : 0 }} Siswa Aktif</span>
+                    <span>&bull;</span>
+                    <span>{{ isset($totalTeachers) ? number_format($totalTeachers) : 0 }} Pendidik Ahli</span>
                     <span>&bull;</span>
                     <span>{{ $totalDudi ?? '45+' }} Mitra DUDI</span>
                     <span>&bull;</span>
