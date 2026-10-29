@@ -47,6 +47,9 @@
         </div>
     </div>
 
+    {{-- KAMPANYE PEMILIHAN OSIS (OTOMATIS HILANG SAAT SELESAI) --}}
+    @include('components.osis-campaign-widget', ['variant' => 'teacher'])
+
     {{-- Urgent Guru Attendance Banner (Interaktif & Modern) --}}
     @php
         $isNotCheckedOut = empty($todayAttendance) || !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';

@@ -572,6 +572,9 @@
                 <!-- Arena Permainan PembdaCHALLENGE Utama (Fokus Penuh pada Layar) -->
                 @include('forum.partials.pembda_challenge')
             @else
+                {{-- KAMPANYE PEMILIHAN OSIS (OTOMATIS HILANG SAAT SELESAI) --}}
+                @include('components.osis-campaign-widget', ['variant' => 'space'])
+
                 <!-- Banner Shortcut Game di Atas Feed Forum (Mobile & PC) -->
                 <a href="{{ route('forum.index', ['view' => 'challenge']) }}" 
                    class="mb-4 block p-3 sm:p-3.5 bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-300 border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition group cursor-pointer">

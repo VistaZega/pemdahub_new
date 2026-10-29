@@ -115,6 +115,9 @@
         @endforeach
     @endif
 
+    {{-- KAMPANYE PEMILIHAN OSIS (OTOMATIS HILANG SAAT SELESAI) --}}
+    @include('components.osis-campaign-widget', ['variant' => 'student'])
+
     {{-- 2. URGENT ATTENDANCE ALERT (IF NOT CHECKED IN) --}}
     @if(!$todayAttendance || !$todayAttendance->time_out)
     <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-3xl shadow-xl text-white" style="border-radius: 1.75rem; padding: 0.35rem; margin-bottom: 2rem;">
