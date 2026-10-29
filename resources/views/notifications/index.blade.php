@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends($layout ?? (auth()->check() ? auth()->user()->layout : 'layouts.app'))
 
 @section('title', 'Pusat Notifikasi')
 

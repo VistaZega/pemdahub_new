@@ -15,6 +15,10 @@
     @php
         $ac = 'bg-blue-50 text-blue-700 font-semibold active';
         $nc = 'text-gray-600 hover:bg-gray-50';
+        if (!isset($children)) {
+            $parentRecord = \App\Models\ParentModel::where('user_id', auth()->id())->first();
+            $children = $parentRecord ? $parentRecord->students : collect();
+        }
     @endphp
 
     <a href="{{ route('orangtua.dashboard') }}" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl {{ request()->routeIs('orangtua.dashboard') ? $ac : 'text-gray-700 hover:bg-gray-50' }}">

@@ -28,8 +28,9 @@ class NotificationController extends Controller
         $unreadCount = Notification::forUser($user->id)->unread()->count();
         $pushPref = \App\Models\PushNotificationPreference::forUser($user->id);
         $pushDevicesCount = \App\Models\PushSubscription::where('user_id', $user->id)->active()->count();
+        $layout = $user ? $user->layout : 'layouts.app';
 
-        return view('notifications.index', compact('notifications', 'unreadCount', 'type', 'pushPref', 'pushDevicesCount'));
+        return view('notifications.index', compact('notifications', 'unreadCount', 'type', 'pushPref', 'pushDevicesCount', 'layout'));
     }
 
     /**
