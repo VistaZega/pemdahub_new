@@ -136,7 +136,7 @@ class OsisElection extends Model
 
     /**
      * Dapatkan agenda kampanye / pemilu aktif untuk user saat ini.
-     * Otomatis mengembalikan null jika masa pemilihan + grace period pengumuman telah berakhir.
+     * Mendukung akun Yayasan yang Guru, switcher multi-unit sekolah, dan auto-expire.
      */
     public static function getActiveCampaignForUser($user = null): ?self
     {
@@ -145,11 +145,37 @@ class OsisElection extends Model
             return null;
         }
 
-        $schoolId = $user->school_id;
-        if ($user->student) {
-            $schoolId = $user->student->school_id ?? $schoolId;
-        } elseif ($user->teacher) {
-            $schoolId = $user->teacher->school_id ?? $schoolId;
+        // Cek apakah akun adalah Yayasan atau SuperAdmin
+        $isYayasanOrAdmin = in_array($user->role, ['superadmin', 'yayasan', 'ketua_yayasan', 'admin_yayasan'])
+            || (method_exists($user, 'isKetuaYayasan') && $user->isKetuaYayasan())
+            || (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin());
+
+        // 1. Tentukan target School ID:
+        // Prioritas 1: session active_school_id (jika user beralih unit, misal Yayasan/Guru yang beralih ke SMK)
+        $schoolId = session('active_school_id');
+
+        // Prioritas 2: method getActiveSchoolId() bawaan User
+        if (!$schoolId && method_exists($user, 'getActiveSchoolId')) {
+            $schoolId = $user->getActiveSchoolId();
+        }
+
+        // Prioritas 3: relasi siswa / guru / user school_id
+        if (!$schoolId) {
+            if ($user->student) {
+                $schoolId = $user->student->school_id ?? $user->school_id;
+            } elseif ($user->teacher) {
+                $schoolId = $user->teacher->school_id ?? $user->school_id;
+            } else {
+                $schoolId = $user->school_id;
+            }
+        }
+
+        // Jika schoolId mengarah ke Yayasan (type == 'yayasan'), jangan gunakan ID yayasan karena OSIS adalah milik unit sekolah (SMK/SMA/SMP)
+        if ($schoolId) {
+            $school = School::find($schoolId);
+            if ($school && $school->type === 'yayasan') {
+                $schoolId = null;
+            }
         }
 
         $now = Carbon::now();
@@ -157,11 +183,16 @@ class OsisElection extends Model
         $query = self::with(['school', 'candidates', 'winnerCandidate'])
             ->where('is_active', true);
 
-        if ($schoolId && !in_array($user->role, ['superadmin', 'yayasan'])) {
+        // Jika schoolId valid untuk unit sekolah, filter spesifik sekolah tersebut
+        if ($schoolId && !$isYayasanOrAdmin) {
+            $query->where('school_id', $schoolId);
+        } elseif ($schoolId && $isYayasanOrAdmin) {
+            // Jika akun Yayasan sedang memilih unit sekolah di switcher, prioritaskan unit tersebut
             $query->where('school_id', $schoolId);
         }
 
-        return $query->where(function ($q) use ($now) {
+        // Filter event yang aktif (masa kampanye / voting terbuka ATAU grace period pemenang 3 hari)
+        $campaign = (clone $query)->where(function ($q) use ($now) {
             $q->where(function ($activeQ) use ($now) {
                 $activeQ->whereIn('status', ['upcoming', 'voting_open'])
                     ->where(function ($timeQ) use ($now) {
@@ -178,5 +209,29 @@ class OsisElection extends Model
         ->orderByRaw("CASE WHEN status = 'voting_open' THEN 1 WHEN status = 'upcoming' THEN 2 ELSE 3 END")
         ->latest()
         ->first();
+
+        // Fallback khusus untuk akun Yayasan / SuperAdmin jika belum ada filter spesifik: ambil agenda aktif pertama yang ada
+        if (!$campaign && $isYayasanOrAdmin) {
+            $campaign = self::with(['school', 'candidates', 'winnerCandidate'])
+                ->where('is_active', true)
+                ->where(function ($q) use ($now) {
+                    $q->where(function ($activeQ) use ($now) {
+                        $activeQ->whereIn('status', ['upcoming', 'voting_open'])
+                            ->where(function ($timeQ) use ($now) {
+                                $timeQ->whereNull('end_time')
+                                    ->orWhere('end_time', '>', $now);
+                            });
+                    })->orWhere(function ($completedQ) use ($now) {
+                        $completedQ->where(function ($sub) {
+                            $sub->where('status', 'completed')
+                                ->orWhereNotNull('winner_candidate_id');
+                        })->where('announcement_date', '>=', $now->copy()->subDays(3));
+                    });
+                })
+                ->latest()
+                ->first();
+        }
+
+        return $campaign;
     }
 }

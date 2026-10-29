@@ -84,17 +84,31 @@ class OsisElectionController extends Controller
         }
 
         // Cari event pemilihan yang sesuai dengan sekolah user
-        $userSchoolId = $user->school_id;
+        $isYayasanOrAdmin = in_array($user->role, ['superadmin', 'yayasan', 'ketua_yayasan', 'admin_yayasan'])
+            || (method_exists($user, 'isKetuaYayasan') && $user->isKetuaYayasan())
+            || (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin());
+
+        // Prioritas unit aktif dari switcher session
+        $userSchoolId = session('active_school_id') 
+            ?? (method_exists($user, 'getActiveSchoolId') ? $user->getActiveSchoolId() : $user->school_id);
 
         // Jika user adalah siswa, pastikan school_id dari relasi student jika ada
         if ($user->student) {
             $userSchoolId = $user->student->school_id ?? $userSchoolId;
         }
 
+        // Cek jika schoolId adalah tipe yayasan
+        if ($userSchoolId) {
+            $sch = School::find($userSchoolId);
+            if ($sch && $sch->type === 'yayasan') {
+                $userSchoolId = null;
+            }
+        }
+
         // Cari election aktif untuk unit sekolah user
         $election = OsisElection::with(['school', 'candidates', 'academicYear'])
             ->where('is_active', true)
-            ->when($userSchoolId && !in_array($user->role, ['superadmin', 'yayasan']), function($q) use ($userSchoolId) {
+            ->when($userSchoolId, function($q) use ($userSchoolId) {
                 $q->where('school_id', $userSchoolId);
             })
             ->latest()
