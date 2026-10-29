@@ -145,14 +145,6 @@ class OsisElection extends Model
             return null;
         }
 
-        // Cek apakah akun memiliki hak akses Yayasan atau SuperAdmin
-        $isYayasanOrAdmin = in_array($user->role, ['superadmin', 'yayasan', 'ketua_yayasan', 'admin_yayasan'])
-            || (method_exists($user, 'isKetuaYayasan') && $user->isKetuaYayasan())
-            || (method_exists($user, 'isYayasan') && $user->isYayasan())
-            || (method_exists($user, 'canAccessYayasan') && $user->canAccessYayasan())
-            || (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin())
-            || in_array(session('active_role'), ['yayasan', 'ketua_yayasan', 'superadmin']);
-
         // 1. Tentukan target School ID:
         // Prioritas 0: Query string jika ada
         $schoolId = request('school_id') ?: request('target_school_id') ?: request('unit_id');
@@ -179,7 +171,6 @@ class OsisElection extends Model
         }
 
         // Jika schoolId mengarah ke Yayasan (type == 'yayasan'), jangan batasi ke ID yayasan
-        // karena OSIS hanya diselenggarakan di 3 unit sekolah aktif (SMK, SMA, SMP)
         if ($schoolId) {
             $school = School::find($schoolId);
             if ($school && strtolower($school->type ?? '') === 'yayasan') {
@@ -187,70 +178,43 @@ class OsisElection extends Model
             }
         }
 
-        $now = Carbon::now();
-
-        // Base query
-        $buildQuery = function (?int $filterSchoolId = null) use ($now) {
-            $q = self::with(['school', 'candidates', 'winnerCandidate'])
-                ->where('is_active', true);
-
-            if ($filterSchoolId) {
-                $q->where('school_id', $filterSchoolId);
-            }
-
-            // Filter status aktif (voting_open atau upcoming yang belum berakhir, ATAU grace period pemenang 3 hari)
-            $q->where(function ($sub) use ($now) {
-                // Skenario A: Sedang Berlangsung (voting_open selalu aktif jika is_active=1)
-                $sub->where(function ($openQ) use ($now) {
-                    $openQ->where('status', 'voting_open')
-                        ->where(function ($timeQ) use ($now) {
-                            $timeQ->whereNull('end_time')
-                                ->orWhere('end_time', '>=', $now->copy()->subHours(6)); // Beri kelonggaran toleransi waktu
-                        });
-                })
-                // Skenario B: Masa Kampanye / Pra-Pemilihan (Upcoming)
-                ->orWhere(function ($upcomingQ) use ($now) {
-                    $upcomingQ->where('status', 'upcoming')
-                        ->where(function ($timeQ) use ($now) {
-                            $timeQ->whereNull('end_time')
-                                ->orWhere('end_time', '>', $now);
-                        });
-                })
-                // Skenario C: Selesai & Ada Pemenang (Grace period spotlight 3 hari setelah pengumuman)
-                ->orWhere(function ($completedQ) use ($now) {
-                    $completedQ->where(function ($c) {
-                        $c->where('status', 'completed')
-                          ->orWhereNotNull('winner_candidate_id');
-                    });
-                    $completedQ->where(function ($dateQ) use ($now) {
-                        $dateQ->whereNull('announcement_date')
-                              ->orWhere('announcement_date', '>=', $now->copy()->subDays(3));
-                    });
-                });
-            });
-
-            return $q->orderByRaw("CASE WHEN status = 'voting_open' THEN 1 WHEN status = 'upcoming' THEN 2 ELSE 3 END")
-                     ->latest();
-        };
-
-        // 1. Coba ambil berdasarkan unit sekolah aktif terpilih
+        // 1. Cari election aktif yang sesuai unit sekolah yang dipilih
         $campaign = null;
         if ($schoolId) {
-            $campaign = $buildQuery($schoolId)->first();
-        }
-
-        // 2. Jika belum ketemu dan user adalah Yayasan / SuperAdmin, coba ambil event aktif dari unit sekolah manapun
-        if (!$campaign && $isYayasanOrAdmin) {
-            $campaign = $buildQuery(null)->first();
-        }
-
-        // 3. Fallback darurat: Jika masih null (misal ada agenda is_active = 1 tapi status belum diset sempurna)
-        if (!$campaign && $isYayasanOrAdmin) {
             $campaign = self::with(['school', 'candidates', 'winnerCandidate'])
                 ->where('is_active', true)
-                ->whereIn('status', ['voting_open', 'upcoming'])
+                ->where('school_id', $schoolId)
+                ->orderByRaw("CASE WHEN status = 'voting_open' THEN 1 WHEN status = 'upcoming' THEN 2 ELSE 3 END")
                 ->latest()
                 ->first();
+        }
+
+        // 2. Fallback untuk semua user (Yayasan, Guru, Siswa):
+        // Jika belum ada agenda di unit sekolah terkait, ambil agenda OSIS aktif manapun di database (misal simulasi SMK)
+        if (!$campaign) {
+            $campaign = self::with(['school', 'candidates', 'winnerCandidate'])
+                ->where('is_active', true)
+                ->orderByRaw("CASE WHEN status = 'voting_open' THEN 1 WHEN status = 'upcoming' THEN 2 ELSE 3 END")
+                ->latest()
+                ->first();
+        }
+
+        if (!$campaign) {
+            return null;
+        }
+
+        // 3. Logika Auto-Expire:
+        // Jika status ditutup (voting_closed) tanpa ada penetapan pemenang, sembunyikan widget
+        if ($campaign->status === 'voting_closed' && !$campaign->winner_candidate_id) {
+            return null;
+        }
+
+        // Jika status selesai (completed) dan sudah lewat 3 hari setelah pengumuman, sembunyikan widget
+        if ($campaign->isCompleted() && $campaign->announcement_date) {
+            $announceTime = Carbon::parse($campaign->announcement_date);
+            if (Carbon::now()->gt($announceTime->addDays(3))) {
+                return null;
+            }
         }
 
         return $campaign;

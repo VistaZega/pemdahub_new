@@ -300,6 +300,48 @@ class DashboardController extends Controller
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->count();
 
+        // Agenda Pemilihan OSIS Aktif (Auto-Expire & Multi-School Context)
+        $osisCampaign = null;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('osis_elections')) {
+                if ($effectiveSchoolId) {
+                    $targetSchool = \App\Models\School::find($effectiveSchoolId);
+                    $filterSchoolId = ($targetSchool && strtolower($targetSchool->type ?? '') === 'yayasan') ? null : $effectiveSchoolId;
+                    
+                    if ($filterSchoolId) {
+                        $osisCampaign = \App\Models\OsisElection::with(['school', 'candidates', 'winnerCandidate'])
+                            ->where('is_active', true)
+                            ->where('school_id', $filterSchoolId)
+                            ->orderByRaw("CASE WHEN status = 'voting_open' THEN 1 WHEN status = 'upcoming' THEN 2 ELSE 3 END")
+                            ->latest()
+                            ->first();
+                    }
+                }
+
+                // Fallback agenda OSIS aktif pertama di database jika unit belum punya agenda
+                if (!$osisCampaign) {
+                    $osisCampaign = \App\Models\OsisElection::with(['school', 'candidates', 'winnerCandidate'])
+                        ->where('is_active', true)
+                        ->orderByRaw("CASE WHEN status = 'voting_open' THEN 1 WHEN status = 'upcoming' THEN 2 ELSE 3 END")
+                        ->latest()
+                        ->first();
+                }
+
+                // Auto-expire check
+                if ($osisCampaign) {
+                    if ($osisCampaign->status === 'voting_closed' && !$osisCampaign->winner_candidate_id) {
+                        $osisCampaign = null;
+                    } elseif ($osisCampaign->isCompleted() && $osisCampaign->announcement_date) {
+                        if (\Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($osisCampaign->announcement_date)->addDays(3))) {
+                            $osisCampaign = null;
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $osisCampaign = null;
+        }
+
         return view('guru.dashboard', compact(
             'teacher', 'activeYear', 'activeSemester', 'classrooms',
             'totalStudents', 'todaySchedules', 'groupedTodaySchedules', 'gradesCount',
@@ -307,7 +349,8 @@ class DashboardController extends Controller
             'currentTime', 'currentSchedule', 'nextSchedule',
             'reputation', 'reputationLogs', 'rank', 'foundationLetters',
             'availableSchools', 'activeSchoolName', 'isMultiSchool', 'effectiveSchoolId',
-            'todayAttendance', 'pklSupervisorHours', 'pklPlacementsCount'
+            'todayAttendance', 'pklSupervisorHours', 'pklPlacementsCount',
+            'osisCampaign'
         ));
     }
 

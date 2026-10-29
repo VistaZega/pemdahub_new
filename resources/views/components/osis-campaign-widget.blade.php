@@ -1,5 +1,5 @@
 @php
-    $campaign = \App\Models\OsisElection::getActiveCampaignForUser();
+    $campaign = $campaign ?? \App\Models\OsisElection::getActiveCampaignForUser();
     if (!$campaign) {
         return;
     }

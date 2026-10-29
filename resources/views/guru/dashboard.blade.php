@@ -48,7 +48,7 @@
     </div>
 
     {{-- KAMPANYE PEMILIHAN OSIS (OTOMATIS HILANG SAAT SELESAI) --}}
-    @include('components.osis-campaign-widget', ['variant' => 'teacher'])
+    @include('components.osis-campaign-widget', ['variant' => 'teacher', 'campaign' => $osisCampaign ?? null])
 
     {{-- Urgent Guru Attendance Banner (Interaktif & Modern) --}}
     @php

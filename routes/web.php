@@ -1527,6 +1527,66 @@ Route::get('/cleanup-steam-posts', function () {
     return $html;
 });
 
+// Debug Diagnostic OSIS Widget
+Route::get('/debug-osis-widget', function () {
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json(['error' => 'Belum login. Silakan login terlebih dahulu.']);
+    }
+
+    $activeRole = session('active_role');
+    $activeSchoolId = session('active_school_id');
+    $effectiveSchoolId = null;
+
+    if ($user->teacher) {
+        $ctrl = app(\App\Http\Controllers\Guru\DashboardController::class);
+        $ref = new \ReflectionMethod($ctrl, 'getEffectiveSchoolId');
+        $ref->setAccessible(true);
+        $effectiveSchoolId = $ref->invoke($ctrl, $user->teacher);
+    }
+
+    $allElections = \App\Models\OsisElection::with(['school', 'candidates'])->get()->map(function ($el) {
+        return [
+            'id' => $el->id,
+            'title' => $el->title,
+            'school_id' => $el->school_id,
+            'school_name' => $el->school?->name,
+            'status' => $el->status,
+            'is_active' => (bool) $el->is_active,
+            'candidates_count' => $el->candidates->count(),
+            'start_time' => (string) $el->start_time,
+            'end_time' => (string) $el->end_time,
+        ];
+    });
+
+    $activeCampaign = \App\Models\OsisElection::getActiveCampaignForUser();
+
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'school_id' => $user->school_id,
+        ],
+        'session' => [
+            'active_role' => $activeRole,
+            'active_school_id' => $activeSchoolId,
+            'effective_school_id' => $effectiveSchoolId,
+        ],
+        'total_elections_in_database' => $allElections->count(),
+        'all_elections' => $allElections,
+        'resolved_active_campaign' => $activeCampaign ? [
+            'id' => $activeCampaign->id,
+            'title' => $activeCampaign->title,
+            'school_id' => $activeCampaign->school_id,
+            'school_name' => $activeCampaign->school?->name,
+            'status' => $activeCampaign->status,
+            'candidates_count' => $activeCampaign->candidates->count(),
+        ] : null,
+    ], 200, [], JSON_PRETTY_PRINT);
+})->middleware(['web', 'auth']);
+
 Route::get('/run-migrations', function () {
     if (request('secret') !== 'pembda99') {
         abort(403, 'Unauthorized.');
