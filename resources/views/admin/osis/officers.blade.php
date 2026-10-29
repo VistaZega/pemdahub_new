@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 @section('title', 'Pengurus OSIS Terpilih & Reward Poin - ' . $election->title)
 
 @section('content')

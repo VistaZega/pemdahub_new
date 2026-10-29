@@ -1,14 +1,4 @@
-@php
-    $currentUser = auth()->user();
-    $layout = 'layouts.siswa';
-    if ($currentUser && in_array($currentUser->role, ['guru', 'teacher', 'pegawai', 'staff'])) {
-        $layout = 'layouts.guru';
-    } elseif ($currentUser && in_array($currentUser->role, ['admin', 'superadmin', 'yayasan'])) {
-        $layout = 'layouts.app';
-    }
-@endphp
-
-@extends($layout)
+@extends(auth()->check() ? auth()->user()->layout : 'layouts.app')
 @section('title', 'Pemilihan OSIS - PembdaHUB')
 
 @section('content')

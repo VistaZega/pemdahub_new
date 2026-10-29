@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 @section('title', 'Edit Agenda Pemilihan OSIS - Admin PembdaHUB')
 
 @section('content')
