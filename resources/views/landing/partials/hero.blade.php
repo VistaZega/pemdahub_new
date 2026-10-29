@@ -65,24 +65,24 @@
 
             </div>
 
-            <!-- SISI KANAN HERO (Surat Kabar / Gazette Warta Yayasan Perguruan PEMBDA) -->
+            <!-- SISI KANAN HERO (Surat Kabar / Gazette Warta Yayasan Perguruan PEMBDA - Kertas Stensil x Kliping Putih) -->
             <div class="lg:col-span-6 flex flex-col">
-                <div id="warta-pembda" class="relative bg-[#fffefb] border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[6px_6px_0px_#121316] flex flex-col justify-between h-full transition-all">
+                <div id="warta-pembda" class="relative bg-[#f4ebd9] border-2 border-[#121316] rounded-2xl p-5 sm:p-6 shadow-[6px_6px_0px_#121316] flex flex-col justify-between h-full transition-all">
                     
                     <!-- Corner Gazette Notations -->
-                    <span class="absolute top-2 left-2.5 text-[#121316]/30 font-mono-code text-[11px] select-none">⌜</span>
-                    <span class="absolute top-2 right-2.5 text-[#121316]/30 font-mono-code text-[11px] select-none">⌝</span>
-                    <span class="absolute bottom-2 left-2.5 text-[#121316]/30 font-mono-code text-[11px] select-none">⌞</span>
-                    <span class="absolute bottom-2 right-2.5 text-[#121316]/30 font-mono-code text-[11px] select-none">⌟</span>
+                    <span class="absolute top-2 left-2.5 text-[#121316]/40 font-mono-code text-[11px] select-none">⌜</span>
+                    <span class="absolute top-2 right-2.5 text-[#121316]/40 font-mono-code text-[11px] select-none">⌝</span>
+                    <span class="absolute bottom-2 left-2.5 text-[#121316]/40 font-mono-code text-[11px] select-none">⌞</span>
+                    <span class="absolute bottom-2 right-2.5 text-[#121316]/40 font-mono-code text-[11px] select-none">⌟</span>
 
                     <div>
                         <!-- Top Gazette Band / Header Bar -->
-                        <div class="flex items-center justify-between text-[9px] font-mono-code font-bold uppercase tracking-wider text-[#666] border-b border-[#121316]/20 pb-1.5 mb-2">
+                        <div class="flex items-center justify-between text-[9px] font-mono-code font-bold uppercase tracking-wider text-[#554e3d] border-b border-[#121316]/25 pb-1.5 mb-2">
                             <span class="flex items-center gap-1.5 text-[#121316]">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#ff3823] animate-pulse"></span>
-                                EDISI RESMI PUBLIK & CIVITAS
+                                EDISI STENSIL & PERS CIVITAS
                             </span>
-                            <span class="text-[#777]">PULAU NIAS &bull; SUMATERA UTARA</span>
+                            <span class="text-[#6d6450]">PULAU NIAS &bull; SUMATERA UTARA</span>
                         </div>
 
                         <!-- Gazette Title / Masthead -->
@@ -90,15 +90,15 @@
                             <h2 class="font-newspaper text-2xl sm:text-3xl font-black text-[#121316] tracking-tight uppercase leading-none">
                                 WARTA PERGURUAN PEMBDA
                             </h2>
-                            <p class="text-[9px] font-mono-code uppercase tracking-widest text-[#71717a] mt-1">
+                            <p class="text-[9px] font-mono-code uppercase tracking-widest text-[#554e3d] mt-1">
                                 Lembaga Informasi & Publikasi Resmi Yayasan Perguruan PEMBDA Nias
                             </p>
                         </div>
 
-                        <!-- Dateline Double-Rule Newspaper Border -->
-                        <div class="border-y-2 border-[#121316] py-1 my-2.5 flex items-center justify-between text-[10px] font-mono-code font-bold uppercase text-[#121316]">
+                        <!-- Dateline Double-Rule Newspaper Border (Kertas Stensil Bar) -->
+                        <div class="border-y-2 border-[#121316] bg-[#ebe1c7]/80 py-1 px-2 my-2.5 flex items-center justify-between text-[10px] font-mono-code font-bold uppercase text-[#121316]">
                             <span>VOL. XXVI &bull; NO. {{ now()->format('m.y') }}</span>
-                            <span class="text-[#4b5563]">{{ now()->translatedFormat('l, d F Y') }}</span>
+                            <span class="text-[#4b4334]">{{ now()->translatedFormat('l, d F Y') }}</span>
                             <span class="text-[#ff3823] flex items-center gap-1">
                                 <i class="fa-solid fa-bolt text-[9px]"></i> KABAR HARI INI
                             </span>
@@ -109,9 +109,9 @@
                             $secondaryNews = (isset($news) && $news->count() > 1) ? $news->slice(1, 2) : collect();
                         @endphp
 
-                        <!-- BERITA UTAMA / TAJUK UTAMA -->
+                        <!-- BERITA UTAMA / TAJUK UTAMA (Kliping Putih Bersih di Atas Kertas Stensil) -->
                         @if($featuredNews)
-                            <article class="mb-3.5 group cursor-pointer" onclick="openNewsDetailModal({{ $featuredNews->id }})">
+                            <article class="bg-white border-2 border-[#121316] rounded-xl p-3.5 sm:p-4 shadow-[3px_3px_0px_#121316] mb-3.5 group cursor-pointer hover:-translate-y-0.5 transition-all" onclick="openNewsDetailModal({{ $featuredNews->id }})">
                                 <div class="flex items-center justify-between gap-2 mb-1.5">
                                     <span class="px-2 py-0.5 bg-[#ff3823] text-white text-[9px] font-mono-code font-black uppercase tracking-wider rounded">
                                         ★ LAPORAN UTAMA
@@ -159,7 +159,7 @@
                             </article>
                         @else
                             <!-- Fallback Editorial -->
-                            <div class="p-4 bg-[#f8f6f0] border border-[#121316] rounded-xl text-center my-3">
+                            <div class="p-4 bg-white border-2 border-[#121316] rounded-xl text-center my-3 shadow-[2px_2px_0px_#121316]">
                                 <div class="text-[10px] font-mono-code font-bold text-[#ff3823] uppercase mb-1">EDISI RESMI YAYASAN</div>
                                 <h3 class="font-newspaper text-lg font-black text-[#121316] mb-1">Maju Terus Pantang Mundur: Pendidikan Nias Modern</h3>
                                 <p class="text-xs text-[#555] font-newspaper">Yayasan Perguruan PEMBDA Nias terus berinovasi memadukan riset, vokasi, dan karakter mulia untuk masa depan generasi Nias.</p>
@@ -170,16 +170,16 @@
                         <div class="relative my-3">
                             <div class="border-t border-[#121316] w-full"></div>
                             <div class="border-t border-[#121316] w-full mt-[2px]"></div>
-                            <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-[#fffefb] px-2 text-[8px] sm:text-[9px] font-mono-code font-bold uppercase tracking-widest text-[#71717a] whitespace-nowrap">
+                            <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-[#f4ebd9] px-2 text-[8px] sm:text-[9px] font-mono-code font-bold uppercase tracking-widest text-[#554e3d] whitespace-nowrap">
                                 ✦ KAWAT BERITA & WARTA LAINNYA ✦
                             </span>
                         </div>
 
-                        <!-- SECONDARY WIRE STORIES (KILAS WARTA) -->
+                        <!-- SECONDARY WIRE STORIES (KILAS WARTA - Kliping Putih Bersih) -->
                         @if($secondaryNews->isNotEmpty())
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                 @foreach($secondaryNews as $sub)
-                                    <div class="border border-[#e7e3d8] bg-[#faf8f5]/80 p-2.5 rounded-lg flex flex-col justify-between hover:border-[#121316] hover:bg-white transition-all cursor-pointer group shadow-xs" onclick="openNewsDetailModal({{ $sub->id }})">
+                                    <div class="border-2 border-[#121316] bg-white p-2.5 rounded-lg flex flex-col justify-between hover:bg-[#fffdf7] hover:-translate-y-0.5 transition-all cursor-pointer group shadow-[2px_2px_0px_#121316]" onclick="openNewsDetailModal({{ $sub->id }})">
                                         <div>
                                             <div class="text-[9px] font-mono-code font-bold text-[#2563eb] uppercase mb-1 flex items-center justify-between">
                                                 <span class="truncate max-w-[110px]">[{{ $sub->category_label ?? 'KILAS' }}]</span>
@@ -205,7 +205,7 @@
 
                     <!-- Bottom Gazette Footer Bar -->
                     <div class="mt-3.5 pt-2.5 border-t-2 border-[#121316] flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-code font-bold">
-                        <div class="flex items-center gap-1.5 text-[#4b5563]">
+                        <div class="flex items-center gap-1.5 text-[#4b4334]">
                             <i class="fa-solid fa-stamp text-[#ff3823]"></i>
                             <span>HUMAS RESMI PEMBDA NIAS</span>
                         </div>
