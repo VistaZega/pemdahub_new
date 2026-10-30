@@ -32,7 +32,7 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-xs">
                 <i class="fas fa-sparkles text-[10px]"></i>
             </div>
-            <span class="font-black text-slate-900">Panggung CIRCLE Saya</span>
+            <span class="font-black text-slate-900">Profil CIRCLE</span>
         </div>
         <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Publik</span>
     </a>
@@ -41,7 +41,7 @@
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xs">
             <i class="fas fa-layer-group text-[10px]"></i>
         </div>
-        <span class="font-black text-slate-900">Panggung Gelora Pembda</span>
+        <span class="font-black text-slate-900">PembdaCIRCLE</span>
     </a>
 
     @if(\App\Services\SteamCompetitionService::isStudentParticipant(Auth::user()))

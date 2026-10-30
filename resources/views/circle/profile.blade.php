@@ -129,14 +129,14 @@
                                 class="px-3.5 py-2 rounded-2xl text-xs font-black text-white bg-sky-600 hover:bg-sky-500 border-2 border-sky-700 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105 active:scale-95"
                                 title="Kirim Pesan Pribadi Langsung ke {{ $user->name }}">
                             <i class="fas fa-paper-plane text-xs"></i>
-                            <span>Kirim Pesan (DM)</span>
+                            <span>Bisik</span>
                         </button>
                     @endif
 
                     <button onclick="shareProfile()" 
                             class="px-3.5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105">
-                        <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>
-                        <span>Siarkan Portofolio</span>
+                            <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>
+                        <span>Siarkan</span>
                     </button>
                     <div class="px-3.5 py-2 rounded-2xl bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs" 
                          title="Total Kunjungan Profil">
@@ -159,7 +159,7 @@
                 {{ $profile->bio ?? 'Belum ada biodata singkat.' }}
             </p>
 
-            {{-- ── 3. LOKER PRIVAT AKADEMIK (KHUSUS PEMILIK SAAT LOGIN) ── --}}
+            {{-- ── 3. LOKER (KHUSUS PEMILIK SAAT LOGIN) ── --}}
             @if(Auth::check() && Auth::id() === $user->id)
                 <div class="mt-4 mb-3 p-4 rounded-3xl bg-gradient-to-r from-pink-50 via-amber-50 to-sky-50 border-2 border-pink-200/90 shadow-xs">
                     <div class="flex items-center justify-between mb-3">
@@ -167,10 +167,10 @@
                             <span class="w-6 h-6 rounded-lg bg-pink-200 text-pink-800 flex items-center justify-center text-xs">
                                 <i class="fas fa-lock"></i>
                             </span>
-                            <span>Loker Privat Akademik (Rahasia & Terkunci Hanya untuk Kamu)</span>
+                            <span>Loker</span>
                         </span>
                         <span class="text-[10px] font-black text-slate-900 bg-white px-2.5 py-0.5 rounded-full border border-pink-200 shadow-2xs">
-                            🔒 100% Privat
+                            🔒 Privat
                         </span>
                     </div>
 
@@ -246,28 +246,28 @@
             @endif
         </div>
 
-        {{-- ── 4. Dual-Tab Navigasi: Ruang Cengkrama vs Reka Cipta (Pastel Coklat vs Kuning) ── --}}
+        {{-- ── 4. Dual-Tab Navigasi: Nongki vs Karya (Pastel Coklat vs Kuning) ── --}}
         <div class="flex border-t-2 border-[#f1e8dc] bg-[#faf8f5] px-6">
-            {{-- Tab Ruang Cengkrama (Coklat Pastel) --}}
+            {{-- Tab Nongki (Coklat Pastel) --}}
             <button @click="activeTab = 'wall'" 
                     :class="activeTab === 'wall' ? 'border-[#b08968] text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
                     class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl">
                 <span class="w-6 h-6 rounded-lg bg-[#faedcd] text-[#7f5539] flex items-center justify-center text-xs">
                     <i class="fas fa-mug-hot"></i>
                 </span>
-                <span class="font-display">Ruang Cengkrama</span>
+                <span class="font-display">Nongki</span>
                 <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-[#faedcd] text-[#7f5539] font-black border border-[#d4a373]">
                     {{ $wallPosts->count() }}
                 </span>
             </button>
-            {{-- Tab Reka Cipta Mahakarya (Kuning Pastel) --}}
+            {{-- Tab Karya (Kuning Pastel) --}}
             <button @click="activeTab = 'portfolio'" 
                     :class="activeTab === 'portfolio' ? 'border-amber-400 text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
                     class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl">
                 <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs">
                     <i class="fas fa-trophy"></i>
                 </span>
-                <span class="font-display">Reka Cipta Mahakarya</span>
+                <span class="font-display">Karya</span>
                 <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-900 border border-amber-300 font-black">
                     {{ $portfolioPosts->count() + $finalProjects->count() + $approvedPklLogs->count() }}
                 </span>
@@ -300,7 +300,7 @@
                 <img src="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-11 h-11 rounded-2xl object-cover ring-2 ring-pink-100">
                 <div>
                     <h4 class="text-sm font-black text-slate-950">Hai {{ explode(' ', $user->name)[0] }}! ✨</h4>
-                    <span class="text-xs font-bold text-slate-600">Mau nulis status nongki atau pamer karya apa hari ini?</span>
+                    <span class="text-xs font-bold text-slate-600">Mau nulis apa hari ini?</span>
                 </div>
             </div>
 
@@ -309,31 +309,31 @@
                 <input type="hidden" name="tab_category" :value="tabCat">
                 <input type="hidden" name="post_type" :value="postType">
 
-                {{-- Pilihan Format Postingan --}}
+                {{-- Pilihan Format Postingan (1 Kata: Nongki, Kilas, Karya, Reels) --}}
                 <div class="flex items-center gap-2 mb-3 overflow-x-auto pb-1">
                     <button type="button" @click="tabCat = 'wall'; postType = 'status'"
                             :class="tabCat === 'wall' && postType === 'status' ? 'bg-[#faedcd] text-slate-950 border-[#d4a373]' : 'bg-slate-100 text-slate-700 border-slate-200'"
                             class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
                         <i class="fas fa-mug-hot text-[#7f5539]"></i>
-                        <span>Status Nongki</span>
+                        <span>Nongki</span>
                     </button>
                     <button type="button" @click="tabCat = 'wall'; postType = 'story'"
                             :class="postType === 'story' ? 'bg-pink-100 text-slate-950 border-pink-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
                             class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
                         <i class="fas fa-bolt text-pink-600"></i>
-                        <span>Story 24 Jam</span>
+                        <span>Kilas</span>
                     </button>
                     <button type="button" @click="tabCat = 'portfolio'; postType = 'project'"
                             :class="tabCat === 'portfolio' ? 'bg-amber-100 text-slate-950 border-amber-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
                             class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
                         <i class="fas fa-trophy text-amber-700"></i>
-                        <span>Pamer Karya</span>
+                        <span>Karya</span>
                     </button>
                     <button type="button" @click="tabCat = 'portfolio'; postType = 'reel'"
                             :class="postType === 'reel' ? 'bg-sky-100 text-slate-950 border-sky-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
                             class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
                         <i class="fas fa-play text-sky-700"></i>
-                        <span>Video Reels</span>
+                        <span>Reels</span>
                     </button>
                 </div>
 
@@ -706,13 +706,13 @@
                         <span class="w-6 h-6 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-xs">
                             <i class="fas fa-medal text-amber-500"></i>
                         </span>
-                        <span>Lencana Piawai Resmi (Disahkan Mentor Guru)</span>
+                        <span>Lencana</span>
                     </h3>
                     @if($canEndorseStudent)
                         <button type="button" @click="showEndorseModal = true" 
                                 class="px-3.5 py-1.5 rounded-2xl text-xs font-black text-slate-950 bg-emerald-200 hover:bg-emerald-300 border-2 border-emerald-400 transition-all hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fas fa-plus-circle text-emerald-800"></i>
-                            <span>+ Sematkan Lencana Piawai</span>
+                            <span>+ Lencana</span>
                         </button>
                     @endif
                 </div>

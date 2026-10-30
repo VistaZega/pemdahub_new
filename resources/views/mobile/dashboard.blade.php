@@ -263,10 +263,10 @@
                         </span>
                     </div>
                     <h3 class="text-sm font-black text-white truncate mt-0.5 tracking-tight">
-                        Panggung Gelora PembdaCIRCLE
+                        PembdaCIRCLE ✨
                     </h3>
                     <p class="text-[10px] text-pink-100 font-bold truncate">
-                        Kilas 24 Jam, Reels, Polling Seru & Pesan Pribadi (DM)
+                        Kilas, Reels, Polling & Bisik 🔥
                     </p>
                 </div>
             </div>

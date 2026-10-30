@@ -83,7 +83,7 @@
     ═══════════════════════════════════════════ --}}
     <div class="lg:col-span-2 space-y-6">
 
-        {{-- ── 1. Story Bar: ⚡ KILAS 24 JAM WARGA PEMBDA ── --}}
+        {{-- ── 1. Story Bar: ⚡ KILAS (STORY 24 JAM) ── --}}
         @if($activeStories->isNotEmpty() || Auth::check())
             <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-4 shadow-xs">
                 <div class="flex items-center justify-between mb-3 px-1">
@@ -91,7 +91,7 @@
                         <span class="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">
                             <i class="fas fa-bolt"></i>
                         </span>
-                        <span>Kilas 24 Jam Warga Pembda</span>
+                        <span>Kilas</span>
                     </span>
                     <span class="text-[11px] font-bold text-pink-600 bg-pink-50 border border-pink-200 px-2.5 py-0.5 rounded-full">
                         {{ $activeStories->count() }} kilas aktif ✨
@@ -103,7 +103,7 @@
                         <button type="button" 
                                 @click="document.getElementById('quick-post-box')?.scrollIntoView({behavior: 'smooth'}); setTimeout(() => { const btn = document.getElementById('btn-select-story'); if(btn) btn.click(); }, 300)"
                                 class="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none cursor-pointer"
-                                title="Unggah Kilas 24 Jam Baru">
+                                title="Unggah Kilas Baru">
                             <div class="relative w-16 h-16 rounded-full p-[2.5px] border-2 border-dashed border-pink-400 group-hover:scale-105 transition-transform duration-200">
                                 <div class="w-full h-full rounded-full p-0.5 bg-white overflow-hidden">
                                     <img src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-full h-full rounded-full object-cover">
@@ -113,7 +113,7 @@
                                 </span>
                             </div>
                             <span class="text-[11px] font-black text-slate-950 group-hover:text-pink-600 max-w-[70px] truncate text-center">
-                                + Kilas Saya
+                                + Kilas
                             </span>
                         </button>
                     @endauth
@@ -207,7 +207,7 @@
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
                                 <h4 class="font-display font-black text-sm sm:text-base text-slate-950 truncate">
-                                    Ruang Ekspresi, {{ explode(' ', Auth::user()->name)[0] }}! ✨
+                                    Curhat, {{ explode(' ', Auth::user()->name)[0] }}! ✨
                                 </h4>
                                 @if(Auth::user()->school)
                                     <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-pink-100 text-pink-900 border border-pink-200">
@@ -216,12 +216,12 @@
                                 @endif
                             </div>
                             <p class="text-xs font-bold text-slate-700 truncate">
-                                Apa gebrakan, karya nyata bengkel/lab, atau ceritamu hari ini?
+                                Cerita nongki, karya bengkel/lab, atau ide seru hari ini!
                             </p>
                         </div>
                     </div>
                     <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs">
-                        <span>Panggung Terbuka</span> 🚀
+                        <span>Panggung</span> 🚀
                     </span>
                 </div>
 
@@ -231,9 +231,9 @@
                     <input type="hidden" name="tab_category" :value="tabCat">
                     <input type="hidden" name="post_type" :value="postType">
 
-                    {{-- 4 Pilihan Gelora Konten Pastel --}}
+                    {{-- 4 Pilihan Gelora Konten Pastel (1 Kata: Nongki, Kilas, Karya, Reels) --}}
                     <div class="flex items-center gap-2 mb-3.5 overflow-x-auto pb-1 custom-scrollbar">
-                        {{-- 1. Ruang Cengkrama (Status Nongki) --}}
+                        {{-- 1. Nongki --}}
                         <button type="button" 
                                 @click="tabCat = 'wall'; postType = 'status'"
                                 :class="tabCat === 'wall' && postType === 'status' ? 'bg-[#faedcd] text-slate-950 border-[#d4a373] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-[#faedcd]/40'"
@@ -241,10 +241,10 @@
                             <span class="w-5 h-5 rounded-lg bg-[#faedcd] text-[#7f5539] flex items-center justify-center text-[10px]">
                                 <i class="fas fa-mug-hot"></i>
                             </span>
-                            <span>Ruang Cengkrama</span>
+                            <span>Nongki</span>
                         </button>
 
-                        {{-- 2. Kilas 24 Jam (Story) --}}
+                        {{-- 2. Kilas --}}
                         <button type="button" id="btn-select-story"
                                 @click="tabCat = 'wall'; postType = 'story'"
                                 :class="postType === 'story' ? 'bg-pink-100 text-slate-950 border-pink-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-pink-50'"
@@ -252,10 +252,10 @@
                             <span class="w-5 h-5 rounded-lg bg-pink-200 text-pink-700 flex items-center justify-center text-[10px]">
                                 <i class="fas fa-bolt"></i>
                             </span>
-                            <span>Kilas 24 Jam</span>
+                            <span>Kilas</span>
                         </button>
 
-                        {{-- 3. Reka Cipta (Pamer Karya / Proyek) --}}
+                        {{-- 3. Karya --}}
                         <button type="button" 
                                 @click="tabCat = 'portfolio'; postType = 'project'"
                                 :class="tabCat === 'portfolio' && postType === 'project' ? 'bg-amber-100 text-slate-950 border-amber-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-amber-50'"
@@ -263,10 +263,10 @@
                             <span class="w-5 h-5 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
                                 <i class="fas fa-trophy"></i>
                             </span>
-                            <span>Reka Cipta Mahakarya</span>
+                            <span>Karya</span>
                         </button>
 
-                        {{-- 4. Lensa Gerak (Reels) --}}
+                        {{-- 4. Reels --}}
                         <button type="button" 
                                 @click="tabCat = 'portfolio'; postType = 'reel'"
                                 :class="postType === 'reel' ? 'bg-sky-100 text-slate-950 border-sky-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-sky-50'"
@@ -274,26 +274,26 @@
                             <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
                                 <i class="fas fa-play"></i>
                             </span>
-                            <span>Lensa Gerak (Video)</span>
+                            <span>Reels</span>
                         </button>
                     </div>
 
-                    {{-- Judul Karya (Tampil Saat Memilih Reka Cipta atau Lensa Gerak) --}}
+                    {{-- Judul Karya (Tampil Saat Memilih Karya atau Reels) --}}
                     <div x-show="tabCat === 'portfolio'" x-transition class="mb-3">
                         <label class="block text-[11px] font-black uppercase tracking-wider text-slate-900 mb-1">
-                            Judul Reka Cipta / Proyek Inovasi <span class="text-rose-500">*</span>
+                            Judul Karya / Proyek <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" name="title" 
                                placeholder="Contoh: Rancang Bangun IoT Pengendali Suhu Mesin, atau Riset Biologi Alga Nias..." 
                                class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/60 border-2 border-amber-200 text-xs sm:text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400 shadow-2xs">
                     </div>
 
-                    {{-- 💡 Butuh Ide Ngetik? (Pemberi Ide Spontan 1-Klik) --}}
+                    {{-- 💡 Pancingan Ide Cepat --}}
                     <div class="mb-3">
                         <div class="flex items-center justify-between mb-1.5 px-0.5">
                             <span class="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                                 <span class="w-5 h-5 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-[10px]">💡</span>
-                                <span>Butuh Ide Ngetik? Klik Salah Satu:</span>
+                                <span>Pancingan Ide:</span>
                             </span>
                         </div>
                         <div class="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar">
@@ -449,7 +449,7 @@
                                 style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 14px rgba(255, 0, 122, 0.45) !important;">
                             <i class="fas fa-paper-plane text-xs text-black" style="color: #000000 !important;"></i>
                             <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">
-                                TERBANGKAN KE PANGGUNG 🚀
+                                GASKEUN! 🚀
                             </span>
                         </button>
                     </div>
@@ -463,7 +463,7 @@
                         <i class="fas fa-heart"></i>
                     </div>
                     <div>
-                        <h4 class="font-display font-black text-sm text-slate-950">Ingin Mengisi Ruang Ekspresi? ✨</h4>
+                        <h4 class="font-display font-black text-sm text-slate-950">Ingin Ikutan Curhat & Pamer Karya? ✨</h4>
                         <p class="text-xs font-semibold text-slate-700">Masuk dengan akun siswa atau guru Anda untuk mulai mengunggah portofolio digital dan momen seru.</p>
                     </div>
                 </div>
@@ -475,7 +475,7 @@
             </div>
         @endauth
 
-        {{-- ── 2B. TANTANGAN GELORA HARI INI (DAILY VIRAL PROMPT) ── --}}
+        {{-- ── 2B. TANTANGAN HARI INI (DAILY VIRAL PROMPT) ── --}}
         @if(isset($todayChallenge))
             <div class="bg-gradient-to-r from-amber-100 via-pink-100 to-sky-100 rounded-3xl border-2 border-black p-4 sm:p-5 shadow-sm relative overflow-hidden">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
@@ -486,7 +486,7 @@
                         <div>
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black text-yellow-300">
-                                    🎯 TANTANGAN GELORA HARI INI
+                                    🎯 TANTANGAN!
                                 </span>
                                 <span class="text-xs font-black text-slate-950">{{ $todayChallenge['title'] }}</span>
                             </div>
@@ -499,53 +499,53 @@
                         <button type="button" 
                                 onclick="document.getElementById('quick-post-box')?.scrollIntoView({ behavior: 'smooth' }); const ta = document.querySelector('textarea[name=content]'); if(ta) { ta.value = '#TantanganPembda ({{ $todayChallenge['title'] }}): '; ta.focus(); ta.dispatchEvent(new Event('input')); }"
                                 class="px-4 py-2 rounded-2xl border-2 border-black bg-white hover:bg-yellow-300 text-slate-950 font-black text-xs transition transform hover:scale-105 active:scale-95 shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto">
-                            <span>Ikutan Momen Ini</span> 🚀
+                            <span>Ikutan!</span> 🚀
                         </button>
                     @else
                         <a href="{{ route('login') }}" 
-                           class="px-4 py-2 rounded-2xl border-2 border-black bg-white hover:bg-yellow-300 text-slate-950 font-black text-xs transition transform hover:scale-105 active:scale-95 shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto">
-                            <span>Masuk & Ikutan</span> 🚀
+                            class="px-4 py-2 rounded-2xl border-2 border-black bg-white hover:bg-yellow-300 text-slate-950 font-black text-xs transition transform hover:scale-105 active:scale-95 shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto">
+                            <span>Ikutan!</span> 🚀
                         </a>
                     @endauth
                 </div>
             </div>
         @endif
 
-        {{-- ── 3. Filter Tab Bar: Gelora Pastel ── --}}
+        {{-- ── 3. Filter Tab Bar: Gelora Pastel (1 Kata: Semua, Karya, Nongki, Reels) ── --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-3xl border-2 border-[#f1e8dc] p-2.5 shadow-xs">
             {{-- Tabs Pastel Heboh --}}
             <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-                {{-- 1. Semua Gelora --}}
+                {{-- 1. Semua --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'all'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'all' ? 'bg-pink-100 text-slate-950 border-2 border-pink-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-pink-200 text-pink-800 flex items-center justify-center text-[10px]">
                         <i class="fas fa-layer-group"></i>
                     </span>
-                    <span>Semua Gelora</span>
+                    <span>Semua</span>
                 </a>
-                {{-- 2. Reka Cipta Mahakarya --}}
+                {{-- 2. Karya --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'portfolio'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'portfolio' ? 'bg-amber-100 text-slate-950 border-2 border-amber-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
                         <i class="fas fa-trophy"></i>
                     </span>
-                    <span>Reka Cipta</span>
+                    <span>Karya</span>
                 </a>
-                {{-- 3. Ruang Cengkrama --}}
+                {{-- 3. Nongki --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'wall'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'wall' ? 'bg-[#faedcd] text-slate-950 border-2 border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
                         <i class="fas fa-mug-hot"></i>
                     </span>
-                    <span>Ruang Cengkrama</span>
+                    <span>Nongki</span>
                 </a>
-                {{-- 4. Lensa Gerak --}}
+                {{-- 4. Reels --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'reels'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'reels' ? 'bg-sky-100 text-slate-950 border-2 border-sky-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
                         <i class="fas fa-play"></i>
                     </span>
-                    <span>Lensa Gerak</span>
+                    <span>Reels</span>
                 </a>
             </div>
 
@@ -1062,7 +1062,7 @@
             <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-pink-300/30 rounded-full blur-2xl pointer-events-none"></div>
         </div>
 
-        {{-- ── 1B. 👑 BINTANG GELORA MINGGU INI (LEADERBOARD MENYALA) ── --}}
+        {{-- ── 1B. 👑 JAWARA! (LEADERBOARD MENYALA) ── --}}
         @if(isset($topStudents) && $topStudents->isNotEmpty())
             <div class="bg-gradient-to-br from-amber-50 via-white to-pink-50 rounded-3xl border-2 border-amber-300 p-5 shadow-xs relative overflow-hidden">
                 <div class="flex items-center justify-between mb-3.5 px-0.5">
@@ -1070,10 +1070,10 @@
                         <span class="w-6 h-6 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-xs font-black">
                             👑
                         </span>
-                        <span>Bintang Gelora Minggu Ini</span>
+                        <span>Jawara!</span>
                     </h3>
                     <span class="text-[9px] font-black text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full uppercase">
-                        Ter-Menyala 🔥
+                        Menyala 🔥
                     </span>
                 </div>
 

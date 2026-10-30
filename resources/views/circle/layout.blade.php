@@ -136,32 +136,36 @@
             </div>
         </a>
 
-        {{-- Unit Switcher Pills: Gelora 3 Unit Sekolah --}}
-        <nav class="hidden md:flex items-center gap-2 bg-white/80 rounded-2xl p-1.5 border-2 border-[#f1e8dc] shadow-xs">
+        {{-- Unit Switcher Pills: Gelora 3 Unit Sekolah (1 Kata Ringkas, Rame & Lucu) --}}
+        <nav class="hidden md:flex items-center gap-1.5 bg-white/80 rounded-2xl p-1.5 border-2 border-[#f1e8dc] shadow-xs">
             <a href="{{ route('circle.feed') }}"
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base {{ !request('school') ? 'bg-pink-100 text-pink-900 border border-pink-300 shadow-xs' : 'text-slate-800 hover:text-pink-700 hover:bg-pink-50' }}">
-                <i class="fas fa-shapes text-pink-500 mr-1.5"></i>Semua Gelora
+               title="Semua Konten Warga Pembda"
+               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base {{ !request('school') ? 'bg-pink-100 text-pink-900 border border-pink-300 shadow-xs' : 'text-slate-800 hover:text-pink-700 hover:bg-pink-50' }}">
+                <i class="fas fa-shapes text-pink-500 mr-1"></i>Ramean
             </a>
             <a href="{{ route('circle.feed', ['school' => 'SMK']) }}"
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1.5 {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-[#7f5539] hover:bg-[#faedcd]/60' }}">
-                <span class="w-5 h-5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
+               title="Karya & Praktek SMK Swasta Pembda"
+               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1 {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-[#7f5539] hover:bg-[#faedcd]/60' }}">
+                <span class="w-4.5 h-4.5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
                     <i class="fas fa-wrench"></i>
                 </span>
-                <span>Reka Vokasi SMK</span>
+                <span>Vokasi</span>
             </a>
             <a href="{{ route('circle.feed', ['school' => 'SMA']) }}"
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1.5 {{ request('school') === 'SMA' ? 'bg-sky-100 text-sky-900 border border-sky-300 shadow-xs' : 'text-slate-800 hover:text-sky-700 hover:bg-sky-50' }}">
-                <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
+               title="Riset & Sains SMA Swasta Pembda"
+               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1 {{ request('school') === 'SMA' ? 'bg-sky-100 text-sky-900 border border-sky-300 shadow-xs' : 'text-slate-800 hover:text-sky-700 hover:bg-sky-50' }}">
+                <span class="w-4.5 h-4.5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
                     <i class="fas fa-atom"></i>
                 </span>
-                <span>Riset Ilmiah SMA</span>
+                <span>Riset</span>
             </a>
             <a href="{{ route('circle.feed', ['school' => 'SMP']) }}"
-               class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1.5 {{ request('school') === 'SMP' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs' : 'text-slate-800 hover:text-emerald-700 hover:bg-emerald-50' }}">
-                <span class="w-5 h-5 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-[10px]">
+               title="Aksi & Kreativitas SMP Swasta Pembda"
+               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1 {{ request('school') === 'SMP' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs' : 'text-slate-800 hover:text-emerald-700 hover:bg-emerald-50' }}">
+                <span class="w-4.5 h-4.5 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-[10px]">
                     <i class="fas fa-seedling"></i>
                 </span>
-                <span>Tunas Muda SMP</span>
+                <span>Tunas</span>
             </a>
         </nav>
 
@@ -238,7 +242,7 @@
                     <button type="button" 
                             @click="openNotif = !openNotif; if(openNotif) markRead();" 
                             class="relative w-9 h-9 rounded-2xl bg-white hover:bg-pink-100 border-2 border-pink-200 text-slate-800 hover:text-pink-600 flex items-center justify-center text-sm transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105"
-                            title="Genta Kabar PembdaCIRCLE">
+                            title="Kabar Terbaru">
                         <i class="fas fa-bell"></i>
                         <template x-if="unread > 0">
                             <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-white animate-pulse"
@@ -264,7 +268,7 @@
                                 <span class="w-6 h-6 rounded-lg bg-pink-200 text-pink-700 flex items-center justify-center text-xs">
                                     🔔
                                 </span>
-                                <span class="text-xs font-black uppercase tracking-wider text-slate-950">Genta Kabar</span>
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-950">Kabar</span>
                             </div>
                             <button type="button" @click="markRead()" class="text-[11px] font-black text-pink-700 hover:text-pink-900 cursor-pointer">
                                 Tandai Dibaca
@@ -332,14 +336,14 @@
                     </div>
                 </div>
 
-                {{-- Kotak Pesan Pribadi (DM) Icon Header --}}
+                {{-- Kotak Pesan Pribadi (Bisik) Icon Header --}}
                 @php
                     $__circleUnreadDmCount = \App\Models\Message::where('receiver_id', $__navUser->id)->where('is_read', false)->count();
                 @endphp
                 <button type="button" 
                         onclick="window.dispatchEvent(new CustomEvent('open-circle-inbox'))" 
                         class="relative w-9 h-9 rounded-2xl bg-white hover:bg-sky-100 border-2 border-sky-200 text-slate-800 hover:text-sky-600 flex items-center justify-center text-sm transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105"
-                        title="Kotak Pesan Pribadi (DM)">
+                        title="Bisik (Pesan Pribadi)">
                     <i class="fas fa-paper-plane"></i>
                     @if($__circleUnreadDmCount > 0)
                         <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-500 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-white animate-pulse">
@@ -348,14 +352,13 @@
                     @endif
                 </button>
 
-                {{-- TOMBOL MORAK & CERAH: KEMBALI KE MEJA KERJA DASHBOARD --}}
+                {{-- TOMBOL MORAK & CERAH: MEJA (KEMBALI KE DASHBOARD) --}}
                 <a href="{{ $__dashUrl }}" 
                    title="Keluar dari CIRCLE dan Kembali ke Meja Kerja Dashboard Utama"
-                   class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border-2 border-black transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 border-black transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer"
                    style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 12px rgba(52, 211, 153, 0.45) !important;">
                     <i class="fas fa-compass text-xs" style="color: #000000 !important;"></i>
-                    <span class="hidden sm:inline" style="color: #000000 !important; font-weight: 900 !important; font-size: 12px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">KEMBALI KE MEJA KERJA</span>
-                    <span class="sm:hidden" style="color: #000000 !important; font-weight: 900 !important; font-size: 11px !important;">Meja Kerja</span>
+                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 11px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">Meja</span>
                 </a>
 
                 <a href="{{ route('circle.profile', ['username' => $__navProfile->username]) }}"
@@ -438,7 +441,7 @@
             <span class="text-[10px]">Karya</span>
         </a>
 
-        {{-- Pesan Pribadi (DM) Mobile --}}
+        {{-- Pesan Pribadi (Bisik) Mobile --}}
         @auth
         <button type="button"
                 onclick="window.dispatchEvent(new CustomEvent('open-circle-inbox'))"
@@ -451,7 +454,7 @@
                     </span>
                 @endif
             </div>
-            <span class="text-[10px]">Pesan</span>
+            <span class="text-[10px]">Bisik</span>
         </button>
         @endauth
 
@@ -471,7 +474,7 @@
                  style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important;">
                 <i class="fas fa-compass text-xs text-black"></i>
             </div>
-            <span class="text-[9px] font-black text-slate-950">Meja Kerja</span>
+            <span class="text-[9px] font-black text-slate-950">Meja</span>
         </a>
         @else
         <a href="{{ route('login') }}"
@@ -739,8 +742,8 @@ window.openCircleChatWith = function(userId, name = '', avatar = '', username = 
                     <i class="fas fa-paper-plane"></i>
                 </div>
                 <div>
-                    <h3 class="text-sm font-black text-slate-950 leading-tight">Kotak Pesan Pribadi (DM)</h3>
-                    <p class="text-[10px] font-bold text-slate-500">Kirim pesan langsung ke Siswa & Guru</p>
+                    <h3 class="text-sm font-black text-slate-950 leading-tight">Bisik ✉️</h3>
+                    <p class="text-[10px] font-bold text-slate-500">Pesan langsung teman & guru</p>
                 </div>
             </div>
 
@@ -784,7 +787,7 @@ window.openCircleChatWith = function(userId, name = '', avatar = '', username = 
                     <input type="text" 
                            x-model="searchQuery" 
                            @input.debounce.300ms="searchUsers()" 
-                           placeholder="Cari guru, siswa, pegawai untuk chat..."
+                           placeholder="Cari warga untuk bisik..."
                            class="w-full pl-9 pr-8 py-2 rounded-2xl bg-white border-2 border-[#f1e8dc] text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 shadow-2xs">
                     <span class="absolute left-3 top-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
                     <button type="button" 
@@ -820,7 +823,7 @@ window.openCircleChatWith = function(userId, name = '', avatar = '', username = 
                             </div>
                         </div>
                         <div class="shrink-0 px-2.5 py-1 rounded-xl bg-sky-100 text-sky-800 text-[10px] font-black border border-sky-300">
-                            Chat 💬
+                            Bisik 💬
                         </div>
                     </button>
                 </template>
