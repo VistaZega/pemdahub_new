@@ -26,6 +26,12 @@
         <span class="text-sm flex-1">Dashboard</span>
     </a>
 
+    <a href="{{ route('circle.feed') }}" class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-pink-950 bg-pink-50/70 hover:bg-pink-100 border border-pink-200/80">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow"><i class="fas fa-bullseye text-xs"></i></div>
+        <span class="text-sm flex-1 font-bold">Feed PembdaCIRCLE</span>
+        <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Karya</span>
+    </a>
+
     @if(isset($children) && $children->count() > 0)
         @foreach($children as $child)
             <div class="pt-3" data-menu-group="child_{{ $child->id }}">
@@ -60,6 +66,18 @@
                         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center text-white"><i class="fas fa-heart text-[10px]"></i></div>
                         <span>Konseling</span>
                     </a>
+                    @php
+                        $childUsername = $child->user?->circleProfile?->username ?? $child->user?->username;
+                    @endphp
+                    @if($childUsername)
+                    <a href="{{ route('circle.profile', ['username' => $childUsername]) }}" target="_blank" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm text-pink-900 bg-pink-50 hover:bg-pink-100 border border-pink-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white"><i class="fas fa-bullseye text-[10px]"></i></div>
+                            <span class="font-bold">CIRCLE {{ explode(' ', $child->full_name)[0] }}</span>
+                        </div>
+                        <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Karya</span>
+                    </a>
+                    @endif
                 </div>
             </div>
         @endforeach

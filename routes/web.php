@@ -3387,6 +3387,12 @@ Route::get('/pemilihan-osis/laporan/{id}', [App\Http\Controllers\OsisElectionCon
 Route::prefix('circle')->name('circle.')->group(function () {
     Route::get('/', [App\Http\Controllers\Circle\CircleFeedController::class, 'index'])->name('feed');
     Route::get('/u/{username}', [App\Http\Controllers\Circle\CircleProfileController::class, 'show'])->name('profile.alt');
+    
+    // Aksi Interaktif Circle (Post, Profil, Reaksi, Komentar)
+    Route::post('/post', [App\Http\Controllers\Circle\CircleActionController::class, 'storePost'])->name('post.store');
+    Route::post('/profile/update', [App\Http\Controllers\Circle\CircleActionController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/react', [App\Http\Controllers\Circle\CircleActionController::class, 'toggleReaction'])->name('react');
+    Route::post('/comment', [App\Http\Controllers\Circle\CircleActionController::class, 'storeComment'])->name('comment.store');
 });
 
 // Route Profil Publik @username (Contoh: perguruanpembda.com/@fathan atau /@andreas-zebua)

@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}' }">
+<div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}', showEditModal: false }">
 
     {{-- ═══════════════════════════════════════════
          PROFILE HEADER CARD (PASTEL CANTIK & LUCU)
@@ -89,12 +89,20 @@
                     </div>
                 </div>
 
-                {{-- Action Bar: Share & View Stats (Pastel Hijau & Pink) --}}
-                <div class="flex items-center gap-2.5 self-start sm:self-end shrink-0">
+                {{-- Action Bar: Share, Edit & View Stats --}}
+                <div class="flex items-center gap-2 self-start sm:self-end shrink-0 flex-wrap">
+                    @if(Auth::check() && Auth::id() === $user->id)
+                        <button @click="showEditModal = true" 
+                                class="px-3.5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-amber-100 hover:bg-amber-200 border-2 border-amber-300 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105">
+                            <i class="fas fa-pen text-amber-700 text-xs"></i>
+                            <span>Edit Profil</span>
+                        </button>
+                    @endif
+
                     <button onclick="shareProfile()" 
-                            class="px-4 py-2 rounded-2xl text-xs font-black text-slate-950 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 transition-base flex items-center gap-2 shadow-xs cursor-pointer hover:scale-105">
+                            class="px-3.5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105">
                         <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>
-                        <span>Bagikan Profil</span>
+                        <span>Bagikan</span>
                     </button>
                     <div class="px-3.5 py-2 rounded-2xl bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs" 
                          title="Total Kunjungan Profil">
@@ -117,6 +125,72 @@
                 {{ $profile->bio ?? 'Belum ada biodata singkat.' }}
             </p>
 
+            {{-- ── 3. LACI AKSES AKADEMIK PRIVAT (KHUSUS PEMILIK SAAT LOGIN) ── --}}
+            @if(Auth::check() && Auth::id() === $user->id)
+                <div class="mt-4 mb-3 p-4 rounded-3xl bg-gradient-to-r from-pink-50 via-amber-50 to-sky-50 border-2 border-pink-200/90 shadow-xs">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-pink-200 text-pink-800 flex items-center justify-center text-xs">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <span>Akses Akademik Privatmu (Hanya Kamu yang Bisa Melihat)</span>
+                        </span>
+                        <span class="text-[10px] font-black text-slate-900 bg-white px-2.5 py-0.5 rounded-full border border-pink-200 shadow-2xs">
+                            🔒 100% Privat
+                        </span>
+                    </div>
+
+                    {{-- Horizontal Quick Links ke Seluruh Side Menu Akademik --}}
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                        @if($user->role === 'siswa')
+                            <a href="{{ route('siswa.nilai') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-emerald-50 border-2 border-emerald-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-chart-bar text-emerald-600"></i>
+                                <span>Nilai & Rapor</span>
+                            </a>
+                            <a href="{{ route('siswa.jadwal') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-sky-50 border-2 border-sky-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-calendar-alt text-sky-600"></i>
+                                <span>Jadwal Pelajaran</span>
+                            </a>
+                            <a href="{{ route('siswa.tagihan') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-rose-50 border-2 border-rose-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-file-invoice-dollar text-rose-600"></i>
+                                <span>Biaya SPP</span>
+                            </a>
+                            @if(\App\Models\Setting::getValue('siswa_view_attendance_recap', true))
+                            <a href="{{ route('siswa.absensi') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-amber-50 border-2 border-amber-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-fingerprint text-amber-600"></i>
+                                <span>Presensi</span>
+                            </a>
+                            @endif
+                            <a href="{{ route('siswa.dna.index') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-dna text-purple-600"></i>
+                                <span>DNA Akademik</span>
+                            </a>
+                            <a href="{{ route('siswa.ekskul.index') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-orange-50 border-2 border-orange-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-palette text-orange-600"></i>
+                                <span>Ekstrakurikuler</span>
+                            </a>
+                            <a href="{{ route('siswa.dashboard') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-columns text-slate-700"></i>
+                                <span>Dashboard Menu</span>
+                            </a>
+                        @elseif($user->role === 'guru')
+                            <a href="{{ route('guru.jadwal') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-sky-50 border-2 border-sky-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-calendar-alt text-sky-600"></i>
+                                <span>Jadwal Mengajar</span>
+                            </a>
+                            <a href="{{ route('guru.kelas') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-indigo-50 border-2 border-indigo-200 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-users text-indigo-600"></i>
+                                <span>Kelas Saya</span>
+                            </a>
+                            <a href="{{ route('guru.dashboard') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-columns text-slate-700"></i>
+                                <span>Dashboard Guru</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             {{-- Social Media Links --}}
             @if(!empty($profile->social_links))
                 <div class="flex items-center gap-3 text-sm text-slate-600 mb-2">
@@ -133,7 +207,7 @@
             @endif
         </div>
 
-        {{-- ── 3. Dual-Tab Navigasi: Nongki vs Karya (Pastel Coklat vs Kuning) ── --}}
+        {{-- ── 4. Dual-Tab Navigasi: Nongki vs Karya (Pastel Coklat vs Kuning) ── --}}
         <div class="flex border-t-2 border-[#f1e8dc] bg-[#faf8f5] px-6">
             {{-- Tab Dinding (Coklat Pastel) --}}
             <button @click="activeTab = 'wall'" 
@@ -163,6 +237,80 @@
     </div>
 
     {{-- ═══════════════════════════════════════════
+         KOTAK BUAT STATUS / POSTING KARYA (KHUSUS PEMILIK AKUN)
+    ═══════════════════════════════════════════ --}}
+    @if(Auth::check() && Auth::id() === $user->id)
+        <div class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs mb-6" x-data="{ postType: 'status', tabCat: 'wall', showAttach: false }">
+            <div class="flex items-center gap-3.5 mb-3">
+                <img src="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-11 h-11 rounded-2xl object-cover ring-2 ring-pink-100">
+                <div>
+                    <h4 class="text-sm font-black text-slate-950">Hai {{ explode(' ', $user->name)[0] }}! ✨</h4>
+                    <span class="text-xs font-bold text-slate-600">Mau nulis status nongki atau pamer karya apa hari ini?</span>
+                </div>
+            </div>
+
+            <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="tab_category" :value="tabCat">
+                <input type="hidden" name="post_type" :value="postType">
+
+                {{-- Pilihan Format Postingan --}}
+                <div class="flex items-center gap-2 mb-3 overflow-x-auto pb-1">
+                    <button type="button" @click="tabCat = 'wall'; postType = 'status'"
+                            :class="tabCat === 'wall' && postType === 'status' ? 'bg-[#faedcd] text-slate-950 border-[#d4a373]' : 'bg-slate-100 text-slate-700 border-slate-200'"
+                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-mug-hot text-[#7f5539]"></i>
+                        <span>Status Nongki</span>
+                    </button>
+                    <button type="button" @click="tabCat = 'wall'; postType = 'story'"
+                            :class="postType === 'story' ? 'bg-pink-100 text-slate-950 border-pink-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
+                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-bolt text-pink-600"></i>
+                        <span>Story 24 Jam</span>
+                    </button>
+                    <button type="button" @click="tabCat = 'portfolio'; postType = 'project'"
+                            :class="tabCat === 'portfolio' ? 'bg-amber-100 text-slate-950 border-amber-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
+                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-trophy text-amber-700"></i>
+                        <span>Pamer Karya</span>
+                    </button>
+                    <button type="button" @click="tabCat = 'portfolio'; postType = 'reel'"
+                            :class="postType === 'reel' ? 'bg-sky-100 text-slate-950 border-sky-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
+                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-play text-sky-700"></i>
+                        <span>Video Reels</span>
+                    </button>
+                </div>
+
+                <div x-show="tabCat === 'portfolio'" class="mb-2.5">
+                    <input type="text" name="title" placeholder="Judul Karya / Proyek Utama..." class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/50 border-2 border-amber-200 text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400">
+                </div>
+
+                <textarea name="content" rows="3" placeholder="Tuliskan cerita, curhat santai, atau penjelasan karyamu..." class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none mb-3"></textarea>
+
+                {{-- Action Bar Form Posting --}}
+                <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 text-xs font-black cursor-pointer flex items-center gap-2 transition">
+                            <i class="fas fa-image text-pink-600 text-sm"></i>
+                            <span>Foto / Video</span>
+                            <input type="file" name="media" class="hidden" accept="image/*,video/*" @change="showAttach = true">
+                        </label>
+                        <span x-show="showAttach" class="text-[11px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-xl border border-emerald-300">
+                            ✓ Media Terpilih
+                        </span>
+                    </div>
+
+                    <button type="submit" class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-paper-plane text-pink-700"></i>
+                        <span>Terbitkan ke CIRCLE ✨</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════
          TAB 1: DINDING NONGKI & MOMEN (THE WALL)
     ═══════════════════════════════════════════ --}}
     <div x-show="activeTab === 'wall'" x-transition class="space-y-6">
@@ -178,7 +326,7 @@
             </div>
         @else
             @foreach($wallPosts as $post)
-                <article class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
+                <article x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
                     {{-- Header --}}
                     <div class="flex items-center justify-between gap-3 mb-4">
                         <div class="flex items-center gap-3 min-w-0">
@@ -221,21 +369,74 @@
                         </div>
                     @endif
 
-                    {{-- Reactions --}}
+                    {{-- Reactions & Comments Bar (Interactive AJAX & Lucu) --}}
                     <div class="flex items-center justify-between pt-3.5 border-t-2 border-[#f8f4ed] text-xs">
-                        <div class="flex items-center gap-2">
-                            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-slate-950 font-black transition-base cursor-pointer">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button type="button" 
+                                    onclick="toggleCircleReaction(this, {{ $post->id }}, 'lit')"
+                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                 <span class="text-base">🔥</span>
-                                <span>{{ $post->likes_count > 0 ? $post->likes_count : 'Lit' }}</span>
+                                <span class="reaction-count-{{ $post->id }}">{{ $post->likes_count > 0 ? $post->likes_count : 'Lit' }}</span>
                             </button>
-                            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-slate-950 font-black transition-base cursor-pointer">
+                            <button type="button" 
+                                    onclick="toggleCircleReaction(this, {{ $post->id }}, 'clap')"
+                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                 <span class="text-base">👏</span>
                                 <span>Apresiasi</span>
                             </button>
+                            <button type="button" 
+                                    onclick="toggleCircleReaction(this, {{ $post->id }}, 'nongki')"
+                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
+                                <span class="text-base">💡</span>
+                                <span>Inspirasi</span>
+                            </button>
+                            <button type="button" 
+                                    onclick="toggleCircleReaction(this, {{ $post->id }}, 'love')"
+                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
+                                <span class="text-base">❤️</span>
+                                <span>Suka</span>
+                            </button>
                         </div>
-                        <div class="text-xs font-bold text-slate-700">
+                        <button type="button" 
+                                @click="showComments = !showComments"
+                                class="text-xs font-bold text-slate-700 hover:text-pink-600 flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-pink-50 transition">
+                            <i class="far fa-comment-dots text-pink-500"></i>
                             <span>{{ $post->comments_count }} komentar</span>
-                        </div>
+                        </button>
+                    </div>
+
+                    {{-- Collapsible Comment Drawer --}}
+                    <div x-show="showComments" x-collapse x-transition class="mt-4 pt-4 border-t border-slate-100">
+                        @if($post->comments->isNotEmpty())
+                            <div class="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                @foreach($post->comments as $cm)
+                                    <div class="p-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-start gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-pink-200 text-pink-800 font-black flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                                            {{ substr($cm->author_name, 0, 1) }}
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="font-black text-slate-950 truncate">{{ $cm->author_name }}</span>
+                                                <span class="text-[10px] text-slate-500 shrink-0">{{ $cm->created_at->diffForHumans() }}</span>
+                                            </div>
+                                            <p class="text-slate-800 font-medium mt-0.5 whitespace-pre-line">{{ $cm->comment_text }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Form Komentar Cepat --}}
+                        <form action="{{ route('circle.comment.store') }}" method="POST" class="flex items-center gap-2">
+                            @csrf
+                            <input type="hidden" name="circle_post_id" value="{{ $post->id }}">
+                            <input type="text" name="comment_text" placeholder="Tulis komentar atau sapaan manis..." required
+                                   class="flex-1 px-3.5 py-2 rounded-2xl bg-white border-2 border-pink-200 text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-400 shadow-2xs">
+                            <button type="submit" class="px-4 py-2 rounded-2xl bg-pink-200 hover:bg-pink-300 text-slate-950 text-xs font-black border-2 border-pink-300 transition-all hover:scale-105 shrink-0 flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                                <i class="fas fa-paper-plane text-pink-700"></i>
+                                <span>Kirim</span>
+                            </button>
+                        </form>
                     </div>
                 </article>
             @endforeach
@@ -363,6 +564,70 @@
         @endif
 
     </div>
+
+    {{-- ═══════════════════════════════════════════
+         MODAL EDIT PROFIL & MOOD (PASTEL LUCU)
+    ═══════════════════════════════════════════ --}}
+    @if(Auth::check() && Auth::id() === $user->id)
+        <div x-show="showEditModal" x-cloak 
+             class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
+             x-transition>
+            <div class="bg-white rounded-3xl border-2 border-pink-200 max-w-md w-full p-6 shadow-2xl relative"
+                 @click.outside="showEditModal = false">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b-2 border-slate-100">
+                    <h3 class="font-display font-black text-lg text-slate-950 flex items-center gap-2">
+                        <i class="fas fa-palette text-pink-600"></i>
+                        <span>Edit Profil & Suasana Hati</span>
+                    </h3>
+                    <button type="button" @click="showEditModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
+                        ✕
+                    </button>
+                </div>
+
+                <form action="{{ route('circle.profile.update') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Nama Panggilan Cantik / Julukan</label>
+                            <input type="text" name="nickname" value="{{ $profile->nickname }}" class="w-full px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-bold text-slate-950 focus:outline-none focus:border-pink-300">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Emoji Suasana Hati (Mood)</label>
+                            <div class="grid grid-cols-6 gap-2 text-xl mb-2">
+                                @foreach(['🔥', '☕', '💡', '✨', '😎', '📚', '💪', '😴', '🎨', '🚀', '🛠️', '🌸'] as $em)
+                                    <label class="p-2 rounded-xl border border-slate-200 hover:bg-pink-50 text-center cursor-pointer flex items-center justify-center">
+                                        <input type="radio" name="mood_emoji" value="{{ $em }}" {{ ($profile->mood_emoji ?? '✨') === $em ? 'checked' : '' }} class="hidden">
+                                        <span>{{ $em }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <input type="text" name="mood_text" value="{{ $profile->mood_text }}" placeholder="Contoh: Semangat ngoprek di bengkel!" class="w-full px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-bold text-slate-950 focus:outline-none focus:border-pink-300">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Bio Singkat</label>
+                            <textarea name="bio" rows="2" class="w-full p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-semibold text-slate-950 focus:outline-none focus:border-pink-300 resize-none">{{ $profile->bio }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Ganti Foto Sampul / Banner</label>
+                            <input type="file" name="banner" accept="image/*" class="w-full text-xs text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-pink-100 file:text-pink-900 hover:file:bg-pink-200">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                        <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105">
+                            Simpan Perubahan ✨
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
 </div>
 

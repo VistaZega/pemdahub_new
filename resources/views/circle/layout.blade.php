@@ -273,6 +273,39 @@
     </div>
 </nav>
 
+<script>
+window.toggleCircleReaction = async function(btn, postId, reactionType) {
+    const card = btn.closest('article') || btn.closest('[data-post-id]');
+    const countSpan = card ? card.querySelector('.reaction-count-' + postId) : null;
+    
+    // Visual pop feedback
+    btn.classList.add('scale-125', 'transition-transform');
+    setTimeout(() => btn.classList.remove('scale-125'), 180);
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const res = await fetch("{{ route('circle.react') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                circle_post_id: postId,
+                reaction_type: reactionType
+            })
+        });
+        const data = await res.json();
+        if (data && data.likes_count !== undefined && countSpan) {
+            countSpan.textContent = data.likes_count > 0 ? data.likes_count : 'Lit';
+        }
+    } catch (e) {
+        console.error('Reaction error:', e);
+    }
+};
+</script>
+
 @yield('scripts')
 </body>
 </html>

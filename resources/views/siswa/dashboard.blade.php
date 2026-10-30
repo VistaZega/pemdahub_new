@@ -60,6 +60,72 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════════════════ --}}
+    {{-- PEMBDACIRCLE HERO BANNER (PASTEL CANTIK & SOSIAL SISWA)            --}}
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
+    @php
+        $__circleProfile = \App\Models\CircleProfile::where('user_id', Auth::id())->first();
+        $__circleUsername = $__circleProfile?->username ?? Auth::user()->username;
+    @endphp
+    <div class="rounded-3xl border-2 border-pink-200 p-6 md:p-7 shadow-xs relative overflow-hidden mb-8" 
+         style="background: linear-gradient(135deg, #fdfbf7 0%, #fce7f3 45%, #fef9c3 80%, #e0f2fe 100%);">
+        
+        {{-- Cute Floating Aura Circles --}}
+        <div class="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-pink-300/30 blur-2xl pointer-events-none"></div>
+        <div class="absolute right-36 -top-10 w-36 h-36 rounded-full bg-yellow-200/40 blur-xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div class="flex items-start md:items-center gap-4 md:gap-5">
+                {{-- Squircle Story Ring with Avatar --}}
+                <div class="relative shrink-0">
+                    <div class="w-16 h-16 md:w-20 md:h-20 rounded-3xl p-1 shadow-sm" style="background: linear-gradient(135deg, #f472b6, #fbbf24, #4ade80, #38bdf8);">
+                        <img src="{{ $student->photo_url }}" 
+                             alt="{{ $student->full_name }}" 
+                             class="w-full h-full object-cover rounded-[1.35rem] bg-white"
+                             onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}';">
+                    </div>
+                    <span class="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-xl bg-pink-500 text-white flex items-center justify-center text-xs font-black shadow-xs border-2 border-white">
+                        <i class="fas fa-sparkles text-[10px]"></i>
+                    </span>
+                </div>
+
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/90 text-pink-900 border border-pink-300 shadow-2xs flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
+                            <span>Panggung Publik PembdaCIRCLE</span>
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs">
+                            🔒 Nilai & SPP Tetap Privat
+                        </span>
+                    </div>
+
+                    <h2 class="text-xl md:text-2xl font-black text-slate-950 tracking-tight leading-snug">
+                        Halaman Publikmu: <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" class="text-pink-600 hover:text-pink-700 underline decoration-pink-300 decoration-2">perguruanpembda.com/&#64;{{ $__circleUsername }}</a> ✨
+                    </h2>
+                    
+                    <p class="text-xs md:text-sm font-bold text-slate-800 mt-1 max-w-2xl leading-relaxed">
+                        Pamerkan tugas akhir SMK, riset SMA, prestasi, atau update status nongki santai dengan teman! Orang lain hanya bisa melihat portofoliomu — data rapormu tetap aman terjaga.
+                    </p>
+                </div>
+            </div>
+
+            {{-- Action Buttons Pastel --}}
+            <div class="flex items-center gap-2.5 flex-wrap shrink-0">
+                <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" 
+                   class="px-5 py-3 rounded-2xl bg-slate-950 text-white hover:bg-slate-800 text-xs font-black shadow-md transition-all hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-user-astronaut text-pink-400"></i>
+                    <span>Buka Panggung Profil</span>
+                </a>
+                <a href="{{ route('circle.feed') }}" 
+                   class="px-4 py-3 rounded-2xl bg-white hover:bg-pink-50 border-2 border-pink-300 text-slate-950 text-xs font-black shadow-xs transition-all hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-layer-group text-indigo-600"></i>
+                    <span>Jelajah Karya Siswa</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
     {{-- ALERT LIVE PEMBDATEMU (JIKA ADA GURU YANG SEDANG LIVE MENGAJAR) --}}
     {{-- ══════════════════════════════════════════════════════════════════ --}}
     @if(isset($activeMeetings) && $activeMeetings->isNotEmpty())

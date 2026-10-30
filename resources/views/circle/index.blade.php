@@ -129,7 +129,7 @@
         @else
             <div class="space-y-6">
                 @foreach($posts as $post)
-                    <article class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
+                    <article x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
                         {{-- Post Header (Author Info & Badges) --}}
                         <div class="flex items-center justify-between gap-3 mb-4">
                             <div class="flex items-center gap-3.5 min-w-0">
@@ -216,27 +216,35 @@
                             </div>
                         @endif
 
-                        {{-- Action & Reaction Bar (Icon Terlihat Cantik & Lucu) --}}
+                        {{-- Action & Reaction Bar (Interactive AJAX & Lucu) --}}
                         <div class="flex items-center justify-between pt-3.5 border-t-2 border-[#f8f4ed] text-xs">
                             {{-- Chunky Pastel Reaction Buttons --}}
                             <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
                                 {{-- Lit 🔥 --}}
-                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
+                                <button type="button" 
+                                        onclick="toggleCircleReaction(this, {{ $post->id }}, 'lit')"
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">🔥</span>
-                                    <span>{{ $post->likes_count > 0 ? $post->likes_count : 'Lit' }}</span>
+                                    <span class="reaction-count-{{ $post->id }}">{{ $post->likes_count > 0 ? $post->likes_count : 'Lit' }}</span>
                                 </button>
                                 {{-- Apresiasi 👏 (Hijau Pastel) --}}
-                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
+                                <button type="button" 
+                                        onclick="toggleCircleReaction(this, {{ $post->id }}, 'clap')"
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">👏</span>
                                     <span class="hidden sm:inline">Apresiasi</span>
                                 </button>
                                 {{-- Inspirasi 💡 (Kuning Pastel) --}}
-                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
+                                <button type="button" 
+                                        onclick="toggleCircleReaction(this, {{ $post->id }}, 'nongki')"
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">💡</span>
                                     <span class="hidden sm:inline">Inspirasi</span>
                                 </button>
                                 {{-- Love ❤️ (Pink Pastel) --}}
-                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
+                                <button type="button" 
+                                        onclick="toggleCircleReaction(this, {{ $post->id }}, 'love')"
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">❤️</span>
                                     <span class="hidden sm:inline">Suka</span>
                                 </button>
@@ -244,16 +252,52 @@
 
                             {{-- Comments & Profile Link --}}
                             <div class="flex items-center gap-3 shrink-0">
-                                <span class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                                <button type="button" 
+                                        @click="showComments = !showComments"
+                                        class="text-xs font-bold text-slate-800 hover:text-pink-600 flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-pink-50 transition">
                                     <i class="far fa-comment-dots text-pink-500"></i>
-                                    <span>{{ $post->comments_count }}</span>
-                                </span>
+                                    <span>{{ $post->comments_count }} Komentar</span>
+                                </button>
                                 <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-black transition-colors text-xs">
                                     <span>Lihat</span>
                                     <i class="fas fa-arrow-right text-[10px]"></i>
                                 </a>
                             </div>
+                        </div>
+
+                        {{-- Collapsible Comment Section (Pastel Card) --}}
+                        <div x-show="showComments" x-collapse x-transition class="mt-4 pt-4 border-t border-slate-100">
+                            @if($post->comments->isNotEmpty())
+                                <div class="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                    @foreach($post->comments as $cm)
+                                        <div class="p-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-start gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-pink-200 text-pink-800 font-black flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                                                {{ substr($cm->author_name, 0, 1) }}
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <span class="font-black text-slate-950 truncate">{{ $cm->author_name }}</span>
+                                                    <span class="text-[10px] text-slate-500 shrink-0">{{ $cm->created_at->diffForHumans() }}</span>
+                                                </div>
+                                                <p class="text-slate-800 font-medium mt-0.5 whitespace-pre-line">{{ $cm->comment_text }}</p>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            {{-- Form Komentar Cepat --}}
+                            <form action="{{ route('circle.comment.store') }}" method="POST" class="flex items-center gap-2">
+                                @csrf
+                                <input type="hidden" name="circle_post_id" value="{{ $post->id }}">
+                                <input type="text" name="comment_text" placeholder="Beri apresiasi atau komentar manis..." required
+                                       class="flex-1 px-3.5 py-2 rounded-2xl bg-white border-2 border-pink-200 text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-400 shadow-2xs">
+                                <button type="submit" class="px-4 py-2 rounded-2xl bg-pink-200 hover:bg-pink-300 text-slate-950 text-xs font-black border-2 border-pink-300 transition-all hover:scale-105 shrink-0 flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                                    <i class="fas fa-paper-plane text-pink-700"></i>
+                                    <span>Kirim</span>
+                                </button>
+                            </form>
                         </div>
                     </article>
                 @endforeach
