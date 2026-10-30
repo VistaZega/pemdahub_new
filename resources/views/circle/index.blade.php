@@ -14,32 +14,36 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-7">
 
     {{-- ═══════════════════════════════════════════
-         KOLOM KIRI & TENGAH: FEED UTAMA (CERAH & SEGAR)
+         KOLOM KIRI & TENGAH: FEED UTAMA (PASTEL SEGAR)
     ═══════════════════════════════════════════ --}}
     <div class="lg:col-span-2 space-y-6">
 
-        {{-- ── 1. Story Bar (Instagram-Style Cerah & Animatif) ── --}}
+        {{-- ── 1. Story Bar (Bubbles Pastel Cantik & Lucu) ── --}}
         @if($activeStories->isNotEmpty())
-            <div class="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-sm">
+            <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-4 shadow-xs">
                 <div class="flex items-center justify-between mb-3 px-1">
-                    <span class="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                        <i class="fas fa-bolt text-amber-500 text-sm"></i>
+                    <span class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">
+                            <i class="fas fa-bolt"></i>
+                        </span>
                         <span>Story Warga Pembda (24 Jam)</span>
                     </span>
-                    <span class="text-[11px] text-slate-400 font-semibold">{{ $activeStories->count() }} baru</span>
+                    <span class="text-[11px] font-bold text-pink-600 bg-pink-50 border border-pink-200 px-2 py-0.5 rounded-full">
+                        {{ $activeStories->count() }} baru ✨
+                    </span>
                 </div>
                 <div class="flex items-center gap-4 overflow-x-auto pb-2 custom-scrollbar">
                     @foreach($activeStories as $story)
                         <a href="{{ route('circle.profile', ['username' => $story->user->circleProfile->username ?? $story->user->username]) }}" 
                            class="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none">
-                            <div class="w-16 h-16 rounded-full p-[2.5px] story-ring-gradient group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                            <div class="w-16 h-16 rounded-full p-[3px] pastel-story-ring group-hover:scale-105 transition-transform duration-200 shadow-xs">
                                 <div class="w-full h-full rounded-full p-0.5 bg-white overflow-hidden">
                                     <img src="{{ $story->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
                                          alt="{{ $story->user->name }}"
-                                         class="w-full h-full rounded-full object-cover bg-slate-100">
+                                         class="w-full h-full rounded-full object-cover bg-pink-50">
                                 </div>
                             </div>
-                            <span class="text-[11px] font-bold text-slate-700 group-hover:text-indigo-600 max-w-[70px] truncate text-center transition-colors">
+                            <span class="text-[11px] font-extrabold text-slate-900 group-hover:text-pink-600 max-w-[70px] truncate text-center transition-colors">
                                 {{ $story->user->circleProfile->nickname ?? explode(' ', $story->user->name)[0] }}
                             </span>
                         </a>
@@ -48,49 +52,61 @@
             </div>
         @endif
 
-        {{-- ── 2. Filter Tab Bar & Mobile Switcher ── --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-3xl border border-slate-200/80 p-2.5 shadow-sm">
-            {{-- Tabs --}}
-            <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+        {{-- ── 2. Filter Tab Bar Lucu & Berwarna Pastel ── --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-3xl border-2 border-[#f1e8dc] p-2.5 shadow-xs">
+            {{-- Tabs Pastel --}}
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                {{-- Tab Semua --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'all'])) }}" 
-                   class="px-4 py-2 rounded-2xl text-xs font-extrabold transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'all' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    <i class="fas fa-layer-group text-[11px]"></i>
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'all' ? 'bg-pink-100 text-slate-950 border-2 border-pink-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-pink-200 text-pink-800 flex items-center justify-center text-[10px]">
+                        <i class="fas fa-layer-group"></i>
+                    </span>
                     <span>Semua Feed</span>
                 </a>
+                {{-- Tab Karya --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'portfolio'])) }}" 
-                   class="px-4 py-2 rounded-2xl text-xs font-extrabold transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'portfolio' ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    <i class="fas fa-trophy text-[11px]"></i>
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'portfolio' ? 'bg-amber-100 text-slate-950 border-2 border-amber-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
+                        <i class="fas fa-trophy"></i>
+                    </span>
                     <span>Karya & Proyek</span>
                 </a>
+                {{-- Tab Nongki (Coklat Pastel) --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'wall'])) }}" 
-                   class="px-4 py-2 rounded-2xl text-xs font-extrabold transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'wall' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    <i class="fas fa-mug-hot text-[11px]"></i>
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'wall' ? 'bg-[#faedcd] text-slate-950 border-2 border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
+                        <i class="fas fa-mug-hot"></i>
+                    </span>
                     <span>Nongki & Seru</span>
                 </a>
+                {{-- Tab Reels (Biru Pastel) --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'reels'])) }}" 
-                   class="px-4 py-2 rounded-2xl text-xs font-extrabold transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'reels' ? 'bg-pink-600 text-white shadow-md shadow-pink-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    <i class="fas fa-clapperboard text-[11px]"></i>
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'reels' ? 'bg-sky-100 text-slate-950 border-2 border-sky-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
+                        <i class="fas fa-play"></i>
+                    </span>
                     <span>Reels</span>
                 </a>
             </div>
 
-            {{-- Mobile Unit Filter --}}
-            <div class="flex md:hidden items-center gap-1 border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0">
-                <a href="{{ route('circle.feed') }}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold {{ !request('school') ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500' }}">Semua</a>
-                <a href="{{ route('circle.feed', ['school' => 'SMK']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold {{ request('school') === 'SMK' ? 'bg-orange-500 text-white' : 'text-slate-500' }}">SMK</a>
-                <a href="{{ route('circle.feed', ['school' => 'SMA']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold {{ request('school') === 'SMA' ? 'bg-blue-600 text-white' : 'text-slate-500' }}">SMA</a>
-                <a href="{{ route('circle.feed', ['school' => 'SMP']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-bold {{ request('school') === 'SMP' ? 'bg-emerald-600 text-white' : 'text-slate-500' }}">SMP</a>
+            {{-- Mobile Switcher --}}
+            <div class="flex md:hidden items-center gap-1.5 border-t sm:border-t-0 border-[#f1e8dc] pt-2 sm:pt-0">
+                <a href="{{ route('circle.feed') }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ !request('school') ? 'bg-pink-100 text-slate-950 border border-pink-200' : 'text-slate-700' }}">Semua</a>
+                <a href="{{ route('circle.feed', ['school' => 'SMK']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-slate-950 border border-[#d4a373]' : 'text-slate-700' }}">SMK</a>
+                <a href="{{ route('circle.feed', ['school' => 'SMA']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ request('school') === 'SMA' ? 'bg-sky-100 text-slate-950 border border-sky-200' : 'text-slate-700' }}">SMA</a>
+                <a href="{{ route('circle.feed', ['school' => 'SMP']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ request('school') === 'SMP' ? 'bg-emerald-100 text-slate-950 border border-emerald-200' : 'text-slate-700' }}">SMP</a>
             </div>
         </div>
 
-        {{-- ── 3. Post Cards Feed ── --}}
+        {{-- ── 3. Post Cards Feed (Teks Hitam Terbaca Jelas & Kartu Lucu) ── --}}
         @if($posts->isEmpty())
-            <div class="bg-white rounded-3xl border border-slate-200/80 p-12 text-center shadow-sm">
-                <div class="w-20 h-20 rounded-3xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm">
-                    <i class="fas fa-sparkles"></i>
+            <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-12 text-center shadow-xs">
+                <div class="w-20 h-20 rounded-3xl bg-pink-100 text-pink-600 border-2 border-pink-200 flex items-center justify-center mx-auto mb-4 text-3xl shadow-xs">
+                    <i class="fas fa-palette"></i>
                 </div>
-                <h3 class="font-display font-black text-xl text-slate-900 mb-2 tracking-tight">Panggung Masih Menanti Ceritamu</h3>
-                <p class="text-sm text-slate-500 max-w-md mx-auto mb-6 leading-relaxed">
+                <h3 class="font-display font-black text-xl text-slate-950 mb-2 tracking-tight">Panggung Masih Menanti Ceritamu</h3>
+                <p class="text-sm font-medium text-slate-800 max-w-md mx-auto mb-6 leading-relaxed">
                     Jadilah pelopor pertama yang membagikan momen nongki santai, unjuk keahlian bengkel/lab, atau karya terbaikmu hari ini!
                 </p>
                 @auth
@@ -98,16 +114,14 @@
                         $myProfile = Auth::user()->circleProfile ?? \App\Models\CircleProfile::getOrCreateForUser(Auth::user());
                     @endphp
                     <a href="{{ route('circle.profile', ['username' => $myProfile->username]) }}" 
-                       class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-base shadow-md shadow-indigo-500/25 hover:scale-105"
-                       style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
-                        <i class="fas fa-pen-nib"></i>
+                       class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition-base hover:scale-105">
+                        <i class="fas fa-pen-nib text-pink-700"></i>
                         <span>Buka Profil Saya & Mulai Posting</span>
                     </a>
                 @else
                     <a href="{{ route('login') }}" 
-                       class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-base shadow-md shadow-indigo-500/25 hover:scale-105"
-                       style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
-                        <i class="fas fa-arrow-right-to-bracket"></i>
+                       class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition-base hover:scale-105">
+                        <i class="fas fa-heart text-pink-600"></i>
                         <span>Masuk untuk Berpartisipasi</span>
                     </a>
                 @endauth
@@ -115,7 +129,7 @@
         @else
             <div class="space-y-6">
                 @foreach($posts as $post)
-                    <article class="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200">
+                    <article class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
                         {{-- Post Header (Author Info & Badges) --}}
                         <div class="flex items-center justify-between gap-3 mb-4">
                             <div class="flex items-center gap-3.5 min-w-0">
@@ -123,65 +137,73 @@
                                    class="shrink-0 focus:outline-none group">
                                     <img src="{{ $post->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
                                          alt="{{ $post->user->name }}"
-                                         class="w-11 h-11 rounded-2xl object-cover ring-2 ring-slate-100 group-hover:ring-indigo-500 transition-all">
+                                         class="w-12 h-12 rounded-2xl object-cover ring-2 ring-pink-100 group-hover:ring-pink-400 transition-all">
                                 </a>
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
-                                           class="font-display font-bold text-sm sm:text-base text-slate-900 hover:text-indigo-600 transition-colors truncate">
+                                           class="font-display font-black text-base text-slate-950 hover:text-pink-600 transition-colors truncate">
                                             {{ $post->user->name }}
                                         </a>
                                         @if($post->user->role === 'guru')
-                                            <i class="fas fa-certificate text-blue-500 text-xs" title="Guru / Mentor Resmi"></i>
+                                            <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px]" title="Guru / Mentor Resmi">
+                                                <i class="fas fa-certificate"></i>
+                                            </span>
                                         @else
-                                            <i class="fas fa-circle-check text-amber-500 text-xs" title="Siswa Aktif Pembda"></i>
+                                            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]" title="Siswa Aktif Pembda">
+                                                <i class="fas fa-check"></i>
+                                            </span>
                                         @endif
                                     </div>
-                                    <div class="text-[11px] text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">
+                                    <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 flex-wrap mt-0.5">
                                         <span>{{ $post->created_at->diffForHumans() }}</span>
                                         @if($post->school)
                                             <span>•</span>
-                                            <span class="font-semibold text-slate-700">{{ $post->school->name }}</span>
+                                            <span class="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ $post->school->name }}</span>
                                         @endif
                                         @if($post->location_tag)
                                             <span>•</span>
-                                            <span class="text-indigo-600 font-medium"><i class="fas fa-map-pin text-[9px] mr-0.5"></i>{{ $post->location_tag }}</span>
+                                            <span class="text-pink-700 font-bold"><i class="fas fa-location-dot text-[9px] mr-0.5"></i>{{ $post->location_tag }}</span>
                                         @endif
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Category Pill --}}
-                            <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700' }}">
-                                {{ $post->tab_category === 'portfolio' ? 'Karya' : 'Nongki' }}
+                            {{-- Category Pill Pastel --}}
+                            <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373]' }}">
+                                @if($post->tab_category === 'portfolio')
+                                    <i class="fas fa-trophy mr-1 text-amber-700"></i>Karya
+                                @else
+                                    <i class="fas fa-mug-hot mr-1 text-[#7f5539]"></i>Nongki
+                                @endif
                             </span>
                         </div>
 
-                        {{-- Mood Indicator (jika ada) --}}
+                        {{-- Mood Indicator Pastel Kuning --}}
                         @if($post->mood_text)
-                            <div class="mb-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200/80 text-amber-900 text-xs font-semibold shadow-2xs">
+                            <div class="mb-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-slate-950 text-xs font-black shadow-2xs">
                                 <span class="text-base">{{ $post->mood_emoji ?? '✨' }}</span>
                                 <span>{{ $post->mood_text }}</span>
                             </div>
                         @endif
 
-                        {{-- Post Title (khusus karya/project) --}}
+                        {{-- Post Title --}}
                         @if($post->title)
-                            <h3 class="font-display font-black text-base sm:text-lg text-slate-900 mb-2 leading-snug">
+                            <h3 class="font-display font-black text-lg text-slate-950 mb-2 leading-snug">
                                 {{ $post->title }}
                             </h3>
                         @endif
 
-                        {{-- Post Content Text --}}
+                        {{-- Post Content Text (Hitam Pekat & Sangat Mudah Dibaca) --}}
                         @if($post->content)
-                            <div class="text-sm text-slate-800 leading-relaxed whitespace-pre-line mb-4 font-normal">
+                            <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
                                 {{ $post->content }}
                             </div>
                         @endif
 
-                        {{-- Post Media (Foto/Video) --}}
+                        {{-- Post Media --}}
                         @if($post->media->isNotEmpty())
-                            <div class="rounded-2xl overflow-hidden mb-4 bg-slate-900 max-h-[500px] flex items-center justify-center shadow-xs">
+                            <div class="rounded-3xl overflow-hidden mb-4 bg-slate-950 border-2 border-[#f1e8dc] max-h-[500px] flex items-center justify-center shadow-xs">
                                 @php $m = $post->media->first(); @endphp
                                 @if($m->media_type === 'image')
                                     <img src="{{ $m->url }}" 
@@ -194,33 +216,42 @@
                             </div>
                         @endif
 
-                        {{-- Action & Reaction Bar --}}
-                        <div class="flex items-center justify-between pt-3.5 border-t border-slate-100 text-xs text-slate-500">
-                            {{-- Reaction Buttons --}}
-                            <div class="flex items-center gap-2 sm:gap-3">
-                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-orange-50 text-slate-700 hover:text-orange-600 font-bold transition-base cursor-pointer">
+                        {{-- Action & Reaction Bar (Icon Terlihat Cantik & Lucu) --}}
+                        <div class="flex items-center justify-between pt-3.5 border-t-2 border-[#f8f4ed] text-xs">
+                            {{-- Chunky Pastel Reaction Buttons --}}
+                            <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                                {{-- Lit 🔥 --}}
+                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">🔥</span>
                                     <span>{{ $post->likes_count > 0 ? $post->likes_count : 'Lit' }}</span>
                                 </button>
-                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 font-semibold transition-base cursor-pointer">
+                                {{-- Apresiasi 👏 (Hijau Pastel) --}}
+                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">👏</span>
                                     <span class="hidden sm:inline">Apresiasi</span>
                                 </button>
-                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-amber-50 text-slate-700 hover:text-amber-600 font-semibold transition-base cursor-pointer">
+                                {{-- Inspirasi 💡 (Kuning Pastel) --}}
+                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">💡</span>
                                     <span class="hidden sm:inline">Inspirasi</span>
+                                </button>
+                                {{-- Love ❤️ (Pink Pastel) --}}
+                                <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
+                                    <span class="text-base">❤️</span>
+                                    <span class="hidden sm:inline">Suka</span>
                                 </button>
                             </div>
 
                             {{-- Comments & Profile Link --}}
-                            <div class="flex items-center gap-3">
-                                <span class="text-[11px] text-slate-500 font-medium">
-                                    <i class="far fa-comment-dots mr-1 text-slate-400"></i>{{ $post->comments_count }}
+                            <div class="flex items-center gap-3 shrink-0">
+                                <span class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                                    <i class="far fa-comment-dots text-pink-500"></i>
+                                    <span>{{ $post->comments_count }}</span>
                                 </span>
                                 <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
-                                   class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
-                                    <span>Lihat Profil</span>
-                                    <i class="fas fa-chevron-right text-[10px]"></i>
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-black transition-colors text-xs">
+                                    <span>Lihat</span>
+                                    <i class="fas fa-arrow-right text-[10px]"></i>
                                 </a>
                             </div>
                         </div>
@@ -237,64 +268,70 @@
     </div>
 
     {{-- ═══════════════════════════════════════════
-         KOLOM KANAN: SIDEBAR WIDGETS (CERAH & SEGAR)
+         KOLOM KANAN: SIDEBAR WIDGETS (PASTEL CANTIK)
     ═══════════════════════════════════════════ --}}
     <div class="hidden lg:block space-y-6">
 
-        {{-- ── 1. Hero Widget: Identity & Mission (Cerah & Menarik) ── --}}
-        <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-3xl p-6 text-white shadow-lg shadow-indigo-500/20 relative overflow-hidden">
+        {{-- ── 1. Hero Widget: Identity & Mission (Pink & Coklat Pastel) ── --}}
+        <div class="bg-gradient-to-br from-[#fce7f3] via-[#fffbeb] to-[#faedcd] rounded-3xl p-6 border-2 border-pink-200/90 shadow-sm relative overflow-hidden">
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-white/20 backdrop-blur-md text-white mb-4">
-                    <i class="fas fa-bullseye text-[10px]"></i>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-white/80 border border-pink-300 text-pink-800 mb-4 shadow-2xs">
+                    <i class="fas fa-star text-amber-500 text-[10px]"></i>
                     <span>The 1st Edu-Social Network</span>
                 </div>
-                <h3 class="font-display font-black text-xl text-white mb-2 tracking-tight leading-snug">
+                <h3 class="font-display font-black text-xl text-slate-950 mb-2 tracking-tight leading-snug">
                     Panggung Bebas Berekspresi & Berkarya
                 </h3>
-                <p class="text-xs text-white/90 leading-relaxed mb-5 font-medium">
+                <p class="text-xs font-bold text-slate-900 leading-relaxed mb-5">
                     Tunjukkan pesona, gaya nyentrik, suasana hati, dan mahakarya terbaikmu kepada keluarga besar Pembda dan dunia industri!
                 </p>
-                <div class="p-3.5 rounded-2xl bg-black/20 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-white/95 flex items-center gap-2.5">
-                    <i class="fas fa-shield-halved text-amber-300 text-base shrink-0"></i>
-                    <span>Nilai akademik, rapor & BK tetap terlindungi 100% aman & privat.</span>
+                <div class="p-3.5 rounded-2xl bg-white/90 border border-pink-200 text-xs font-black text-slate-950 flex items-center gap-3 shadow-2xs">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                        <i class="fas fa-shield-heart text-sm"></i>
+                    </span>
+                    <span>Nilai akademik, rapor & BK tetap 100% aman & privat.</span>
                 </div>
             </div>
-            {{-- Hiasan bulat blur --}}
-            <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-white/15 rounded-full blur-2xl pointer-events-none"></div>
+            {{-- Bulatan Hiasan Pastel --}}
+            <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-pink-300/30 rounded-full blur-2xl pointer-events-none"></div>
         </div>
 
-        {{-- ── 2. Trending Profiles Widget (Cerah & Bersih) ── --}}
+        {{-- ── 2. Trending Profiles Widget (Biru & Mint Pastel) ── --}}
         @if($trendingProfiles->isNotEmpty())
-            <div class="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-sm">
+            <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 shadow-xs">
                 <div class="flex items-center justify-between mb-4 px-1">
-                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                        <i class="fas fa-fire text-orange-500"></i>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-xs">
+                            <i class="fas fa-fire"></i>
+                        </span>
                         <span>Profil Populer</span>
                     </h3>
-                    <span class="text-[10px] text-slate-400 font-bold">Paling Banyak Dilihat</span>
+                    <span class="text-[10px] font-black text-slate-900 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">
+                        Paling Ramai 🔥
+                    </span>
                 </div>
                 <div class="space-y-3">
                     @foreach($trendingProfiles as $tp)
                         <a href="{{ route('circle.profile', ['username' => $tp->username]) }}" 
-                           class="flex items-center justify-between p-2.5 rounded-2xl hover:bg-indigo-50/60 border border-transparent hover:border-indigo-100 transition-base group">
+                           class="flex items-center justify-between p-2.5 rounded-2xl hover:bg-pink-50/70 border border-transparent hover:border-pink-200 transition-base group">
                             <div class="flex items-center gap-3 min-w-0">
                                 <img src="{{ $tp->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
                                      alt="{{ $tp->user->name }}"
-                                     class="w-10 h-10 rounded-2xl object-cover ring-2 ring-slate-100 group-hover:ring-indigo-500 transition-all shrink-0">
+                                     class="w-10 h-10 rounded-2xl object-cover ring-2 ring-pink-100 group-hover:ring-pink-400 transition-all shrink-0">
                                 <div class="min-w-0">
-                                    <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate flex items-center gap-1.5">
+                                    <h4 class="text-xs font-black text-slate-950 group-hover:text-pink-600 transition-colors truncate flex items-center gap-1.5">
                                         <span>{{ $tp->nickname ?? $tp->user->name }}</span>
                                         @if($tp->mood_emoji)
-                                            <span class="text-[11px]">{{ $tp->mood_emoji }}</span>
+                                            <span class="text-[12px]">{{ $tp->mood_emoji }}</span>
                                         @endif
                                     </h4>
-                                    <span class="text-[10px] text-slate-500 block truncate">
+                                    <span class="text-[10px] font-bold text-slate-700 block truncate">
                                         {{ $tp->user->school?->name ?? 'Perguruan Pembda' }}
                                     </span>
                                 </div>
                             </div>
-                            <span class="text-[11px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-xl shrink-0">
-                                <i class="fas fa-eye text-[9px] mr-1 text-indigo-500"></i>{{ number_format($tp->views_count) }}
+                            <span class="text-[11px] font-black text-slate-950 bg-sky-100 border border-sky-200 px-2.5 py-1 rounded-xl shrink-0 flex items-center gap-1">
+                                <i class="fas fa-eye text-[9px] text-sky-700"></i>{{ number_format($tp->views_count) }}
                             </span>
                         </a>
                     @endforeach
@@ -303,9 +340,9 @@
         @endif
 
         {{-- ── 3. Footer Mini ── --}}
-        <div class="px-2 text-center text-[11px] text-slate-400 leading-relaxed">
-            <p class="font-semibold text-slate-500">© {{ date('Y') }} Perguruan Pembda Gunungsitoli.</p>
-            <p class="mt-0.5">Inovasi Ekosistem Edu-Social PembdaHUB.</p>
+        <div class="px-2 text-center text-xs font-bold text-slate-800 leading-relaxed">
+            <p>© {{ date('Y') }} Perguruan Pembda Gunungsitoli.</p>
+            <p class="text-slate-600 text-[11px] mt-0.5">Warna-Warni Kreativitas di PembdaHUB 🌸</p>
         </div>
 
     </div>
