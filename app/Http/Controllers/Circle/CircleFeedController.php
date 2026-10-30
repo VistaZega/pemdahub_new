@@ -23,11 +23,25 @@ class CircleFeedController extends Controller
             ->publicVisible();
 
         // Filter unit sekolah jika dipilih
-        if ($schoolFilter) {
-            $query->whereHas('school', function ($q) use ($schoolFilter) {
-                $q->where('name', 'like', "%{$schoolFilter}%")
-                  ->orWhere('code', 'like', "%{$schoolFilter}%");
-            });
+        if ($schoolFilter && $schoolFilter !== 'all') {
+            if (is_numeric($schoolFilter)) {
+                $query->where(function ($sq) use ($schoolFilter) {
+                    $sq->where('school_id', $schoolFilter)
+                       ->orWhereHas('user', function ($uq) use ($schoolFilter) {
+                           $uq->where('school_id', $schoolFilter);
+                       });
+                });
+            } else {
+                $query->where(function ($sq) use ($schoolFilter) {
+                    $sq->whereHas('school', function ($q) use ($schoolFilter) {
+                        $q->where('name', 'like', "%{$schoolFilter}%")
+                          ->orWhere('type', 'like', "%{$schoolFilter}%");
+                    })->orWhereHas('user.school', function ($q) use ($schoolFilter) {
+                        $q->where('name', 'like', "%{$schoolFilter}%")
+                          ->orWhere('type', 'like', "%{$schoolFilter}%");
+                    });
+                });
+            }
         }
 
         // Filter kategori tab
