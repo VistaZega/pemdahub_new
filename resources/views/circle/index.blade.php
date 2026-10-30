@@ -516,7 +516,7 @@
             {{-- Tabs Pastel Heboh --}}
             <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
                 {{-- 1. Semua --}}
-                <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'all'])) }}" 
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'all', 'q' => request('q')])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'all' ? 'bg-pink-100 text-slate-950 border-2 border-pink-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-pink-200 text-pink-800 flex items-center justify-center text-[10px]">
                         <i class="fas fa-layer-group"></i>
@@ -524,7 +524,7 @@
                     <span>Semua</span>
                 </a>
                 {{-- 2. Karya --}}
-                <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'portfolio'])) }}" 
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'portfolio', 'q' => request('q')])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'portfolio' ? 'bg-amber-100 text-slate-950 border-2 border-amber-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
                         <i class="fas fa-trophy"></i>
@@ -532,7 +532,7 @@
                     <span>Karya</span>
                 </a>
                 {{-- 3. Nongki --}}
-                <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'wall'])) }}" 
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'wall', 'q' => request('q')])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'wall' ? 'bg-[#faedcd] text-slate-950 border-2 border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
                         <i class="fas fa-mug-hot"></i>
@@ -540,7 +540,7 @@
                     <span>Nongki</span>
                 </a>
                 {{-- 4. Reels --}}
-                <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'reels'])) }}" 
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'reels', 'q' => request('q')])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'reels' ? 'bg-sky-100 text-slate-950 border-2 border-sky-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
                         <i class="fas fa-play"></i>
@@ -549,22 +549,15 @@
                 </a>
             </div>
 
-            {{-- Mobile Search & School Switcher --}}
-            <div class="flex flex-col sm:hidden gap-2 border-t border-[#f1e8dc] pt-2 w-full">
+            {{-- Mobile Search (Pencarian Rapi Tanpa Pemisah Sekolah) --}}
+            <div class="sm:hidden border-t border-[#f1e8dc] pt-2 w-full">
                 <form action="{{ route('circle.feed') }}" method="GET" class="relative w-full">
-                    @if(request('school')) <input type="hidden" name="school" value="{{ request('school') }}"> @endif
                     @if(request('tab')) <input type="hidden" name="tab" value="{{ request('tab') }}"> @endif
                     <input type="text" name="q" value="{{ request('q') }}"
                            placeholder="Cari karya, siswa, keahlian..."
-                           class="w-full pl-8 pr-7 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300">
-                    <span class="absolute left-2.5 top-2 text-xs text-slate-400">🔍</span>
+                           class="w-full pl-8 pr-7 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300">
+                    <span class="absolute left-2.5 top-2.5 text-xs text-slate-400">🔍</span>
                 </form>
-                <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
-                    <a href="{{ route('circle.feed') }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ !request('school') ? 'bg-pink-100 text-slate-950 border border-pink-200' : 'text-slate-700' }}">Semua</a>
-                    <a href="{{ route('circle.feed', ['school' => 'SMK']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-slate-950 border border-[#d4a373]' : 'text-slate-700' }}">SMK</a>
-                    <a href="{{ route('circle.feed', ['school' => 'SMA']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ request('school') === 'SMA' ? 'bg-sky-100 text-slate-950 border border-sky-200' : 'text-slate-700' }}">SMA</a>
-                    <a href="{{ route('circle.feed', ['school' => 'SMP']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ request('school') === 'SMP' ? 'bg-emerald-100 text-slate-950 border border-emerald-200' : 'text-slate-700' }}">SMP</a>
-                </div>
             </div>
         </div>
 
@@ -585,7 +578,7 @@
                             </p>
                         </div>
                     </div>
-                    <a href="{{ route('circle.feed', array_filter(['school' => request('school'), 'tab' => request('tab')])) }}" 
+                    <a href="{{ route('circle.feed', array_filter(['tab' => request('tab')])) }}" 
                        class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs font-black transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
                         <span>✕ Bersihkan</span>
                     </a>

@@ -136,44 +136,8 @@
             </div>
         </a>
 
-        {{-- Unit Switcher Pills: Gelora 3 Unit Sekolah (1 Kata Ringkas, Rame & Lucu) --}}
-        <nav class="hidden md:flex items-center gap-1.5 bg-white/80 rounded-2xl p-1.5 border-2 border-[#f1e8dc] shadow-xs">
-            <a href="{{ route('circle.feed') }}"
-               title="Semua Konten Warga Pembda"
-               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base {{ !request('school') ? 'bg-pink-100 text-pink-900 border border-pink-300 shadow-xs' : 'text-slate-800 hover:text-pink-700 hover:bg-pink-50' }}">
-                <i class="fas fa-shapes text-pink-500 mr-1"></i>Ramean
-            </a>
-            <a href="{{ route('circle.feed', ['school' => 'SMK']) }}"
-               title="Karya & Praktek SMK Swasta Pembda"
-               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1 {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-[#7f5539] hover:bg-[#faedcd]/60' }}">
-                <span class="w-4.5 h-4.5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
-                    <i class="fas fa-wrench"></i>
-                </span>
-                <span>Vokasi</span>
-            </a>
-            <a href="{{ route('circle.feed', ['school' => 'SMA']) }}"
-               title="Riset & Sains SMA Swasta Pembda"
-               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1 {{ request('school') === 'SMA' ? 'bg-sky-100 text-sky-900 border border-sky-300 shadow-xs' : 'text-slate-800 hover:text-sky-700 hover:bg-sky-50' }}">
-                <span class="w-4.5 h-4.5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
-                    <i class="fas fa-atom"></i>
-                </span>
-                <span>Riset</span>
-            </a>
-            <a href="{{ route('circle.feed', ['school' => 'SMP']) }}"
-               title="Aksi & Kreativitas SMP Swasta Pembda"
-               class="px-3 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1 {{ request('school') === 'SMP' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs' : 'text-slate-800 hover:text-emerald-700 hover:bg-emerald-50' }}">
-                <span class="w-4.5 h-4.5 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-[10px]">
-                    <i class="fas fa-seedling"></i>
-                </span>
-                <span>Tunas</span>
-            </a>
-        </nav>
-
-        {{-- Bilah Pencarian Gelora (Search Bar Pastel) --}}
-        <form action="{{ route('circle.feed') }}" method="GET" class="hidden lg:flex items-center relative min-w-[200px] max-w-[260px]">
-            @if(request('school'))
-                <input type="hidden" name="school" value="{{ request('school') }}">
-            @endif
+        {{-- Bilah Pencarian Gelora (Search Bar Pastel Bersih) --}}
+        <form action="{{ route('circle.feed') }}" method="GET" class="hidden md:flex items-center relative min-w-[220px] max-w-[340px] w-full">
             @if(request('tab'))
                 <input type="hidden" name="tab" value="{{ request('tab') }}">
             @endif
@@ -182,7 +146,7 @@
                    class="w-full pl-8 pr-7 py-1.5 rounded-2xl bg-white border-2 border-[#f1e8dc] text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 shadow-2xs">
             <span class="absolute left-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
             @if(request('q'))
-                <a href="{{ route('circle.feed', array_filter(['school' => request('school'), 'tab' => request('tab')])) }}" 
+                <a href="{{ route('circle.feed', array_filter(['tab' => request('tab')])) }}" 
                    class="absolute right-2.5 text-xs text-slate-400 hover:text-rose-600 font-black cursor-pointer" title="Bersihkan Pencarian">
                     ✕
                 </a>
