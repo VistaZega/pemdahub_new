@@ -186,6 +186,11 @@
                                 <i class="fas fa-columns text-slate-700"></i>
                                 <span>Dashboard Guru</span>
                             </a>
+                        @else
+                            <a href="{{ route('admin.dashboard') }}" class="px-3.5 py-2 rounded-2xl bg-white hover:bg-slate-100 border-2 border-slate-300 text-xs font-black text-slate-950 flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                <i class="fas fa-columns text-slate-700"></i>
+                                <span>Dashboard Panel</span>
+                            </a>
                         @endif
                     </div>
                 </div>
