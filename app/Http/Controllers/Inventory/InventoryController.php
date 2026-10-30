@@ -297,7 +297,7 @@ class InventoryController extends Controller
             'type' => 'pengadaan_awal',
             'to_location_id' => $asset->location_id,
             'to_condition' => $asset->condition,
-            'cost' => $asset->acquisition_price,
+            'cost' => (float) ($asset->acquisition_price ?? 0),
             'description' => 'Pencatatan pengadaan awal aset: ' . $asset->name . ' (' . $asset->quantity . ' ' . $asset->unit . ')',
             'performed_by' => auth()->id(),
         ]);

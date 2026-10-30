@@ -29,6 +29,13 @@ class InventoryMutation extends Model
         'cost' => 'decimal:2',
     ];
 
+    /**
+     * Default values untuk kolom yang tidak boleh null
+     */
+    protected $attributes = [
+        'cost' => 0,
+    ];
+
     public function asset()
     {
         return $this->belongsTo(InventoryAsset::class, 'asset_id');
