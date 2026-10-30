@@ -17,10 +17,31 @@ class CircleFeedController extends Controller
     {
         $schoolFilter = $request->query('school');
         $tabFilter = $request->query('tab', 'all'); // 'all', 'portfolio', 'wall', 'reels'
+        $search = trim($request->query('q', ''));
 
         $query = CirclePost::with(['user.circleProfile', 'user.school', 'media', 'reactions', 'comments'])
             ->active()
             ->publicVisible();
+
+        // Filter kata kunci pencarian gelora (Judul, Isi, Lokasi, Nama Siswa, Keahlian)
+        if ($search !== '') {
+            $query->where(function ($sq) use ($search) {
+                $sq->where('title', 'like', "%{$search}%")
+                   ->orWhere('content', 'like', "%{$search}%")
+                   ->orWhere('location_tag', 'like', "%{$search}%")
+                   ->orWhereHas('user', function ($uq) use ($search) {
+                       $uq->where('name', 'like', "%{$search}%")
+                          ->orWhere('username', 'like', "%{$search}%")
+                          ->orWhereHas('circleProfile', function ($pq) use ($search) {
+                              $pq->where('nickname', 'like', "%{$search}%")
+                                 ->orWhere('bio', 'like', "%{$search}%");
+                          });
+                   })
+                   ->orWhereHas('skillEndorsements', function ($eq) use ($search) {
+                       $eq->where('skill_name', 'like', "%{$search}%");
+                   });
+            });
+        }
 
         // Filter unit sekolah jika dipilih
         if ($schoolFilter && $schoolFilter !== 'all') {
@@ -70,9 +91,26 @@ class CircleFeedController extends Controller
             ->take(6)
             ->get();
 
+        // Profil Siswa/Guru yang cocok dengan kata kunci pencarian
+        $matchedProfiles = collect();
+        if ($search !== '') {
+            $matchedProfiles = CircleProfile::with('user.school')
+                ->where('is_public', true)
+                ->where(function ($pq) use ($search) {
+                    $pq->where('nickname', 'like', "%{$search}%")
+                       ->orWhere('username', 'like', "%{$search}%")
+                       ->orWhere('bio', 'like', "%{$search}%")
+                       ->orWhereHas('user', function ($uq) use ($search) {
+                           $uq->where('name', 'like', "%{$search}%");
+                       });
+                })
+                ->take(4)
+                ->get();
+        }
+
         // 3 Unit Sekolah Aktif
         $schools = School::schoolsOnly()->get();
 
-        return view('circle.index', compact('posts', 'activeStories', 'trendingProfiles', 'schools', 'tabFilter', 'schoolFilter'));
+        return view('circle.index', compact('posts', 'activeStories', 'trendingProfiles', 'matchedProfiles', 'schools', 'tabFilter', 'schoolFilter', 'search'));
     }
 }

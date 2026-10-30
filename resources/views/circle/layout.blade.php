@@ -165,6 +165,26 @@
             </a>
         </nav>
 
+        {{-- Bilah Pencarian Gelora (Search Bar Pastel) --}}
+        <form action="{{ route('circle.feed') }}" method="GET" class="hidden lg:flex items-center relative min-w-[200px] max-w-[260px]">
+            @if(request('school'))
+                <input type="hidden" name="school" value="{{ request('school') }}">
+            @endif
+            @if(request('tab'))
+                <input type="hidden" name="tab" value="{{ request('tab') }}">
+            @endif
+            <input type="text" name="q" value="{{ request('q') }}"
+                   placeholder="Cari karya, siswa, keahlian..."
+                   class="w-full pl-8 pr-7 py-1.5 rounded-2xl bg-white border-2 border-[#f1e8dc] text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 shadow-2xs">
+            <span class="absolute left-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
+            @if(request('q'))
+                <a href="{{ route('circle.feed', array_filter(['school' => request('school'), 'tab' => request('tab')])) }}" 
+                   class="absolute right-2.5 text-xs text-slate-400 hover:text-rose-600 font-black cursor-pointer" title="Bersihkan Pencarian">
+                    ✕
+                </a>
+            @endif
+        </form>
+
         {{-- Auth & Check-out to Dashboard Bar --}}
         <div class="flex items-center gap-2.5 shrink-0">
             @auth
@@ -182,7 +202,128 @@
                     } elseif ($__navUser->isKetuaYayasan() || $__navUser->hasRole('ketua_yayasan')) {
                         $__dashUrl = route('yayasan.dashboard');
                     }
+
+                    // Notifikasi Genta Kabar PembdaCIRCLE
+                    $__circleNotifications = \App\Models\Notification::where('user_id', $__navUser->id)
+                        ->where(function($q) {
+                            $q->where('type', 'like', 'circle_%')
+                              ->orWhereNull('type');
+                        })
+                        ->latest()
+                        ->take(8)
+                        ->get();
+                    $__circleUnreadCount = $__circleNotifications->where('is_read', false)->count();
                 @endphp
+
+                {{-- Genta Kabar (Pusat Notifikasi Gelora) --}}
+                <div x-data="{ 
+                        openNotif: false, 
+                        unread: {{ $__circleUnreadCount }},
+                        markRead() {
+                            if (this.unread > 0) {
+                                this.unread = 0;
+                                fetch('{{ route('circle.notifications.readAll') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    }
+                                }).catch(() => {});
+                            }
+                        }
+                    }" 
+                    class="relative" 
+                    @click.away="openNotif = false">
+                    
+                    <button type="button" 
+                            @click="openNotif = !openNotif; if(openNotif) markRead();" 
+                            class="relative w-9 h-9 rounded-2xl bg-white hover:bg-pink-100 border-2 border-pink-200 text-slate-800 hover:text-pink-600 flex items-center justify-center text-sm transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105"
+                            title="Genta Kabar PembdaCIRCLE">
+                        <i class="fas fa-bell"></i>
+                        <template x-if="unread > 0">
+                            <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-white animate-pulse"
+                                  x-text="unread">
+                            </span>
+                        </template>
+                    </button>
+
+                    {{-- Dropdown Notifikasi --}}
+                    <div x-show="openNotif" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         class="absolute right-0 mt-2 w-72 sm:w-88 bg-white rounded-3xl border-2 border-pink-200 shadow-2xl overflow-hidden z-50 text-left"
+                         style="display: none;">
+                         
+                        {{-- Header Dropdown --}}
+                        <div class="px-4 py-3 bg-gradient-to-r from-pink-100 via-rose-50 to-amber-50 border-b-2 border-pink-100 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-pink-200 text-pink-700 flex items-center justify-center text-xs">
+                                    🔔
+                                </span>
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-950">Genta Kabar</span>
+                            </div>
+                            <button type="button" @click="markRead()" class="text-[11px] font-black text-pink-700 hover:text-pink-900 cursor-pointer">
+                                Tandai Dibaca
+                            </button>
+                        </div>
+
+                        {{-- Notif List --}}
+                        <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 custom-scrollbar">
+                            @forelse($__circleNotifications as $notif)
+                                @php
+                                    $notifUrl = route('circle.feed');
+                                    if ($notif->related_model === 'CirclePost' && $notif->related_id) {
+                                        $notifUrl = route('circle.feed', ['post' => $notif->related_id]) . '#post-' . $notif->related_id;
+                                    } elseif ($notif->related_model === 'CircleSkillEndorsement') {
+                                        $notifUrl = route('circle.profile', ['username' => $__navProfile->username]);
+                                    }
+                                @endphp
+                                <a href="{{ $notifUrl }}" 
+                                   class="block p-3 hover:bg-pink-50/60 transition {{ !$notif->is_read ? 'bg-amber-50/50' : '' }}">
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="w-7 h-7 rounded-xl shrink-0 flex items-center justify-center text-xs shadow-2xs {{ str_contains($notif->type ?? '', 'endorsement') ? 'bg-amber-100 text-amber-800 border border-amber-300' : (str_contains($notif->type ?? '', 'reaction') ? 'bg-orange-100 text-orange-800 border border-orange-300' : 'bg-pink-100 text-pink-800 border border-pink-300') }}">
+                                            @if(str_contains($notif->type ?? '', 'endorsement'))
+                                                🏅
+                                            @elseif(str_contains($notif->type ?? '', 'reaction'))
+                                                🔥
+                                            @elseif(str_contains($notif->type ?? '', 'comment'))
+                                                💬
+                                            @else
+                                                ✨
+                                            @endif
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center justify-between gap-1">
+                                                <h5 class="text-xs font-black text-slate-950 truncate">{{ $notif->title }}</h5>
+                                                <span class="text-[10px] font-bold text-slate-400 shrink-0">{{ $notif->created_at->diffForHumans(null, true) }}</span>
+                                            </div>
+                                            <p class="text-xs font-semibold text-slate-800 mt-0.5 line-clamp-2 leading-relaxed">
+                                                {{ $notif->message }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="p-6 text-center">
+                                    <span class="text-2xl block mb-1.5">🌸</span>
+                                    <p class="text-xs font-black text-slate-900 mb-0.5">Belum Ada Kabar Baru</p>
+                                    <p class="text-[11px] font-bold text-slate-500">Terus aktif berbagi karya & inspirasi di Panggung Gelora!</p>
+                                </div>
+                            @endforelse
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                            <a href="{{ route('circle.profile', ['username' => $__navProfile->username]) }}" class="text-[11px] font-black text-pink-700 hover:text-pink-900">
+                                Buka Profil & Loker Portofolio Saya →
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 {{-- TOMBOL MORAK & CERAH: KEMBALI KE MEJA KERJA DASHBOARD --}}
                 <a href="{{ $__dashUrl }}" 
@@ -334,6 +475,20 @@ window.toggleCircleReaction = async function(btn, postId, reactionType) {
         }
     } catch (e) {
         console.error('Reaction error:', e);
+    }
+};
+
+window.shareCirclePost = function(title, postUrl) {
+    const text = 'Lihat karya/momen seru ini di PembdaCIRCLE:\n"' + title + '"\n\n' + postUrl;
+    if (navigator.share) {
+        navigator.share({
+            title: title || 'Karya PembdaCIRCLE',
+            text: text,
+            url: postUrl
+        }).catch(() => {});
+    } else {
+        const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
+        window.open(waUrl, '_blank');
     }
 };
 </script>

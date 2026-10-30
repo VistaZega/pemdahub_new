@@ -3003,6 +3003,7 @@ Route::prefix('circle')->name('circle.')->group(function () {
     Route::post('/comment', [App\Http\Controllers\Circle\CircleActionController::class, 'storeComment'])->name('comment.store');
     Route::post('/endorse', [App\Http\Controllers\Circle\CircleActionController::class, 'storeSkillEndorsement'])->name('endorse.store');
     Route::delete('/endorse/{id}', [App\Http\Controllers\Circle\CircleActionController::class, 'destroySkillEndorsement'])->name('endorse.destroy');
+    Route::post('/notifications/read-all', [App\Http\Controllers\Circle\CircleActionController::class, 'markNotificationsRead'])->name('notifications.readAll');
 });
 
 // Route Profil Publik @username (Contoh: perguruanpembda.com/@fathan atau /@andreas-zebua)

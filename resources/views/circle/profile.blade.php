@@ -355,7 +355,7 @@
             </div>
         @else
             @foreach($wallPosts as $post)
-                <article x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
+                <article id="post-{{ $post->id }}" x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 {{ request('post') == $post->id ? 'border-pink-500 ring-4 ring-pink-300 shadow-xl' : 'border-[#f1e8dc]' }} p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
                     {{-- Header --}}
                     <div class="flex items-center justify-between gap-3 mb-4">
                         <div class="flex items-center gap-3 min-w-0">
@@ -437,12 +437,21 @@
                                 <span>Suka</span>
                             </button>
                         </div>
-                        <button type="button" 
-                                @click="showComments = !showComments"
-                                class="text-xs font-bold text-slate-700 hover:text-pink-600 flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-pink-50 transition">
-                            <i class="far fa-comment-dots text-pink-500"></i>
-                            <span>{{ $post->comments_count }} komentar</span>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button type="button" 
+                                    onclick="shareCirclePost('{{ addslashes($post->content ? \Illuminate\Support\Str::limit($post->content, 60) : 'Goresan Momen PembdaCIRCLE') }}', '{{ route('circle.profile', ['username' => $profile->username, 'post' => $post->id]) }}#post-{{ $post->id }}')"
+                                    class="text-xs font-black text-slate-900 hover:text-amber-700 flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 transition shadow-2xs hover:scale-105"
+                                    title="Siarkan postingan ini">
+                                <i class="fas fa-share-nodes text-amber-800 text-[11px]"></i>
+                                <span>Siarkan</span>
+                            </button>
+                            <button type="button" 
+                                    @click="showComments = !showComments"
+                                    class="text-xs font-bold text-slate-700 hover:text-pink-600 flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-pink-50 transition border border-slate-200">
+                                <i class="far fa-comment-dots text-pink-500"></i>
+                                <span>{{ $post->comments_count }} <span class="hidden sm:inline">komentar</span></span>
+                            </button>
+                        </div>
                     </div>
 
                     {{-- Collapsible Comment Drawer --}}
@@ -595,18 +604,24 @@
 
             {{-- C. Postingan Portfolio Circle Langsung (Pink Pastel) --}}
             @foreach($portfolioPosts as $port)
-                <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-pink-300 transition-base relative group">
-                    @if(Auth::check() && (Auth::id() === $port->user_id || Auth::user()->isSuperAdmin()))
-                        <div class="absolute top-3 right-3 z-10">
+                <div id="post-{{ $port->id }}" class="bg-white rounded-3xl border-2 {{ request('post') == $port->id ? 'border-amber-400 ring-4 ring-amber-300 shadow-xl' : 'border-[#f1e8dc]' }} shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-pink-300 transition-base relative group">
+                    <div class="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                        <button type="button" 
+                                onclick="shareCirclePost('{{ addslashes($port->title ?? 'Karya Portofolio Pembda') }}', '{{ route('circle.profile', ['username' => $profile->username, 'post' => $port->id]) }}#post-{{ $port->id }}')"
+                                class="w-7 h-7 rounded-lg bg-black/60 hover:bg-amber-500 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs" 
+                                title="Siarkan Karya ini">
+                            <i class="fas fa-share-nodes text-[10px]"></i>
+                        </button>
+                        @if(Auth::check() && (Auth::id() === $port->user_id || Auth::user()->isSuperAdmin()))
                             <form action="{{ route('circle.post.destroy', $port->id) }}" method="POST" onsubmit="return confirm('Hapus karya ini?')" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="w-7 h-7 rounded-lg bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center text-xs transition cursor-pointer" title="Hapus Karya">
-                                    <i class="fas fa-trash-alt"></i>
+                                <button type="submit" class="w-7 h-7 rounded-lg bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs" title="Hapus Karya">
+                                    <i class="fas fa-trash-alt text-[10px]"></i>
                                 </button>
                             </form>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                     @if($port->media->isNotEmpty())
                         <div class="h-48 w-full bg-slate-900 overflow-hidden">
                             @php $firstMedia = $port->media->first(); @endphp

@@ -401,14 +401,68 @@
                 </a>
             </div>
 
-            {{-- Mobile Switcher --}}
-            <div class="flex md:hidden items-center gap-1.5 border-t sm:border-t-0 border-[#f1e8dc] pt-2 sm:pt-0">
-                <a href="{{ route('circle.feed') }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ !request('school') ? 'bg-pink-100 text-slate-950 border border-pink-200' : 'text-slate-700' }}">Semua</a>
-                <a href="{{ route('circle.feed', ['school' => 'SMK']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-slate-950 border border-[#d4a373]' : 'text-slate-700' }}">SMK</a>
-                <a href="{{ route('circle.feed', ['school' => 'SMA']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ request('school') === 'SMA' ? 'bg-sky-100 text-slate-950 border border-sky-200' : 'text-slate-700' }}">SMA</a>
-                <a href="{{ route('circle.feed', ['school' => 'SMP']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black {{ request('school') === 'SMP' ? 'bg-emerald-100 text-slate-950 border border-emerald-200' : 'text-slate-700' }}">SMP</a>
+            {{-- Mobile Search & School Switcher --}}
+            <div class="flex flex-col sm:hidden gap-2 border-t border-[#f1e8dc] pt-2 w-full">
+                <form action="{{ route('circle.feed') }}" method="GET" class="relative w-full">
+                    @if(request('school')) <input type="hidden" name="school" value="{{ request('school') }}"> @endif
+                    @if(request('tab')) <input type="hidden" name="tab" value="{{ request('tab') }}"> @endif
+                    <input type="text" name="q" value="{{ request('q') }}"
+                           placeholder="Cari karya, siswa, keahlian..."
+                           class="w-full pl-8 pr-7 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300">
+                    <span class="absolute left-2.5 top-2 text-xs text-slate-400">🔍</span>
+                </form>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+                    <a href="{{ route('circle.feed') }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ !request('school') ? 'bg-pink-100 text-slate-950 border border-pink-200' : 'text-slate-700' }}">Semua</a>
+                    <a href="{{ route('circle.feed', ['school' => 'SMK']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-slate-950 border border-[#d4a373]' : 'text-slate-700' }}">SMK</a>
+                    <a href="{{ route('circle.feed', ['school' => 'SMA']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ request('school') === 'SMA' ? 'bg-sky-100 text-slate-950 border border-sky-200' : 'text-slate-700' }}">SMA</a>
+                    <a href="{{ route('circle.feed', ['school' => 'SMP']) }}" class="px-2.5 py-1 rounded-xl text-[11px] font-black shrink-0 {{ request('school') === 'SMP' ? 'bg-emerald-100 text-slate-950 border border-emerald-200' : 'text-slate-700' }}">SMP</a>
+                </div>
             </div>
         </div>
+
+        {{-- ── Banner Hasil Pencarian Gelora ── --}}
+        @if(!empty($search))
+            <div class="bg-gradient-to-r from-amber-50 via-pink-50 to-sky-50 rounded-3xl border-2 border-amber-300 p-4 sm:p-5 shadow-xs">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-9 h-9 rounded-2xl bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-black shadow-2xs">
+                            🔍
+                        </span>
+                        <div>
+                            <h4 class="font-display font-black text-sm text-slate-950">
+                                Hasil Pencarian Gelora: "<span class="text-pink-600 font-extrabold">{{ $search }}</span>"
+                            </h4>
+                            <p class="text-xs font-bold text-slate-700">
+                                Ditemukan {{ $posts->total() }} karya & cerita yang relevan.
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{{ route('circle.feed', array_filter(['school' => request('school'), 'tab' => request('tab')])) }}" 
+                       class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs font-black transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                        <span>✕ Bersihkan</span>
+                    </a>
+                </div>
+
+                {{-- Warga Pembda Terkait yang Cocok --}}
+                @if(isset($matchedProfiles) && $matchedProfiles->isNotEmpty())
+                    <div class="mt-3.5 pt-3 border-t border-amber-200/80">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-slate-900 block mb-2">Warga Pembda Terkait:</span>
+                        <div class="flex items-center gap-2.5 overflow-x-auto pb-1 custom-scrollbar">
+                            @foreach($matchedProfiles as $mp)
+                                <a href="{{ route('circle.profile', ['username' => $mp->username]) }}" 
+                                   class="px-3 py-1.5 rounded-2xl bg-white border border-amber-200 hover:border-pink-300 text-xs flex items-center gap-2 shrink-0 shadow-2xs hover:scale-105 transition">
+                                    <img src="{{ $mp->user->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="text-left">
+                                        <div class="font-black text-slate-950 leading-tight">{{ $mp->nickname ?? $mp->user->name }}</div>
+                                        <div class="text-[10px] text-slate-600">{{ $mp->user->school?->name ?? 'Pembda' }}</div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
 
         {{-- ── 3. Post Cards Feed (Teks Hitam Terbaca Jelas & Kartu Lucu) ── --}}
         @if($posts->isEmpty())
@@ -445,7 +499,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                     @foreach($posts as $post)
                         @php $m = $post->media->first(); @endphp
-                        <div class="group relative rounded-3xl overflow-hidden aspect-[9/16] bg-slate-950 border-2 border-[#f1e8dc] shadow-md hover:shadow-xl hover:border-sky-300 transition-all duration-300 flex flex-col justify-between p-3.5">
+                        <div id="post-{{ $post->id }}" class="group relative rounded-3xl overflow-hidden aspect-[9/16] bg-slate-950 border-2 {{ request('post') == $post->id ? 'border-amber-400 ring-4 ring-amber-300 shadow-2xl' : 'border-[#f1e8dc]' }} shadow-md hover:shadow-xl hover:border-sky-300 transition-all duration-300 flex flex-col justify-between p-3.5">
                             
                             {{-- Background Video / Image --}}
                             <div class="absolute inset-0 z-0">
@@ -461,20 +515,28 @@
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/40"></div>
                             </div>
 
-                            {{-- Top Pill: School & Reel badge & Delete --}}
-                            <div class="relative z-10 flex items-center justify-between">
+                            {{-- Top Pill: School & Reel badge & Share & Delete --}}
+                            <div class="relative z-10 flex items-center justify-between gap-1.5">
                                 <span class="px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider bg-sky-500 text-white shadow-2xs flex items-center gap-1">
                                     <i class="fas fa-play text-[8px]"></i>
-                                    <span>Reel</span>
+                                    <span>Lensa Gerak</span>
                                 </span>
-                                @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
-                                    <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus reels ini?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="w-6 h-6 rounded-lg bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center text-[10px] transition cursor-pointer" title="Hapus Reels">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
-                                @endif
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" 
+                                            onclick="event.stopPropagation(); shareCirclePost('{{ addslashes($post->title ?? 'Lensa Gerak Pembda') }}', '{{ route('circle.feed', ['tab' => 'reels', 'post' => $post->id]) }}#post-{{ $post->id }}')"
+                                            class="w-6 h-6 rounded-lg bg-black/60 hover:bg-amber-500 text-white flex items-center justify-center text-[10px] transition cursor-pointer" 
+                                            title="Siarkan Lensa Gerak ini">
+                                        <i class="fas fa-share-nodes"></i>
+                                    </button>
+                                    @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
+                                        <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus reels ini?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="w-6 h-6 rounded-lg bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center text-[10px] transition cursor-pointer" title="Hapus Reels">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
 
                             {{-- Center Play Icon --}}
@@ -514,7 +576,7 @@
             @else
                 <div class="space-y-6">
                     @foreach($posts as $post)
-                        <article x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
+                        <article id="post-{{ $post->id }}" x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 {{ request('post') == $post->id ? 'border-pink-500 ring-4 ring-pink-300 shadow-xl' : 'border-[#f1e8dc]' }} p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
                             {{-- Post Header (Author Info & Badges) --}}
                             <div class="flex items-center justify-between gap-3 mb-4">
                                 <div class="flex items-center gap-3.5 min-w-0">
@@ -647,16 +709,23 @@
                                 </button>
                             </div>
 
-                            {{-- Comments & Profile Link --}}
-                            <div class="flex items-center gap-3 shrink-0">
+                            {{-- Comments, Share & Profile Link --}}
+                            <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
                                 <button type="button" 
                                         @click="showComments = !showComments"
-                                        class="text-xs font-bold text-slate-800 hover:text-pink-600 flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-pink-50 transition">
+                                        class="text-xs font-bold text-slate-800 hover:text-pink-600 flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-pink-50 transition border border-slate-200/80">
                                     <i class="far fa-comment-dots text-pink-500"></i>
-                                    <span>{{ $post->comments_count }} Komentar</span>
+                                    <span>{{ $post->comments_count }} <span class="hidden sm:inline">Komentar</span></span>
+                                </button>
+                                <button type="button" 
+                                        onclick="shareCirclePost('{{ addslashes($post->title ?? ($post->content ? \Illuminate\Support\Str::limit($post->content, 60) : 'Momen Gelora Pembda')) }}', '{{ route('circle.feed', ['post' => $post->id]) }}#post-{{ $post->id }}')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-slate-950 border border-amber-300 font-black transition-all text-xs cursor-pointer hover:scale-105 shadow-2xs"
+                                        title="Siarkan karya/postingan ini ke WhatsApp atau media sosial">
+                                    <i class="fas fa-share-nodes text-amber-800 text-[11px]"></i>
+                                    <span>Siarkan</span>
                                 </button>
                                 <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
-                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-black transition-colors text-xs">
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-black transition-colors text-xs border border-pink-200">
                                     <span>Lihat</span>
                                     <i class="fas fa-arrow-right text-[10px]"></i>
                                 </a>

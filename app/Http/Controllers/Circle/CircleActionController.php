@@ -9,6 +9,7 @@ use App\Models\CirclePostMedia;
 use App\Models\CircleReaction;
 use App\Models\CircleComment;
 use App\Models\CircleSkillEndorsement;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -165,6 +166,33 @@ class CircleActionController extends Controller
             ]);
             $post->increment('likes_count');
             $status = 'added';
+
+            // Kirim notifikasi jika pembuat post adalah user terdaftar dan bukan dirinya sendiri
+            if ($post->user_id && (!$userId || $userId !== $post->user_id)) {
+                try {
+                    $reactorName = $userId ? (Auth::user()?->name ?? 'Warga Pembda') : ($request->guest_name ?? 'Sahabat Pembda');
+                    $emoji = match($request->reaction_type) {
+                        'lit' => '🔥 Menyala!',
+                        'clap' => '👏 Keren Pol!',
+                        'nongki' => '💡 Memicu Ide!',
+                        'love' => '❤️ Bangga!',
+                        default => '✨ Apresiasi',
+                    };
+                    $postTitle = $post->title ? "\"{$post->title}\"" : 'postinganmu';
+                    Notification::create([
+                        'user_id' => $post->user_id,
+                        'school_id' => $post->school_id,
+                        'type' => 'circle_reaction',
+                        'title' => "Apresiasi {$emoji}",
+                        'message' => "{$reactorName} memberikan apresiasi pada {$postTitle}.",
+                        'related_model' => 'CirclePost',
+                        'related_id' => $post->id,
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::warning('Failed to create circle reaction notification: ' . $e->getMessage());
+                }
+            }
         }
 
         if ($request->wantsJson()) {
@@ -198,7 +226,29 @@ class CircleActionController extends Controller
             'comment_text' => $request->comment_text,
         ]);
 
-        CirclePost::where('id', $request->circle_post_id)->increment('comments_count');
+        $post = CirclePost::where('id', $request->circle_post_id)->first();
+        if ($post) {
+            $post->increment('comments_count');
+
+            // Kirim notifikasi ke pemilik postingan
+            if ($post->user_id && (!$user || $user->id !== $post->user_id)) {
+                try {
+                    $postTitle = $post->title ? "\"{$post->title}\"" : 'karyamu';
+                    Notification::create([
+                        'user_id' => $post->user_id,
+                        'school_id' => $post->school_id,
+                        'type' => 'circle_comment',
+                        'title' => 'Komentar Baru di PembdaCIRCLE 💬',
+                        'message' => "{$authorName} mengomentari {$postTitle}: \"" . Str::limit($request->comment_text, 60) . "\"",
+                        'related_model' => 'CirclePost',
+                        'related_id' => $post->id,
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::warning('Failed to create circle comment notification: ' . $e->getMessage());
+                }
+            }
+        }
 
         return redirect()->back()->with('success', 'Komentarmu berhasil dikirim! 💬');
     }
@@ -225,22 +275,66 @@ class CircleActionController extends Controller
             ->whereRaw('LOWER(skill_name) = ?', [strtolower(trim($request->skill_name))])
             ->first();
 
+        $endId = null;
         if ($existing) {
             $existing->update([
                 'endorsement_note' => $request->endorsement_note ?? $existing->endorsement_note,
             ]);
+            $endId = $existing->id;
+        } else {
+            $newEnd = CircleSkillEndorsement::create([
+                'student_user_id' => $request->student_user_id,
+                'teacher_user_id' => $teacher->id,
+                'skill_name' => trim($request->skill_name),
+                'endorsement_note' => $request->endorsement_note,
+                'created_at' => now(),
+            ]);
+            $endId = $newEnd->id;
+        }
+
+        // Kirim notifikasi ke siswa penerima lencana
+        try {
+            Notification::create([
+                'user_id' => $request->student_user_id,
+                'school_id' => $teacher->school_id,
+                'type' => 'circle_endorsement',
+                'title' => 'Lencana Piawai Resmi Disahkan! 🏅',
+                'message' => "Guru {$teacher->name} mengesahkan keahlian \"{$request->skill_name}\" pada portofoliomu.",
+                'related_model' => 'CircleSkillEndorsement',
+                'related_id' => $endId,
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to create circle endorsement notification: ' . $e->getMessage());
+        }
+
+        if ($existing) {
             return redirect()->back()->with('success', 'Catatan lencana keahlian siswa berhasil diperbarui! 🏅');
         }
 
-        CircleSkillEndorsement::create([
-            'student_user_id' => $request->student_user_id,
-            'teacher_user_id' => $teacher->id,
-            'skill_name' => trim($request->skill_name),
-            'endorsement_note' => $request->endorsement_note,
-            'created_at' => now(),
-        ]);
-
         return redirect()->back()->with('success', 'Lencana keahlian resmi berhasil divalidasi dan disematkan pada portofolio siswa! 🏅✨');
+    }
+
+    /**
+     * Tandai semua notifikasi pengguna sebagai terbaca
+     */
+    public function markNotificationsRead(Request $request)
+    {
+        $user = Auth::user();
+        if ($user) {
+            Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->update([
+                    'is_read' => true,
+                    'read_at' => now(),
+                ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back()->with('success', 'Semua kabar sudah ditandai terbaca.');
     }
 
     /**
