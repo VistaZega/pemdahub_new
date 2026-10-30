@@ -73,6 +73,23 @@ class User extends Authenticatable
     }
 
     /**
+     * Accessor: Username untuk PembdaCIRCLE (Selalu terjamin aman dan tidak pernah null)
+     */
+    public function getCircleUsernameAttribute()
+    {
+        if ($this->relationLoaded('circleProfile') && $this->circleProfile && !empty($this->circleProfile->username)) {
+            return $this->circleProfile->username;
+        }
+        if ($this->circleProfile && !empty($this->circleProfile->username)) {
+            return $this->circleProfile->username;
+        }
+        if (!empty($this->username)) {
+            return $this->username;
+        }
+        return \Illuminate\Support\Str::slug($this->name ?? 'user') . '-' . $this->id;
+    }
+
+    /**
      * Relationship: Postingan di PembdaCIRCLE
      */
     public function circlePosts()

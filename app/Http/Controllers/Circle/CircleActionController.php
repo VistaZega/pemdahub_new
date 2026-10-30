@@ -9,6 +9,9 @@ use App\Models\CirclePostMedia;
 use App\Models\CircleReaction;
 use App\Models\CircleComment;
 use App\Models\CircleSkillEndorsement;
+use App\Models\CirclePoll;
+use App\Models\CirclePollOption;
+use App\Models\CirclePollVote;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,6 +80,25 @@ class CircleActionController extends Controller
                 'file_path' => $path,
                 'aspect_ratio' => $request->post_type === 'reel' || $request->post_type === 'story' ? '9:16' : '1:1',
             ]);
+        }
+
+        // Tangani Polling Interaktif
+        if ($request->filled('poll_question') && is_array($request->poll_options)) {
+            $filteredOptions = array_values(array_filter(array_map('trim', $request->poll_options)));
+            if (count($filteredOptions) >= 2) {
+                $poll = CirclePoll::create([
+                    'circle_post_id' => $post->id,
+                    'question' => trim($request->poll_question),
+                ]);
+
+                foreach ($filteredOptions as $optText) {
+                    CirclePollOption::create([
+                        'circle_poll_id' => $poll->id,
+                        'option_text' => $optText,
+                        'votes_count' => 0,
+                    ]);
+                }
+            }
         }
 
         return redirect()->back()->with('success', 'Postinganmu berhasil diterbitkan di PembdaCIRCLE! ✨');
@@ -373,5 +395,91 @@ class CircleActionController extends Controller
         }
 
         return redirect()->back()->with('error', 'Anda tidak berwenang menghapus postingan ini.');
+    }
+
+    /**
+     * Berikan Suara pada Jajak Pendapat / Polling
+     */
+    public function votePoll(Request $request)
+    {
+        $request->validate([
+            'circle_poll_id' => 'required|exists:circle_polls,id',
+            'circle_poll_option_id' => 'required|exists:circle_poll_options,id',
+        ]);
+
+        $poll = CirclePoll::with(['options', 'post'])->findOrFail($request->circle_poll_id);
+        $user = Auth::user();
+        $userId = $user?->id;
+        $ip = $request->ip();
+
+        // Cek apakah sudah pernah memilih
+        $existing = CirclePollVote::where('circle_poll_id', $poll->id)
+            ->where(function ($q) use ($userId, $ip) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                } else {
+                    $q->where('guest_ip', $ip);
+                }
+            })
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'status' => 'already_voted',
+                'message' => 'Kamu sudah memberikan suara pada polling ini! 📊',
+            ], 422);
+        }
+
+        // Simpan suara
+        CirclePollVote::create([
+            'circle_poll_id' => $poll->id,
+            'circle_poll_option_id' => $request->circle_poll_option_id,
+            'user_id' => $userId,
+            'guest_ip' => $userId ? null : $ip,
+        ]);
+
+        // Increment count pada opsi yang dipilih
+        CirclePollOption::where('id', $request->circle_poll_option_id)->increment('votes_count');
+
+        // Notifikasi ke pembuat postingan jika bukan dirinya sendiri
+        if ($poll->post && $poll->post->user_id && (!$userId || $userId !== $poll->post->user_id)) {
+            try {
+                $voterName = $userId ? ($user->name ?? 'Warga Pembda') : 'Sahabat Pembda';
+                Notification::create([
+                    'user_id' => $poll->post->user_id,
+                    'school_id' => $poll->post->school_id,
+                    'type' => 'circle_poll_vote',
+                    'title' => 'Suara Baru di Pollingmu! 📊',
+                    'message' => "{$voterName} ikut memberikan suara pada polling \"{$poll->question}\"",
+                    'related_model' => 'CirclePost',
+                    'related_id' => $poll->post->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Failed to create poll vote notification: ' . $e->getMessage());
+            }
+        }
+
+        // Ambil data options terbaru dan persentase
+        $options = CirclePollOption::where('circle_poll_id', $poll->id)->get();
+        $totalVotes = (int) $options->sum('votes_count');
+
+        $optionsData = $options->map(function ($opt) use ($totalVotes, $request) {
+            return [
+                'id' => $opt->id,
+                'option_text' => $opt->option_text,
+                'votes_count' => $opt->votes_count,
+                'percentage' => $totalVotes > 0 ? (int) round(($opt->votes_count / $totalVotes) * 100) : 0,
+                'is_selected' => $opt->id == $request->circle_poll_option_id,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Suaramu berhasil dicatat! ✨',
+            'total_votes' => $totalVotes,
+            'voted_option_id' => (int) $request->circle_poll_option_id,
+            'options' => $optionsData,
+        ]);
     }
 }

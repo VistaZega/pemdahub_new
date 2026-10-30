@@ -83,6 +83,11 @@ class CirclePost extends Model
         return $this->hasMany(CircleSkillEndorsement::class);
     }
 
+    public function poll()
+    {
+        return $this->hasOne(CirclePoll::class, 'circle_post_id')->with(['options', 'votes']);
+    }
+
     /**
      * Dapatkan daftar User yang di-tag
      */

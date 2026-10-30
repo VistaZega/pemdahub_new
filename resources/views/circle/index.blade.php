@@ -151,6 +151,29 @@
                     mediaName: '',
                     mediaPreviewUrl: null,
                     isVideo: false,
+                    postContent: '',
+                    hasPoll: false,
+                    pollOptions: ['', ''],
+                    addPollOption() {
+                        if (this.pollOptions.length < 4) {
+                            this.pollOptions.push('');
+                        }
+                    },
+                    removePollOption(idx) {
+                        if (this.pollOptions.length > 2) {
+                            this.pollOptions.splice(idx, 1);
+                        }
+                    },
+                    setPrompt(text, emoji, label) {
+                        this.postContent = text;
+                        this.selectedMood = emoji;
+                        this.moodText = label;
+                        this.$nextTick(() => {
+                            if (this.$refs.contentInput) {
+                                this.$refs.contentInput.focus();
+                            }
+                        });
+                    },
                     handleFileSelect(e) {
                         const file = e.target.files[0];
                         if (!file) return;
@@ -265,11 +288,92 @@
                                class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/60 border-2 border-amber-200 text-xs sm:text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400 shadow-2xs">
                     </div>
 
+                    {{-- 💡 Butuh Ide Ngetik? (Pemberi Ide Spontan 1-Klik) --}}
+                    <div class="mb-3">
+                        <div class="flex items-center justify-between mb-1.5 px-0.5">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-[10px]">💡</span>
+                                <span>Butuh Ide Ngetik? Klik Salah Satu:</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar">
+                            <button type="button" 
+                                    @click="setPrompt('Lagi nongki santai di kantin nunggu jam pelajaran bareng bestie ☕ Spill jajanan favorit kalian hari ini!', '☕', 'Nongki Santai')"
+                                    class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
+                                ☕ Nongki Kantin
+                            </button>
+                            <button type="button" 
+                                    @click="setPrompt('Keringat anak bengkel/lab hari ini 🛠️ Baut kencang, rangkaian aman, karya siap dipamerkan!', '🛠️', 'Keringat Bengkel')"
+                                    class="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
+                                🛠️ Suasana Bengkel/Lab
+                            </button>
+                            <button type="button" 
+                                    @click="setPrompt('Lagu yang lagi nemenin ngerjain tugas malam ini 🎧🎶 Ada rekomendasi lagu asyik buat fokus?', '🎧', 'Nge-vibes Musik')"
+                                    class="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
+                                🎧 Rekomendasi Lagu
+                            </button>
+                            <button type="button" 
+                                    @click="setPrompt('Pusing dikit nggak ngaruh 📚 Yang penting besok pas masuk kelas semua tugas sudah tuntas!', '📚', 'Semangat Belajar')"
+                                    class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
+                                📚 Pusing Dikit Nggak Ngaruh
+                            </button>
+                            <button type="button" 
+                                    @click="setPrompt('Tebak-tebakan logika buat bapak/ibu guru dan kawan-kawan 🥊 Siapa yang bisa jawab duluan di komentar?', '🥊', 'Tebak-Tebakan')"
+                                    class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
+                                🥊 Tebak-Tebakan Logika
+                            </button>
+                        </div>
+                    </div>
+
                     {{-- Textarea Isi Goresan --}}
                     <div class="mb-3">
                         <textarea name="content" rows="3" required
+                                  x-ref="contentInput"
+                                  x-model="postContent"
                                   :placeholder="postType === 'story' ? 'Tuliskan kilas cerita cepat yang bertahan 24 jam...' : (tabCat === 'portfolio' ? 'Uraikan latar belakang karya, alat praktikum yang digunakan, dan hasil uji kompetensimu...' : 'Tuliskan obrolan santai, curhat seru di sekolah, atau pesan inspiratif...')"
                                   class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none shadow-2xs"></textarea>
+                    </div>
+
+                    {{-- Kotak Input Polling Interaktif (Muncul jika tombol Polling ditekan) --}}
+                    <div x-show="hasPoll" x-collapse x-transition class="mb-3.5 p-4 rounded-2xl bg-purple-50/70 border-2 border-purple-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-lg bg-purple-200 text-purple-800 flex items-center justify-center text-[10px]">📊</span>
+                                <span>Bikin Polling / Jajak Pendapat Warga Pembda</span>
+                            </span>
+                            <button type="button" @click="hasPoll = false" class="text-xs font-black text-rose-600 hover:text-rose-800 cursor-pointer">
+                                ✕ Batal Polling
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-black text-slate-900 mb-1">Pertanyaan Polling <span class="text-rose-500">*</span></label>
+                            <input type="text" name="poll_question" placeholder="Contoh: Menu kantin terfavorit hari ini, atau Tim Praktikum vs Teori?" 
+                                   class="w-full px-3.5 py-2 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-black text-slate-900 mb-1">Pilihan Jawaban (Minimal 2, Maksimal 4):</label>
+                            <div class="space-y-2">
+                                <template x-for="(opt, idx) in pollOptions" :key="idx">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-lg bg-purple-200 text-purple-900 flex items-center justify-center text-xs font-black shrink-0" x-text="idx + 1"></span>
+                                        <input type="text" name="poll_options[]" x-model="pollOptions[idx]" :placeholder="'Pilihan ' + (idx + 1) + '...'"
+                                               class="flex-1 px-3 py-1.5 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
+                                        <button type="button" x-show="pollOptions.length > 2" @click="removePollOption(idx)"
+                                                class="w-7 h-7 rounded-xl bg-white hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs font-black transition cursor-pointer border border-slate-200">
+                                            ✕
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="mt-2.5" x-show="pollOptions.length < 4">
+                                <button type="button" @click="addPollOption()" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1.5 cursor-pointer">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Tambah Pilihan Lain</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Media Preview (Live jika ada file yang dipilih) --}}
@@ -315,15 +419,23 @@
                         </div>
                     </div>
 
-                    {{-- Bottom Action Bar: Upload File + Ekstra Mood + Tombol Morak Terbang --}}
+                    {{-- Bottom Action Bar: Upload File + Polling + Ekstra Mood + Tombol Morak Terbang --}}
                     <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 flex-wrap">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black cursor-pointer transition flex items-center gap-2 hover:scale-105">
                                 <i class="fas fa-photo-film text-pink-600 text-xs"></i>
                                 <span class="hidden sm:inline">Foto / Video</span>
                                 <span class="sm:hidden">Media</span>
                                 <input type="file" name="media" x-ref="mediaInput" @change="handleFileSelect($event)" accept="image/*,video/*" class="hidden">
                             </label>
+
+                            <button type="button" @click="hasPoll = !hasPoll"
+                                    :class="hasPoll ? 'bg-purple-100 border-purple-400 text-purple-950 font-black shadow-xs' : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-slate-950 font-bold'"
+                                    class="px-3.5 py-2 rounded-2xl border-2 text-xs cursor-pointer transition flex items-center gap-2 hover:scale-105">
+                                <span class="text-xs">📊</span>
+                                <span class="hidden sm:inline">Polling Seru</span>
+                                <span class="sm:hidden">Polling</span>
+                            </button>
 
                             <button type="button" @click="showExtras = !showExtras"
                                     class="px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-slate-950 text-xs font-black cursor-pointer transition flex items-center gap-2 hover:scale-105">
@@ -362,6 +474,42 @@
                 </a>
             </div>
         @endauth
+
+        {{-- ── 2B. TANTANGAN GELORA HARI INI (DAILY VIRAL PROMPT) ── --}}
+        @if(isset($todayChallenge))
+            <div class="bg-gradient-to-r from-amber-100 via-pink-100 to-sky-100 rounded-3xl border-2 border-black p-4 sm:p-5 shadow-sm relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+                    <div class="flex items-start sm:items-center gap-3">
+                        <span class="w-12 h-12 rounded-2xl bg-white border-2 border-black flex items-center justify-center text-2xl shadow-xs shrink-0">
+                            {{ $todayChallenge['emoji'] }}
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black text-yellow-300">
+                                    🎯 TANTANGAN GELORA HARI INI
+                                </span>
+                                <span class="text-xs font-black text-slate-950">{{ $todayChallenge['title'] }}</span>
+                            </div>
+                            <p class="text-xs font-black text-slate-900 mt-1 leading-relaxed">
+                                "{{ $todayChallenge['desc'] }}"
+                            </p>
+                        </div>
+                    </div>
+                    @auth
+                        <button type="button" 
+                                onclick="document.getElementById('quick-post-box')?.scrollIntoView({ behavior: 'smooth' }); const ta = document.querySelector('textarea[name=content]'); if(ta) { ta.value = '#TantanganPembda ({{ $todayChallenge['title'] }}): '; ta.focus(); ta.dispatchEvent(new Event('input')); }"
+                                class="px-4 py-2 rounded-2xl border-2 border-black bg-white hover:bg-yellow-300 text-slate-950 font-black text-xs transition transform hover:scale-105 active:scale-95 shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto">
+                            <span>Ikutan Momen Ini</span> 🚀
+                        </button>
+                    @else
+                        <a href="{{ route('login') }}" 
+                           class="px-4 py-2 rounded-2xl border-2 border-black bg-white hover:bg-yellow-300 text-slate-950 font-black text-xs transition transform hover:scale-105 active:scale-95 shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto">
+                            <span>Masuk & Ikutan</span> 🚀
+                        </a>
+                    @endauth
+                </div>
+            </div>
+        @endif
 
         {{-- ── 3. Filter Tab Bar: Gelora Pastel ── --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-3xl border-2 border-[#f1e8dc] p-2.5 shadow-xs">
@@ -548,7 +696,7 @@
 
                             {{-- Bottom Info & Stats --}}
                             <div class="relative z-10 text-white">
-                                <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
+                                <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id]) }}" 
                                    class="flex items-center gap-1.5 mb-1.5 group-hover:underline">
                                     <img src="{{ $post->user->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-5 h-5 rounded-full object-cover border border-white/50">
                                     <span class="text-[11px] font-black truncate max-w-[110px]">{{ $post->user->circleProfile->nickname ?? $post->user->name }}</span>
@@ -580,7 +728,7 @@
                             {{-- Post Header (Author Info & Badges) --}}
                             <div class="flex items-center justify-between gap-3 mb-4">
                                 <div class="flex items-center gap-3.5 min-w-0">
-                                    <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
+                                    <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id]) }}" 
                                        class="shrink-0 focus:outline-none group">
                                         <img src="{{ $post->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
                                              alt="{{ $post->user->name }}"
@@ -588,7 +736,7 @@
                                     </a>
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                            <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
+                                            <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id]) }}" 
                                                class="font-display font-black text-base text-slate-950 hover:text-pink-600 transition-colors truncate">
                                                 {{ $post->user->name }}
                                             </a>
@@ -660,6 +808,113 @@
                             </div>
                         @endif
 
+                        {{-- Polling Interaktif Warga Pembda --}}
+                        @if($post->poll)
+                            @php
+                                $poll = $post->poll;
+                                $userVotedOptionId = $poll->hasVoted(Auth::id(), request()->ip());
+                                $totalVotes = $poll->totalVotes();
+                            @endphp
+                            <div x-data="{
+                                    votedOptionId: {{ $userVotedOptionId ?? 'null' }},
+                                    totalVotes: {{ $totalVotes }},
+                                    options: {{ json_encode($poll->options->map(function($o) use ($poll, $userVotedOptionId) {
+                                        return [
+                                            'id' => $o->id,
+                                            'option_text' => $o->option_text,
+                                            'votes_count' => $o->votes_count,
+                                            'percentage' => $o->percentage(),
+                                            'is_selected' => $userVotedOptionId == $o->id,
+                                        ];
+                                    })) }},
+                                    isVoting: false,
+                                    async vote(optId) {
+                                        if (this.votedOptionId || this.isVoting) return;
+                                        this.isVoting = true;
+                                        try {
+                                            const csrf = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+                                            const res = await fetch('{{ route('circle.poll.vote') }}', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Accept': 'application/json',
+                                                    'X-CSRF-TOKEN': csrf,
+                                                },
+                                                body: JSON.stringify({
+                                                    circle_poll_id: {{ $poll->id }},
+                                                    circle_poll_option_id: optId
+                                                })
+                                            });
+                                            const data = await res.json();
+                                            if (res.ok && data.status === 'success') {
+                                                this.votedOptionId = data.voted_option_id;
+                                                this.totalVotes = data.total_votes;
+                                                this.options = data.options;
+                                            } else {
+                                                alert(data.message || 'Terjadi kesalahan');
+                                            }
+                                        } catch(e) {
+                                            console.error(e);
+                                        } finally {
+                                            this.isVoting = false;
+                                        }
+                                    }
+                                 }" 
+                                 class="mb-4 p-4 rounded-3xl bg-purple-50/70 border-2 border-purple-200">
+                                
+                                <div class="flex items-center justify-between mb-3 px-1">
+                                    <span class="text-xs font-black uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
+                                        <span class="w-5 h-5 rounded-lg bg-purple-200 text-purple-800 flex items-center justify-center text-[10px]">📊</span>
+                                        <span>Jajak Pendapat Warga Pembda</span>
+                                    </span>
+                                    <span class="text-[11px] font-bold text-purple-900 bg-purple-100 border border-purple-300 px-2.5 py-0.5 rounded-full"
+                                          x-text="totalVotes + ' Suara'">
+                                        {{ $totalVotes }} Suara
+                                    </span>
+                                </div>
+
+                                <h4 class="font-display font-black text-sm text-slate-950 mb-3 leading-snug">
+                                    {{ $poll->question }}
+                                </h4>
+
+                                <div class="space-y-2">
+                                    <template x-for="(opt, oIdx) in options" :key="opt.id">
+                                        <div class="relative">
+                                            {{-- Tombol jika belum vote --}}
+                                            <template x-if="!votedOptionId">
+                                                <button type="button" @click="vote(opt.id)" :disabled="isVoting"
+                                                        class="w-full text-left px-4 py-2.5 rounded-2xl bg-white hover:bg-purple-100 border-2 border-purple-200 hover:border-purple-300 text-xs font-black text-slate-950 transition-all flex items-center justify-between group cursor-pointer hover:scale-[1.01] shadow-2xs">
+                                                    <span x-text="opt.option_text"></span>
+                                                    <i class="fas fa-chevron-right text-[10px] text-purple-400 group-hover:text-purple-700"></i>
+                                                </button>
+                                            </template>
+
+                                            {{-- Tampilan persentase jika sudah vote --}}
+                                            <template x-if="votedOptionId">
+                                                <div class="relative overflow-hidden rounded-2xl bg-white border-2 p-2.5 text-xs font-black text-slate-950 shadow-2xs"
+                                                     :class="opt.is_selected ? 'border-purple-400 ring-2 ring-purple-200' : 'border-slate-200'">
+                                                    {{-- Progress Bar Pastel --}}
+                                                    <div class="absolute inset-y-0 left-0 transition-all duration-700 rounded-xl"
+                                                         :class="oIdx === 0 ? 'bg-pink-200/80' : (oIdx === 1 ? 'bg-amber-200/80' : (oIdx === 2 ? 'bg-emerald-200/80' : 'bg-sky-200/80'))"
+                                                         :style="'width: ' + opt.percentage + '%'"></div>
+                                                    
+                                                    <div class="relative z-10 flex items-center justify-between px-1.5">
+                                                        <div class="flex items-center gap-2">
+                                                            <template x-if="opt.is_selected">
+                                                                <span class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[8px]">✓</span>
+                                                            </template>
+                                                            <span x-text="opt.option_text"></span>
+                                                        </div>
+                                                        <span class="text-xs font-black text-slate-950" x-text="opt.percentage + '%'"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- Post Media --}}
                         @if($post->media->isNotEmpty())
                             <div class="rounded-3xl overflow-hidden mb-4 bg-slate-950 border-2 border-[#f1e8dc] max-h-[500px] flex items-center justify-center shadow-xs">
@@ -724,7 +979,7 @@
                                     <i class="fas fa-share-nodes text-amber-800 text-[11px]"></i>
                                     <span>Siarkan</span>
                                 </button>
-                                <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
+                                <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id]) }}" 
                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-black transition-colors text-xs border border-pink-200">
                                     <span>Lihat</span>
                                     <i class="fas fa-arrow-right text-[10px]"></i>
@@ -806,6 +1061,75 @@
             {{-- Bulatan Hiasan Pastel --}}
             <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-pink-300/30 rounded-full blur-2xl pointer-events-none"></div>
         </div>
+
+        {{-- ── 1B. 👑 BINTANG GELORA MINGGU INI (LEADERBOARD MENYALA) ── --}}
+        @if(isset($topStudents) && $topStudents->isNotEmpty())
+            <div class="bg-gradient-to-br from-amber-50 via-white to-pink-50 rounded-3xl border-2 border-amber-300 p-5 shadow-xs relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3.5 px-0.5">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-xs font-black">
+                            👑
+                        </span>
+                        <span>Bintang Gelora Minggu Ini</span>
+                    </h3>
+                    <span class="text-[9px] font-black text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full uppercase">
+                        Ter-Menyala 🔥
+                    </span>
+                </div>
+
+                <div class="space-y-2.5">
+                    @foreach($topStudents as $idx => $st)
+                        <a href="{{ route('circle.profile', ['username' => $st->username ?? $st->user?->circle_username ?? 'user']) }}" 
+                           class="flex items-center justify-between p-2.5 rounded-2xl bg-white hover:bg-amber-100/50 border border-amber-200 transition-all hover:scale-102 group shadow-2xs">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="relative shrink-0">
+                                    <img src="{{ $st->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                         class="w-9 h-9 rounded-xl object-cover ring-2 {{ $idx === 0 ? 'ring-amber-400' : ($idx === 1 ? 'ring-slate-400' : 'ring-orange-300') }}">
+                                    <span class="absolute -top-1.5 -left-1.5 text-xs">
+                                        {{ $idx === 0 ? '🥇' : ($idx === 1 ? '🥈' : '🥉') }}
+                                    </span>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-xs font-black text-slate-950 truncate group-hover:text-pink-600 transition-colors">
+                                        {{ $st->nickname ?? $st->user->name }}
+                                    </div>
+                                    <div class="text-[10px] font-bold text-slate-600 truncate">
+                                        {{ $st->user->school?->name ?? 'Siswa Pembda' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-[11px] font-black text-orange-600 shrink-0 flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200">
+                                <span>🔥</span>
+                                <span>{{ $st->total_likes ?? 0 }}</span>
+                            </div>
+                        </a>
+                    @endforeach
+
+                    {{-- Guru Pembina Teraktif --}}
+                    @if(isset($topTeacher))
+                        <div class="pt-2 border-t border-amber-200/80">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 block mb-1.5">Guru Pembina Teraktif:</span>
+                            <a href="{{ route('circle.profile', ['username' => $topTeacher->username ?? $topTeacher->user?->circle_username ?? 'user']) }}" 
+                               class="flex items-center justify-between p-2 rounded-2xl bg-sky-50 hover:bg-sky-100 border border-sky-200 transition group shadow-2xs">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <img src="{{ $topTeacher->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                         class="w-7 h-7 rounded-lg object-cover ring-2 ring-sky-300 shrink-0">
+                                    <div class="min-w-0">
+                                        <div class="text-[11px] font-black text-slate-950 truncate group-hover:text-sky-700">
+                                            {{ $topTeacher->nickname ?? $topTeacher->user->name }}
+                                        </div>
+                                        <div class="text-[9px] font-bold text-slate-600">Guru / Mentor</div>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-black text-sky-800 bg-sky-100 px-2 py-0.5 rounded-md border border-sky-300">
+                                    ⭐ Mentor
+                                </span>
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         {{-- ── 2. Trending Profiles Widget (Biru & Mint Pastel) ── --}}
         @if($trendingProfiles->isNotEmpty())

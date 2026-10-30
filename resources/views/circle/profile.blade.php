@@ -269,7 +269,23 @@
          KOTAK BUAT STATUS / POSTING KARYA (KHUSUS PEMILIK AKUN)
     ═══════════════════════════════════════════ --}}
     @if(Auth::check() && Auth::id() === $user->id)
-        <div class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs mb-6" x-data="{ postType: 'status', tabCat: 'wall', showAttach: false }">
+        <div class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs mb-6" 
+             x-data="{ 
+                postType: 'status', 
+                tabCat: 'wall', 
+                showAttach: false,
+                postContent: '',
+                hasPoll: false,
+                pollOptions: ['', ''],
+                addPollOption() { if (this.pollOptions.length < 4) this.pollOptions.push(''); },
+                removePollOption(idx) { if (this.pollOptions.length > 2) this.pollOptions.splice(idx, 1); },
+                setPrompt(text) {
+                    this.postContent = text;
+                    this.$nextTick(() => {
+                        if (this.$refs.contentInput) this.$refs.contentInput.focus();
+                    });
+                }
+             }">
             <div class="flex items-center gap-3.5 mb-3">
                 <img src="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-11 h-11 rounded-2xl object-cover ring-2 ring-pink-100">
                 <div>
@@ -315,16 +331,84 @@
                     <input type="text" name="title" placeholder="Judul Karya / Proyek Utama..." class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/50 border-2 border-amber-200 text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400">
                 </div>
 
-                <textarea name="content" rows="3" placeholder="Tuliskan cerita, curhat santai, atau penjelasan karyamu..." class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none mb-3"></textarea>
+                {{-- 💡 Ide Spontan Cepat --}}
+                <div class="mb-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                    <button type="button" @click="setPrompt('Lagi nongki santai di kantin bareng bestie ☕ Spill jajan kalian!')"
+                            class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[11px] font-bold text-slate-900 shrink-0">
+                        ☕ Nongki Kantin
+                    </button>
+                    <button type="button" @click="setPrompt('Keringat anak bengkel/lab hari ini 🛠️ Karya siap dipamerkan!')"
+                            class="px-2.5 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[11px] font-bold text-slate-900 shrink-0">
+                        🛠️ Bengkel/Lab
+                    </button>
+                    <button type="button" @click="setPrompt('Lagu yang nemenin belajar malam ini 🎧🎶')"
+                            class="px-2.5 py-1 rounded-xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-[11px] font-bold text-slate-900 shrink-0">
+                        🎧 Lagu Favorit
+                    </button>
+                    <button type="button" @click="setPrompt('Pusing dikit nggak ngaruh 📚 Yang penting tugas beres!')"
+                            class="px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-[11px] font-bold text-slate-900 shrink-0">
+                        📚 Semangat Belajar
+                    </button>
+                </div>
+
+                <textarea name="content" rows="3" 
+                          x-ref="contentInput"
+                          x-model="postContent"
+                          placeholder="Tuliskan cerita, curhat santai, atau penjelasan karyamu..." 
+                          class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none mb-3"></textarea>
+
+                {{-- Kotak Input Polling Interaktif --}}
+                <div x-show="hasPoll" x-collapse x-transition class="mb-3.5 p-4 rounded-2xl bg-purple-50/70 border-2 border-purple-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
+                            <span>📊</span>
+                            <span>Bikin Polling / Jajak Pendapat</span>
+                        </span>
+                        <button type="button" @click="hasPoll = false" class="text-xs font-black text-rose-600 hover:text-rose-800 cursor-pointer">
+                            ✕ Batal
+                        </button>
+                    </div>
+
+                    <div>
+                        <input type="text" name="poll_question" placeholder="Pertanyaan Polling..." 
+                               class="w-full px-3.5 py-2 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
+                    </div>
+
+                    <div class="space-y-2">
+                        <template x-for="(opt, idx) in pollOptions" :key="idx">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-purple-200 text-purple-900 flex items-center justify-center text-xs font-black shrink-0" x-text="idx + 1"></span>
+                                <input type="text" name="poll_options[]" x-model="pollOptions[idx]" :placeholder="'Pilihan ' + (idx + 1) + '...'"
+                                       class="flex-1 px-3 py-1.5 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
+                                <button type="button" x-show="pollOptions.length > 2" @click="removePollOption(idx)"
+                                        class="w-7 h-7 rounded-xl bg-white hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs font-black transition cursor-pointer border border-slate-200">
+                                    ✕
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="mt-2" x-show="pollOptions.length < 4">
+                        <button type="button" @click="addPollOption()" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Tambah Pilihan</span>
+                        </button>
+                    </div>
+                </div>
 
                 {{-- Action Bar Form Posting --}}
                 <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-slate-100">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 text-xs font-black cursor-pointer flex items-center gap-2 transition">
                             <i class="fas fa-image text-pink-600 text-sm"></i>
                             <span>Foto / Video</span>
                             <input type="file" name="media" class="hidden" accept="image/*,video/*" @change="showAttach = true">
                         </label>
+                        <button type="button" @click="hasPoll = !hasPoll"
+                                :class="hasPoll ? 'bg-purple-100 border-purple-400 text-purple-950 font-black' : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-slate-950 font-bold'"
+                                class="px-3.5 py-2 rounded-2xl border text-xs cursor-pointer transition flex items-center gap-1.5">
+                            <span>📊</span>
+                            <span>Polling</span>
+                        </button>
                         <span x-show="showAttach" class="text-[11px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-xl border border-emerald-300">
                             ✓ Media Terpilih
                         </span>
@@ -395,6 +479,110 @@
                     <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
                         {{ $post->content }}
                     </div>
+
+                    {{-- Polling Interaktif Warga Pembda --}}
+                    @if($post->poll)
+                        @php
+                            $poll = $post->poll;
+                            $userVotedOptionId = $poll->hasVoted(Auth::id(), request()->ip());
+                            $totalVotes = $poll->totalVotes();
+                        @endphp
+                        <div x-data="{
+                                votedOptionId: {{ $userVotedOptionId ?? 'null' }},
+                                totalVotes: {{ $totalVotes }},
+                                options: {{ json_encode($poll->options->map(function($o) use ($poll, $userVotedOptionId) {
+                                    return [
+                                        'id' => $o->id,
+                                        'option_text' => $o->option_text,
+                                        'votes_count' => $o->votes_count,
+                                        'percentage' => $o->percentage(),
+                                        'is_selected' => $userVotedOptionId == $o->id,
+                                    ];
+                                })) }},
+                                isVoting: false,
+                                async vote(optId) {
+                                    if (this.votedOptionId || this.isVoting) return;
+                                    this.isVoting = true;
+                                    try {
+                                        const csrf = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+                                        const res = await fetch('{{ route('circle.poll.vote') }}', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                                'X-CSRF-TOKEN': csrf,
+                                            },
+                                            body: JSON.stringify({
+                                                circle_poll_id: {{ $poll->id }},
+                                                circle_poll_option_id: optId
+                                            })
+                                        });
+                                        const data = await res.json();
+                                        if (res.ok && data.status === 'success') {
+                                            this.votedOptionId = data.voted_option_id;
+                                            this.totalVotes = data.total_votes;
+                                            this.options = data.options;
+                                        } else {
+                                            alert(data.message || 'Terjadi kesalahan');
+                                        }
+                                    } catch(e) {
+                                        console.error(e);
+                                    } finally {
+                                        this.isVoting = false;
+                                    }
+                                }
+                             }" 
+                             class="mb-4 p-4 rounded-3xl bg-purple-50/70 border-2 border-purple-200">
+                            
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <span class="text-xs font-black uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-lg bg-purple-200 text-purple-800 flex items-center justify-center text-[10px]">📊</span>
+                                    <span>Jajak Pendapat Warga Pembda</span>
+                                </span>
+                                <span class="text-[11px] font-bold text-purple-900 bg-purple-100 border border-purple-300 px-2.5 py-0.5 rounded-full"
+                                      x-text="totalVotes + ' Suara'">
+                                    {{ $totalVotes }} Suara
+                                </span>
+                            </div>
+
+                            <h4 class="font-display font-black text-sm text-slate-950 mb-3 leading-snug">
+                                {{ $poll->question }}
+                            </h4>
+
+                            <div class="space-y-2">
+                                <template x-for="(opt, oIdx) in options" :key="opt.id">
+                                    <div class="relative">
+                                        <template x-if="!votedOptionId">
+                                            <button type="button" @click="vote(opt.id)" :disabled="isVoting"
+                                                    class="w-full text-left px-4 py-2.5 rounded-2xl bg-white hover:bg-purple-100 border-2 border-purple-200 hover:border-purple-300 text-xs font-black text-slate-950 transition-all flex items-center justify-between group cursor-pointer hover:scale-[1.01] shadow-2xs">
+                                                <span x-text="opt.option_text"></span>
+                                                <i class="fas fa-chevron-right text-[10px] text-purple-400 group-hover:text-purple-700"></i>
+                                            </button>
+                                        </template>
+
+                                        <template x-if="votedOptionId">
+                                            <div class="relative overflow-hidden rounded-2xl bg-white border-2 p-2.5 text-xs font-black text-slate-950 shadow-2xs"
+                                                 :class="opt.is_selected ? 'border-purple-400 ring-2 ring-purple-200' : 'border-slate-200'">
+                                                <div class="absolute inset-y-0 left-0 transition-all duration-700 rounded-xl"
+                                                     :class="oIdx === 0 ? 'bg-pink-200/80' : (oIdx === 1 ? 'bg-amber-200/80' : (oIdx === 2 ? 'bg-emerald-200/80' : 'bg-sky-200/80'))"
+                                                     :style="'width: ' + opt.percentage + '%'"></div>
+                                                
+                                                <div class="relative z-10 flex items-center justify-between px-1.5">
+                                                    <div class="flex items-center gap-2">
+                                                        <template x-if="opt.is_selected">
+                                                            <span class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[8px]">✓</span>
+                                                        </template>
+                                                        <span x-text="opt.option_text"></span>
+                                                    </div>
+                                                    <span class="text-xs font-black text-slate-950" x-text="opt.percentage + '%'"></span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- Media --}}
                     @if($post->media->isNotEmpty())

@@ -19,7 +19,7 @@ class CircleFeedController extends Controller
         $tabFilter = $request->query('tab', 'all'); // 'all', 'portfolio', 'wall', 'reels'
         $search = trim($request->query('q', ''));
 
-        $query = CirclePost::with(['user.circleProfile', 'user.school', 'media', 'reactions', 'comments'])
+        $query = CirclePost::with(['user.circleProfile', 'user.school', 'media', 'reactions', 'comments', 'poll.options', 'poll.votes'])
             ->active()
             ->publicVisible();
 
@@ -111,6 +111,62 @@ class CircleFeedController extends Controller
         // 3 Unit Sekolah Aktif
         $schools = School::schoolsOnly()->get();
 
-        return view('circle.index', compact('posts', 'activeStories', 'trendingProfiles', 'matchedProfiles', 'schools', 'tabFilter', 'schoolFilter', 'search'));
+        // 🎯 Tantangan Gelora Hari Ini (Daily Viral Prompt)
+        $dailyPrompts = [
+            'Sunday'    => ['emoji' => '🔋', 'title' => 'Minggu Recharging', 'desc' => 'Foto persiapan apa yang sudah beres buat sekolah besok? Buku, seragam, atau semangat baru?'],
+            'Monday'    => ['emoji' => '🌅', 'title' => 'Senin Menyala', 'desc' => 'Apa target terbesarmu yang ingin kamu capai di kelas atau bengkel/lab minggu ini?'],
+            'Tuesday'   => ['emoji' => '🛠️', 'title' => 'Selasa Ngulik', 'desc' => 'Spill sudut bengkel, meja praktek, atau layar komputermu sekarang!'],
+            'Wednesday' => ['emoji' => '☕', 'title' => 'Rabu Bestie', 'desc' => 'Momen nongki santai di kantin atau obrolan terlucu bareng kawan satu meja hari ini!'],
+            'Thursday'  => ['emoji' => '💡', 'title' => 'Kamis Ide', 'desc' => 'Satu ide atau hal baru yang lagi penasaran banget pengen kamu ciptakan atau pelajari!'],
+            'Friday'    => ['emoji' => '✨', 'title' => 'Jumat Penuh Berkah', 'desc' => 'Nasihat, kutipan keren, atau ucapan terima kasih buat bapak/ibu guru atau bestie-mu hari ini!'],
+            'Saturday'  => ['emoji' => '⚽', 'title' => 'Sabtu Kreasi & Ekskul', 'desc' => 'Pamer momen kegiatan ekskul, hobi, olahraga, atau santai akhir pekanmu!'],
+        ];
+        $todayDay = now()->format('l');
+        $todayChallenge = $dailyPrompts[$todayDay] ?? $dailyPrompts['Friday'];
+
+        // 👑 Bintang Gelora Minggu Ini: Top 3 Siswa & 1 Guru Paling Menyala
+        $topStudents = CircleProfile::with('user.school')
+            ->whereHas('user', function ($uq) {
+                $uq->where('role', 'siswa');
+            })
+            ->where('is_public', true)
+            ->select('circle_profiles.*')
+            ->selectSub(function ($q) {
+                $q->from('circle_posts')
+                  ->whereColumn('circle_posts.user_id', 'circle_profiles.user_id')
+                  ->selectRaw('COALESCE(SUM(likes_count), 0)');
+            }, 'total_likes')
+            ->orderByDesc('total_likes')
+            ->orderByDesc('views_count')
+            ->take(3)
+            ->get();
+
+        $topTeacher = CircleProfile::with('user.school')
+            ->whereHas('user', function ($uq) {
+                $uq->where('role', 'guru');
+            })
+            ->select('circle_profiles.*')
+            ->selectSub(function ($q) {
+                $q->from('circle_skill_endorsements')
+                  ->whereColumn('circle_skill_endorsements.teacher_user_id', 'circle_profiles.user_id')
+                  ->selectRaw('COUNT(*)');
+            }, 'total_endorsements')
+            ->orderByDesc('total_endorsements')
+            ->orderByDesc('views_count')
+            ->first();
+
+        return view('circle.index', compact(
+            'posts', 
+            'activeStories', 
+            'trendingProfiles', 
+            'matchedProfiles', 
+            'schools', 
+            'tabFilter', 
+            'schoolFilter', 
+            'search',
+            'todayChallenge',
+            'topStudents',
+            'topTeacher'
+        ));
     }
 }

@@ -72,7 +72,7 @@ class CircleProfileController extends Controller
         }
 
         // Ambil postingan Tab Dinding (Wall / Nongki)
-        $wallPosts = CirclePost::with(['media', 'reactions', 'comments.replies', 'user'])
+        $wallPosts = CirclePost::with(['media', 'reactions', 'comments.replies', 'user', 'poll.options', 'poll.votes'])
             ->where('user_id', $user->id)
             ->where('tab_category', 'wall')
             ->where('post_type', '!=', 'story')
