@@ -3383,3 +3383,15 @@ Route::post('/pemilihan-osis/vote', [App\Http\Controllers\OsisElectionController
 Route::get('/pemilihan-osis/real-count/{slug?}', [App\Http\Controllers\OsisElectionController::class, 'realCount'])->name('osis.real-count');
 Route::get('/pemilihan-osis/laporan/{id}', [App\Http\Controllers\OsisElectionController::class, 'printReport'])->middleware('auth')->name('osis.report');
 
+// ── PEMBDACIRCLE (PORTAL SOSIAL & TALENTA PERGURUAN PEMBDA) ───────────────────
+Route::prefix('circle')->name('circle.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Circle\CircleFeedController::class, 'index'])->name('feed');
+    Route::get('/u/{username}', [App\Http\Controllers\Circle\CircleProfileController::class, 'show'])->name('profile.alt');
+});
+
+// Route Profil Publik @username (Contoh: perguruanpembda.com/@fathan atau /@andreas-zebua)
+Route::get('/@{username}', [App\Http\Controllers\Circle\CircleProfileController::class, 'show'])
+    ->where('username', '[A-Za-z0-9_.-]+')
+    ->name('circle.profile');
+
+

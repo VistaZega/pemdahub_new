@@ -65,6 +65,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship: Profil PembdaCIRCLE
+     */
+    public function circleProfile()
+    {
+        return $this->hasOne(CircleProfile::class);
+    }
+
+    /**
+     * Relationship: Postingan di PembdaCIRCLE
+     */
+    public function circlePosts()
+    {
+        return $this->hasMany(CirclePost::class);
+    }
+
+    /**
      * Relationship: User dapat menjadi Orang Tua
      */
     public function parents()
