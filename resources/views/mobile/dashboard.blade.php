@@ -242,6 +242,40 @@
     </div>
     @endif
 
+    {{-- 🌸 PEMBDACIRCLE HERO BANNER (MOBILE EXPERIENCE) --}}
+    <a href="{{ route('circle.feed') }}" 
+       class="block rounded-3xl p-3.5 border-2 border-pink-400/90 shadow-md relative overflow-hidden transition-all duration-300 active:scale-[0.98] group"
+       style="background: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6366f1 100%);">
+        <!-- Glow Aura -->
+        <div class="absolute -right-4 -bottom-6 w-32 h-32 bg-white/15 rounded-full blur-xl pointer-events-none"></div>
+        <div class="flex items-center justify-between gap-3 relative z-10 text-white">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 flex items-center justify-center text-2xl shadow-inner shrink-0 group-hover:rotate-12 transition-transform">
+                    ✨
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <span class="px-2 py-0.5 rounded-full bg-amber-300 text-slate-950 font-black text-[9px] uppercase tracking-wider shadow-xs">
+                            BARU 🔥
+                        </span>
+                        <span class="text-[10px] text-pink-200 font-extrabold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> Live Komunitas
+                        </span>
+                    </div>
+                    <h3 class="text-sm font-black text-white truncate mt-0.5 tracking-tight">
+                        Panggung Gelora PembdaCIRCLE
+                    </h3>
+                    <p class="text-[10px] text-pink-100 font-bold truncate">
+                        Kilas 24 Jam, Reels, Polling Seru & Pesan Pribadi (DM)
+                    </p>
+                </div>
+            </div>
+            <div class="shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-white text-pink-600 font-black shadow-md group-hover:translate-x-1 transition-transform">
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </div>
+        </div>
+    </a>
+
     <!-- 🕒 Compact Quick Presensi Bar (Guru / Pegawai / Siswa) -->
     @php
         $isNotCheckedOut = empty($todayAttendance) || !$todayAttendance->time_out || $todayAttendance->time_out === '00:00:00' || $todayAttendance->time_out === '00:00';

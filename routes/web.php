@@ -3005,6 +3005,12 @@ Route::prefix('circle')->name('circle.')->group(function () {
     Route::delete('/endorse/{id}', [App\Http\Controllers\Circle\CircleActionController::class, 'destroySkillEndorsement'])->name('endorse.destroy');
     Route::post('/notifications/read-all', [App\Http\Controllers\Circle\CircleActionController::class, 'markNotificationsRead'])->name('notifications.readAll');
     Route::post('/poll/vote', [App\Http\Controllers\Circle\CircleActionController::class, 'votePoll'])->name('poll.vote');
+    
+    // Obrolan Langsung & Kotak Pesan Pribadi (DM)
+    Route::get('/messages/inbox', [App\Http\Controllers\Circle\CircleActionController::class, 'getInbox'])->name('messages.inbox');
+    Route::get('/messages/conversation/{userId}', [App\Http\Controllers\Circle\CircleActionController::class, 'getConversation'])->name('messages.conversation');
+    Route::post('/messages/send', [App\Http\Controllers\Circle\CircleActionController::class, 'sendMessage'])->name('messages.send');
+    Route::get('/messages/search-users', [App\Http\Controllers\Circle\CircleActionController::class, 'searchUsersForMessage'])->name('messages.searchUsers');
 });
 
 // Route Profil Publik @username (Contoh: perguruanpembda.com/@fathan atau /@andreas-zebua)

@@ -280,18 +280,25 @@
                                         $notifUrl = route('circle.feed', ['post' => $notif->related_id]) . '#post-' . $notif->related_id;
                                     } elseif ($notif->related_model === 'CircleSkillEndorsement') {
                                         $notifUrl = route('circle.profile', ['username' => $__navProfile->username]);
+                                    } elseif ($notif->type === 'circle_dm' && $notif->related_id) {
+                                        $notifUrl = '#dm-' . $notif->related_id;
                                     }
                                 @endphp
                                 <a href="{{ $notifUrl }}" 
+                                   @if($notif->type === 'circle_dm' && $notif->related_id)
+                                       onclick="event.preventDefault(); window.openCircleChatWith({{ $notif->related_id }});"
+                                   @endif
                                    class="block p-3 hover:bg-pink-50/60 transition {{ !$notif->is_read ? 'bg-amber-50/50' : '' }}">
                                     <div class="flex items-start gap-2.5">
-                                        <div class="w-7 h-7 rounded-xl shrink-0 flex items-center justify-center text-xs shadow-2xs {{ str_contains($notif->type ?? '', 'endorsement') ? 'bg-amber-100 text-amber-800 border border-amber-300' : (str_contains($notif->type ?? '', 'reaction') ? 'bg-orange-100 text-orange-800 border border-orange-300' : 'bg-pink-100 text-pink-800 border border-pink-300') }}">
+                                        <div class="w-7 h-7 rounded-xl shrink-0 flex items-center justify-center text-xs shadow-2xs {{ str_contains($notif->type ?? '', 'endorsement') ? 'bg-amber-100 text-amber-800 border border-amber-300' : (str_contains($notif->type ?? '', 'reaction') ? 'bg-orange-100 text-orange-800 border border-orange-300' : (str_contains($notif->type ?? '', 'dm') ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-pink-100 text-pink-800 border border-pink-300')) }}">
                                             @if(str_contains($notif->type ?? '', 'endorsement'))
                                                 🏅
                                             @elseif(str_contains($notif->type ?? '', 'reaction'))
                                                 🔥
                                             @elseif(str_contains($notif->type ?? '', 'comment'))
                                                 💬
+                                            @elseif(str_contains($notif->type ?? '', 'dm'))
+                                                ✉️
                                             @else
                                                 ✨
                                             @endif
@@ -324,6 +331,22 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Kotak Pesan Pribadi (DM) Icon Header --}}
+                @php
+                    $__circleUnreadDmCount = \App\Models\Message::where('receiver_id', $__navUser->id)->where('is_read', false)->count();
+                @endphp
+                <button type="button" 
+                        onclick="window.dispatchEvent(new CustomEvent('open-circle-inbox'))" 
+                        class="relative w-9 h-9 rounded-2xl bg-white hover:bg-sky-100 border-2 border-sky-200 text-slate-800 hover:text-sky-600 flex items-center justify-center text-sm transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105"
+                        title="Kotak Pesan Pribadi (DM)">
+                    <i class="fas fa-paper-plane"></i>
+                    @if($__circleUnreadDmCount > 0)
+                        <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-500 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-white animate-pulse">
+                            {{ $__circleUnreadDmCount }}
+                        </span>
+                    @endif
+                </button>
 
                 {{-- TOMBOL MORAK & CERAH: KEMBALI KE MEJA KERJA DASHBOARD --}}
                 <a href="{{ $__dashUrl }}" 
@@ -415,6 +438,23 @@
             <span class="text-[10px]">Karya</span>
         </a>
 
+        {{-- Pesan Pribadi (DM) Mobile --}}
+        @auth
+        <button type="button"
+                onclick="window.dispatchEvent(new CustomEvent('open-circle-inbox'))"
+                class="flex flex-col items-center gap-1 min-w-[46px] transition-base text-slate-600 hover:text-sky-600 font-bold relative cursor-pointer">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-sky-50 text-sky-600 border border-sky-200 relative">
+                <i class="fas fa-paper-plane text-xs"></i>
+                @if($__circleUnreadDmCount > 0)
+                    <span class="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-0.5 rounded-full bg-sky-500 text-white text-[8px] font-black flex items-center justify-center">
+                        {{ $__circleUnreadDmCount }}
+                    </span>
+                @endif
+            </div>
+            <span class="text-[10px]">Pesan</span>
+        </button>
+        @endauth
+
         {{-- Profil --}}
         @auth
         <a href="{{ route('circle.profile', ['username' => optional(\App\Models\CircleProfile::where('user_id', Auth::id())->first())->username ?? Auth::user()->username]) }}"
@@ -491,6 +531,426 @@ window.shareCirclePost = function(title, postUrl) {
         window.open(waUrl, '_blank');
     }
 };
+
+@auth
+function circleChatModal() {
+    return {
+        isOpen: false,
+        view: 'inbox',
+        threads: [],
+        messages: [],
+        activeContact: null,
+        newMessage: '',
+        searchQuery: '',
+        searchResults: [],
+        isLoadingThreads: false,
+        isLoadingMessages: false,
+        isSearching: false,
+        isSending: false,
+
+        openInbox() {
+            this.isOpen = true;
+            this.view = 'inbox';
+            this.loadThreads();
+        },
+
+        close() {
+            this.isOpen = false;
+        },
+
+        backToInbox() {
+            this.view = 'inbox';
+            this.loadThreads();
+        },
+
+        async loadThreads() {
+            this.isLoadingThreads = true;
+            try {
+                const res = await fetch("{{ route('circle.messages.inbox') }}");
+                const data = await res.json();
+                if (data.status === 'success') {
+                    this.threads = data.threads || [];
+                }
+            } catch (e) {
+                console.error('Error fetching DM inbox:', e);
+            } finally {
+                this.isLoadingThreads = false;
+            }
+        },
+
+        async searchUsers() {
+            if (this.searchQuery.trim().length < 2) {
+                this.searchResults = [];
+                return;
+            }
+            this.isSearching = true;
+            try {
+                const res = await fetch(`{{ route('circle.messages.searchUsers') }}?q=${encodeURIComponent(this.searchQuery)}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    this.searchResults = data.users || [];
+                }
+            } catch (e) {
+                console.error('Error searching users:', e);
+            } finally {
+                this.isSearching = false;
+            }
+        },
+
+        selectUserToChat(user) {
+            this.activeContact = user;
+            this.view = 'conversation';
+            this.messages = [];
+            this.searchQuery = '';
+            this.searchResults = [];
+            this.loadConversation(user.id);
+        },
+
+        openChatWithContact(contact) {
+            this.isOpen = true;
+            this.view = 'conversation';
+            this.activeContact = contact;
+            this.messages = [];
+            this.loadConversation(contact.id);
+        },
+
+        async loadConversation(userId) {
+            this.isLoadingMessages = true;
+            try {
+                const res = await fetch(`{{ url('/circle/messages/conversation') }}/${userId}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    this.messages = data.messages || [];
+                    if (data.contact) {
+                        this.activeContact = data.contact;
+                    }
+                    this.scrollToBottom();
+                }
+            } catch (e) {
+                console.error('Error fetching conversation:', e);
+            } finally {
+                this.isLoadingMessages = false;
+                this.scrollToBottom();
+            }
+        },
+
+        async sendMessage() {
+            const text = this.newMessage.trim();
+            if (!text || !this.activeContact || this.isSending) return;
+
+            this.isSending = true;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            try {
+                const res = await fetch("{{ route('circle.messages.send') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        receiver_id: this.activeContact.id,
+                        message: text
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    this.messages.push(data.data);
+                    this.newMessage = '';
+                    this.scrollToBottom();
+                } else {
+                    alert(data.message || 'Gagal mengirim pesan');
+                }
+            } catch (e) {
+                console.error('Error sending message:', e);
+            } finally {
+                this.isSending = false;
+                this.scrollToBottom();
+            }
+        },
+
+        scrollToBottom() {
+            this.$nextTick(() => {
+                const el = this.$refs.chatBox;
+                if (el) el.scrollTop = el.scrollHeight;
+            });
+        }
+    };
+}
+@endauth
+
+window.openCircleChatWith = function(userId, name = '', avatar = '', username = '') {
+    @auth
+        window.dispatchEvent(new CustomEvent('open-circle-dm', {
+            detail: {
+                id: userId,
+                name: name,
+                avatar_url: avatar,
+                username: username,
+                role_label: 'Warga Pembda',
+                school_name: 'Perguruan PEMBDA'
+            }
+        }));
+    @else
+        window.location.href = "{{ route('login') }}";
+    @endauth
+};
+</script>
+
+@auth
+{{-- ═══════════════════════════════════════════
+     PEMBDACIRCLE SLIDE-OVER DM / INBOX MODAL
+═══════════════════════════════════════════ --}}
+<div x-data="circleChatModal()" 
+     x-cloak 
+     @open-circle-inbox.window="openInbox()"
+     @open-circle-dm.window="openChatWithContact($event.detail)"
+     class="relative z-[90]">
+
+    {{-- Backdrop Overlay --}}
+    <div x-show="isOpen" 
+         x-transition:enter="transition-opacity ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="close()"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+         style="display: none;"></div>
+
+    {{-- Drawer Panel --}}
+    <div x-show="isOpen" 
+         x-transition:enter="transition ease-out duration-300 transform"
+         x-transition:enter-start="translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-200 transform"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full"
+         class="fixed inset-y-0 right-0 w-full sm:max-w-md bg-[#fdfbf7] shadow-2xl border-l-2 border-[#f1e8dc] flex flex-col z-[100] overflow-hidden"
+         style="display: none;">
+
+        {{-- ── HEADER MODAL ── --}}
+        <div class="px-4 py-3.5 bg-white border-b-2 border-[#f1e8dc] flex items-center justify-between shrink-0 shadow-2xs">
+            <!-- View: Inbox Header -->
+            <div x-show="view === 'inbox'" class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-2xl bg-sky-100 text-sky-700 border-2 border-sky-200 flex items-center justify-center text-sm shadow-2xs">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-950 leading-tight">Kotak Pesan Pribadi (DM)</h3>
+                    <p class="text-[10px] font-bold text-slate-500">Kirim pesan langsung ke Siswa & Guru</p>
+                </div>
+            </div>
+
+            <!-- View: Conversation Header -->
+            <div x-show="view === 'conversation'" class="flex items-center gap-2.5 min-w-0 flex-1">
+                <button type="button" 
+                        @click="backToInbox()" 
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs shrink-0 cursor-pointer transition">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <template x-if="activeContact">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <img :src="activeContact.avatar_url || '{{ asset('images/default-avatar.svg') }}'" 
+                             :alt="activeContact.name" 
+                             class="w-9 h-9 rounded-2xl object-cover ring-2 ring-sky-300 shrink-0 bg-white">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="text-xs font-black text-slate-950 truncate leading-tight" x-text="activeContact.name"></h4>
+                            <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 truncate">
+                                <span class="text-sky-700 font-black" x-text="activeContact.role_label"></span>
+                                <span>•</span>
+                                <span class="truncate" x-text="activeContact.school_name"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Close Button -->
+            <button type="button" 
+                    @click="close()" 
+                    class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 flex items-center justify-center text-xs shrink-0 ml-2 cursor-pointer transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        {{-- ── BODY VIEW 1: INBOX & SEARCH CONTACTS ── --}}
+        <div x-show="view === 'inbox'" class="flex-1 flex flex-col overflow-hidden">
+            <!-- Search User Input -->
+            <div class="p-3 bg-white/70 border-b border-[#f1e8dc] shrink-0">
+                <div class="relative">
+                    <input type="text" 
+                           x-model="searchQuery" 
+                           @input.debounce.300ms="searchUsers()" 
+                           placeholder="Cari guru, siswa, pegawai untuk chat..."
+                           class="w-full pl-9 pr-8 py-2 rounded-2xl bg-white border-2 border-[#f1e8dc] text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 shadow-2xs">
+                    <span class="absolute left-3 top-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
+                    <button type="button" 
+                            x-show="searchQuery.length > 0" 
+                            @click="searchQuery = ''; searchResults = []" 
+                            class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-rose-500 font-black cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Results Mode -->
+            <div x-show="searchQuery.trim().length >= 2" class="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
+                <div class="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">Hasil Pencarian Warga</div>
+                <template x-if="isSearching">
+                    <div class="p-6 text-center text-xs font-bold text-slate-400">
+                        <i class="fas fa-spinner fa-spin mr-1.5 text-sky-600"></i> Mencari warga...
+                    </div>
+                </template>
+                <template x-for="usr in searchResults" :key="'sr-' + usr.id">
+                    <button type="button" 
+                            @click="selectUserToChat(usr)"
+                            class="w-full text-left p-2.5 rounded-2xl bg-white hover:bg-sky-50 border-2 border-transparent hover:border-sky-200 transition flex items-center justify-between gap-2.5 cursor-pointer shadow-2xs">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <img :src="usr.avatar_url" class="w-10 h-10 rounded-2xl object-cover ring-2 ring-slate-100 shrink-0">
+                            <div class="min-w-0">
+                                <div class="text-xs font-black text-slate-950 truncate" x-text="usr.name"></div>
+                                <div class="text-[10px] font-bold text-slate-500 flex items-center gap-1.5 truncate">
+                                    <span class="text-sky-700 font-extrabold" x-text="usr.role_label"></span>
+                                    <span>•</span>
+                                    <span class="truncate" x-text="usr.school_name"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="shrink-0 px-2.5 py-1 rounded-xl bg-sky-100 text-sky-800 text-[10px] font-black border border-sky-300">
+                            Chat 💬
+                        </div>
+                    </button>
+                </template>
+                <template x-if="!isSearching && searchResults.length === 0 && searchQuery.trim().length >= 2">
+                    <div class="p-8 text-center text-xs font-bold text-slate-500">
+                        Tidak ada warga Pembda yang cocok dengan kata kunci tersebut.
+                    </div>
+                </template>
+            </div>
+
+            <!-- Normal Threads List Mode -->
+            <div x-show="searchQuery.trim().length < 2" class="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
+                <template x-if="isLoadingThreads">
+                    <div class="p-8 text-center text-xs font-bold text-slate-400">
+                        <i class="fas fa-spinner fa-spin mr-1.5 text-sky-600"></i> Memuat percakapan...
+                    </div>
+                </template>
+
+                <template x-for="t in threads" :key="'thread-' + t.contact.id">
+                    <button type="button" 
+                            @click="selectUserToChat(t.contact)"
+                            class="w-full text-left p-3 rounded-2xl bg-white hover:bg-sky-50/80 border-2 border-slate-100 hover:border-sky-200 transition flex items-center justify-between gap-2.5 cursor-pointer shadow-2xs group">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <div class="relative shrink-0">
+                                <img :src="t.contact.avatar_url" class="w-11 h-11 rounded-2xl object-cover ring-2 ring-sky-200">
+                                <template x-if="t.unread_count > 0">
+                                    <span class="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white animate-pulse"
+                                          x-text="t.unread_count"></span>
+                                </template>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-1 mb-0.5">
+                                    <h4 class="text-xs font-black text-slate-950 truncate group-hover:text-sky-700 transition" x-text="t.contact.name"></h4>
+                                    <span class="text-[9px] font-bold text-slate-400 shrink-0" x-text="t.last_message.time"></span>
+                                </div>
+                                <p class="text-[11px] font-semibold text-slate-600 truncate leading-tight" 
+                                   :class="t.unread_count > 0 ? 'text-slate-950 font-black' : ''">
+                                    <span x-show="t.last_message.is_me" class="text-sky-600 font-bold">Anda: </span>
+                                    <span x-text="t.last_message.text || 'Mulai percakapan...'"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </button>
+                </template>
+
+                <template x-if="!isLoadingThreads && threads.length === 0">
+                    <div class="p-8 text-center my-auto">
+                        <span class="text-3xl block mb-2">✉️</span>
+                        <h4 class="text-xs font-black text-slate-900 mb-1">Belum Ada Obrolan</h4>
+                        <p class="text-[11px] font-semibold text-slate-500 max-w-[240px] mx-auto mb-3">
+                            Ketik nama teman sekelas, guru, atau siswa pada kolom pencarian di atas untuk memulai DM!
+                        </p>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        {{-- ── BODY VIEW 2: ACTIVE CONVERSATION MESSAGES ── --}}
+        <div x-show="view === 'conversation'" class="flex-1 flex flex-col overflow-hidden bg-slate-50/60">
+            <!-- Messages Scrollable Box -->
+            <div x-ref="chatBox" class="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar">
+                <template x-if="isLoadingMessages">
+                    <div class="p-8 text-center text-xs font-bold text-slate-400">
+                        <i class="fas fa-spinner fa-spin mr-1.5 text-sky-600"></i> Membuka riwayat obrolan...
+                    </div>
+                </template>
+
+                <template x-if="!isLoadingMessages && messages.length === 0">
+                    <div class="p-6 text-center my-auto bg-white/70 rounded-3xl border-2 border-dashed border-sky-200">
+                        <span class="text-3xl block mb-2">👋</span>
+                        <h4 class="text-xs font-black text-slate-900 mb-0.5">Sapa Sekarang!</h4>
+                        <p class="text-[11px] font-semibold text-slate-600">
+                            Mulai obrolan ramah, tanyakan pelajaran, apresiasi karyanya, atau ajak kolaborasi project!
+                        </p>
+                    </div>
+                </template>
+
+                <template x-for="m in messages" :key="'msg-' + m.id">
+                    <div class="flex items-end gap-2" :class="m.is_me ? 'justify-end' : 'justify-start'">
+                        <!-- Receiver avatar if not me -->
+                        <template x-if="!m.is_me">
+                            <img :src="activeContact?.avatar_url || '{{ asset('images/default-avatar.svg') }}'" 
+                                 class="w-6 h-6 rounded-lg object-cover mb-1 shrink-0">
+                        </template>
+
+                        <!-- Bubble -->
+                        <div class="max-w-[78%] rounded-2xl px-3.5 py-2.5 text-xs shadow-2xs relative leading-relaxed"
+                             :class="m.is_me 
+                                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-br-none font-bold' 
+                                : 'bg-white text-slate-950 border-2 border-[#f1e8dc] rounded-bl-none font-semibold'">
+                            <p class="break-words whitespace-pre-wrap select-text" x-text="m.message"></p>
+                            <div class="text-[9px] mt-1 flex items-center justify-end gap-1 opacity-75"
+                                 :class="m.is_me ? 'text-sky-100' : 'text-slate-400'">
+                                <span x-text="m.time"></span>
+                                <template x-if="m.is_me">
+                                    <i class="fas fa-check-double text-[8px]"></i>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Chat Input Footer -->
+            <div class="p-3 bg-white border-t-2 border-[#f1e8dc] shrink-0">
+                <form @submit.prevent="sendMessage()" class="flex items-end gap-2">
+                    <div class="flex-1 relative">
+                        <textarea x-model="newMessage" 
+                                  @keydown.enter.prevent="if(!$event.shiftKey) sendMessage()"
+                                  placeholder="Tulis pesan ramah langsung... (Enter untuk kirim)" 
+                                  rows="1"
+                                  class="w-full px-3.5 py-2 rounded-2xl bg-slate-50 border-2 border-[#f1e8dc] text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 focus:bg-white resize-none shadow-inner max-h-24 overflow-y-auto"></textarea>
+                    </div>
+                    <button type="submit" 
+                            :disabled="isSending || !newMessage.trim()"
+                            class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white flex items-center justify-center text-sm shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0 active:scale-95">
+                        <template x-if="isSending">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </template>
+                        <template x-if="!isSending">
+                            <i class="fas fa-paper-plane"></i>
+                        </template>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+@endauth
 </script>
 
 @yield('scripts')

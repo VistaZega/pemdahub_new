@@ -15,9 +15,12 @@ class Message extends Model
 
     protected $fillable = [
         'sender_id',
+        'receiver_id',
         'recipient_id',
         'subject',
         'content',
+        'message',
+        'attachment_path',
         'is_read',
         'read_at',
     ];
@@ -36,11 +39,35 @@ class Message extends Model
     }
 
     /**
-     * Relationship: Message belongs to Recipient (User)
+     * Relationship: Message belongs to Receiver (User)
+     */
+    public function receiver()
+    {
+        return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    /**
+     * Relationship: Alias Message belongs to Recipient (User)
      */
     public function recipient()
     {
-        return $this->belongsTo(User::class, 'recipient_id');
+        return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    /**
+     * Fallback accessor if accessed via content or message
+     */
+    public function getContentAttribute()
+    {
+        return $this->attributes['message'] ?? ($this->attributes['content'] ?? '');
+    }
+
+    /**
+     * Fallback accessor for receiver_id / recipient_id
+     */
+    public function getRecipientIdAttribute()
+    {
+        return $this->attributes['receiver_id'] ?? ($this->attributes['recipient_id'] ?? null);
     }
 
     /**
@@ -62,11 +89,11 @@ class Message extends Model
     }
 
     /**
-     * Scope: Get messages for recipient
+     * Scope: Get messages for recipient/receiver
      */
     public function scopeForRecipient($query, $userId)
     {
-        return $query->where('recipient_id', $userId);
+        return $query->where('receiver_id', $userId);
     }
 
     /**

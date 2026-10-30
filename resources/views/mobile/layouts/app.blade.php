@@ -307,40 +307,53 @@
     @auth
     @unless(View::hasSection('hide_bottom_nav'))
     <div class="fixed bottom-4 left-5 right-5 z-40">
-        <nav class="clay-nav px-3 py-2.5 flex items-center justify-around">
+        <nav class="clay-nav px-2 py-2 flex items-center justify-around gap-0.5">
             <!-- Tab 1: Dashboard -->
             <a href="{{ route('mobile.dashboard') }}" 
-               class="flex flex-col items-center py-1.5 px-3 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.dashboard') ? 'text-blue-600 font-black bg-blue-50 scale-110 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-house text-lg mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">Beranda</span>
+               class="flex flex-col items-center py-1.5 px-2 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.dashboard') ? 'text-blue-600 font-black bg-blue-50 scale-105 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
+                <i class="fa-solid fa-house text-base mb-0.5"></i>
+                <span class="text-[9px] font-black tracking-tight">Beranda</span>
             </a>
 
-            <!-- Tab 2: PembdaSPACE -->
+            <!-- Tab 2: PembdaCIRCLE (Social, Karya & Media) -->
+            <a href="{{ route('circle.feed') }}" 
+               class="flex flex-col items-center py-1.5 px-2 rounded-2xl transition duration-200 relative group {{ request()->routeIs('circle.*') ? 'text-pink-600 font-black bg-pink-50 scale-105 shadow-sm border border-pink-200' : 'text-slate-500 hover:text-pink-600' }}">
+                <div class="relative">
+                    <i class="fa-solid fa-sparkles text-base mb-0.5 {{ request()->routeIs('circle.*') ? 'text-pink-600' : 'text-pink-500 group-hover:scale-110 transition' }}"></i>
+                    <span class="absolute -top-1 -right-2 flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                </div>
+                <span class="text-[9px] font-black tracking-tight text-pink-600">CIRCLE</span>
+            </a>
+
+            <!-- Tab 3: PembdaSPACE (Forum & Tanya Jawab) -->
             <a href="{{ route('mobile.space.index') }}" 
-               class="flex flex-col items-center py-1.5 px-2.5 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.space.*') ? 'text-blue-600 font-black bg-blue-50 scale-105 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-bolt text-lg mb-0.5 {{ request()->routeIs('mobile.space.*') ? 'text-amber-500' : '' }}"></i>
-                <span class="text-[9px] font-black tracking-tight">PembdaSPACE</span>
+               class="flex flex-col items-center py-1.5 px-1.5 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.space.*') ? 'text-purple-600 font-black bg-purple-50 scale-105 shadow-sm border border-purple-200' : 'text-slate-400 hover:text-slate-700' }}">
+                <i class="fa-solid fa-bolt text-base mb-0.5 {{ request()->routeIs('mobile.space.*') ? 'text-amber-500' : '' }}"></i>
+                <span class="text-[9px] font-black tracking-tight">SPACE</span>
             </a>
 
-            <!-- Tab 3: LMS -->
+            <!-- Tab 4: LMS -->
             <a href="{{ route('mobile.lms.index') }}" 
-               class="flex flex-col items-center py-1.5 px-3 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.lms.*') ? 'text-blue-600 font-black bg-blue-50 scale-110 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-book-open text-lg mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">LMS</span>
+               class="flex flex-col items-center py-1.5 px-2 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.lms.*') ? 'text-blue-600 font-black bg-blue-50 scale-105 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
+                <i class="fa-solid fa-book-open text-base mb-0.5"></i>
+                <span class="text-[9px] font-black tracking-tight">LMS</span>
             </a>
 
-            <!-- Tab 4: Absensi -->
+            <!-- Tab 5: Absensi -->
             <a href="{{ route('mobile.absensi.index') }}" 
-               class="flex flex-col items-center py-1.5 px-3 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.absensi.*') ? 'text-blue-600 font-black bg-blue-50 scale-110 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-fingerprint text-lg mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">Absensi</span>
+               class="flex flex-col items-center py-1.5 px-2 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.absensi.*') ? 'text-emerald-600 font-black bg-emerald-50 scale-105 shadow-sm border border-emerald-200' : 'text-slate-400 hover:text-slate-700' }}">
+                <i class="fa-solid fa-fingerprint text-base mb-0.5"></i>
+                <span class="text-[9px] font-black tracking-tight">Absensi</span>
             </a>
 
-            <!-- Tab 5: Profile -->
+            <!-- Tab 6: Profile -->
             <a href="{{ route('mobile.profile') }}" 
-               class="flex flex-col items-center py-1.5 px-3 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.profile') ? 'text-blue-600 font-black bg-blue-50 scale-110 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-circle-user text-lg mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">Profil</span>
+               class="flex flex-col items-center py-1.5 px-2 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.profile') ? 'text-blue-600 font-black bg-blue-50 scale-105 shadow-sm border border-blue-200' : 'text-slate-400 hover:text-slate-700' }}">
+                <i class="fa-solid fa-circle-user text-base mb-0.5"></i>
+                <span class="text-[9px] font-black tracking-tight">Profil</span>
             </a>
         </nav>
     </div>

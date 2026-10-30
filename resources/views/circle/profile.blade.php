@@ -123,6 +123,16 @@
                         </button>
                     @endif
 
+                    @if(Auth::check() && Auth::id() !== $user->id)
+                        <button type="button"
+                                onclick="window.openCircleChatWith({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->avatar_url }}', '{{ $profile->username ?? $user->username }}')"
+                                class="px-3.5 py-2 rounded-2xl text-xs font-black text-white bg-sky-600 hover:bg-sky-500 border-2 border-sky-700 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105 active:scale-95"
+                                title="Kirim Pesan Pribadi Langsung ke {{ $user->name }}">
+                            <i class="fas fa-paper-plane text-xs"></i>
+                            <span>Kirim Pesan (DM)</span>
+                        </button>
+                    @endif
+
                     <button onclick="shareProfile()" 
                             class="px-3.5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105">
                         <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>

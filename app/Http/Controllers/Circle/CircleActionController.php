@@ -13,6 +13,8 @@ use App\Models\CirclePoll;
 use App\Models\CirclePollOption;
 use App\Models\CirclePollVote;
 use App\Models\Notification;
+use App\Models\Message;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -480,6 +482,277 @@ class CircleActionController extends Controller
             'total_votes' => $totalVotes,
             'voted_option_id' => (int) $request->circle_poll_option_id,
             'options' => $optionsData,
+        ]);
+    }
+
+    /**
+     * Ambil Daftar Kotak Masuk / Percakapan Pribadi (DM) Pengguna
+     */
+    public function getInbox()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        $authId = $user->id;
+
+        // Ambil ID kontak yang pernah saling berkirim pesan
+        $recentMessages = Message::where('sender_id', $authId)
+            ->orWhere('receiver_id', $authId)
+            ->latest('id')
+            ->take(150)
+            ->get(['id', 'sender_id', 'receiver_id', 'created_at']);
+
+        $contactIds = $recentMessages->map(function ($msg) use ($authId) {
+            return $msg->sender_id === $authId ? $msg->receiver_id : $msg->sender_id;
+        })->unique()->filter(function ($id) use ($authId) {
+            return $id && $id !== $authId;
+        })->take(25)->values();
+
+        $threads = [];
+        foreach ($contactIds as $contactId) {
+            $contact = User::with(['circleProfile', 'student.school', 'teacher.school'])->find($contactId);
+            if (!$contact) continue;
+
+            $lastMsg = Message::where(function($q) use ($authId, $contactId) {
+                $q->where('sender_id', $authId)->where('receiver_id', $contactId);
+            })->orWhere(function($q) use ($authId, $contactId) {
+                $q->where('sender_id', $contactId)->where('receiver_id', $authId);
+            })->latest('id')->first();
+
+            $unread = Message::where('sender_id', $contactId)
+                ->where('receiver_id', $authId)
+                ->where('is_read', false)
+                ->count();
+
+            $schoolName = $contact->student->school->name ?? ($contact->teacher->school->name ?? 'Perguruan PEMBDA');
+            $roleLabel = match($contact->role) {
+                'guru' => '👨‍🏫 Guru',
+                'pegawai' => '💼 Pegawai',
+                'siswa' => '🎓 Siswa',
+                'superadmin' => '👑 Admin',
+                'kepala_sekolah' => '🏫 Kepsek',
+                default => '🌟 Warga Pembda'
+            };
+
+            $threads[] = [
+                'contact' => [
+                    'id' => $contact->id,
+                    'name' => $contact->name,
+                    'avatar_url' => $contact->avatar_url,
+                    'username' => $contact->circle_username,
+                    'role_label' => $roleLabel,
+                    'school_name' => $schoolName,
+                ],
+                'last_message' => [
+                    'text' => $lastMsg ? Str::limit($lastMsg->message, 45) : '',
+                    'time' => $lastMsg ? $lastMsg->created_at->diffForHumans(null, true) : '',
+                    'is_me' => $lastMsg ? ($lastMsg->sender_id === $authId) : false,
+                ],
+                'unread_count' => $unread,
+            ];
+        }
+
+        $totalUnread = Message::where('receiver_id', $authId)
+            ->where('is_read', false)
+            ->count();
+
+        return response()->json([
+            'status' => 'success',
+            'threads' => $threads,
+            'total_unread' => $totalUnread,
+        ]);
+    }
+
+    /**
+     * Ambil Seluruh Pesan Percakapan dengan Pengguna Tertentu
+     */
+    public function getConversation($userId)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        $targetUser = User::with(['circleProfile', 'student.school', 'teacher.school'])->find($userId);
+        if (!$targetUser) {
+            return response()->json(['status' => 'error', 'message' => 'Pengguna tidak ditemukan'], 404);
+        }
+
+        $authId = $currentUser->id;
+        $targetId = (int) $userId;
+
+        // Tandai pesan dari lawan bicara sebagai sudah dibaca
+        Message::where('sender_id', $targetId)
+            ->where('receiver_id', $authId)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+        // Ambil riwayat percakapan (50 pesan terakhir)
+        $messages = Message::where(function($q) use ($authId, $targetId) {
+            $q->where('sender_id', $authId)->where('receiver_id', $targetId);
+        })->orWhere(function($q) use ($authId, $targetId) {
+            $q->where('sender_id', $targetId)->where('receiver_id', $authId);
+        })
+        ->orderBy('created_at', 'asc')
+        ->take(100)
+        ->get();
+
+        $formattedMessages = $messages->map(function ($msg) use ($authId) {
+            return [
+                'id' => $msg->id,
+                'sender_id' => $msg->sender_id,
+                'receiver_id' => $msg->receiver_id,
+                'message' => $msg->message,
+                'time' => $msg->created_at ? $msg->created_at->format('H:i') : '',
+                'date' => $msg->created_at ? $msg->created_at->isoFormat('D MMMM Y') : '',
+                'is_me' => $msg->sender_id === $authId,
+                'is_read' => (bool) $msg->is_read,
+            ];
+        });
+
+        $schoolName = $targetUser->student->school->name ?? ($targetUser->teacher->school->name ?? 'Perguruan PEMBDA');
+        $roleLabel = match($targetUser->role) {
+            'guru' => '👨‍🏫 Guru',
+            'pegawai' => '💼 Pegawai',
+            'siswa' => '🎓 Siswa',
+            'superadmin' => '👑 Admin',
+            'kepala_sekolah' => '🏫 Kepsek',
+            default => '🌟 Warga Pembda'
+        };
+
+        return response()->json([
+            'status' => 'success',
+            'contact' => [
+                'id' => $targetUser->id,
+                'name' => $targetUser->name,
+                'avatar_url' => $targetUser->avatar_url,
+                'username' => $targetUser->circle_username,
+                'role_label' => $roleLabel,
+                'school_name' => $schoolName,
+            ],
+            'messages' => $formattedMessages,
+        ]);
+    }
+
+    /**
+     * Kirim Pesan Pribadi (DM) ke Pengguna Lain
+     */
+    public function sendMessage(Request $request)
+    {
+        $request->validate([
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'required|string|max:3000',
+        ]);
+
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        $receiverId = (int) $request->receiver_id;
+        if ($currentUser->id === $receiverId) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak bisa mengirim pesan ke diri sendiri.'], 422);
+        }
+
+        $text = trim($request->message);
+        if ($text === '') {
+            return response()->json(['status' => 'error', 'message' => 'Pesan tidak boleh kosong.'], 422);
+        }
+
+        $msg = Message::create([
+            'sender_id' => $currentUser->id,
+            'receiver_id' => $receiverId,
+            'message' => $text,
+            'is_read' => false,
+        ]);
+
+        // Buat notifikasi ke penerima
+        try {
+            Notification::create([
+                'user_id' => $receiverId,
+                'type' => 'circle_dm',
+                'title' => "Pesan Pribadi dari {$currentUser->name} ✉️",
+                'message' => Str::limit($text, 80),
+                'related_model' => 'User',
+                'related_id' => $currentUser->id,
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::warning('Failed creating DM notification: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pesan terkirim! 🚀',
+            'data' => [
+                'id' => $msg->id,
+                'sender_id' => $msg->sender_id,
+                'receiver_id' => $msg->receiver_id,
+                'message' => $msg->message,
+                'time' => $msg->created_at->format('H:i'),
+                'is_me' => true,
+                'is_read' => false,
+            ]
+        ]);
+    }
+
+    /**
+     * Cari Pengguna untuk Memulai Obrolan Baru
+     */
+    public function searchUsersForMessage(Request $request)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        $query = trim($request->get('q', ''));
+        if (strlen($query) < 2) {
+            return response()->json(['status' => 'success', 'users' => []]);
+        }
+
+        $users = User::with(['circleProfile', 'student.school', 'teacher.school'])
+            ->where('id', '!=', $currentUser->id)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('username', 'like', "%{$query}%")
+                  ->orWhereHas('circleProfile', function($cq) use ($query) {
+                      $cq->where('nickname', 'like', "%{$query}%")
+                        ->orWhere('username', 'like', "%{$query}%");
+                  });
+            })
+            ->take(10)
+            ->get();
+
+        $results = $users->map(function ($u) {
+            $schoolName = $u->student->school->name ?? ($u->teacher->school->name ?? 'Perguruan PEMBDA');
+            $roleLabel = match($u->role) {
+                'guru' => '👨‍🏫 Guru',
+                'pegawai' => '💼 Pegawai',
+                'siswa' => '🎓 Siswa',
+                'superadmin' => '👑 Admin',
+                'kepala_sekolah' => '🏫 Kepsek',
+                default => '🌟 Warga Pembda'
+            };
+
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'avatar_url' => $u->avatar_url,
+                'username' => $u->circle_username,
+                'role_label' => $roleLabel,
+                'school_name' => $schoolName,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'users' => $results,
         ]);
     }
 }
