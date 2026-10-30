@@ -67,6 +67,19 @@
         <span>Surat Edaran Yayasan</span>
     </a>
 
+    @if(auth()->user()?->canManageInventory())
+    <!-- PembdaINVENTORY (Manajemen Aset) -->
+    <a href="{{ route('inventory.index') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('inventory.*') ? $ac : $nc }}">
+        <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #312e81 !important; color: #ffffff !important;">
+                <i class="fas fa-boxes-stacked text-[10px] text-white"></i>
+            </div>
+            <span class="font-black">PembdaINVENTORY</span>
+        </div>
+        <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300">Aset</span>
+    </a>
+    @endif
+
     @if(!$isPegawaiOnly)
     <!-- Kelas Saya -->
     <a href="{{ route('guru.kelas') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('guru.kelas', 'guru.siswa-kelas') ? $ac : $nc }}">
@@ -337,17 +350,10 @@
         $isPksOrPiket = $user->isPksOrPiket();
         $canManageInventory = $user->canManageInventory();
     @endphp
-    @if($isPanitiaCbt || $isPanitiaPkl || $isPanitiaProyek || $isPksOrPiket || $canManageInventory)
+    @if($isPanitiaCbt || $isPanitiaPkl || $isPanitiaProyek || $isPksOrPiket)
     <div class="px-3 pt-4 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-900 border-t border-slate-200 mt-2">
         Tugas Tambahan & Panitia
     </div>
-    @endif
-
-    @if($canManageInventory)
-    <a href="{{ route('inventory.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('inventory.*') ? $ac : $nc }}">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #312e81 !important; color: #ffffff !important;"><i class="fas fa-boxes-stacked text-[10px] text-white"></i></div>
-        <span>PembdaINVENTORY</span>
-    </a>
     @endif
     
     @if($isPanitiaCbt)
