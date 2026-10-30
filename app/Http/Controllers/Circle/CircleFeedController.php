@@ -42,7 +42,7 @@ class CircleFeedController extends Controller
         $posts = $query->latest()->paginate(12)->withQueryString();
 
         // Ambil Stories 24 Jam terbaru dari semua siswa/guru aktif
-        $activeStories = CirclePost::with(['user.circleProfile', 'media'])
+        $activeStories = CirclePost::with(['user.circleProfile', 'user.school', 'school', 'media'])
             ->where('post_type', 'story')
             ->where('expires_at', '>', now())
             ->latest()

@@ -114,10 +114,12 @@ class CircleProfileController extends Controller
 
             // Logbook PKL yang memiliki foto dokumentasi
             if (class_exists(PklLog::class)) {
-                $approvedPklLogs = PklLog::where('student_id', $studentId)
+                $approvedPklLogs = PklLog::whereHas('placement', function($q) use ($studentId) {
+                        $q->where('student_id', $studentId);
+                    })
                     ->where('status', 'approved')
-                    ->whereNotNull('documentation_file')
-                    ->latest('activity_date')
+                    ->whereNotNull('photo')
+                    ->latest('log_date')
                     ->take(6)
                     ->get();
             }
@@ -125,7 +127,7 @@ class CircleProfileController extends Controller
             // Prestasi & Penghargaan BK
             if (class_exists(StudentCounselingRecord::class)) {
                 $achievements = StudentCounselingRecord::where('student_id', $studentId)
-                    ->where('type', 'penghargaan')
+                    ->where('record_type', 'penghargaan')
                     ->latest('incident_date')
                     ->get();
             }

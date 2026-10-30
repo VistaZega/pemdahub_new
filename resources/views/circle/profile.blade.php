@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}', showEditModal: false }">
+<div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}', showEditModal: false, showEndorseModal: false, selectedSkill: '' }">
 
     {{-- ═══════════════════════════════════════════
          PROFILE HEADER CARD (PASTEL CANTIK & LUCU)
@@ -378,6 +378,17 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- Opsi Hapus Postingan (Pemilik / SuperAdmin) --}}
+                        @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
+                            <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus status ini?')" class="shrink-0">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition border border-slate-200 cursor-pointer" title="Hapus Status">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        @endif
                     </div>
 
                     {{-- Content (Hitam & Sangat Mudah Dibaca) --}}
@@ -478,26 +489,54 @@
     <div x-show="activeTab === 'portfolio'" x-transition class="space-y-6">
 
         {{-- ── 1. Verified Skill Badges dari Guru (Hijau Pastel Cantik) ── --}}
-        @if($skillEndorsements->isNotEmpty())
-            <div class="bg-emerald-50/80 border-2 border-emerald-200 rounded-3xl p-5 sm:p-6 shadow-xs">
-                <h3 class="text-xs font-black uppercase tracking-wider text-emerald-950 mb-3.5 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-xs">
-                        <i class="fas fa-certificate"></i>
-                    </span>
-                    <span>Keahlian Resmi Terverifikasi Guru</span>
-                </h3>
-                <div class="flex flex-wrap gap-2.5">
-                    @foreach($skillEndorsements as $se)
-                        <div class="px-3.5 py-2 rounded-2xl bg-white border-2 border-emerald-200 text-xs font-black text-slate-950 shadow-2xs flex items-center gap-2">
-                            <i class="fas fa-medal text-amber-500"></i>
-                            <span>{{ $se->skill_name }}</span>
-                            <span class="text-[10px] text-emerald-900 font-black bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full" 
-                                  title="Divalidasi oleh: {{ $se->teacher?->name }}">
-                                ✓ Valid
-                            </span>
-                        </div>
-                    @endforeach
+        @php
+            $canEndorseStudent = Auth::check() && $user->role === 'siswa' && (Auth::user()->role === 'guru' || Auth::user()->isSuperAdmin() || Auth::user()->isAdminSekolah());
+        @endphp
+        @if($skillEndorsements->isNotEmpty() || $canEndorseStudent)
+            <div class="bg-emerald-50/90 border-2 border-emerald-200 rounded-3xl p-5 sm:p-6 shadow-xs">
+                <div class="flex items-center justify-between mb-3.5 flex-wrap gap-2">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-emerald-950 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-xs">
+                            <i class="fas fa-certificate"></i>
+                        </span>
+                        <span>Keahlian Resmi Terverifikasi Guru</span>
+                    </h3>
+                    @if($canEndorseStudent)
+                        <button type="button" @click="showEndorseModal = true" 
+                                class="px-3.5 py-1.5 rounded-2xl text-xs font-black text-slate-950 bg-emerald-200 hover:bg-emerald-300 border-2 border-emerald-400 transition-all hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fas fa-plus-circle text-emerald-800"></i>
+                            <span>+ Validasi Keahlian Siswa</span>
+                        </button>
+                    @endif
                 </div>
+
+                @if($skillEndorsements->isNotEmpty())
+                    <div class="flex flex-wrap gap-2.5">
+                        @foreach($skillEndorsements as $se)
+                            <div class="px-3.5 py-2 rounded-2xl bg-white border-2 border-emerald-200 text-xs font-black text-slate-950 shadow-2xs flex items-center gap-2">
+                                <i class="fas fa-medal text-amber-500"></i>
+                                <span>{{ $se->skill_name }}</span>
+                                <span class="text-[10px] text-emerald-900 font-black bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full cursor-help" 
+                                      title="Divalidasi oleh: {{ $se->teacher?->name }}{{ $se->endorsement_note ? ' — Catatan: ' . $se->endorsement_note : '' }}">
+                                    ✓ {{ explode(' ', trim($se->teacher?->name ?? 'Guru'))[0] }}
+                                </span>
+                                @if(Auth::check() && ($se->teacher_user_id === Auth::id() || Auth::user()->isSuperAdmin()))
+                                    <form action="{{ route('circle.endorse.destroy', $se->id) }}" method="POST" onsubmit="return confirm('Hapus lencana keahlian ini?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-rose-400 hover:text-rose-600 ml-1 p-0.5 cursor-pointer" title="Hapus Lencana">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-xs text-emerald-900 font-semibold py-1">
+                        <span>Belum ada lencana keahlian yang disematkan untuk siswa ini. Sebagai guru/mentor, Anda dapat memvalidasi keterampilannya sekarang.</span>
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -532,9 +571,9 @@
             {{-- B. Praktik Kerja Lapangan (Coklat Pastel) --}}
             @foreach($approvedPklLogs as $pkl)
                 <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-[#d4a373] transition-base">
-                    @if($pkl->documentation_file)
+                    @if($pkl->photo_url || $pkl->photo)
                         <div class="h-44 w-full bg-slate-100 overflow-hidden">
-                            <img src="{{ asset('storage/' . $pkl->documentation_file) }}" 
+                            <img src="{{ $pkl->photo_url ?? asset('storage/' . $pkl->photo) }}" 
                                  alt="Dokumentasi PKL"
                                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                         </div>
@@ -544,11 +583,11 @@
                             <i class="fas fa-briefcase mr-1"></i>Praktik Industri DUDI
                         </span>
                         <h4 class="font-display font-black text-sm text-slate-950 mb-1 leading-snug">
-                            {{ $pkl->activity_description }}
+                            {{ $pkl->activity }}
                         </h4>
                     </div>
                     <div class="px-5 py-3 bg-[#faf8f5] border-t-2 border-[#f1e8dc] text-[11px] text-slate-700 font-bold flex items-center justify-between">
-                        <span>{{ \Carbon\Carbon::parse($pkl->activity_date)->isoFormat('D MMMM Y') }}</span>
+                        <span>{{ $pkl->log_date ? \Carbon\Carbon::parse($pkl->log_date)->isoFormat('D MMMM Y') : '-' }}</span>
                         <span class="text-emerald-800 font-black"><i class="fas fa-check-circle mr-1 text-emerald-600"></i>Approved</span>
                     </div>
                 </div>
@@ -556,7 +595,18 @@
 
             {{-- C. Postingan Portfolio Circle Langsung (Pink Pastel) --}}
             @foreach($portfolioPosts as $port)
-                <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-pink-300 transition-base">
+                <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-pink-300 transition-base relative group">
+                    @if(Auth::check() && (Auth::id() === $port->user_id || Auth::user()->isSuperAdmin()))
+                        <div class="absolute top-3 right-3 z-10">
+                            <form action="{{ route('circle.post.destroy', $port->id) }}" method="POST" onsubmit="return confirm('Hapus karya ini?')" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-7 h-7 rounded-lg bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center text-xs transition cursor-pointer" title="Hapus Karya">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                     @if($port->media->isNotEmpty())
                         <div class="h-48 w-full bg-slate-900 overflow-hidden">
                             @php $firstMedia = $port->media->first(); @endphp
@@ -651,6 +701,104 @@
                         </button>
                         <button type="submit" class="px-5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105">
                             Simpan Perubahan ✨
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════
+         MODAL VALIDASI LENCANA KEAHLIAN OLEH GURU (HIJAU PASTEL CANTIK)
+    ═══════════════════════════════════════════ --}}
+    @if(Auth::check() && (Auth::user()->role === 'guru' || Auth::user()->isSuperAdmin() || Auth::user()->isAdminSekolah()) && $user->role === 'siswa')
+        <div x-show="showEndorseModal" x-cloak 
+             class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+             x-transition>
+            <div class="bg-white rounded-3xl border-2 border-emerald-300 max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+                 @click.outside="showEndorseModal = false">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b-2 border-slate-100">
+                    <h3 class="font-display font-black text-lg text-slate-950 flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-sm">
+                            <i class="fas fa-medal text-amber-500"></i>
+                        </span>
+                        <span>Validasi Keahlian Siswa</span>
+                    </h3>
+                    <button type="button" @click="showEndorseModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+
+                <p class="text-xs font-semibold text-slate-700 mb-4">
+                    Beri lencana pengesahan resmi atas kompetensi atau karya nyata yang dikuasai oleh <strong>{{ $user->name }}</strong>. Lencana ini akan tampil permanen di portofolio publik siswa.
+                </p>
+
+                <form action="{{ route('circle.endorse.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="student_user_id" value="{{ $user->id }}">
+
+                    <div class="space-y-4">
+                        {{-- Rekomendasi / Quick Chip Lencana --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-950 mb-1.5">Pilih Rekomendasi Lencana Cepat:</label>
+                            <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 bg-slate-50 border-2 border-slate-200 rounded-2xl">
+                                @php
+                                    $recommendedSkills = [
+                                        'AutoCAD & Pemodelan 3D',
+                                        'Konfigurasi MikroTik & Jaringan',
+                                        'Fiber Optic Splicing',
+                                        'Troubleshooting & Servis Mesin',
+                                        'Kelistrikan & Injeksi Otomotif',
+                                        'Mikrokontroler & Arduino',
+                                        'Pengelasan & Fabrikasi',
+                                        'Desain Grafis & Komunikasi Visual',
+                                        'Web Programming (HTML/CSS/JS)',
+                                        'Karya Tulis Ilmiah Terapan',
+                                        'Riset Laboratorium Biologi',
+                                        'Public Speaking & Presentasi',
+                                        'Storytelling & Bahasa Inggris',
+                                        'Editing Video Reels & Sinematik',
+                                        'Robotika Pemula',
+                                        'Kepemimpinan OSIS & Keorganisasian'
+                                    ];
+                                @endphp
+                                @foreach($recommendedSkills as $rSkill)
+                                    <button type="button" 
+                                            @click="selectedSkill = '{{ $rSkill }}'"
+                                            class="px-2.5 py-1 rounded-xl text-[11px] font-bold border transition cursor-pointer hover:scale-105"
+                                            :class="selectedSkill === '{{ $rSkill }}' ? 'bg-emerald-200 border-emerald-400 text-emerald-950 font-black' : 'bg-white border-slate-200 text-slate-800 hover:bg-emerald-50'">
+                                        + {{ $rSkill }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Nama Keahlian --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-950 mb-1">Nama Keahlian / Kompetensi Siswa <span class="text-rose-500">*</span></label>
+                            <input type="text" name="skill_name" x-model="selectedSkill" required
+                                   placeholder="Contoh: Overhaul Mesin Bensin, Pemrograman Python, dll"
+                                   class="w-full px-4 py-2.5 rounded-2xl bg-emerald-50/40 border-2 border-emerald-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-emerald-500">
+                        </div>
+
+                        {{-- Catatan Pengesahan Guru --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-950 mb-1">Catatan Pengesahan Guru (Opsional)</label>
+                            <textarea name="endorsement_note" rows="2" 
+                                      placeholder="Contoh: Siswa menunjukkan ketelitian tinggi dalam pengujian rangkaian dan perakitan panel kerja bengkel..."
+                                      class="w-full p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-950 focus:outline-none focus:border-emerald-400 resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                        <button type="button" @click="showEndorseModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                class="px-5 py-2.5 rounded-2xl text-xs font-black text-black border-2 border-black transition-all hover:scale-105 cursor-pointer shadow-md"
+                                style="background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%) !important; color: #000000 !important; border: 2px solid #000000 !important;">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            <span>Sematkan Lencana 🏅</span>
                         </button>
                     </div>
                 </form>

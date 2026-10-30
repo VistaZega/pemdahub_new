@@ -30,8 +30,17 @@
                 </p>
             </div>
 
-            <!-- Tombol Spesial Peta Lokasi PKL Maps -->
-            <div class="flex items-center gap-3">
+            <!-- Tombol Spesial Peta Lokasi PKL Maps & PembdaCIRCLE -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <a href="{{ route('circle.feed') }}" class="px-5 py-2.5 rounded-full font-mono-code text-xs font-black flex items-center gap-2 border-2 border-black transition-transform hover:-translate-y-0.5 shadow-[3px_3px_0px_#000]"
+                   style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2px solid #000000 !important;">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white border border-black"></span>
+                    </span>
+                    <span style="color: #000000 !important; font-weight: 900 !important;">⚡ PEMBDACIRCLE</span>
+                    <span class="text-black text-[10px] font-black">&rarr;</span>
+                </a>
                 <a href="{{ route('public.pkl.map') }}" class="px-5 py-2.5 rounded-full bg-[#121316] text-[#fde047] hover:bg-[#222] font-mono-code text-xs font-black shadow-[3px_3px_0px_#ff3823] flex items-center gap-2 border border-[#121316] transition-transform hover:-translate-y-0.5">
                     <span>🗺️ PETA SEBARAN PKL (MAPS)</span>
                     <span class="text-white text-[10px]">&rarr;</span>
@@ -235,6 +244,32 @@
             @empty
             @endforelse
 
+        </div>
+
+        <!-- PEMBDACIRCLE INVITATION BANNER -->
+        <div class="mt-8 rounded-3xl p-6 sm:p-8 border-2 border-black shadow-[6px_6px_0px_#000] flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden"
+             style="background: linear-gradient(135deg, #ffd6e0 0%, #faedcd 40%, #d8f3dc 70%, #d0f4de 100%) !important;">
+            <div class="max-w-2xl relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black text-amber-300 text-[11px] font-mono-code font-black mb-3">
+                    <span class="animate-pulse">✨</span>
+                    <span>JEJARING SOSIAL & PORTOFOLIO RESMI</span>
+                </div>
+                <h3 class="text-2xl sm:text-3xl font-black text-black leading-tight tracking-tight mb-2">
+                    Ingin Lihat Lebih Banyak Karya Siswa & Momen Sekolah?
+                </h3>
+                <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+                    Masuk ke <strong>PembdaCIRCLE</strong> untuk mengeksplorasi portofolio siswa SMP, SMA, dan SMK, sertifikasi lencana keahlian dari guru, cerita harian 24 jam, serta video reels inovatif.
+                </p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0 relative z-10">
+                <a href="{{ route('circle.feed') }}" 
+                   class="px-6 py-3.5 rounded-2xl text-xs sm:text-sm font-black border-2 border-black transition-all transform hover:scale-105 active:scale-95 shadow-[4px_4px_0px_#000] flex items-center gap-2 text-black cursor-pointer"
+                   style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2px solid #000000 !important;">
+                    <i class="fas fa-bullseye text-sm text-black"></i>
+                    <span style="color: #000000 !important; font-weight: 900 !important;">Eksplor PembdaCIRCLE</span>
+                    <i class="fas fa-arrow-right text-xs text-black"></i>
+                </a>
+            </div>
         </div>
 
     </div>

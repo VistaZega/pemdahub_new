@@ -8,6 +8,7 @@ use App\Models\CirclePost;
 use App\Models\CirclePostMedia;
 use App\Models\CircleReaction;
 use App\Models\CircleComment;
+use App\Models\CircleSkillEndorsement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -200,5 +201,83 @@ class CircleActionController extends Controller
         CirclePost::where('id', $request->circle_post_id)->increment('comments_count');
 
         return redirect()->back()->with('success', 'Komentarmu berhasil dikirim! 💬');
+    }
+
+    /**
+     * Berikan Lencana Validasi Keahlian Resmi (Oleh Guru/Mentor)
+     */
+    public function storeSkillEndorsement(Request $request)
+    {
+        $request->validate([
+            'student_user_id' => 'required|exists:users,id',
+            'skill_name' => 'required|string|max:100',
+            'endorsement_note' => 'nullable|string|max:500',
+        ]);
+
+        $teacher = Auth::user();
+        if (!$teacher || ($teacher->role !== 'guru' && !$teacher->isSuperAdmin() && !$teacher->isAdminSekolah())) {
+            return redirect()->back()->with('error', 'Hanya Guru, Penguji atau Admin Resmi yang dapat memvalidasi keahlian siswa.');
+        }
+
+        // Cek apakah keahlian ini sudah divalidasi oleh guru yang sama
+        $existing = CircleSkillEndorsement::where('student_user_id', $request->student_user_id)
+            ->where('teacher_user_id', $teacher->id)
+            ->whereRaw('LOWER(skill_name) = ?', [strtolower(trim($request->skill_name))])
+            ->first();
+
+        if ($existing) {
+            $existing->update([
+                'endorsement_note' => $request->endorsement_note ?? $existing->endorsement_note,
+            ]);
+            return redirect()->back()->with('success', 'Catatan lencana keahlian siswa berhasil diperbarui! 🏅');
+        }
+
+        CircleSkillEndorsement::create([
+            'student_user_id' => $request->student_user_id,
+            'teacher_user_id' => $teacher->id,
+            'skill_name' => trim($request->skill_name),
+            'endorsement_note' => $request->endorsement_note,
+            'created_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Lencana keahlian resmi berhasil divalidasi dan disematkan pada portofolio siswa! 🏅✨');
+    }
+
+    /**
+     * Hapus Validasi Keahlian Siswa
+     */
+    public function destroySkillEndorsement($id)
+    {
+        $endorsement = CircleSkillEndorsement::findOrFail($id);
+        $user = Auth::user();
+
+        if ($endorsement->teacher_user_id === $user?->id || $user?->isSuperAdmin()) {
+            $endorsement->delete();
+            return redirect()->back()->with('success', 'Lencana keahlian berhasil dihapus.');
+        }
+
+        return redirect()->back()->with('error', 'Anda tidak berwenang menghapus lencana ini.');
+    }
+
+    /**
+     * Hapus Postingan (Oleh Pemilik atau SuperAdmin)
+     */
+    public function destroyPost($id)
+    {
+        $post = CirclePost::findOrFail($id);
+        $user = Auth::user();
+
+        if ($post->user_id === $user?->id || $user?->isSuperAdmin()) {
+            // Hapus media terkait dari disk
+            foreach ($post->media as $media) {
+                if ($media->file_path) {
+                    Storage::disk('public')->delete($media->file_path);
+                }
+            }
+            $post->delete();
+            return redirect()->back()->with('success', 'Postingan berhasil dihapus dari PembdaCIRCLE.');
+        }
+
+        return redirect()->back()->with('error', 'Anda tidak berwenang menghapus postingan ini.');
     }
 }

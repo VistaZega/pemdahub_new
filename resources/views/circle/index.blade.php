@@ -11,14 +11,79 @@
 @endsection
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-7">
+@php
+    $storiesPayload = $activeStories->map(function ($st) {
+        $firstMedia = $st->media->first();
+        return [
+            'id' => $st->id,
+            'name' => $st->user->name,
+            'nickname' => $st->user->circleProfile->nickname ?? explode(' ', $st->user->name)[0],
+            'username' => $st->user->circleProfile->username ?? $st->user->username,
+            'avatar' => $st->user->avatar_url ?? asset('images/default-avatar.svg'),
+            'school' => $st->school?->name ?? ($st->user->school?->name ?? 'Perguruan Pembda'),
+            'content' => $st->content,
+            'mood_emoji' => $st->mood_emoji,
+            'mood_text' => $st->mood_text,
+            'time_ago' => $st->created_at->diffForHumans(),
+            'media_type' => $firstMedia?->media_type,
+            'media_url' => $firstMedia?->url,
+            'likes_count' => $st->likes_count,
+        ];
+    })->values();
+@endphp
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-7"
+     x-data="{
+        stories: {{ Js::from($storiesPayload) }},
+        storyOpen: false,
+        activeIdx: 0,
+        progress: 0,
+        timer: null,
+        openStory(idx) {
+            this.activeIdx = idx;
+            this.storyOpen = true;
+            this.startTimer();
+        },
+        closeStory() {
+            this.storyOpen = false;
+            clearInterval(this.timer);
+        },
+        nextStory() {
+            if (this.activeIdx < this.stories.length - 1) {
+                this.activeIdx++;
+                this.startTimer();
+            } else {
+                this.closeStory();
+            }
+        },
+        prevStory() {
+            if (this.activeIdx > 0) {
+                this.activeIdx--;
+                this.startTimer();
+            }
+        },
+        startTimer() {
+            clearInterval(this.timer);
+            this.progress = 0;
+            const step = 2;
+            this.timer = setInterval(() => {
+                this.progress += step;
+                if (this.progress >= 100) {
+                    this.nextStory();
+                }
+            }, 100);
+        },
+        currStory() {
+            return this.stories[this.activeIdx] || {};
+        }
+     }">
 
     {{-- ═══════════════════════════════════════════
          KOLOM KIRI & TENGAH: FEED UTAMA (PASTEL SEGAR)
     ═══════════════════════════════════════════ --}}
     <div class="lg:col-span-2 space-y-6">
 
-        {{-- ── 1. Story Bar (Bubbles Pastel Cantik & Lucu) ── --}}
+        {{-- ── 1. Story Bar (Interactive Instagram-Style Bubbles) ── --}}
         @if($activeStories->isNotEmpty())
             <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-4 shadow-xs">
                 <div class="flex items-center justify-between mb-3 px-1">
@@ -29,13 +94,14 @@
                         <span>Story Warga Pembda (24 Jam)</span>
                     </span>
                     <span class="text-[11px] font-bold text-pink-600 bg-pink-50 border border-pink-200 px-2 py-0.5 rounded-full">
-                        {{ $activeStories->count() }} baru ✨
+                        {{ $activeStories->count() }} cerita aktif ✨
                     </span>
                 </div>
                 <div class="flex items-center gap-4 overflow-x-auto pb-2 custom-scrollbar">
                     @foreach($activeStories as $story)
-                        <a href="{{ route('circle.profile', ['username' => $story->user->circleProfile->username ?? $story->user->username]) }}" 
-                           class="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none">
+                        <button type="button" 
+                                @click="openStory({{ $loop->index }})" 
+                                class="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none cursor-pointer">
                             <div class="w-16 h-16 rounded-full p-[3px] pastel-story-ring group-hover:scale-105 transition-transform duration-200 shadow-xs">
                                 <div class="w-full h-full rounded-full p-0.5 bg-white overflow-hidden">
                                     <img src="{{ $story->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
@@ -46,7 +112,7 @@
                             <span class="text-[11px] font-extrabold text-slate-900 group-hover:text-pink-600 max-w-[70px] truncate text-center transition-colors">
                                 {{ $story->user->circleProfile->nickname ?? explode(' ', $story->user->name)[0] }}
                             </span>
-                        </a>
+                        </button>
                     @endforeach
                 </div>
             </div>
@@ -127,57 +193,143 @@
                 @endauth
             </div>
         @else
-            <div class="space-y-6">
-                @foreach($posts as $post)
-                    <article x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
-                        {{-- Post Header (Author Info & Badges) --}}
-                        <div class="flex items-center justify-between gap-3 mb-4">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
-                                   class="shrink-0 focus:outline-none group">
-                                    <img src="{{ $post->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
-                                         alt="{{ $post->user->name }}"
-                                         class="w-12 h-12 rounded-2xl object-cover ring-2 ring-pink-100 group-hover:ring-pink-400 transition-all">
-                                </a>
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
-                                           class="font-display font-black text-base text-slate-950 hover:text-pink-600 transition-colors truncate">
-                                            {{ $post->user->name }}
-                                        </a>
-                                        @if($post->user->role === 'guru')
-                                            <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px]" title="Guru / Mentor Resmi">
-                                                <i class="fas fa-certificate"></i>
-                                            </span>
-                                        @else
-                                            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]" title="Siswa Aktif Pembda">
-                                                <i class="fas fa-check"></i>
-                                            </span>
-                                        @endif
+            @if($tabFilter === 'reels')
+                {{-- ═══════════════════════════════════════════
+                     REELS EXPLORE GRID (TIKTOK / INSTAGRAM 9:16)
+                ═══════════════════════════════════════════ --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                    @foreach($posts as $post)
+                        @php $m = $post->media->first(); @endphp
+                        <div class="group relative rounded-3xl overflow-hidden aspect-[9/16] bg-slate-950 border-2 border-[#f1e8dc] shadow-md hover:shadow-xl hover:border-sky-300 transition-all duration-300 flex flex-col justify-between p-3.5">
+                            
+                            {{-- Background Video / Image --}}
+                            <div class="absolute inset-0 z-0">
+                                @if($m && $m->media_type === 'video')
+                                    <video src="{{ $m->url }}" muted loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></video>
+                                @elseif($m && $m->media_type === 'image')
+                                    <img src="{{ $m->url }}" alt="{{ $post->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-indigo-900 to-sky-900 flex items-center justify-center p-4 text-center">
+                                        <span class="text-white text-xs font-black">{{ $post->title ?? 'Reels Karya' }}</span>
                                     </div>
-                                    <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 flex-wrap mt-0.5">
-                                        <span>{{ $post->created_at->diffForHumans() }}</span>
-                                        @if($post->school)
-                                            <span>•</span>
-                                            <span class="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ $post->school->name }}</span>
-                                        @endif
-                                        @if($post->location_tag)
-                                            <span>•</span>
-                                            <span class="text-pink-700 font-bold"><i class="fas fa-location-dot text-[9px] mr-0.5"></i>{{ $post->location_tag }}</span>
-                                        @endif
-                                    </div>
+                                @endif
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/40"></div>
+                            </div>
+
+                            {{-- Top Pill: School & Reel badge & Delete --}}
+                            <div class="relative z-10 flex items-center justify-between">
+                                <span class="px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider bg-sky-500 text-white shadow-2xs flex items-center gap-1">
+                                    <i class="fas fa-play text-[8px]"></i>
+                                    <span>Reel</span>
+                                </span>
+                                @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
+                                    <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus reels ini?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="w-6 h-6 rounded-lg bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center text-[10px] transition cursor-pointer" title="Hapus Reels">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+
+                            {{-- Center Play Icon --}}
+                            <div class="relative z-10 flex items-center justify-center my-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div class="w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm text-white flex items-center justify-center text-lg shadow-lg">
+                                    <i class="fas fa-play ml-1"></i>
                                 </div>
                             </div>
 
-                            {{-- Category Pill Pastel --}}
-                            <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373]' }}">
-                                @if($post->tab_category === 'portfolio')
-                                    <i class="fas fa-trophy mr-1 text-amber-700"></i>Karya
-                                @else
-                                    <i class="fas fa-mug-hot mr-1 text-[#7f5539]"></i>Nongki
-                                @endif
-                            </span>
+                            {{-- Bottom Info & Stats --}}
+                            <div class="relative z-10 text-white">
+                                <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
+                                   class="flex items-center gap-1.5 mb-1.5 group-hover:underline">
+                                    <img src="{{ $post->user->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-5 h-5 rounded-full object-cover border border-white/50">
+                                    <span class="text-[11px] font-black truncate max-w-[110px]">{{ $post->user->circleProfile->nickname ?? $post->user->name }}</span>
+                                </a>
+                                <h4 class="text-xs font-black line-clamp-2 leading-tight text-white mb-2">{{ $post->title ?? $post->content }}</h4>
+                                <div class="flex items-center justify-between text-[10px] text-slate-300 pt-1.5 border-t border-white/20">
+                                    <span class="flex items-center gap-1 font-bold">
+                                        <span>🔥</span>
+                                        <span>{{ $post->likes_count }}</span>
+                                    </span>
+                                    <span class="flex items-center gap-1 font-bold">
+                                        <i class="far fa-comment-dots"></i>
+                                        <span>{{ $post->comments_count }}</span>
+                                    </span>
+                                </div>
+                            </div>
+
                         </div>
+                    @endforeach
+                </div>
+                {{-- Pagination Links --}}
+                <div class="pt-4 flex justify-center">
+                    {{ $posts->links() }}
+                </div>
+            @else
+                <div class="space-y-6">
+                    @foreach($posts as $post)
+                        <article x-data="{ showComments: false }" class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-pink-200 transition-all duration-200">
+                            {{-- Post Header (Author Info & Badges) --}}
+                            <div class="flex items-center justify-between gap-3 mb-4">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
+                                       class="shrink-0 focus:outline-none group">
+                                        <img src="{{ $post->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                             alt="{{ $post->user->name }}"
+                                             class="w-12 h-12 rounded-2xl object-cover ring-2 ring-pink-100 group-hover:ring-pink-400 transition-all">
+                                    </a>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <a href="{{ route('circle.profile', ['username' => $post->user->circleProfile->username ?? $post->user->username]) }}" 
+                                               class="font-display font-black text-base text-slate-950 hover:text-pink-600 transition-colors truncate">
+                                                {{ $post->user->name }}
+                                            </a>
+                                            @if($post->user->role === 'guru')
+                                                <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px]" title="Guru / Mentor Resmi">
+                                                    <i class="fas fa-certificate"></i>
+                                                </span>
+                                            @else
+                                                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]" title="Siswa Aktif Pembda">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 flex-wrap mt-0.5">
+                                            <span>{{ $post->created_at->diffForHumans() }}</span>
+                                            @if($post->school)
+                                                <span>•</span>
+                                                <span class="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ $post->school->name }}</span>
+                                            @endif
+                                            @if($post->location_tag)
+                                                <span>•</span>
+                                                <span class="text-pink-700 font-bold"><i class="fas fa-location-dot text-[9px] mr-0.5"></i>{{ $post->location_tag }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Category Pill Pastel & Post Deletion --}}
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373]' }}">
+                                        @if($post->tab_category === 'portfolio')
+                                            <i class="fas fa-trophy mr-1 text-amber-700"></i>Karya
+                                        @else
+                                            <i class="fas fa-mug-hot mr-1 text-[#7f5539]"></i>Nongki
+                                        @endif
+                                    </span>
+
+                                    @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
+                                        <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus postingan ini?')" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200" title="Hapus Postingan">
+                                                <i class="fas fa-trash-alt text-[10px]"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
 
                         {{-- Mood Indicator Pastel Kuning --}}
                         @if($post->mood_text)
@@ -307,6 +459,7 @@
                     {{ $posts->links() }}
                 </div>
             </div>
+            @endif
         @endif
 
     </div>
@@ -389,6 +542,101 @@
             <p class="text-slate-600 text-[11px] mt-0.5">Warna-Warni Kreativitas di PembdaHUB 🌸</p>
         </div>
 
+    </div>
+
+    {{-- ═══════════════════════════════════════════
+         24H STORY VIEWER MODAL (INSTAGRAM / WHATSAPP STYLE)
+    ═══════════════════════════════════════════ --}}
+    <div x-show="storyOpen" x-cloak 
+         class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
+         @keydown.escape.window="closeStory()"
+         x-transition>
+        
+        <div class="relative w-full max-w-sm h-[85vh] max-h-[680px] bg-slate-900 rounded-[2.5rem] overflow-hidden border-2 border-white/20 shadow-2xl flex flex-col justify-between"
+             @click.outside="closeStory()">
+            
+            {{-- Top Bars: Stories Progress Bar & Header --}}
+            <div class="relative z-20 p-4 bg-gradient-to-b from-black/85 via-black/40 to-transparent">
+                {{-- Multi-story Progress Indicators --}}
+                <div class="flex items-center gap-1.5 mb-3">
+                    <template x-for="(st, idx) in stories" :key="st.id">
+                        <div class="h-1 flex-1 rounded-full bg-white/30 overflow-hidden">
+                            <div class="h-full bg-white transition-all duration-100 ease-linear"
+                                 :style="idx === activeIdx ? 'width: ' + progress + '%' : (idx < activeIdx ? 'width: 100%' : 'width: 0%')">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Story Author Info & Close Button --}}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <img :src="currStory().avatar" class="w-9 h-9 rounded-full object-cover ring-2 ring-pink-400">
+                        <div class="min-w-0 text-white">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-black text-xs truncate" x-text="currStory().name"></span>
+                                <span class="text-[9px] bg-pink-500/80 px-1.5 py-0.2 rounded-md font-bold" x-text="currStory().school"></span>
+                            </div>
+                            <span class="text-[10px] text-slate-300 font-medium" x-text="currStory().time_ago"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <a :href="'/@' + currStory().username" class="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-white text-[10px] font-black transition">
+                            Profil
+                        </a>
+                        <button type="button" @click="closeStory()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center text-sm transition cursor-pointer">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Center Tap Zones (Left: Prev, Right: Next) --}}
+            <div class="absolute inset-0 z-10 flex">
+                <div class="w-1/3 h-full cursor-pointer" @click="prevStory()"></div>
+                <div class="w-2/3 h-full cursor-pointer" @click="nextStory()"></div>
+            </div>
+
+            {{-- Story Media & Content --}}
+            <div class="absolute inset-0 z-0 flex items-center justify-center bg-black">
+                <template x-if="currStory().media_type === 'image'">
+                    <img :src="currStory().media_url" class="w-full h-full object-contain">
+                </template>
+                <template x-if="currStory().media_type === 'video'">
+                    <video :src="currStory().media_url" autoplay playsinline class="w-full h-full object-contain"></video>
+                </template>
+                <template x-if="!currStory().media_url">
+                    <div class="p-8 text-center text-white flex flex-col items-center justify-center h-full w-full bg-gradient-to-br from-pink-600 via-purple-600 to-indigo-700">
+                        <span class="text-4xl mb-4" x-text="currStory().mood_emoji || '✨'"></span>
+                        <p class="font-display font-black text-lg sm:text-xl leading-relaxed" x-text="currStory().content"></p>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Bottom Overlay: Story Caption & Reactions --}}
+            <div class="relative z-20 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent text-white">
+                <template x-if="currStory().media_url && currStory().content">
+                    <p class="text-xs font-semibold text-slate-100 line-clamp-3 mb-3" x-text="currStory().content"></p>
+                </template>
+
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" @click.stop="toggleCircleReaction($el, currStory().id, 'lit')" class="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-black transition">
+                            🔥 Lit
+                        </button>
+                        <button type="button" @click.stop="toggleCircleReaction($el, currStory().id, 'clap')" class="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-black transition">
+                            👏 Apresiasi
+                        </button>
+                        <button type="button" @click.stop="toggleCircleReaction($el, currStory().id, 'love')" class="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-black transition">
+                            ❤️ Suka
+                        </button>
+                    </div>
+                    <span class="text-[10px] text-slate-300 font-bold" x-text="currStory().mood_text || 'Story 24 Jam'"></span>
+                </div>
+            </div>
+
+        </div>
     </div>
 
 </div>
