@@ -43,6 +43,17 @@ class CircleActionController extends Controller
             return redirect()->route('login')->with('error', 'Silakan masuk terlebih dahulu untuk memposting.');
         }
 
+        // Proteksi Anti Double-Click / Duplicate Post dalam 10 detik
+        $recentDuplicate = CirclePost::where('user_id', $user->id)
+            ->where('post_type', $request->post_type)
+            ->where('content', $request->content)
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->first();
+
+        if ($recentDuplicate) {
+            return redirect()->back()->with('warning', 'Postingan kembar terdeteksi dan diabaikan untuk menjaga kerapian panggung.');
+        }
+
         $expiresAt = null;
         if ($request->post_type === 'story') {
             $expiresAt = now()->addHours(24);

@@ -75,6 +75,15 @@
         },
         currStory() {
             return this.stories[this.activeIdx] || {};
+        },
+        getStoryBg(story) {
+            const e = story.mood_emoji || '';
+            if (e === '🎧' || e === '🎵' || e === '🎶') return 'from-purple-900 via-indigo-900 to-slate-950';
+            if (e === '🔥' || e === '🚀' || e === '⚡') return 'from-rose-600 via-orange-600 to-amber-500';
+            if (e === '☕' || e === '🧁' || e === '✨') return 'from-pink-600 via-rose-500 to-purple-700';
+            if (e === '💡' || e === '📚' || e === '🔬') return 'from-blue-700 via-cyan-600 to-teal-700';
+            if (e === '🌱' || e === '🌿' || e === '🍀') return 'from-emerald-700 via-teal-600 to-cyan-800';
+            return 'from-pink-600 via-purple-600 to-indigo-700';
         }
      }">
 
@@ -118,16 +127,29 @@
                         </button>
                     @endauth
 
-                    @foreach($activeStories as $story)
+                    @php
+                        $uniqueStoriesByUser = $activeStories->unique('user_id');
+                    @endphp
+
+                    @foreach($uniqueStoriesByUser as $story)
+                        @php
+                            $firstIndex = $activeStories->search(fn($item) => $item->id === $story->id);
+                            $userStoriesCount = $activeStories->where('user_id', $story->user_id)->count();
+                        @endphp
                         <button type="button" 
-                                @click="openStory({{ $loop->index }})" 
+                                @click="openStory({{ $firstIndex }})" 
                                 class="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none cursor-pointer">
-                            <div class="w-16 h-16 rounded-full p-[3px] pastel-story-ring group-hover:scale-105 transition-transform duration-200 shadow-xs">
+                            <div class="relative w-16 h-16 rounded-full p-[3px] pastel-story-ring group-hover:scale-105 transition-transform duration-200 shadow-xs">
                                 <div class="w-full h-full rounded-full p-0.5 bg-white overflow-hidden">
                                     <img src="{{ $story->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
                                          alt="{{ $story->user->name }}"
                                          class="w-full h-full rounded-full object-cover bg-pink-50">
                                 </div>
+                                @if($userStoriesCount > 1)
+                                    <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-pink-600 text-white border-2 border-white flex items-center justify-center text-[10px] font-black shadow-xs" title="{{ $userStoriesCount }} Kilas aktif">
+                                        {{ $userStoriesCount }}
+                                    </span>
+                                @endif
                             </div>
                             <span class="text-[11px] font-extrabold text-slate-900 group-hover:text-pink-600 max-w-[70px] truncate text-center transition-colors">
                                 {{ $story->user->circleProfile->nickname ?? explode(' ', $story->user->name)[0] }}
@@ -143,6 +165,7 @@
             <div id="quick-post-box" 
                  class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs relative overflow-hidden transition-all duration-300"
                  x-data="{
+                    isSubmitting: false,
                     postType: 'status',
                     tabCat: 'wall',
                     showExtras: false,
@@ -226,7 +249,8 @@
                 </div>
 
                 {{-- Form Pengiriman --}}
-                <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data" class="relative z-10">
+                <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data" class="relative z-10"
+                      @submit="if(isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
                     @csrf
                     <input type="hidden" name="tab_category" :value="tabCat">
                     <input type="hidden" name="post_type" :value="postType">
@@ -445,11 +469,15 @@
                         </div>
 
                         <button type="submit" 
+                                :disabled="isSubmitting"
                                 class="px-6 py-2.5 rounded-2xl border-2 border-black transition-all transform hover:scale-105 active:scale-95 cursor-pointer shadow-md flex items-center gap-2"
+                                :class="isSubmitting ? 'opacity-60 cursor-not-allowed scale-100 hover:scale-100' : ''"
                                 style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 14px rgba(255, 0, 122, 0.45) !important;">
-                            <i class="fas fa-paper-plane text-xs text-black" style="color: #000000 !important;"></i>
+                            <i x-show="!isSubmitting" class="fas fa-paper-plane text-xs text-black" style="color: #000000 !important;"></i>
+                            <i x-show="isSubmitting" class="fas fa-spinner fa-spin text-xs text-black" style="color: #000000 !important;"></i>
                             <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">
-                                GASKEUN! 🚀
+                                <span x-show="!isSubmitting">GASKEUN! 🚀</span>
+                                <span x-show="isSubmitting">MENERBANGKAN... ⏳</span>
                             </span>
                         </button>
                     </div>
@@ -1238,7 +1266,8 @@
                     <video :src="currStory().media_url" autoplay playsinline class="w-full h-full object-contain"></video>
                 </template>
                 <template x-if="!currStory().media_url">
-                    <div class="p-8 text-center text-white flex flex-col items-center justify-center h-full w-full bg-gradient-to-br from-pink-600 via-purple-600 to-indigo-700">
+                    <div class="p-8 text-center text-white flex flex-col items-center justify-center h-full w-full bg-gradient-to-br transition-all duration-300"
+                         :class="getStoryBg(currStory())">
                         <span class="text-4xl mb-4" x-text="currStory().mood_emoji || '✨'"></span>
                         <p class="font-display font-black text-lg sm:text-xl leading-relaxed" x-text="currStory().content"></p>
                     </div>

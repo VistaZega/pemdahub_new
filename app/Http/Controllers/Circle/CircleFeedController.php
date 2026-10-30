@@ -77,12 +77,26 @@ class CircleFeedController extends Controller
         $posts = $query->latest()->paginate(12)->withQueryString();
 
         // Ambil Stories 24 Jam terbaru dari semua siswa/guru aktif
-        $activeStories = CirclePost::with(['user.circleProfile', 'user.school', 'school', 'media'])
+        $rawStories = CirclePost::with(['user.circleProfile', 'user.school', 'school', 'media'])
             ->where('post_type', 'story')
             ->where('expires_at', '>', now())
             ->latest()
-            ->take(15)
+            ->take(25)
             ->get();
+
+        // Bersihkan duplikasi story kembar yang terkirim tidak sengaja dalam jeda waktu 2 menit
+        $activeStories = collect();
+        foreach ($rawStories as $st) {
+            $isDuplicate = $activeStories->contains(function ($existing) use ($st) {
+                return $existing->user_id === $st->user_id
+                    && $existing->content === $st->content
+                    && abs($existing->created_at->diffInSeconds($st->created_at)) < 120;
+            });
+            if (!$isDuplicate) {
+                $activeStories->push($st);
+            }
+        }
+        $activeStories = $activeStories->take(15);
 
         // 5 Profil Paling Aktif / Trending
         $trendingProfiles = CircleProfile::with('user.school')

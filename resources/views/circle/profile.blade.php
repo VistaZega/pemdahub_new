@@ -281,6 +281,7 @@
     @if(Auth::check() && Auth::id() === $user->id)
         <div class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs mb-6" 
              x-data="{ 
+                isSubmitting: false,
                 postType: 'status', 
                 tabCat: 'wall', 
                 showAttach: false,
@@ -304,7 +305,8 @@
                 </div>
             </div>
 
-            <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data"
+                  @submit="if(isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
                 @csrf
                 <input type="hidden" name="tab_category" :value="tabCat">
                 <input type="hidden" name="post_type" :value="postType">
@@ -424,9 +426,14 @@
                         </span>
                     </div>
 
-                    <button type="submit" class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105 flex items-center gap-2 cursor-pointer">
-                        <i class="fas fa-paper-plane text-pink-700"></i>
-                        <span>Terbitkan ke CIRCLE ✨</span>
+                    <button type="submit" 
+                            :disabled="isSubmitting"
+                            class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105 flex items-center gap-2 cursor-pointer"
+                            :class="isSubmitting ? 'opacity-60 cursor-not-allowed scale-100 hover:scale-100' : ''">
+                        <i x-show="!isSubmitting" class="fas fa-paper-plane text-pink-700"></i>
+                        <i x-show="isSubmitting" class="fas fa-spinner fa-spin text-pink-700"></i>
+                        <span x-show="!isSubmitting">Terbitkan ke CIRCLE ✨</span>
+                        <span x-show="isSubmitting">Menerbitkan... ⏳</span>
                     </button>
                 </div>
             </form>
