@@ -470,13 +470,13 @@ class User extends Authenticatable
         }
 
         // 3. Cek posisi struktural / kepanitiaan / tugas tambahan (Sarpras / Inventaris)
-        if ($this->hasSpecialDuty(['SARPRAS', 'INVENTARIS', 'ASET', 'LOGISTIK', 'PENGELOLA ASET'])) {
+        if ($this->hasSpecialDuty(['SARPRAS', 'INVENTARIS', 'ASET', 'LOGISTIK', 'PENGELOLA ASET', 'BARANG', 'SARANA'])) {
             return true;
         }
 
         if ($this->teacher) {
             $pos = strtolower($this->teacher->position ?? '');
-            if (str_contains($pos, 'sarpras') || str_contains($pos, 'inventaris') || str_contains($pos, 'aset') || str_contains($pos, 'logistik')) {
+            if (str_contains($pos, 'sarpras') || str_contains($pos, 'inventaris') || str_contains($pos, 'aset') || str_contains($pos, 'logistik') || str_contains($pos, 'barang') || str_contains($pos, 'sarana')) {
                 return true;
             }
         }

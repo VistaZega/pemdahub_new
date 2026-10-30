@@ -227,51 +227,94 @@ Route::get('/debug-menu-check', function () {
     }
 
     // 3. Find the specific student
-    $output .= "\n<span style='color:#569cd6;'>══════ SEARCH USER BY NAME: ABRAHAM ══════</span>\n";
-    $users = \App\Models\User::where('name', 'like', '%ABRAHAM%')
-        ->orWhere('username', 'like', '%abraham%')
+    $searchName = request('name', request('user', 'dewi'));
+    $output .= "\n<span style='color:#569cd6;'>══════ SEARCH USER BY NAME / USERNAME: {$searchName} ══════</span>\n";
+    $users = \App\Models\User::where('name', 'like', "%{$searchName}%")
+        ->orWhere('username', 'like', "%{$searchName}%")
         ->get();
         
     if ($users->isEmpty()) {
-        $output .= "❌ User dengan nama/username mengandung 'ABRAHAM' tidak ditemukan di tabel users!\n";
-        // List some users to see
-        $output .= "\nDaftar 10 User Pertama:\n";
-        foreach (\App\Models\User::take(10)->get() as $u) {
-            $output .= "  ID={$u->id} | Name={$u->name} | Username={$u->username} | Role={$u->role}\n";
-        }
+        $output .= "❌ User dengan nama/username mengandung '{$searchName}' tidak ditemukan di tabel users!\n";
     } else {
         foreach ($users as $u) {
-            $output .= "✅ User Found: ID={$u->id} | Name=[{$u->name}] | Username=[{$u->username}] | Role=[{$u->role}]\n";
-            // Check student relation
+            $output .= "✅ User Found: ID={$u->id} | Name=[{$u->name}] | Username=[{$u->username}] | Role=[{$u->role}] | SchoolID=[{$u->school_id}] | Active=" . ($u->is_active ? 'YES' : 'NO') . "\n";
+            $output .= "  -> Layout: " . ($u->layout ?? 'null') . "\n";
+            $output .= "  -> canManageInventory(): " . ($u->canManageInventory() ? '🟢 YES' : '🔴 NO') . "\n";
+
+            // Employee
+            $emp = \App\Models\Employee::where('user_id', $u->id)->first();
+            if ($emp) {
+                $output .= "  -> Employee ID={$emp->id} | Code={$emp->employee_code} | Type={$emp->employee_type}\n";
+                $posList = $emp->positions()->get();
+                $output .= "  -> Positions (" . $posList->count() . "):\n";
+                foreach ($posList as $p) {
+                    $output .= "     * Pos ID={$p->id} | Code=[{$p->position_code}] | Name=[{$p->position_name}] | Start={$p->pivot->start_date} | End={$p->pivot->end_date}\n";
+                }
+            } else {
+                $output .= "  -> No Employee record.\n";
+            }
+
+            // Teacher
+            $tch = $u->teacher;
+            if ($tch) {
+                $output .= "  -> Teacher ID={$tch->id} | Position=[{$tch->position}]\n";
+            } else {
+                $output .= "  -> No Teacher record.\n";
+            }
+
+            // Inventory Manager Record
+            if (\Illuminate\Support\Facades\Schema::hasTable('inventory_managers')) {
+                $im = \App\Models\InventoryManager::where('user_id', $u->id)->first();
+                if ($im) {
+                    $output .= "  -> InventoryManager Record: ID={$im->id} | SchoolID=" . ($im->school_id ?? 'NULL (Semua)') . " | RoleTitle=[{$im->role_title}] | Active=" . ($im->is_active ? 'YES' : 'NO') . " | AppointedBy={$im->appointed_by}\n";
+                } else {
+                    $output .= "  -> InventoryManager Record: ❌ NONE (Tidak terdaftar di tabel inventory_managers)\n";
+                }
+            } else {
+                $output .= "  -> ❌ TABEL inventory_managers BELUM ADA DI DATABASE!\n";
+            }
+
+            // Check student relation if exists
             $student = $u->student;
             if ($student) {
                 $output .= "  -> Has Student Record: ID={$student->id} | Full Name=[{$student->full_name}] | NISN={$student->nisn} | status={$student->status}\n";
-                $school = $student->school;
-                $output .= "  -> School: ID={$student->school_id} | Name=" . ($school ? $school->name : 'NULL') . " | Type=" . ($school ? $school->type : 'NULL') . "\n";
-                
-                // Check student classroom relations directly
-                $output .= "  -> Classroom relations (all years):\n";
-                $scs = \Illuminate\Support\Facades\DB::table('student_classes')
-                    ->where('student_id', $student->id)
-                    ->get();
-                if ($scs->isEmpty()) {
-                    $output .= "     ❌ Tidak ada record di student_classes!\n";
-                } else {
-                    foreach ($scs as $sc) {
-                        $cls = \App\Models\Classroom::find($sc->classroom_id);
-                        $ay = \App\Models\AcademicYear::find($sc->academic_year_id);
-                        $output .= "     - classroom_id={$sc->classroom_id} ({$cls?->name}, grade_level={$cls?->grade_level})";
-                        $output .= " | academic_year_id={$sc->academic_year_id} ({$ay?->year}, is_active=" . ($ay?->is_active ? 'YES' : 'NO') . ")";
-                        $output .= " | status={$sc->status}\n";
-                    }
-                }
-
-                // Simulate currentClassroom relation
-                $currentClass = $student->currentClassroom()->first();
-                $output .= "  -> Active Classroom via currentClassroom(): " . ($currentClass ? "{$currentClass->name} (Grade: {$currentClass->grade_level})" : "❌ NULL") . "\n";
-            } else {
-                $output .= "  ❌ Tidak memiliki record di tabel students!\n";
             }
+        }
+    }
+
+    // List all inventory managers
+    if (\Illuminate\Support\Facades\Schema::hasTable('inventory_managers')) {
+        $output .= "\n<span style='color:#569cd6;'>══════ DAFTAR SELURUH INVENTORY MANAGERS DI DB ══════</span>\n";
+        $allIm = \App\Models\InventoryManager::with('user', 'school')->get();
+        $output .= "Total Inventory Managers: " . $allIm->count() . "\n";
+        foreach ($allIm as $m) {
+            $output .= "  - ID={$m->id} | User={$m->user?->name} ({$m->user?->username}) | Unit=" . ($m->school?->name ?? 'Semua Unit / Yayasan') . " | RoleTitle=[{$m->role_title}] | Active=" . ($m->is_active ? '🟢 YES' : '🔴 NO') . "\n";
+        }
+    }
+
+    // Auto-appoint action if requested
+    if (request('appoint_dewi') === 'yes') {
+        $output .= "\n<span style='color:#569cd6;'>══════ EKSEKUSI PENUNJUKAN DEWI ══════</span>\n";
+        $dewiUser = \App\Models\User::where('username', 'dewi')->first();
+        if ($dewiUser) {
+            $createdMgr = \App\Models\InventoryManager::updateOrCreate(
+                ['user_id' => $dewiUser->id],
+                [
+                    'school_id' => $dewiUser->school_id, // SMPS Pembda 2 Gunungsitoli
+                    'role_title' => 'Pengelola Aset SMPS Pembda 2 Gunungsitoli',
+                    'can_create' => true,
+                    'can_edit' => true,
+                    'can_delete' => true,
+                    'can_export' => true,
+                    'is_active' => true,
+                    'appointed_by' => 1,
+                    'appointed_at' => now(),
+                    'notes' => 'Ditunjuk resmi oleh Pengurus Yayasan / Super Admin',
+                ]
+            );
+            $output .= "✅ BERHASIL: Dewi berhasil didaftarkan sebagai Pengelola Aset (ID Manager: {$createdMgr->id})!\n";
+        } else {
+            $output .= "❌ GAGAL: User dewi tidak ditemukan!\n";
         }
     }
 

@@ -514,6 +514,17 @@
                         <i class="fas fa-user text-xl group-hover:scale-110 transition-transform text-black"></i>
                         <span class="text-xs font-black text-center uppercase tracking-wider text-black">Profil Saya</span>
                     </a>
+                    @if(auth()->user()->canManageInventory())
+                    <a href="{{ route('inventory.index') }}" class="col-span-2 flex items-center justify-center gap-3 p-3.5 rounded-2xl hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group" style="background-color: #c7d2fe !important;">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-900 text-white flex items-center justify-center font-black shadow-xs flex-shrink-0">
+                            <i class="fas fa-boxes-stacked text-sm text-white"></i>
+                        </div>
+                        <div class="text-left">
+                            <span class="block text-xs font-black uppercase tracking-wider text-black">PembdaINVENTORY</span>
+                            <span class="block text-[10px] font-bold text-slate-700">Akses Pengelola Aset Terpadu</span>
+                        </div>
+                    </a>
+                    @endif
                     @else
                     <a href="{{ route('guru.absensi') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group" style="background-color: #e9d5ff !important;">
                         <i class="fas fa-clipboard-check text-xl group-hover:scale-110 transition-transform text-black"></i>
@@ -535,6 +546,17 @@
                     <a href="{{ route('admin.students.index') }}" class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group" style="background-color: #6ee7b7 !important;">
                         <i class="fas fa-user-pen text-xl group-hover:scale-110 transition-transform text-black"></i>
                         <span class="text-xs font-black text-center uppercase tracking-wider text-black">Edit Data Siswa</span>
+                    </a>
+                    @endif
+                    @if(auth()->user()->canManageInventory())
+                    <a href="{{ route('inventory.index') }}" class="col-span-2 flex items-center justify-center gap-3 p-3.5 rounded-2xl hover:bg-amber-300 text-black border-2 border-black shadow-xs transition-all duration-200 group" style="background-color: #c7d2fe !important;">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-900 text-white flex items-center justify-center font-black shadow-xs flex-shrink-0">
+                            <i class="fas fa-boxes-stacked text-sm text-white"></i>
+                        </div>
+                        <div class="text-left">
+                            <span class="block text-xs font-black uppercase tracking-wider text-black">PembdaINVENTORY</span>
+                            <span class="block text-[10px] font-bold text-slate-700">Akses Pengelola Aset Terpadu</span>
+                        </div>
                     </a>
                     @endif
                     @endif
