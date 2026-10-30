@@ -49,11 +49,11 @@
                     $__circleProfile = \App\Models\CircleProfile::where('user_id', Auth::id())->first();
                     $__circleUsername = $__circleProfile?->username ?? Auth::user()->username;
                 @endphp
-                {{-- ANIMASI LOMPAT KE PANGGUNG CIRCLE (SUPER MORAK, CERAH, & MENYALA) --}}
+                {{-- ANIMASI JUMP TO CIRCLE (SUPER MORAK, CERAH, & MENYALA) --}}
                 <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" 
                    title="Buka Panggung & Profil Publik PembdaCIRCLE (@{{ $__circleUsername }})"
-                   class="group inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl border-2 border-black transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer shadow-lg"
-                   style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 14px rgba(255, 0, 122, 0.45) !important;">
+                   class="group inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl border-2 border-black transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer shadow-lg relative overflow-hidden"
+                   style="background: linear-gradient(135deg, #ff007a 0%, #ff5500 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 0 22px rgba(255, 0, 122, 0.6), 0 4px 14px rgba(0, 0, 0, 0.3) !important;">
                     
                     {{-- Pulsing Radar Dot Putih Cerah --}}
                     <span class="relative flex h-3 w-3">
@@ -61,9 +61,12 @@
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-white border border-black shadow-xs"></span>
                     </span>
                     
-                    <i class="fas fa-sparkles text-sm group-hover:rotate-180 transition-transform duration-500" style="color: #000000 !important;"></i>
-                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">LOMPAT KE PANGGUNG CIRCLE</span>
-                    <span style="background-color: #000000 !important; color: #ffd600 !important; font-weight: 900 !important; font-size: 10px !important; padding: 2px 8px !important; border-radius: 9999px !important; border: 1px solid #ffd600 !important;">GELORA</span>
+                    <i class="fas fa-rocket text-sm group-hover:-translate-y-1 group-hover:translate-x-0.5 transition-transform duration-300 text-black"></i>
+                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">JUMP TO CIRCLE</span>
+                    <span style="background-color: #000000 !important; color: #ffd600 !important; font-weight: 900 !important; font-size: 10px !important; padding: 2px 8px !important; border-radius: 9999px !important; border: 1px solid #ffd600 !important;" class="flex items-center gap-1">
+                        <i class="fas fa-bolt text-[9px] text-yellow-300"></i>
+                        <span>LIVE</span>
+                    </span>
                 </a>
 
                 @if($activeYear)

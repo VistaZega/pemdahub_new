@@ -457,13 +457,13 @@
                     @endif
                 </button>
 
-                {{-- TOMBOL MORAK & CERAH: MEJA (KEMBALI KE DASHBOARD) --}}
+                {{-- TOMBOL MORAK & CERAH: DASHBOARD UTAMA --}}
                 <a href="{{ $__dashUrl }}" 
-                   title="Keluar dari CIRCLE dan Kembali ke Meja Kerja Dashboard Utama"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 border-black transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer"
-                   style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 12px rgba(52, 211, 153, 0.45) !important;">
-                    <i class="fas fa-compass text-xs" style="color: #000000 !important;"></i>
-                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 11px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">Meja</span>
+                   title="Kembali ke Dashboard Utama"
+                   class="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl border-2 border-black transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+                   style="background: linear-gradient(135deg, #ffd600 0%, #10b981 60%, #06b6d4 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 0 16px rgba(16, 185, 129, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2) !important;">
+                    <i class="fas fa-gauge-high text-xs group-hover:rotate-12 transition-transform duration-300" style="color: #000000 !important;"></i>
+                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 11px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">Dashboard</span>
                 </a>
 
                 <a href="{{ route('circle.profile', ['username' => $__navProfile->username]) }}"
@@ -572,14 +572,14 @@
             <span class="text-[10px]">Profil</span>
         </a>
 
-        {{-- Kembali ke Meja Kerja (Mobile) --}}
+        {{-- Kembali ke Dashboard (Mobile) --}}
         <a href="{{ $__dashUrl }}"
-           class="flex flex-col items-center gap-1 min-w-[48px] transition-base text-slate-950 font-black">
-            <div class="w-8 h-8 rounded-xl flex items-center justify-center border-2 border-black shadow-xs"
-                 style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important;">
-                <i class="fas fa-compass text-xs text-black"></i>
+           class="flex flex-col items-center gap-1 min-w-[48px] transition-base text-slate-950 font-black group">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center border-2 border-black shadow-xs transition-transform group-hover:scale-105"
+                 style="background: linear-gradient(135deg, #ffd600 0%, #10b981 100%) !important; color: #000000 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;">
+                <i class="fas fa-gauge-high text-xs text-black"></i>
             </div>
-            <span class="text-[9px] font-black text-slate-950">Meja</span>
+            <span class="text-[9px] font-black text-slate-950">Dashboard</span>
         </a>
         @else
         <a href="{{ route('login') }}"

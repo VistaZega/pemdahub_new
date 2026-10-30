@@ -82,7 +82,7 @@
                         @endif
                     </div>
 
-                    <div class="pb-1 min-w-0">
+                    <div class="pb-1 min-w-0 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border-2 border-pink-200/80 shadow-xs">
                         <h1 class="font-display font-black text-xl sm:text-2xl text-slate-950 tracking-tight flex items-center gap-2 truncate">
                             <span>{{ $user->name }}</span>
                             @if($user->role === 'guru')
@@ -125,13 +125,13 @@
                                 $__dashUrl = route('yayasan.dashboard');
                             }
                         @endphp
-                        {{-- LINK MORAK & CERAH: KEMBALI KE MEJA KERJA DASHBOARD --}}
+                        {{-- LINK MORAK & CERAH: DASHBOARD UTAMA --}}
                         <a href="{{ $__dashUrl }}" 
-                           title="Keluar dari CIRCLE dan Kembali ke Meja Kerja Dashboard Utama"
-                           class="px-3.5 py-2 rounded-2xl text-xs font-black uppercase tracking-wider text-black border-2 border-black transition-all flex items-center gap-1.5 shadow-md cursor-pointer hover:scale-105"
-                           style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 12px rgba(52, 211, 153, 0.45) !important;">
-                            <i class="fas fa-compass text-xs text-black"></i>
-                            <span>KEMBALI KE MEJA KERJA</span>
+                           title="Kembali ke Dashboard Utama"
+                           class="group px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider text-black border-2 border-black transition-all flex items-center gap-2 shadow-lg cursor-pointer hover:scale-105 active:scale-95"
+                           style="background: linear-gradient(135deg, #ffd600 0%, #10b981 60%, #06b6d4 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 0 16px rgba(16, 185, 129, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2) !important;">
+                            <i class="fas fa-gauge-high text-xs text-black group-hover:rotate-12 transition-transform duration-300"></i>
+                            <span>DASHBOARD</span>
                         </a>
                     @endauth
 
@@ -159,12 +159,12 @@
                         <span>Siarkan</span>
                     </button>
                     @php $vLevel = $profile->visitor_level; @endphp
-                    <div class="px-3.5 py-2 rounded-2xl {{ $vLevel['bg'] }} border-2 {{ $vLevel['border'] }} {{ $vLevel['text'] }} text-xs font-black flex items-center gap-1.5 shadow-xs" 
+                    <div class="px-3.5 py-2 rounded-2xl {{ $vLevel['bg'] }} border-2 {{ $vLevel['border'] }} {{ $vLevel['text'] }} text-xs font-black flex items-center gap-1.5 shadow-xs hover:scale-105 transition-transform duration-200 cursor-default" 
                          title="{{ $vLevel['desc'] }} (Total: {{ number_format($profile->views_count) }} kunjungan)">
                         <span>{{ $vLevel['badge'] }}</span>
                         <span>{{ $vLevel['name'] }}</span>
                     </div>
-                    <div class="px-3.5 py-2 rounded-2xl bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs" 
+                    <div class="px-3.5 py-2 rounded-2xl bg-pink-100 hover:bg-pink-200 border-2 border-pink-200 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs hover:scale-105 transition-transform duration-200 cursor-default" 
                          title="Total Kunjungan Profil">
                         <i class="fas fa-eye text-pink-600 text-xs"></i>
                         <span>{{ number_format($profile->views_count) }}</span>
@@ -174,8 +174,8 @@
 
             {{-- Mood & Vibe Barometer (Kuning Pastel Manis) --}}
             @if($profile->mood_text)
-                <div class="mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 border-2 border-amber-200 text-slate-950 text-xs font-black shadow-2xs">
-                    <span class="text-base">{{ $profile->mood_emoji ?? '✨' }}</span>
+                <div class="mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-slate-950 text-xs font-black shadow-2xs hover:scale-102 transition-transform duration-200">
+                    <span class="text-base animate-pulse">{{ $profile->mood_emoji ?? '✨' }}</span>
                     <span>{{ $profile->mood_text }}</span>
                 </div>
             @endif
