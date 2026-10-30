@@ -429,5 +429,41 @@ class InventorySeeder extends Seeder
             $asset->calculateDepreciation();
             $asset->save();
         }
+
+        // 4. Pastikan Akun Bendahara Terdaftar sebagai Pengelola Aset Resmi
+        $dewiUser = User::where('email', 'dewi@pembdahub.com')->orWhere('username', 'dewi')->first();
+        if ($dewiUser) {
+            \Illuminate\Support\Facades\DB::table('inventory_managers')->where('user_id', $dewiUser->id)->delete();
+        }
+
+        $treasurers = [
+            ['email' => 'bendaharasmp@pembdahub.com', 'username' => 'bendaharasmp', 'school_id' => $smpSchool?->id ?: 9, 'role_title' => 'Bendahara & Pengelola Aset SMPS Pembda 2'],
+            ['email' => 'bendaharasmk@pembdahub.com', 'username' => 'bendaharasmk', 'school_id' => $smkSchool?->id ?: 7, 'role_title' => 'Bendahara & Pengelola Aset SMK Swasta Pembda Nias (Loket 1)'],
+            ['email' => 'bendaharasmk2@pembdahub.com', 'username' => 'bendaharasmk2', 'school_id' => $smkSchool?->id ?: 7, 'role_title' => 'Bendahara & Pengelola Aset SMK Swasta Pembda Nias (Loket 2)'],
+            ['email' => 'bendaharasma@pembdahub.com', 'username' => 'bendaharasma', 'school_id' => $smaSchool?->id ?: 2, 'role_title' => 'Bendahara & Pengelola Aset SMAS Pembda 1 Gunungsitoli'],
+            ['email' => 'yuniria@pembdahub.com', 'username' => 'yuniria', 'school_id' => $smaSchool?->id ?: 2, 'role_title' => 'Staff Keuangan & Pengelola Aset SMAS Pembda 1'],
+            ['email' => 'bendaharayayasan@pembdahub.com', 'username' => 'bendaharayayasan', 'school_id' => $yayasanSchool?->id ?: 4, 'role_title' => 'Bendahara Yayasan & Pengawas Aset Terpadu'],
+        ];
+
+        foreach ($treasurers as $t) {
+            $user = User::where('email', $t['email'])->orWhere('username', $t['username'])->first();
+            if ($user) {
+                \Illuminate\Support\Facades\DB::table('inventory_managers')->updateOrInsert(
+                    ['user_id' => $user->id],
+                    [
+                        'school_id' => $t['school_id'],
+                        'role_title' => $t['role_title'],
+                        'can_create' => 1,
+                        'can_edit' => 1,
+                        'can_delete' => 1,
+                        'can_export' => 1,
+                        'is_active' => 1,
+                        'appointed_at' => now(),
+                        'updated_at' => now(),
+                        'created_at' => now(),
+                    ]
+                );
+            }
+        }
     }
 }

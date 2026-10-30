@@ -464,8 +464,8 @@ class User extends Authenticatable
         }
 
         // 2. Role eksplisit atau active role
-        if (in_array($this->role, ['superadmin', 'ketua_yayasan', 'pengelola_aset', 'sarpras', 'inventaris']) ||
-            in_array(session('active_role'), ['superadmin', 'ketua_yayasan', 'pengelola_aset', 'sarpras', 'inventaris'])) {
+        if (in_array($this->role, ['superadmin', 'ketua_yayasan', 'pengelola_aset', 'sarpras', 'inventaris', 'bendahara']) ||
+            in_array(session('active_role'), ['superadmin', 'ketua_yayasan', 'pengelola_aset', 'sarpras', 'inventaris', 'bendahara'])) {
             return true;
         }
 
