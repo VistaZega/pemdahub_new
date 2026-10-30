@@ -36,6 +36,61 @@ class CircleProfile extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function visitors()
+    {
+        return $this->hasMany(CircleProfileVisitor::class, 'circle_profile_id')->latest('last_visited_at');
+    }
+
+    public function guestbooks()
+    {
+        return $this->hasMany(CircleProfileGuestbook::class, 'circle_profile_id')->orderByDesc('is_pinned')->latest();
+    }
+
+    /**
+     * Predikat & Level Popularitas Profil Berdasarkan Kunjungan
+     */
+    public function getVisitorLevelAttribute(): array
+    {
+        $count = $this->views_count ?? 0;
+        if ($count >= 500) {
+            return [
+                'name' => 'Idola Kampus',
+                'badge' => '👑',
+                'bg' => 'bg-purple-100',
+                'text' => 'text-purple-900',
+                'border' => 'border-purple-300',
+                'desc' => 'Paling hits & jadi panutan talenta'
+            ];
+        } elseif ($count >= 150) {
+            return [
+                'name' => 'Bintang Pembda',
+                'badge' => '🔥',
+                'bg' => 'bg-amber-100',
+                'text' => 'text-amber-900',
+                'border' => 'border-amber-300',
+                'desc' => 'Dinding ramai dikunjungi & aktif berkarya'
+            ];
+        } elseif ($count >= 40) {
+            return [
+                'name' => 'Eksplorer Aktif',
+                'badge' => '✨',
+                'bg' => 'bg-sky-100',
+                'text' => 'text-sky-900',
+                'border' => 'border-sky-300',
+                'desc' => 'Mulai dikenal dan sering disinggahi kawan'
+            ];
+        }
+
+        return [
+            'name' => 'Warga Baru',
+            'badge' => '🌱',
+            'bg' => 'bg-emerald-50',
+            'text' => 'text-emerald-800',
+            'border' => 'border-emerald-200',
+            'desc' => 'Baru merintis jejak di PembdaCIRCLE'
+        ];
+    }
+
     /**
      * Dapatkan atau buat profil circle secara otomatis untuk user.
      */

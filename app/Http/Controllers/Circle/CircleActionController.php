@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Circle;
 
 use App\Http\Controllers\Controller;
 use App\Models\CircleProfile;
+use App\Models\CircleProfileVisitor;
+use App\Models\CircleProfileGuestbook;
 use App\Models\CirclePost;
 use App\Models\CirclePostMedia;
 use App\Models\CircleReaction;
@@ -765,5 +767,148 @@ class CircleActionController extends Controller
             'status' => 'success',
             'users' => $results,
         ]);
+    }
+
+    /**
+     * Tempelkan Catatan Buku Tamu / Stiker Apresiasi di Dinding Profil
+     */
+    public function storeGuestbook(Request $request)
+    {
+        $request->validate([
+            'circle_profile_id' => 'required|exists:circle_profiles,id',
+            'sticker_code' => 'required|string|max:50',
+            'message' => 'nullable|string|max:500',
+        ]);
+
+        $sender = Auth::user();
+        if (!$sender) {
+            return redirect()->back()->with('error', 'Silakan masuk terlebih dahulu untuk menempelkan stiker di dinding.');
+        }
+
+        $profile = CircleProfile::with('user')->findOrFail($request->circle_profile_id);
+
+        // Kamus Stiker Apresiasi Kreatif
+        $stickers = [
+            'menyala' => ['emoji' => '🔥', 'label' => 'Menyala!'],
+            'kopi' => ['emoji' => '☕', 'label' => 'Titip Kopi'],
+            'sukses' => ['emoji' => '🚀', 'label' => 'Calon Sukses!'],
+            'idola' => ['emoji' => '✨', 'label' => 'Idola Kampus'],
+            'bengkel' => ['emoji' => '🛠️', 'label' => 'Anak Teknik Top'],
+            'rajin' => ['emoji' => '📚', 'label' => 'Rajin Banget'],
+            'keren' => ['emoji' => '💖', 'label' => 'Keren Pol!'],
+            'salam' => ['emoji' => '🤝', 'label' => 'Salam Kenal'],
+            'bintang' => ['emoji' => '⭐', 'label' => 'Bintang Panutan'],
+            'senyum' => ['emoji' => '🥰', 'label' => 'Bikin Kagum'],
+        ];
+
+        $code = $request->sticker_code;
+        $meta = $stickers[$code] ?? ['emoji' => '✨', 'label' => 'Keren!'];
+
+        // Proteksi Anti-Spam (1 stiker per 15 detik ke profil yang sama)
+        $recentSpam = CircleProfileGuestbook::where('circle_profile_id', $profile->id)
+            ->where('sender_user_id', $sender->id)
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($recentSpam) {
+            return redirect()->back()->with('warning', 'Terima kasih atas antusiasmemu! Tunggu beberapa saat sebelum menempelkan stiker berikutnya ya.');
+        }
+
+        $guestbook = CircleProfileGuestbook::create([
+            'circle_profile_id' => $profile->id,
+            'sender_user_id' => $sender->id,
+            'sticker_code' => $code,
+            'sticker_emoji' => $meta['emoji'],
+            'sticker_label' => $meta['label'],
+            'message' => $request->message ? trim($request->message) : null,
+            'is_pinned' => false,
+        ]);
+
+        // Kirim Notifikasi ke Pemilik Profil jika pengirim bukan diri sendiri
+        if ($sender->id !== $profile->user_id) {
+            $senderNick = $sender->circleProfile->nickname ?? explode(' ', $sender->name)[0];
+            $msgSnippet = $request->message ? ': "' . Str::limit($request->message, 45) . '"' : '';
+            Notification::create([
+                'user_id' => $profile->user_id,
+                'school_id' => $sender->school_id,
+                'type' => 'circle_guestbook',
+                'title' => "💌 Stiker Baru dari {$senderNick}!",
+                'message' => "{$sender->name} menempelkan stiker {$meta['emoji']} '{$meta['label']}' di dindingmu{$msgSnippet}.",
+                'related_model' => 'CircleProfile',
+                'related_id' => $profile->id,
+                'is_read' => false,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Stiker {$meta['emoji']} '{$meta['label']}' berhasil ditempelkan di dinding!");
+    }
+
+    /**
+     * Hapus Catatan Dinding / Stiker Buku Tamu
+     */
+    public function destroyGuestbook($id)
+    {
+        $guestbook = CircleProfileGuestbook::with('circleProfile')->findOrFail($id);
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'Akses ditolak.');
+        }
+
+        // Boleh dihapus oleh pengirim ATAU pemilik dinding profil ATAU superadmin
+        $isSender = $guestbook->sender_user_id === $user->id;
+        $isOwner = $guestbook->circleProfile->user_id === $user->id;
+        $isAdmin = $user->isSuperAdmin();
+
+        if (!$isSender && !$isOwner && !$isAdmin) {
+            return redirect()->back()->with('error', 'Kamu tidak memiliki izin untuk menghapus catatan ini.');
+        }
+
+        $guestbook->delete();
+
+        return redirect()->back()->with('success', 'Catatan stiker berhasil dibersihkan dari dinding.');
+    }
+
+    /**
+     * Sematkan / Lepas Sematan Catatan Dinding (Pin Favorite Note)
+     */
+    public function togglePinGuestbook($id)
+    {
+        $guestbook = CircleProfileGuestbook::with('circleProfile')->findOrFail($id);
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'Akses ditolak.');
+        }
+
+        // Hanya pemilik dinding profil atau superadmin yang berhak menyematkan
+        $isOwner = $guestbook->circleProfile->user_id === $user->id;
+        $isAdmin = $user->isSuperAdmin();
+
+        if (!$isOwner && !$isAdmin) {
+            return redirect()->back()->with('error', 'Hanya pemilik profil yang dapat menyematkan catatan favorit.');
+        }
+
+        // Jika akan disematkan, batasi maksimal 2 catatan yang dipin
+        if (!$guestbook->is_pinned) {
+            $pinnedCount = CircleProfileGuestbook::where('circle_profile_id', $guestbook->circle_profile_id)
+                ->where('is_pinned', true)
+                ->count();
+
+            if ($pinnedCount >= 2) {
+                // Lepas pin catatan tertua yang dipin
+                $oldestPinned = CircleProfileGuestbook::where('circle_profile_id', $guestbook->circle_profile_id)
+                    ->where('is_pinned', true)
+                    ->oldest('updated_at')
+                    ->first();
+                $oldestPinned?->update(['is_pinned' => false]);
+            }
+        }
+
+        $guestbook->update(['is_pinned' => !$guestbook->is_pinned]);
+
+        $statusText = $guestbook->is_pinned ? 'Catatan manis berhasil disematkan di atas dinding!' : 'Sematan catatan dilepas.';
+
+        return redirect()->back()->with('success', $statusText);
     }
 }

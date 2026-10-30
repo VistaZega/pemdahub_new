@@ -380,6 +380,11 @@
                                         $notifUrl = route('circle.feed', ['post' => $notif->related_id]) . '#post-' . $notif->related_id;
                                     } elseif ($notif->related_model === 'CircleSkillEndorsement') {
                                         $notifUrl = route('circle.profile', ['username' => $__navProfile->username]);
+                                    } elseif ($notif->type === 'circle_visitor' && $notif->related_id) {
+                                        $vUser = \App\Models\User::find($notif->related_id);
+                                        $notifUrl = $vUser ? route('circle.profile', ['username' => $vUser->circle_username]) : route('circle.profile', ['username' => $__navProfile->username]);
+                                    } elseif ($notif->type === 'circle_guestbook') {
+                                        $notifUrl = route('circle.profile', ['username' => $__navProfile->username, 'tab' => 'guestbook']);
                                     } elseif ($notif->type === 'circle_dm' && $notif->related_id) {
                                         $notifUrl = '#dm-' . $notif->related_id;
                                     }
@@ -390,8 +395,12 @@
                                    @endif
                                    class="block p-3 hover:bg-pink-50/60 transition {{ !$notif->is_read ? 'bg-amber-50/50' : '' }}">
                                     <div class="flex items-start gap-2.5">
-                                        <div class="w-7 h-7 rounded-xl shrink-0 flex items-center justify-center text-xs shadow-2xs {{ str_contains($notif->type ?? '', 'endorsement') ? 'bg-amber-100 text-amber-800 border border-amber-300' : (str_contains($notif->type ?? '', 'reaction') ? 'bg-orange-100 text-orange-800 border border-orange-300' : (str_contains($notif->type ?? '', 'dm') ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-pink-100 text-pink-800 border border-pink-300')) }}">
-                                            @if(str_contains($notif->type ?? '', 'endorsement'))
+                                        <div class="w-7 h-7 rounded-xl shrink-0 flex items-center justify-center text-xs shadow-2xs {{ str_contains($notif->type ?? '', 'visitor') ? 'bg-indigo-100 text-indigo-800 border border-indigo-300' : (str_contains($notif->type ?? '', 'guestbook') ? 'bg-rose-100 text-rose-800 border border-rose-300' : (str_contains($notif->type ?? '', 'endorsement') ? 'bg-amber-100 text-amber-800 border border-amber-300' : (str_contains($notif->type ?? '', 'reaction') ? 'bg-orange-100 text-orange-800 border border-orange-300' : (str_contains($notif->type ?? '', 'dm') ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-pink-100 text-pink-800 border border-pink-300')))) }}">
+                                            @if(str_contains($notif->type ?? '', 'visitor'))
+                                                👀
+                                            @elseif(str_contains($notif->type ?? '', 'guestbook'))
+                                                💌
+                                            @elseif(str_contains($notif->type ?? '', 'endorsement'))
                                                 🏅
                                             @elseif(str_contains($notif->type ?? '', 'reaction'))
                                                 🔥

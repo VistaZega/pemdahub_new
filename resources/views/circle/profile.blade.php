@@ -13,6 +13,26 @@
 @section('content')
 <div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}', showEditModal: false, showEndorseModal: false, selectedSkill: '' }">
 
+    {{-- Notifikasi Sukses / Peringatan Aksi Interaktif --}}
+    @if(session('success'))
+        <div class="mb-5 p-4 rounded-3xl bg-emerald-50 border-2 border-emerald-300 text-slate-950 font-black text-xs flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-2.5">
+                <span class="text-emerald-700 text-base">✨</span>
+                <span>{{ session('success') }}</span>
+            </div>
+            <button type="button" @click="$el.parentElement.remove()" class="text-slate-400 hover:text-slate-600 text-xs cursor-pointer">✕</button>
+        </div>
+    @endif
+    @if(session('warning'))
+        <div class="mb-5 p-4 rounded-3xl bg-amber-50 border-2 border-amber-300 text-slate-950 font-black text-xs flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-2.5">
+                <span class="text-amber-700 text-base">⚠️</span>
+                <span>{{ session('warning') }}</span>
+            </div>
+            <button type="button" @click="$el.parentElement.remove()" class="text-slate-400 hover:text-slate-600 text-xs cursor-pointer">✕</button>
+        </div>
+    @endif
+
     {{-- ═══════════════════════════════════════════
          PROFILE HEADER CARD (PASTEL CANTIK & LUCU)
     ═══════════════════════════════════════════ --}}
@@ -138,6 +158,12 @@
                             <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>
                         <span>Siarkan</span>
                     </button>
+                    @php $vLevel = $profile->visitor_level; @endphp
+                    <div class="px-3.5 py-2 rounded-2xl {{ $vLevel['bg'] }} border-2 {{ $vLevel['border'] }} {{ $vLevel['text'] }} text-xs font-black flex items-center gap-1.5 shadow-xs" 
+                         title="{{ $vLevel['desc'] }} (Total: {{ number_format($profile->views_count) }} kunjungan)">
+                        <span>{{ $vLevel['badge'] }}</span>
+                        <span>{{ $vLevel['name'] }}</span>
+                    </div>
                     <div class="px-3.5 py-2 rounded-2xl bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs" 
                          title="Total Kunjungan Profil">
                         <i class="fas fa-eye text-pink-600 text-xs"></i>
@@ -244,14 +270,76 @@
                     @endforeach
                 </div>
             @endif
+
+            {{-- ── 3B. JEJAK PENGUNJUNG TERAKHIR (RECENT VISITORS) ── --}}
+            <div class="mt-4 mb-2 p-3.5 rounded-3xl bg-gradient-to-r from-sky-50 via-indigo-50/70 to-pink-50 border-2 border-indigo-100 shadow-2xs">
+                <div class="flex items-center justify-between gap-2 mb-2.5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">
+                            <i class="fas fa-shoe-prints"></i>
+                        </span>
+                        <span class="text-xs font-black text-slate-950 uppercase tracking-wider">
+                            Jejak Pengunjung
+                        </span>
+                        <span class="text-[10px] font-black text-indigo-900 bg-indigo-100/80 px-2 py-0.5 rounded-full border border-indigo-200">
+                            {{ $recentVisitors->count() }} orang mampir
+                        </span>
+                    </div>
+
+                    @if(Auth::check() && Auth::id() !== $user->id)
+                        <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                            ✓ Kamu baru saja mampir
+                        </span>
+                    @endif
+                </div>
+
+                @if($recentVisitors->isNotEmpty())
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                        @foreach($recentVisitors as $vRecord)
+                            @php
+                                $visitor = $vRecord->visitor;
+                                $vProfile = $visitor?->circleProfile;
+                                $vUsername = $vProfile?->username ?? $visitor?->username;
+                                $vNick = $vProfile?->nickname ?? explode(' ', $visitor?->name ?? 'User')[0];
+                                $vClass = $visitor?->student?->classroom?->name ?? ($visitor?->role === 'guru' ? 'Guru' : null);
+                            @endphp
+                            @if($visitor)
+                                <a href="{{ route('circle.profile', ['username' => $vUsername]) }}" 
+                                   class="flex items-center gap-2 p-1.5 pr-3 rounded-2xl bg-white hover:bg-indigo-50 border border-indigo-200 transition-all hover:scale-105 shrink-0 shadow-2xs group"
+                                   title="{{ $visitor->name }} {{ $vClass ? '(' . $vClass . ')' : '' }} — Mampir {{ $vRecord->last_visited_at?->diffForHumans() }}">
+                                    <img src="{{ $visitor->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                         class="w-7 h-7 rounded-xl object-cover ring-1 ring-indigo-200">
+                                    <div class="text-left leading-tight min-w-0">
+                                        <div class="text-[11px] font-black text-slate-950 group-hover:text-indigo-600 truncate max-w-[90px]">
+                                            {{ $vNick }}
+                                        </div>
+                                        <div class="text-[9px] font-bold text-slate-500">
+                                            {{ $vRecord->last_visited_at?->diffForHumans(null, true) }}
+                                        </div>
+                                    </div>
+                                    @if(Auth::check() && Auth::id() === $user->id)
+                                        <span class="text-[9px] font-black text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded-lg border border-indigo-200" title="Mampir balik ke profilnya">
+                                            Balik ➔
+                                        </span>
+                                    @endif
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-2 text-xs font-bold text-slate-500">
+                        🐾 Belum ada jejak teman yang mampir. Bagikan tautan profilmu agar teman-teman mampir nongki di dindingmu! ✨
+                    </div>
+                @endif
+            </div>
         </div>
 
-        {{-- ── 4. Dual-Tab Navigasi: Nongki vs Karya (Pastel Coklat vs Kuning) ── --}}
-        <div class="flex border-t-2 border-[#f1e8dc] bg-[#faf8f5] px-6">
+        {{-- ── 4. Tab Navigasi: Nongki vs Karya vs Buku Tamu ── --}}
+        <div class="flex border-t-2 border-[#f1e8dc] bg-[#faf8f5] px-6 overflow-x-auto custom-scrollbar">
             {{-- Tab Nongki (Coklat Pastel) --}}
             <button @click="activeTab = 'wall'" 
                     :class="activeTab === 'wall' ? 'border-[#b08968] text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
-                    class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl">
+                    class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl shrink-0">
                 <span class="w-6 h-6 rounded-lg bg-[#faedcd] text-[#7f5539] flex items-center justify-center text-xs">
                     <i class="fas fa-mug-hot"></i>
                 </span>
@@ -263,13 +351,25 @@
             {{-- Tab Karya (Kuning Pastel) --}}
             <button @click="activeTab = 'portfolio'" 
                     :class="activeTab === 'portfolio' ? 'border-amber-400 text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
-                    class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl">
+                    class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl shrink-0">
                 <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs">
                     <i class="fas fa-trophy"></i>
                 </span>
                 <span class="font-display">Karya</span>
                 <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-900 border border-amber-300 font-black">
                     {{ $portfolioPosts->count() + $finalProjects->count() + $approvedPklLogs->count() }}
+                </span>
+            </button>
+            {{-- Tab Buku Tamu & Stiker (Pink & Rose Pastel) --}}
+            <button @click="activeTab = 'guestbook'" 
+                    :class="activeTab === 'guestbook' ? 'border-pink-500 text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
+                    class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl shrink-0">
+                <span class="w-6 h-6 rounded-lg bg-pink-100 text-pink-700 flex items-center justify-center text-xs">
+                    <i class="fas fa-heart"></i>
+                </span>
+                <span class="font-display">Buku Tamu</span>
+                <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-pink-100 text-pink-900 border border-pink-300 font-black">
+                    {{ $guestbookEntries->count() }}
                 </span>
             </button>
         </div>
@@ -444,6 +544,30 @@
          TAB 1: DINDING NONGKI & MOMEN (THE WALL)
     ═══════════════════════════════════════════ --}}
     <div x-show="activeTab === 'wall'" x-transition class="space-y-6">
+
+        {{-- Mini Highlight Stiker Buku Tamu --}}
+        @if($guestbookEntries->isNotEmpty())
+            <div class="p-4 rounded-3xl bg-gradient-to-r from-pink-50 via-rose-50/70 to-amber-50 border-2 border-pink-200/90 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-2 overflow-x-auto pb-0.5 custom-scrollbar">
+                    <span class="text-xs font-black text-slate-950 flex items-center gap-1.5 shrink-0">
+                        <span class="text-base">💌</span>
+                        <span>Stiker Dinding:</span>
+                    </span>
+                    @foreach($guestbookEntries->take(3) as $gb)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl bg-white border border-pink-200 text-xs font-black text-slate-900 shadow-2xs shrink-0">
+                            <span>{{ $gb->sticker_emoji }}</span>
+                            <span>{{ $gb->sticker_label }}</span>
+                            <span class="text-[10px] font-bold text-slate-500">dari {{ $gb->sender->circleProfile->nickname ?? explode(' ', $gb->sender->name)[0] }}</span>
+                        </span>
+                    @endforeach
+                </div>
+                <button type="button" @click="activeTab = 'guestbook'" class="text-xs font-black text-pink-700 hover:text-pink-900 flex items-center gap-1.5 shrink-0 cursor-pointer bg-white/80 px-3 py-1.5 rounded-xl border border-pink-200 hover:scale-105 transition">
+                    <span>Semua Stiker ({{ $guestbookEntries->count() }})</span>
+                    <i class="fas fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+        @endif
+
         @if($wallPosts->isEmpty())
             <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-10 text-center shadow-xs">
                 <div class="w-16 h-16 rounded-2xl bg-[#faedcd] text-[#7f5539] border border-[#d4a373] flex items-center justify-center mx-auto mb-3.5 text-2xl shadow-xs">
@@ -861,6 +985,221 @@
                 </p>
             </div>
         @endif
+
+    </div>
+
+    {{-- ═══════════════════════════════════════════
+         TAB 3: BUKU TAMU & STIKER DINDING (GUESTBOOK)
+    ═══════════════════════════════════════════ --}}
+    <div x-show="activeTab === 'guestbook'" x-transition class="space-y-6">
+
+        {{-- ── 1. Form Tempelkan Stiker & Catatan Manis ── --}}
+        @auth
+            <div class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs"
+                 x-data="{
+                    selectedSticker: 'menyala',
+                    stickers: [
+                        { code: 'menyala', emoji: '🔥', label: 'Menyala!' },
+                        { code: 'kopi', emoji: '☕', label: 'Titip Kopi' },
+                        { code: 'sukses', emoji: '🚀', label: 'Calon Sukses!' },
+                        { code: 'idola', emoji: '✨', label: 'Idola Kampus' },
+                        { code: 'bengkel', emoji: '🛠️', label: 'Anak Teknik' },
+                        { code: 'rajin', emoji: '📚', label: 'Rajin Banget' },
+                        { code: 'keren', emoji: '💖', label: 'Keren Pol!' },
+                        { code: 'salam', emoji: '🤝', label: 'Salam Kenal' },
+                        { code: 'bintang', emoji: '⭐', label: 'Bintang' },
+                        { code: 'senyum', emoji: '🥰', label: 'Bikin Kagum' }
+                    ]
+                 }">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center text-lg shrink-0 shadow-2xs">
+                        <i class="fas fa-stamp"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-950 flex items-center gap-2">
+                            <span>Tempelkan Stiker & Catatan Dinding</span>
+                            <span class="text-xs">💌</span>
+                        </h4>
+                        <p class="text-xs font-bold text-slate-600">
+                            Hiasi dinding {{ $profile->nickname ?? $user->name }} dengan apresiasi dan pesan penyemangat!
+                        </p>
+                    </div>
+                </div>
+
+                <form action="{{ route('circle.guestbook.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="circle_profile_id" value="{{ $profile->id }}">
+                    <input type="hidden" name="sticker_code" :value="selectedSticker">
+
+                    {{-- Pilihan Stiker Kreatif --}}
+                    <label class="block text-xs font-black text-slate-900 mb-2">
+                        Pilih Stiker Apresiasi:
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
+                        <template x-for="st in stickers" :key="st.code">
+                            <button type="button" 
+                                    @click="selectedSticker = st.code"
+                                    :class="selectedSticker === st.code ? 'bg-pink-100 border-pink-400 ring-2 ring-pink-300 text-slate-950 scale-102 shadow-xs' : 'bg-slate-50 hover:bg-pink-50/50 border-slate-200 text-slate-700'"
+                                    class="p-2.5 rounded-2xl border-2 flex items-center gap-2 text-xs font-black transition cursor-pointer text-left">
+                                <span class="text-lg shrink-0" x-text="st.emoji"></span>
+                                <span class="truncate" x-text="st.label"></span>
+                            </button>
+                        </template>
+                    </div>
+
+                    {{-- Pesan Singkat (Opsional) --}}
+                    <div class="mb-3">
+                        <label class="block text-xs font-black text-slate-900 mb-1">
+                            Pesan Manis / Salam Penyemangat <span class="text-slate-400 font-normal">(opsional, maks 500 karakter)</span>:
+                        </label>
+                        <textarea name="message" rows="2" maxlength="500"
+                                  placeholder="Contoh: Semangat belajarnya ya kawan, karyamu keren banget! 🔥"
+                                  class="w-full p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none"></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-end">
+                        <button type="submit" 
+                                class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105 flex items-center gap-2 cursor-pointer">
+                            <i class="fas fa-heart text-pink-700 text-xs"></i>
+                            <span>Tempelkan ke Dinding Sekarang ✨</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        @else
+            <div class="bg-gradient-to-r from-pink-50 to-amber-50 rounded-3xl border-2 border-pink-200 p-6 text-center shadow-xs">
+                <span class="text-3xl block mb-2">💌</span>
+                <h4 class="font-display font-black text-base text-slate-950 mb-1">
+                    Ingin Menempelkan Stiker di Dinding {{ $profile->nickname ?? $user->name }}?
+                </h4>
+                <p class="text-xs font-bold text-slate-700 mb-4 max-w-md mx-auto">
+                    Masuk ke akun PembdaHUB kamu untuk meninggalkan stiker apresiasi dan kata-kata penyemangat di buku tamu ini.
+                </p>
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black text-white bg-pink-600 hover:bg-pink-500 shadow-md transition hover:scale-105">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Masuk untuk Menempelkan Stiker</span>
+                </a>
+            </div>
+        @endauth
+
+        {{-- ── 2. Dinding Koleksi Stiker & Catatan Manis ── --}}
+        <div>
+            <div class="flex items-center justify-between gap-3 mb-4 px-1">
+                <h3 class="font-display font-black text-base text-slate-950 flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center text-xs">
+                        <i class="fas fa-book-open"></i>
+                    </span>
+                    <span>Dinding Buku Tamu</span>
+                    <span class="text-xs font-bold text-slate-500">({{ $guestbookEntries->count() }} stiker tertempel)</span>
+                </h3>
+            </div>
+
+            @if($guestbookEntries->isEmpty())
+                <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-10 text-center shadow-xs">
+                    <div class="w-16 h-16 rounded-2xl bg-pink-100 text-pink-700 border border-pink-200 flex items-center justify-center mx-auto mb-3.5 text-2xl shadow-xs">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <h4 class="font-display font-black text-lg text-slate-950 mb-1">Dinding Masih Bersih</h4>
+                    <p class="text-xs font-bold text-slate-700 max-w-sm mx-auto leading-relaxed">
+                        Belum ada yang menempelkan stiker di sini. Jadilah yang pertama memberikan apresiasi hangat untuk {{ $profile->nickname ?? $user->name }}!
+                    </p>
+                </div>
+            @else
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @foreach($guestbookEntries as $entry)
+                        @php
+                            $sender = $entry->sender;
+                            $sProfile = $sender?->circleProfile;
+                            $sUsername = $sProfile?->username ?? $sender?->username;
+                            $sNick = $sProfile?->nickname ?? explode(' ', $sender?->name ?? 'User')[0];
+                            $sClass = $sender?->student?->classroom?->name ?? ($sender?->role === 'guru' ? 'Guru' : $sender?->school?->name);
+                        @endphp
+                        <div class="rounded-3xl border-2 p-4 sm:p-5 transition-all shadow-xs relative overflow-hidden flex flex-col justify-between {{ $entry->is_pinned ? 'bg-gradient-to-br from-amber-50/90 via-pink-50/80 to-white border-amber-300 ring-2 ring-amber-200/70 shadow-sm' : 'bg-white hover:bg-pink-50/20 border-[#f1e8dc] hover:border-pink-200' }}">
+                            
+                            {{-- Pinned Badge Lucu --}}
+                            @if($entry->is_pinned)
+                                <div class="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-950 text-[10px] font-black border border-amber-300 shadow-2xs">
+                                    <span>📌</span>
+                                    <span>Disematkan</span>
+                                </div>
+                            @endif
+
+                            <div>
+                                {{-- Header Pengirim --}}
+                                <div class="flex items-center gap-3 mb-3">
+                                    <a href="{{ $sUsername ? route('circle.profile', ['username' => $sUsername]) : '#' }}" class="shrink-0 hover:scale-105 transition">
+                                        <img src="{{ $sender->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                             alt="{{ $sender->name }}" 
+                                             class="w-10 h-10 rounded-2xl object-cover ring-2 ring-pink-100">
+                                    </a>
+                                    <div class="min-w-0 flex-1 pr-16">
+                                        <a href="{{ $sUsername ? route('circle.profile', ['username' => $sUsername]) : '#' }}" 
+                                           class="text-xs font-black text-slate-950 hover:text-pink-600 transition truncate block">
+                                            {{ $sender->name }}
+                                        </a>
+                                        <div class="text-[10px] font-bold text-slate-500 flex items-center gap-1.5 flex-wrap">
+                                            @if($sClass)
+                                                <span class="text-pink-700 bg-pink-50 px-1.5 py-0.2 rounded border border-pink-200">{{ $sClass }}</span>
+                                                <span>•</span>
+                                            @endif
+                                            <span>{{ $entry->created_at->diffForHumans() }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Stiker Badge Menawan --}}
+                                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-white border-2 border-pink-200 shadow-2xs text-xs font-black text-slate-950 mb-3">
+                                    <span class="text-base">{{ $entry->sticker_emoji }}</span>
+                                    <span>{{ $entry->sticker_label }}</span>
+                                </div>
+
+                                {{-- Pesan Manis --}}
+                                @if($entry->message)
+                                    <div class="p-3.5 rounded-2xl bg-amber-50/50 border border-amber-200/80 text-xs font-bold text-slate-900 leading-relaxed mb-3">
+                                        “{{ $entry->message }}”
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Action Bar (Pin & Hapus) --}}
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                                <div class="text-[10px] font-bold text-slate-400">
+                                    ❤️ Apresiasi Sahabat
+                                </div>
+
+                                <div class="flex items-center gap-1.5">
+                                    {{-- Pemilik Profil berhak Sematkan / Lepas Pin --}}
+                                    @if(Auth::check() && (Auth::id() === $user->id || Auth::user()->isSuperAdmin()))
+                                        <form action="{{ route('circle.guestbook.pin', $entry->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" 
+                                                    class="px-2.5 py-1 rounded-xl text-[10px] font-black border transition cursor-pointer flex items-center gap-1 {{ $entry->is_pinned ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-amber-50' }}"
+                                                    title="{{ $entry->is_pinned ? 'Lepas Sematan' : 'Sematkan ke Atas Dinding' }}">
+                                                <i class="fas fa-thumbtack text-[9px]"></i>
+                                                <span>{{ $entry->is_pinned ? 'Lepas' : 'Pin' }}</span>
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    {{-- Pemilik Profil ATAU Pengirim berhak Hapus --}}
+                                    @if(Auth::check() && (Auth::id() === $user->id || Auth::id() === $entry->sender_user_id || Auth::user()->isSuperAdmin()))
+                                        <form action="{{ route('circle.guestbook.destroy', $entry->id) }}" method="POST" onsubmit="return confirm('Hapus catatan stiker ini?')" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-300 flex items-center justify-center text-xs transition cursor-pointer"
+                                                    title="Hapus Stiker">
+                                                <i class="fas fa-trash-alt text-[10px]"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
 
     </div>
 

@@ -3006,6 +3006,11 @@ Route::prefix('circle')->name('circle.')->group(function () {
     Route::post('/notifications/read-all', [App\Http\Controllers\Circle\CircleActionController::class, 'markNotificationsRead'])->name('notifications.readAll');
     Route::post('/poll/vote', [App\Http\Controllers\Circle\CircleActionController::class, 'votePoll'])->name('poll.vote');
     
+    // Buku Tamu & Stiker Dinding (Guestbook / Wall Sticker Reaction)
+    Route::post('/guestbook', [App\Http\Controllers\Circle\CircleActionController::class, 'storeGuestbook'])->name('guestbook.store');
+    Route::delete('/guestbook/{id}', [App\Http\Controllers\Circle\CircleActionController::class, 'destroyGuestbook'])->name('guestbook.destroy');
+    Route::post('/guestbook/{id}/pin', [App\Http\Controllers\Circle\CircleActionController::class, 'togglePinGuestbook'])->name('guestbook.pin');
+    
     // Obrolan Langsung & Kotak Pesan Pribadi (DM)
     Route::get('/messages/inbox', [App\Http\Controllers\Circle\CircleActionController::class, 'getInbox'])->name('messages.inbox');
     Route::get('/messages/conversation/{userId}', [App\Http\Controllers\Circle\CircleActionController::class, 'getConversation'])->name('messages.conversation');
