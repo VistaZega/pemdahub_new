@@ -44,7 +44,26 @@
                 </div>
             </div>
 
-            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; flex-shrink: 0;">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.85rem; flex-shrink: 0;">
+                @php
+                    $__circleProfile = \App\Models\CircleProfile::where('user_id', Auth::id())->first();
+                    $__circleUsername = $__circleProfile?->username ?? Auth::user()->username;
+                @endphp
+                {{-- ANIMASI CHECK-IN TO CIRCLE LANGSUNG DI BANNER GREETING --}}
+                <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" 
+                   title="Buka Panggung & Profil Publik PembdaCIRCLE (@{{ $__circleUsername }})"
+                   class="group relative inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl border-2 border-pink-300 shadow-sm font-black text-xs uppercase tracking-wider text-slate-950 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer overflow-hidden"
+                   style="background: linear-gradient(135deg, #fce7f3 0%, #fef9c3 50%, #dcfce7 100%) !important;">
+                    <span class="absolute inset-0 w-full h-full bg-white/40 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-600 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-pink-600"></span>
+                    </span>
+                    <i class="fas fa-bullseye text-pink-700 group-hover:rotate-180 transition-transform duration-500"></i>
+                    <span>Check-in to CIRCLE</span>
+                    <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-2 py-0.5 rounded-full border border-pink-300">Publik</span>
+                </a>
+
                 @if($activeYear)
                 <div style="padding: 0.75rem 1.25rem; border-radius: 1rem; background-color: #eef2ff; border: 2px solid #c7d2fe; color: #312e81; font-size: 0.8rem; font-weight: 900; display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fas fa-calendar-alt" style="color: #4f46e5;"></i>
@@ -55,72 +74,6 @@
                     <i class="far fa-clock" style="color: #059669;"></i>
                     <span>{{ now()->translatedFormat('l, d F Y') }}</span>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ══════════════════════════════════════════════════════════════════ --}}
-    {{-- PEMBDACIRCLE HERO BANNER (PASTEL CANTIK & SOSIAL SISWA)            --}}
-    {{-- ══════════════════════════════════════════════════════════════════ --}}
-    @php
-        $__circleProfile = \App\Models\CircleProfile::where('user_id', Auth::id())->first();
-        $__circleUsername = $__circleProfile?->username ?? Auth::user()->username;
-    @endphp
-    <div class="rounded-3xl border-2 border-pink-200 p-6 md:p-7 shadow-xs relative overflow-hidden mb-8" 
-         style="background: linear-gradient(135deg, #fdfbf7 0%, #fce7f3 45%, #fef9c3 80%, #e0f2fe 100%);">
-        
-        {{-- Cute Floating Aura Circles --}}
-        <div class="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-pink-300/30 blur-2xl pointer-events-none"></div>
-        <div class="absolute right-36 -top-10 w-36 h-36 rounded-full bg-yellow-200/40 blur-xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div class="flex items-start md:items-center gap-4 md:gap-5">
-                {{-- Squircle Story Ring with Avatar --}}
-                <div class="relative shrink-0">
-                    <div class="w-16 h-16 md:w-20 md:h-20 rounded-3xl p-1 shadow-sm" style="background: linear-gradient(135deg, #f472b6, #fbbf24, #4ade80, #38bdf8);">
-                        <img src="{{ $student->photo_url }}" 
-                             alt="{{ $student->full_name }}" 
-                             class="w-full h-full object-cover rounded-[1.35rem] bg-white"
-                             onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}';">
-                    </div>
-                    <span class="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-xl bg-pink-500 text-white flex items-center justify-center text-xs font-black shadow-xs border-2 border-white">
-                        <i class="fas fa-sparkles text-[10px]"></i>
-                    </span>
-                </div>
-
-                <div>
-                    <div class="flex flex-wrap items-center gap-2 mb-2">
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/90 text-pink-900 border border-pink-300 shadow-2xs flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
-                            <span>Panggung Publik PembdaCIRCLE</span>
-                        </span>
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs">
-                            🔒 Nilai & SPP Tetap Privat
-                        </span>
-                    </div>
-
-                    <h2 class="text-xl md:text-2xl font-black text-slate-950 tracking-tight leading-snug">
-                        Halaman Publikmu: <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" class="text-pink-600 hover:text-pink-700 underline decoration-pink-300 decoration-2">perguruanpembda.com/&#64;{{ $__circleUsername }}</a> ✨
-                    </h2>
-                    
-                    <p class="text-xs md:text-sm font-bold text-slate-800 mt-1 max-w-2xl leading-relaxed">
-                        Pamerkan tugas akhir SMK, riset SMA, prestasi, atau update status nongki santai dengan teman! Orang lain hanya bisa melihat portofoliomu — data rapormu tetap aman terjaga.
-                    </p>
-                </div>
-            </div>
-
-            {{-- Action Buttons Pastel --}}
-            <div class="flex items-center gap-2.5 flex-wrap shrink-0">
-                <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" 
-                   class="px-5 py-3 rounded-2xl bg-slate-950 text-white hover:bg-slate-800 text-xs font-black shadow-md transition-all hover:scale-105 flex items-center gap-2">
-                    <i class="fas fa-user-astronaut text-pink-400"></i>
-                    <span>Buka Panggung Profil</span>
-                </a>
-                <a href="{{ route('circle.feed') }}" 
-                   class="px-4 py-3 rounded-2xl bg-white hover:bg-pink-50 border-2 border-pink-300 text-slate-950 text-xs font-black shadow-xs transition-all hover:scale-105 flex items-center gap-2">
-                    <i class="fas fa-layer-group text-indigo-600"></i>
-                    <span>Jelajah Karya Siswa</span>
-                </a>
             </div>
         </div>
     </div>
