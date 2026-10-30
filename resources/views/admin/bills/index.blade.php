@@ -414,8 +414,9 @@
                                     @if($group['monthly_data'][$m])
                                         @php 
                                             $bill = $group['monthly_data'][$m]; 
+                                            $isBillPaid = $bill->status === 'lunas' || ($bill->amount > 0 && (float) $bill->paid_amount >= (float) $bill->amount);
                                             $btnStyle = 'bg-slate-100 border-slate-200 text-slate-400';
-                                            if ($bill->status === 'lunas') {
+                                            if ($isBillPaid) {
                                                 $btnStyle = 'bg-emerald-500 border-emerald-600 text-white shadow-emerald-500/30 hover:bg-emerald-600';
                                             } elseif ($bill->isOverdue()) {
                                                 $btnStyle = 'bg-rose-500 border-rose-600 text-white shadow-rose-500/30 hover:bg-rose-600 animate-pulse';
@@ -438,7 +439,7 @@
                                                 data-payment-type="{{ $group['payment_type']->type_name }}"
                                                 class="w-7 h-7 rounded-lg border shadow-sm transition-all duration-200 flex items-center justify-center p-0.5 font-bold text-xs {{ $btnStyle }}"
                                                 title="{{ $group['payment_type']->type_name }} - {{ \Carbon\Carbon::create($bill->year, $bill->month, 1)->format('M Y') }} (Rp {{ number_format($bill->amount, 0, ',', '.') }}) - Status: {{ $bill->getStatusLabel() }}">
-                                                @if($bill->status === 'lunas')
+                                                @if($isBillPaid)
                                                 <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                                                 </svg>
@@ -461,7 +462,7 @@
                                         $isPaid = false;
                                         
                                         if ($fb) {
-                                            $isPaid = $fb->status === 'lunas';
+                                            $isPaid = $fb->status === 'lunas' || ($fb->amount > 0 && (float) $fb->paid_amount >= (float) $fb->amount);
                                             if ($isPaid) {
                                                 $statusText = 'Lunas';
                                                 $badgeStyle = 'bg-emerald-50 text-emerald-800 border-emerald-200';

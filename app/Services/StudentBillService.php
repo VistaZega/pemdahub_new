@@ -214,6 +214,14 @@ class StudentBillService
                     }
                     $pBill->save();
                 }
+
+                // 5. Hard enforcement: any bill where paid_amount >= amount must be 'lunas'
+                StudentBill::where('status', '!=', 'lunas')
+                    ->where('amount', '>', 0)
+                    ->whereRaw('paid_amount >= amount')
+                    ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
+                    ->when($schoolId, fn($q) => $q->whereHas('student', fn($sq) => $sq->where('school_id', $schoolId)))
+                    ->update(['status' => 'lunas']);
             });
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('StudentBillService::healAndDeduplicateBills warning: ' . $e->getMessage());

@@ -205,7 +205,7 @@
                                 @if($group['monthly_data'][$month])
                                     @php
                                         $bill = $group['monthly_data'][$month];
-                                        $isPaid = $bill->status == 'lunas';
+                                        $isPaid = $bill->status == 'lunas' || ($bill->amount > 0 && (float) $bill->paid_amount >= (float) $bill->amount);
                                         $isPartial = !$isPaid && ($bill->status == 'cicilan' || $bill->paid_amount > 0);
                                         $remainingAmount = max(0, (float) $bill->amount - (float) $bill->paid_amount);
                                         
@@ -282,7 +282,7 @@
                             <td colspan="12" class="px-3 py-2 align-middle">
                                 @php
                                     $fb = $group['first_bill'] ?? null;
-                                    $isPaid = $fb ? $fb->status == 'lunas' : false;
+                                    $isPaid = $fb ? ($fb->status == 'lunas' || ($fb->amount > 0 && (float) $fb->paid_amount >= (float) $fb->amount)) : false;
                                     $isPartial = $fb ? $fb->status == 'cicilan' : false;
                                     
                                     // Calculate if overdue

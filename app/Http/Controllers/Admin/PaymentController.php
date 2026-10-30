@@ -209,6 +209,7 @@ class PaymentController extends Controller
         
         $billsQuery = StudentBill::whereHas('student')
             ->where('status', '!=', 'lunas')
+            ->whereRaw('(amount - paid_amount) > 0')
             ->with('student:id,full_name,nisn', 'paymentType:id,type_name');
         
         // Scope bills by school too
@@ -254,6 +255,7 @@ class PaymentController extends Controller
                     $activeAcademicYearId = \App\Models\AcademicYear::where('is_active', true)->value('id');
                     $autoBill = StudentBill::where('student_id', $validated['student_id'])
                         ->where('status', '!=', 'lunas')
+                        ->whereRaw('(amount - paid_amount) > 0')
                         ->when($activeAcademicYearId, fn($q) => $q->where('academic_year_id', $activeAcademicYearId))
                         ->get()
                         ->sortBy(function ($b) use ($academicMonthOrder) {
@@ -313,7 +315,11 @@ class PaymentController extends Controller
                 if (!empty($validated['bill_id'])) {
                     $bill = StudentBill::where('id', $validated['bill_id'])->lockForUpdate()->first();
                     if ($bill) {
-                        if (!$request->boolean('apply_discount_carryover') && ($bill->status === 'lunas' || ($bill->amount > 0 && $bill->paid_amount >= $bill->amount))) {
+                        $isBillFullyPaid = $bill->status === 'lunas' || ($bill->amount > 0 && $bill->paid_amount >= $bill->amount);
+                        if (!$request->boolean('apply_discount_carryover') && $isBillFullyPaid) {
+                            if ($bill->status !== 'lunas') {
+                                $bill->update(['status' => 'lunas']);
+                            }
                             $redirectRoute = $fromBillsPage ? 'admin.bills.index' : 'admin.payments.index';
                             return redirect()->route($redirectRoute)
                                 ->with('warning', 'Tagihan ini sudah lunas.');

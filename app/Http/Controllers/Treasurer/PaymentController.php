@@ -111,6 +111,7 @@ class PaymentController extends Controller
         $academicMonthOrder = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
         $bills = StudentBill::where('status', '!=', 'lunas')
+            ->whereRaw('(amount - paid_amount) > 0')
             ->whereHas('student', function ($q) use ($schoolId) {
                 $q->where('school_id', $schoolId);
             })
@@ -159,6 +160,7 @@ class PaymentController extends Controller
                     $activeAcademicYearId = AcademicYear::where('is_active', true)->value('id');
                     $candidateBills = StudentBill::where('student_id', $student->id)
                         ->where('status', '!=', 'lunas')
+                        ->whereRaw('(amount - paid_amount) > 0')
                         ->when($activeAcademicYearId, fn($q) => $q->where('academic_year_id', $activeAcademicYearId))
                         ->get()
                         ->sortBy(function ($b) use ($academicMonthOrder) {
@@ -169,6 +171,7 @@ class PaymentController extends Controller
                     if ($candidateBills->isEmpty()) {
                         $candidateBills = StudentBill::where('student_id', $student->id)
                             ->where('status', '!=', 'lunas')
+                            ->whereRaw('(amount - paid_amount) > 0')
                             ->get()
                             ->sortBy(function ($b) use ($academicMonthOrder) {
                                 $pos = array_search((int) $b->month, $academicMonthOrder);
@@ -233,7 +236,11 @@ class PaymentController extends Controller
                     $bill = StudentBill::where('id', $validated['bill_id'])->lockForUpdate()->first();
                     if ($bill) {
                         $totalOwed = max(0, (float) $bill->amount - (float) $bill->paid_amount) + (float) $bill->late_fee;
-                        if (!$request->boolean('apply_discount_carryover') && ($bill->status === 'lunas' || ($totalOwed <= 0 && $bill->paid_amount > 0))) {
+                        $isFullySettled = $bill->status === 'lunas' || ($totalOwed <= 0 && $bill->paid_amount > 0);
+                        if (!$request->boolean('apply_discount_carryover') && $isFullySettled) {
+                            if ($bill->status !== 'lunas') {
+                                $bill->update(['status' => 'lunas']);
+                            }
                             $redirectRoute = $fromBillsPage ? 'treasurer.bills.index' : 'treasurer.payments.index';
                             return redirect()->route($redirectRoute)
                                 ->with('warning', 'Tagihan bulan ini sudah berstatus Lunas.');
