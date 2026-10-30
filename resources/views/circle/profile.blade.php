@@ -89,8 +89,32 @@
                     </div>
                 </div>
 
-                {{-- Action Bar: Share, Edit & View Stats --}}
+                {{-- Action Bar: Check-out to Dashboard, Share, Edit & View Stats --}}
                 <div class="flex items-center gap-2 self-start sm:self-end shrink-0 flex-wrap">
+                    @auth
+                        @php
+                            $__currUser = Auth::user();
+                            $__dashUrl = route('admin.dashboard');
+                            if ($__currUser->role === 'siswa') {
+                                $__dashUrl = route('siswa.dashboard');
+                            } elseif ($__currUser->role === 'guru' || $__currUser->role === 'pegawai') {
+                                $__dashUrl = route('guru.dashboard');
+                            } elseif ($__currUser->role === 'orang_tua') {
+                                $__dashUrl = route('orangtua.dashboard');
+                            } elseif ($__currUser->isKetuaYayasan() || $__currUser->hasRole('ketua_yayasan')) {
+                                $__dashUrl = route('yayasan.dashboard');
+                            }
+                        @endphp
+                        {{-- LINK MORAK & CERAH: CHECK-OUT TO DASHBOARD --}}
+                        <a href="{{ $__dashUrl }}" 
+                           title="Keluar dari CIRCLE dan Kembali ke Dashboard Utama Anda"
+                           class="px-3.5 py-2 rounded-2xl text-xs font-black uppercase tracking-wider text-black border-2 border-black transition-all flex items-center gap-1.5 shadow-md cursor-pointer hover:scale-105"
+                           style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 12px rgba(52, 211, 153, 0.45) !important;">
+                            <i class="fas fa-arrow-left text-xs text-black"></i>
+                            <span>CHECK-OUT to Dashboard</span>
+                        </a>
+                    @endauth
+
                     @if(Auth::check() && Auth::id() === $user->id)
                         <button @click="showEditModal = true" 
                                 class="px-3.5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-amber-100 hover:bg-amber-200 border-2 border-amber-300 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105">

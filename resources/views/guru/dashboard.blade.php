@@ -39,22 +39,21 @@
                     $__circleGuruProfile = \App\Models\CircleProfile::where('user_id', Auth::id())->first();
                     $__circleGuruUsername = $__circleGuruProfile?->username ?? Auth::user()->username;
                 @endphp
-                {{-- ANIMASI CHECK-IN TO CIRCLE LANGSUNG DI BANNER HEADER --}}
+                {{-- ANIMASI CHECK-IN TO CIRCLE (SUPER MORAK, CERAH, & MENYALA) --}}
                 <a href="{{ route('circle.profile', ['username' => $__circleGuruUsername]) }}" 
                    title="Buka Panggung & Profil Publik PembdaCIRCLE (@{{ $__circleGuruUsername }})"
-                   class="group relative inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl border-2 border-black shadow-md font-black text-xs uppercase tracking-wider text-black bg-gradient-to-r from-pink-300 via-amber-200 to-emerald-300 hover:from-pink-400 hover:to-emerald-400 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden cursor-pointer">
-                    {{-- Shimmer effect --}}
-                    <span class="absolute inset-0 w-full h-full bg-white/40 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+                   class="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 border-black transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer shadow-lg"
+                   style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 14px rgba(255, 0, 122, 0.45) !important;">
                     
-                    {{-- Pulsing Live Indicator --}}
-                    <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-600 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-pink-600"></span>
+                    {{-- Pulsing Radar Dot Putih Cerah --}}
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-white border border-black shadow-xs"></span>
                     </span>
                     
-                    <i class="fas fa-bullseye text-pink-700 group-hover:rotate-180 transition-transform duration-500"></i>
-                    <span>Check-in to CIRCLE</span>
-                    <span class="bg-black text-white text-[9px] px-2 py-0.5 rounded-full font-black ml-0.5">Live</span>
+                    <i class="fas fa-bullseye text-sm group-hover:rotate-180 transition-transform duration-500" style="color: #000000 !important;"></i>
+                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">CHECK-IN TO CIRCLE</span>
+                    <span style="background-color: #000000 !important; color: #ffd600 !important; font-weight: 900 !important; font-size: 10px !important; padding: 2px 8px !important; border-radius: 9999px !important; border: 1px solid #ffd600 !important;">LIVE</span>
                 </a>
 
                 @if($activeYear)

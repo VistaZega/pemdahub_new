@@ -165,19 +165,41 @@
             </a>
         </nav>
 
-        {{-- Auth Bar --}}
-        <div class="flex items-center gap-3 shrink-0">
+        {{-- Auth & Check-out to Dashboard Bar --}}
+        <div class="flex items-center gap-2.5 shrink-0">
             @auth
                 @php
                     $__navUser = Auth::user();
                     $__navProfile = $__navUser->circleProfile ?? \App\Models\CircleProfile::getOrCreateForUser($__navUser);
+                    
+                    $__dashUrl = route('admin.dashboard');
+                    if ($__navUser->role === 'siswa') {
+                        $__dashUrl = route('siswa.dashboard');
+                    } elseif ($__navUser->role === 'guru' || $__navUser->role === 'pegawai') {
+                        $__dashUrl = route('guru.dashboard');
+                    } elseif ($__navUser->role === 'orang_tua') {
+                        $__dashUrl = route('orangtua.dashboard');
+                    } elseif ($__navUser->isKetuaYayasan() || $__navUser->hasRole('ketua_yayasan')) {
+                        $__dashUrl = route('yayasan.dashboard');
+                    }
                 @endphp
+
+                {{-- TOMBOL MORAK & CERAH: CHECK-OUT TO DASHBOARD --}}
+                <a href="{{ $__dashUrl }}" 
+                   title="Keluar dari CIRCLE dan Kembali ke Dashboard Utama"
+                   class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border-2 border-black transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+                   style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 12px rgba(52, 211, 153, 0.45) !important;">
+                    <i class="fas fa-arrow-left text-xs" style="color: #000000 !important;"></i>
+                    <span class="hidden sm:inline" style="color: #000000 !important; font-weight: 900 !important; font-size: 12px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">CHECK-OUT to Dashboard</span>
+                    <span class="sm:hidden" style="color: #000000 !important; font-weight: 900 !important; font-size: 11px !important;">Dashboard</span>
+                </a>
+
                 <a href="{{ route('circle.profile', ['username' => $__navProfile->username]) }}"
-                   class="flex items-center gap-2.5 pl-1.5 pr-3.5 py-1.5 rounded-2xl bg-white hover:bg-pink-50/80 border-2 border-pink-100 hover:border-pink-300 shadow-xs transition-base group">
+                   class="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-2xl bg-white hover:bg-pink-50/80 border-2 border-pink-200 hover:border-pink-400 shadow-xs transition-base group">
                     <img src="{{ $__navUser->avatar_url ?? asset('images/default-avatar.svg') }}"
                          alt="{{ $__navUser->name }}"
-                         class="w-7 h-7 rounded-xl object-cover ring-2 ring-pink-200">
-                    <span class="text-xs font-extrabold text-slate-900 max-w-[100px] truncate group-hover:text-pink-600 transition-colors">
+                         class="w-7 h-7 rounded-xl object-cover ring-2 ring-pink-300">
+                    <span class="text-xs font-black text-slate-950 max-w-[90px] truncate group-hover:text-pink-600 transition-colors">
                         {{ $__navProfile->nickname ?? explode(' ', $__navUser->name)[0] }}
                     </span>
                 </a>
@@ -259,6 +281,16 @@
             <img src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.svg') }}"
                  class="w-7 h-7 rounded-full object-cover ring-2 {{ request()->routeIs('circle.profile') ? 'ring-pink-500' : 'ring-slate-300' }}">
             <span class="text-[10px]">Profil</span>
+        </a>
+
+        {{-- Check-out to Dashboard (Mobile) --}}
+        <a href="{{ $__dashUrl }}"
+           class="flex flex-col items-center gap-1 min-w-[48px] transition-base text-slate-950 font-black">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center border-2 border-black shadow-xs"
+                 style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important;">
+                <i class="fas fa-arrow-left text-xs text-black"></i>
+            </div>
+            <span class="text-[9px] font-black text-slate-950">Dashboard</span>
         </a>
         @else
         <a href="{{ route('login') }}"

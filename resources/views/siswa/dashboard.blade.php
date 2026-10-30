@@ -49,19 +49,21 @@
                     $__circleProfile = \App\Models\CircleProfile::where('user_id', Auth::id())->first();
                     $__circleUsername = $__circleProfile?->username ?? Auth::user()->username;
                 @endphp
-                {{-- ANIMASI CHECK-IN TO CIRCLE LANGSUNG DI BANNER GREETING --}}
+                {{-- ANIMASI CHECK-IN TO CIRCLE (SUPER MORAK, CERAH, & MENYALA) --}}
                 <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" 
                    title="Buka Panggung & Profil Publik PembdaCIRCLE (@{{ $__circleUsername }})"
-                   class="group relative inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl border-2 border-pink-300 shadow-sm font-black text-xs uppercase tracking-wider text-slate-950 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer overflow-hidden"
-                   style="background: linear-gradient(135deg, #fce7f3 0%, #fef9c3 50%, #dcfce7 100%) !important;">
-                    <span class="absolute inset-0 w-full h-full bg-white/40 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
-                    <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-600 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-pink-600"></span>
+                   class="group inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl border-2 border-black transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer shadow-lg"
+                   style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 14px rgba(255, 0, 122, 0.45) !important;">
+                    
+                    {{-- Pulsing Radar Dot Putih Cerah --}}
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-white border border-black shadow-xs"></span>
                     </span>
-                    <i class="fas fa-bullseye text-pink-700 group-hover:rotate-180 transition-transform duration-500"></i>
-                    <span>Check-in to CIRCLE</span>
-                    <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-2 py-0.5 rounded-full border border-pink-300">Publik</span>
+                    
+                    <i class="fas fa-bullseye text-sm group-hover:rotate-180 transition-transform duration-500" style="color: #000000 !important;"></i>
+                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">CHECK-IN TO CIRCLE</span>
+                    <span style="background-color: #000000 !important; color: #ffd600 !important; font-weight: 900 !important; font-size: 10px !important; padding: 2px 8px !important; border-radius: 9999px !important; border: 1px solid #ffd600 !important;">PUBLIK</span>
                 </a>
 
                 @if($activeYear)
