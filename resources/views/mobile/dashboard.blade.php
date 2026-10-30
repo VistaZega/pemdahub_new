@@ -250,8 +250,13 @@
         <div class="absolute -right-4 -bottom-6 w-32 h-32 bg-white/15 rounded-full blur-xl pointer-events-none"></div>
         <div class="flex items-center justify-between gap-3 relative z-10 text-white">
             <div class="flex items-center gap-3 min-w-0">
-                <div class="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 flex items-center justify-center text-2xl shadow-inner shrink-0 group-hover:rotate-12 transition-transform">
-                    ✨
+                <div class="relative w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 flex items-center justify-center text-xl shadow-inner shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none animate-spin" style="animation-duration: 10s;" viewBox="0 0 44 44" fill="none">
+                        <circle cx="22" cy="22" r="19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-dasharray="8 6" opacity="0.6" />
+                        <circle cx="39" cy="14" r="2.5" fill="#fbbf24" />
+                        <circle cx="5" cy="30" r="2" fill="#38bdf8" />
+                    </svg>
+                    <span class="relative z-10 text-2xl group-hover:rotate-12 transition-transform">✨</span>
                 </div>
                 <div class="min-w-0">
                     <div class="flex items-center gap-1.5">

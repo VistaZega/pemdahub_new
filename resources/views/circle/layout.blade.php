@@ -113,6 +113,81 @@
         .transition-base { transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1); }
 
         [x-cloak] { display: none !important; }
+
+        /* ── ANIMASI LOGO PEMBDACIRCLE ULTRA CANTIK & DINAMIS ── */
+        .circle-spin-slow {
+            animation: circleSpin 14s linear infinite;
+            transform-origin: center;
+        }
+        .group:hover .circle-spin-slow {
+            animation-duration: 4s;
+        }
+
+        .circle-spin-reverse {
+            animation: circleSpinReverse 9s linear infinite;
+            transform-origin: center;
+        }
+        .group:hover .circle-spin-reverse {
+            animation-duration: 3s;
+        }
+
+        @keyframes circleSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes circleSpinReverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+
+        .circle-sparkle-dance {
+            animation: sparkleDance 3s ease-in-out infinite;
+            transform-origin: center;
+        }
+        @keyframes sparkleDance {
+            0%, 100% { transform: scale(1) rotate(0deg); color: #ec4899; }
+            25% { transform: scale(1.2) rotate(12deg); color: #f43f5e; }
+            50% { transform: scale(0.92) rotate(-8deg); color: #f59e0b; }
+            75% { transform: scale(1.15) rotate(6deg); color: #8b5cf6; }
+        }
+
+        .circle-twinkle-1 {
+            animation: twinkleOne 2.2s ease-in-out infinite;
+        }
+        @keyframes twinkleOne {
+            0%, 100% { opacity: 0.3; transform: scale(0.75) translateY(0); }
+            50% { opacity: 1; transform: scale(1.3) translateY(-3px) rotate(15deg); }
+        }
+
+        .circle-twinkle-2 {
+            animation: twinkleTwo 2.8s ease-in-out infinite 0.7s;
+        }
+        @keyframes twinkleTwo {
+            0%, 100% { opacity: 0.9; transform: scale(1.2) rotate(0deg); }
+            50% { opacity: 0.2; transform: scale(0.6) rotate(-25deg); }
+        }
+
+        .circle-gradient-text {
+            background: linear-gradient(135deg, #ec4899 0%, #f43f5e 25%, #8b5cf6 50%, #06b6d4 75%, #ec4899 100%);
+            background-size: 300% 300%;
+            animation: gradientFlow 5s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .circle-shimmer {
+            animation: shimmerSlide 3.5s ease-in-out infinite;
+        }
+        @keyframes shimmerSlide {
+            0% { transform: translateX(-150%); }
+            45%, 100% { transform: translateX(200%); }
+        }
     </style>
 
     @yield('head_styles')
@@ -125,14 +200,71 @@
 <header class="nav-pastel-glass sticky top-0 z-50 transition-all">
     <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
-        {{-- Brand Logo Cantik & Lucu --}}
-        <a href="{{ route('circle.feed') }}" class="flex items-center gap-2.5 group shrink-0">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-pink-600 bg-pink-100 border-2 border-pink-200 shadow-sm group-hover:rotate-12 transition-transform">
-                <i class="fas fa-sparkles text-lg"></i>
+        {{-- Brand Logo Cantik, Hidup & Memikat (Animated Orbital Emblem) --}}
+        <a href="{{ route('circle.feed') }}" class="flex items-center gap-2.5 sm:gap-3 group shrink-0 select-none" title="Beranda PembdaCIRCLE">
+            {{-- Multi-ring Animated Orbital Orb --}}
+            <div class="relative w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
+                <!-- Glowing Pulsing Aura -->
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-300 to-sky-400 blur-md opacity-45 group-hover:opacity-90 transition-opacity duration-300 animate-pulse"></div>
+                
+                <!-- Orbital Ring 1 (Clockwise) -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none circle-spin-slow" viewBox="0 0 44 44" fill="none">
+                    <defs>
+                        <linearGradient id="circleOrbGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ec4899" />
+                            <stop offset="50%" stop-color="#f59e0b" />
+                            <stop offset="100%" stop-color="#06b6d4" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="22" cy="22" r="19" stroke="url(#circleOrbGrad1)" stroke-width="2" stroke-linecap="round" stroke-dasharray="9 6" opacity="0.85" />
+                    <!-- Planet Satellite Beads -->
+                    <circle cx="39" cy="14" r="2.8" fill="#f43f5e" />
+                    <circle cx="5" cy="30" r="2.2" fill="#06b6d4" />
+                </svg>
+
+                <!-- Orbital Ring 2 (Counter-Clockwise) -->
+                <svg class="absolute inset-1 w-8 h-8 sm:w-9 sm:h-9 pointer-events-none circle-spin-reverse" viewBox="0 0 36 36" fill="none">
+                    <defs>
+                        <linearGradient id="circleOrbGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#8b5cf6" />
+                            <stop offset="100%" stop-color="#ec4899" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="18" cy="18" r="15" stroke="url(#circleOrbGrad2)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 7" opacity="0.75" />
+                    <!-- Mini Golden Bead -->
+                    <circle cx="18" cy="3" r="2.4" fill="#fbbf24" />
+                </svg>
+
+                <!-- 3D Glossy Clay Glass Core -->
+                <div class="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-400 p-[1.5px] shadow-sm overflow-hidden flex items-center justify-center">
+                    <div class="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-black/10 rounded-xl pointer-events-none"></div>
+                    <div class="w-full h-full rounded-[10px] bg-white/95 backdrop-blur-xs flex items-center justify-center relative">
+                        <i class="fas fa-sparkles text-xs sm:text-sm circle-sparkle-dance"></i>
+                    </div>
+                </div>
+
+                <!-- Floating Micro Twinkle Stars -->
+                <span class="absolute -top-1.5 -right-1 text-[11px] pointer-events-none circle-twinkle-1">✨</span>
+                <span class="absolute -bottom-1 -left-1 text-[9px] pointer-events-none circle-twinkle-2">⭐</span>
             </div>
-            <div class="flex items-baseline gap-1">
-                <span class="font-display font-extrabold text-xl text-slate-900 tracking-tight">Pembda</span>
-                <span class="font-display font-black text-xl tracking-tight text-pink-600 bg-pink-50 px-2 py-0.5 rounded-xl border border-pink-200">CIRCLE</span>
+
+            {{-- Typography with Animated Shimmer Badge --}}
+            <div class="flex items-center gap-1 sm:gap-1.5">
+                <span class="font-display font-black text-lg sm:text-xl text-slate-950 tracking-tight">Pembda</span>
+                <div class="relative inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-xl border-2 border-pink-200/90 shadow-xs overflow-hidden group-hover:border-pink-400 transition-colors"
+                     style="background: linear-gradient(135deg, #fff1f2 0%, #fdf2f8 50%, #fef9c3 100%);">
+                    <!-- Shimmer Stripe -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent -translate-x-full circle-shimmer pointer-events-none"></div>
+                    <!-- Radar Live Dot -->
+                    <span class="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-pink-500"></span>
+                    </span>
+                    <!-- Flowing Gradient Text -->
+                    <span class="font-display font-black text-[11px] sm:text-xs tracking-wider uppercase circle-gradient-text">
+                        CIRCLE
+                    </span>
+                </div>
             </div>
         </a>
 
