@@ -39,7 +39,7 @@
                     $__circleGuruProfile = \App\Models\CircleProfile::where('user_id', Auth::id())->first();
                     $__circleGuruUsername = $__circleGuruProfile?->username ?? Auth::user()->username;
                 @endphp
-                {{-- ANIMASI CHECK-IN TO CIRCLE (SUPER MORAK, CERAH, & MENYALA) --}}
+                {{-- ANIMASI LOMPAT KE PANGGUNG CIRCLE (SUPER MORAK, CERAH, & MENYALA) --}}
                 <a href="{{ route('circle.profile', ['username' => $__circleGuruUsername]) }}" 
                    title="Buka Panggung & Profil Publik PembdaCIRCLE (@{{ $__circleGuruUsername }})"
                    class="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 border-black transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer shadow-lg"
@@ -51,9 +51,9 @@
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-white border border-black shadow-xs"></span>
                     </span>
                     
-                    <i class="fas fa-bullseye text-sm group-hover:rotate-180 transition-transform duration-500" style="color: #000000 !important;"></i>
-                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">CHECK-IN TO CIRCLE</span>
-                    <span style="background-color: #000000 !important; color: #ffd600 !important; font-weight: 900 !important; font-size: 10px !important; padding: 2px 8px !important; border-radius: 9999px !important; border: 1px solid #ffd600 !important;">LIVE</span>
+                    <i class="fas fa-sparkles text-sm group-hover:rotate-180 transition-transform duration-500" style="color: #000000 !important;"></i>
+                    <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">LOMPAT KE PANGGUNG CIRCLE</span>
+                    <span style="background-color: #000000 !important; color: #ffd600 !important; font-weight: 900 !important; font-size: 10px !important; padding: 2px 8px !important; border-radius: 9999px !important; border: 1px solid #ffd600 !important;">GELORA</span>
                 </a>
 
                 @if($activeYear)

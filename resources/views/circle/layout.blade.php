@@ -136,32 +136,32 @@
             </div>
         </a>
 
-        {{-- Unit Switcher Pills (Warna-Warni Pastel) --}}
+        {{-- Unit Switcher Pills: Gelora 3 Unit Sekolah --}}
         <nav class="hidden md:flex items-center gap-2 bg-white/80 rounded-2xl p-1.5 border-2 border-[#f1e8dc] shadow-xs">
             <a href="{{ route('circle.feed') }}"
                class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base {{ !request('school') ? 'bg-pink-100 text-pink-900 border border-pink-300 shadow-xs' : 'text-slate-800 hover:text-pink-700 hover:bg-pink-50' }}">
-                <i class="fas fa-shapes text-pink-500 mr-1.5"></i>Semua Unit
+                <i class="fas fa-shapes text-pink-500 mr-1.5"></i>Semua Gelora
             </a>
             <a href="{{ route('circle.feed', ['school' => 'SMK']) }}"
                class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1.5 {{ request('school') === 'SMK' ? 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-[#7f5539] hover:bg-[#faedcd]/60' }}">
                 <span class="w-5 h-5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
                     <i class="fas fa-wrench"></i>
                 </span>
-                <span>SMK Pembda</span>
+                <span>Reka Vokasi SMK</span>
             </a>
             <a href="{{ route('circle.feed', ['school' => 'SMA']) }}"
                class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1.5 {{ request('school') === 'SMA' ? 'bg-sky-100 text-sky-900 border border-sky-300 shadow-xs' : 'text-slate-800 hover:text-sky-700 hover:bg-sky-50' }}">
                 <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
                     <i class="fas fa-atom"></i>
                 </span>
-                <span>SMA Pembda</span>
+                <span>Riset Ilmiah SMA</span>
             </a>
             <a href="{{ route('circle.feed', ['school' => 'SMP']) }}"
                class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-base flex items-center gap-1.5 {{ request('school') === 'SMP' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs' : 'text-slate-800 hover:text-emerald-700 hover:bg-emerald-50' }}">
                 <span class="w-5 h-5 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-[10px]">
                     <i class="fas fa-seedling"></i>
                 </span>
-                <span>SMP Pembda</span>
+                <span>Tunas Muda SMP</span>
             </a>
         </nav>
 
@@ -184,14 +184,14 @@
                     }
                 @endphp
 
-                {{-- TOMBOL MORAK & CERAH: CHECK-OUT TO DASHBOARD --}}
+                {{-- TOMBOL MORAK & CERAH: KEMBALI KE MEJA KERJA DASHBOARD --}}
                 <a href="{{ $__dashUrl }}" 
-                   title="Keluar dari CIRCLE dan Kembali ke Dashboard Utama"
+                   title="Keluar dari CIRCLE dan Kembali ke Meja Kerja Dashboard Utama"
                    class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border-2 border-black transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md cursor-pointer"
                    style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 12px rgba(52, 211, 153, 0.45) !important;">
-                    <i class="fas fa-arrow-left text-xs" style="color: #000000 !important;"></i>
-                    <span class="hidden sm:inline" style="color: #000000 !important; font-weight: 900 !important; font-size: 12px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">CHECK-OUT to Dashboard</span>
-                    <span class="sm:hidden" style="color: #000000 !important; font-weight: 900 !important; font-size: 11px !important;">Dashboard</span>
+                    <i class="fas fa-compass text-xs" style="color: #000000 !important;"></i>
+                    <span class="hidden sm:inline" style="color: #000000 !important; font-weight: 900 !important; font-size: 12px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">KEMBALI KE MEJA KERJA</span>
+                    <span class="sm:hidden" style="color: #000000 !important; font-weight: 900 !important; font-size: 11px !important;">Meja Kerja</span>
                 </a>
 
                 <a href="{{ route('circle.profile', ['username' => $__navProfile->username]) }}"
@@ -283,14 +283,14 @@
             <span class="text-[10px]">Profil</span>
         </a>
 
-        {{-- Check-out to Dashboard (Mobile) --}}
+        {{-- Kembali ke Meja Kerja (Mobile) --}}
         <a href="{{ $__dashUrl }}"
            class="flex flex-col items-center gap-1 min-w-[48px] transition-base text-slate-950 font-black">
             <div class="w-8 h-8 rounded-xl flex items-center justify-center border-2 border-black shadow-xs"
                  style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important;">
-                <i class="fas fa-arrow-left text-xs text-black"></i>
+                <i class="fas fa-compass text-xs text-black"></i>
             </div>
-            <span class="text-[9px] font-black text-slate-950">Dashboard</span>
+            <span class="text-[9px] font-black text-slate-950">Meja Kerja</span>
         </a>
         @else
         <a href="{{ route('login') }}"

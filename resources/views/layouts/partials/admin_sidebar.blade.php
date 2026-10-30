@@ -211,8 +211,8 @@
         <i class="fas fa-bullseye text-xs"></i>
     </div>
     <div class="flex-1 min-w-0">
-        <div class="text-[10px] font-black uppercase tracking-wider text-pink-700">Edu-Social</div>
-        <div class="text-sm font-extrabold truncate text-slate-900">PembdaCIRCLE</div>
+        <div class="text-[10px] font-black uppercase tracking-wider text-pink-700">Panggung Siswa</div>
+        <div class="text-sm font-extrabold truncate text-slate-900">Gelora CIRCLE</div>
     </div>
     <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full uppercase shadow-xs">Publik</span>
 </a>

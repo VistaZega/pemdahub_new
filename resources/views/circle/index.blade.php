@@ -83,21 +83,41 @@
     ═══════════════════════════════════════════ --}}
     <div class="lg:col-span-2 space-y-6">
 
-        {{-- ── 1. Story Bar (Interactive Instagram-Style Bubbles) ── --}}
-        @if($activeStories->isNotEmpty())
+        {{-- ── 1. Story Bar: ⚡ KILAS 24 JAM WARGA PEMBDA ── --}}
+        @if($activeStories->isNotEmpty() || Auth::check())
             <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-4 shadow-xs">
                 <div class="flex items-center justify-between mb-3 px-1">
                     <span class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <span class="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">
                             <i class="fas fa-bolt"></i>
                         </span>
-                        <span>Story Warga Pembda (24 Jam)</span>
+                        <span>Kilas 24 Jam Warga Pembda</span>
                     </span>
-                    <span class="text-[11px] font-bold text-pink-600 bg-pink-50 border border-pink-200 px-2 py-0.5 rounded-full">
-                        {{ $activeStories->count() }} cerita aktif ✨
+                    <span class="text-[11px] font-bold text-pink-600 bg-pink-50 border border-pink-200 px-2.5 py-0.5 rounded-full">
+                        {{ $activeStories->count() }} kilas aktif ✨
                     </span>
                 </div>
                 <div class="flex items-center gap-4 overflow-x-auto pb-2 custom-scrollbar">
+                    @auth
+                        {{-- Bulatan Heboh: Lepas Kilas Baru --}}
+                        <button type="button" 
+                                @click="document.getElementById('quick-post-box')?.scrollIntoView({behavior: 'smooth'}); setTimeout(() => { const btn = document.getElementById('btn-select-story'); if(btn) btn.click(); }, 300)"
+                                class="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none cursor-pointer"
+                                title="Unggah Kilas 24 Jam Baru">
+                            <div class="relative w-16 h-16 rounded-full p-[2.5px] border-2 border-dashed border-pink-400 group-hover:scale-105 transition-transform duration-200">
+                                <div class="w-full h-full rounded-full p-0.5 bg-white overflow-hidden">
+                                    <img src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-full h-full rounded-full object-cover">
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-pink-600 text-white border-2 border-white flex items-center justify-center text-[10px] font-black shadow-xs">
+                                    +
+                                </span>
+                            </div>
+                            <span class="text-[11px] font-black text-slate-950 group-hover:text-pink-600 max-w-[70px] truncate text-center">
+                                + Kilas Saya
+                            </span>
+                        </button>
+                    @endauth
+
                     @foreach($activeStories as $story)
                         <button type="button" 
                                 @click="openStory({{ $loop->index }})" 
@@ -118,41 +138,266 @@
             </div>
         @endif
 
-        {{-- ── 2. Filter Tab Bar Lucu & Berwarna Pastel ── --}}
+        {{-- ── 2. RUANG EKSPRESI & UNJUK KARYA (KOTAK POSTING CEPAT LANGSUNG DI FEED) ── --}}
+        @auth
+            <div id="quick-post-box" 
+                 class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs relative overflow-hidden transition-all duration-300"
+                 x-data="{
+                    postType: 'status',
+                    tabCat: 'wall',
+                    showExtras: false,
+                    selectedMood: '✨',
+                    moodText: 'Ceria',
+                    mediaName: '',
+                    mediaPreviewUrl: null,
+                    isVideo: false,
+                    handleFileSelect(e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        this.mediaName = file.name;
+                        this.isVideo = file.type.startsWith('video');
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            this.mediaPreviewUrl = ev.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    },
+                    clearMedia() {
+                        this.mediaName = '';
+                        this.mediaPreviewUrl = null;
+                        this.isVideo = false;
+                        if (this.$refs.mediaInput) this.$refs.mediaInput.value = '';
+                    }
+                 }">
+                
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-pink-100/60 rounded-full blur-2xl pointer-events-none"></div>
+
+                {{-- Header Pengguna --}}
+                <div class="flex items-center justify-between gap-3 mb-4 relative z-10">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="relative shrink-0">
+                            <img src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                 alt="{{ Auth::user()->name }}"
+                                 class="w-12 h-12 rounded-2xl object-cover ring-2 ring-pink-300 shadow-xs">
+                            <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-2xs"></span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-display font-black text-sm sm:text-base text-slate-950 truncate">
+                                    Ruang Ekspresi, {{ explode(' ', Auth::user()->name)[0] }}! ✨
+                                </h4>
+                                @if(Auth::user()->school)
+                                    <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-pink-100 text-pink-900 border border-pink-200">
+                                        {{ Auth::user()->school->name }}
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 truncate">
+                                Apa gebrakan, karya nyata bengkel/lab, atau ceritamu hari ini?
+                            </p>
+                        </div>
+                    </div>
+                    <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs">
+                        <span>Panggung Terbuka</span> 🚀
+                    </span>
+                </div>
+
+                {{-- Form Pengiriman --}}
+                <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data" class="relative z-10">
+                    @csrf
+                    <input type="hidden" name="tab_category" :value="tabCat">
+                    <input type="hidden" name="post_type" :value="postType">
+
+                    {{-- 4 Pilihan Gelora Konten Pastel --}}
+                    <div class="flex items-center gap-2 mb-3.5 overflow-x-auto pb-1 custom-scrollbar">
+                        {{-- 1. Ruang Cengkrama (Status Nongki) --}}
+                        <button type="button" 
+                                @click="tabCat = 'wall'; postType = 'status'"
+                                :class="tabCat === 'wall' && postType === 'status' ? 'bg-[#faedcd] text-slate-950 border-[#d4a373] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-[#faedcd]/40'"
+                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-5 h-5 rounded-lg bg-[#faedcd] text-[#7f5539] flex items-center justify-center text-[10px]">
+                                <i class="fas fa-mug-hot"></i>
+                            </span>
+                            <span>Ruang Cengkrama</span>
+                        </button>
+
+                        {{-- 2. Kilas 24 Jam (Story) --}}
+                        <button type="button" id="btn-select-story"
+                                @click="tabCat = 'wall'; postType = 'story'"
+                                :class="postType === 'story' ? 'bg-pink-100 text-slate-950 border-pink-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-pink-50'"
+                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-5 h-5 rounded-lg bg-pink-200 text-pink-700 flex items-center justify-center text-[10px]">
+                                <i class="fas fa-bolt"></i>
+                            </span>
+                            <span>Kilas 24 Jam</span>
+                        </button>
+
+                        {{-- 3. Reka Cipta (Pamer Karya / Proyek) --}}
+                        <button type="button" 
+                                @click="tabCat = 'portfolio'; postType = 'project'"
+                                :class="tabCat === 'portfolio' && postType === 'project' ? 'bg-amber-100 text-slate-950 border-amber-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-amber-50'"
+                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-5 h-5 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
+                                <i class="fas fa-trophy"></i>
+                            </span>
+                            <span>Reka Cipta Mahakarya</span>
+                        </button>
+
+                        {{-- 4. Lensa Gerak (Reels) --}}
+                        <button type="button" 
+                                @click="tabCat = 'portfolio'; postType = 'reel'"
+                                :class="postType === 'reel' ? 'bg-sky-100 text-slate-950 border-sky-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-sky-50'"
+                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                            <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
+                                <i class="fas fa-play"></i>
+                            </span>
+                            <span>Lensa Gerak (Video)</span>
+                        </button>
+                    </div>
+
+                    {{-- Judul Karya (Tampil Saat Memilih Reka Cipta atau Lensa Gerak) --}}
+                    <div x-show="tabCat === 'portfolio'" x-transition class="mb-3">
+                        <label class="block text-[11px] font-black uppercase tracking-wider text-slate-900 mb-1">
+                            Judul Reka Cipta / Proyek Inovasi <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" name="title" 
+                               placeholder="Contoh: Rancang Bangun IoT Pengendali Suhu Mesin, atau Riset Biologi Alga Nias..." 
+                               class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/60 border-2 border-amber-200 text-xs sm:text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400 shadow-2xs">
+                    </div>
+
+                    {{-- Textarea Isi Goresan --}}
+                    <div class="mb-3">
+                        <textarea name="content" rows="3" required
+                                  :placeholder="postType === 'story' ? 'Tuliskan kilas cerita cepat yang bertahan 24 jam...' : (tabCat === 'portfolio' ? 'Uraikan latar belakang karya, alat praktikum yang digunakan, dan hasil uji kompetensimu...' : 'Tuliskan obrolan santai, curhat seru di sekolah, atau pesan inspiratif...')"
+                                  class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none shadow-2xs"></textarea>
+                    </div>
+
+                    {{-- Media Preview (Live jika ada file yang dipilih) --}}
+                    <template x-if="mediaPreviewUrl">
+                        <div class="mb-3 relative rounded-2xl overflow-hidden border-2 border-slate-200 max-h-56 bg-slate-950 flex items-center justify-center">
+                            <template x-if="!isVideo">
+                                <img :src="mediaPreviewUrl" class="max-h-56 w-full object-contain">
+                            </template>
+                            <template x-if="isVideo">
+                                <video :src="mediaPreviewUrl" controls class="max-h-56 w-full object-contain"></video>
+                            </template>
+                            <button type="button" @click="clearMedia()" 
+                                    class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center text-xs font-black transition cursor-pointer"
+                                    title="Hapus Lampiran Media">
+                                ✕
+                            </button>
+                        </div>
+                    </template>
+
+                    {{-- Extra Options Toggle (Mood & Lokasi Bengkel/Lab) --}}
+                    <div x-show="showExtras" x-collapse x-transition class="mb-3.5 p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-3">
+                        <div>
+                            <span class="block text-[11px] font-black text-slate-900 mb-1.5">Getaran Suasana Hati:</span>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                @foreach(['🔥' => 'Semangat', '🚀' => 'Produktif', '💡' => 'Ide Baru', '🛠️' => 'Ngoprek', '☕' => 'Santai', '🎨' => 'Kreatif', '📚' => 'Belajar', '😎' => 'Keren', '✨' => 'Ceria', '🌸' => 'Damai'] as $emoji => $mLabel)
+                                    <button type="button" 
+                                            @click="selectedMood = '{{ $emoji }}'; moodText = '{{ $mLabel }}'"
+                                            class="px-2.5 py-1 rounded-xl text-xs font-bold border transition cursor-pointer hover:scale-105"
+                                            :class="selectedMood === '{{ $emoji }}' ? 'bg-amber-100 border-amber-300 text-slate-950 font-black' : 'bg-white border-slate-200 text-slate-800'">
+                                        <span>{{ $emoji }}</span> <span>{{ $mLabel }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                            <input type="hidden" name="mood_emoji" :value="selectedMood">
+                            <input type="hidden" name="mood_text" :value="moodText">
+                        </div>
+
+                        <div>
+                            <span class="block text-[11px] font-black text-slate-900 mb-1">Lokasi / Ruang Praktik:</span>
+                            <input type="text" name="location_tag" 
+                                   placeholder="Contoh: Bengkel TKR, Lab Komputer TKJ, Perpustakaan, Ruang OSIS..." 
+                                   class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-pink-300">
+                        </div>
+                    </div>
+
+                    {{-- Bottom Action Bar: Upload File + Ekstra Mood + Tombol Morak Terbang --}}
+                    <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black cursor-pointer transition flex items-center gap-2 hover:scale-105">
+                                <i class="fas fa-photo-film text-pink-600 text-xs"></i>
+                                <span class="hidden sm:inline">Foto / Video</span>
+                                <span class="sm:hidden">Media</span>
+                                <input type="file" name="media" x-ref="mediaInput" @change="handleFileSelect($event)" accept="image/*,video/*" class="hidden">
+                            </label>
+
+                            <button type="button" @click="showExtras = !showExtras"
+                                    class="px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-slate-950 text-xs font-black cursor-pointer transition flex items-center gap-2 hover:scale-105">
+                                <span x-text="selectedMood || '✨'"></span>
+                                <span class="hidden sm:inline">Suasana & Lokasi</span>
+                            </button>
+                        </div>
+
+                        <button type="submit" 
+                                class="px-6 py-2.5 rounded-2xl border-2 border-black transition-all transform hover:scale-105 active:scale-95 cursor-pointer shadow-md flex items-center gap-2"
+                                style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 14px rgba(255, 0, 122, 0.45) !important;">
+                            <i class="fas fa-paper-plane text-xs text-black" style="color: #000000 !important;"></i>
+                            <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">
+                                TERBANGKAN KE PANGGUNG 🚀
+                            </span>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        @else
+            <div class="bg-gradient-to-r from-pink-50 via-amber-50 to-sky-50 rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5 text-center sm:text-left">
+                    <div class="w-12 h-12 rounded-2xl bg-pink-200 text-pink-700 flex items-center justify-center text-xl shrink-0">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-display font-black text-sm text-slate-950">Ingin Mengisi Ruang Ekspresi? ✨</h4>
+                        <p class="text-xs font-semibold text-slate-700">Masuk dengan akun siswa atau guru Anda untuk mulai mengunggah portofolio digital dan momen seru.</p>
+                    </div>
+                </div>
+                <a href="{{ route('login') }}" 
+                   class="px-5 py-2.5 rounded-2xl text-xs font-black text-black border-2 border-black transition-all hover:scale-105 shrink-0 shadow-md"
+                   style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2px solid #000000 !important;">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Masuk Sekarang
+                </a>
+            </div>
+        @endauth
+
+        {{-- ── 3. Filter Tab Bar: Gelora Pastel ── --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-3xl border-2 border-[#f1e8dc] p-2.5 shadow-xs">
-            {{-- Tabs Pastel --}}
+            {{-- Tabs Pastel Heboh --}}
             <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-                {{-- Tab Semua --}}
+                {{-- 1. Semua Gelora --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'all'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'all' ? 'bg-pink-100 text-slate-950 border-2 border-pink-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-pink-200 text-pink-800 flex items-center justify-center text-[10px]">
                         <i class="fas fa-layer-group"></i>
                     </span>
-                    <span>Semua Feed</span>
+                    <span>Semua Gelora</span>
                 </a>
-                {{-- Tab Karya --}}
+                {{-- 2. Reka Cipta Mahakarya --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'portfolio'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'portfolio' ? 'bg-amber-100 text-slate-950 border-2 border-amber-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
                         <i class="fas fa-trophy"></i>
                     </span>
-                    <span>Karya & Proyek</span>
+                    <span>Reka Cipta</span>
                 </a>
-                {{-- Tab Nongki (Coklat Pastel) --}}
+                {{-- 3. Ruang Cengkrama --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'wall'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'wall' ? 'bg-[#faedcd] text-slate-950 border-2 border-[#d4a373] shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-[#e6ccb2] text-[#7f5539] flex items-center justify-center text-[10px]">
                         <i class="fas fa-mug-hot"></i>
                     </span>
-                    <span>Nongki & Seru</span>
+                    <span>Ruang Cengkrama</span>
                 </a>
-                {{-- Tab Reels (Biru Pastel) --}}
+                {{-- 4. Lensa Gerak --}}
                 <a href="{{ route('circle.feed', array_merge(request()->query(), ['tab' => 'reels'])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'reels' ? 'bg-sky-100 text-slate-950 border-2 border-sky-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
                         <i class="fas fa-play"></i>
                     </span>
-                    <span>Reels</span>
+                    <span>Lensa Gerak</span>
                 </a>
             </div>
 
@@ -311,11 +556,11 @@
 
                                 {{-- Category Pill Pastel & Post Deletion --}}
                                 <div class="flex items-center gap-2 shrink-0">
-                                    <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373]' }}">
+                                    <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-100 text-amber-950 border border-amber-300' : 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373]' }}">
                                         @if($post->tab_category === 'portfolio')
-                                            <i class="fas fa-trophy mr-1 text-amber-700"></i>Karya
+                                            <i class="fas fa-trophy mr-1 text-amber-700"></i>Reka Cipta
                                         @else
-                                            <i class="fas fa-mug-hot mr-1 text-[#7f5539]"></i>Nongki
+                                            <i class="fas fa-mug-hot mr-1 text-[#7f5539]"></i>Cengkrama
                                         @endif
                                     </span>
 
@@ -372,33 +617,33 @@
                         <div class="flex items-center justify-between pt-3.5 border-t-2 border-[#f8f4ed] text-xs">
                             {{-- Chunky Pastel Reaction Buttons --}}
                             <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                                {{-- Lit 🔥 --}}
+                                {{-- Menyala! 🔥 (Oranye Pastel) --}}
                                 <button type="button" 
                                         onclick="toggleCircleReaction(this, {{ $post->id }}, 'lit')"
                                         class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">🔥</span>
-                                    <span class="reaction-count-{{ $post->id }}">{{ $post->likes_count > 0 ? $post->likes_count : 'Lit' }}</span>
+                                    <span class="reaction-count-{{ $post->id }}">{{ $post->likes_count > 0 ? $post->likes_count : 'Menyala!' }}</span>
                                 </button>
-                                {{-- Apresiasi 👏 (Hijau Pastel) --}}
+                                {{-- Keren Pol! 👏 (Hijau Pastel) --}}
                                 <button type="button" 
                                         onclick="toggleCircleReaction(this, {{ $post->id }}, 'clap')"
                                         class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">👏</span>
-                                    <span class="hidden sm:inline">Apresiasi</span>
+                                    <span class="hidden sm:inline">Keren Pol!</span>
                                 </button>
-                                {{-- Inspirasi 💡 (Kuning Pastel) --}}
+                                {{-- Memicu Ide! 💡 (Kuning Pastel) --}}
                                 <button type="button" 
                                         onclick="toggleCircleReaction(this, {{ $post->id }}, 'nongki')"
                                         class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">💡</span>
-                                    <span class="hidden sm:inline">Inspirasi</span>
+                                    <span class="hidden sm:inline">Memicu Ide!</span>
                                 </button>
-                                {{-- Love ❤️ (Pink Pastel) --}}
+                                {{-- Bangga! ❤️ (Pink Pastel) --}}
                                 <button type="button" 
                                         onclick="toggleCircleReaction(this, {{ $post->id }}, 'love')"
                                         class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 font-black transition-base cursor-pointer hover:scale-105">
                                     <span class="text-base">❤️</span>
-                                    <span class="hidden sm:inline">Suka</span>
+                                    <span class="hidden sm:inline">Bangga!</span>
                                 </button>
                             </div>
 

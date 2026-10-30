@@ -55,9 +55,9 @@
     <a href="{{ route('circle.profile', ['username' => $__circleGuruUsername]) }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.profile*') ? $ac : 'text-pink-900 bg-pink-50 hover:bg-pink-100 border border-pink-200/80 font-black' }}">
         <div class="flex items-center gap-3">
             <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #db2777 !important; color: #ffffff !important;">
-                <i class="fas fa-bullseye text-[10px] text-white"></i>
+                <i class="fas fa-sparkles text-[10px] text-white"></i>
             </div>
-            <span class="font-black text-slate-900">Profil PembdaCIRCLE</span>
+            <span class="font-black text-slate-900">Panggung CIRCLE Guru</span>
         </div>
         <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Publik</span>
     </a>
@@ -66,7 +66,7 @@
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #6366f1 !important; color: #ffffff !important;">
             <i class="fas fa-layer-group text-[10px] text-white"></i>
         </div>
-        <span>Feed & Jelajah Karya</span>
+        <span>Panggung Gelora Pembda</span>
     </a>
 
     @if(!$isPegawaiOnly)

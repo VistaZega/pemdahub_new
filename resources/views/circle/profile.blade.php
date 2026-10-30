@@ -105,13 +105,13 @@
                                 $__dashUrl = route('yayasan.dashboard');
                             }
                         @endphp
-                        {{-- LINK MORAK & CERAH: CHECK-OUT TO DASHBOARD --}}
+                        {{-- LINK MORAK & CERAH: KEMBALI KE MEJA KERJA DASHBOARD --}}
                         <a href="{{ $__dashUrl }}" 
-                           title="Keluar dari CIRCLE dan Kembali ke Dashboard Utama Anda"
+                           title="Keluar dari CIRCLE dan Kembali ke Meja Kerja Dashboard Utama"
                            class="px-3.5 py-2 rounded-2xl text-xs font-black uppercase tracking-wider text-black border-2 border-black transition-all flex items-center gap-1.5 shadow-md cursor-pointer hover:scale-105"
                            style="background: linear-gradient(135deg, #ffd600 0%, #34d399 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 12px rgba(52, 211, 153, 0.45) !important;">
-                            <i class="fas fa-arrow-left text-xs text-black"></i>
-                            <span>CHECK-OUT to Dashboard</span>
+                            <i class="fas fa-compass text-xs text-black"></i>
+                            <span>KEMBALI KE MEJA KERJA</span>
                         </a>
                     @endauth
 
@@ -126,7 +126,7 @@
                     <button onclick="shareProfile()" 
                             class="px-3.5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105">
                         <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>
-                        <span>Bagikan</span>
+                        <span>Siarkan Portofolio</span>
                     </button>
                     <div class="px-3.5 py-2 rounded-2xl bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs" 
                          title="Total Kunjungan Profil">
@@ -149,7 +149,7 @@
                 {{ $profile->bio ?? 'Belum ada biodata singkat.' }}
             </p>
 
-            {{-- ── 3. LACI AKSES AKADEMIK PRIVAT (KHUSUS PEMILIK SAAT LOGIN) ── --}}
+            {{-- ── 3. LOKER PRIVAT AKADEMIK (KHUSUS PEMILIK SAAT LOGIN) ── --}}
             @if(Auth::check() && Auth::id() === $user->id)
                 <div class="mt-4 mb-3 p-4 rounded-3xl bg-gradient-to-r from-pink-50 via-amber-50 to-sky-50 border-2 border-pink-200/90 shadow-xs">
                     <div class="flex items-center justify-between mb-3">
@@ -157,7 +157,7 @@
                             <span class="w-6 h-6 rounded-lg bg-pink-200 text-pink-800 flex items-center justify-center text-xs">
                                 <i class="fas fa-lock"></i>
                             </span>
-                            <span>Akses Akademik Privatmu (Hanya Kamu yang Bisa Melihat)</span>
+                            <span>Loker Privat Akademik (Rahasia & Terkunci Hanya untuk Kamu)</span>
                         </span>
                         <span class="text-[10px] font-black text-slate-900 bg-white px-2.5 py-0.5 rounded-full border border-pink-200 shadow-2xs">
                             🔒 100% Privat
@@ -236,28 +236,28 @@
             @endif
         </div>
 
-        {{-- ── 4. Dual-Tab Navigasi: Nongki vs Karya (Pastel Coklat vs Kuning) ── --}}
+        {{-- ── 4. Dual-Tab Navigasi: Ruang Cengkrama vs Reka Cipta (Pastel Coklat vs Kuning) ── --}}
         <div class="flex border-t-2 border-[#f1e8dc] bg-[#faf8f5] px-6">
-            {{-- Tab Dinding (Coklat Pastel) --}}
+            {{-- Tab Ruang Cengkrama (Coklat Pastel) --}}
             <button @click="activeTab = 'wall'" 
                     :class="activeTab === 'wall' ? 'border-[#b08968] text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
                     class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl">
                 <span class="w-6 h-6 rounded-lg bg-[#faedcd] text-[#7f5539] flex items-center justify-center text-xs">
                     <i class="fas fa-mug-hot"></i>
                 </span>
-                <span class="font-display">Dinding Nongki & Momen</span>
+                <span class="font-display">Ruang Cengkrama</span>
                 <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-[#faedcd] text-[#7f5539] font-black border border-[#d4a373]">
                     {{ $wallPosts->count() }}
                 </span>
             </button>
-            {{-- Tab Karya (Kuning Pastel) --}}
+            {{-- Tab Reka Cipta Mahakarya (Kuning Pastel) --}}
             <button @click="activeTab = 'portfolio'" 
                     :class="activeTab === 'portfolio' ? 'border-amber-400 text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
                     class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl">
                 <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs">
                     <i class="fas fa-trophy"></i>
                 </span>
-                <span class="font-display">Karya & Portofolio</span>
+                <span class="font-display">Reka Cipta Mahakarya</span>
                 <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-900 border border-amber-300 font-black">
                     {{ $portfolioPosts->count() + $finalProjects->count() + $approvedPklLogs->count() }}
                 </span>
@@ -497,15 +497,15 @@
                 <div class="flex items-center justify-between mb-3.5 flex-wrap gap-2">
                     <h3 class="text-xs font-black uppercase tracking-wider text-emerald-950 flex items-center gap-2">
                         <span class="w-6 h-6 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center text-xs">
-                            <i class="fas fa-certificate"></i>
+                            <i class="fas fa-medal text-amber-500"></i>
                         </span>
-                        <span>Keahlian Resmi Terverifikasi Guru</span>
+                        <span>Lencana Piawai Resmi (Disahkan Mentor Guru)</span>
                     </h3>
                     @if($canEndorseStudent)
                         <button type="button" @click="showEndorseModal = true" 
                                 class="px-3.5 py-1.5 rounded-2xl text-xs font-black text-slate-950 bg-emerald-200 hover:bg-emerald-300 border-2 border-emerald-400 transition-all hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fas fa-plus-circle text-emerald-800"></i>
-                            <span>+ Validasi Keahlian Siswa</span>
+                            <span>+ Sematkan Lencana Piawai</span>
                         </button>
                     @endif
                 </div>

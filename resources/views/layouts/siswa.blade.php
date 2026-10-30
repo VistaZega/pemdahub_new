@@ -30,9 +30,9 @@
     <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.profile*') ? 'bg-pink-100 text-pink-950 font-black border border-pink-300' : 'text-pink-900 bg-pink-50 hover:bg-pink-100 border border-pink-200/80 font-bold' }}">
         <div class="flex items-center gap-3">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-xs">
-                <i class="fas fa-bullseye text-[10px]"></i>
+                <i class="fas fa-sparkles text-[10px]"></i>
             </div>
-            <span>Profil PembdaCIRCLE</span>
+            <span class="font-black text-slate-900">Panggung CIRCLE Saya</span>
         </div>
         <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Publik</span>
     </a>
@@ -41,7 +41,7 @@
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xs">
             <i class="fas fa-layer-group text-[10px]"></i>
         </div>
-        <span class="font-bold">Feed & Jelajah Karya</span>
+        <span class="font-black text-slate-900">Panggung Gelora Pembda</span>
     </a>
 
     @if(\App\Services\SteamCompetitionService::isStudentParticipant(Auth::user()))
