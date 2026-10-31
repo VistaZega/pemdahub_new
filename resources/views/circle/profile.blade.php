@@ -261,14 +261,34 @@
                         {{-- Playback Controls --}}
                         <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
                             @if($anthem['type'] === 'audio')
-                                <audio x-ref="audioElem" src="{{ $anthem['stream_url'] }}" preload="none" @ended="isPlaying = false" @pause="isPlaying = false" @play="isPlaying = true"></audio>
-                                <button type="button" 
-                                        @click="togglePlay()"
-                                        class="px-4 py-2 rounded-2xl text-xs font-black text-white shadow-md flex items-center gap-2 transition hover:scale-105 active:scale-95 cursor-pointer"
-                                        style="background: {{ $theme['hex'] }};">
-                                    <i :class="isPlaying ? 'fas fa-pause' : 'fas fa-play'"></i>
-                                    <span x-text="isPlaying ? 'Jeda Musik' : 'Putar Anthem'"></span>
-                                </button>
+                                <audio x-ref="audioElem" 
+                                       src="{{ $anthem['stream_url'] }}" 
+                                       preload="metadata" 
+                                       playsinline
+                                       @ended="isPlaying = false; isLoading = false" 
+                                       @pause="isPlaying = false" 
+                                       @playing="isPlaying = true; isLoading = false"
+                                       @waiting="isLoading = true"
+                                       @error="handleAudioError($event)">
+                                    <source src="{{ $anthem['stream_url'] }}" type="audio/mp4">
+                                    <source src="{{ $anthem['stream_url'] }}" type="video/mp4">
+                                    <source src="{{ $anthem['stream_url'] }}" type="audio/mpeg">
+                                </audio>
+                                <div class="flex flex-col items-end gap-1">
+                                    <button type="button" 
+                                            @click="togglePlay()"
+                                            class="px-4 py-2 rounded-2xl text-xs font-black text-white shadow-md flex items-center gap-2 transition hover:scale-105 active:scale-95 cursor-pointer"
+                                            style="background: {{ $theme['hex'] }};">
+                                        <i :class="isPlaying ? 'fas fa-pause' : (isLoading ? 'fas fa-circle-notch fa-spin' : 'fas fa-play')"></i>
+                                        <span x-text="isPlaying ? 'Jeda Musik' : (isLoading ? 'Memuat...' : 'Putar Anthem')"></span>
+                                    </button>
+                                    <template x-if="hasError">
+                                        <span class="text-[10px] text-rose-600 font-bold flex items-center gap-1">
+                                            <i class="fas fa-circle-exclamation text-xs"></i>
+                                            <span x-text="errorMessage"></span>
+                                        </span>
+                                    </template>
+                                </div>
                             @elseif($anthem['type'] === 'spotify')
                                 <iframe src="{{ $anthem['embed_url'] }}" width="280" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media" class="rounded-2xl max-w-full"></iframe>
                             @elseif($anthem['type'] === 'youtube')
@@ -1559,20 +1579,48 @@ function circleVinylPlayer(type, streamUrl) {
         type: type,
         streamUrl: streamUrl,
         isPlaying: false,
+        isLoading: false,
+        hasError: false,
+        errorMessage: '',
         togglePlay() {
             if (this.type !== 'audio') return;
             const audio = this.$refs.audioElem;
             if (!audio) return;
+
             if (this.isPlaying) {
                 audio.pause();
                 this.isPlaying = false;
+                this.isLoading = false;
             } else {
-                audio.play().then(() => {
-                    this.isPlaying = true;
-                }).catch(err => {
-                    console.warn('Playback error or autoplay prevented:', err);
-                });
+                this.isLoading = true;
+                this.hasError = false;
+
+                // Pastikan src terpasang
+                if (!audio.src && this.streamUrl) {
+                    audio.src = this.streamUrl;
+                }
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        this.isPlaying = true;
+                        this.isLoading = false;
+                    }).catch(err => {
+                        console.warn('Playback error or user gesture required:', err);
+                        this.isPlaying = false;
+                        this.isLoading = false;
+                        this.hasError = true;
+                        this.errorMessage = 'Gagal memutar (izin audio/format)';
+                    });
+                }
             }
+        },
+        handleAudioError(e) {
+            console.error('Audio load error:', e);
+            this.isPlaying = false;
+            this.isLoading = false;
+            this.hasError = true;
+            this.errorMessage = 'Berkas audio gagal dimuat';
         }
     };
 }

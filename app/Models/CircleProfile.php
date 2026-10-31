@@ -202,40 +202,40 @@ class CircleProfile extends Model
 
         // 1. Preset Lagu
         $presets = [
+            'preset:mars_pembda' => [
+                'type' => 'audio',
+                'title' => 'Hymne & Mars Perguruan Pembda',
+                'artist' => 'Paduan Suara Pembda Nias',
+                'cover_icon' => '🏫',
+                'stream_url' => url('/audio/mars-pembda.mp4'),
+            ],
             'preset:lofi' => [
                 'type' => 'audio',
                 'title' => 'Lofi Chill & Focus',
                 'artist' => 'Pembda Lo-Fi Beats',
                 'cover_icon' => '🎧',
-                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3',
+                'stream_url' => 'https://dn801203.us.archive.org/0/items/FREE_background_music_dhalius/backsound.mp3',
             ],
             'preset:semangat' => [
                 'type' => 'audio',
                 'title' => 'Semangat Pagi Ceria',
                 'artist' => 'Pembda Acoustic Morning',
                 'cover_icon' => '⚡',
-                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3',
+                'stream_url' => 'https://dn710807.ca.archive.org/0/items/testmp3testfile/mpthreetest.mp3',
             ],
             'preset:piano' => [
                 'type' => 'audio',
                 'title' => 'Serenade Piano Inspirasi',
                 'artist' => 'Pembda Classical Melody',
                 'cover_icon' => '🎹',
-                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/11/06/audio_c9274ca294.mp3',
+                'stream_url' => 'https://dn801203.us.archive.org/0/items/FREE_background_music_dhalius/backsound.mp3',
             ],
             'preset:synthwave' => [
                 'type' => 'audio',
                 'title' => 'Cyber Neo Synthwave',
                 'artist' => 'Pembda Future Sound',
                 'cover_icon' => '🛠️',
-                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3',
-            ],
-            'preset:mars_pembda' => [
-                'type' => 'audio',
-                'title' => 'Hymne & Mars Perguruan Pembda',
-                'artist' => 'Paduan Suara Pembda Nias',
-                'cover_icon' => '🏫',
-                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/11/06/audio_c9274ca294.mp3',
+                'stream_url' => 'https://dn801203.us.archive.org/0/items/FREE_background_music_dhalius/backsound.mp3',
             ],
         ];
 
