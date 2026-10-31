@@ -11,7 +11,11 @@
 @endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}', showEditModal: false, showEndorseModal: false, selectedSkill: '' }">
+@php
+    $theme = $profile->theme_styles;
+    $anthem = $profile->anthem_data;
+@endphp
+<div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}', showEditModal: false, showEndorseModal: false, selectedSkill: '', selectedTheme: '{{ $profile->theme_color ?? 'pink' }}', anthemInput: '{{ addslashes($profile->anthem_url ?? '') }}' }">
 
     {{-- Notifikasi Sukses / Peringatan Aksi Interaktif --}}
     @if(session('success'))
@@ -36,10 +40,10 @@
     {{-- ═══════════════════════════════════════════
          PROFILE HEADER CARD (PASTEL CANTIK & LUCU)
     ═══════════════════════════════════════════ --}}
-    <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] shadow-xs overflow-hidden mb-7">
+    <div class="bg-white rounded-3xl border-2 {{ $theme['border'] }} shadow-xs overflow-hidden mb-7 transition-all duration-300">
 
         {{-- ── 1. Cover Banner (Gradien Pastel Lembut & Manis) ── --}}
-        <div class="h-48 sm:h-64 w-full relative overflow-hidden bg-gradient-to-r from-[#fce7f3] via-[#fffbeb] to-[#e0f2fe]">
+        <div class="h-48 sm:h-64 w-full relative overflow-hidden bg-gradient-to-r {{ $theme['gradient'] }}">
             @if($profile->banner_path)
                 <img src="{{ asset('storage/' . $profile->banner_path) }}" 
                      alt="Cover banner"
@@ -190,6 +194,106 @@
             <p class="text-sm font-semibold text-slate-950 leading-relaxed max-w-2xl mb-4">
                 {{ $profile->bio ?? 'Belum ada biodata singkat.' }}
             </p>
+
+            {{-- ── PROFILE ANTHEM: PEMUTAR MUSIK PIRINGAN HITAM (VINYL PLAYER) ── --}}
+            @if($anthem)
+                <div x-data="circleVinylPlayer('{{ $anthem['type'] }}', '{{ $anthem['stream_url'] ?? '' }}')" 
+                     class="mb-4 p-3.5 sm:p-4 rounded-3xl bg-white/95 border-2 {{ $theme['border'] }} shadow-xs relative overflow-hidden group">
+                    <!-- Ambient Glow -->
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 rounded-full opacity-25 blur-2xl pointer-events-none" style="background-color: {{ $theme['hex'] }};"></div>
+
+                    <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 min-w-0 w-full sm:w-auto">
+                            {{-- Piringan Hitam Vinyl yang Berputar --}}
+                            <div class="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 flex items-center justify-center">
+                                <!-- Tonearm Needle (Jarum Piringan Hitam) -->
+                                <div class="absolute -top-1 -right-1 z-20 transition-transform duration-500 origin-top-right pointer-events-none"
+                                     :class="isPlaying ? 'rotate-12 translate-x-1' : '-rotate-12 translate-x-3 opacity-60'">
+                                    <svg class="w-8 h-8 drop-shadow-sm" viewBox="0 0 32 32" fill="none">
+                                        <circle cx="28" cy="4" r="3" fill="#64748b" />
+                                        <path d="M28 4 L14 16 L12 24" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+                                        <rect x="10" y="23" width="4" height="6" rx="1" fill="#475569" />
+                                    </svg>
+                                </div>
+
+                                <!-- Grooved Vinyl Disc -->
+                                <div class="w-full h-full rounded-full bg-[#111827] p-1.5 shadow-md border-2 border-slate-700/80 relative flex items-center justify-center overflow-hidden transition-all duration-300"
+                                     :class="isPlaying ? 'animate-spin' : ''"
+                                     style="animation-duration: 4s;">
+                                    <!-- Concentric Groove Rings -->
+                                    <div class="absolute inset-2 rounded-full border border-slate-600/40"></div>
+                                    <div class="absolute inset-3.5 rounded-full border border-slate-600/30"></div>
+                                    <div class="absolute inset-5 rounded-full border border-slate-600/40"></div>
+                                    
+                                    <!-- Center Label / Sticker -->
+                                    <div class="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white/60 shadow-inner flex items-center justify-center z-10 text-[11px] font-black text-white"
+                                         style="background: {{ $theme['hex'] }};">
+                                        <span>{{ $anthem['cover_icon'] ?? '🎵' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Track Info & Equalizer --}}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="text-[9px] font-black tracking-widest uppercase px-2.5 py-0.5 rounded-full {{ $theme['badge'] }} border shadow-2xs">
+                                        PROFILE ANTHEM 🎵
+                                    </span>
+                                    @if($anthem['type'] === 'audio')
+                                        <!-- Bouncing Equalizer Bars -->
+                                        <div class="flex items-end gap-0.5 h-3.5 px-1.5 py-0.5 bg-slate-100 rounded-md" x-show="isPlaying">
+                                            <span class="w-1 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.1s; height: 100%;"></span>
+                                            <span class="w-1 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.3s; height: 70%;"></span>
+                                            <span class="w-1 bg-sky-500 rounded-full animate-bounce" style="animation-delay: 0.2s; height: 90%;"></span>
+                                            <span class="w-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.4s; height: 60%;"></span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <h4 class="font-display font-black text-sm text-slate-950 truncate">
+                                    {{ $anthem['title'] }}
+                                </h4>
+                                <p class="text-xs font-bold text-slate-600 truncate">
+                                    {{ $anthem['artist'] }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Playback Controls --}}
+                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            @if($anthem['type'] === 'audio')
+                                <audio x-ref="audioElem" src="{{ $anthem['stream_url'] }}" preload="none" @ended="isPlaying = false" @pause="isPlaying = false" @play="isPlaying = true"></audio>
+                                <button type="button" 
+                                        @click="togglePlay()"
+                                        class="px-4 py-2 rounded-2xl text-xs font-black text-white shadow-md flex items-center gap-2 transition hover:scale-105 active:scale-95 cursor-pointer"
+                                        style="background: {{ $theme['hex'] }};">
+                                    <i :class="isPlaying ? 'fas fa-pause' : 'fas fa-play'"></i>
+                                    <span x-text="isPlaying ? 'Jeda Musik' : 'Putar Anthem'"></span>
+                                </button>
+                            @elseif($anthem['type'] === 'spotify')
+                                <iframe src="{{ $anthem['embed_url'] }}" width="280" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media" class="rounded-2xl max-w-full"></iframe>
+                            @elseif($anthem['type'] === 'youtube')
+                                <iframe src="{{ $anthem['embed_url'] }}" width="280" height="150" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="rounded-2xl max-w-full"></iframe>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @elseif(Auth::check() && Auth::id() === $user->id)
+                {{-- Ajakan Manis Memasang Anthem & Warna Profil --}}
+                <div class="mb-4 p-3.5 rounded-3xl bg-gradient-to-r from-pink-50 via-amber-50 to-sky-50 border-2 border-dashed border-pink-300/80 flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-2xl bg-pink-100 text-pink-700 flex items-center justify-center text-sm font-black shrink-0 shadow-2xs">
+                            🎵
+                        </span>
+                        <div class="text-xs">
+                            <strong class="font-black text-slate-900 block">Pasang Profile Anthem & Tema Warna!</strong>
+                            <span class="text-slate-600 font-semibold">Putar piringan hitam lagu favoritmu saat kawan berkunjung ke dinding.</span>
+                        </div>
+                    </div>
+                    <button type="button" @click="showEditModal = true" class="px-3.5 py-2 rounded-2xl bg-white border-2 border-pink-300 text-xs font-black text-pink-700 hover:bg-pink-50 shadow-2xs hover:scale-105 transition cursor-pointer">
+                        + Pilih Lagu & Tema
+                    </button>
+                </div>
+            @endif
 
             {{-- ── 3. LOKER (KHUSUS PEMILIK SAAT LOGIN) ── --}}
             @if(Auth::check() && Auth::id() === $user->id)
@@ -1216,14 +1320,14 @@
         <div x-show="showEditModal" x-cloak 
              class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
              x-transition>
-            <div class="bg-white rounded-3xl border-2 border-pink-200 max-w-md w-full p-6 shadow-2xl relative"
+            <div class="bg-white rounded-3xl border-2 border-pink-200 max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
                  @click.outside="showEditModal = false">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b-2 border-slate-100">
                     <h3 class="font-display font-black text-lg text-slate-950 flex items-center gap-2">
                         <i class="fas fa-palette text-pink-600"></i>
-                        <span>Edit Profil & Suasana Hati</span>
+                        <span>Edit Profil & Ekspresi Diri</span>
                     </h3>
-                    <button type="button" @click="showEditModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
+                    <button type="button" @click="showEditModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold cursor-pointer">
                         ✕
                     </button>
                 </div>
@@ -1234,6 +1338,81 @@
                         <div>
                             <label class="block text-xs font-black text-slate-900 mb-1">Nama Panggilan Cantik / Julukan</label>
                             <input type="text" name="nickname" value="{{ $profile->nickname }}" class="w-full px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-bold text-slate-950 focus:outline-none focus:border-pink-300">
+                        </div>
+
+                        {{-- Pilihan Tema Warna Profil --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1.5">Pilihan Tema Warna Profil</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                @php
+                                    $availableThemes = [
+                                        'pink' => ['name' => 'Sakura', 'color' => '#ec4899'],
+                                        'indigo' => ['name' => 'Cyber', 'color' => '#6366f1'],
+                                        'amber' => ['name' => 'Sunset', 'color' => '#f59e0b'],
+                                        'emerald' => ['name' => 'Mint', 'color' => '#10b981'],
+                                        'sky' => ['name' => 'Ocean', 'color' => '#0ea5e9'],
+                                        'rose' => ['name' => 'Velvet', 'color' => '#f43f5e'],
+                                        'purple' => ['name' => 'Lavender', 'color' => '#a855f7'],
+                                        'dark' => ['name' => 'Obsidian', 'color' => '#0f172a'],
+                                    ];
+                                @endphp
+                                @foreach($availableThemes as $tKey => $tData)
+                                    <label class="p-2 rounded-2xl border-2 text-center cursor-pointer flex flex-col items-center gap-1 transition-all hover:scale-105"
+                                           :class="selectedTheme === '{{ $tKey }}' ? 'ring-2 ring-pink-500 border-pink-500 font-black shadow-xs bg-pink-50' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                        <input type="radio" name="theme_color" value="{{ $tKey }}" x-model="selectedTheme" class="hidden">
+                                        <span class="w-5 h-5 rounded-full border-2 border-white shadow-2xs" style="background-color: {{ $tData['color'] }};"></span>
+                                        <span class="text-[10px] font-bold text-slate-800">{{ $tData['name'] }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Profile Anthem Lagu Favorit --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">
+                                Profile Anthem 🎵 (Lagu Piringan Hitam Dinding)
+                            </label>
+                            <p class="text-[11px] text-slate-500 font-medium mb-2">
+                                Pilih preset lagu atau masukkan tautan Spotify / YouTube / file MP3 langsung:
+                            </p>
+
+                            <!-- Quick Preset Buttons -->
+                            <div class="flex flex-wrap gap-1.5 mb-2">
+                                <button type="button" @click="anthemInput = 'preset:lofi'" 
+                                        class="px-2.5 py-1 rounded-xl text-[10px] font-bold border transition cursor-pointer hover:scale-105"
+                                        :class="anthemInput === 'preset:lofi' ? 'bg-pink-100 border-pink-400 text-pink-900 font-black' : 'bg-slate-100 border-slate-200 text-slate-800'">
+                                    🎧 Lofi Study
+                                </button>
+                                <button type="button" @click="anthemInput = 'preset:semangat'" 
+                                        class="px-2.5 py-1 rounded-xl text-[10px] font-bold border transition cursor-pointer hover:scale-105"
+                                        :class="anthemInput === 'preset:semangat' ? 'bg-amber-100 border-amber-400 text-amber-900 font-black' : 'bg-slate-100 border-slate-200 text-slate-800'">
+                                    ⚡ Semangat
+                                </button>
+                                <button type="button" @click="anthemInput = 'preset:piano'" 
+                                        class="px-2.5 py-1 rounded-xl text-[10px] font-bold border transition cursor-pointer hover:scale-105"
+                                        :class="anthemInput === 'preset:piano' ? 'bg-sky-100 border-sky-400 text-sky-900 font-black' : 'bg-slate-100 border-slate-200 text-slate-800'">
+                                    🎹 Piano
+                                </button>
+                                <button type="button" @click="anthemInput = 'preset:synthwave'" 
+                                        class="px-2.5 py-1 rounded-xl text-[10px] font-bold border transition cursor-pointer hover:scale-105"
+                                        :class="anthemInput === 'preset:synthwave' ? 'bg-purple-100 border-purple-400 text-purple-900 font-black' : 'bg-slate-100 border-slate-200 text-slate-800'">
+                                    🛠️ Synthwave
+                                </button>
+                                <button type="button" @click="anthemInput = 'preset:mars_pembda'" 
+                                        class="px-2.5 py-1 rounded-xl text-[10px] font-bold border transition cursor-pointer hover:scale-105"
+                                        :class="anthemInput === 'preset:mars_pembda' ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-black' : 'bg-slate-100 border-slate-200 text-slate-800'">
+                                    🏫 Mars Pembda
+                                </button>
+                                <button type="button" @click="anthemInput = ''" 
+                                        class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                                        title="Hapus lagu anthem">
+                                    🔕 Hapus
+                                </button>
+                            </div>
+
+                            <input type="text" name="anthem_url" x-model="anthemInput"
+                                   placeholder="Contoh: preset:lofi atau URL Spotify / YouTube / audio MP3"
+                                   class="w-full px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-pink-300">
                         </div>
 
                         <div>
@@ -1261,10 +1440,10 @@
                     </div>
 
                     <div class="mt-6 flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                        <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100">
+                        <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105">
+                        <button type="submit" class="px-5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105 cursor-pointer">
                             Simpan Perubahan ✨
                         </button>
                     </div>
@@ -1373,8 +1552,31 @@
 
 </div>
 
-{{-- ── Toast & Native Share Script ── --}}
+{{-- ── Toast & Native Share Script & Profile Anthem Vinyl Player ── --}}
 <script>
+function circleVinylPlayer(type, streamUrl) {
+    return {
+        type: type,
+        streamUrl: streamUrl,
+        isPlaying: false,
+        togglePlay() {
+            if (this.type !== 'audio') return;
+            const audio = this.$refs.audioElem;
+            if (!audio) return;
+            if (this.isPlaying) {
+                audio.pause();
+                this.isPlaying = false;
+            } else {
+                audio.play().then(() => {
+                    this.isPlaying = true;
+                }).catch(err => {
+                    console.warn('Playback error or autoplay prevented:', err);
+                });
+            }
+        }
+    };
+}
+
 function shareProfile() {
     const url = window.location.href;
     const text = 'Lihat profil dan karya {{ $user->name }} di PembdaCIRCLE:\n' + url;

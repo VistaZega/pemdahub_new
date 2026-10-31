@@ -130,6 +130,8 @@ class CircleActionController extends Controller
             'mood_emoji' => 'nullable|string|max:10',
             'mood_text' => 'nullable|string|max:100',
             'banner' => 'nullable|image|max:10240', // max 10MB
+            'theme_color' => 'nullable|string|in:pink,indigo,amber,emerald,sky,rose,purple,dark',
+            'anthem_url' => 'nullable|string|max:500',
         ]);
 
         $user = Auth::user();
@@ -144,6 +146,8 @@ class CircleActionController extends Controller
             'bio' => $request->bio,
             'mood_emoji' => $request->mood_emoji,
             'mood_text' => $request->mood_text,
+            'theme_color' => $request->theme_color ?? $profile->theme_color ?? 'pink',
+            'anthem_url' => $request->filled('anthem_url') ? trim($request->anthem_url) : null,
         ];
 
         if ($request->hasFile('banner')) {
@@ -155,7 +159,7 @@ class CircleActionController extends Controller
 
         $profile->update($updateData);
 
-        return redirect()->back()->with('success', 'Profil dan suasana hatimu berhasil diperbarui! 🌸');
+        return redirect()->back()->with('success', 'Profil, lagu kebangsaan & tema berhasil diperbarui! ✨');
     }
 
     /**

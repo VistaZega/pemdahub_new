@@ -92,6 +92,194 @@ class CircleProfile extends Model
     }
 
     /**
+     * Palet Warna & Styling Tema Profil
+     */
+    public function getThemeStylesAttribute(): array
+    {
+        $themes = [
+            'pink' => [
+                'name' => 'Sakura Pastel',
+                'border' => 'border-pink-300',
+                'bg_subtle' => 'bg-pink-50',
+                'accent' => 'text-pink-600',
+                'accent_bg' => 'bg-pink-500',
+                'gradient' => 'from-pink-100 via-rose-50 to-amber-50',
+                'ring' => 'ring-pink-300',
+                'badge' => 'bg-pink-100 text-pink-800 border-pink-200',
+                'hex' => '#ec4899',
+            ],
+            'indigo' => [
+                'name' => 'Cyber Indigo',
+                'border' => 'border-indigo-300',
+                'bg_subtle' => 'bg-indigo-50',
+                'accent' => 'text-indigo-600',
+                'accent_bg' => 'bg-indigo-500',
+                'gradient' => 'from-indigo-100 via-sky-50 to-purple-50',
+                'ring' => 'ring-indigo-300',
+                'badge' => 'bg-indigo-100 text-indigo-800 border-indigo-200',
+                'hex' => '#6366f1',
+            ],
+            'amber' => [
+                'name' => 'Golden Sunset',
+                'border' => 'border-amber-300',
+                'bg_subtle' => 'bg-amber-50',
+                'accent' => 'text-amber-600',
+                'accent_bg' => 'bg-amber-500',
+                'gradient' => 'from-amber-100 via-orange-50 to-yellow-50',
+                'ring' => 'ring-amber-300',
+                'badge' => 'bg-amber-100 text-amber-800 border-amber-200',
+                'hex' => '#f59e0b',
+            ],
+            'emerald' => [
+                'name' => 'Mint Forest',
+                'border' => 'border-emerald-300',
+                'bg_subtle' => 'bg-emerald-50',
+                'accent' => 'text-emerald-600',
+                'accent_bg' => 'bg-emerald-500',
+                'gradient' => 'from-emerald-100 via-teal-50 to-cyan-50',
+                'ring' => 'ring-emerald-300',
+                'badge' => 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                'hex' => '#10b981',
+            ],
+            'sky' => [
+                'name' => 'Ocean Breeze',
+                'border' => 'border-sky-300',
+                'bg_subtle' => 'bg-sky-50',
+                'accent' => 'text-sky-600',
+                'accent_bg' => 'bg-sky-500',
+                'gradient' => 'from-sky-100 via-cyan-50 to-indigo-50',
+                'ring' => 'ring-sky-300',
+                'badge' => 'bg-sky-100 text-sky-800 border-sky-200',
+                'hex' => '#0ea5e9',
+            ],
+            'rose' => [
+                'name' => 'Crimson Velvet',
+                'border' => 'border-rose-300',
+                'bg_subtle' => 'bg-rose-50',
+                'accent' => 'text-rose-600',
+                'accent_bg' => 'bg-rose-500',
+                'gradient' => 'from-rose-100 via-pink-50 to-amber-50',
+                'ring' => 'ring-rose-300',
+                'badge' => 'bg-rose-100 text-rose-800 border-rose-200',
+                'hex' => '#f43f5e',
+            ],
+            'purple' => [
+                'name' => 'Royal Lavender',
+                'border' => 'border-purple-300',
+                'bg_subtle' => 'bg-purple-50',
+                'accent' => 'text-purple-600',
+                'accent_bg' => 'bg-purple-500',
+                'gradient' => 'from-purple-100 via-fuchsia-50 to-pink-50',
+                'ring' => 'ring-purple-300',
+                'badge' => 'bg-purple-100 text-purple-800 border-purple-200',
+                'hex' => '#a855f7',
+            ],
+            'dark' => [
+                'name' => 'Midnight Obsidian',
+                'border' => 'border-slate-700',
+                'bg_subtle' => 'bg-slate-900',
+                'accent' => 'text-cyan-400',
+                'accent_bg' => 'bg-slate-800',
+                'gradient' => 'from-slate-900 via-slate-800 to-cyan-950',
+                'ring' => 'ring-cyan-500',
+                'badge' => 'bg-slate-800 text-cyan-300 border-slate-700',
+                'hex' => '#0f172a',
+            ],
+        ];
+
+        return $themes[$this->theme_color] ?? $themes['pink'];
+    }
+
+    /**
+     * Parsing dan Resolusi URL Profile Anthem
+     */
+    public function getAnthemDataAttribute(): ?array
+    {
+        $url = trim($this->anthem_url ?? '');
+        if (empty($url)) {
+            return null;
+        }
+
+        // 1. Preset Lagu
+        $presets = [
+            'preset:lofi' => [
+                'type' => 'audio',
+                'title' => 'Lofi Chill & Focus',
+                'artist' => 'Pembda Lo-Fi Beats',
+                'cover_icon' => '🎧',
+                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3',
+            ],
+            'preset:semangat' => [
+                'type' => 'audio',
+                'title' => 'Semangat Pagi Ceria',
+                'artist' => 'Pembda Acoustic Morning',
+                'cover_icon' => '⚡',
+                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3',
+            ],
+            'preset:piano' => [
+                'type' => 'audio',
+                'title' => 'Serenade Piano Inspirasi',
+                'artist' => 'Pembda Classical Melody',
+                'cover_icon' => '🎹',
+                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/11/06/audio_c9274ca294.mp3',
+            ],
+            'preset:synthwave' => [
+                'type' => 'audio',
+                'title' => 'Cyber Neo Synthwave',
+                'artist' => 'Pembda Future Sound',
+                'cover_icon' => '🛠️',
+                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3',
+            ],
+            'preset:mars_pembda' => [
+                'type' => 'audio',
+                'title' => 'Hymne & Mars Perguruan Pembda',
+                'artist' => 'Paduan Suara Pembda Nias',
+                'cover_icon' => '🏫',
+                'stream_url' => 'https://cdn.pixabay.com/download/audio/2022/11/06/audio_c9274ca294.mp3',
+            ],
+        ];
+
+        if (isset($presets[$url])) {
+            return $presets[$url];
+        }
+
+        // 2. Spotify Embed (track)
+        if (preg_match('/open\.spotify\.com\/(?:intl-[a-z]+\/)?track\/([a-zA-Z0-9]+)/i', $url, $m)) {
+            return [
+                'type' => 'spotify',
+                'track_id' => $m[1],
+                'title' => 'Spotify Track',
+                'artist' => 'Spotify Player',
+                'embed_url' => "https://open.spotify.com/embed/track/{$m[1]}?utm_source=generator&theme=0",
+            ];
+        }
+
+        // 3. YouTube Audio/Video Embed
+        if (preg_match('/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/i', $url, $m)) {
+            return [
+                'type' => 'youtube',
+                'video_id' => $m[1],
+                'title' => 'YouTube Audio',
+                'artist' => 'YouTube Stream',
+                'embed_url' => "https://www.youtube.com/embed/{$m[1]}?enablejsapi=1&origin=" . urlencode(url('/')),
+            ];
+        }
+
+        // 4. Direct Audio URL (.mp3 / .wav / .m4a / audio stream)
+        if (preg_match('/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i', $url) || filter_var($url, FILTER_VALIDATE_URL)) {
+            return [
+                'type' => 'audio',
+                'title' => 'Lagu Favorit Profil',
+                'artist' => 'Pilihan ' . ($this->nickname ?? 'Warga Pembda'),
+                'cover_icon' => '🎵',
+                'stream_url' => $url,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
      * Dapatkan atau buat profil circle secara otomatis untuk user.
      */
     public static function getOrCreateForUser(User $user): self
