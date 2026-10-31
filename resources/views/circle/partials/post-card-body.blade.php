@@ -212,12 +212,26 @@
         </div>
     @endif
 
-    {{-- ── 3. FUNGSI RENDER KOLASE MEDIA PINTAR (1, 2, 3, 4, 5+ FOTO / VIDEO / AUDIO) ── --}}
-    @php
-        $renderMediaBlock = function () use ($post, $mediaItems, $mediaCount, $layout) {
-    @endphp
+    {{-- ── 3 & 4. PELETAKAN ISI BERITA & KOLASE MEDIA PINTAR (1, 2, 3, 4, 5+ FOTO / VIDEO / AUDIO) ── --}}
+    <div class="flex flex-col">
+        {{-- BLOK TEKS (JUDUL & ISI CERITA/BERITA) --}}
+        <div class="{{ $layout === 'top' ? 'order-2' : 'order-1' }}">
+            @if($post->title)
+                <h3 class="font-display font-black text-lg text-slate-950 mb-2 leading-snug">
+                    {{ $post->title }}
+                </h3>
+            @endif
+
+            @if($post->content)
+                <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
+                    {{ $post->content }}
+                </div>
+            @endif
+        </div>
+
+        {{-- BLOK KOLASE MEDIA --}}
         @if($mediaCount > 0)
-            <div class="mb-4">
+            <div class="mb-4 {{ $layout === 'top' ? 'order-1' : 'order-2' }}">
                 {{-- KASUS A: 1 MEDIA SAJA (HERO BANNER / VIDEO / AUDIO VINYL) --}}
                 @if($mediaCount === 1)
                     @php
@@ -395,42 +409,7 @@
                 @endif
             </div>
         @endif
-    @php
-        };
-    @endphp
-
-    {{-- ── 4. PELETAKAN FOTO & ISI BERITA SESUAI PILIHAN TATA LETAK (MEDIA_LAYOUT) ── --}}
-    @if($layout === 'top')
-        {{-- Tata Letak Headline Berita: Foto/Media di Atas, Judul & Cerita di Bawah --}}
-        @php $renderMediaBlock(); @endphp
-
-        @if($post->title)
-            <h3 class="font-display font-black text-lg text-slate-950 mb-2 leading-snug">
-                {{ $post->title }}
-            </h3>
-        @endif
-
-        @if($post->content)
-            <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
-                {{ $post->content }}
-            </div>
-        @endif
-    @else
-        {{-- Tata Letak Standar / Majalah: Judul & Cerita di Atas, Kolase Foto di Bawah --}}
-        @if($post->title)
-            <h3 class="font-display font-black text-lg text-slate-950 mb-2 leading-snug">
-                {{ $post->title }}
-            </h3>
-        @endif
-
-        @if($post->content)
-            <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
-                {{ $post->content }}
-            </div>
-        @endif
-
-        @php $renderMediaBlock(); @endphp
-    @endif
+    </div>
 
     {{-- ── 5. LIGHTBOX MODAL FULLSCREEN UNTUK MELIHAT SEMUA FOTO & CAPTION ── --}}
     <div x-show="lightboxOpen" x-cloak

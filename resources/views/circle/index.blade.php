@@ -516,9 +516,10 @@
                                 {{-- Category Pill Pastel & Post Deletion --}}
                                 <div class="flex items-center gap-2 shrink-0">
                                     @if($post->is_live || $post->post_type === 'live')
-                                        <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->live_status === 'active' ? 'bg-rose-600 text-white border border-black animate-pulse' : 'bg-slate-800 text-white border border-slate-700' }} flex items-center gap-1.5 shadow-2xs">
-                                            <span class="w-2 h-2 rounded-full {{ $post->live_status === 'active' ? 'bg-white' : 'bg-emerald-400' }}"></span>
-                                            <span>{{ $post->live_status === 'active' ? 'LIPUTAN LIVE' : 'REKAMAN LIVE' }}</span>
+                                        @php $isLiveActive = in_array($post->live_status ?? 'live', ['live', 'active']); @endphp
+                                        <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $isLiveActive ? 'bg-rose-600 text-white border border-black animate-pulse' : 'bg-slate-800 text-white border border-slate-700' }} flex items-center gap-1.5 shadow-2xs">
+                                            <span class="w-2 h-2 rounded-full {{ $isLiveActive ? 'bg-white' : 'bg-emerald-400' }}"></span>
+                                            <span>{{ $isLiveActive ? 'LIPUTAN LIVE' : 'REKAMAN LIVE' }}</span>
                                         </span>
                                     @elseif($post->post_type === 'report' || $post->event_name)
                                         <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 bg-emerald-100 text-emerald-950 border border-emerald-300 flex items-center gap-1 shadow-2xs">
