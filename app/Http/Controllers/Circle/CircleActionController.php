@@ -32,12 +32,14 @@ class CircleActionController extends Controller
         $request->validate([
             'content' => 'nullable|string|max:5000',
             'title' => 'nullable|string|max:255',
-            'tab_category' => 'required|in:wall,portfolio',
-            'post_type' => 'required|in:status,story,reel,project,devlog',
+            'tab_category' => 'required|in:wall,portfolio,gallery',
+            'post_type' => 'required|in:status,story,reel,project,devlog,media',
+            'gallery_category' => 'nullable|in:photo,video,audio',
+            'community_id' => 'nullable|exists:circle_communities,id',
             'mood_emoji' => 'nullable|string|max:10',
             'mood_text' => 'nullable|string|max:100',
             'location_tag' => 'nullable|string|max:100',
-            'media' => 'nullable|file|max:30720', // max 30MB
+            'media' => 'nullable|file|max:51200', // max 50MB (video, audio, gambar)
         ]);
 
         $user = Auth::user();
@@ -66,10 +68,16 @@ class CircleActionController extends Controller
             $majorCode = $user->student->major->code ?? null;
         }
 
+        $isGallery = $request->tab_category === 'gallery' || $request->boolean('is_gallery');
+        $galleryCat = $request->gallery_category;
+
         $post = CirclePost::create([
             'user_id' => $user->id,
             'post_type' => $request->post_type,
             'tab_category' => $request->tab_category,
+            'is_gallery' => $isGallery,
+            'gallery_category' => $galleryCat,
+            'community_id' => $request->community_id,
             'title' => $request->title,
             'content' => $request->content,
             'mood_emoji' => $request->mood_emoji,
@@ -81,11 +89,21 @@ class CircleActionController extends Controller
             'expires_at' => $expiresAt,
         ]);
 
-        // Tangani Upload Media
+        // Tangani Upload Media (Gambar, Video, atau Audio)
         if ($request->hasFile('media')) {
             $file = $request->file('media');
             $mime = $file->getMimeType();
-            $mediaType = str_starts_with($mime, 'video') ? 'video' : 'image';
+
+            if (str_starts_with($mime, 'video')) {
+                $mediaType = 'video';
+                $galleryCat = $galleryCat ?? 'video';
+            } elseif (str_starts_with($mime, 'audio')) {
+                $mediaType = 'audio';
+                $galleryCat = $galleryCat ?? 'audio';
+            } else {
+                $mediaType = 'image';
+                $galleryCat = $galleryCat ?? 'photo';
+            }
             
             $path = $file->store('circle/media', 'public');
 
@@ -95,6 +113,16 @@ class CircleActionController extends Controller
                 'file_path' => $path,
                 'aspect_ratio' => $request->post_type === 'reel' || $request->post_type === 'story' ? '9:16' : '1:1',
             ]);
+
+            if ($isGallery) {
+                $post->update([
+                    'gallery_category' => $galleryCat,
+                ]);
+            }
+        }
+
+        if ($post->community_id) {
+            $post->community?->increment('posts_count');
         }
 
         // Tangani Polling Interaktif

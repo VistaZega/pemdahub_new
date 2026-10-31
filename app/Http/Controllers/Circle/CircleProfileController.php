@@ -156,6 +156,17 @@ class CircleProfileController extends Controller
             ->latest()
             ->get();
 
+        // Ambil postingan Tab Galeri Media Pribadi (Foto, Video, Audio)
+        $galleryPosts = CirclePost::with(['media', 'reactions', 'comments', 'user'])
+            ->where('user_id', $user->id)
+            ->where(function ($q) {
+                $q->where('tab_category', 'gallery')
+                  ->orWhere('is_gallery', true);
+            })
+            ->active()
+            ->latest()
+            ->get();
+
         // Ambil Stories 24 Jam yang masih aktif
         $activeStories = CirclePost::with('media')
             ->where('user_id', $user->id)
@@ -212,6 +223,7 @@ class CircleProfileController extends Controller
             'user',
             'wallPosts',
             'portfolioPosts',
+            'galleryPosts',
             'activeStories',
             'finalProjects',
             'approvedPklLogs',

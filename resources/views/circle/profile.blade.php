@@ -22,6 +22,8 @@
     activeTab: '{{ request('tab', 'wall') }}', 
     showEditModal: false, 
     showEndorseModal: false, 
+    showGalleryModal: false,
+    galleryFilter: 'all',
     selectedSkill: '', 
     selectedTheme: '{{ $profile->theme_color ?? 'pink' }}', 
     anthemInput: '{{ addslashes($profile->anthem_url ?? '') }}',
@@ -664,6 +666,18 @@
                     {{ $portfolioPosts->count() + $finalProjects->count() + $approvedPklLogs->count() }}
                 </span>
             </button>
+            {{-- Tab Galeri Media (Foto, Video, Audio) --}}
+            <button @click="activeTab = 'gallery'" 
+                    :class="activeTab === 'gallery' ? 'border-purple-500 text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
+                    class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl shrink-0">
+                <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs">
+                    <i class="fas fa-photo-film"></i>
+                </span>
+                <span class="font-display">Galeri</span>
+                <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-purple-100 text-purple-900 border border-purple-300 font-black">
+                    {{ $galleryPosts->count() }}
+                </span>
+            </button>
             {{-- Tab Buku Tamu & Stiker (Pink & Rose Pastel) --}}
             <button @click="activeTab = 'guestbook'" 
                     :class="activeTab === 'guestbook' ? 'border-pink-500 text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
@@ -741,10 +755,16 @@
                         <i class="fas fa-play text-sky-700"></i>
                         <span>Reels</span>
                     </button>
+                    <button type="button" @click="tabCat = 'gallery'; postType = 'media'"
+                            :class="tabCat === 'gallery' ? 'bg-purple-100 text-slate-950 border-purple-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
+                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-photo-film text-purple-600"></i>
+                        <span>Galeri</span>
+                    </button>
                 </div>
 
-                <div x-show="tabCat === 'portfolio'" class="mb-2.5">
-                    <input type="text" name="title" placeholder="Judul Karya / Proyek Utama..." class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/50 border-2 border-amber-200 text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400">
+                <div x-show="tabCat === 'portfolio' || tabCat === 'gallery'" class="mb-2.5">
+                    <input type="text" name="title" :placeholder="tabCat === 'gallery' ? 'Judul Media / Foto / Video / Lagu...' : 'Judul Karya / Proyek Utama...'" class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/50 border-2 border-amber-200 text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400">
                 </div>
 
                 {{-- 💡 Ide Spontan Cepat --}}
@@ -815,9 +835,9 @@
                 <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-slate-100">
                     <div class="flex items-center gap-2 flex-wrap">
                         <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 text-xs font-black cursor-pointer flex items-center gap-2 transition">
-                            <i class="fas fa-image text-pink-600 text-sm"></i>
-                            <span>Foto / Video</span>
-                            <input type="file" name="media" class="hidden" accept="image/*,video/*" @change="showAttach = true">
+                            <i class="fas fa-photo-film text-pink-600 text-sm"></i>
+                            <span>Foto / Video / Audio</span>
+                            <input type="file" name="media" class="hidden" accept="image/*,video/*,audio/*" @change="showAttach = true">
                         </label>
                         <button type="button" @click="hasPoll = !hasPoll"
                                 :class="hasPoll ? 'bg-purple-100 border-purple-400 text-purple-950 font-black' : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-slate-950 font-bold'"
@@ -1293,6 +1313,214 @@
     </div>
 
     {{-- ═══════════════════════════════════════════
+         TAB: GALERI PRIBADI (FOTO, VIDEO, AUDIO)
+    ═══════════════════════════════════════════ --}}
+    <div x-show="activeTab === 'gallery'" x-transition class="space-y-6">
+
+        {{-- Header & Tombol Unggah Galeri --}}
+        <div class="bg-white rounded-3xl border-2 border-purple-200 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-black shadow-2xs">
+                        <i class="fas fa-photo-film"></i>
+                    </span>
+                    <h3 class="font-display font-black text-base text-slate-950">
+                        Galeri Media Pribadi
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-900 border border-purple-300">
+                        {{ $galleryPosts->count() }} media
+                    </span>
+                </div>
+                <p class="text-xs font-semibold text-slate-600">
+                    Koleksi foto momen, video seru, dan rekaman lagu/audio milik {{ $profile->nickname ?? $user->name }}.
+                </p>
+            </div>
+
+            @if(Auth::check() && Auth::id() === $user->id)
+                <button type="button" 
+                        @click="showGalleryModal = true"
+                        class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-gradient-to-r from-purple-200 via-pink-200 to-amber-200 hover:from-purple-300 hover:to-amber-300 border-2 border-purple-300 shadow-xs transition hover:scale-105 flex items-center gap-2 cursor-pointer self-start sm:self-auto shrink-0">
+                    <i class="fas fa-plus text-purple-700"></i>
+                    <span>Unggah ke Galeri ✨</span>
+                </button>
+            @endif
+        </div>
+
+        {{-- Auto-Broadcast Announcement Notice --}}
+        <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200 flex items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5">
+                <span class="text-lg shrink-0">📢</span>
+                <span class="font-bold text-slate-800">
+                    <strong>Auto-Broadcast:</strong> Setiap foto, video, atau musik baru yang diunggah ke Galeri Pribadi ini akan otomatis disiarkan ke Beranda Utama PembdaCIRCLE agar teman-teman dan bapak/ibu guru dapat langsung mengapresiasi karyamu!
+                </span>
+            </div>
+        </div>
+
+        {{-- Sub-Filter Pills (Semua, Foto, Video, Audio) --}}
+        @php
+            $photoCount = $galleryPosts->filter(fn($p) => $p->gallery_category === 'photo' || ($p->media->first() && $p->media->first()->media_type === 'image'))->count();
+            $videoCount = $galleryPosts->filter(fn($p) => $p->gallery_category === 'video' || ($p->media->first() && $p->media->first()->media_type === 'video'))->count();
+            $audioCount = $galleryPosts->filter(fn($p) => $p->gallery_category === 'audio' || ($p->media->first() && $p->media->first()->media_type === 'audio'))->count();
+        @endphp
+
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+            <button type="button" @click="galleryFilter = 'all'"
+                    :class="galleryFilter === 'all' ? 'bg-purple-100 text-purple-950 border-purple-400 font-black shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 font-bold'"
+                    class="px-4 py-2 rounded-2xl text-xs border-2 transition cursor-pointer flex items-center gap-1.5 shrink-0">
+                <span>Semua Media</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/80 font-black border border-purple-200">{{ $galleryPosts->count() }}</span>
+            </button>
+
+            <button type="button" @click="galleryFilter = 'photo'"
+                    :class="galleryFilter === 'photo' ? 'bg-pink-100 text-pink-950 border-pink-400 font-black shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 font-bold'"
+                    class="px-4 py-2 rounded-2xl text-xs border-2 transition cursor-pointer flex items-center gap-1.5 shrink-0">
+                <span>📸 Foto</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/80 font-black border border-pink-200">{{ $photoCount }}</span>
+            </button>
+
+            <button type="button" @click="galleryFilter = 'video'"
+                    :class="galleryFilter === 'video' ? 'bg-sky-100 text-sky-950 border-sky-400 font-black shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 font-bold'"
+                    class="px-4 py-2 rounded-2xl text-xs border-2 transition cursor-pointer flex items-center gap-1.5 shrink-0">
+                <span>🎬 Video</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/80 font-black border border-sky-200">{{ $videoCount }}</span>
+            </button>
+
+            <button type="button" @click="galleryFilter = 'audio'"
+                    :class="galleryFilter === 'audio' ? 'bg-amber-100 text-amber-950 border-amber-400 font-black shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 font-bold'"
+                    class="px-4 py-2 rounded-2xl text-xs border-2 transition cursor-pointer flex items-center gap-1.5 shrink-0">
+                <span>🎵 Lagu & Audio</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/80 font-black border border-amber-200">{{ $audioCount }}</span>
+            </button>
+        </div>
+
+        {{-- Grid Koleksi Media Galeri --}}
+        @if($galleryPosts->isNotEmpty())
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                @foreach($galleryPosts as $gPost)
+                    @php
+                        $firstMedia = $gPost->media->first();
+                        $mediaType = $firstMedia?->media_type ?? 'image';
+                        $cat = $gPost->gallery_category ?? ($mediaType === 'video' ? 'video' : ($mediaType === 'audio' ? 'audio' : 'photo'));
+                    @endphp
+                    <div x-show="galleryFilter === 'all' || galleryFilter === '{{ $cat }}'"
+                         x-transition
+                         id="gallery-post-{{ $gPost->id }}"
+                         class="bg-white rounded-3xl border-2 border-purple-100 shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-purple-300 transition-all group">
+
+                        {{-- Media Display Container --}}
+                        <div class="relative bg-slate-950 overflow-hidden flex items-center justify-center {{ $cat === 'audio' ? 'p-6 bg-gradient-to-br from-purple-900 via-slate-900 to-pink-950' : 'aspect-square sm:aspect-[4/3]' }}">
+
+                            {{-- Badge Kategori --}}
+                            <div class="absolute top-3 left-3 z-20 flex items-center gap-1">
+                                <span class="px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-xs {{ $cat === 'photo' ? 'bg-pink-500 text-white' : ($cat === 'video' ? 'bg-sky-500 text-white' : 'bg-amber-500 text-black') }}">
+                                    @if($cat === 'photo') 📸 Foto @elseif($cat === 'video') 🎬 Video @else 🎵 Audio @endif
+                                </span>
+                            </div>
+
+                            {{-- Action Share & Delete --}}
+                            <div class="absolute top-3 right-3 z-20 flex items-center gap-1">
+                                <button type="button" 
+                                        onclick="shareCirclePost('{{ addslashes($gPost->title ?? 'Media Galeri Pembda') }}', '{{ route('circle.profile', ['username' => $profile->username, 'post' => $gPost->id]) }}#gallery-post-{{ $gPost->id }}')"
+                                        class="w-7 h-7 rounded-lg bg-black/60 hover:bg-amber-500 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs" 
+                                        title="Siarkan Media ini">
+                                    <i class="fas fa-share-nodes text-[10px]"></i>
+                                </button>
+                                @if(Auth::check() && (Auth::id() === $gPost->user_id || Auth::user()->isSuperAdmin()))
+                                    <form action="{{ route('circle.post.destroy', $gPost->id) }}" method="POST" onsubmit="return confirm('Hapus media dari galeri ini?')" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-7 h-7 rounded-lg bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs" title="Hapus Media">
+                                            <i class="fas fa-trash-alt text-[10px]"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+
+                            {{-- Render by Media Type --}}
+                            @if($cat === 'photo' && $firstMedia)
+                                <img src="{{ $firstMedia->url }}" 
+                                     alt="{{ $gPost->title ?? 'Foto Galeri' }}" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                                     onclick="window.open('{{ $firstMedia->url }}', '_blank')">
+                            @elseif($cat === 'video' && $firstMedia)
+                                <video src="{{ $firstMedia->url }}" 
+                                       controls 
+                                       preload="metadata"
+                                       class="w-full h-full object-contain"></video>
+                            @elseif($cat === 'audio' && $firstMedia)
+                                {{-- Mini Audio Player Card with Rotating Vinyl --}}
+                                <div class="w-full flex flex-col items-center text-center text-white" 
+                                     x-data="{ isPlayingAudio: false }"
+                                     x-init="$refs.galAudio?.addEventListener('play', () => isPlayingAudio = true); $refs.galAudio?.addEventListener('pause', () => isPlayingAudio = false); $refs.galAudio?.addEventListener('ended', () => isPlayingAudio = false);">
+                                    <div class="relative w-20 h-20 rounded-full bg-[#111827] p-2 border-2 border-purple-400 shadow-xl flex items-center justify-center mb-3"
+                                         :class="isPlayingAudio ? 'animate-spin' : ''"
+                                         style="animation-duration: 4s;">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-inner">
+                                            🎵
+                                        </div>
+                                    </div>
+                                    <audio x-ref="galAudio" src="{{ $firstMedia->url }}" controls preload="none" class="w-full mt-1 custom-audio-player" style="max-height: 36px;"></audio>
+                                </div>
+                            @else
+                                <div class="p-6 text-center text-slate-400">
+                                    <i class="fas fa-file-circle-question text-3xl mb-2"></i>
+                                    <div class="text-xs">Media tidak tersedia</div>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Metadata & Caption --}}
+                        <div class="p-4 flex-1 flex flex-col justify-between">
+                            <div>
+                                @if($gPost->title)
+                                    <h4 class="font-display font-black text-sm text-slate-950 mb-1 leading-snug line-clamp-1">
+                                        {{ $gPost->title }}
+                                    </h4>
+                                @endif
+                                @if($gPost->content)
+                                    <p class="text-xs font-semibold text-slate-700 line-clamp-2 leading-relaxed mb-2">
+                                        {{ $gPost->content }}
+                                    </p>
+                                @endif
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-bold">
+                                <span>{{ $gPost->created_at->diffForHumans() }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-pink-600 font-black flex items-center gap-1">
+                                        <i class="fas fa-heart text-[10px]"></i> {{ $gPost->likes_count }}
+                                    </span>
+                                    <span class="text-slate-500 font-black flex items-center gap-1">
+                                        <i class="far fa-comment text-[10px]"></i> {{ $gPost->comments_count }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="bg-white rounded-3xl border-2 border-purple-100 p-10 text-center shadow-xs">
+                <div class="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 border border-purple-300 flex items-center justify-center mx-auto mb-3.5 text-2xl shadow-xs">
+                    <i class="fas fa-photo-film"></i>
+                </div>
+                <h3 class="font-display font-black text-lg text-slate-950 mb-1">Galeri Masih Kosong</h3>
+                <p class="text-xs font-bold text-slate-700 max-w-sm mx-auto leading-relaxed mb-4">
+                    Belum ada foto estetik, video klip, atau lagu yang diunggah ke galeri ini.
+                </p>
+                @if(Auth::check() && Auth::id() === $user->id)
+                    <button type="button" 
+                            @click="showGalleryModal = true"
+                            class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-purple-200 hover:bg-purple-300 border-2 border-purple-300 shadow-xs transition hover:scale-105 cursor-pointer">
+                        <i class="fas fa-plus mr-1"></i> Mulai Pajang Media Sekarang ✨
+                    </button>
+                @endif
+            </div>
+        @endif
+
+    </div>
+
+    {{-- ═══════════════════════════════════════════
          TAB 3: BUKU TAMU & STIKER DINDING (GUESTBOOK)
     ═══════════════════════════════════════════ --}}
     <div x-show="activeTab === 'guestbook'" x-transition class="space-y-6">
@@ -1752,6 +1980,167 @@
                         </button>
                         <button type="submit" class="px-5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105 cursor-pointer">
                             Simpan Perubahan ✨
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════
+         MODAL UNGGAH MEDIA KE GALERI PRIBADI
+    ═══════════════════════════════════════════ --}}
+    @if(Auth::check() && Auth::id() === $user->id)
+        <div x-show="showGalleryModal" x-cloak 
+             class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+             x-transition>
+            <div class="bg-white rounded-3xl border-2 border-purple-300 max-w-lg w-full p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto"
+                 @click.outside="showGalleryModal = false"
+                 x-data="{
+                    galCategory: 'photo',
+                    isSubmittingGal: false,
+                    selectedFileName: '',
+                    previewUrl: null,
+                    handleGalFile(e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        this.selectedFileName = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+                        const mime = file.type;
+                        if (mime.startsWith('image/')) {
+                            this.galCategory = 'photo';
+                        } else if (mime.startsWith('video/')) {
+                            this.galCategory = 'video';
+                        } else if (mime.startsWith('audio/')) {
+                            this.galCategory = 'audio';
+                        }
+                        if (mime.startsWith('image/') || mime.startsWith('video/')) {
+                            const r = new FileReader();
+                            r.onload = (ev) => { this.previewUrl = ev.target.result; };
+                            r.readAsDataURL(file);
+                        } else {
+                            this.previewUrl = null;
+                        }
+                    }
+                 }">
+                
+                <div class="flex items-center justify-between mb-4 pb-3 border-b-2 border-slate-100">
+                    <h3 class="font-display font-black text-lg text-slate-950 flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-sm shadow-2xs">
+                            <i class="fas fa-photo-film"></i>
+                        </span>
+                        <span>Pajang Karya di Galeri Pribadi</span>
+                    </h3>
+                    <button type="button" @click="showGalleryModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+
+                {{-- Auto-Broadcast Alert --}}
+                <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="text-base">📢</span>
+                    <span>Media ini akan otomatis disiarkan ke Beranda Utama Circle agar kawan-kawan tahu!</span>
+                </div>
+
+                <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data"
+                      @submit="if(isSubmittingGal) { $event.preventDefault(); return false; } isSubmittingGal = true;">
+                    @csrf
+                    <input type="hidden" name="tab_category" value="gallery">
+                    <input type="hidden" name="post_type" value="media">
+                    <input type="hidden" name="is_gallery" value="1">
+                    <input type="hidden" name="gallery_category" :value="galCategory">
+
+                    <div class="space-y-4">
+                        {{-- Pilihan Kategori Media --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-2">Pilih Jenis Media:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" @click="galCategory = 'photo'"
+                                        :class="galCategory === 'photo' ? 'bg-pink-100 border-pink-400 ring-2 ring-pink-300 text-slate-950 font-black' : 'bg-slate-50 border-slate-200 text-slate-700'"
+                                        class="p-2.5 rounded-2xl border-2 flex items-center justify-center gap-1.5 text-xs transition cursor-pointer">
+                                    <span>📸</span>
+                                    <span>Foto / Desain</span>
+                                </button>
+                                <button type="button" @click="galCategory = 'video'"
+                                        :class="galCategory === 'video' ? 'bg-sky-100 border-sky-400 ring-2 ring-sky-300 text-slate-950 font-black' : 'bg-slate-50 border-slate-200 text-slate-700'"
+                                        class="p-2.5 rounded-2xl border-2 flex items-center justify-center gap-1.5 text-xs transition cursor-pointer">
+                                    <span>🎬</span>
+                                    <span>Video / Klip</span>
+                                </button>
+                                <button type="button" @click="galCategory = 'audio'"
+                                        :class="galCategory === 'audio' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-300 text-slate-950 font-black' : 'bg-slate-50 border-slate-200 text-slate-700'"
+                                        class="p-2.5 rounded-2xl border-2 flex items-center justify-center gap-1.5 text-xs transition cursor-pointer">
+                                    <span>🎵</span>
+                                    <span>Lagu / Audio</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Judul Karya --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Judul Media <span class="text-rose-500">*</span></label>
+                            <input type="text" name="title" required
+                                   :placeholder="galCategory === 'photo' ? 'Contoh: Sunset di Lapangan SMAS Pembda 1' : (galCategory === 'video' ? 'Contoh: Praktek Mesin Bubut SMK Pembda' : 'Contoh: Rekaman Cover Mars Pembda')"
+                                   class="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-300">
+                        </div>
+
+                        {{-- Cerita / Deskripsi --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Cerita Singkat / Deskripsi</label>
+                            <textarea name="content" rows="2"
+                                      placeholder="Ceritakan proses pembuatan, momen di balik foto ini, atau lirik lagu..."
+                                      class="w-full p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-300 resize-none"></textarea>
+                        </div>
+
+                        {{-- Input Berkas Media Dropzone --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Unggah Berkas (Maksimal 50MB) <span class="text-rose-500">*</span></label>
+                            <div class="border-2 border-dashed border-purple-200 rounded-2xl p-4 text-center bg-purple-50/30 hover:bg-purple-50 transition cursor-pointer relative">
+                                <input type="file" name="media" required
+                                       @change="handleGalFile($event)"
+                                       :accept="galCategory === 'photo' ? 'image/*' : (galCategory === 'video' ? 'video/*' : 'audio/*')"
+                                       class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                                
+                                <div class="space-y-1">
+                                    <div class="text-2xl" x-text="galCategory === 'photo' ? '🖼️' : (galCategory === 'video' ? '🎥' : '🎙️')"></div>
+                                    <div class="text-xs font-bold text-slate-700">
+                                        Klik atau seret file <span x-text="galCategory === 'photo' ? 'gambar/foto' : (galCategory === 'video' ? 'video/reels' : 'audio/lagu')"></span> ke sini
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">
+                                        Mendukung JPG, PNG, MP4, MOV, MP3, WAV, M4A
+                                    </div>
+                                </div>
+                            </div>
+                            <div x-show="selectedFileName" class="mt-2 text-xs font-black text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5">
+                                <span>✓ Terpilih:</span>
+                                <span x-text="selectedFileName" class="truncate"></span>
+                            </div>
+                        </div>
+
+                        {{-- Live Preview Image/Video --}}
+                        <template x-if="previewUrl">
+                            <div class="rounded-2xl overflow-hidden border border-slate-200 max-h-48 bg-black flex items-center justify-center">
+                                <template x-if="galCategory === 'photo'">
+                                    <img :src="previewUrl" class="max-h-48 w-full object-contain">
+                                </template>
+                                <template x-if="galCategory === 'video'">
+                                    <video :src="previewUrl" controls class="max-h-48 w-full object-contain"></video>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                        <button type="button" @click="showGalleryModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                :disabled="isSubmittingGal"
+                                class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-gradient-to-r from-purple-200 to-pink-200 hover:from-purple-300 hover:to-pink-300 border-2 border-purple-300 shadow-xs transition hover:scale-105 flex items-center gap-2 cursor-pointer"
+                                :class="isSubmittingGal ? 'opacity-60 cursor-not-allowed scale-100' : ''">
+                            <i x-show="!isSubmittingGal" class="fas fa-paper-plane text-purple-700"></i>
+                            <i x-show="isSubmittingGal" class="fas fa-spinner fa-spin text-purple-700"></i>
+                            <span x-show="!isSubmittingGal">Unggah & Siarkan ke Circle ✨</span>
+                            <span x-show="isSubmittingGal">Mengunggah... ⏳</span>
                         </button>
                     </div>
                 </form>

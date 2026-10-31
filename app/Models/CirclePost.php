@@ -14,6 +14,9 @@ class CirclePost extends Model
         'user_id',
         'post_type',
         'tab_category',
+        'is_gallery',
+        'gallery_category',
+        'community_id',
         'title',
         'slug',
         'content',
@@ -32,6 +35,7 @@ class CirclePost extends Model
     ];
 
     protected $casts = [
+        'is_gallery' => 'boolean',
         'tagged_user_ids' => 'array',
         'is_pinned' => 'boolean',
         'expires_at' => 'datetime',
@@ -61,6 +65,11 @@ class CirclePost extends Model
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function community()
+    {
+        return $this->belongsTo(CircleCommunity::class, 'community_id');
     }
 
     public function media()

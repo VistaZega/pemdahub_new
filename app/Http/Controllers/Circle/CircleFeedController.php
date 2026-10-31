@@ -72,6 +72,11 @@ class CircleFeedController extends Controller
             $query->where('tab_category', 'wall');
         } elseif ($tabFilter === 'reels') {
             $query->where('post_type', 'reel');
+        } elseif ($tabFilter === 'gallery') {
+            $query->where(function ($q) {
+                $q->where('tab_category', 'gallery')
+                  ->orWhere('is_gallery', true);
+            });
         }
 
         $posts = $query->latest()->paginate(12)->withQueryString();

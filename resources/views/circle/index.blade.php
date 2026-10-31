@@ -206,6 +206,7 @@
                     mediaName: '',
                     mediaPreviewUrl: null,
                     isVideo: false,
+                    isAudio: false,
                     postContent: '',
                     hasPoll: false,
                     pollOptions: ['', ''],
@@ -234,6 +235,7 @@
                         if (!file) return;
                         this.mediaName = file.name;
                         this.isVideo = file.type.startsWith('video');
+                        this.isAudio = file.type.startsWith('audio');
                         const reader = new FileReader();
                         reader.onload = (ev) => {
                             this.mediaPreviewUrl = ev.target.result;
@@ -244,6 +246,7 @@
                         this.mediaName = '';
                         this.mediaPreviewUrl = null;
                         this.isVideo = false;
+                        this.isAudio = false;
                         if (this.$refs.mediaInput) this.$refs.mediaInput.value = '';
                     }
                  }">
@@ -435,11 +438,18 @@
                     {{-- Media Preview (Live jika ada file yang dipilih) --}}
                     <template x-if="mediaPreviewUrl">
                         <div class="mb-3 relative rounded-2xl overflow-hidden border-2 border-slate-200 max-h-56 bg-slate-950 flex items-center justify-center">
-                            <template x-if="!isVideo">
-                                <img :src="mediaPreviewUrl" class="max-h-56 w-full object-contain">
-                            </template>
                             <template x-if="isVideo">
                                 <video :src="mediaPreviewUrl" controls class="max-h-56 w-full object-contain"></video>
+                            </template>
+                            <template x-if="isAudio">
+                                <div class="p-6 text-center text-white">
+                                    <div class="text-3xl mb-1">🎵</div>
+                                    <div class="text-xs font-black text-amber-300" x-text="mediaName"></div>
+                                    <audio :src="mediaPreviewUrl" controls class="mt-2 w-full max-w-sm"></audio>
+                                </div>
+                            </template>
+                            <template x-if="!isVideo && !isAudio">
+                                <img :src="mediaPreviewUrl" class="max-h-56 w-full object-contain">
                             </template>
                             <button type="button" @click="clearMedia()" 
                                     class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center text-xs font-black transition cursor-pointer"
@@ -480,9 +490,9 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black cursor-pointer transition flex items-center gap-2 hover:scale-105">
                                 <i class="fas fa-photo-film text-pink-600 text-xs"></i>
-                                <span class="hidden sm:inline">Foto / Video</span>
+                                <span class="hidden sm:inline">Foto / Video / Audio</span>
                                 <span class="sm:hidden">Media</span>
-                                <input type="file" name="media" x-ref="mediaInput" @change="handleFileSelect($event)" accept="image/*,video/*" class="hidden">
+                                <input type="file" name="media" x-ref="mediaInput" @change="handleFileSelect($event)" accept="image/*,video/*,audio/*" class="hidden">
                             </label>
 
                             <button type="button" @click="hasPoll = !hasPoll"
@@ -606,6 +616,14 @@
                         <i class="fas fa-play"></i>
                     </span>
                     <span>Reels</span>
+                </a>
+                {{-- 5. Galeri Media --}}
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'gallery', 'q' => request('q')])) }}" 
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'gallery' ? 'bg-purple-100 text-slate-950 border-2 border-purple-300 shadow-xs' : 'text-slate-800 hover:text-slate-950 hover:bg-slate-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-purple-200 text-purple-800 flex items-center justify-center text-[10px]">
+                        <i class="fas fa-photo-film"></i>
+                    </span>
+                    <span>Galeri</span>
                 </a>
             </div>
 
@@ -819,13 +837,25 @@
 
                                 {{-- Category Pill Pastel & Post Deletion --}}
                                 <div class="flex items-center gap-2 shrink-0">
-                                    <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-100 text-amber-950 border border-amber-300' : 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373]' }}">
-                                        @if($post->tab_category === 'portfolio')
-                                            <i class="fas fa-trophy mr-1 text-amber-700"></i>Reka Cipta
-                                        @else
-                                            <i class="fas fa-mug-hot mr-1 text-[#7f5539]"></i>Cengkrama
-                                        @endif
-                                    </span>
+                                    @if($post->is_gallery || $post->tab_category === 'gallery')
+                                        <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 bg-purple-100 text-purple-950 border border-purple-300 flex items-center gap-1 shadow-2xs">
+                                            @if($post->gallery_category === 'video')
+                                                <i class="fas fa-video text-purple-700"></i>Galeri Video
+                                            @elseif($post->gallery_category === 'audio')
+                                                <i class="fas fa-music text-purple-700"></i>Galeri Lagu
+                                            @else
+                                                <i class="fas fa-image text-purple-700"></i>Galeri Foto
+                                            @endif
+                                        </span>
+                                    @else
+                                        <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->tab_category === 'portfolio' ? 'bg-amber-100 text-amber-950 border border-amber-300' : 'bg-[#faedcd] text-[#7f5539] border border-[#d4a373]' }}">
+                                            @if($post->tab_category === 'portfolio')
+                                                <i class="fas fa-trophy mr-1 text-amber-700"></i>Reka Cipta
+                                            @else
+                                                <i class="fas fa-mug-hot mr-1 text-[#7f5539]"></i>Cengkrama
+                                            @endif
+                                        </span>
+                                    @endif
 
                                     @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
                                         <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus postingan ini?')" class="inline">
@@ -838,6 +868,14 @@
                                     @endif
                                 </div>
                             </div>
+
+                        {{-- Auto-Broadcast Ribbon if Gallery Post --}}
+                        @if($post->is_gallery || $post->tab_category === 'gallery')
+                            <div class="mb-3 px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-purple-100 via-pink-100 to-amber-100 border border-purple-200 text-slate-900 text-xs font-black flex items-center gap-2 shadow-2xs">
+                                <span class="text-sm">✨</span>
+                                <span>Baru saja memajang {{ $post->gallery_category === 'video' ? 'video' : ($post->gallery_category === 'audio' ? 'lagu/rekaman audio' : 'foto') }} baru di Galeri Pribadi!</span>
+                            </div>
+                        @endif
 
                         {{-- Mood Indicator Pastel Kuning --}}
                         @if($post->mood_text)
@@ -979,6 +1017,20 @@
                                          loading="lazy">
                                 @elseif($m->media_type === 'video')
                                     <video src="{{ $m->url }}" controls class="w-full max-h-[500px] bg-black"></video>
+                                @elseif($m->media_type === 'audio')
+                                    <div class="w-full p-6 bg-gradient-to-br from-purple-900 via-slate-900 to-pink-950 flex flex-col items-center text-center text-white"
+                                         x-data="{ isPlayingAudio: false }"
+                                         x-init="$refs.feedAudio?.addEventListener('play', () => isPlayingAudio = true); $refs.feedAudio?.addEventListener('pause', () => isPlayingAudio = false); $refs.feedAudio?.addEventListener('ended', () => isPlayingAudio = false);">
+                                        <div class="relative w-20 h-20 rounded-full bg-[#111827] p-2 border-2 border-purple-400 shadow-xl flex items-center justify-center mb-3"
+                                             :class="isPlayingAudio ? 'animate-spin' : ''"
+                                             style="animation-duration: 4s;">
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-inner">
+                                                🎵
+                                            </div>
+                                        </div>
+                                        <div class="text-xs font-black text-white mb-2">{{ $post->title ?? 'Audio / Rekaman Lagu' }}</div>
+                                        <audio x-ref="feedAudio" src="{{ $m->url }}" controls preload="none" class="w-full max-w-md"></audio>
+                                    </div>
                                 @endif
                             </div>
                         @endif
@@ -1032,11 +1084,20 @@
                                     <i class="fas fa-share-nodes text-amber-800 text-[11px]"></i>
                                     <span>Siarkan</span>
                                 </button>
-                                <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id]) }}" 
-                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-black transition-colors text-xs border border-pink-200">
-                                    <span>Lihat</span>
-                                    <i class="fas fa-arrow-right text-[10px]"></i>
-                                </a>
+                                @if($post->is_gallery || $post->tab_category === 'gallery')
+                                    <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id, 'tab' => 'gallery']) }}" 
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-950 font-black transition-all text-xs border border-purple-300 shadow-2xs hover:scale-105">
+                                        <i class="fas fa-photo-film text-purple-700 text-[10px]"></i>
+                                        <span>Buka Galeri</span>
+                                        <i class="fas fa-arrow-right text-[10px]"></i>
+                                    </a>
+                                @else
+                                    <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id]) }}" 
+                                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 font-black transition-colors text-xs border border-pink-200">
+                                        <span>Lihat</span>
+                                        <i class="fas fa-arrow-right text-[10px]"></i>
+                                    </a>
+                                @endif
                             </div>
                         </div>
 
