@@ -23,6 +23,12 @@
     showEditModal: false, 
     showEndorseModal: false, 
     showGalleryModal: false,
+    showEditMediaModal: false,
+    editingMedia: { id: null, title: '', content: '', category: 'photo' },
+    openEditMediaModal(id, title, content, cat) {
+        this.editingMedia = { id: id, title: title || '', content: content || '', category: cat || 'photo' };
+        this.showEditMediaModal = true;
+    },
     galleryFilter: 'all',
     selectedSkill: '', 
     selectedTheme: '{{ $profile->theme_color ?? 'pink' }}', 
@@ -869,6 +875,130 @@
     ═══════════════════════════════════════════ --}}
     <div x-show="activeTab === 'wall'" x-transition class="space-y-6">
 
+        {{-- ── 🌟 SOROTAN & PENGELOLAAN GALERI PRIBADI DI DINDING ── --}}
+        <div class="bg-white rounded-3xl border-2 border-purple-200 p-5 shadow-xs">
+            <div class="flex items-center justify-between gap-3 mb-3.5 flex-wrap">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-black shadow-2xs">
+                        <i class="fas fa-photo-film"></i>
+                    </span>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-950 flex items-center gap-2">
+                            <span>Galeri Media Pribadi</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300 font-black">
+                                {{ $galleryPosts->count() }} media
+                            </span>
+                        </h4>
+                        <span class="text-[11px] font-bold text-slate-500">Koleksi foto, video klip, dan musik karya {{ $profile->nickname ?? $user->name }}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    @if(Auth::check() && Auth::id() === $user->id)
+                        <button type="button" 
+                                @click="showGalleryModal = true"
+                                class="px-3.5 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 border border-purple-300 text-purple-950 text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs hover:scale-105"
+                                title="Unggah media baru ke galeri">
+                            <i class="fas fa-plus text-purple-700 text-xs"></i>
+                            <span>Unggah Media</span>
+                        </button>
+                    @endif
+                    <button type="button" 
+                            @click="activeTab = 'gallery'"
+                            class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs hover:scale-105"
+                            title="Buka tab galeri selengkapnya">
+                        <span>Lihat Semua</span>
+                        <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+
+            @if($galleryPosts->isNotEmpty())
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    @foreach($galleryPosts->take(4) as $gItem)
+                        @php
+                            $firstM = $gItem->media->first();
+                            $mediaT = $firstM?->media_type ?? 'image';
+                            $itemCat = $gItem->gallery_category ?? ($mediaT === 'video' ? 'video' : ($mediaT === 'audio' ? 'audio' : 'photo'));
+                        @endphp
+                        <div class="group relative rounded-2xl overflow-hidden border-2 {{ $gItem->is_pinned ? 'border-amber-400 ring-2 ring-amber-200 shadow-md' : 'border-slate-200 hover:border-purple-300' }} aspect-square bg-slate-950 flex flex-col justify-between p-2.5 transition-all">
+                            
+                            {{-- Visual Preview Background --}}
+                            <div class="absolute inset-0 z-0">
+                                @if($itemCat === 'photo' && $firstM)
+                                    <img src="{{ $firstM->url }}" alt="{{ $gItem->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                @elseif($itemCat === 'video' && $firstM)
+                                    <video src="{{ $firstM->url }}" muted class="w-full h-full object-cover"></video>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center text-xs">
+                                            <i class="fas fa-play"></i>
+                                        </div>
+                                    </div>
+                                @elseif($itemCat === 'audio')
+                                    <div class="w-full h-full bg-gradient-to-br from-purple-900 to-pink-900 flex flex-col items-center justify-center text-white p-2 text-center">
+                                        <span class="text-2xl mb-1">🎵</span>
+                                        <span class="text-[10px] font-black line-clamp-2">{{ $gItem->title ?? 'Audio Track' }}</span>
+                                    </div>
+                                @endif
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
+                            </div>
+
+                            {{-- Top Pill: Category & Pin --}}
+                            <div class="relative z-10 flex items-center justify-between gap-1">
+                                <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-xs {{ $itemCat === 'photo' ? 'bg-pink-500 text-white' : ($itemCat === 'video' ? 'bg-sky-500 text-white' : 'bg-amber-500 text-black') }}">
+                                    @if($itemCat === 'photo') 📸 @elseif($itemCat === 'video') 🎬 @else 🎵 @endif
+                                </span>
+                                @if($gItem->is_pinned)
+                                    <span class="px-1.5 py-0.5 rounded-lg text-[9px] font-black bg-amber-400 text-black shadow-xs" title="Disematkan di Atas">
+                                        📌
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- Bottom Title & Action --}}
+                            <div class="relative z-10">
+                                <h5 class="text-white text-xs font-black truncate leading-tight drop-shadow-sm mb-1">
+                                    {{ $gItem->title ?? 'Karya Media' }}
+                                </h5>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-white/80">
+                                        ❤️ {{ $gItem->likes_count }}
+                                    </span>
+                                    <div class="flex items-center gap-1">
+                                        @if(Auth::check() && Auth::id() === $user->id)
+                                            <button type="button" 
+                                                    @click.stop="openEditMediaModal({{ $gItem->id }}, '{{ addslashes($gItem->title ?? '') }}', '{{ addslashes($gItem->content ?? '') }}', '{{ $itemCat }}')"
+                                                    class="w-5 h-5 rounded-md bg-black/60 hover:bg-purple-600 text-white flex items-center justify-center text-[9px] transition cursor-pointer"
+                                                    title="Kelola / Edit Media ini">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                        @endif
+                                        <button type="button" 
+                                                @click="activeTab = 'gallery'"
+                                                class="w-5 h-5 rounded-md bg-white/30 hover:bg-white text-slate-900 flex items-center justify-center text-[9px] transition cursor-pointer"
+                                                title="Buka di Galeri">
+                                            <i class="fas fa-arrow-up-right-from-square"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-6 px-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <p class="text-xs font-bold text-slate-600 mb-2">
+                        Belum ada media di Galeri Pribadi. Pajang foto kenangan, video seru, atau rekaman musikmu sekarang!
+                    </p>
+                    @if(Auth::check() && Auth::id() === $user->id)
+                        <button type="button" @click="showGalleryModal = true" class="px-4 py-1.5 rounded-xl bg-purple-200 hover:bg-purple-300 border border-purple-300 text-slate-950 text-xs font-black transition cursor-pointer">
+                            + Unggah Media Sekarang ✨
+                        </button>
+                    @endif
+                </div>
+            @endif
+        </div>
+
         {{-- Mini Highlight Stiker Buku Tamu --}}
         @if($guestbookEntries->isNotEmpty())
             <div class="p-4 rounded-3xl bg-gradient-to-r from-pink-50 via-rose-50/70 to-amber-50 border-2 border-pink-200/90 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
@@ -1405,19 +1535,25 @@
                     <div x-show="galleryFilter === 'all' || galleryFilter === '{{ $cat }}'"
                          x-transition
                          id="gallery-post-{{ $gPost->id }}"
-                         class="bg-white rounded-3xl border-2 border-purple-100 shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-purple-300 transition-all group">
+                         class="bg-white rounded-3xl border-2 {{ $gPost->is_pinned ? 'border-amber-400 ring-2 ring-amber-200 shadow-md' : 'border-purple-100 hover:border-purple-300' }} shadow-xs overflow-hidden flex flex-col hover:shadow-md transition-all group">
 
                         {{-- Media Display Container --}}
                         <div class="relative bg-slate-950 overflow-hidden flex items-center justify-center {{ $cat === 'audio' ? 'p-6 bg-gradient-to-br from-purple-900 via-slate-900 to-pink-950' : 'aspect-square sm:aspect-[4/3]' }}">
 
-                            {{-- Badge Kategori --}}
-                            <div class="absolute top-3 left-3 z-20 flex items-center gap-1">
+                            {{-- Badge Kategori & Pin --}}
+                            <div class="absolute top-3 left-3 z-20 flex items-center gap-1.5 flex-wrap">
                                 <span class="px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-xs {{ $cat === 'photo' ? 'bg-pink-500 text-white' : ($cat === 'video' ? 'bg-sky-500 text-white' : 'bg-amber-500 text-black') }}">
                                     @if($cat === 'photo') 📸 Foto @elseif($cat === 'video') 🎬 Video @else 🎵 Audio @endif
                                 </span>
+                                @if($gPost->is_pinned)
+                                    <span class="px-2 py-0.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-amber-400 text-black shadow-xs flex items-center gap-1">
+                                        <span>📌</span>
+                                        <span>Sorotan</span>
+                                    </span>
+                                @endif
                             </div>
 
-                            {{-- Action Share & Delete --}}
+                            {{-- Action Share, Pin, Edit & Delete (Pengelolaan Lengkap) --}}
                             <div class="absolute top-3 right-3 z-20 flex items-center gap-1">
                                 <button type="button" 
                                         onclick="shareCirclePost('{{ addslashes($gPost->title ?? 'Media Galeri Pembda') }}', '{{ route('circle.profile', ['username' => $profile->username, 'post' => $gPost->id]) }}#gallery-post-{{ $gPost->id }}')"
@@ -1426,6 +1562,20 @@
                                     <i class="fas fa-share-nodes text-[10px]"></i>
                                 </button>
                                 @if(Auth::check() && (Auth::id() === $gPost->user_id || Auth::user()->isSuperAdmin()))
+                                    <form action="{{ route('circle.post.pin', $gPost->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" 
+                                                class="w-7 h-7 rounded-lg {{ $gPost->is_pinned ? 'bg-amber-400 text-black hover:bg-amber-500' : 'bg-black/60 text-white hover:bg-amber-500' }} flex items-center justify-center text-xs transition cursor-pointer shadow-xs" 
+                                                title="{{ $gPost->is_pinned ? 'Lepas Sematan dari Sorotan' : 'Sematkan ke Sorotan Teratas Galeri' }}">
+                                            <i class="fas fa-thumbtack text-[10px]"></i>
+                                        </button>
+                                    </form>
+                                    <button type="button" 
+                                            @click="openEditMediaModal({{ $gPost->id }}, '{{ addslashes($gPost->title ?? '') }}', '{{ addslashes($gPost->content ?? '') }}', '{{ $cat }}')"
+                                            class="w-7 h-7 rounded-lg bg-black/60 hover:bg-purple-600 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs" 
+                                            title="Kelola / Edit Info Media">
+                                        <i class="fas fa-pen text-[10px]"></i>
+                                    </button>
                                     <form action="{{ route('circle.post.destroy', $gPost->id) }}" method="POST" onsubmit="return confirm('Hapus media dari galeri ini?')" class="inline">
                                         @csrf
                                         @method('DELETE')
@@ -2239,6 +2389,89 @@
                                 style="background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%) !important; color: #000000 !important; border: 2px solid #000000 !important;">
                             <i class="fas fa-check-circle mr-1"></i>
                             <span>Sematkan Lencana 🏅</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════
+         MODAL PENGELOLAAN / EDIT MEDIA GALERI
+    ═══════════════════════════════════════════ --}}
+    @if(Auth::check() && Auth::id() === $user->id)
+        <div x-show="showEditMediaModal" x-cloak 
+             class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+             x-transition>
+            <div class="bg-white rounded-3xl border-2 border-purple-400 max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+                 @click.outside="showEditMediaModal = false">
+                
+                <div class="flex items-center justify-between mb-4 pb-3 border-b-2 border-slate-100">
+                    <h3 class="font-display font-black text-lg text-slate-950 flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-sm shadow-2xs">
+                            <i class="fas fa-pen-to-square"></i>
+                        </span>
+                        <span>Kelola Media Galeri</span>
+                    </h3>
+                    <button type="button" @click="showEditMediaModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+
+                <form :action="'{{ url('/circle/post') }}/' + editingMedia.id + '/update'" method="POST">
+                    @csrf
+
+                    <div class="space-y-4">
+                        {{-- Kategori Media --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1.5">Kategori Media:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" @click="editingMedia.category = 'photo'"
+                                        :class="editingMedia.category === 'photo' ? 'bg-pink-100 border-pink-400 ring-2 ring-pink-300 text-slate-950 font-black' : 'bg-slate-50 border-slate-200 text-slate-700'"
+                                        class="p-2.5 rounded-2xl border-2 flex items-center justify-center gap-1.5 text-xs transition cursor-pointer">
+                                    <span>📸</span>
+                                    <span>Foto</span>
+                                </button>
+                                <button type="button" @click="editingMedia.category = 'video'"
+                                        :class="editingMedia.category === 'video' ? 'bg-sky-100 border-sky-400 ring-2 ring-sky-300 text-slate-950 font-black' : 'bg-slate-50 border-slate-200 text-slate-700'"
+                                        class="p-2.5 rounded-2xl border-2 flex items-center justify-center gap-1.5 text-xs transition cursor-pointer">
+                                    <span>🎬</span>
+                                    <span>Video</span>
+                                </button>
+                                <button type="button" @click="editingMedia.category = 'audio'"
+                                        :class="editingMedia.category === 'audio' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-300 text-slate-950 font-black' : 'bg-slate-50 border-slate-200 text-slate-700'"
+                                        class="p-2.5 rounded-2xl border-2 flex items-center justify-center gap-1.5 text-xs transition cursor-pointer">
+                                    <span>🎵</span>
+                                    <span>Audio / Lagu</span>
+                                </button>
+                            </div>
+                            <input type="hidden" name="gallery_category" :value="editingMedia.category">
+                        </div>
+
+                        {{-- Judul Media --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Judul Media</label>
+                            <input type="text" name="title" x-model="editingMedia.title"
+                                   placeholder="Judul karya / media..."
+                                   class="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-300">
+                        </div>
+
+                        {{-- Cerita / Deskripsi --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1">Cerita / Keterangan Media</label>
+                            <textarea name="content" rows="3" x-model="editingMedia.content"
+                                      placeholder="Ceritakan tentang foto/video/lagu ini..."
+                                      class="w-full p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-300 resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-between pt-3 border-t border-slate-100">
+                        <button type="button" @click="showEditMediaModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
+                            Batal
+                        </button>
+
+                        <button type="submit" class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-gradient-to-r from-purple-200 to-pink-200 hover:from-purple-300 hover:to-pink-300 border-2 border-purple-300 shadow-xs transition hover:scale-105 cursor-pointer">
+                            Simpan Perubahan ✨
                         </button>
                     </div>
                 </form>

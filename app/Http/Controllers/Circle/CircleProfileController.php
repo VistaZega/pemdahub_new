@@ -145,6 +145,7 @@ class CircleProfileController extends Controller
             ->where('tab_category', 'wall')
             ->where('post_type', '!=', 'story')
             ->active()
+            ->orderByDesc('is_pinned')
             ->latest()
             ->get();
 
@@ -153,6 +154,7 @@ class CircleProfileController extends Controller
             ->where('user_id', $user->id)
             ->where('tab_category', 'portfolio')
             ->active()
+            ->orderByDesc('is_pinned')
             ->latest()
             ->get();
 
@@ -164,6 +166,7 @@ class CircleProfileController extends Controller
                   ->orWhere('is_gallery', true);
             })
             ->active()
+            ->orderByDesc('is_pinned')
             ->latest()
             ->get();
 

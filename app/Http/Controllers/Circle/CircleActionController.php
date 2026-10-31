@@ -463,6 +463,65 @@ class CircleActionController extends Controller
     }
 
     /**
+     * Perbarui Data Postingan / Media Galeri
+     */
+    public function updatePost(Request $request, $id)
+    {
+        $post = CirclePost::findOrFail($id);
+        $user = Auth::user();
+
+        if ($post->user_id !== $user?->id && !$user?->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Anda tidak berwenang mengedit media ini.');
+        }
+
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+            'content' => 'nullable|string|max:5000',
+            'gallery_category' => 'nullable|in:photo,video,audio',
+            'visibility' => 'nullable|in:public,school_only,circle_only',
+        ]);
+
+        $updateData = [
+            'title' => $request->title,
+            'content' => $request->content,
+        ];
+
+        if ($request->has('gallery_category')) {
+            $updateData['gallery_category'] = $request->gallery_category;
+        }
+
+        if ($request->has('visibility')) {
+            $updateData['visibility'] = $request->visibility;
+        }
+
+        $post->update($updateData);
+
+        return redirect()->back()->with('success', 'Media galeri berhasil diperbarui! ✨');
+    }
+
+    /**
+     * Sematkan / Lepas Sematan Postingan / Media Galeri (Pin to Top)
+     */
+    public function togglePinPost($id)
+    {
+        $post = CirclePost::findOrFail($id);
+        $user = Auth::user();
+
+        if ($post->user_id !== $user?->id && !$user?->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Anda tidak berwenang menyematkan media ini.');
+        }
+
+        $newState = !$post->is_pinned;
+        $post->update(['is_pinned' => $newState]);
+
+        $msg = $newState 
+            ? '📌 Karya berhasil disematkan di bagian teratas profil!' 
+            : 'Sematkan karya telah dilepas.';
+
+        return redirect()->back()->with('success', $msg);
+    }
+
+    /**
      * Berikan Suara pada Jajak Pendapat / Polling
      */
     public function votePoll(Request $request)
