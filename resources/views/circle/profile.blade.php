@@ -269,7 +269,7 @@
                                        @pause="isPlaying = false" 
                                        @playing="isPlaying = true; isLoading = false"
                                        @waiting="isLoading = true"
-                                       @error="handleAudioError($event)">
+                                       x-on:error="handleAudioError($event)">
                                     <source src="{{ $anthem['stream_url'] }}" type="audio/mp4">
                                     <source src="{{ $anthem['stream_url'] }}" type="video/mp4">
                                     <source src="{{ $anthem['stream_url'] }}" type="audio/mpeg">
