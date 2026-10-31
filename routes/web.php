@@ -2999,6 +2999,7 @@ Route::prefix('circle')->name('circle.')->group(function () {
     Route::post('/post', [App\Http\Controllers\Circle\CircleActionController::class, 'storePost'])->name('post.store');
     Route::post('/post/{id}/update', [App\Http\Controllers\Circle\CircleActionController::class, 'updatePost'])->name('post.update');
     Route::post('/post/{id}/pin', [App\Http\Controllers\Circle\CircleActionController::class, 'togglePinPost'])->name('post.pin');
+    Route::post('/post/{id}/live-update', [App\Http\Controllers\Circle\CircleActionController::class, 'addLiveUpdate'])->name('post.liveUpdate');
     Route::delete('/post/{id}', [App\Http\Controllers\Circle\CircleActionController::class, 'destroyPost'])->name('post.destroy');
     Route::post('/profile/update', [App\Http\Controllers\Circle\CircleActionController::class, 'updateProfile'])->name('profile.update');
     Route::post('/react', [App\Http\Controllers\Circle\CircleActionController::class, 'toggleReaction'])->name('react');

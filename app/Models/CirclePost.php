@@ -16,6 +16,7 @@ class CirclePost extends Model
         'tab_category',
         'is_gallery',
         'gallery_category',
+        'media_layout',
         'community_id',
         'title',
         'slug',
@@ -23,6 +24,14 @@ class CirclePost extends Model
         'mood_emoji',
         'mood_text',
         'location_tag',
+        'event_name',
+        'event_date',
+        'latitude',
+        'longitude',
+        'is_live',
+        'live_status',
+        'live_stream_url',
+        'live_updates',
         'tagged_user_ids',
         'school_id',
         'major_code',
@@ -36,6 +45,11 @@ class CirclePost extends Model
 
     protected $casts = [
         'is_gallery' => 'boolean',
+        'event_date' => 'datetime',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'is_live' => 'boolean',
+        'live_updates' => 'array',
         'tagged_user_ids' => 'array',
         'is_pinned' => 'boolean',
         'expires_at' => 'datetime',
@@ -125,5 +139,34 @@ class CirclePost extends Model
     public function scopePublicVisible($query)
     {
         return $query->where('visibility', 'public');
+    }
+
+    /**
+     * Dapatkan URL Google Maps jika koordinat GPS atau lokasi tersedia
+     */
+    public function getGoogleMapsUrlAttribute(): ?string
+    {
+        if ($this->latitude && $this->longitude) {
+            return "https://www.google.com/maps?q={$this->latitude},{$this->longitude}";
+        }
+        if ($this->location_tag) {
+            return "https://www.google.com/maps/search/?api=1&query=" . urlencode($this->location_tag);
+        }
+        return null;
+    }
+
+    /**
+     * Konversi URL Live Stream (YouTube Live / Video) menjadi Embed URL
+     */
+    public function getLiveEmbedUrlAttribute(): ?string
+    {
+        if (empty($this->live_stream_url)) {
+            return null;
+        }
+        $url = trim($this->live_stream_url);
+        if (preg_match('/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=0&rel=0';
+        }
+        return null;
     }
 }

@@ -30,20 +30,31 @@ class CircleActionController extends Controller
     public function storePost(Request $request)
     {
         $request->validate([
-            'content' => 'nullable|string|max:5000',
+            'content' => 'nullable|string|max:10000',
             'title' => 'nullable|string|max:255',
             'tab_category' => 'required|in:wall,portfolio,gallery',
-            'post_type' => 'required|in:status,story,reel,project,devlog,media',
+            'post_type' => 'required|in:status,story,reel,project,devlog,media,report,live',
             'gallery_category' => 'nullable|in:photo,video,audio',
+            'media_layout' => 'nullable|in:top,bottom,magazine,carousel',
             'community_id' => 'nullable|exists:circle_communities,id',
             'mood_emoji' => 'nullable|string|max:10',
             'mood_text' => 'nullable|string|max:100',
-            'location_tag' => 'nullable|string|max:100',
-            'media' => 'nullable|file|max:51200', // max 50MB (video, audio, gambar)
+            'location_tag' => 'nullable|string|max:200',
+            'event_name' => 'nullable|string|max:180',
+            'event_date' => 'nullable|date',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'is_live' => 'nullable|boolean',
+            'live_stream_url' => 'nullable|string|max:500',
+            'media' => 'nullable|file|max:51200', // max 50MB
+            'media_files.*' => 'nullable|file|max:51200',
         ]);
 
         $user = Auth::user();
         if (!$user) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401);
+            }
             return redirect()->route('login')->with('error', 'Silakan masuk terlebih dahulu untuk memposting.');
         }
 
@@ -51,10 +62,18 @@ class CircleActionController extends Controller
         $recentDuplicate = CirclePost::where('user_id', $user->id)
             ->where('post_type', $request->post_type)
             ->where('content', $request->content)
+            ->where('title', $request->title)
             ->where('created_at', '>=', now()->subSeconds(10))
             ->first();
 
         if ($recentDuplicate) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Postingan berhasil diterbitkan!',
+                    'post_id' => $recentDuplicate->id,
+                ]);
+            }
             return redirect()->back()->with('warning', 'Postingan kembar terdeteksi dan diabaikan untuk menjaga kerapian panggung.');
         }
 
@@ -70,6 +89,20 @@ class CircleActionController extends Controller
 
         $isGallery = $request->tab_category === 'gallery' || $request->boolean('is_gallery');
         $galleryCat = $request->gallery_category;
+        $isLive = $request->boolean('is_live') || $request->post_type === 'live';
+
+        $liveUpdates = null;
+        if ($isLive) {
+            $liveUpdates = [
+                [
+                    'id' => uniqid('live_'),
+                    'time' => now()->format('H:i') . ' WIB',
+                    'timestamp' => now()->toIso8601String(),
+                    'text' => $request->content ?: ('Liputan langsung ' . ($request->event_name ?? $request->title ?? 'kegiatan') . ' dimulai dari lokasi.'),
+                    'badge' => '🔴 MULAI LIVE',
+                ]
+            ];
+        }
 
         $post = CirclePost::create([
             'user_id' => $user->id,
@@ -77,44 +110,74 @@ class CircleActionController extends Controller
             'tab_category' => $request->tab_category,
             'is_gallery' => $isGallery,
             'gallery_category' => $galleryCat,
+            'media_layout' => $request->input('media_layout', 'bottom'),
             'community_id' => $request->community_id,
             'title' => $request->title,
             'content' => $request->content,
             'mood_emoji' => $request->mood_emoji,
             'mood_text' => $request->mood_text,
             'location_tag' => $request->location_tag,
+            'event_name' => $request->event_name,
+            'event_date' => $request->event_date ? \Carbon\Carbon::parse($request->event_date) : (($request->post_type === 'report' || $isLive) ? now() : null),
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'is_live' => $isLive,
+            'live_status' => $isLive ? 'live' : null,
+            'live_stream_url' => $request->live_stream_url,
+            'live_updates' => $liveUpdates,
             'school_id' => $user->school_id,
             'major_code' => $majorCode,
             'visibility' => 'public',
             'expires_at' => $expiresAt,
         ]);
 
-        // Tangani Upload Media (Gambar, Video, atau Audio)
-        if ($request->hasFile('media')) {
-            $file = $request->file('media');
-            $mime = $file->getMimeType();
+        // Kumpulkan semua berkas media (mendukung multi-upload media_files[] maupun single media)
+        $uploadedFiles = [];
+        if ($request->hasFile('media_files')) {
+            $rawFiles = $request->file('media_files');
+            $uploadedFiles = is_array($rawFiles) ? $rawFiles : [$rawFiles];
+        } elseif ($request->hasFile('media')) {
+            $rawFiles = $request->file('media');
+            $uploadedFiles = is_array($rawFiles) ? $rawFiles : [$rawFiles];
+        }
 
-            if (str_starts_with($mime, 'video')) {
-                $mediaType = 'video';
-                $galleryCat = $galleryCat ?? 'video';
-            } elseif (str_starts_with($mime, 'audio')) {
-                $mediaType = 'audio';
-                $galleryCat = $galleryCat ?? 'audio';
-            } else {
-                $mediaType = 'image';
-                $galleryCat = $galleryCat ?? 'photo';
+        $captions = $request->input('media_captions', []);
+
+        if (!empty($uploadedFiles)) {
+            foreach (array_values($uploadedFiles) as $idx => $file) {
+                if (!$file || !$file->isValid()) {
+                    continue;
+                }
+                $mime = $file->getMimeType() ?? '';
+
+                if (str_starts_with($mime, 'video')) {
+                    $mediaType = 'video';
+                    $galleryCat = $galleryCat ?? 'video';
+                } elseif (str_starts_with($mime, 'audio')) {
+                    $mediaType = 'audio';
+                    $galleryCat = $galleryCat ?? 'audio';
+                } else {
+                    $mediaType = 'image';
+                    $galleryCat = $galleryCat ?? 'photo';
+                }
+
+                $path = $file->store('circle/media', 'public');
+
+                CirclePostMedia::create([
+                    'circle_post_id' => $post->id,
+                    'media_type' => $mediaType,
+                    'file_path' => $path,
+                    'aspect_ratio' => $request->post_type === 'reel' || $request->post_type === 'story' ? '9:16' : 'auto',
+                    'order' => $idx,
+                    'metadata' => [
+                        'caption' => $captions[$idx] ?? null,
+                        'original_name' => $file->getClientOriginalName(),
+                        'size_bytes' => $file->getSize(),
+                    ],
+                ]);
             }
-            
-            $path = $file->store('circle/media', 'public');
 
-            CirclePostMedia::create([
-                'circle_post_id' => $post->id,
-                'media_type' => $mediaType,
-                'file_path' => $path,
-                'aspect_ratio' => $request->post_type === 'reel' || $request->post_type === 'story' ? '9:16' : '1:1',
-            ]);
-
-            if ($isGallery) {
+            if ($isGallery && $galleryCat) {
                 $post->update([
                     'gallery_category' => $galleryCat,
                 ]);
@@ -144,7 +207,92 @@ class CircleActionController extends Controller
             }
         }
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Postingan dan media berhasil diterbitkan di PembdaCIRCLE! ✨',
+                'post_id' => $post->id,
+                'media_count' => count($uploadedFiles),
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Postinganmu berhasil diterbitkan di PembdaCIRCLE! ✨');
+    }
+
+    /**
+     * Tambahkan Update Berkala pada Laporan Langsung (🔴 LIVE Report) atau Akhiri Live
+     */
+    public function addLiveUpdate(Request $request, $id)
+    {
+        $post = CirclePost::findOrFail($id);
+        $user = Auth::user();
+
+        if ($post->user_id !== $user?->id && !$user?->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Anda tidak berwenang memperbarui liputan langsung ini.');
+        }
+
+        $request->validate([
+            'update_text' => 'nullable|string|max:2000',
+            'update_photo' => 'nullable|file|max:20480',
+            'end_live' => 'nullable|boolean',
+        ]);
+
+        $updates = is_array($post->live_updates) ? $post->live_updates : [];
+        $photoUrl = null;
+
+        if ($request->hasFile('update_photo')) {
+            $file = $request->file('update_photo');
+            $mime = $file->getMimeType() ?? '';
+            $mediaType = str_starts_with($mime, 'video') ? 'video' : 'image';
+            $path = $file->store('circle/media', 'public');
+            $photoUrl = asset('storage/' . ltrim($path, '/'));
+
+            $maxOrder = $post->media()->max('order') ?? -1;
+            CirclePostMedia::create([
+                'circle_post_id' => $post->id,
+                'media_type' => $mediaType,
+                'file_path' => $path,
+                'aspect_ratio' => 'auto',
+                'order' => $maxOrder + 1,
+                'metadata' => [
+                    'caption' => $request->update_text ?: ('Update Live ' . now()->format('H:i') . ' WIB'),
+                ],
+            ]);
+        }
+
+        if ($request->boolean('end_live')) {
+            $updates[] = [
+                'id' => uniqid('live_'),
+                'time' => now()->format('H:i') . ' WIB',
+                'timestamp' => now()->toIso8601String(),
+                'text' => $request->update_text ?: 'Liputan langsung kegiatan telah selesai. Terima kasih atas kebersamaan Anda!',
+                'photo_url' => $photoUrl,
+                'badge' => '🏁 SELESAI',
+            ];
+            $post->update([
+                'live_status' => 'ended',
+                'live_updates' => $updates,
+            ]);
+            return redirect()->back()->with('success', '🏁 Liputan langsung berhasil diakhiri dan disimpan sebagai laporan dokumentasi.');
+        }
+
+        if ($request->filled('update_text') || $photoUrl) {
+            $updates[] = [
+                'id' => uniqid('live_'),
+                'time' => now()->format('H:i') . ' WIB',
+                'timestamp' => now()->toIso8601String(),
+                'text' => $request->update_text ?? 'Dokumentasi terbaru dari lokasi kegiatan.',
+                'photo_url' => $photoUrl,
+                'badge' => '⚡ UPDATE',
+            ];
+            $post->update([
+                'is_live' => true,
+                'live_status' => 'live',
+                'live_updates' => $updates,
+            ]);
+        }
+
+        return redirect()->back()->with('success', '🔴 Update liputan langsung berhasil disiarkan!');
     }
 
     /**

@@ -77,6 +77,17 @@ class CircleFeedController extends Controller
                 $q->where('tab_category', 'gallery')
                   ->orWhere('is_gallery', true);
             });
+        } elseif ($tabFilter === 'live') {
+            $query->where(function ($q) {
+                $q->whereIn('post_type', ['live', 'report']);
+                if (\Illuminate\Support\Facades\Schema::hasColumn('circle_posts', 'is_live')) {
+                    $q->orWhere('is_live', true);
+                }
+            });
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('circle_posts', 'is_live')) {
+            $query->orderByRaw("CASE WHEN is_live = 1 AND live_status = 'live' THEN 0 ELSE 1 END");
         }
 
         $posts = $query->latest()->paginate(12)->withQueryString();

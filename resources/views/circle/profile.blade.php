@@ -700,173 +700,11 @@
     </div>
 
     {{-- ═══════════════════════════════════════════
-         KOTAK BUAT STATUS / POSTING KARYA (KHUSUS PEMILIK AKUN)
+         KOTAK BUAT STATUS / POSTING KARYA / LAPORAN / LIVE (KHUSUS PEMILIK AKUN)
     ═══════════════════════════════════════════ --}}
     @if(Auth::check() && Auth::id() === $user->id)
-        <div class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs mb-6" 
-             x-data="{ 
-                isSubmitting: false,
-                postType: 'status', 
-                tabCat: 'wall', 
-                showAttach: false,
-                postContent: '',
-                hasPoll: false,
-                pollOptions: ['', ''],
-                addPollOption() { if (this.pollOptions.length < 4) this.pollOptions.push(''); },
-                removePollOption(idx) { if (this.pollOptions.length > 2) this.pollOptions.splice(idx, 1); },
-                setPrompt(text) {
-                    this.postContent = text;
-                    this.$nextTick(() => {
-                        if (this.$refs.contentInput) this.$refs.contentInput.focus();
-                    });
-                }
-             }">
-            <div class="flex items-center gap-3.5 mb-3">
-                <img src="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}" class="w-11 h-11 rounded-2xl object-cover ring-2 ring-pink-100">
-                <div>
-                    <h4 class="text-sm font-black text-slate-950">Hai {{ explode(' ', $user->name)[0] }}! ✨</h4>
-                    <span class="text-xs font-bold text-slate-600">Mau nulis apa hari ini?</span>
-                </div>
-            </div>
-
-            <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data"
-                  @submit="if(isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
-                @csrf
-                <input type="hidden" name="tab_category" :value="tabCat">
-                <input type="hidden" name="post_type" :value="postType">
-
-                {{-- Pilihan Format Postingan (1 Kata: Nongki, Kilas, Karya, Reels) --}}
-                <div class="flex items-center gap-2 mb-3 overflow-x-auto pb-1">
-                    <button type="button" @click="tabCat = 'wall'; postType = 'status'"
-                            :class="tabCat === 'wall' && postType === 'status' ? 'bg-[#faedcd] text-slate-950 border-[#d4a373]' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-mug-hot text-[#7f5539]"></i>
-                        <span>Nongki</span>
-                    </button>
-                    <button type="button" @click="tabCat = 'wall'; postType = 'story'"
-                            :class="postType === 'story' ? 'bg-pink-100 text-slate-950 border-pink-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-bolt text-pink-600"></i>
-                        <span>Kilas</span>
-                    </button>
-                    <button type="button" @click="tabCat = 'portfolio'; postType = 'project'"
-                            :class="tabCat === 'portfolio' ? 'bg-amber-100 text-slate-950 border-amber-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-trophy text-amber-700"></i>
-                        <span>Karya</span>
-                    </button>
-                    <button type="button" @click="tabCat = 'portfolio'; postType = 'reel'"
-                            :class="postType === 'reel' ? 'bg-sky-100 text-slate-950 border-sky-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-play text-sky-700"></i>
-                        <span>Reels</span>
-                    </button>
-                    <button type="button" @click="tabCat = 'gallery'; postType = 'media'"
-                            :class="tabCat === 'gallery' ? 'bg-purple-100 text-slate-950 border-purple-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                            class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-photo-film text-purple-600"></i>
-                        <span>Galeri</span>
-                    </button>
-                </div>
-
-                <div x-show="tabCat === 'portfolio' || tabCat === 'gallery'" class="mb-2.5">
-                    <input type="text" name="title" :placeholder="tabCat === 'gallery' ? 'Judul Media / Foto / Video / Lagu...' : 'Judul Karya / Proyek Utama...'" class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/50 border-2 border-amber-200 text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400">
-                </div>
-
-                {{-- 💡 Ide Spontan Cepat --}}
-                <div class="mb-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                    <button type="button" @click="setPrompt('Lagi nongki santai di kantin bareng bestie ☕ Spill jajan kalian!')"
-                            class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[11px] font-bold text-slate-900 shrink-0">
-                        ☕ Nongki Kantin
-                    </button>
-                    <button type="button" @click="setPrompt('Keringat anak bengkel/lab hari ini 🛠️ Karya siap dipamerkan!')"
-                            class="px-2.5 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[11px] font-bold text-slate-900 shrink-0">
-                        🛠️ Bengkel/Lab
-                    </button>
-                    <button type="button" @click="setPrompt('Lagu yang nemenin belajar malam ini 🎧🎶')"
-                            class="px-2.5 py-1 rounded-xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-[11px] font-bold text-slate-900 shrink-0">
-                        🎧 Lagu Favorit
-                    </button>
-                    <button type="button" @click="setPrompt('Pusing dikit nggak ngaruh 📚 Yang penting tugas beres!')"
-                            class="px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-[11px] font-bold text-slate-900 shrink-0">
-                        📚 Semangat Belajar
-                    </button>
-                </div>
-
-                <textarea name="content" rows="3" 
-                          x-ref="contentInput"
-                          x-model="postContent"
-                          placeholder="Tuliskan cerita, curhat santai, atau penjelasan karyamu..." 
-                          class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-sm font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none mb-3"></textarea>
-
-                {{-- Kotak Input Polling Interaktif --}}
-                <div x-show="hasPoll" x-collapse x-transition class="mb-3.5 p-4 rounded-2xl bg-purple-50/70 border-2 border-purple-200 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-black uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
-                            <span>📊</span>
-                            <span>Bikin Polling / Jajak Pendapat</span>
-                        </span>
-                        <button type="button" @click="hasPoll = false" class="text-xs font-black text-rose-600 hover:text-rose-800 cursor-pointer">
-                            ✕ Batal
-                        </button>
-                    </div>
-
-                    <div>
-                        <input type="text" name="poll_question" placeholder="Pertanyaan Polling..." 
-                               class="w-full px-3.5 py-2 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
-                    </div>
-
-                    <div class="space-y-2">
-                        <template x-for="(opt, idx) in pollOptions" :key="idx">
-                            <div class="flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-purple-200 text-purple-900 flex items-center justify-center text-xs font-black shrink-0" x-text="idx + 1"></span>
-                                <input type="text" name="poll_options[]" x-model="pollOptions[idx]" :placeholder="'Pilihan ' + (idx + 1) + '...'"
-                                       class="flex-1 px-3 py-1.5 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
-                                <button type="button" x-show="pollOptions.length > 2" @click="removePollOption(idx)"
-                                        class="w-7 h-7 rounded-xl bg-white hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs font-black transition cursor-pointer border border-slate-200">
-                                    ✕
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-                    <div class="mt-2" x-show="pollOptions.length < 4">
-                        <button type="button" @click="addPollOption()" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1.5 cursor-pointer">
-                            <i class="fas fa-plus-circle"></i>
-                            <span>Tambah Pilihan</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Action Bar Form Posting --}}
-                <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-slate-100">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-slate-950 text-xs font-black cursor-pointer flex items-center gap-2 transition">
-                            <i class="fas fa-photo-film text-pink-600 text-sm"></i>
-                            <span>Foto / Video / Audio</span>
-                            <input type="file" name="media" class="hidden" accept="image/*,video/*,audio/*" @change="showAttach = true">
-                        </label>
-                        <button type="button" @click="hasPoll = !hasPoll"
-                                :class="hasPoll ? 'bg-purple-100 border-purple-400 text-purple-950 font-black' : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-slate-950 font-bold'"
-                                class="px-3.5 py-2 rounded-2xl border text-xs cursor-pointer transition flex items-center gap-1.5">
-                            <span>📊</span>
-                            <span>Polling</span>
-                        </button>
-                        <span x-show="showAttach" class="text-[11px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-xl border border-emerald-300">
-                            ✓ Media Terpilih
-                        </span>
-                    </div>
-
-                    <button type="submit" 
-                            :disabled="isSubmitting"
-                            class="px-5 py-2.5 rounded-2xl text-xs font-black text-slate-950 bg-pink-200 hover:bg-pink-300 border-2 border-pink-300 shadow-xs transition hover:scale-105 flex items-center gap-2 cursor-pointer"
-                            :class="isSubmitting ? 'opacity-60 cursor-not-allowed scale-100 hover:scale-100' : ''">
-                        <i x-show="!isSubmitting" class="fas fa-paper-plane text-pink-700"></i>
-                        <i x-show="isSubmitting" class="fas fa-spinner fa-spin text-pink-700"></i>
-                        <span x-show="!isSubmitting">Terbitkan ke CIRCLE ✨</span>
-                        <span x-show="isSubmitting">Menerbitkan... ⏳</span>
-                    </button>
-                </div>
-            </form>
+        <div class="mb-6">
+            @include('circle.partials.post-composer')
         </div>
     @endif
 
@@ -1058,22 +896,33 @@
                             </div>
                         </div>
 
-                        {{-- Opsi Hapus Postingan (Pemilik / SuperAdmin) --}}
-                        @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
-                            <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus status ini?')" class="shrink-0">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition border border-slate-200 cursor-pointer" title="Hapus Status">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
-                        @endif
+                        <div class="flex items-center gap-2 shrink-0">
+                            @if($post->is_live || $post->post_type === 'live')
+                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider {{ $post->live_status === 'active' ? 'bg-rose-600 text-white border border-black animate-pulse' : 'bg-slate-800 text-white' }} flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full {{ $post->live_status === 'active' ? 'bg-white' : 'bg-emerald-400' }}"></span>
+                                    <span>{{ $post->live_status === 'active' ? 'LIPUTAN LIVE' : 'REKAMAN LIVE' }}</span>
+                                </span>
+                            @elseif($post->post_type === 'report' || $post->event_name)
+                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-950 border border-emerald-300 flex items-center gap-1">
+                                    <i class="fas fa-clipboard-check text-emerald-700"></i>Laporan Kegiatan
+                                </span>
+                            @endif
+
+                            {{-- Opsi Hapus Postingan (Pemilik / SuperAdmin) --}}
+                            @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
+                                <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus status ini?')" class="shrink-0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition border border-slate-200 cursor-pointer" title="Hapus Status">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </div>
 
-                    {{-- Content (Hitam & Sangat Mudah Dibaca) --}}
-                    <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
-                        {{ $post->content }}
-                    </div>
+                    {{-- Unified Post Body (Live Report, Event GPS Card, Top/Bottom Layout, Smart Multi-Photo Collage & Lightbox) --}}
+                    @include('circle.partials.post-card-body', ['post' => $post])
 
                     {{-- Polling Interaktif Warga Pembda --}}
                     @if($post->poll)
@@ -1176,19 +1025,6 @@
                                     </div>
                                 </template>
                             </div>
-                        </div>
-                    @endif
-
-                    {{-- Media --}}
-                    @if($post->media->isNotEmpty())
-                        <div class="rounded-3xl overflow-hidden mb-4 bg-slate-950 border-2 border-[#f1e8dc] max-h-[460px]">
-                            @foreach($post->media as $m)
-                                @if($m->media_type === 'image')
-                                    <img src="{{ $m->url }}" alt="Media" class="w-full h-auto object-cover max-h-[460px]" loading="lazy">
-                                @elseif($m->media_type === 'video')
-                                    <video src="{{ $m->url }}" controls class="w-full max-h-[460px] bg-black"></video>
-                                @endif
-                            @endforeach
                         </div>
                     @endif
 
@@ -2145,31 +1981,98 @@
              class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
              x-transition>
             <div class="bg-white rounded-3xl border-2 border-purple-300 max-w-lg w-full p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto"
-                 @click.outside="showGalleryModal = false"
+                 @click.outside="if(!isSubmittingGal) showGalleryModal = false"
                  x-data="{
                     galCategory: 'photo',
                     isSubmittingGal: false,
-                    selectedFileName: '',
-                    previewUrl: null,
+                    uploadProgressGal: 0,
+                    uploadStatusTextGal: '',
+                    uploadErrorGal: '',
+                    galFiles: [],
                     handleGalFile(e) {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        this.selectedFileName = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
-                        const mime = file.type;
-                        if (mime.startsWith('image/')) {
-                            this.galCategory = 'photo';
-                        } else if (mime.startsWith('video/')) {
-                            this.galCategory = 'video';
-                        } else if (mime.startsWith('audio/')) {
-                            this.galCategory = 'audio';
+                        const incoming = Array.from(e.target.files || []);
+                        if (!incoming.length) return;
+                        this.uploadErrorGal = '';
+                        this.galFiles = [];
+                        incoming.slice(0, 10).forEach((file) => {
+                            const mime = file.type || '';
+                            if (mime.startsWith('image/')) this.galCategory = 'photo';
+                            else if (mime.startsWith('video/')) this.galCategory = 'video';
+                            else if (mime.startsWith('audio/')) this.galCategory = 'audio';
+
+                            const item = {
+                                file: file,
+                                name: file.name,
+                                sizeMb: (file.size / 1024 / 1024).toFixed(2),
+                                type: mime.startsWith('video/') ? 'video' : (mime.startsWith('audio/') ? 'audio' : 'image'),
+                                previewUrl: (mime.startsWith('image/') || mime.startsWith('video/')) ? URL.createObjectURL(file) : null
+                            };
+                            this.galFiles.push(item);
+                        });
+                    },
+                    submitGalleryForm(e) {
+                        e.preventDefault();
+                        if (this.isSubmittingGal) return;
+                        if (this.galFiles.length === 0) {
+                            this.uploadErrorGal = 'Pilih minimal 1 berkas foto, video, atau audio terlebih dahulu!';
+                            return;
                         }
-                        if (mime.startsWith('image/') || mime.startsWith('video/')) {
-                            const r = new FileReader();
-                            r.onload = (ev) => { this.previewUrl = ev.target.result; };
-                            r.readAsDataURL(file);
-                        } else {
-                            this.previewUrl = null;
-                        }
+                        this.isSubmittingGal = true;
+                        this.uploadProgressGal = 1;
+                        this.uploadErrorGal = '';
+                        this.uploadStatusTextGal = 'Mengunggah ' + this.galFiles.length + ' berkas ke server...';
+
+                        const formEl = e.target;
+                        const formData = new FormData(formEl);
+                        formData.delete('media');
+                        formData.delete('media_files[]');
+                        this.galFiles.forEach((it) => {
+                            formData.append('media_files[]', it.file);
+                        });
+
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', formEl.action, true);
+                        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                        xhr.setRequestHeader('Accept', 'application/json');
+                        const csrf = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+                        if (csrf) xhr.setRequestHeader('X-CSRF-TOKEN', csrf);
+
+                        xhr.upload.onprogress = (ev) => {
+                            if (ev.lengthComputable) {
+                                const pct = Math.round((ev.loaded / ev.total) * 100);
+                                this.uploadProgressGal = pct;
+                                if (pct < 100) {
+                                    const loadedMb = (ev.loaded / 1024 / 1024).toFixed(2);
+                                    const totalMb = (ev.total / 1024 / 1024).toFixed(2);
+                                    this.uploadStatusTextGal = `Mengunggah berkas (${loadedMb} MB / ${totalMb} MB) — ${pct}%`;
+                                } else {
+                                    this.uploadStatusTextGal = '100% Terunggah! Memproses & menyiarkan ke Beranda Circle... ⏳';
+                                }
+                            }
+                        };
+
+                        xhr.onload = () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                this.uploadProgressGal = 100;
+                                this.uploadStatusTextGal = '✅ Berhasil dipajang di Galeri & Beranda! Memuat ulang...';
+                                setTimeout(() => { window.location.reload(); }, 500);
+                            } else {
+                                this.isSubmittingGal = false;
+                                try {
+                                    const err = JSON.parse(xhr.responseText);
+                                    this.uploadErrorGal = err.message || 'Gagal mengunggah media. Periksa ukuran & format file.';
+                                } catch (_) {
+                                    this.uploadErrorGal = 'Gagal mengunggah media (Kode: ' + xhr.status + ').';
+                                }
+                            }
+                        };
+
+                        xhr.onerror = () => {
+                            this.isSubmittingGal = false;
+                            this.uploadErrorGal = 'Koneksi terputus saat mengunggah. Silakan coba lagi.';
+                        };
+
+                        xhr.send(formData);
                     }
                  }">
                 
@@ -2180,7 +2083,7 @@
                         </span>
                         <span>Pajang Karya di Galeri Pribadi</span>
                     </h3>
-                    <button type="button" @click="showGalleryModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold cursor-pointer">
+                    <button type="button" @click="if(!isSubmittingGal) showGalleryModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold cursor-pointer">
                         ✕
                     </button>
                 </div>
@@ -2192,7 +2095,7 @@
                 </div>
 
                 <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data"
-                      @submit="if(isSubmittingGal) { $event.preventDefault(); return false; } isSubmittingGal = true;">
+                      @submit="submitGalleryForm($event)">
                     @csrf
                     <input type="hidden" name="tab_category" value="gallery">
                     <input type="hidden" name="post_type" value="media">
@@ -2243,44 +2146,79 @@
 
                         {{-- Input Berkas Media Dropzone --}}
                         <div>
-                            <label class="block text-xs font-black text-slate-900 mb-1">Unggah Berkas (Maksimal 50MB) <span class="text-rose-500">*</span></label>
-                            <div class="border-2 border-dashed border-purple-200 rounded-2xl p-4 text-center bg-purple-50/30 hover:bg-purple-50 transition cursor-pointer relative">
-                                <input type="file" name="media" required
+                            <label class="block text-xs font-black text-slate-900 mb-1">Unggah Berkas (Bisa pilih banyak foto sekaligus, maks 50MB/file) <span class="text-rose-500">*</span></label>
+                            <div class="border-2 border-dashed border-purple-300 rounded-2xl p-4 text-center bg-purple-50/40 hover:bg-purple-50 transition cursor-pointer relative">
+                                <input type="file" name="media_files[]" multiple
                                        @change="handleGalFile($event)"
                                        :accept="galCategory === 'photo' ? 'image/*' : (galCategory === 'video' ? 'video/*' : 'audio/*')"
                                        class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
                                 
                                 <div class="space-y-1">
                                     <div class="text-2xl" x-text="galCategory === 'photo' ? '🖼️' : (galCategory === 'video' ? '🎥' : '🎙️')"></div>
-                                    <div class="text-xs font-bold text-slate-700">
-                                        Klik atau seret file <span x-text="galCategory === 'photo' ? 'gambar/foto' : (galCategory === 'video' ? 'video/reels' : 'audio/lagu')"></span> ke sini
+                                    <div class="text-xs font-black text-slate-800">
+                                        Klik atau seret file <span x-text="galCategory === 'photo' ? 'gambar/foto (bisa pilih 1, 2, 3+ foto)' : (galCategory === 'video' ? 'video/reels' : 'audio/lagu')"></span> ke sini
                                     </div>
-                                    <div class="text-[10px] text-slate-400">
-                                        Mendukung JPG, PNG, MP4, MOV, MP3, WAV, M4A
+                                    <div class="text-[10px] font-bold text-slate-500">
+                                        Mendukung JPG, PNG, WEBP, MP4, MOV, MP3, WAV, M4A
                                     </div>
                                 </div>
                             </div>
-                            <div x-show="selectedFileName" class="mt-2 text-xs font-black text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5">
-                                <span>✓ Terpilih:</span>
-                                <span x-text="selectedFileName" class="truncate"></span>
-                            </div>
+
+                            {{-- Panduan Status Berkas Terpilih --}}
+                            <template x-if="galFiles.length > 0">
+                                <div class="mt-2.5 p-3 rounded-2xl bg-emerald-50 border-2 border-emerald-200 space-y-2">
+                                    <div class="flex items-center justify-between text-xs font-black text-emerald-950">
+                                        <span class="flex items-center gap-1.5">
+                                            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+                                            <span x-text="galFiles.length + ' Berkas Siap Diunggah'"></span>
+                                        </span>
+                                        <button type="button" @click="galFiles = []" class="text-[11px] font-black text-rose-600 hover:underline cursor-pointer">Reset</button>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto">
+                                        <template x-for="(gf, gIdx) in galFiles" :key="gIdx">
+                                            <div class="bg-white rounded-xl border border-emerald-200 p-1.5 flex items-center gap-2">
+                                                <div class="w-10 h-10 rounded-lg bg-slate-900 overflow-hidden shrink-0 flex items-center justify-center text-white text-xs">
+                                                    <template x-if="gf.type === 'image' && gf.previewUrl">
+                                                        <img :src="gf.previewUrl" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="gf.type === 'video'"><span>🎬</span></template>
+                                                    <template x-if="gf.type === 'audio'"><span>🎵</span></template>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-[10px] font-black text-slate-900 truncate" x-text="'#' + (gIdx + 1) + ' ' + gf.name"></div>
+                                                    <div class="text-[9px] font-bold text-emerald-700" x-text="gf.sizeMb + ' MB • Siap'"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
 
-                        {{-- Live Preview Image/Video --}}
-                        <template x-if="previewUrl">
-                            <div class="rounded-2xl overflow-hidden border border-slate-200 max-h-48 bg-black flex items-center justify-center">
-                                <template x-if="galCategory === 'photo'">
-                                    <img :src="previewUrl" class="max-h-48 w-full object-contain">
-                                </template>
-                                <template x-if="galCategory === 'video'">
-                                    <video :src="previewUrl" controls class="max-h-48 w-full object-contain"></video>
-                                </template>
+                        {{-- Error Box --}}
+                        <div x-show="uploadErrorGal" x-transition class="p-3 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 text-xs font-black flex items-center gap-2">
+                            <i class="fas fa-triangle-exclamation text-rose-600"></i>
+                            <span x-text="uploadErrorGal"></span>
+                        </div>
+
+                        {{-- Progress Bar Real-Time --}}
+                        <div x-show="isSubmittingGal" x-transition class="p-3.5 rounded-2xl bg-slate-950 text-white border-2 border-purple-400 space-y-2">
+                            <div class="flex items-center justify-between text-xs font-black">
+                                <span class="flex items-center gap-2 text-amber-300">
+                                    <i class="fas fa-cloud-arrow-up animate-bounce"></i>
+                                    <span x-text="uploadStatusTextGal"></span>
+                                </span>
+                                <span class="px-2 py-0.5 rounded-lg bg-white/10 text-white font-mono" x-text="uploadProgressGal + '%'"></span>
                             </div>
-                        </template>
+                            <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-emerald-400 transition-all duration-200 rounded-full"
+                                     :style="'width: ' + uploadProgressGal + '%'"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mt-6 flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                        <button type="button" @click="showGalleryModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
+                        <button type="button" @click="if(!isSubmittingGal) showGalleryModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
                             Batal
                         </button>
                         <button type="submit" 
@@ -2290,7 +2228,7 @@
                             <i x-show="!isSubmittingGal" class="fas fa-paper-plane text-purple-700"></i>
                             <i x-show="isSubmittingGal" class="fas fa-spinner fa-spin text-purple-700"></i>
                             <span x-show="!isSubmittingGal">Unggah & Siarkan ke Circle ✨</span>
-                            <span x-show="isSubmittingGal">Mengunggah... ⏳</span>
+                            <span x-show="isSubmittingGal" x-text="'Mengunggah ' + uploadProgressGal + '%...'"></span>
                         </button>
                     </div>
                 </form>

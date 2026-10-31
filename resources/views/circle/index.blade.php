@@ -194,338 +194,7 @@
 
         {{-- ── 2. RUANG EKSPRESI & UNJUK KARYA (KOTAK POSTING CEPAT LANGSUNG DI FEED) ── --}}
         @auth
-            <div id="quick-post-box" 
-                 class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs relative overflow-hidden transition-all duration-300"
-                 x-data="{
-                    isSubmitting: false,
-                    postType: 'status',
-                    tabCat: 'wall',
-                    showExtras: false,
-                    selectedMood: '✨',
-                    moodText: 'Ceria',
-                    mediaName: '',
-                    mediaPreviewUrl: null,
-                    isVideo: false,
-                    isAudio: false,
-                    postContent: '',
-                    hasPoll: false,
-                    pollOptions: ['', ''],
-                    addPollOption() {
-                        if (this.pollOptions.length < 4) {
-                            this.pollOptions.push('');
-                        }
-                    },
-                    removePollOption(idx) {
-                        if (this.pollOptions.length > 2) {
-                            this.pollOptions.splice(idx, 1);
-                        }
-                    },
-                    setPrompt(text, emoji, label) {
-                        this.postContent = text;
-                        this.selectedMood = emoji;
-                        this.moodText = label;
-                        this.$nextTick(() => {
-                            if (this.$refs.contentInput) {
-                                this.$refs.contentInput.focus();
-                            }
-                        });
-                    },
-                    handleFileSelect(e) {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        this.mediaName = file.name;
-                        this.isVideo = file.type.startsWith('video');
-                        this.isAudio = file.type.startsWith('audio');
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                            this.mediaPreviewUrl = ev.target.result;
-                        };
-                        reader.readAsDataURL(file);
-                    },
-                    clearMedia() {
-                        this.mediaName = '';
-                        this.mediaPreviewUrl = null;
-                        this.isVideo = false;
-                        this.isAudio = false;
-                        if (this.$refs.mediaInput) this.$refs.mediaInput.value = '';
-                    }
-                 }">
-                
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-pink-100/60 rounded-full blur-2xl pointer-events-none"></div>
-
-                {{-- Header Pengguna --}}
-                <div class="flex items-center justify-between gap-3 mb-4 relative z-10">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="relative shrink-0">
-                            <img src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.svg') }}" 
-                                 alt="{{ Auth::user()->name }}"
-                                 class="w-12 h-12 rounded-2xl object-cover ring-2 ring-pink-300 shadow-xs">
-                            <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-2xs"></span>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-display font-black text-sm sm:text-base text-slate-950 truncate">
-                                    Curhat, {{ explode(' ', Auth::user()->name)[0] }}! ✨
-                                </h4>
-                                @if(Auth::user()->school)
-                                    <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-pink-100 text-pink-900 border border-pink-200">
-                                        {{ Auth::user()->school->name }}
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="text-xs font-bold text-slate-700 truncate">
-                                Cerita nongki, karya bengkel/lab, atau ide seru hari ini!
-                            </p>
-                        </div>
-                    </div>
-                    <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs">
-                        <span>Panggung</span> 🚀
-                    </span>
-                </div>
-
-                {{-- Form Pengiriman --}}
-                <form action="{{ route('circle.post.store') }}" method="POST" enctype="multipart/form-data" class="relative z-10"
-                      @submit="if(isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
-                    @csrf
-                    <input type="hidden" name="tab_category" :value="tabCat">
-                    <input type="hidden" name="post_type" :value="postType">
-
-                    {{-- 4 Pilihan Gelora Konten Pastel (1 Kata: Nongki, Kilas, Karya, Reels) --}}
-                    <div class="flex items-center gap-2 mb-3.5 overflow-x-auto pb-1 custom-scrollbar">
-                        {{-- 1. Nongki --}}
-                        <button type="button" 
-                                @click="tabCat = 'wall'; postType = 'status'"
-                                :class="tabCat === 'wall' && postType === 'status' ? 'bg-[#faedcd] text-slate-950 border-[#d4a373] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-[#faedcd]/40'"
-                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                            <span class="w-5 h-5 rounded-lg bg-[#faedcd] text-[#7f5539] flex items-center justify-center text-[10px]">
-                                <i class="fas fa-mug-hot"></i>
-                            </span>
-                            <span>Nongki</span>
-                        </button>
-
-                        {{-- 2. Kilas --}}
-                        <button type="button" id="btn-select-story"
-                                @click="tabCat = 'wall'; postType = 'story'"
-                                :class="postType === 'story' ? 'bg-pink-100 text-slate-950 border-pink-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-pink-50'"
-                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                            <span class="w-5 h-5 rounded-lg bg-pink-200 text-pink-700 flex items-center justify-center text-[10px]">
-                                <i class="fas fa-bolt"></i>
-                            </span>
-                            <span>Kilas</span>
-                        </button>
-
-                        {{-- 3. Karya --}}
-                        <button type="button" 
-                                @click="tabCat = 'portfolio'; postType = 'project'"
-                                :class="tabCat === 'portfolio' && postType === 'project' ? 'bg-amber-100 text-slate-950 border-amber-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-amber-50'"
-                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                            <span class="w-5 h-5 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
-                                <i class="fas fa-trophy"></i>
-                            </span>
-                            <span>Karya</span>
-                        </button>
-
-                        {{-- 4. Reels --}}
-                        <button type="button" 
-                                @click="tabCat = 'portfolio'; postType = 'reel'"
-                                :class="postType === 'reel' ? 'bg-sky-100 text-slate-950 border-sky-300 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-sky-50'"
-                                class="px-3.5 py-2 rounded-2xl text-xs font-black border-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                            <span class="w-5 h-5 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center text-[10px]">
-                                <i class="fas fa-play"></i>
-                            </span>
-                            <span>Reels</span>
-                        </button>
-                    </div>
-
-                    {{-- Judul Karya (Tampil Saat Memilih Karya atau Reels) --}}
-                    <div x-show="tabCat === 'portfolio'" x-transition class="mb-3">
-                        <label class="block text-[11px] font-black uppercase tracking-wider text-slate-900 mb-1">
-                            Judul Karya / Proyek <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" name="title" 
-                               placeholder="Contoh: Rancang Bangun IoT Pengendali Suhu Mesin, atau Riset Biologi Alga Nias..." 
-                               class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/60 border-2 border-amber-200 text-xs sm:text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400 shadow-2xs">
-                    </div>
-
-                    {{-- 💡 Pancingan Ide Cepat --}}
-                    <div class="mb-3">
-                        <div class="flex items-center justify-between mb-1.5 px-0.5">
-                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                                <span class="w-5 h-5 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-[10px]">💡</span>
-                                <span>Pancingan Ide:</span>
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar">
-                            <button type="button" 
-                                    @click="setPrompt('Lagi nongki santai di kantin nunggu jam pelajaran bareng bestie ☕ Spill jajanan favorit kalian hari ini!', '☕', 'Nongki Santai')"
-                                    class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
-                                ☕ Nongki Kantin
-                            </button>
-                            <button type="button" 
-                                    @click="setPrompt('Keringat anak bengkel/lab hari ini 🛠️ Baut kencang, rangkaian aman, karya siap dipamerkan!', '🛠️', 'Keringat Bengkel')"
-                                    class="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
-                                🛠️ Suasana Bengkel/Lab
-                            </button>
-                            <button type="button" 
-                                    @click="setPrompt('Lagu yang lagi nemenin ngerjain tugas malam ini 🎧🎶 Ada rekomendasi lagu asyik buat fokus?', '🎧', 'Nge-vibes Musik')"
-                                    class="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
-                                🎧 Rekomendasi Lagu
-                            </button>
-                            <button type="button" 
-                                    @click="setPrompt('Pusing dikit nggak ngaruh 📚 Yang penting besok pas masuk kelas semua tugas sudah tuntas!', '📚', 'Semangat Belajar')"
-                                    class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
-                                📚 Pusing Dikit Nggak Ngaruh
-                            </button>
-                            <button type="button" 
-                                    @click="setPrompt('Tebak-tebakan logika buat bapak/ibu guru dan kawan-kawan 🥊 Siapa yang bisa jawab duluan di komentar?', '🥊', 'Tebak-Tebakan')"
-                                    class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-black text-slate-950 shrink-0 transition hover:scale-105 cursor-pointer">
-                                🥊 Tebak-Tebakan Logika
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Textarea Isi Goresan --}}
-                    <div class="mb-3">
-                        <textarea name="content" rows="3" required
-                                  x-ref="contentInput"
-                                  x-model="postContent"
-                                  :placeholder="postType === 'story' ? 'Tuliskan kilas cerita cepat yang bertahan 24 jam...' : (tabCat === 'portfolio' ? 'Uraikan latar belakang karya, alat praktikum yang digunakan, dan hasil uji kompetensimu...' : 'Tuliskan obrolan santai, curhat seru di sekolah, atau pesan inspiratif...')"
-                                  class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-bold text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-pink-300 resize-none shadow-2xs"></textarea>
-                    </div>
-
-                    {{-- Kotak Input Polling Interaktif (Muncul jika tombol Polling ditekan) --}}
-                    <div x-show="hasPoll" x-collapse x-transition class="mb-3.5 p-4 rounded-2xl bg-purple-50/70 border-2 border-purple-200 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-black uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
-                                <span class="w-5 h-5 rounded-lg bg-purple-200 text-purple-800 flex items-center justify-center text-[10px]">📊</span>
-                                <span>Bikin Polling / Jajak Pendapat Warga Pembda</span>
-                            </span>
-                            <button type="button" @click="hasPoll = false" class="text-xs font-black text-rose-600 hover:text-rose-800 cursor-pointer">
-                                ✕ Batal Polling
-                            </button>
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-900 mb-1">Pertanyaan Polling <span class="text-rose-500">*</span></label>
-                            <input type="text" name="poll_question" placeholder="Contoh: Menu kantin terfavorit hari ini, atau Tim Praktikum vs Teori?" 
-                                   class="w-full px-3.5 py-2 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-900 mb-1">Pilihan Jawaban (Minimal 2, Maksimal 4):</label>
-                            <div class="space-y-2">
-                                <template x-for="(opt, idx) in pollOptions" :key="idx">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-6 h-6 rounded-lg bg-purple-200 text-purple-900 flex items-center justify-center text-xs font-black shrink-0" x-text="idx + 1"></span>
-                                        <input type="text" name="poll_options[]" x-model="pollOptions[idx]" :placeholder="'Pilihan ' + (idx + 1) + '...'"
-                                               class="flex-1 px-3 py-1.5 rounded-xl bg-white border border-purple-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-400">
-                                        <button type="button" x-show="pollOptions.length > 2" @click="removePollOption(idx)"
-                                                class="w-7 h-7 rounded-xl bg-white hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs font-black transition cursor-pointer border border-slate-200">
-                                            ✕
-                                        </button>
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="mt-2.5" x-show="pollOptions.length < 4">
-                                <button type="button" @click="addPollOption()" class="text-xs font-black text-purple-700 hover:text-purple-900 flex items-center gap-1.5 cursor-pointer">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <span>Tambah Pilihan Lain</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Media Preview (Live jika ada file yang dipilih) --}}
-                    <template x-if="mediaPreviewUrl">
-                        <div class="mb-3 relative rounded-2xl overflow-hidden border-2 border-slate-200 max-h-56 bg-slate-950 flex items-center justify-center">
-                            <template x-if="isVideo">
-                                <video :src="mediaPreviewUrl" controls class="max-h-56 w-full object-contain"></video>
-                            </template>
-                            <template x-if="isAudio">
-                                <div class="p-6 text-center text-white">
-                                    <div class="text-3xl mb-1">🎵</div>
-                                    <div class="text-xs font-black text-amber-300" x-text="mediaName"></div>
-                                    <audio :src="mediaPreviewUrl" controls class="mt-2 w-full max-w-sm"></audio>
-                                </div>
-                            </template>
-                            <template x-if="!isVideo && !isAudio">
-                                <img :src="mediaPreviewUrl" class="max-h-56 w-full object-contain">
-                            </template>
-                            <button type="button" @click="clearMedia()" 
-                                    class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center text-xs font-black transition cursor-pointer"
-                                    title="Hapus Lampiran Media">
-                                ✕
-                            </button>
-                        </div>
-                    </template>
-
-                    {{-- Extra Options Toggle (Mood & Lokasi Bengkel/Lab) --}}
-                    <div x-show="showExtras" x-collapse x-transition class="mb-3.5 p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-3">
-                        <div>
-                            <span class="block text-[11px] font-black text-slate-900 mb-1.5">Getaran Suasana Hati:</span>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                @foreach(['🔥' => 'Semangat', '🚀' => 'Produktif', '💡' => 'Ide Baru', '🛠️' => 'Ngoprek', '☕' => 'Santai', '🎨' => 'Kreatif', '📚' => 'Belajar', '😎' => 'Keren', '✨' => 'Ceria', '🌸' => 'Damai'] as $emoji => $mLabel)
-                                    <button type="button" 
-                                            @click="selectedMood = '{{ $emoji }}'; moodText = '{{ $mLabel }}'"
-                                            class="px-2.5 py-1 rounded-xl text-xs font-bold border transition cursor-pointer hover:scale-105"
-                                            :class="selectedMood === '{{ $emoji }}' ? 'bg-amber-100 border-amber-300 text-slate-950 font-black' : 'bg-white border-slate-200 text-slate-800'">
-                                        <span>{{ $emoji }}</span> <span>{{ $mLabel }}</span>
-                                    </button>
-                                @endforeach
-                            </div>
-                            <input type="hidden" name="mood_emoji" :value="selectedMood">
-                            <input type="hidden" name="mood_text" :value="moodText">
-                        </div>
-
-                        <div>
-                            <span class="block text-[11px] font-black text-slate-900 mb-1">Lokasi / Ruang Praktik:</span>
-                            <input type="text" name="location_tag" 
-                                   placeholder="Contoh: Bengkel TKR, Lab Komputer TKJ, Perpustakaan, Ruang OSIS..." 
-                                   class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-pink-300">
-                        </div>
-                    </div>
-
-                    {{-- Bottom Action Bar: Upload File + Polling + Ekstra Mood + Tombol Morak Terbang --}}
-                    <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 flex-wrap">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <label class="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 border-2 border-pink-200 text-slate-950 text-xs font-black cursor-pointer transition flex items-center gap-2 hover:scale-105">
-                                <i class="fas fa-photo-film text-pink-600 text-xs"></i>
-                                <span class="hidden sm:inline">Foto / Video / Audio</span>
-                                <span class="sm:hidden">Media</span>
-                                <input type="file" name="media" x-ref="mediaInput" @change="handleFileSelect($event)" accept="image/*,video/*,audio/*" class="hidden">
-                            </label>
-
-                            <button type="button" @click="hasPoll = !hasPoll"
-                                    :class="hasPoll ? 'bg-purple-100 border-purple-400 text-purple-950 font-black shadow-xs' : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-slate-950 font-bold'"
-                                    class="px-3.5 py-2 rounded-2xl border-2 text-xs cursor-pointer transition flex items-center gap-2 hover:scale-105">
-                                <span class="text-xs">📊</span>
-                                <span class="hidden sm:inline">Polling Seru</span>
-                                <span class="sm:hidden">Polling</span>
-                            </button>
-
-                            <button type="button" @click="showExtras = !showExtras"
-                                    class="px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-slate-950 text-xs font-black cursor-pointer transition flex items-center gap-2 hover:scale-105">
-                                <span x-text="selectedMood || '✨'"></span>
-                                <span class="hidden sm:inline">Suasana & Lokasi</span>
-                            </button>
-                        </div>
-
-                        <button type="submit" 
-                                :disabled="isSubmitting"
-                                class="px-6 py-2.5 rounded-2xl border-2 border-black transition-all transform hover:scale-105 active:scale-95 cursor-pointer shadow-md flex items-center gap-2"
-                                :class="isSubmitting ? 'opacity-60 cursor-not-allowed scale-100 hover:scale-100' : ''"
-                                style="background: linear-gradient(135deg, #ff007a 0%, #ff6b00 50%, #ffd600 100%) !important; color: #000000 !important; border: 2.5px solid #000000 !important; box-shadow: 0 4px 14px rgba(255, 0, 122, 0.45) !important;">
-                            <i x-show="!isSubmitting" class="fas fa-paper-plane text-xs text-black" style="color: #000000 !important;"></i>
-                            <i x-show="isSubmitting" class="fas fa-spinner fa-spin text-xs text-black" style="color: #000000 !important;"></i>
-                            <span style="color: #000000 !important; font-weight: 900 !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important;">
-                                <span x-show="!isSubmitting">GASKEUN! 🚀</span>
-                                <span x-show="isSubmitting">MENERBANGKAN... ⏳</span>
-                            </span>
-                        </button>
-                    </div>
-
-                </form>
-            </div>
+            @include('circle.partials.post-composer')
         @else
             <div class="bg-gradient-to-r from-pink-50 via-amber-50 to-sky-50 rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 text-center sm:text-left">
@@ -624,6 +293,15 @@
                         <i class="fas fa-photo-film"></i>
                     </span>
                     <span>Galeri</span>
+                </a>
+                {{-- 6. Liputan Live --}}
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'live', 'q' => request('q')])) }}" 
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'live' ? 'bg-rose-600 text-white border-2 border-black shadow-xs' : 'text-rose-700 hover:bg-rose-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-[10px] relative">
+                        <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping absolute"></span>
+                        <span class="w-2 h-2 rounded-full bg-rose-600 relative"></span>
+                    </span>
+                    <span>Liputan LIVE</span>
                 </a>
             </div>
 
@@ -837,7 +515,16 @@
 
                                 {{-- Category Pill Pastel & Post Deletion --}}
                                 <div class="flex items-center gap-2 shrink-0">
-                                    @if($post->is_gallery || $post->tab_category === 'gallery')
+                                    @if($post->is_live || $post->post_type === 'live')
+                                        <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 {{ $post->live_status === 'active' ? 'bg-rose-600 text-white border border-black animate-pulse' : 'bg-slate-800 text-white border border-slate-700' }} flex items-center gap-1.5 shadow-2xs">
+                                            <span class="w-2 h-2 rounded-full {{ $post->live_status === 'active' ? 'bg-white' : 'bg-emerald-400' }}"></span>
+                                            <span>{{ $post->live_status === 'active' ? 'LIPUTAN LIVE' : 'REKAMAN LIVE' }}</span>
+                                        </span>
+                                    @elseif($post->post_type === 'report' || $post->event_name)
+                                        <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 bg-emerald-100 text-emerald-950 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                                            <i class="fas fa-clipboard-check text-emerald-700"></i>Laporan Kegiatan
+                                        </span>
+                                    @elseif($post->is_gallery || $post->tab_category === 'gallery')
                                         <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 bg-purple-100 text-purple-950 border border-purple-300 flex items-center gap-1 shadow-2xs">
                                             @if($post->gallery_category === 'video')
                                                 <i class="fas fa-video text-purple-700"></i>Galeri Video
@@ -885,19 +572,8 @@
                             </div>
                         @endif
 
-                        {{-- Post Title --}}
-                        @if($post->title)
-                            <h3 class="font-display font-black text-lg text-slate-950 mb-2 leading-snug">
-                                {{ $post->title }}
-                            </h3>
-                        @endif
-
-                        {{-- Post Content Text (Hitam Pekat & Sangat Mudah Dibaca) --}}
-                        @if($post->content)
-                            <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
-                                {{ $post->content }}
-                            </div>
-                        @endif
+                        {{-- Unified Post Body (Live Report, Event GPS Card, Top/Bottom Layout, Smart Multi-Photo Collage & Lightbox) --}}
+                        @include('circle.partials.post-card-body', ['post' => $post])
 
                         {{-- Polling Interaktif Warga Pembda --}}
                         @if($post->poll)
@@ -1003,35 +679,6 @@
                                         </div>
                                     </template>
                                 </div>
-                            </div>
-                        @endif
-
-                        {{-- Post Media --}}
-                        @if($post->media->isNotEmpty())
-                            <div class="rounded-3xl overflow-hidden mb-4 bg-slate-950 border-2 border-[#f1e8dc] max-h-[500px] flex items-center justify-center shadow-xs">
-                                @php $m = $post->media->first(); @endphp
-                                @if($m->media_type === 'image')
-                                    <img src="{{ $m->url }}" 
-                                         alt="Media karya" 
-                                         class="w-full h-auto object-cover max-h-[500px]" 
-                                         loading="lazy">
-                                @elseif($m->media_type === 'video')
-                                    <video src="{{ $m->url }}" controls class="w-full max-h-[500px] bg-black"></video>
-                                @elseif($m->media_type === 'audio')
-                                    <div class="w-full p-6 bg-gradient-to-br from-purple-900 via-slate-900 to-pink-950 flex flex-col items-center text-center text-white"
-                                         x-data="{ isPlayingAudio: false }"
-                                         x-init="$refs.feedAudio?.addEventListener('play', () => isPlayingAudio = true); $refs.feedAudio?.addEventListener('pause', () => isPlayingAudio = false); $refs.feedAudio?.addEventListener('ended', () => isPlayingAudio = false);">
-                                        <div class="relative w-20 h-20 rounded-full bg-[#111827] p-2 border-2 border-purple-400 shadow-xl flex items-center justify-center mb-3"
-                                             :class="isPlayingAudio ? 'animate-spin' : ''"
-                                             style="animation-duration: 4s;">
-                                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-inner">
-                                                🎵
-                                            </div>
-                                        </div>
-                                        <div class="text-xs font-black text-white mb-2">{{ $post->title ?? 'Audio / Rekaman Lagu' }}</div>
-                                        <audio x-ref="feedAudio" src="{{ $m->url }}" controls preload="none" class="w-full max-w-md"></audio>
-                                    </div>
-                                @endif
                             </div>
                         @endif
 
