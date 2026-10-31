@@ -64,53 +64,26 @@
 
         {{-- ── 2. Profile Details & Avatar Overlap ── --}}
         <div class="px-6 pb-6 pt-0 relative">
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 -mt-16 sm:-mt-20 mb-5">
-                {{-- Avatar & Identity --}}
-                <div class="flex items-end gap-4 min-w-0">
-                    <div class="relative shrink-0">
-                        <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl p-1 bg-white border-4 border-white shadow-md">
-                            <img src="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}" 
-                                 alt="{{ $user->name }}" 
-                                 class="w-full h-full object-cover rounded-2xl bg-pink-50">
-                        </div>
-                        @if($activeStories->isNotEmpty())
-                            {{-- Story Active Ring Indicator Lucu --}}
-                            <div class="absolute -bottom-1 -right-1 w-9 h-9 rounded-full pastel-story-ring text-white flex items-center justify-center text-xs shadow-md border-2 border-white animate-pulse" 
-                                 title="Memiliki Story 24 Jam">
-                                <i class="fas fa-bolt text-yellow-100"></i>
-                            </div>
-                        @endif
+            {{-- Baris Atas: Avatar di Kiri, Action Buttons di Kanan --}}
+            <div class="flex items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
+                {{-- Avatar --}}
+                <div class="relative shrink-0">
+                    <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl p-1 bg-white border-4 border-white shadow-md">
+                        <img src="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                             alt="{{ $user->name }}" 
+                             class="w-full h-full object-cover rounded-2xl bg-pink-50">
                     </div>
-
-                    <div class="pb-1 min-w-0 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border-2 border-pink-200/80 shadow-xs">
-                        <h1 class="font-display font-black text-xl sm:text-2xl text-slate-950 tracking-tight flex items-center gap-2 truncate">
-                            <span>{{ $user->name }}</span>
-                            @if($user->role === 'guru')
-                                <span class="w-6 h-6 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs shadow-2xs" title="Pendidik Resmi Terverifikasi">
-                                    <i class="fas fa-certificate"></i>
-                                </span>
-                            @else
-                                <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shadow-2xs" title="Siswa Aktif Pembda">
-                                    <i class="fas fa-check"></i>
-                                </span>
-                            @endif
-                        </h1>
-                        <div class="flex items-center gap-2 text-xs font-bold text-slate-700 mt-1 flex-wrap">
-                            <span class="text-pink-600 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">@<span>{{ $profile->username }}</span></span>
-                            <span>•</span>
-                            <span class="text-slate-900">{{ $user->role === 'siswa' ? 'Siswa Aktif' : ($user->role === 'guru' ? 'Guru / Mentor' : 'Warga Pembda') }}</span>
-                            @if($user->student?->classroom)
-                                <span>•</span>
-                                <span class="bg-[#faedcd] text-[#7f5539] font-black px-2.5 py-0.5 rounded-lg border border-[#d4a373]">
-                                    {{ $user->student->classroom->name }}
-                                </span>
-                            @endif
+                    @if($activeStories->isNotEmpty())
+                        {{-- Story Active Ring Indicator Lucu --}}
+                        <div class="absolute -bottom-1 -right-1 w-9 h-9 rounded-full pastel-story-ring text-white flex items-center justify-center text-xs shadow-md border-2 border-white animate-pulse" 
+                             title="Memiliki Story 24 Jam">
+                            <i class="fas fa-bolt text-yellow-100"></i>
                         </div>
-                    </div>
+                    @endif
                 </div>
 
-                {{-- Action Bar: Check-out to Dashboard, Share, Edit & View Stats --}}
-                <div class="flex items-center gap-2 self-start sm:self-end shrink-0 flex-wrap">
+                {{-- Action Bar: Dashboard, Edit Profil, Bisik, Siarkan --}}
+                <div class="flex items-center gap-2 flex-wrap justify-end">
                     @auth
                         @php
                             $__currUser = Auth::user();
@@ -155,20 +128,53 @@
 
                     <button onclick="shareProfile()" 
                             class="px-3.5 py-2 rounded-2xl text-xs font-black text-slate-950 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 transition-base flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105">
-                            <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>
+                        <i class="fab fa-whatsapp text-emerald-700 text-sm"></i>
                         <span>Siarkan</span>
                     </button>
+                </div>
+            </div>
+
+            {{-- ── Identitas Utama: Nama Lengkap Utuh & Badges Luas (TIDAK AKAN PERNAH TERPOTONG) ── --}}
+            <div class="mb-4">
+                <h1 class="font-display font-black text-2xl sm:text-3xl text-slate-950 tracking-tight flex items-center gap-2 mb-2 flex-wrap">
+                    <span>{{ $user->name }}</span>
+                    @if($user->role === 'guru')
+                        <span class="w-6 h-6 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs shadow-2xs" title="Pendidik Resmi Terverifikasi">
+                            <i class="fas fa-certificate"></i>
+                        </span>
+                    @else
+                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shadow-2xs" title="Siswa Aktif Pembda">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    @endif
+                </h1>
+
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700 flex-wrap">
+                    <span class="text-pink-600 bg-pink-50 font-black px-2.5 py-1 rounded-xl border border-pink-200 shadow-2xs">
+                        @<span>{{ $profile->username }}</span>
+                    </span>
+                    <span>•</span>
+                    <span class="text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 font-extrabold">
+                        {{ $user->role === 'siswa' ? 'Siswa Aktif' : ($user->role === 'guru' ? 'Guru / Mentor' : 'Warga Pembda') }}
+                    </span>
+                    @if($user->student?->classroom)
+                        <span>•</span>
+                        <span class="bg-[#faedcd] text-[#7f5539] font-black px-2.5 py-1 rounded-xl border border-[#d4a373] shadow-2xs">
+                            {{ $user->student->classroom->name }}
+                        </span>
+                    @endif
+
                     @php $vLevel = $profile->visitor_level; @endphp
-                    <div class="px-3.5 py-2 rounded-2xl {{ $vLevel['bg'] }} border-2 {{ $vLevel['border'] }} {{ $vLevel['text'] }} text-xs font-black flex items-center gap-1.5 shadow-xs hover:scale-105 transition-transform duration-200 cursor-default" 
+                    <span class="px-2.5 py-1 rounded-xl {{ $vLevel['bg'] }} border-2 {{ $vLevel['border'] }} {{ $vLevel['text'] }} font-black flex items-center gap-1.5 shadow-2xs hover:scale-105 transition-transform duration-200 cursor-default" 
                          title="{{ $vLevel['desc'] }} (Total: {{ number_format($profile->views_count) }} kunjungan)">
                         <span>{{ $vLevel['badge'] }}</span>
                         <span>{{ $vLevel['name'] }}</span>
-                    </div>
-                    <div class="px-3.5 py-2 rounded-2xl bg-pink-100 hover:bg-pink-200 border-2 border-pink-200 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs hover:scale-105 transition-transform duration-200 cursor-default" 
+                    </span>
+                    <span class="px-2.5 py-1 rounded-xl bg-pink-100 hover:bg-pink-200 border-2 border-pink-200 text-slate-950 font-black flex items-center gap-1.5 shadow-2xs hover:scale-105 transition-transform duration-200 cursor-default" 
                          title="Total Kunjungan Profil">
                         <i class="fas fa-eye text-pink-600 text-xs"></i>
-                        <span>{{ number_format($profile->views_count) }}</span>
-                    </div>
+                        <span>{{ number_format($profile->views_count) }} Kunjungan</span>
+                    </span>
                 </div>
             </div>
 

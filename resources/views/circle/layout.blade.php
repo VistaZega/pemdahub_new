@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#fdfbf7">
-    <title>@yield('title', 'PembdaCIRCLE — Wadah Kreasi, Nongki & Portofolio Siswa Pembda')</title>
+    <title>@yield('title', 'PembdaCIRCLE — CONNECT • CREATE • GROW | Wadah Kreasi & Portofolio Siswa Pembda')</title>
 
     @yield('og_meta')
 
@@ -201,69 +201,42 @@
     <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
         {{-- Brand Logo Cantik, Hidup & Memikat (Animated Orbital Emblem) --}}
-        <a href="{{ route('circle.feed') }}" class="flex items-center gap-2.5 sm:gap-3 group shrink-0 select-none" title="Beranda PembdaCIRCLE">
-            {{-- Multi-ring Animated Orbital Orb --}}
-            <div class="relative w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
-                <!-- Glowing Pulsing Aura -->
-                <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-pink-400 via-amber-300 to-sky-400 blur-md opacity-45 group-hover:opacity-90 transition-opacity duration-300 animate-pulse"></div>
-                
-                <!-- Orbital Ring 1 (Clockwise) -->
-                <svg class="absolute inset-0 w-full h-full pointer-events-none circle-spin-slow" viewBox="0 0 44 44" fill="none">
-                    <defs>
-                        <linearGradient id="circleOrbGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#ec4899" />
-                            <stop offset="50%" stop-color="#f59e0b" />
-                            <stop offset="100%" stop-color="#06b6d4" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="22" cy="22" r="19" stroke="url(#circleOrbGrad1)" stroke-width="2" stroke-linecap="round" stroke-dasharray="9 6" opacity="0.85" />
-                    <!-- Planet Satellite Beads -->
-                    <circle cx="39" cy="14" r="2.8" fill="#f43f5e" />
-                    <circle cx="5" cy="30" r="2.2" fill="#06b6d4" />
-                </svg>
-
-                <!-- Orbital Ring 2 (Counter-Clockwise) -->
-                <svg class="absolute inset-1 w-8 h-8 sm:w-9 sm:h-9 pointer-events-none circle-spin-reverse" viewBox="0 0 36 36" fill="none">
-                    <defs>
-                        <linearGradient id="circleOrbGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#8b5cf6" />
-                            <stop offset="100%" stop-color="#ec4899" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="18" cy="18" r="15" stroke="url(#circleOrbGrad2)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 7" opacity="0.75" />
-                    <!-- Mini Golden Bead -->
-                    <circle cx="18" cy="3" r="2.4" fill="#fbbf24" />
-                </svg>
-
-                <!-- 3D Glossy Clay Glass Core -->
-                <div class="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-400 p-[1.5px] shadow-sm overflow-hidden flex items-center justify-center">
-                    <div class="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-black/10 rounded-xl pointer-events-none"></div>
-                    <div class="w-full h-full rounded-[10px] bg-white/95 backdrop-blur-xs flex items-center justify-center relative">
-                        <i class="fas fa-sparkles text-xs sm:text-sm circle-sparkle-dance"></i>
-                    </div>
-                </div>
-
-                <!-- Floating Micro Twinkle Stars -->
-                <span class="absolute -top-1.5 -right-1 text-[11px] pointer-events-none circle-twinkle-1">✨</span>
-                <span class="absolute -bottom-1 -left-1 text-[9px] pointer-events-none circle-twinkle-2">⭐</span>
+        <a href="{{ route('circle.feed') }}" class="flex items-center gap-2.5 sm:gap-3 group shrink-0 select-none" title="Beranda PembdaCIRCLE — CONNECT • CREATE • GROW">
+            {{-- Animated Orbital Emblem --}}
+            <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#091124] p-0.5 flex items-center justify-center shrink-0 shadow-md ring-2 ring-cyan-400/40 group-hover:ring-cyan-300 group-hover:scale-105 transition-all duration-300 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/30 via-blue-600/25 to-amber-500/25 blur-xs pointer-events-none"></div>
+                <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-xl pointer-events-none relative z-10">
+                    <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
+                    <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
+                    <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-xl">
+                </video>
             </div>
 
-            {{-- Typography with Animated Shimmer Badge --}}
-            <div class="flex items-center gap-1 sm:gap-1.5">
-                <span class="font-display font-black text-lg sm:text-xl text-slate-950 tracking-tight">Pembda</span>
-                <div class="relative inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-xl border-2 border-pink-200/90 shadow-xs overflow-hidden group-hover:border-pink-400 transition-colors"
-                     style="background: linear-gradient(135deg, #fff1f2 0%, #fdf2f8 50%, #fef9c3 100%);">
-                    <!-- Shimmer Stripe -->
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent -translate-x-full circle-shimmer pointer-events-none"></div>
-                    <!-- Radar Live Dot -->
-                    <span class="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-pink-500"></span>
-                    </span>
-                    <!-- Flowing Gradient Text -->
-                    <span class="font-display font-black text-[11px] sm:text-xs tracking-wider uppercase circle-gradient-text">
-                        CIRCLE
-                    </span>
+            {{-- Typography with Cyan Shimmer Badge & Motto --}}
+            <div class="flex flex-col">
+                <div class="flex items-center gap-1.5 leading-none">
+                    <span class="font-display font-black text-lg sm:text-xl text-slate-950 tracking-tight">Pembda</span>
+                    <div class="relative inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-lg bg-[#091124] border border-cyan-400/40 shadow-xs overflow-hidden group-hover:border-cyan-300 transition-colors">
+                        <!-- Shimmer Stripe -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent -translate-x-full circle-shimmer pointer-events-none"></div>
+                        <!-- Radar Live Cyan Dot -->
+                        <span class="relative flex h-1.5 w-1.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-80"></span>
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></span>
+                        </span>
+                        <!-- Flowing Cyan Gradient Text -->
+                        <span class="font-display font-black text-[10px] sm:text-[11px] tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-400 to-amber-300">
+                            CIRCLE
+                        </span>
+                    </div>
+                </div>
+                <!-- Motto Subtitle -->
+                <div class="hidden sm:flex items-center gap-1 text-[8.5px] font-black tracking-widest text-slate-500 uppercase mt-0.5">
+                    <span class="text-cyan-600 hover:text-cyan-500 transition-colors">CONNECT</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="text-amber-600 hover:text-amber-500 transition-colors">CREATE</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="text-emerald-600 hover:text-emerald-500 transition-colors">GROW</span>
                 </div>
             </div>
         </a>

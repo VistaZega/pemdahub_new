@@ -1,11 +1,11 @@
 @extends('circle.layout')
 
-@section('title', 'Beranda PembdaCIRCLE — Wadah Kreasi, Nongki & Portofolio')
+@section('title', 'PembdaCIRCLE — CONNECT • CREATE • GROW | Panggung Edu-Social & Portofolio')
 
 @section('og_meta')
-    <meta property="og:title" content="PembdaCIRCLE — Wadah Kreasi, Nongki & Portofolio Siswa Pembda">
-    <meta property="og:description" content="Panggung sosial dan talenta digital pertama untuk siswa dan guru Perguruan Pembda.">
-    <meta property="og:image" content="{{ asset('images/icons/icon-512x512.png') }}">
+    <meta property="og:title" content="PembdaCIRCLE — CONNECT • CREATE • GROW">
+    <meta property="og:description" content="CONNECT (Jejaring Siswa & Industri) • CREATE (Portofolio Riset & Vokasi) • GROW (Lencana Keahlian & Prestasi). Edu-Social Network resmi Perguruan Pembda.">
+    <meta property="og:image" content="{{ asset('images/circle/pembda-circle-logo.png') }}">
     <meta property="og:url" content="{{ route('circle.feed') }}">
     <meta property="og:type" content="website">
 @endsection
@@ -91,6 +91,43 @@
          KOLOM KIRI & TENGAH: FEED UTAMA (PASTEL SEGAR)
     ═══════════════════════════════════════════ --}}
     <div class="lg:col-span-2 space-y-6">
+
+        {{-- ── 0. PembdaCIRCLE Flagship Banner: CONNECT • CREATE • GROW ── --}}
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#070d1e] via-[#0b1736] to-[#091124] text-white p-4 sm:p-5 border-2 border-cyan-500/30 shadow-md">
+            <div class="absolute -right-12 -bottom-12 w-36 h-36 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-12 -top-12 w-36 h-36 bg-amber-500/15 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#050a16] p-0.5 shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.4)] ring-2 ring-cyan-400/50 overflow-hidden">
+                        <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-[14px]">
+                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
+                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
+                            <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-[14px]">
+                        </video>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-display font-black text-base sm:text-lg text-white tracking-tight">Pembda<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-300">CIRCLE</span></span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-[9px] font-black tracking-wider uppercase">
+                                <span class="w-1 h-1 rounded-full bg-cyan-400 animate-ping"></span>
+                                Live Ecosystem
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black tracking-widest uppercase mt-0.5 flex-wrap">
+                            <span class="text-cyan-400 flex items-center gap-1"><span>🌐</span> CONNECT</span>
+                            <span class="text-slate-600">•</span>
+                            <span class="text-amber-400 flex items-center gap-1"><span>💡</span> CREATE</span>
+                            <span class="text-slate-600">•</span>
+                            <span class="text-emerald-400 flex items-center gap-1"><span>🚀</span> GROW</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center gap-2 shrink-0 text-[11px] font-bold text-slate-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                    <span class="text-amber-400">✨</span>
+                    <span>Wadah Kreasi, Nongki & Portofolio Siswa</span>
+                </div>
+            </div>
+        </div>
 
         {{-- ── 1. Story Bar: ⚡ KILAS (STORY 24 JAM) ── --}}
         @if($activeStories->isNotEmpty() || Auth::check())
@@ -1059,28 +1096,72 @@
     ═══════════════════════════════════════════ --}}
     <div class="hidden lg:block space-y-6">
 
-        {{-- ── 1. Hero Widget: Identity & Mission (Pink & Coklat Pastel) ── --}}
-        <div class="bg-gradient-to-br from-[#fce7f3] via-[#fffbeb] to-[#faedcd] rounded-3xl p-6 border-2 border-pink-200/90 shadow-sm relative overflow-hidden">
+        {{-- ── 1. Hero Widget: Identity & Mission (Flagship CONNECT • CREATE • GROW) ── --}}
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#070d1e] via-[#0b1736] to-[#091124] text-white p-5 sm:p-6 border-2 border-cyan-500/30 shadow-md">
+            <div class="absolute -top-16 -right-16 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-16 -left-16 w-40 h-40 bg-amber-500/15 rounded-full blur-2xl pointer-events-none"></div>
+            
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-white/80 border border-pink-300 text-pink-800 mb-4 shadow-2xs">
-                    <i class="fas fa-star text-amber-500 text-[10px]"></i>
-                    <span>The 1st Edu-Social Network</span>
+                <!-- Header with Animated Emblem -->
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="relative w-13 h-13 rounded-2xl bg-[#050a16] p-0.5 shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.4)] ring-2 ring-cyan-400/50 overflow-hidden">
+                        <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-[14px]">
+                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
+                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
+                            <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-[14px]">
+                        </video>
+                    </div>
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-[9px] font-black tracking-wider uppercase mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                            <span>The 1st Edu-Social Network</span>
+                        </div>
+                        <h3 class="font-display font-black text-lg text-white leading-tight">
+                            Pembda<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300">CIRCLE</span>
+                        </h3>
+                    </div>
                 </div>
-                <h3 class="font-display font-black text-xl text-slate-950 mb-2 tracking-tight leading-snug">
-                    Panggung Bebas Berekspresi & Berkarya
-                </h3>
-                <p class="text-xs font-bold text-slate-900 leading-relaxed mb-5">
-                    Tunjukkan pesona, gaya nyentrik, suasana hati, dan mahakarya terbaikmu kepada keluarga besar Pembda dan dunia industri!
-                </p>
-                <div class="p-3.5 rounded-2xl bg-white/90 border border-pink-200 text-xs font-black text-slate-950 flex items-center gap-3 shadow-2xs">
-                    <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                        <i class="fas fa-shield-heart text-sm"></i>
-                    </span>
+
+                <!-- Motto Badge Banner -->
+                <div class="p-2.5 rounded-2xl bg-white/5 border border-white/10 mb-4 flex items-center justify-between text-[10px] font-black tracking-wider uppercase">
+                    <span class="text-cyan-400">CONNECT</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-amber-400">CREATE</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-emerald-400">GROW</span>
+                </div>
+
+                <!-- 3 Pillars Explanation -->
+                <div class="space-y-2 mb-4 text-xs">
+                    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-cyan-500/20">
+                        <span class="text-base shrink-0">🌐</span>
+                        <div class="leading-snug">
+                            <strong class="text-cyan-300 font-black text-[11px] block">CONNECT</strong>
+                            <span class="text-[10px] text-slate-300 font-medium">Terhubung erat dengan siswa, guru 3 unit sekolah (SMP, SMA, SMK) & mitra DUDI.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-amber-500/20">
+                        <span class="text-base shrink-0">💡</span>
+                        <div class="leading-snug">
+                            <strong class="text-amber-300 font-black text-[11px] block">CREATE</strong>
+                            <span class="text-[10px] text-slate-300 font-medium">Rilis project kejuruan SMK, riset SMA, seni, hingga video reels portofolio.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-emerald-500/20">
+                        <span class="text-base shrink-0">🚀</span>
+                        <div class="leading-snug">
+                            <strong class="text-emerald-300 font-black text-[11px] block">GROW</strong>
+                            <span class="text-[10px] text-slate-300 font-medium">Raih Lencana Keahlian terverifikasi guru pembina & melesat menjadi Jawara!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Guarantee -->
+                <div class="p-2.5 rounded-2xl bg-black/40 border border-emerald-500/30 text-[10.5px] font-bold text-emerald-300 flex items-center gap-2 shadow-2xs">
+                    <i class="fas fa-shield-halved text-emerald-400 shrink-0 text-sm"></i>
                     <span>Nilai akademik, rapor & BK tetap 100% aman & privat.</span>
                 </div>
             </div>
-            {{-- Bulatan Hiasan Pastel --}}
-            <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-pink-300/30 rounded-full blur-2xl pointer-events-none"></div>
         </div>
 
         {{-- ── 1B. 👑 JAWARA! (LEADERBOARD MENYALA) ── --}}
