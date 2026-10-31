@@ -131,6 +131,9 @@ class CircleActionController extends Controller
             'mood_text' => 'nullable|string|max:100',
             'banner' => 'nullable|image|max:10240', // max 10MB
             'theme_color' => 'nullable|string|in:pink,indigo,amber,emerald,sky,rose,purple,dark',
+            'ambient_effect' => 'nullable|string|in:none,sakura,sparkles,cyber,bubbles,autumn',
+            'sticky_note_text' => 'nullable|string|max:255',
+            'sticky_note_color' => 'nullable|string|in:yellow,pink,mint,sky,purple',
             'anthem_url' => 'nullable|string|max:500',
         ]);
 
@@ -141,12 +144,27 @@ class CircleActionController extends Controller
 
         $profile = CircleProfile::getOrCreateForUser($user);
 
+        // Parsing Passions (Minat & Hobi)
+        $passions = $request->input('passions');
+        if (is_string($passions)) {
+            $passions = json_decode($passions, true) ?? array_filter(array_map('trim', explode(',', $passions)));
+        }
+        if (is_array($passions)) {
+            $passions = array_values(array_slice(array_unique(array_filter($passions)), 0, 8));
+        } else {
+            $passions = null;
+        }
+
         $updateData = [
             'nickname' => $request->nickname ?? $profile->nickname,
             'bio' => $request->bio,
             'mood_emoji' => $request->mood_emoji,
             'mood_text' => $request->mood_text,
             'theme_color' => $request->theme_color ?? $profile->theme_color ?? 'pink',
+            'ambient_effect' => $request->ambient_effect ?? $profile->ambient_effect ?? 'none',
+            'sticky_note_text' => $request->filled('sticky_note_text') ? trim($request->sticky_note_text) : null,
+            'sticky_note_color' => $request->sticky_note_color ?? 'yellow',
+            'passions' => $passions,
             'anthem_url' => $request->filled('anthem_url') ? trim($request->anthem_url) : null,
         ];
 
@@ -159,7 +177,7 @@ class CircleActionController extends Controller
 
         $profile->update($updateData);
 
-        return redirect()->back()->with('success', 'Profil, lagu kebangsaan & tema berhasil diperbarui! ✨');
+        return redirect()->back()->with('success', 'Profil dan suasana dinding estetikmu berhasil diperbarui! ✨');
     }
 
     /**

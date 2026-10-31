@@ -14,8 +14,36 @@
 @php
     $theme = $profile->theme_styles;
     $anthem = $profile->anthem_data;
+    $sticky = $profile->sticky_note_style;
+    $hasSticky = !empty($profile->sticky_note_text);
+    $passions = $profile->passions ?? [];
 @endphp
-<div class="max-w-4xl mx-auto" x-data="{ activeTab: '{{ request('tab', 'wall') }}', showEditModal: false, showEndorseModal: false, selectedSkill: '', selectedTheme: '{{ $profile->theme_color ?? 'pink' }}', anthemInput: '{{ addslashes($profile->anthem_url ?? '') }}' }">
+<div class="max-w-4xl mx-auto" x-data="{ 
+    activeTab: '{{ request('tab', 'wall') }}', 
+    showEditModal: false, 
+    showEndorseModal: false, 
+    selectedSkill: '', 
+    selectedTheme: '{{ $profile->theme_color ?? 'pink' }}', 
+    anthemInput: '{{ addslashes($profile->anthem_url ?? '') }}',
+    selectedAmbient: '{{ $profile->ambient_effect ?? 'none' }}',
+    stickyColor: '{{ $profile->sticky_note_color ?? 'yellow' }}',
+    userPassions: {{ json_encode($profile->passions ?? []) }},
+    newPassion: '',
+    togglePassion(p) {
+        if (this.userPassions.includes(p)) {
+            this.userPassions = this.userPassions.filter(x => x !== p);
+        } else if (this.userPassions.length < 8) {
+            this.userPassions.push(p);
+        }
+    },
+    addCustomPassion() {
+        const val = this.newPassion.trim();
+        if (val && !this.userPassions.includes(val) && this.userPassions.length < 8) {
+            this.userPassions.push(val);
+            this.newPassion = '';
+        }
+    }
+}">
 
     {{-- Notifikasi Sukses / Peringatan Aksi Interaktif --}}
     @if(session('success'))
@@ -37,10 +65,109 @@
         </div>
     @endif
 
+    <style>
+        /* Ambient Wall Particles Keyframes */
+        @keyframes ambientDriftDown {
+            0% { transform: translate3d(0, -30px, 0) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.85; }
+            85% { opacity: 0.85; }
+            100% { transform: translate3d(30px, 700px, 0) rotate(360deg); opacity: 0; }
+        }
+        @keyframes ambientFloatUp {
+            0% { transform: translate3d(0, 700px, 0) scale(0.6); opacity: 0; }
+            20% { opacity: 0.75; }
+            80% { opacity: 0.75; }
+            100% { transform: translate3d(-20px, -40px, 0) scale(1.1); opacity: 0; }
+        }
+        @keyframes ambientTwinkle {
+            0%, 100% { transform: scale(0.6); opacity: 0.2; }
+            50% { transform: scale(1.25); opacity: 0.95; }
+        }
+        .ambient-particle-down { animation: ambientDriftDown linear infinite; }
+        .ambient-particle-up { animation: ambientFloatUp ease-in-out infinite; }
+        .ambient-particle-twinkle { animation: ambientTwinkle ease-in-out infinite; }
+    </style>
+
     {{-- ═══════════════════════════════════════════
          PROFILE HEADER CARD (PASTEL CANTIK & LUCU)
     ═══════════════════════════════════════════ --}}
-    <div class="bg-white rounded-3xl border-2 {{ $theme['border'] }} shadow-xs overflow-hidden mb-7 transition-all duration-300">
+    <div class="bg-white rounded-3xl border-2 {{ $theme['border'] }} shadow-xs overflow-hidden mb-7 transition-all duration-300 relative">
+
+        {{-- ── EFEK PARTIKEL SUASANA PROFIL (AMBIENT ATMOSPHERE) ── --}}
+        @if(($profile->ambient_effect ?? 'none') !== 'none')
+            <div class="pointer-events-none absolute inset-0 overflow-hidden z-20 select-none" aria-hidden="true">
+                @if($profile->ambient_effect === 'sakura')
+                    @foreach([
+                        ['left' => '8%', 'delay' => '0s', 'dur' => '7s', 'size' => 'text-sm'],
+                        ['left' => '22%', 'delay' => '2.5s', 'dur' => '9s', 'size' => 'text-base'],
+                        ['left' => '38%', 'delay' => '1.2s', 'dur' => '6.5s', 'size' => 'text-xs'],
+                        ['left' => '54%', 'delay' => '3.8s', 'dur' => '8s', 'size' => 'text-sm'],
+                        ['left' => '69%', 'delay' => '0.8s', 'dur' => '7.5s', 'size' => 'text-base'],
+                        ['left' => '83%', 'delay' => '4.2s', 'dur' => '8.5s', 'size' => 'text-xs'],
+                        ['left' => '94%', 'delay' => '2.0s', 'dur' => '6.8s', 'size' => 'text-sm'],
+                    ] as $p)
+                        <span class="absolute -top-6 {{ $p['size'] }} ambient-particle-down drop-shadow-xs" 
+                              style="left: {{ $p['left'] }}; animation-delay: {{ $p['delay'] }}; animation-duration: {{ $p['dur'] }};">
+                            🌸
+                        </span>
+                    @endforeach
+                @elseif($profile->ambient_effect === 'sparkles')
+                    @foreach([
+                        ['top' => '12%', 'left' => '10%', 'delay' => '0s', 'dur' => '2.5s'],
+                        ['top' => '28%', 'left' => '88%', 'delay' => '0.7s', 'dur' => '3.1s'],
+                        ['top' => '45%', 'left' => '15%', 'delay' => '1.4s', 'dur' => '2.8s'],
+                        ['top' => '60%', 'left' => '82%', 'delay' => '0.3s', 'dur' => '3.5s'],
+                        ['top' => '78%', 'left' => '25%', 'delay' => '1.9s', 'dur' => '2.6s'],
+                        ['top' => '90%', 'left' => '75%', 'delay' => '1.1s', 'dur' => '3.2s'],
+                        ['top' => '18%', 'left' => '50%', 'delay' => '1.6s', 'dur' => '2.9s'],
+                    ] as $p)
+                        <span class="absolute text-sm ambient-particle-twinkle" 
+                              style="top: {{ $p['top'] }}; left: {{ $p['left'] }}; animation-delay: {{ $p['delay'] }}; animation-duration: {{ $p['dur'] }};">
+                            ✨
+                        </span>
+                    @endforeach
+                @elseif($profile->ambient_effect === 'cyber')
+                    @foreach([
+                        ['left' => '12%', 'delay' => '0.5s', 'dur' => '6s', 'icon' => '⚡', 'color' => 'text-cyan-400'],
+                        ['left' => '28%', 'delay' => '2.8s', 'dur' => '7.5s', 'icon' => '💠', 'color' => 'text-sky-300'],
+                        ['left' => '48%', 'delay' => '1.1s', 'dur' => '5.5s', 'icon' => '◽', 'color' => 'text-amber-300'],
+                        ['left' => '68%', 'delay' => '3.5s', 'dur' => '8s', 'icon' => '⚡', 'color' => 'text-cyan-300'],
+                        ['left' => '88%', 'delay' => '1.8s', 'dur' => '6.8s', 'icon' => '💠', 'color' => 'text-indigo-400'],
+                    ] as $p)
+                        <span class="absolute -bottom-6 text-xs {{ $p['color'] }} ambient-particle-up drop-shadow-[0_0_8px_currentColor]" 
+                              style="left: {{ $p['left'] }}; animation-delay: {{ $p['delay'] }}; animation-duration: {{ $p['dur'] }};">
+                            {{ $p['icon'] }}
+                        </span>
+                    @endforeach
+                @elseif($profile->ambient_effect === 'bubbles')
+                    @foreach([
+                        ['left' => '10%', 'delay' => '0.2s', 'dur' => '8s', 'size' => 'text-base'],
+                        ['left' => '25%', 'delay' => '3.1s', 'dur' => '9.5s', 'size' => 'text-xs'],
+                        ['left' => '45%', 'delay' => '1.5s', 'dur' => '7.8s', 'size' => 'text-lg'],
+                        ['left' => '65%', 'delay' => '4.0s', 'dur' => '8.8s', 'size' => 'text-sm'],
+                        ['left' => '85%', 'delay' => '1.9s', 'dur' => '9.0s', 'size' => 'text-base'],
+                    ] as $p)
+                        <span class="absolute -bottom-6 {{ $p['size'] }} ambient-particle-up opacity-60" 
+                              style="left: {{ $p['left'] }}; animation-delay: {{ $p['delay'] }}; animation-duration: {{ $p['dur'] }};">
+                            🫧
+                        </span>
+                    @endforeach
+                @elseif($profile->ambient_effect === 'autumn')
+                    @foreach([
+                        ['left' => '12%', 'delay' => '0.3s', 'dur' => '7.2s', 'icon' => '🍂'],
+                        ['left' => '32%', 'delay' => '2.6s', 'dur' => '8.5s', 'icon' => '🍁'],
+                        ['left' => '52%', 'delay' => '1.0s', 'dur' => '6.8s', 'icon' => '🍂'],
+                        ['left' => '72%', 'delay' => '3.9s', 'dur' => '9.0s', 'icon' => '🍁'],
+                        ['left' => '88%', 'delay' => '1.7s', 'dur' => '7.5s', 'icon' => '🍂'],
+                    ] as $p)
+                        <span class="absolute -top-6 text-sm ambient-particle-down drop-shadow-xs" 
+                              style="left: {{ $p['left'] }}; animation-delay: {{ $p['delay'] }}; animation-duration: {{ $p['dur'] }};">
+                            {{ $p['icon'] }}
+                        </span>
+                    @endforeach
+                @endif
+            </div>
+        @endif
 
         {{-- ── 1. Cover Banner (Gradien Pastel Lembut & Manis) ── --}}
         <div class="h-48 sm:h-64 w-full relative overflow-hidden bg-gradient-to-r {{ $theme['gradient'] }}">
@@ -194,6 +321,53 @@
             <p class="text-sm font-semibold text-slate-950 leading-relaxed max-w-2xl mb-4">
                 {{ $profile->bio ?? 'Belum ada biodata singkat.' }}
             </p>
+
+            {{-- ── 2b. Minat, Hobi & Passion Chips + Catatan Tempel (Sticky Post-It) ── --}}
+            @if($hasSticky || !empty($passions))
+                <div class="mb-5 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    {{-- Kapsul Minat & Passion --}}
+                    @if(!empty($passions))
+                        <div class="flex-1 min-w-[200px]">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 mr-1 flex items-center gap-1">
+                                    <i class="fas fa-compass text-pink-500"></i>
+                                    <span>Vibe & Hobi:</span>
+                                </span>
+                                @foreach($passions as $ps)
+                                    <span class="px-3 py-1 rounded-2xl bg-white hover:bg-pink-50 border-2 {{ $theme['border'] }} text-slate-900 text-xs font-black shadow-2xs hover:scale-105 transition-transform duration-200 cursor-default flex items-center gap-1">
+                                        <span>{{ $ps }}</span>
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Catatan Tempel Estetik (Sticky Post-it) --}}
+                    @if($hasSticky)
+                        <div class="relative shrink-0 max-w-xs transform -rotate-1 hover:rotate-0 transition-transform duration-300 self-start">
+                            <div class="p-3.5 sm:p-4 rounded-2xl border-2 {{ $sticky['border'] }} {{ $sticky['bg'] }} {{ $sticky['text'] }} shadow-md">
+                                <!-- Push Pin Imut -->
+                                <div class="absolute -top-3.5 left-5 text-base drop-shadow-sm select-none">
+                                    {{ $sticky['pin'] }}
+                                </div>
+                                <div class="flex items-center justify-between gap-3 mb-1">
+                                    <span class="text-[9px] font-black uppercase tracking-widest opacity-75">
+                                        Catatan Hari Ini 📌
+                                    </span>
+                                    @if(Auth::check() && Auth::id() === $user->id)
+                                        <button type="button" @click="showEditModal = true" class="text-[10px] font-black opacity-60 hover:opacity-100 cursor-pointer" title="Ubah Catatan Tempel">
+                                            <i class="fas fa-pen text-[9px]"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                                <p class="font-display font-black text-xs sm:text-sm leading-relaxed">
+                                    “{{ $profile->sticky_note_text }}”
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             {{-- ── PROFILE ANTHEM: PEMUTAR MUSIK PIRINGAN HITAM (VINYL PLAYER) ── --}}
             @if($anthem)
@@ -1384,6 +1558,119 @@
                                         <span class="text-[10px] font-bold text-slate-800">{{ $tData['name'] }}</span>
                                     </label>
                                 @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Pilihan Efek Partikel Suasana --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1.5">Efek Partikel Suasana Dinding</label>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                @php
+                                    $ambientEffects = [
+                                        'none' => ['name' => 'Hening', 'icon' => '🚫'],
+                                        'sakura' => ['name' => 'Sakura', 'icon' => '🌸'],
+                                        'sparkles' => ['name' => 'Bintang', 'icon' => '✨'],
+                                        'cyber' => ['name' => 'Cyber', 'icon' => '⚡'],
+                                        'bubbles' => ['name' => 'Gelembung', 'icon' => '🫧'],
+                                        'autumn' => ['name' => 'Gugur', 'icon' => '🍂'],
+                                    ];
+                                @endphp
+                                @foreach($ambientEffects as $aKey => $aData)
+                                    <label class="p-2 rounded-2xl border-2 text-center cursor-pointer flex flex-col items-center gap-1 transition-all hover:scale-105"
+                                           :class="selectedAmbient === '{{ $aKey }}' ? 'ring-2 ring-pink-500 border-pink-500 font-black shadow-xs bg-pink-50' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                        <input type="radio" name="ambient_effect" value="{{ $aKey }}" x-model="selectedAmbient" class="hidden">
+                                        <span class="text-lg">{{ $aData['icon'] }}</span>
+                                        <span class="text-[10px] font-bold text-slate-800">{{ $aData['name'] }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Catatan Tempel Dinding (Sticky Post-It) --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1 flex items-center justify-between">
+                                <span>Catatan Tempel Hari Ini 📌</span>
+                                <span class="text-[10px] text-slate-500 font-semibold">Tampil di dinding profil</span>
+                            </label>
+                            <input type="text" name="sticky_note_text" value="{{ $profile->sticky_note_text }}"
+                                   placeholder="Contoh: Sedang fokus persiapan ujian kejuruan di bengkel 🛠️"
+                                   class="w-full px-4 py-2 mb-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-pink-300">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-slate-600">Warna Kertas:</span>
+                                <div class="flex items-center gap-1.5">
+                                    @php
+                                        $noteColors = [
+                                            'yellow' => ['bg' => 'bg-[#fef08a]', 'border' => 'border-[#ca8a04]', 'name' => 'Lemon'],
+                                            'pink' => ['bg' => 'bg-[#fecdd3]', 'border' => 'border-[#e11d48]', 'name' => 'Sakura'],
+                                            'mint' => ['bg' => 'bg-[#a7f3d0]', 'border' => 'border-[#059669]', 'name' => 'Mint'],
+                                            'sky' => ['bg' => 'bg-[#bae6fd]', 'border' => 'border-[#0284c7]', 'name' => 'Langit'],
+                                            'purple' => ['bg' => 'bg-[#e9d5ff]', 'border' => 'border-[#9333ea]', 'name' => 'Lavender'],
+                                        ];
+                                    @endphp
+                                    @foreach($noteColors as $cKey => $cData)
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="sticky_note_color" value="{{ $cKey }}" x-model="stickyColor" class="hidden">
+                                            <span class="inline-block w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 shadow-2xs {{ $cData['bg'] }} {{ $cData['border'] }}"
+                                                  :class="stickyColor === '{{ $cKey }}' ? 'ring-2 ring-slate-900 scale-110' : 'opacity-70'"></span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Koleksi Minat, Hobi & Passion --}}
+                        <div>
+                            <label class="block text-xs font-black text-slate-900 mb-1 flex items-center justify-between">
+                                <span>Vibe & Minat Favorit (Maksimal 8)</span>
+                                <span class="text-[10px] font-bold text-pink-600" x-text="userPassions.length + '/8 terpilih'"></span>
+                            </label>
+                            
+                            <!-- Hidden inputs for submission -->
+                            <template x-for="(p, idx) in userPassions" :key="idx">
+                                <input type="hidden" name="passions[]" :value="p">
+                            </template>
+
+                            <!-- Selected Passions Pills -->
+                            <div class="flex flex-wrap gap-1.5 p-2 rounded-2xl bg-slate-50 border-2 border-slate-200 mb-2 min-h-[42px] items-center">
+                                <template x-for="(p, idx) in userPassions" :key="idx">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-pink-300 text-slate-900 text-[11px] font-black shadow-2xs">
+                                        <span x-text="p"></span>
+                                        <button type="button" @click="togglePassion(p)" class="text-rose-500 hover:text-rose-700 font-bold text-xs ml-0.5 cursor-pointer">✕</button>
+                                    </span>
+                                </template>
+                                <template x-if="userPassions.length === 0">
+                                    <span class="text-[11px] text-slate-400 font-medium italic">Belum ada minat yang dipilih. Klik rekomendasi di bawah:</span>
+                                </template>
+                            </div>
+
+                            <!-- Quick Preset Passion Buttons -->
+                            <div class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1 mb-2">
+                                @php
+                                    $presetPassions = [
+                                        '💻 Koding & Web', '🏍️ Oprek Mesin', '🎸 Gitar & Musik',
+                                        '📸 Fotografi & Reels', '⚽ Futsal & Olahraga', '🎮 Mobile Gaming',
+                                        '🎨 Desain & 3D', '☕ Kopi Senja', '📚 Suka Membaca',
+                                        '🧪 Sains & Riset', '🎙️ Public Speaking', '🛠️ Robotika & IoT'
+                                    ];
+                                @endphp
+                                @foreach($presetPassions as $pp)
+                                    <button type="button" 
+                                            @click="togglePassion('{{ $pp }}')"
+                                            class="px-2 py-0.5 rounded-xl text-[10px] font-bold border transition cursor-pointer hover:scale-105"
+                                            :class="userPassions.includes('{{ $pp }}') ? 'bg-pink-200 border-pink-400 text-pink-950 font-black' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'">
+                                        + {{ $pp }}
+                                    </button>
+                                @endforeach
+                            </div>
+
+                            <!-- Custom Passion Input -->
+                            <div class="flex items-center gap-2">
+                                <input type="text" x-model="newPassion" @keydown.enter.prevent="addCustomPassion()"
+                                       placeholder="Tambah minat sendiri... (contoh: 🏸 Badminton, ♟️ Catur)"
+                                       class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-pink-300">
+                                <button type="button" @click="addCustomPassion()" class="px-3 py-1.5 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 cursor-pointer">
+                                    Tambah
+                                </button>
                             </div>
                         </div>
 

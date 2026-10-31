@@ -16,6 +16,10 @@ class CircleProfile extends Model
         'nickname',
         'bio',
         'theme_color',
+        'ambient_effect',
+        'sticky_note_text',
+        'sticky_note_color',
+        'passions',
         'anthem_url',
         'mood_text',
         'mood_emoji',
@@ -29,6 +33,7 @@ class CircleProfile extends Model
         'is_public' => 'boolean',
         'views_count' => 'integer',
         'social_links' => 'array',
+        'passions' => 'array',
     ];
 
     public function user()
@@ -89,6 +94,57 @@ class CircleProfile extends Model
             'border' => 'border-emerald-200',
             'desc' => 'Baru merintis jejak di PembdaCIRCLE'
         ];
+    }
+
+    /**
+     * Styling Catatan Tempel (Sticky Note)
+     */
+    public function getStickyNoteStyleAttribute(): array
+    {
+        $styles = [
+            'yellow' => [
+                'name' => 'Kuning Lemon',
+                'bg' => 'bg-[#fef9c3]',
+                'border' => 'border-[#fde047]',
+                'text' => 'text-[#713f12]',
+                'pin' => '📌',
+                'shadow' => 'shadow-amber-200/60',
+            ],
+            'pink' => [
+                'name' => 'Pink Sakura',
+                'bg' => 'bg-[#ffe4e6]',
+                'border' => 'border-[#fecdd3]',
+                'text' => 'text-[#881337]',
+                'pin' => '🌸',
+                'shadow' => 'shadow-rose-200/60',
+            ],
+            'mint' => [
+                'name' => 'Hijau Mint',
+                'bg' => 'bg-[#d1fae5]',
+                'border' => 'border-[#a7f3d0]',
+                'text' => 'text-[#065f46]',
+                'pin' => '🌱',
+                'shadow' => 'shadow-emerald-200/60',
+            ],
+            'sky' => [
+                'name' => 'Biru Langit',
+                'bg' => 'bg-[#e0f2fe]',
+                'border' => 'border-[#bae6fd]',
+                'text' => 'text-[#0369a1]',
+                'pin' => '💧',
+                'shadow' => 'shadow-sky-200/60',
+            ],
+            'purple' => [
+                'name' => 'Ungu Lavender',
+                'bg' => 'bg-[#f3e8ff]',
+                'border' => 'border-[#e9d5ff]',
+                'text' => 'text-[#581c87]',
+                'pin' => '🔮',
+                'shadow' => 'shadow-purple-200/60',
+            ],
+        ];
+
+        return $styles[$this->sticky_note_color ?? 'yellow'] ?? $styles['yellow'];
     }
 
     /**
