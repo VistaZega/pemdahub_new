@@ -37,11 +37,15 @@
         <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Publik</span>
     </a>
 
-    <a href="{{ route('circle.feed') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.feed') ? 'bg-indigo-50 text-indigo-950 font-bold border border-indigo-200' : 'text-slate-700 hover:bg-slate-50' }}">
-        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xs">
-            <i class="fas fa-layer-group text-[10px]"></i>
+    <a href="{{ route('circle.feed') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.feed') ? 'bg-pink-100/80 text-pink-950 font-black border border-pink-300' : 'text-slate-800 hover:bg-pink-50/60' }}" title="PembdaCIRCLE — CONNECT • CREATE • GROW">
+        <div class="flex items-center gap-2.5">
+            <x-circle-logo size="xs" variant="emblem" />
+            <div class="flex flex-col leading-tight">
+                <span class="font-black text-slate-900">Pembda<span class="text-pink-600">CIRCLE</span></span>
+                <span class="text-[8px] font-black text-pink-600 tracking-wider">CONNECT • CREATE • GROW</span>
+            </div>
         </div>
-        <span class="font-black text-slate-900">PembdaCIRCLE</span>
+        <span class="text-[9px] font-black bg-pink-100 text-pink-900 px-1.5 py-0.5 rounded-full border border-pink-200">Sosial</span>
     </a>
 
     @if(\App\Services\SteamCompetitionService::isStudentParticipant(Auth::user()))

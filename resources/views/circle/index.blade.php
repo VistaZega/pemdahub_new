@@ -92,38 +92,33 @@
     ═══════════════════════════════════════════ --}}
     <div class="lg:col-span-2 space-y-6">
 
-        {{-- ── 0. PembdaCIRCLE Flagship Banner: CONNECT • CREATE • GROW ── --}}
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#070d1e] via-[#0b1736] to-[#091124] text-white p-4 sm:p-5 border-2 border-cyan-500/30 shadow-md">
-            <div class="absolute -right-12 -bottom-12 w-36 h-36 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="absolute -left-12 -top-12 w-36 h-36 bg-amber-500/15 rounded-full blur-2xl pointer-events-none"></div>
+        {{-- ── 0. PembdaCIRCLE Flagship Banner: CONNECT • CREATE • GROW (Pastel Radiant) ── --}}
+        <div class="relative overflow-hidden rounded-3xl p-4 sm:p-5 border-2 border-pink-200/90 shadow-2xs"
+             style="background: linear-gradient(135deg, #fdf2f8 0%, #faedcd 35%, #e0f2fe 70%, #dcfce7 100%) !important;">
+            <div class="absolute -right-12 -bottom-12 w-36 h-36 bg-pink-200/60 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-12 -top-12 w-36 h-36 bg-sky-200/60 rounded-full blur-2xl pointer-events-none"></div>
             <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 min-w-0">
-                    <div class="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#050a16] p-0.5 shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.4)] ring-2 ring-cyan-400/50 overflow-hidden">
-                        <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-[14px]">
-                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
-                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
-                            <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-[14px]">
-                        </video>
-                    </div>
+                    <x-circle-logo size="md" variant="emblem" />
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-display font-black text-base sm:text-lg text-white tracking-tight">Pembda<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-300">CIRCLE</span></span>
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-[9px] font-black tracking-wider uppercase">
-                                <span class="w-1 h-1 rounded-full bg-cyan-400 animate-ping"></span>
+                            <span class="font-display font-black text-base sm:text-lg text-pink-950 tracking-tight">Pembda<span class="circle-gradient-text ml-1">CIRCLE</span></span>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/90 border border-pink-200 text-pink-700 text-[9px] font-black tracking-wider uppercase shadow-2xs">
+                                <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span>
                                 Live Ecosystem
                             </span>
                         </div>
                         <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black tracking-widest uppercase mt-0.5 flex-wrap">
-                            <span class="text-cyan-400 flex items-center gap-1"><span>🌐</span> CONNECT</span>
-                            <span class="text-slate-600">•</span>
-                            <span class="text-amber-400 flex items-center gap-1"><span>💡</span> CREATE</span>
-                            <span class="text-slate-600">•</span>
-                            <span class="text-emerald-400 flex items-center gap-1"><span>🚀</span> GROW</span>
+                            <span class="text-sky-700 flex items-center gap-1"><span>🌐</span> CONNECT</span>
+                            <span class="text-pink-300">•</span>
+                            <span class="text-rose-600 flex items-center gap-1"><span>💡</span> CREATE</span>
+                            <span class="text-pink-300">•</span>
+                            <span class="text-emerald-700 flex items-center gap-1"><span>🚀</span> GROW</span>
                         </div>
                     </div>
                 </div>
-                <div class="hidden md:flex items-center gap-2 shrink-0 text-[11px] font-bold text-slate-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                    <span class="text-amber-400">✨</span>
+                <div class="hidden md:flex items-center gap-2 shrink-0 text-[11px] font-bold text-slate-700 bg-white/80 border border-pink-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs">
+                    <span class="text-amber-500">✨</span>
                     <span>Wadah Kreasi, Nongki & Portofolio Siswa</span>
                 </div>
             </div>
@@ -1096,69 +1091,66 @@
     ═══════════════════════════════════════════ --}}
     <div class="hidden lg:block space-y-6">
 
-        {{-- ── 1. Hero Widget: Identity & Mission (Flagship CONNECT • CREATE • GROW) ── --}}
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#070d1e] via-[#0b1736] to-[#091124] text-white p-5 sm:p-6 border-2 border-cyan-500/30 shadow-md">
-            <div class="absolute -top-16 -right-16 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="absolute -bottom-16 -left-16 w-40 h-40 bg-amber-500/15 rounded-full blur-2xl pointer-events-none"></div>
+        {{-- ── 1. Hero Widget: Identity & Mission (Flagship CONNECT • CREATE • GROW 100% Pastel) ── --}}
+        <div class="relative overflow-hidden rounded-3xl p-5 sm:p-6 border-2 border-pink-200/90 shadow-2xs"
+             style="background: linear-gradient(135deg, #fdf2f8 0%, #faedcd 40%, #e0f2fe 80%, #dcfce7 100%) !important;">
+            <div class="absolute -top-16 -right-16 w-40 h-40 bg-pink-200/50 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-16 -left-16 w-40 h-40 bg-sky-200/50 rounded-full blur-2xl pointer-events-none"></div>
             
             <div class="relative z-10">
-                <!-- Header with Animated Emblem -->
+                <!-- Header with Animated Pastel Emblem -->
                 <div class="flex items-center gap-3.5 mb-4">
-                    <div class="relative w-13 h-13 rounded-2xl bg-[#050a16] p-0.5 shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.4)] ring-2 ring-cyan-400/50 overflow-hidden">
-                        <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-[14px]">
-                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
-                            <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
-                            <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-[14px]">
-                        </video>
-                    </div>
+                    <x-circle-logo size="md" variant="emblem" />
                     <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-[9px] font-black tracking-wider uppercase mb-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-pink-200 text-pink-700 text-[9px] font-black tracking-wider uppercase mb-1 shadow-2xs">
+                            <span class="animate-pulse">✨</span>
                             <span>The 1st Edu-Social Network</span>
                         </div>
-                        <h3 class="font-display font-black text-lg text-white leading-tight">
-                            Pembda<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300">CIRCLE</span>
+                        <h3 class="font-display font-black text-lg text-slate-900 leading-tight">
+                            Pembda<span class="circle-gradient-text ml-1">CIRCLE</span>
                         </h3>
                     </div>
                 </div>
 
-                <!-- Motto Badge Banner -->
-                <div class="p-2.5 rounded-2xl bg-white/5 border border-white/10 mb-4 flex items-center justify-between text-[10px] font-black tracking-wider uppercase">
-                    <span class="text-cyan-400">CONNECT</span>
-                    <span class="text-slate-600">•</span>
-                    <span class="text-amber-400">CREATE</span>
-                    <span class="text-slate-600">•</span>
-                    <span class="text-emerald-400">GROW</span>
+                <!-- Motto Badge Banner (Pastel) -->
+                <div class="p-2.5 rounded-2xl bg-white/80 border border-pink-200/80 mb-4 flex items-center justify-between text-[10px] font-black tracking-wider uppercase shadow-2xs">
+                    <span class="text-sky-700">CONNECT</span>
+                    <span class="text-pink-300">•</span>
+                    <span class="text-rose-600">CREATE</span>
+                    <span class="text-pink-300">•</span>
+                    <span class="text-emerald-700">GROW</span>
                 </div>
 
-                <!-- 3 Pillars Explanation -->
+                <!-- 3 Pillars Explanation (Pastel Cards) -->
                 <div class="space-y-2 mb-4 text-xs">
-                    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-cyan-500/20">
-                        <span class="text-base shrink-0">🌐</span>
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-2xl bg-white/85 border border-sky-200/80 shadow-2xs">
+                        <span class="w-7 h-7 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-sm shrink-0 font-black">🌐</span>
                         <div class="leading-snug">
-                            <strong class="text-cyan-300 font-black text-[11px] block">CONNECT</strong>
-                            <span class="text-[10px] text-slate-300 font-medium">Terhubung erat dengan siswa, guru 3 unit sekolah (SMP, SMA, SMK) & mitra DUDI.</span>
+                            <strong class="text-sky-800 font-black text-[11px] block">CONNECT</strong>
+                            <span class="text-[10px] text-slate-600 font-bold">Terhubung erat dengan siswa, guru 3 unit sekolah (SMP, SMA, SMK) & mitra DUDI.</span>
                         </div>
                     </div>
-                    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-amber-500/20">
-                        <span class="text-base shrink-0">💡</span>
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-2xl bg-white/85 border border-rose-200/80 shadow-2xs">
+                        <span class="w-7 h-7 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm shrink-0 font-black">💡</span>
                         <div class="leading-snug">
-                            <strong class="text-amber-300 font-black text-[11px] block">CREATE</strong>
-                            <span class="text-[10px] text-slate-300 font-medium">Rilis project kejuruan SMK, riset SMA, seni, hingga video reels portofolio.</span>
+                            <strong class="text-rose-800 font-black text-[11px] block">CREATE</strong>
+                            <span class="text-[10px] text-slate-600 font-bold">Rilis project kejuruan SMK, riset SMA, seni, hingga video reels portofolio.</span>
                         </div>
                     </div>
-                    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-emerald-500/20">
-                        <span class="text-base shrink-0">🚀</span>
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-2xl bg-white/85 border border-emerald-200/80 shadow-2xs">
+                        <span class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm shrink-0 font-black">🚀</span>
                         <div class="leading-snug">
-                            <strong class="text-emerald-300 font-black text-[11px] block">GROW</strong>
-                            <span class="text-[10px] text-slate-300 font-medium">Raih Lencana Keahlian terverifikasi guru pembina & melesat menjadi Jawara!</span>
+                            <strong class="text-emerald-800 font-black text-[11px] block">GROW</strong>
+                            <span class="text-[10px] text-slate-600 font-bold">Raih Lencana Keahlian terverifikasi guru pembina & melesat menjadi Jawara!</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Privacy Guarantee -->
-                <div class="p-2.5 rounded-2xl bg-black/40 border border-emerald-500/30 text-[10.5px] font-bold text-emerald-300 flex items-center gap-2 shadow-2xs">
-                    <i class="fas fa-shield-halved text-emerald-400 shrink-0 text-sm"></i>
+                <!-- Privacy Guarantee (Pastel Mint) -->
+                <div class="p-2.5 rounded-2xl bg-white/90 border border-emerald-200 text-[10.5px] font-bold text-emerald-800 flex items-center gap-2 shadow-2xs">
+                    <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <i class="fas fa-shield-heart text-xs"></i>
+                    </span>
                     <span>Nilai akademik, rapor & BK tetap 100% aman & privat.</span>
                 </div>
             </div>

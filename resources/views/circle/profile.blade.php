@@ -1,10 +1,10 @@
 @extends('circle.layout')
 
-@section('title', ($profile->nickname ?? $user->name) . ' (@' . $profile->username . ') — PembdaCIRCLE')
+@section('title', ($profile->nickname ?? $user->name) . ' (@' . $profile->username . ') — PembdaCIRCLE (CONNECT • CREATE • GROW)')
 
 @section('og_meta')
-    <meta property="og:title" content="{{ $user->name }} di PembdaCIRCLE">
-    <meta property="og:description" content="{{ $profile->bio ?? 'Lihat portofolio, kreasi, dan ekspresi resmi di Perguruan Pembda.' }}">
+    <meta property="og:title" content="{{ $user->name }} di PembdaCIRCLE — CONNECT • CREATE • GROW">
+    <meta property="og:description" content="{{ $profile->bio ?? 'Lihat portofolio, kreasi, dan jejak talenta resmi di PembdaCIRCLE: CONNECT • CREATE • GROW.' }}">
     <meta property="og:image" content="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="profile">

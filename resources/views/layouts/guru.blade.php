@@ -62,11 +62,15 @@
         <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Publik</span>
     </a>
 
-    <a href="{{ route('circle.feed') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.feed') ? $ac : $nc }}">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #6366f1 !important; color: #ffffff !important;">
-            <i class="fas fa-layer-group text-[10px] text-white"></i>
+    <a href="{{ route('circle.feed') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.feed') ? 'bg-pink-100/80 text-pink-950 font-black border border-pink-300' : $nc }}" title="PembdaCIRCLE — CONNECT • CREATE • GROW">
+        <div class="flex items-center gap-2.5">
+            <x-circle-logo size="xs" variant="emblem" />
+            <div class="flex flex-col leading-tight">
+                <span class="font-black text-slate-900">Pembda<span class="text-pink-600">CIRCLE</span></span>
+                <span class="text-[8px] font-black text-pink-600 tracking-wider">CONNECT • CREATE • GROW</span>
+            </div>
         </div>
-        <span>PembdaCIRCLE</span>
+        <span class="text-[9px] font-black bg-pink-100 text-pink-900 px-1.5 py-0.5 rounded-full border border-pink-200">Sosial</span>
     </a>
 
     @if(!$isPegawaiOnly)

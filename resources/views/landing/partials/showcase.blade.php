@@ -32,14 +32,12 @@
 
             <!-- Tombol Spesial Peta Lokasi PKL Maps & PembdaCIRCLE -->
             <div class="flex items-center gap-3 flex-wrap">
-                <a href="{{ route('circle.feed') }}" class="px-5 py-2.5 rounded-full font-mono-code text-xs font-black flex items-center gap-2 border-2 border-black transition-transform hover:-translate-y-0.5 shadow-[3px_3px_0px_#000]"
-                   style="background: linear-gradient(135deg, #070d1e 0%, #0b1736 100%) !important; color: #ffffff !important; border: 2px solid #000000 !important;">
-                    <div class="w-5 h-5 rounded-md bg-[#091124] overflow-hidden shrink-0 border border-cyan-400/40">
-                        <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover">
-                    </div>
-                    <span style="color: #ffffff !important; font-weight: 900 !important;">⚡ PEMBDACIRCLE</span>
-                    <span class="text-cyan-400 text-[9px] font-black tracking-wider hidden sm:inline">• CONNECT • CREATE • GROW</span>
-                    <span class="text-amber-300 text-[10px] font-black">&rarr;</span>
+                <a href="{{ route('circle.feed') }}" class="px-5 py-2.5 rounded-full font-mono-code text-xs font-black flex items-center gap-2 border-2 border-pink-300 transition-transform hover:-translate-y-0.5 shadow-sm"
+                   style="background: linear-gradient(135deg, #fff1f2 0%, #fdf2f8 50%, #fef9c3 100%) !important; color: #831843 !important;">
+                    <x-circle-logo size="xs" variant="emblem" />
+                    <span style="color: #831843 !important; font-weight: 900 !important;">⚡ PEMBDACIRCLE</span>
+                    <span class="text-sky-700 text-[9px] font-black tracking-wider hidden sm:inline">• CONNECT • CREATE • GROW</span>
+                    <span class="text-pink-600 text-[10px] font-black">&rarr;</span>
                 </a>
                 <a href="{{ route('public.pkl.map') }}" class="px-5 py-2.5 rounded-full bg-[#121316] text-[#fde047] hover:bg-[#222] font-mono-code text-xs font-black shadow-[3px_3px_0px_#ff3823] flex items-center gap-2 border border-[#121316] transition-transform hover:-translate-y-0.5">
                     <span>🗺️ PETA SEBARAN PKL (MAPS)</span>
@@ -246,38 +244,33 @@
 
         </div>
 
-        <!-- PEMBDACIRCLE INVITATION BANNER -->
-        <div class="mt-8 rounded-3xl p-6 sm:p-8 border-2 border-black shadow-[6px_6px_0px_#000] flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden text-white"
-             style="background: linear-gradient(135deg, #070d1e 0%, #0b1736 50%, #091124 100%) !important;">
-            <!-- Cosmic Ambient Glows -->
-            <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -left-20 -top-20 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <!-- PEMBDACIRCLE INVITATION BANNER (100% PASTEL DOMINANT) -->
+        <div class="mt-8 rounded-3xl p-6 sm:p-8 border-2 border-pink-200 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden text-slate-800"
+             style="background: linear-gradient(135deg, #fdf2f8 0%, #faedcd 35%, #e0f2fe 70%, #dcfce7 100%) !important;">
+            <!-- Soft Floating Pastel Glows -->
+            <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-pink-200/60 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -top-20 w-64 h-64 bg-sky-200/60 rounded-full blur-3xl pointer-events-none"></div>
 
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left relative z-10 max-w-2xl">
-                <!-- Video Animated Emblem -->
-                <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-[#050a16] p-1 shrink-0 shadow-[0_0_20px_rgba(6,182,212,0.4)] ring-2 ring-cyan-400/50 overflow-hidden">
-                    <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-2xl pointer-events-none">
-                        <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
-                        <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
-                        <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-2xl">
-                    </video>
-                </div>
+                <!-- Pastel Animated Emblem -->
+                <x-circle-logo size="xl" variant="emblem" />
+
                 <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-[10px] font-mono-code font-black mb-2">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/90 border border-pink-200 text-pink-700 text-[10px] font-mono-code font-black mb-2 shadow-2xs">
                         <span class="animate-pulse">✨</span>
                         <span>JEJARING SOSIAL & PORTOFOLIO RESMI</span>
                     </div>
-                    <h3 class="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight mb-1.5">
-                        Pembda<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300">CIRCLE</span>
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight mb-1.5">
+                        Pembda<span class="circle-gradient-text ml-1.5">CIRCLE</span>
                     </h3>
-                    <div class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-black tracking-widest text-slate-300 uppercase mb-2">
-                        <span class="text-cyan-400">CONNECT</span>
-                        <span class="text-slate-600">•</span>
-                        <span class="text-amber-400">CREATE</span>
-                        <span class="text-slate-600">•</span>
-                        <span class="text-emerald-400">GROW</span>
+                    <div class="flex items-center justify-center sm:justify-start gap-2 text-xs sm:text-sm font-black tracking-widest uppercase mb-2">
+                        <span class="text-sky-700">CONNECT</span>
+                        <span class="text-pink-300">•</span>
+                        <span class="text-rose-600">CREATE</span>
+                        <span class="text-pink-300">•</span>
+                        <span class="text-emerald-700">GROW</span>
                     </div>
-                    <p class="text-xs sm:text-sm font-medium text-slate-300 leading-relaxed">
+                    <p class="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">
                         Eksplorasi portofolio siswa SMP, SMA, dan SMK Pembda, lencana keahlian resmi industri dari guru pembina, kilas 24 jam, serta video reels inovatif.
                     </p>
                 </div>
@@ -285,11 +278,11 @@
 
             <div class="flex flex-col sm:flex-row items-center gap-3 shrink-0 relative z-10 w-full lg:w-auto">
                 <a href="{{ route('circle.feed') }}" 
-                   class="w-full sm:w-auto px-7 py-3.5 rounded-2xl text-xs sm:text-sm font-black border-2 border-black transition-all transform hover:scale-105 active:scale-95 shadow-[4px_4px_0px_#000] flex items-center justify-center gap-2 text-slate-950 cursor-pointer"
-                   style="background: linear-gradient(135deg, #00f0ff 0%, #38bdf8 50%, #fde047 100%) !important;">
-                    <i class="fas fa-bullseye text-sm text-slate-950"></i>
-                    <span style="color: #000000 !important; font-weight: 900 !important;">Eksplor PembdaCIRCLE</span>
-                    <i class="fas fa-arrow-right text-xs text-slate-950"></i>
+                   class="w-full sm:w-auto px-7 py-3.5 rounded-2xl text-xs sm:text-sm font-black border-2 border-pink-300 transition-all transform hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center gap-2 text-pink-950 cursor-pointer"
+                   style="background: linear-gradient(135deg, #fff1f2 0%, #fdf2f8 50%, #fef9c3 100%) !important;">
+                    <i class="fas fa-bullseye text-sm text-pink-600"></i>
+                    <span style="color: #831843 !important; font-weight: 900 !important;">Eksplor PembdaCIRCLE</span>
+                    <i class="fas fa-arrow-right text-xs text-pink-600"></i>
                 </a>
             </div>
         </div>

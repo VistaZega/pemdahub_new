@@ -242,39 +242,33 @@
     </div>
     @endif
 
-    {{-- 🌸 PEMBDACIRCLE HERO BANNER (MOBILE EXPERIENCE) --}}
+    {{-- 🌸 PEMBDACIRCLE HERO BANNER (MOBILE EXPERIENCE - 100% PASTEL) --}}
     <a href="{{ route('circle.feed') }}" 
-       class="block rounded-3xl p-3.5 border-2 border-cyan-400/40 shadow-md relative overflow-hidden transition-all duration-300 active:scale-[0.98] group"
-       style="background: linear-gradient(135deg, #070d1e 0%, #0b1736 50%, #091124 100%);">
-        <!-- Glow Aura -->
-        <div class="absolute -right-4 -bottom-6 w-32 h-32 bg-cyan-500/20 rounded-full blur-xl pointer-events-none"></div>
-        <div class="flex items-center justify-between gap-3 relative z-10 text-white">
+       class="block rounded-3xl p-3.5 border-2 border-pink-200/90 shadow-2xs relative overflow-hidden transition-all duration-300 active:scale-[0.98] group"
+       style="background: linear-gradient(135deg, #fdf2f8 0%, #faedcd 35%, #e0f2fe 70%, #dcfce7 100%);">
+        <!-- Soft Glow Aura Pastel -->
+        <div class="absolute -right-4 -bottom-6 w-32 h-32 bg-pink-200/60 rounded-full blur-xl pointer-events-none"></div>
+        <div class="flex items-center justify-between gap-3 relative z-10 text-slate-800">
             <div class="flex items-center gap-3 min-w-0">
-                <div class="relative w-12 h-12 rounded-2xl bg-[#050a16] border-2 border-cyan-400/50 flex items-center justify-center shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0 overflow-hidden group-hover:scale-105 transition-transform p-0.5">
-                    <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-[13px] pointer-events-none">
-                        <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
-                        <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
-                        <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-[13px]">
-                    </video>
-                </div>
+                <x-circle-logo size="sm" variant="emblem" />
                 <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
-                        <span class="px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/40 font-black text-[9px] uppercase tracking-wider shadow-xs">
+                        <span class="px-2 py-0.5 rounded-full bg-white/90 text-pink-700 border border-pink-200 font-black text-[9px] uppercase tracking-wider shadow-2xs">
                             EDU-SOCIAL ✨
                         </span>
-                        <span class="text-[10px] text-cyan-200 font-extrabold flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Komunitas
+                        <span class="text-[10px] text-pink-700 font-extrabold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Komunitas
                         </span>
                     </div>
-                    <h3 class="text-sm font-black text-white truncate mt-0.5 tracking-tight flex items-center gap-1">
-                        <span>Pembda</span><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-amber-300">CIRCLE</span>
+                    <h3 class="text-sm font-black text-slate-900 truncate mt-0.5 tracking-tight flex items-center gap-1">
+                        <span>Pembda</span><span class="circle-gradient-text ml-0.5">CIRCLE</span>
                     </h3>
-                    <p class="text-[10px] font-black tracking-wider text-slate-300 truncate">
-                        <span class="text-cyan-400">CONNECT</span> • <span class="text-amber-400">CREATE</span> • <span class="text-emerald-400">GROW</span>
+                    <p class="text-[10px] font-black tracking-wider text-slate-600 truncate">
+                        <span class="text-sky-700">CONNECT</span> • <span class="text-rose-600">CREATE</span> • <span class="text-emerald-700">GROW</span>
                     </p>
                 </div>
             </div>
-            <div class="shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-cyan-400 text-slate-950 font-black shadow-md group-hover:translate-x-1 transition-transform">
+            <div class="shrink-0 flex items-center justify-center w-8 h-8 rounded-2xl bg-white text-pink-600 font-black shadow-xs border border-pink-200 group-hover:translate-x-1 transition-transform">
                 <i class="fa-solid fa-arrow-right text-xs"></i>
             </div>
         </div>

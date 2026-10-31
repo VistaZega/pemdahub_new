@@ -181,6 +181,15 @@
             100% { background-position: 0% 50%; }
         }
 
+        .circle-pulse-soft {
+            animation: circlePulseSoft 3.5s ease-in-out infinite;
+            transform-origin: center;
+        }
+        @keyframes circlePulseSoft {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
         .circle-shimmer {
             animation: shimmerSlide 3.5s ease-in-out infinite;
         }
@@ -200,45 +209,9 @@
 <header class="nav-pastel-glass sticky top-0 z-50 transition-all">
     <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
-        {{-- Brand Logo Cantik, Hidup & Memikat (Animated Orbital Emblem) --}}
-        <a href="{{ route('circle.feed') }}" class="flex items-center gap-2.5 sm:gap-3 group shrink-0 select-none" title="Beranda PembdaCIRCLE — CONNECT • CREATE • GROW">
-            {{-- Animated Orbital Emblem --}}
-            <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#091124] p-0.5 flex items-center justify-center shrink-0 shadow-md ring-2 ring-cyan-400/40 group-hover:ring-cyan-300 group-hover:scale-105 transition-all duration-300 overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/30 via-blue-600/25 to-amber-500/25 blur-xs pointer-events-none"></div>
-                <video autoplay loop muted playsinline class="w-full h-full object-cover rounded-xl pointer-events-none relative z-10">
-                    <source src="{{ asset('images/circle/pembda-circle-icon-animated.webm') }}" type="video/webm">
-                    <source src="{{ asset('images/circle/pembda-circle-icon-animated.mp4') }}" type="video/mp4">
-                    <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-full h-full object-cover rounded-xl">
-                </video>
-            </div>
-
-            {{-- Typography with Cyan Shimmer Badge & Motto --}}
-            <div class="flex flex-col">
-                <div class="flex items-center gap-1.5 leading-none">
-                    <span class="font-display font-black text-lg sm:text-xl text-slate-950 tracking-tight">Pembda</span>
-                    <div class="relative inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-lg bg-[#091124] border border-cyan-400/40 shadow-xs overflow-hidden group-hover:border-cyan-300 transition-colors">
-                        <!-- Shimmer Stripe -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent -translate-x-full circle-shimmer pointer-events-none"></div>
-                        <!-- Radar Live Cyan Dot -->
-                        <span class="relative flex h-1.5 w-1.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-80"></span>
-                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></span>
-                        </span>
-                        <!-- Flowing Cyan Gradient Text -->
-                        <span class="font-display font-black text-[10px] sm:text-[11px] tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-400 to-amber-300">
-                            CIRCLE
-                        </span>
-                    </div>
-                </div>
-                <!-- Motto Subtitle -->
-                <div class="hidden sm:flex items-center gap-1 text-[8.5px] font-black tracking-widest text-slate-500 uppercase mt-0.5">
-                    <span class="text-cyan-600 hover:text-cyan-500 transition-colors">CONNECT</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="text-amber-600 hover:text-amber-500 transition-colors">CREATE</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="text-emerald-600 hover:text-emerald-500 transition-colors">GROW</span>
-                </div>
-            </div>
+        {{-- Brand Logo Cantik, Hidup & Memikat (Pastel Animated Orbital Emblem & Motto) --}}
+        <a href="{{ route('circle.feed') }}" class="group shrink-0 select-none" title="Beranda PembdaCIRCLE — CONNECT • CREATE • GROW">
+            <x-circle-logo size="md" variant="horizontal" :withMotto="true" />
         </a>
 
         {{-- Bilah Pencarian Gelora (Search Bar Pastel Bersih) --}}

@@ -63,10 +63,15 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-palette text-[10px]"></i></div>
             <span>Tema &amp; Konten Beranda</span>
         </a>
-        <a href="{{ route('circle.feed') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.*') ? $ac : $nc }}">
-            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-bullseye text-[10px]"></i></div>
-            <span>PembdaCIRCLE</span>
-            <span class="text-[9px] font-black bg-pink-100 text-pink-800 px-1.5 py-0.5 rounded-full ml-auto">Sosial</span>
+        <a href="{{ route('circle.feed') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.*') ? 'bg-pink-100/80 text-pink-950 font-black border border-pink-300' : $nc }}" title="PembdaCIRCLE — CONNECT • CREATE • GROW">
+            <div class="flex items-center gap-2.5">
+                <x-circle-logo size="xs" variant="emblem" />
+                <div class="flex flex-col leading-tight min-w-0">
+                    <span class="font-black text-slate-900 truncate">Pembda<span class="text-pink-600">CIRCLE</span></span>
+                    <span class="text-[8px] font-black text-pink-600 tracking-wider">CONNECT • CREATE • GROW</span>
+                </div>
+            </div>
+            <span class="text-[9px] font-black bg-pink-100 text-pink-900 px-1.5 py-0.5 rounded-full ml-auto shrink-0 border border-pink-200">Sosial</span>
         </a>
         <a href="{{ route('steam.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('steam.*') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-trophy text-[10px]"></i></div>
@@ -206,15 +211,14 @@
 
 <!-- ── PembdaCIRCLE (Edu-Social Network & Portofolio Siswa) ── -->
 <a href="{{ route('circle.feed') }}"
-   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl {{ request()->routeIs('circle.*') ? $ac : 'text-pink-900 bg-pink-50/70 hover:bg-pink-100 border border-pink-200/80' }}">
-    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow">
-        <i class="fas fa-bullseye text-xs"></i>
-    </div>
+   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl {{ request()->routeIs('circle.*') ? 'bg-pink-100/80 text-pink-950 font-black border border-pink-300' : 'text-slate-900 bg-pink-50/50 hover:bg-pink-100/60 border border-pink-200/80' }}"
+   title="PembdaCIRCLE — CONNECT • CREATE • GROW">
+    <x-circle-logo size="sm" variant="emblem" />
     <div class="flex-1 min-w-0">
-        <div class="text-[10px] font-black uppercase tracking-wider text-pink-700">Panggung Siswa</div>
-        <div class="text-sm font-extrabold truncate text-slate-900">Gelora CIRCLE</div>
+        <div class="text-[9px] font-black uppercase tracking-wider text-pink-700">CONNECT • CREATE • GROW</div>
+        <div class="text-sm font-extrabold truncate text-slate-900">Pembda<span class="text-pink-600">CIRCLE</span></div>
     </div>
-    <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full uppercase shadow-xs">Publik</span>
+    <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full uppercase shadow-2xs border border-pink-300">Publik</span>
 </a>
 @endif
 
