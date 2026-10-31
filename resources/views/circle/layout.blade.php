@@ -572,19 +572,46 @@ window.toggleCircleReaction = async function(btn, postId, reactionType) {
     }
 };
 
-window.shareCirclePost = function(title, postUrl) {
-    const text = 'Lihat karya/momen seru ini di PembdaCIRCLE:\n"' + title + '"\n\n' + postUrl;
-    if (navigator.share) {
-        navigator.share({
-            title: title || 'Karya PembdaCIRCLE',
-            text: text,
-            url: postUrl
-        }).catch(() => {});
+window.shareCirclePost = function(payloadOrTitle, fallbackUrl = null) {
+    let payload = {};
+    if (typeof payloadOrTitle === 'object' && payloadOrTitle !== null) {
+        payload = payloadOrTitle;
     } else {
-        const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
-        window.open(waUrl, '_blank');
+        const cleanUrl = (fallbackUrl || window.location.href).split('#')[0];
+        const titleStr = payloadOrTitle || 'Kabar & Karya Warga Pembda';
+        const fullMsg = `*✨ KABAR & MOMEN SERU — PEMBDA CIRCLE*\n📌 *Topik:* ${titleStr}\n📍 *Tempat:* Perguruan Pembda Nias\n\n🔗 *Lihat Selengkapnya di PembdaCIRCLE:*\n${cleanUrl}`;
+        payload = {
+            badge: '✨ KABAR & MOMEN SERU — PEMBDA CIRCLE',
+            headline: titleStr,
+            time: 'Baru saja',
+            location: 'Perguruan Pembda Nias',
+            author: 'Warga Pembda',
+            school: 'Perguruan Pembda',
+            news: titleStr,
+            image_url: "{{ asset('images/circle/pembda-circle-logo.png') }}",
+            logo_url: "{{ asset('images/circle/pembda-circle-logo.png') }}",
+            has_post_image: false,
+            url: cleanUrl,
+            full_message: fullMsg,
+            message_without_url: fullMsg.replace('\n' + cleanUrl, '')
+        };
     }
+    window.dispatchEvent(new CustomEvent('open-circle-share', { detail: payload }));
 };
+
+// Auto-scroll ke kartu postingan jika URL mengandung ?post=ID
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedPostId = params.get('post');
+    if (sharedPostId) {
+        const targetEl = document.getElementById('post-' + sharedPostId);
+        if (targetEl) {
+            setTimeout(() => {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 250);
+        }
+    }
+});
 
 @auth
 function circleChatModal() {
@@ -1005,7 +1032,221 @@ window.openCircleChatWith = function(userId, name = '', avatar = '', username = 
     </div>
 </div>
 @endauth
-</script>
+
+{{-- ═══════════════════════════════════════════════════════════════════════════
+     MODAL KARTU SIARAN & SHARE BERITA PEMBDACIRCLE (DENGAN LOGO, WAKTU, TEMPAT & BERITA)
+═══════════════════════════════════════════════════════════════════════════ --}}
+<div x-data="{
+        openShare: false,
+        item: {
+            badge: '',
+            headline: '',
+            time: '',
+            location: '',
+            author: '',
+            school: '',
+            news: '',
+            gps_url: null,
+            image_url: '{{ asset('images/circle/pembda-circle-logo.png') }}',
+            logo_url: '{{ asset('images/circle/pembda-circle-logo.png') }}',
+            has_post_image: false,
+            url: '',
+            full_message: '',
+            message_without_url: ''
+        },
+        customMessage: '',
+        copied: false,
+        isSharingNative: false,
+        openModal(data) {
+            this.item = Object.assign({
+                badge: '✨ KABAR & MOMEN SERU — PEMBDA CIRCLE',
+                headline: 'Momen Seru PembdaCIRCLE',
+                time: '',
+                location: 'Perguruan Pembda Nias',
+                author: 'Warga Pembda',
+                school: 'Perguruan Pembda',
+                news: '',
+                gps_url: null,
+                image_url: '{{ asset('images/circle/pembda-circle-logo.png') }}',
+                logo_url: '{{ asset('images/circle/pembda-circle-logo.png') }}',
+                has_post_image: false,
+                url: window.location.href.split('#')[0],
+                full_message: '',
+                message_without_url: ''
+            }, data || {});
+            this.customMessage = this.item.full_message;
+            this.copied = false;
+            this.openShare = true;
+        },
+        shareToWhatsApp() {
+            const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(this.customMessage);
+            window.open(waUrl, '_blank');
+        },
+        async copyShareText() {
+            try {
+                await navigator.clipboard.writeText(this.customMessage);
+                this.copied = true;
+                setTimeout(() => { this.copied = false; }, 2500);
+            } catch (_) {
+                const ta = document.createElement('textarea');
+                ta.value = this.customMessage;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                this.copied = true;
+                setTimeout(() => { this.copied = false; }, 2500);
+            }
+        },
+        async shareNativeWithImage() {
+            if (!navigator.share) {
+                this.shareToWhatsApp();
+                return;
+            }
+            this.isSharingNative = true;
+            try {
+                // Coba sertakan gambar dokumentasi atau logo PembdaCIRCLE sebagai file agar tampil langsung di WA/IG/Telegram
+                const imgUrl = this.item.image_url || this.item.logo_url;
+                let sharedWithFile = false;
+                if (imgUrl && navigator.canShare) {
+                    try {
+                        const resp = await fetch(imgUrl, { mode: 'cors' });
+                        if (resp.ok) {
+                            const blob = await resp.blob();
+                            const ext = blob.type.includes('png') ? 'png' : 'jpg';
+                            const file = new File([blob], 'pembda-circle-' + (this.item.id || 'share') + '.' + ext, { type: blob.type || 'image/jpeg' });
+                            if (navigator.canShare({ files: [file] })) {
+                                await navigator.share({
+                                    title: this.item.headline || 'PembdaCIRCLE',
+                                    text: this.customMessage,
+                                    files: [file]
+                                });
+                                sharedWithFile = true;
+                            }
+                        }
+                    } catch (_) {}
+                }
+
+                if (!sharedWithFile) {
+                    // Kirim HANYA parameter text (karena di dalam customMessage sudah ada 1 link bersih di bagian bawah)
+                    // Ini mencegah OS mencetak URL 2 kali!
+                    await navigator.share({
+                        title: this.item.headline || 'PembdaCIRCLE',
+                        text: this.customMessage
+                    });
+                }
+            } catch (_) {
+            } finally {
+                this.isSharingNative = false;
+            }
+        }
+     }"
+     @open-circle-share.window="openModal($event.detail)"
+     x-show="openShare"
+     x-cloak
+     class="fixed inset-0 z-[110] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+     @keydown.escape.window="openShare = false"
+     x-transition>
+
+    <div class="bg-white rounded-3xl border-2 border-pink-300 max-w-lg w-full shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+         @click.outside="openShare = false">
+
+        {{-- Header Modal dengan Logo PembdaCIRCLE --}}
+        <div class="px-5 py-3.5 bg-gradient-to-r from-pink-100 via-amber-50 to-sky-100 border-b-2 border-pink-200 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" alt="PembdaCIRCLE" class="w-9 h-9 rounded-2xl object-contain bg-white p-1 border border-pink-200 shadow-2xs shrink-0">
+                <div class="min-w-0">
+                    <h3 class="font-display font-black text-sm sm:text-base text-slate-950 truncate">
+                        Siarkan Kabar PembdaCIRCLE 📡
+                    </h3>
+                    <p class="text-[10px] font-bold text-slate-600 truncate">
+                        Kartu Berita Otomatis (Nama Kegiatan, Waktu, Tempat & Gambar)
+                    </p>
+                </div>
+            </div>
+            <button type="button" @click="openShare = false" class="w-8 h-8 rounded-full bg-white hover:bg-rose-100 text-slate-700 hover:text-rose-600 flex items-center justify-center font-black cursor-pointer border border-slate-200 shrink-0">
+                ✕
+            </button>
+        </div>
+
+        {{-- Body Preview Kartu & Editor Naskah --}}
+        <div class="p-4 sm:p-5 overflow-y-auto space-y-4 custom-scrollbar">
+
+            {{-- Preview Kartu Visual PembdaCIRCLE --}}
+            <div class="rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-950 text-white shadow-md relative">
+                <div class="relative h-44 sm:h-48 w-full bg-gradient-to-br from-slate-900 via-purple-950 to-pink-950 flex items-center justify-center overflow-hidden">
+                    <img :src="item.image_url" alt="Preview" class="w-full h-full" :class="item.has_post_image ? 'object-cover' : 'object-contain p-6'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-black/30"></div>
+
+                    {{-- Watermark Brand PembdaCIRCLE di Pojok Kiri Atas --}}
+                    <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 text-slate-950 shadow-md">
+                        <img src="{{ asset('images/circle/pembda-circle-icon.png') }}" class="w-4 h-4 object-contain">
+                        <span class="text-[10px] font-black tracking-tight">Pembda<span class="text-pink-600">CIRCLE</span></span>
+                    </div>
+
+                    {{-- Badge Kategori di Pojok Kanan Atas --}}
+                    <span class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black uppercase tracking-wider shadow-md"
+                          x-text="item.badge.replace(/\*/g, '')"></span>
+
+                    {{-- Headline & Metadata di Atas Gambar --}}
+                    <div class="absolute bottom-2.5 inset-x-3 text-left">
+                        <h4 class="font-display font-black text-sm sm:text-base text-white leading-snug line-clamp-2 drop-shadow" x-text="item.headline"></h4>
+                        <div class="flex items-center gap-2 flex-wrap text-[10px] font-bold text-amber-200 mt-1">
+                            <span x-show="item.time"><i class="far fa-clock mr-1"></i><span x-text="item.time"></span></span>
+                            <span>•</span>
+                            <span x-show="item.location"><i class="fas fa-location-dot mr-1 text-rose-400"></i><span x-text="item.location"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Kutipan Berita & Penulis --}}
+                <div class="p-3 bg-white text-slate-900 border-t border-slate-200 text-xs">
+                    <p class="font-semibold text-slate-800 line-clamp-2 italic mb-1.5" x-show="item.news" x-text="'&ldquo;' + item.news + '&rdquo;'"></p>
+                    <div class="flex items-center justify-between text-[11px] font-black text-slate-600">
+                        <span>👤 <span x-text="item.author"></span> (<span x-text="item.school"></span>)</span>
+                        <span class="text-pink-600">perguruanpembda.com</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Kotak Naskah Siaran (Bisa Diedit Sebelum Dikirim & Tanpa Link Berulang) --}}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                        📝 Naskah Siaran Berita (Siap Kirim ke WhatsApp / Medsos):
+                    </label>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        ✓ Bebas Link Ganda
+                    </span>
+                </div>
+                <textarea x-model="customMessage" rows="7"
+                          class="w-full p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-pink-400 resize-y leading-relaxed"></textarea>
+            </div>
+
+            {{-- Tombol Aksi Share --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <button type="button" @click="shareToWhatsApp()"
+                        class="w-full py-2.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs flex items-center justify-center gap-2 shadow-md transition hover:scale-[1.01] cursor-pointer">
+                    <i class="fab fa-whatsapp text-base"></i>
+                    <span>Kirim ke WhatsApp</span>
+                </button>
+
+                <button type="button" @click="shareNativeWithImage()" :disabled="isSharingNative"
+                        class="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white font-black text-xs flex items-center justify-center gap-2 shadow-md transition hover:scale-[1.01] cursor-pointer">
+                    <i x-show="!isSharingNative" class="fas fa-share-nodes text-sm"></i>
+                    <i x-show="isSharingNative" class="fas fa-spinner fa-spin text-sm"></i>
+                    <span x-text="isSharingNative ? 'Menyiapkan Gambar...' : 'Bagikan + Gambar/Logo'"></span>
+                </button>
+            </div>
+
+            <button type="button" @click="copyShareText()"
+                    class="w-full py-2 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-900 font-black text-xs flex items-center justify-center gap-2 transition cursor-pointer">
+                <i class="fas" :class="copied ? 'fa-check text-emerald-600' : 'fa-copy text-slate-600'"></i>
+                <span x-text="copied ? '✅ Naskah Berita & Link Berhasil Disalin!' : 'Salin Naskah Berita & Tautan'"></span>
+            </button>
+        </div>
+    </div>
+</div>
 
 @yield('scripts')
 </body>

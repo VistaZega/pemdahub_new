@@ -1,13 +1,37 @@
 @extends('circle.layout')
 
-@section('title', ($profile->nickname ?? $user->name) . ' (@' . $profile->username . ') — PembdaCIRCLE (CONNECT • CREATE • GROW)')
+@php
+    $__sharedProfilePost = null;
+    if (request()->filled('post') && is_numeric(request('post'))) {
+        $__reqPostId = (int) request('post');
+        $__sharedProfilePost = $wallPosts->firstWhere('id', $__reqPostId)
+            ?? $portfolioPosts->firstWhere('id', $__reqPostId)
+            ?? $galleryPosts->firstWhere('id', $__reqPostId);
+    }
+    $__pOgPayload = $__sharedProfilePost ? $__sharedProfilePost->share_payload : null;
+    $__pOgTitle = $__pOgPayload
+        ? ($__pOgPayload['badge'] . ' • ' . $__pOgPayload['headline'] . ' — ' . $__pOgPayload['author'])
+        : (($profile->nickname ?? $user->name) . ' (@' . $profile->username . ') — PembdaCIRCLE (CONNECT • CREATE • GROW)');
+    $__pOgDesc = $__pOgPayload
+        ? ('🗓️ ' . $__pOgPayload['time'] . ' • 📍 ' . $__pOgPayload['location'] . ($__pOgPayload['news'] ? ' — "' . $__pOgPayload['news'] . '"' : ''))
+        : ($profile->bio ?? 'Lihat portofolio, kreasi, dan jejak talenta resmi di PembdaCIRCLE: CONNECT • CREATE • GROW.');
+    $__pOgImage = $__pOgPayload ? $__pOgPayload['image_url'] : ($user->avatar_url ?? asset('images/circle/pembda-circle-logo.png'));
+@endphp
+
+@section('title', $__pOgTitle)
 
 @section('og_meta')
-    <meta property="og:title" content="{{ $user->name }} di PembdaCIRCLE — CONNECT • CREATE • GROW">
-    <meta property="og:description" content="{{ $profile->bio ?? 'Lihat portofolio, kreasi, dan jejak talenta resmi di PembdaCIRCLE: CONNECT • CREATE • GROW.' }}">
-    <meta property="og:image" content="{{ $user->avatar_url ?? asset('images/default-avatar.svg') }}">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="PembdaCIRCLE — Perguruan Pembda Nias">
+    <meta property="og:title" content="{{ $__pOgTitle }}">
+    <meta property="og:description" content="{{ $__pOgDesc }}">
+    <meta property="og:image" content="{{ $__pOgImage }}">
+    <meta property="og:image:secure_url" content="{{ $__pOgImage }}">
+    <meta property="og:url" content="{{ url()->full() }}">
+    <meta property="og:type" content="{{ $__pOgPayload ? 'article' : 'profile' }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $__pOgTitle }}">
+    <meta name="twitter:description" content="{{ $__pOgDesc }}">
+    <meta name="twitter:image" content="{{ $__pOgImage }}">
 @endsection
 
 @section('content')
@@ -1059,7 +1083,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <button type="button" 
-                                    onclick="shareCirclePost('{{ addslashes($post->content ? \Illuminate\Support\Str::limit($post->content, 60) : 'Goresan Momen PembdaCIRCLE') }}', '{{ route('circle.profile', ['username' => $profile->username, 'post' => $post->id]) }}#post-{{ $post->id }}')"
+                                    onclick="shareCirclePost({{ Js::from($post->share_payload) }})"
                                     class="text-xs font-black text-slate-900 hover:text-amber-700 flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 transition shadow-2xs hover:scale-105"
                                     title="Siarkan postingan ini">
                                 <i class="fas fa-share-nodes text-amber-800 text-[11px]"></i>
@@ -1227,7 +1251,7 @@
                 <div id="post-{{ $port->id }}" class="bg-white rounded-3xl border-2 {{ request('post') == $port->id ? 'border-amber-400 ring-4 ring-amber-300 shadow-xl' : 'border-[#f1e8dc]' }} shadow-xs overflow-hidden flex flex-col hover:shadow-md hover:border-pink-300 transition-base relative group">
                     <div class="absolute top-3 right-3 z-10 flex items-center gap-1.5">
                         <button type="button" 
-                                onclick="shareCirclePost('{{ addslashes($port->title ?? 'Karya Portofolio Pembda') }}', '{{ route('circle.profile', ['username' => $profile->username, 'post' => $port->id]) }}#post-{{ $port->id }}')"
+                                onclick="shareCirclePost({{ Js::from($port->share_payload) }})"
                                 class="w-7 h-7 rounded-lg bg-black/60 hover:bg-amber-500 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs" 
                                 title="Siarkan Karya ini">
                             <i class="fas fa-share-nodes text-[10px]"></i>
@@ -1393,7 +1417,7 @@
                             {{-- Action Share, Pin, Edit & Delete (Pengelolaan Lengkap) --}}
                             <div class="absolute top-3 right-3 z-20 flex items-center gap-1">
                                 <button type="button" 
-                                        onclick="shareCirclePost('{{ addslashes($gPost->title ?? 'Media Galeri Pembda') }}', '{{ route('circle.profile', ['username' => $profile->username, 'post' => $gPost->id]) }}#gallery-post-{{ $gPost->id }}')"
+                                        onclick="shareCirclePost({{ Js::from($gPost->share_payload) }})"
                                         class="w-7 h-7 rounded-lg bg-black/60 hover:bg-amber-500 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs" 
                                         title="Siarkan Media ini">
                                     <i class="fas fa-share-nodes text-[10px]"></i>

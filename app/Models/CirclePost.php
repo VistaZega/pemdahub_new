@@ -169,4 +169,102 @@ class CirclePost extends Model
         }
         return null;
     }
+
+    /**
+     * Susun payload & kalimat siaran (share) yang kaya, relevan (Nama Lomba/Kegiatan, Waktu, Tempat, GPS, Berita & Gambar/Logo),
+     * dan bebas dari duplikasi URL.
+     */
+    public function getSharePayloadAttribute(): array
+    {
+        $authorName = $this->user?->name ?? 'Warga Pembda';
+        $schoolName = $this->school?->name ?? ($this->user?->school?->name ?? 'Perguruan Pembda Nias');
+
+        // Tentukan Kategori & Headline Siaran
+        if ($this->is_live || $this->post_type === 'live') {
+            $badge = '🔴 LIPUTAN LIVE PEMBDA CIRCLE';
+            $headline = $this->event_name ?: ($this->title ?: 'Siaran Langsung Kegiatan ' . $schoolName);
+        } elseif ($this->post_type === 'report' || !empty($this->event_name) || !empty($this->latitude)) {
+            $badge = '🏆 LAPORAN KEGIATAN & LOMBA — PEMBDA CIRCLE';
+            $headline = $this->event_name ?: ($this->title ?: 'Laporan Kegiatan ' . $schoolName);
+        } elseif ($this->tab_category === 'portfolio') {
+            $badge = '🚀 KARYA & INOVASI SISWA — PEMBDA CIRCLE';
+            $headline = $this->title ?: ('Karya Inovasi oleh ' . $authorName);
+        } elseif ($this->is_gallery || $this->tab_category === 'gallery') {
+            $badge = '📸 GALERI KARYA DIGITAL — PEMBDA CIRCLE';
+            $headline = $this->title ?: ('Koleksi Galeri ' . $authorName);
+        } else {
+            $badge = '✨ KABAR & MOMEN SERU — PEMBDA CIRCLE';
+            $headline = $this->event_name ?: ($this->title ?: ('Kabar Terkini dari ' . $authorName));
+        }
+
+        // Format Waktu
+        $timeFormatted = $this->event_date
+            ? $this->event_date->translatedFormat('l, d F Y • H:i') . ' WIB'
+            : ($this->created_at ? $this->created_at->translatedFormat('l, d F Y • H:i') . ' WIB' : now()->translatedFormat('l, d F Y'));
+
+        // Format Tempat / Lokasi
+        $locationFormatted = $this->location_tag ?: $schoolName;
+
+        // Ringkasan Berita
+        $cleanContent = trim(preg_replace('/\s+/', ' ', strip_tags((string) $this->content)));
+        $newsSnippet = Str::limit($cleanContent, 240);
+
+        // Gambar Dokumentasi Utama atau Fallback Logo PembdaCIRCLE
+        $firstImage = $this->media?->firstWhere('media_type', 'image');
+        $logoUrl = asset('images/circle/pembda-circle-logo.png');
+        $imageUrl = $firstImage ? $firstImage->url : $logoUrl;
+
+        // URL Bersih (Tanpa #hash agar bot WhatsApp/Telegram selalu menampilkan preview gambar & tidak duplikat)
+        $shareUrl = route('circle.feed', ['post' => $this->id]);
+
+        // Susun Kalimat Siaran (Format WhatsApp & Social Media yang Rapi & Menarik)
+        $lines = [];
+        $lines[] = "*{$badge}*";
+        if ($this->event_name || $this->title) {
+            $lines[] = "📌 *Kegiatan/Topik:* {$headline}";
+        }
+        $lines[] = "🗓️ *Waktu:* {$timeFormatted}";
+        $lines[] = "📍 *Tempat:* {$locationFormatted}";
+        $lines[] = "👤 *Oleh:* {$authorName} ({$schoolName})";
+
+        if ($newsSnippet !== '') {
+            $lines[] = "";
+            $lines[] = "📰 *Berita / Kabar:*";
+            $lines[] = "\"{$newsSnippet}\"";
+        }
+
+        if ($this->latitude && $this->longitude) {
+            $lines[] = "";
+            $lines[] = "🗺️ *Titik GPS Lokasi:* https://www.google.com/maps?q={$this->latitude},{$this->longitude}";
+        }
+
+        $lines[] = "";
+        $lines[] = "🔗 *Lihat Foto & Liputan Lengkap di PembdaCIRCLE:*";
+        $lines[] = $shareUrl;
+
+        $fullMessage = implode("\n", $lines);
+
+        // Versi tanpa URL di ujung khusus untuk navigator.share({ text, url }) agar OS tidak mencetak URL 2 kali
+        $linesWithoutUrl = array_slice($lines, 0, -1);
+        $messageWithoutUrl = implode("\n", $linesWithoutUrl);
+
+        return [
+            'id' => $this->id,
+            'badge' => $badge,
+            'headline' => $headline,
+            'event_name' => $this->event_name,
+            'time' => $timeFormatted,
+            'location' => $locationFormatted,
+            'author' => $authorName,
+            'school' => $schoolName,
+            'news' => $newsSnippet,
+            'gps_url' => ($this->latitude && $this->longitude) ? "https://www.google.com/maps?q={$this->latitude},{$this->longitude}" : null,
+            'image_url' => $imageUrl,
+            'has_post_image' => (bool) $firstImage,
+            'logo_url' => $logoUrl,
+            'url' => $shareUrl,
+            'full_message' => $fullMessage,
+            'message_without_url' => $messageWithoutUrl,
+        ];
+    }
 }

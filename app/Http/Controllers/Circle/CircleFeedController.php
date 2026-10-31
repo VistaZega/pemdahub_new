@@ -86,6 +86,13 @@ class CircleFeedController extends Controller
             });
         }
 
+        $sharedPost = null;
+        if ($request->filled('post') && is_numeric($request->query('post'))) {
+            $sharedPostId = (int) $request->query('post');
+            $sharedPost = CirclePost::with(['user.circleProfile', 'user.school', 'school', 'media'])->find($sharedPostId);
+            $query->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$sharedPostId]);
+        }
+
         if (\Illuminate\Support\Facades\Schema::hasColumn('circle_posts', 'is_live')) {
             $query->orderByRaw("CASE WHEN is_live = 1 AND live_status = 'live' THEN 0 ELSE 1 END");
         }
@@ -187,6 +194,7 @@ class CircleFeedController extends Controller
 
         return view('circle.index', compact(
             'posts', 
+            'sharedPost',
             'activeStories', 
             'trendingProfiles', 
             'matchedProfiles', 

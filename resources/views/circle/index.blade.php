@@ -1,13 +1,32 @@
 @extends('circle.layout')
 
-@section('title', 'PembdaCIRCLE — CONNECT • CREATE • GROW | Panggung Edu-Social & Portofolio')
+@php
+    $__ogPayload = isset($sharedPost) && $sharedPost ? $sharedPost->share_payload : null;
+    $__ogTitle = $__ogPayload
+        ? ($__ogPayload['badge'] . ' • ' . $__ogPayload['headline'] . ' — ' . $__ogPayload['author'])
+        : 'PembdaCIRCLE — CONNECT • CREATE • GROW | Panggung Edu-Social & Portofolio';
+    $__ogDesc = $__ogPayload
+        ? ('🗓️ ' . $__ogPayload['time'] . ' • 📍 ' . $__ogPayload['location'] . ($__ogPayload['news'] ? ' — "' . $__ogPayload['news'] . '"' : ''))
+        : 'CONNECT (Jejaring Siswa & Industri) • CREATE (Portofolio Riset & Vokasi) • GROW (Lencana Keahlian & Prestasi). Edu-Social Network resmi Perguruan Pembda.';
+    $__ogImage = $__ogPayload ? $__ogPayload['image_url'] : asset('images/circle/pembda-circle-logo.png');
+    $__ogUrl = $__ogPayload ? $__ogPayload['url'] : route('circle.feed');
+@endphp
+
+@section('title', $__ogTitle)
 
 @section('og_meta')
-    <meta property="og:title" content="PembdaCIRCLE — CONNECT • CREATE • GROW">
-    <meta property="og:description" content="CONNECT (Jejaring Siswa & Industri) • CREATE (Portofolio Riset & Vokasi) • GROW (Lencana Keahlian & Prestasi). Edu-Social Network resmi Perguruan Pembda.">
-    <meta property="og:image" content="{{ asset('images/circle/pembda-circle-logo.png') }}">
-    <meta property="og:url" content="{{ route('circle.feed') }}">
-    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PembdaCIRCLE — Perguruan Pembda Nias">
+    <meta property="og:title" content="{{ $__ogTitle }}">
+    <meta property="og:description" content="{{ $__ogDesc }}">
+    <meta property="og:image" content="{{ $__ogImage }}">
+    <meta property="og:image:secure_url" content="{{ $__ogImage }}">
+    <meta property="og:image:alt" content="{{ $__ogTitle }}">
+    <meta property="og:url" content="{{ $__ogUrl }}">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $__ogTitle }}">
+    <meta name="twitter:description" content="{{ $__ogDesc }}">
+    <meta name="twitter:image" content="{{ $__ogImage }}">
 @endsection
 
 @section('content')
@@ -420,7 +439,7 @@
                                 </span>
                                 <div class="flex items-center gap-1.5">
                                     <button type="button" 
-                                            onclick="event.stopPropagation(); shareCirclePost('{{ addslashes($post->title ?? 'Lensa Gerak Pembda') }}', '{{ route('circle.feed', ['tab' => 'reels', 'post' => $post->id]) }}#post-{{ $post->id }}')"
+                                            onclick="event.stopPropagation(); shareCirclePost({{ Js::from($post->share_payload) }})"
                                             class="w-6 h-6 rounded-lg bg-black/60 hover:bg-amber-500 text-white flex items-center justify-center text-[10px] transition cursor-pointer" 
                                             title="Siarkan Lensa Gerak ini">
                                         <i class="fas fa-share-nodes"></i>
@@ -726,7 +745,7 @@
                                     <span>{{ $post->comments_count }} <span class="hidden sm:inline">Komentar</span></span>
                                 </button>
                                 <button type="button" 
-                                        onclick="shareCirclePost('{{ addslashes($post->title ?? ($post->content ? \Illuminate\Support\Str::limit($post->content, 60) : 'Momen Gelora Pembda')) }}', '{{ route('circle.feed', ['post' => $post->id]) }}#post-{{ $post->id }}')"
+                                        onclick="shareCirclePost({{ Js::from($post->share_payload) }})"
                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-slate-950 border border-amber-300 font-black transition-all text-xs cursor-pointer hover:scale-105 shadow-2xs"
                                         title="Siarkan karya/postingan ini ke WhatsApp atau media sosial">
                                     <i class="fas fa-share-nodes text-amber-800 text-[11px]"></i>
