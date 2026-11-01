@@ -22,22 +22,8 @@
         <span class="text-sm flex-1 font-semibold">Dashboard</span>
     </a>
 
-    <!-- PembdaCIRCLE (Panggung Sosial & Profil Publik) -->
-    @php
-        $__circleUser = Auth::user();
-        $__circleUsername = $__circleUser->circleProfile->username ?? $__circleUser->username;
-    @endphp
-    <a href="{{ route('circle.profile', ['username' => $__circleUsername]) }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.profile*') ? 'bg-pink-100 text-pink-950 font-black border border-pink-300' : 'text-pink-900 bg-pink-50 hover:bg-pink-100 border border-pink-200/80 font-bold' }}">
-        <div class="flex items-center gap-3">
-            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-xs">
-                <i class="fas fa-sparkles text-[10px]"></i>
-            </div>
-            <span class="font-black text-slate-900">Profil CIRCLE</span>
-        </div>
-        <span class="text-[9px] font-black bg-pink-200 text-pink-900 px-1.5 py-0.5 rounded-full">Publik</span>
-    </a>
-
-    <a href="{{ route('circle.feed') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.feed') ? 'bg-pink-100/80 text-pink-950 font-black border border-pink-300' : 'text-slate-800 hover:bg-pink-50/60' }}" title="PembdaCIRCLE — CONNECT • CREATE • GROW">
+    <!-- PembdaCIRCLE (Panggung Sosial & Komunitas) -->
+    <a href="{{ route('circle.feed') }}" class="menu-item flex items-center justify-between px-3 py-2 rounded-xl text-sm {{ request()->routeIs('circle.*') ? 'bg-pink-100/80 text-pink-950 font-black border border-pink-300' : 'text-slate-800 hover:bg-pink-50/60' }}" title="PembdaCIRCLE — CONNECT • CREATE • GROW">
         <div class="flex items-center gap-2.5">
             <x-circle-logo size="xs" variant="emblem" />
             <div class="flex flex-col leading-tight">
