@@ -580,12 +580,12 @@
                         <div class="flex items-center gap-2 min-w-0">
                             <span class="text-sm shrink-0">📢</span>
                             <p class="text-xs font-extrabold text-[#121316]">
-                                Poin kini beralih ke <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima!
+                                Anda mendapatkan Point di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima ...
                             </p>
                         </div>
                         <a href="{{ route('circle.feed') }}"
                            class="btn-tactile-red px-3 py-1 rounded-lg text-[11px] font-black flex items-center gap-1.5 shrink-0">
-                            <span>Lihat Tabel Poin di PembdaCIRCLE ➔</span>
+                            <span>lihat tabel point prestasi ! ➔</span>
                         </a>
                     </div>
                 @endif

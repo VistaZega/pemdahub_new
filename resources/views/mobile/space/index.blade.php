@@ -39,10 +39,10 @@
     @if($__mobPointNotice['show'])
         <div class="px-3 py-2 rounded-xl bg-gradient-to-r from-pink-100 via-amber-100 to-sky-100 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-between gap-2">
             <p class="text-[11px] font-extrabold text-[#121316] leading-snug">
-                ⚡ Anda mendapatkan Poin di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima!
+                ⚡ Anda mendapatkan Point di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima ...
             </p>
             <a href="{{ route('circle.feed') }}" class="py-1 px-2.5 rounded-lg bg-[#ff3823] text-white border border-[#121316] text-[10px] font-black shrink-0">
-                Lihat Tabel ➔
+                lihat tabel point prestasi ! ➔
             </a>
         </div>
     @endif

@@ -153,9 +153,9 @@
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="w-6 h-6 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black shrink-0">⚡</span>
                         <p class="text-xs font-extrabold text-slate-900">
-                            Anda mendapatkan Poin di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima!
+                            Anda mendapatkan Point di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima ...
                             <button type="button" @click="openRules = !openRules" class="ml-1 text-pink-600 hover:text-pink-700 underline font-black cursor-pointer">
-                                <span x-text="openRules ? 'Tutup Tabel Poin ▴' : 'Lihat Tabel Poin Apresiasi! ▾'">Lihat Tabel Poin Apresiasi! ▾</span>
+                                <span x-text="openRules ? 'Tutup Tabel ▴' : 'lihat tabel point prestasi ! ▾'">lihat tabel point prestasi ! ▾</span>
                             </button>
                         </p>
                     </div>
