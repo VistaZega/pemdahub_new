@@ -1369,8 +1369,9 @@ class CircleActionController extends Controller
             'icon' => $request->filled('icon') ? trim($request->icon) : $typeMeta['icon'],
             'description' => $request->description ?: ('Ruang Komunitas & Kolaborasi ' . trim($request->name) . ' di PembdaCIRCLE.'),
             'school_id' => $request->boolean('is_foundation') ? null : $user->school_id,
-            'leader_user_id' => $user->id,
-            'is_public' => true,
+            'created_by_user_id' => $user->id,
+            'is_official' => false,
+            'is_private' => false,
             'members_count' => 1,
         ];
 

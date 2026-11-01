@@ -204,7 +204,11 @@ class CircleFeedController extends Controller
             }
 
             // Hitung total grup per kategori
-            $rawTypeCounts = CircleCommunity::where('is_public', true)
+            $typeCountQuery = CircleCommunity::query();
+            if (Schema::hasColumn('circle_communities', 'is_private')) {
+                $typeCountQuery->where('is_private', false);
+            }
+            $rawTypeCounts = $typeCountQuery
                 ->selectRaw('type, COUNT(*) as total')
                 ->groupBy('type')
                 ->pluck('total', 'type');
@@ -215,8 +219,10 @@ class CircleFeedController extends Controller
             $communityCountsByType['all'] = (int) $rawTypeCounts->sum();
 
             // Ambil direktori grup sesuai filter
-            $commQuery = CircleCommunity::with(['school', 'leader', 'extracurricular.advisor', 'classroom.homeroomTeacher'])
-                ->where('is_public', true);
+            $commQuery = CircleCommunity::with(['school', 'leader', 'extracurricular.advisor', 'classroom.homeroomTeacher']);
+            if (Schema::hasColumn('circle_communities', 'is_private')) {
+                $commQuery->where('is_private', false);
+            }
 
             if ($groupTypeFilter && $groupTypeFilter !== 'all') {
                 $commQuery->where('type', $groupTypeFilter);

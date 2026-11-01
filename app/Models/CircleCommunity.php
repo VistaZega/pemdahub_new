@@ -140,6 +140,19 @@ class CircleCommunity extends Model
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
+    public function leader()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function scopePublicVisible($query)
+    {
+        if (\Illuminate\Support\Facades\Schema::hasColumn('circle_communities', 'is_private')) {
+            return $query->where('is_private', false);
+        }
+        return $query;
+    }
+
     public function members()
     {
         return $this->hasMany(CircleCommunityMember::class, 'community_id');
