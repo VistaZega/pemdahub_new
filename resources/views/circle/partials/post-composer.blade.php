@@ -50,6 +50,7 @@
         @csrf
         <input type="hidden" name="tab_category" :value="tabCat">
         <input type="hidden" name="post_type" :value="postType">
+        <input type="hidden" name="interactive_type" :value="interactiveType">
         <input type="hidden" name="media_layout" :value="mediaLayout">
         <input type="hidden" name="is_live" :value="postType === 'live' ? 1 : 0">
         <input type="hidden" name="mood_emoji" :value="selectedMood">
@@ -137,6 +138,200 @@
                 <i class="fas fa-bolt text-pink-600"></i>
                 <span>Kilas 24J</span>
             </button>
+        </div>
+
+        {{-- ── 1.5 WAHANA INISIATIF KREATIF SISWA (TEKA-TEKI, BATTLE 1v1, DUET COLLABS, BALAS PANTUN) ── --}}
+        <div class="mb-3.5 p-3 rounded-2xl bg-gradient-to-r from-violet-100/90 via-fuchsia-50 to-amber-50 border-2 border-violet-300 shadow-2xs">
+            <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 text-white flex items-center justify-center text-xs font-black shrink-0">✨</span>
+                    <span class="text-xs font-black text-slate-900 tracking-tight">Wahana Inisiatif Kreatif Siswa:</span>
+                </div>
+                <span class="text-[10px] font-black text-violet-900 bg-white/80 px-2.5 py-0.5 rounded-full border border-violet-200">
+                    ⚡ Bikin interaksi seru & raih poin apresiasi!
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {{-- Teka-Teki --}}
+                <button type="button"
+                        @click="setInteractive('riddle')"
+                        :class="interactiveType === 'riddle' ? 'bg-indigo-600 text-white border-indigo-700 ring-2 ring-indigo-300 shadow-xs' : 'bg-white hover:bg-indigo-50 text-slate-900 border-indigo-200'"
+                        class="p-2 rounded-xl text-xs font-black border-2 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>🧩</span>
+                    <span>Teka-Teki</span>
+                </button>
+
+                {{-- Battle 1v1 --}}
+                <button type="button"
+                        @click="setInteractive('battle')"
+                        :class="interactiveType === 'battle' ? 'bg-rose-600 text-white border-rose-700 ring-2 ring-rose-300 shadow-xs' : 'bg-white hover:bg-rose-50 text-slate-900 border-rose-200'"
+                        class="p-2 rounded-xl text-xs font-black border-2 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>⚔️</span>
+                    <span>Battle 1v1</span>
+                </button>
+
+                {{-- Duet Collabs --}}
+                <button type="button"
+                        @click="setInteractive('collab')"
+                        :class="interactiveType === 'collab' ? 'bg-purple-600 text-white border-purple-700 ring-2 ring-purple-300 shadow-xs' : 'bg-white hover:bg-purple-50 text-slate-900 border-purple-200'"
+                        class="p-2 rounded-xl text-xs font-black border-2 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>🤝</span>
+                    <span>Duet Collabs</span>
+                </button>
+
+                {{-- Balas Pantun --}}
+                <button type="button"
+                        @click="setInteractive('pantun')"
+                        :class="interactiveType === 'pantun' ? 'bg-emerald-600 text-white border-emerald-700 ring-2 ring-emerald-300 shadow-xs' : 'bg-white hover:bg-emerald-50 text-slate-900 border-emerald-200'"
+                        class="p-2 rounded-xl text-xs font-black border-2 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>🪶</span>
+                    <span>Balas Pantun</span>
+                </button>
+            </div>
+        </div>
+
+        {{-- PANEL PENGATURAN INTERAKTIF: 🧩 TEKA-TEKI --}}
+        <div x-show="interactiveType === 'riddle'" x-collapse x-transition
+             class="mb-3.5 p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-300 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">🧩</span>
+                    <span class="text-xs font-black text-indigo-950 uppercase tracking-wider">Pengaturan Teka-Teki & Misteri</span>
+                </div>
+                <span class="text-[10px] font-black text-indigo-700 bg-white px-2 py-0.5 rounded-full border border-indigo-200">
+                    Hadiah +15 Poin untuk Penebak Pertama
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-900 mb-1">
+                        🔒 Kunci Jawaban Benar <span class="text-rose-600">*</span>:
+                    </label>
+                    <input type="text" name="riddle_answer"
+                           placeholder="Contoh: mikrometer sekrup / hanoi / c++"
+                           class="w-full px-3 py-2 rounded-xl bg-white border border-indigo-300 text-xs font-black text-slate-950 focus:outline-none focus:border-indigo-600">
+                    <span class="text-[10px] text-slate-500 font-bold mt-0.5 block">
+                        Kunci jawaban disimpan terenkripsi dan dirahasiakan sistem sampai terpecahkan!
+                    </span>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-900 mb-1">
+                        💡 Petunjuk / Clue Rahasia <span class="text-slate-400 font-normal">(Opsional)</span>:
+                    </label>
+                    <input type="text" name="riddle_hint"
+                           placeholder="Contoh: Alat ini ada di lab bengkel mesin..."
+                           class="w-full px-3 py-2 rounded-xl bg-white border border-indigo-300 text-xs font-bold text-slate-950 focus:outline-none focus:border-indigo-600">
+                    <span class="text-[10px] text-slate-500 font-bold mt-0.5 block">
+                        Clue akan terlihat oleh teman-teman untuk membantu mereka berpikir.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {{-- PANEL PENGATURAN INTERAKTIF: ⚔️ BATTLE 1v1 --}}
+        <div x-show="interactiveType === 'battle'" x-collapse x-transition
+             class="mb-3.5 p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">⚔️</span>
+                    <span class="text-xs font-black text-rose-950 uppercase tracking-wider">Pengaturan Arena Battle 1 vs 1</span>
+                </div>
+                <span class="text-[10px] font-black text-rose-700 bg-white px-2 py-0.5 rounded-full border border-rose-200">
+                    Juara dapat +25 Poin
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {{-- Opsi A --}}
+                <div class="p-3 rounded-xl bg-white border border-amber-300 space-y-2">
+                    <label class="block text-[11px] font-black text-amber-900">
+                        ⭐ Judul Karya A (Sisi Kiri):
+                    </label>
+                    <input type="text" name="battle_a_title" placeholder="Contoh: Desain Minimalis A"
+                           class="w-full px-3 py-1.5 rounded-lg bg-amber-50/50 border border-amber-200 text-xs font-black text-slate-950">
+                    <label class="block text-[10px] font-black text-slate-700">Foto / Gambar Karya A:</label>
+                    <input type="file" name="battle_a_image" accept="image/*" class="text-[11px] text-slate-600">
+                </div>
+
+                {{-- Opsi B --}}
+                <div class="p-3 rounded-xl bg-white border border-rose-300 space-y-2">
+                    <label class="block text-[11px] font-black text-rose-900">
+                        ⭐ Judul Karya B (Sisi Kanan):
+                    </label>
+                    <input type="text" name="battle_b_title" placeholder="Contoh: Desain Futuristik B"
+                           class="w-full px-3 py-1.5 rounded-lg bg-rose-50/50 border border-rose-200 text-xs font-black text-slate-950">
+                    <label class="block text-[10px] font-black text-slate-700">Foto / Gambar Karya B:</label>
+                    <input type="file" name="battle_b_image" accept="image/*" class="text-[11px] text-slate-600">
+                </div>
+            </div>
+            <div class="flex items-center justify-between text-xs font-bold text-slate-700 pt-1">
+                <span>⏱️ Batas Waktu Duel:</span>
+                <select name="battle_duration" class="px-2.5 py-1 rounded-lg bg-white border border-rose-300 text-xs font-black">
+                    <option value="24" selected>24 Jam (1 Hari)</option>
+                    <option value="48">48 Jam (2 Hari)</option>
+                    <option value="72">3 Hari</option>
+                </select>
+            </div>
+        </div>
+
+        {{-- PANEL PENGATURAN INTERAKTIF: 🤝 DUET COLLABS --}}
+        <div x-show="interactiveType === 'collab'" x-collapse x-transition
+             class="mb-3.5 p-4 rounded-2xl bg-purple-50 border-2 border-purple-300 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">🤝</span>
+                    <span class="text-xs font-black text-purple-950 uppercase tracking-wider">Pengaturan Duet Kolaborasi</span>
+                </div>
+                <span class="text-[10px] font-black text-purple-700 bg-white px-2 py-0.5 rounded-full border border-purple-200">
+                    💎 Poin Dibagi 50:50 Bersama Rekan
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-900 mb-1">
+                        👤 Username Rekan Kolaborator:
+                    </label>
+                    <input type="text" name="collab_username"
+                           placeholder="Contoh: andreas_zebua atau fathan"
+                           class="w-full px-3 py-2 rounded-xl bg-white border border-purple-300 text-xs font-black text-slate-950 focus:outline-none focus:border-purple-600">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-900 mb-1">
+                        🎯 Peran Rekan dalam Proyek:
+                    </label>
+                    <input type="text" name="collab_role"
+                           placeholder="Contoh: Kreator Musik / Desain Visual / Coding"
+                           class="w-full px-3 py-2 rounded-xl bg-white border border-purple-300 text-xs font-bold text-slate-950 focus:outline-none focus:border-purple-600">
+                </div>
+            </div>
+        </div>
+
+        {{-- PANEL PENGATURAN INTERAKTIF: 🪶 BALAS PANTUN --}}
+        <div x-show="interactiveType === 'pantun'" x-collapse x-transition
+             class="mb-3.5 p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">🪶</span>
+                    <span class="text-xs font-black text-emerald-950 uppercase tracking-wider">Pengaturan Arena Balas Pantun</span>
+                </div>
+                <span class="text-[10px] font-black text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                    Hadiah +10 Poin Sastrawan
+                </span>
+            </div>
+            <div>
+                <label class="block text-[11px] font-black text-slate-900 mb-1">
+                    📖 Tema Pantun:
+                </label>
+                <select name="pantun_theme" class="w-full px-3 py-2 rounded-xl bg-white border border-emerald-300 text-xs font-black text-slate-950 focus:outline-none focus:border-emerald-600">
+                    <option value="Jenaka Sekolah">😄 Jenaka & Santai Sekolah</option>
+                    <option value="Kejuruan & Teknologi">⚙️ Kejuruan, Sains & Teknologi</option>
+                    <option value="Nasehat & Motivasi">🌟 Nasehat, Adab & Semangat Belajar</option>
+                    <option value="Persahabatan">🤝 Persahabatan & Kebersamaan</option>
+                </select>
+                <span class="text-[10px] text-slate-500 font-bold mt-1 block">
+                    Tuliskan 2 atau 4 bait pantun awalmu di kolom isi postingan di bawah. Teman-teman akan membalas rima di kolom komentar!
+                </span>
+            </div>
         </div>
 
         {{-- ── 2. PANEL KHUSUS 🔴 LIPUTAN LIVE (SIARAN LANGSUNG) ── --}}
@@ -243,11 +438,11 @@
             </div>
         </div>
 
-        {{-- ── 4. INPUT JUDUL UTAMA (Untuk Laporan, LIVE, Karya, atau Galeri) ── --}}
-        <div x-show="tabCat === 'portfolio' || tabCat === 'gallery' || postType === 'report' || postType === 'live' || showTitleInput"
+        {{-- ── 4. INPUT JUDUL UTAMA (Untuk Laporan, LIVE, Karya, Galeri, atau Wahana Inisiatif) ── --}}
+        <div x-show="tabCat === 'portfolio' || tabCat === 'gallery' || postType === 'report' || postType === 'live' || interactiveType !== 'none' || showTitleInput"
              x-collapse x-transition class="mb-2.5">
             <input type="text" name="title" x-model="postTitle"
-                   :placeholder="postType === 'report' ? 'Judul Berita / Laporan Kegiatan (Contoh: Tim SMK Pembda Raih Juara 1 LKS)...' : (postType === 'live' ? 'Judul Siaran Langsung (Contoh: LIVE Babak Final Futsal Antar Kelas)...' : (tabCat === 'gallery' ? 'Judul Media / Foto / Video / Lagu...' : 'Judul Karya / Berita Utama...'))"
+                   :placeholder="interactiveType === 'riddle' ? 'Judul Teka-Teki (Contoh: Benda Apakah Aku? / Misteri Ruang Komputer)...' : (interactiveType === 'battle' ? 'Tema Battle (Contoh: Duel Desain Brosur / Fotografi Kampus)...' : (interactiveType === 'collab' ? 'Judul Karya Kolaborasi Duet...' : (interactiveType === 'pantun' ? 'Tema / Judul Pantun Pembuka...' : (postType === 'report' ? 'Judul Berita / Laporan Kegiatan (Contoh: Tim SMK Pembda Raih Juara 1 LKS)...' : (postType === 'live' ? 'Judul Siaran Langsung (Contoh: LIVE Babak Final Futsal Antar Kelas)...' : (tabCat === 'gallery' ? 'Judul Media / Foto / Video / Lagu...' : 'Judul Karya / Berita Utama...'))))))"
                    class="w-full px-4 py-2.5 rounded-2xl bg-amber-50/60 border-2 border-amber-200 text-sm font-black text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-amber-400">
         </div>
 
@@ -702,6 +897,36 @@ if (typeof window.circlePostComposer !== 'function') {
             mediaItems: [],
             hasPoll: false,
             pollOptions: ['', ''],
+            interactiveType: 'none',
+
+            setInteractive(type) {
+                if (this.interactiveType === type) {
+                    this.interactiveType = 'none';
+                    return;
+                }
+                this.interactiveType = type;
+                if (type === 'riddle') {
+                    this.selectedMood = '🧩';
+                    this.moodText = 'Misteri';
+                    if (!this.postTitle) this.postTitle = 'Teka-Teki: Benda Apakah Aku?';
+                    if (!this.postContent) this.postContent = "Aku selalu dicari saat jam praktikum tiba...\nSiapakah aku? Coba pecahkan misterinya di bawah!";
+                } else if (type === 'battle') {
+                    this.selectedMood = '⚔️';
+                    this.moodText = 'Duel';
+                    if (!this.postTitle) this.postTitle = 'Adu Karya: Mana Pilihan Terbaikmu?';
+                    if (!this.postContent) this.postContent = "Bantu kami menentukan mana yang paling keren! Berikan suaramu pada bilah voting di bawah ini 👇";
+                } else if (type === 'collab') {
+                    this.selectedMood = '🤝';
+                    this.moodText = 'Duet';
+                    if (!this.postTitle) this.postTitle = 'Proyek Kolaborasi Duet';
+                    if (!this.postContent) this.postContent = "Hasil kerja sama tim kami untuk tugas kejuruan/ekskul! Bagaimana tanggapan teman-teman?";
+                } else if (type === 'pantun') {
+                    this.selectedMood = '🪶';
+                    this.moodText = 'Puitis';
+                    if (!this.postTitle) this.postTitle = 'Arena Berbalas Pantun';
+                    if (!this.postContent) this.postContent = "Jalan-jalan ke kota Medan,\nSinggah sebentar membeli duku.\nWahai kawan kawan sepadan,\nSiapakah yang berani membalas pantunku?";
+                }
+            },
 
             setMode(tab, type) {
                 this.tabCat = tab;
@@ -716,6 +941,10 @@ if (typeof window.circlePostComposer !== 'function') {
             },
 
             modeSubtitle() {
+                if (this.interactiveType === 'riddle') return 'Tantang kawan-kawanmu dengan teka-teki logika atau misteri kampus!';
+                if (this.interactiveType === 'battle') return 'Mulai duel 1 lawan 1 dan biarkan warga sekolah memberikan voting!';
+                if (this.interactiveType === 'collab') return 'Pamerkan proyek kolaborasi duet & panen poin apresiasi bersama!';
+                if (this.interactiveType === 'pantun') return 'Lempar pantun pembuka & tantang kawan-kawan berbalas rima di komentar!';
                 if (this.postType === 'live') return 'Siarkan langsung kegiatan dari lokasi beserta GPS & foto real-time!';
                 if (this.postType === 'report') return 'Laporkan kegiatan lomba/acara lengkap dengan waktu, titik GPS & kolase foto!';
                 if (this.tabCat === 'gallery') return 'Pajang foto, video, atau lagu di Galeri Pribadi & siarkan ke Beranda!';
@@ -724,6 +953,10 @@ if (typeof window.circlePostComposer !== 'function') {
             },
 
             modeBadgeLabel() {
+                if (this.interactiveType === 'riddle') return '🧩 Inisiatif Teka-Teki';
+                if (this.interactiveType === 'battle') return '⚔️ Inisiatif Battle 1v1';
+                if (this.interactiveType === 'collab') return '🤝 Inisiatif Duet Collabs';
+                if (this.interactiveType === 'pantun') return '🪶 Inisiatif Balas Pantun';
                 if (this.postType === 'live') return '🔴 Mode Liputan LIVE';
                 if (this.postType === 'report') return '📋 Mode Laporan Kegiatan';
                 if (this.tabCat === 'gallery') return '📸 Mode Galeri Pribadi';

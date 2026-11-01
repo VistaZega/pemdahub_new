@@ -634,7 +634,15 @@
                     </span>
                     <span>Galeri</span>
                 </a>
-                {{-- 6. Liputan Live --}}
+                {{-- 6. Wahana Inisiatif Siswa (Teka-Teki, Duel, Duet, Pantun) --}}
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'interactive', 'q' => request('q')])) }}" 
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'interactive' ? 'bg-gradient-to-r from-violet-600 to-pink-600 text-white border-2 border-black shadow-xs' : 'text-violet-800 hover:bg-violet-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-[10px]">
+                        <i class="fas fa-sparkles"></i>
+                    </span>
+                    <span>Wahana Inisiatif</span>
+                </a>
+                {{-- 7. Liputan Live --}}
                 <a href="{{ route('circle.feed', array_filter(['tab' => 'live', 'q' => request('q')])) }}" 
                    class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'live' ? 'bg-rose-600 text-white border-2 border-black shadow-xs' : 'text-rose-700 hover:bg-rose-50' }}">
                     <span class="w-5 h-5 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-[10px] relative">

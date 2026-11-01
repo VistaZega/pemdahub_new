@@ -13,6 +13,12 @@ class CirclePost extends Model
     protected $fillable = [
         'user_id',
         'post_type',
+        'interactive_type',
+        'interactive_data',
+        'collaborator_user_id',
+        'is_solved',
+        'solved_by_user_id',
+        'solved_at',
         'tab_category',
         'is_gallery',
         'gallery_category',
@@ -49,6 +55,9 @@ class CirclePost extends Model
     ];
 
     protected $casts = [
+        'interactive_data' => 'array',
+        'is_solved' => 'boolean',
+        'solved_at' => 'datetime',
         'is_gallery' => 'boolean',
         'event_date' => 'datetime',
         'latitude' => 'float',
@@ -110,6 +119,74 @@ class CirclePost extends Model
     public function skillEndorsements()
     {
         return $this->hasMany(CircleSkillEndorsement::class);
+    }
+
+    public function collaborator()
+    {
+        return $this->belongsTo(User::class, 'collaborator_user_id');
+    }
+
+    public function solvedBy()
+    {
+        return $this->belongsTo(User::class, 'solved_by_user_id');
+    }
+
+    public function riddleGuesses()
+    {
+        return $this->hasMany(CircleRiddleGuess::class, 'circle_post_id')->orderBy('created_at', 'asc');
+    }
+
+    public function battleVotes()
+    {
+        return $this->hasMany(CircleBattleVote::class, 'circle_post_id');
+    }
+
+    public function isRiddle(): bool
+    {
+        return $this->interactive_type === 'riddle';
+    }
+
+    public function isBattle(): bool
+    {
+        return $this->interactive_type === 'battle';
+    }
+
+    public function isCollab(): bool
+    {
+        return $this->interactive_type === 'collab' && !empty($this->collaborator_user_id);
+    }
+
+    public function isPantun(): bool
+    {
+        return $this->interactive_type === 'pantun';
+    }
+
+    /**
+     * Ringkasan Statistik Battle 1 vs 1 (Total vote, Persentase, Vote Pengguna)
+     */
+    public function getBattleStats(?int $userId = null): array
+    {
+        $votesA = $this->battleVotes->where('chosen_option', 'a')->count();
+        $votesB = $this->battleVotes->where('chosen_option', 'b')->count();
+        $total = $votesA + $votesB;
+
+        $pctA = $total > 0 ? round(($votesA / $total) * 100) : 50;
+        $pctB = $total > 0 ? (100 - $pctA) : 50;
+
+        $myVote = null;
+        if ($userId) {
+            $userVote = $this->battleVotes->firstWhere('user_id', $userId);
+            $myVote = $userVote?->chosen_option;
+        }
+
+        return [
+            'votes_a' => $votesA,
+            'votes_b' => $votesB,
+            'total'   => $total,
+            'pct_a'   => $pctA,
+            'pct_b'   => $pctB,
+            'my_vote' => $myVote,
+        ];
     }
 
     public function poll()

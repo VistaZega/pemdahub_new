@@ -99,6 +99,17 @@ class CirclePointService
                 $reaction
             );
 
+            // Jika postingan ini adalah DUET KOLABORASI (COLLABS), berikan poin yang sama ke mitra kolaborator!
+            if ($post->isCollab() && $post->collaborator_user_id && (int)$post->collaborator_user_id !== (int)$reaction->user_id) {
+                ReputationLog::log(
+                    $post->collaborator_user_id,
+                    $points,
+                    'circle_collab_reaction',
+                    "Karya Duet Kolaborasi {$postLabel} diapresiasi {$emojiLabel} oleh {$reactorName}{$roleTag}",
+                    $reaction
+                );
+            }
+
             // Cek milestone viral postingan (10 & 25 apresiasi)
             self::checkPostViralMilestones($post);
         } catch (\Throwable $e) {
@@ -696,6 +707,101 @@ class CirclePointService
                 'badge_label' => 'Tayang 7 Hari',
             ];
         }
+    }
+
+    /**
+     * Berikan poin saat ada tebakan teka-teki (Riddle)
+     */
+    public static function awardRiddleGuess(CirclePost $post, \App\Models\CircleRiddleGuess $guess, User $guesser): array
+    {
+        if (!$post->user_id) {
+            return ['awarded_guesser' => 0, 'awarded_author' => 0];
+        }
+
+        $postLabel = $post->title
+            ? '"' . Str::limit($post->title, 40) . '"'
+            : '"Teka-Teki Misteri"';
+
+        $awardedGuesser = 0;
+        $awardedAuthor = 0;
+
+        try {
+            if ($guess->is_correct) {
+                // 1. Penebak pertama yang benar mendapat +15 Poin Detektif Logika!
+                $awardedGuesser = 15;
+                ReputationLog::log(
+                    $guesser->id,
+                    15,
+                    'circle_riddle_solved',
+                    "🏆 Berhasil Memecahkan {$postLabel} karya {$post->user->name}! Jawaban: \"{$guess->guess_text}\"",
+                    $guess
+                );
+
+                // 2. Pembuat teka-teki mendapat +20 Poin atas suksesnya enigma intelektualnya!
+                $awardedAuthor = 20;
+                ReputationLog::log(
+                    $post->user_id,
+                    20,
+                    'circle_riddle_author_solved',
+                    "🎉 Teka-teki {$postLabel} berhasil dipecahkan oleh {$guesser->name}! Inisiatif yang luar biasa!",
+                    $guess
+                );
+            } else {
+                // Jika salah, pembuat mendapat +1 poin partisipasi (maksimal 1 per penebak)
+                $firstAttemptFromUser = \App\Models\CircleRiddleGuess::where('circle_post_id', $post->id)
+                    ->where('user_id', $guesser->id)
+                    ->where('id', '!=', $guess->id)
+                    ->doesntExist();
+
+                if ($firstAttemptFromUser && (int)$post->user_id !== (int)$guesser->id) {
+                    $awardedAuthor = 1;
+                    ReputationLog::log(
+                        $post->user_id,
+                        1,
+                        'circle_riddle_attempt',
+                        "Teka-teki {$postLabel} dicoba ditebak oleh {$guesser->name}",
+                        $guess
+                    );
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('CirclePointService::awardRiddleGuess error: ' . $e->getMessage());
+        }
+
+        return ['awarded_guesser' => $awardedGuesser, 'awarded_author' => $awardedAuthor];
+    }
+
+    /**
+     * Berikan poin saat ada suara voting pada Battle 1 vs 1
+     */
+    public static function awardBattleVote(CirclePost $post, \App\Models\CircleBattleVote $vote, User $voter): int
+    {
+        if (!$post->user_id || (int)$post->user_id === (int)$voter->id) {
+            return 0;
+        }
+
+        $postLabel = $post->title
+            ? '"' . Str::limit($post->title, 40) . '"'
+            : '"Battle Kreatif 1v1"';
+
+        try {
+            // Setiap 5 vote kelipatan, pembuat battle mendapat +3 poin arena
+            $totalVotes = \App\Models\CircleBattleVote::where('circle_post_id', $post->id)->count();
+            if ($totalVotes % 5 === 0) {
+                ReputationLog::log(
+                    $post->user_id,
+                    3,
+                    'circle_battle_buzz',
+                    "Arena Battle {$postLabel} berhasil menghimpun {$totalVotes} Suara Warga Sekolah! ⚡",
+                    $vote
+                );
+                return 3;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('CirclePointService::awardBattleVote error: ' . $e->getMessage());
+        }
+
+        return 0;
     }
 
     /**

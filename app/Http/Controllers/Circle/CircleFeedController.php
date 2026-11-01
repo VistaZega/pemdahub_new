@@ -154,6 +154,10 @@ class CircleFeedController extends Controller
                     $q->orWhere('is_live', true);
                 }
             });
+        } elseif ($tabFilter === 'interactive' || $tabFilter === 'challenge') {
+            if (Schema::hasColumn('circle_posts', 'interactive_type')) {
+                $query->where('interactive_type', '!=', 'none');
+            }
         }
 
         $sharedPost = null;

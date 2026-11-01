@@ -16,6 +16,8 @@ use App\Models\CircleSkillEndorsement;
 use App\Models\CirclePoll;
 use App\Models\CirclePollOption;
 use App\Models\CirclePollVote;
+use App\Models\CircleRiddleGuess;
+use App\Models\CircleBattleVote;
 use App\Models\FinalProject;
 use App\Models\LmsSubmission;
 use App\Models\Notification;
@@ -58,6 +60,17 @@ class CircleActionController extends Controller
             'voice_note' => 'nullable|file|max:20480', // max 20MB rekaman suara
             'media' => 'nullable|file|max:51200', // max 50MB
             'media_files.*' => 'nullable|file|max:51200',
+            'interactive_type' => 'nullable|in:none,riddle,battle,collab,pantun',
+            'riddle_answer' => 'nullable|string|max:255',
+            'riddle_hint' => 'nullable|string|max:255',
+            'battle_a_title' => 'nullable|string|max:100',
+            'battle_b_title' => 'nullable|string|max:100',
+            'battle_a_image' => 'nullable|file|max:15360',
+            'battle_b_image' => 'nullable|file|max:15360',
+            'battle_duration' => 'nullable|integer|min:1|max:168',
+            'collab_username' => 'nullable|string|max:80',
+            'collab_role' => 'nullable|string|max:100',
+            'pantun_theme' => 'nullable|string|max:100',
         ]);
 
         $user = Auth::user();
@@ -168,6 +181,76 @@ class CircleActionController extends Controller
             $postData['attachment_name'] = $attachmentName;
             $postData['reference_type'] = $referenceType;
             $postData['reference_id'] = $referenceId;
+        }
+
+        // =========================================================================
+        // WAHANA INISIATIF SISWA (TEKA-TEKI, BATTLE 1v1, DUET COLLABS, BALAS PANTUN)
+        // =========================================================================
+        $interactiveType = $request->input('interactive_type', 'none');
+        $interactiveData = null;
+        $collaboratorId = null;
+
+        if ($interactiveType === 'riddle') {
+            $rawAnswer = trim((string) $request->input('riddle_answer', ''));
+            $cleanAnswer = preg_replace('/[^a-z0-9]/', '', strtolower($rawAnswer));
+            $hint = trim((string) $request->input('riddle_hint', ''));
+            
+            if (!empty($cleanAnswer)) {
+                $interactiveData = [
+                    'raw_answer'  => $rawAnswer,
+                    'clean_hash'  => hash('sha256', $cleanAnswer),
+                    'hint'        => $hint,
+                ];
+            } else {
+                $interactiveType = 'none';
+            }
+        } elseif ($interactiveType === 'battle') {
+            $optATitle = trim((string) $request->input('battle_a_title', 'Karya A'));
+            $optBTitle = trim((string) $request->input('battle_b_title', 'Karya B'));
+            $optAImage = null;
+            $optBImage = null;
+
+            if ($request->hasFile('battle_a_image') && $request->file('battle_a_image')->isValid()) {
+                $optAImage = $request->file('battle_a_image')->store('circle/battles', 'public');
+            }
+            if ($request->hasFile('battle_b_image') && $request->file('battle_b_image')->isValid()) {
+                $optBImage = $request->file('battle_b_image')->store('circle/battles', 'public');
+            }
+
+            $durationHours = max(1, min(168, (int)$request->input('battle_duration', 24)));
+            $interactiveData = [
+                'option_a_title' => $optATitle,
+                'option_b_title' => $optBTitle,
+                'option_a_image' => $optAImage,
+                'option_b_image' => $optBImage,
+                'duration_hours' => $durationHours,
+                'deadline'       => now()->addHours($durationHours)->toIso8601String(),
+            ];
+        } elseif ($interactiveType === 'collab') {
+            $collabUsername = trim(ltrim((string) $request->input('collab_username', ''), '@'));
+            if (!empty($collabUsername)) {
+                $collabUser = User::where('username', $collabUsername)->first();
+                if ($collabUser && (int)$collabUser->id !== (int)$user->id) {
+                    $collaboratorId = $collabUser->id;
+                    $interactiveData = [
+                        'collaborator_name' => $collabUser->name,
+                        'collaborator_role' => $request->input('collab_role', 'Kreator Duet Kolaborasi'),
+                    ];
+                }
+            }
+            if (!$collaboratorId) {
+                $interactiveType = 'none';
+            }
+        } elseif ($interactiveType === 'pantun') {
+            $interactiveData = [
+                'theme' => $request->input('pantun_theme', 'Jenaka'),
+            ];
+        }
+
+        if (Schema::hasColumn('circle_posts', 'interactive_type')) {
+            $postData['interactive_type'] = $interactiveType;
+            $postData['interactive_data'] = $interactiveData;
+            $postData['collaborator_user_id'] = $collaboratorId;
         }
 
         $post = CirclePost::create($postData);
@@ -840,6 +923,142 @@ class CircleActionController extends Controller
             'total_votes' => $totalVotes,
             'voted_option_id' => (int) $request->circle_poll_option_id,
             'options' => $optionsData,
+        ]);
+    }
+
+    /**
+     * Kirim Tebakan untuk Postingan Teka-Teki (Riddle)
+     */
+    public function submitRiddleGuess(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu untuk menebak teka-teki!'], 401);
+        }
+
+        $post = CirclePost::with('user')->findOrFail($id);
+
+        if (!$post->isRiddle()) {
+            return response()->json(['status' => 'error', 'message' => 'Postingan ini bukan merupakan teka-teki.'], 400);
+        }
+
+        if ($post->is_solved) {
+            $solverName = $post->solvedBy?->name ?? 'warga sekolah';
+            return response()->json([
+                'status' => 'already_solved',
+                'message' => "Teka-teki ini telah berhasil dipecahkan oleh {$solverName}! 🏆",
+                'is_solved' => true,
+            ], 422);
+        }
+
+        $guessRaw = trim((string) $request->input('guess', ''));
+        if (mb_strlen($guessRaw) < 1) {
+            return response()->json(['status' => 'error', 'message' => 'Masukkan tebakanmu terlebih dahulu!'], 422);
+        }
+
+        // Cek apakah tebakan benar
+        $cleanGuess = preg_replace('/[^a-z0-9]/', '', strtolower($guessRaw));
+        $correctHash = $post->interactive_data['clean_hash'] ?? null;
+        $rawAnswer = $post->interactive_data['raw_answer'] ?? null;
+
+        $isCorrect = false;
+        if ($correctHash && hash('sha256', $cleanGuess) === $correctHash) {
+            $isCorrect = true;
+        } elseif ($rawAnswer && preg_replace('/[^a-z0-9]/', '', strtolower($rawAnswer)) === $cleanGuess) {
+            $isCorrect = true;
+        }
+
+        // Simpan riwayat tebakan
+        $guessRecord = CircleRiddleGuess::create([
+            'circle_post_id' => $post->id,
+            'user_id' => $user->id,
+            'guess_text' => Str::limit($guessRaw, 100),
+            'is_correct' => $isCorrect,
+        ]);
+
+        if ($isCorrect) {
+            $post->update([
+                'is_solved' => true,
+                'solved_by_user_id' => $user->id,
+                'solved_at' => now(),
+            ]);
+
+            $pointResult = CirclePointService::awardRiddleGuess($post, $guessRecord, $user);
+
+            // Kirim notifikasi ke pembuat teka-teki
+            if ($post->user_id && (int)$post->user_id !== (int)$user->id) {
+                try {
+                    Notification::create([
+                        'user_id' => $post->user_id,
+                        'school_id' => $post->school_id,
+                        'type' => 'circle_riddle_solved',
+                        'title' => "🎉 Teka-Tekimu Terpecahkan! (+20 Poin Kreator)",
+                        'message' => "{$user->name} berhasil menebak dengan tepat: \"{$guessRaw}\"!",
+                        'related_model' => 'CirclePost',
+                        'related_id' => $post->id,
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {}
+            }
+
+            return response()->json([
+                'status' => 'correct',
+                'is_correct' => true,
+                'is_solved' => true,
+                'solver_name' => $user->name,
+                'points_earned' => $pointResult['awarded_guesser'] ?? 15,
+                'message' => "🎉 BINGO! Jawabanmu TEPAT SEKALI! Kamu memperoleh +15 Poin Detektif Logika! 🏆",
+            ]);
+        }
+
+        // Jika salah
+        CirclePointService::awardRiddleGuess($post, $guessRecord, $user);
+
+        return response()->json([
+            'status' => 'incorrect',
+            'is_correct' => false,
+            'is_solved' => false,
+            'message' => "Aduh, tebakan \"{$guessRaw}\" belum tepat! Coba pikirkan lagi atau perhatikan clue-nya 😉",
+        ]);
+    }
+
+    /**
+     * Berikan Suara Voting pada Battle Kreatif 1 vs 1
+     */
+    public function voteBattle(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu untuk memberikan suara pada duel!'], 401);
+        }
+
+        $post = CirclePost::with(['battleVotes', 'user'])->findOrFail($id);
+
+        if (!$post->isBattle()) {
+            return response()->json(['status' => 'error', 'message' => 'Postingan ini bukan merupakan arena battle.'], 400);
+        }
+
+        $chosenOption = strtolower(trim((string)$request->input('option', '')));
+        if (!in_array($chosenOption, ['a', 'b'])) {
+            return response()->json(['status' => 'error', 'message' => 'Pilihan duel tidak valid (A atau B).'], 422);
+        }
+
+        // Update or create vote
+        $vote = CircleBattleVote::updateOrCreate(
+            ['circle_post_id' => $post->id, 'user_id' => $user->id],
+            ['chosen_option' => $chosenOption]
+        );
+
+        CirclePointService::awardBattleVote($post, $vote, $user);
+
+        // Ambil statistik terbaru
+        $stats = $post->fresh(['battleVotes'])->getBattleStats($user->id);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => '⚡ Suaramu telah tercatat dalam duel ini!',
+            'chosen_option' => $chosenOption,
+            'stats' => $stats,
         ]);
     }
 

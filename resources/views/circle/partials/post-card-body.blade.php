@@ -216,6 +216,41 @@
     <div class="flex flex-col">
         {{-- BLOK TEKS (JUDUL & ISI CERITA/BERITA) --}}
         <div class="{{ $layout === 'top' ? 'order-2' : 'order-1' }}">
+
+            {{-- 🤝 BANNER KARYA DUET KOLABORASI (COLLABS) --}}
+            @if($post->isCollab() && $post->collaborator)
+                <div class="mb-3.5 p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-300 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex items-center -space-x-3 shrink-0">
+                            <img src="{{ $post->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                 alt="{{ $post->user->name }}" 
+                                 class="w-9 h-9 rounded-full object-cover border-2 border-white shadow-xs" title="Inisiator: {{ $post->user->name }}">
+                            <img src="{{ $post->collaborator->avatar_url ?? asset('images/default-avatar.svg') }}" 
+                                 alt="{{ $post->collaborator->name }}" 
+                                 class="w-9 h-9 rounded-full object-cover border-2 border-purple-500 shadow-xs ring-2 ring-white" title="Kolaborator: {{ $post->collaborator->name }}">
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-2 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                                    <span>🤝 KARYA DUET KOLABORASI</span>
+                                </span>
+                                <span class="text-[9px] font-bold text-purple-900 bg-purple-100 px-2 py-0.5 rounded-md">
+                                    {{ $post->interactive_data['collaborator_role'] ?? 'Kreator Duet' }}
+                                </span>
+                            </div>
+                            <div class="text-xs font-black text-slate-900 mt-0.5">
+                                Kolaborasi <a href="{{ route('circle.profile', $post->user->circleProfile->username ?? $post->user->username) }}" class="underline hover:text-purple-700">{{ $post->user->name }}</a>
+                                ✕
+                                <a href="{{ route('circle.profile', $post->collaborator->circleProfile->username ?? $post->collaborator->username) }}" class="underline hover:text-purple-700">{{ $post->collaborator->name }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black text-amber-900 bg-amber-200/80 px-2.5 py-1 rounded-xl border border-amber-300 flex items-center gap-1">
+                        <span>💎 Poin apresiasi dibagi adil kedua kreator</span>
+                    </span>
+                </div>
+            @endif
+
             @if($post->title)
                 <h3 class="font-display font-black text-lg text-slate-950 mb-2 leading-snug">
                     {{ $post->title }}
@@ -223,8 +258,280 @@
             @endif
 
             @if($post->content)
-                <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4">
+                <div class="text-sm font-semibold text-slate-950 leading-relaxed whitespace-pre-line mb-4 {{ $post->isPantun() ? 'p-4 rounded-2xl bg-amber-50/70 border-2 border-amber-200 font-serif italic text-base text-amber-950' : '' }}">
                     {{ $post->content }}
+                </div>
+            @endif
+
+            {{-- 🪶 BANNER ARENA BERBALAS PANTUN --}}
+            @if($post->isPantun())
+                <div class="mb-4 rounded-2xl p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border-2 border-emerald-300 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center text-sm font-black shrink-0">
+                            🪶
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800">Arena Berbalas Pantun</span>
+                                <span class="text-[9px] font-black bg-white px-2 py-0.5 rounded-full border border-emerald-300 text-emerald-900">
+                                    Tema: {{ $post->interactive_data['theme'] ?? 'Jenaka Sekolah' }}
+                                </span>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 mt-0.5">
+                                Balas pantun di atas di kolom komentar! Balasan terbaik dinobatkan sebagai <strong>Raja/Ratu Pantun (+10 Poin)</strong> ✨
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- 🧩 KARTU INTERAKTIF TEKA-TEKI & MISTERI (RIDDLE) --}}
+            @if($post->isRiddle())
+                @php
+                    $riddleHint = $post->interactive_data['hint'] ?? null;
+                    $guessCount = $post->riddleGuesses->count();
+                @endphp
+                <div class="mb-4 rounded-3xl p-4 sm:p-5 border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 shadow-xs relative overflow-hidden"
+                     x-data="{
+                         riddleInput: '',
+                         riddleSubmitting: false,
+                         riddleResult: null,
+                         isSolvedLocal: {{ $post->is_solved ? 'true' : 'false' }},
+                         solverNameLocal: '{{ $post->solvedBy?->name ?? '' }}',
+                         async sendGuess() {
+                             if (!this.riddleInput.trim()) return;
+                             this.riddleSubmitting = true;
+                             this.riddleResult = null;
+                             try {
+                                 const res = await fetch('{{ route('circle.riddle.guess', $post->id) }}', {
+                                     method: 'POST',
+                                     headers: {
+                                         'Content-Type': 'application/json',
+                                         'Accept': 'application/json',
+                                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                     },
+                                     body: JSON.stringify({ guess: this.riddleInput })
+                                 });
+                                 const data = await res.json();
+                                 this.riddleResult = data;
+                                 if (data.is_solved) {
+                                     this.isSolvedLocal = true;
+                                     this.solverNameLocal = data.solver_name || 'Kamu';
+                                 }
+                             } catch (e) {
+                                 this.riddleResult = { status: 'error', message: 'Terjadi kesalahan koneksi.' };
+                             } finally {
+                                 this.riddleSubmitting = false;
+                             }
+                         }
+                     }">
+                    {{-- Header Teka-Teki --}}
+                    <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                        <span class="px-3 py-1 rounded-full bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                            <span>🧩 TEKA-TEKI & MISTERI</span>
+                        </span>
+
+                        <template x-if="isSolvedLocal">
+                            <span class="px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                                <span>🏆 TERPECAHKAN!</span>
+                            </span>
+                        </template>
+                        <template x-if="!isSolvedLocal">
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black">
+                                🔥 Hadiah +15 Poin Detektif
+                            </span>
+                        </template>
+                    </div>
+
+                    {{-- Status Terpecahkan --}}
+                    <template x-if="isSolvedLocal">
+                        <div class="p-3.5 rounded-2xl bg-white border-2 border-emerald-400 text-emerald-950 flex items-center gap-3 shadow-xs mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shrink-0">
+                                👑
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Misteri Berhasil Dipecahkan!</div>
+                                <div class="text-xs font-black text-slate-900 leading-tight">
+                                    Dipecahkan oleh <span class="text-emerald-700 font-extrabold" x-text="solverNameLocal"></span> 🏆
+                                </div>
+                                @if($post->is_solved && !empty($post->interactive_data['raw_answer']))
+                                    <div class="text-[11px] font-bold text-slate-600 mt-0.5">
+                                        Kunci Jawaban: <span class="px-2 py-0.5 rounded-md bg-emerald-100 font-black text-emerald-900">{{ $post->interactive_data['raw_answer'] }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </template>
+
+                    {{-- Clue / Petunjuk --}}
+                    @if($riddleHint)
+                        <div class="mb-3 p-3 rounded-2xl bg-white/80 border border-indigo-200 flex items-start gap-2.5">
+                            <span class="text-base shrink-0">💡</span>
+                            <div class="text-xs">
+                                <strong class="font-black text-indigo-950">Petunjuk Rahasia (Clue):</strong>
+                                <span class="text-slate-700 font-semibold">{{ $riddleHint }}</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Form Tebak Teka-Teki (Jika belum terpecahkan) --}}
+                    <template x-if="!isSolvedLocal">
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <input type="text"
+                                       x-model="riddleInput"
+                                       @keydown.enter.prevent="sendGuess()"
+                                       placeholder="Ketik tebakanmu di sini..."
+                                       :disabled="riddleSubmitting"
+                                       class="flex-1 px-3.5 py-2.5 rounded-2xl bg-white border-2 border-indigo-300 text-xs font-black text-slate-950 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 shadow-inner">
+                                <button type="button"
+                                        @click="sendGuess()"
+                                        :disabled="riddleSubmitting || !riddleInput.trim()"
+                                        class="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95">
+                                    <span x-show="!riddleSubmitting">🔍 Pecahkan!</span>
+                                    <span x-show="riddleSubmitting">Memeriksa...</span>
+                                </button>
+                            </div>
+
+                            {{-- Alert Hasil Tebakan --}}
+                            <template x-if="riddleResult">
+                                <div class="p-3 rounded-2xl text-xs font-bold transition flex items-center justify-between gap-2"
+                                     :class="riddleResult.is_correct ? 'bg-emerald-100 text-emerald-950 border-2 border-emerald-400' : 'bg-rose-100 text-rose-950 border border-rose-300'">
+                                    <span x-text="riddleResult.message"></span>
+                                    <button type="button" @click="riddleResult = null" class="text-slate-400 hover:text-slate-600 font-black">✕</button>
+                                </div>
+                            </template>
+
+                            <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 px-1 pt-0.5">
+                                <span>{{ $guessCount }} warga telah mencoba menebak</span>
+                                <span>Penebak pertama dapat +15 poin!</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            @endif
+
+            {{-- ⚔️ KARTU ARENA DUEL BATTLE 1 vs 1 --}}
+            @if($post->isBattle())
+                @php
+                    $battleData = $post->interactive_data ?? [];
+                    $battleStats = $post->getBattleStats(Auth::id());
+                    $imgA = !empty($battleData['option_a_image']) ? asset('storage/' . $battleData['option_a_image']) : null;
+                    $imgB = !empty($battleData['option_b_image']) ? asset('storage/' . $battleData['option_b_image']) : null;
+                @endphp
+                <div class="mb-4 rounded-3xl p-4 sm:p-5 border-2 border-red-300 bg-gradient-to-br from-amber-50 via-rose-50 to-orange-50 shadow-xs relative overflow-hidden"
+                     x-data="{
+                         votesA: {{ $battleStats['votes_a'] }},
+                         votesB: {{ $battleStats['votes_b'] }},
+                         totalVotes: {{ $battleStats['total'] }},
+                         pctA: {{ $battleStats['pct_a'] }},
+                         pctB: {{ $battleStats['pct_b'] }},
+                         myVote: '{{ $battleStats['my_vote'] ?? '' }}',
+                         voting: false,
+                         async castVote(opt) {
+                             if (this.voting) return;
+                             this.voting = true;
+                             try {
+                                 const res = await fetch('{{ route('circle.battle.vote', $post->id) }}', {
+                                     method: 'POST',
+                                     headers: {
+                                         'Content-Type': 'application/json',
+                                         'Accept': 'application/json',
+                                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                     },
+                                     body: JSON.stringify({ option: opt })
+                                 });
+                                 const data = await res.json();
+                                 if (data.status === 'success') {
+                                     this.myVote = data.chosen_option;
+                                     this.votesA = data.stats.votes_a;
+                                     this.votesB = data.stats.votes_b;
+                                     this.totalVotes = data.stats.total;
+                                     this.pctA = data.stats.pct_a;
+                                     this.pctB = data.stats.pct_b;
+                                 }
+                             } catch (e) {
+                                 alert('Gagal mengirim suara duel.');
+                             } finally {
+                                 this.voting = false;
+                             }
+                         }
+                     }">
+                    {{-- Header Battle --}}
+                    <div class="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
+                        <span class="px-3 py-1 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                            <span>⚔️ ARENA DUEL KREATIF 1v1</span>
+                        </span>
+                        <span class="text-[11px] font-mono font-black text-rose-900 bg-white/80 px-2.5 py-0.5 rounded-full border border-rose-200">
+                            <span x-text="totalVotes"></span> Suara Masuk
+                        </span>
+                    </div>
+
+                    {{-- 2 Kolom Adu Karya A vs B --}}
+                    <div class="grid grid-cols-2 gap-3 mb-3.5 relative">
+                        {{-- Opsi A --}}
+                        <div class="rounded-2xl p-3 border-2 transition flex flex-col justify-between"
+                             :class="myVote === 'a' ? 'bg-amber-100/90 border-amber-500 ring-2 ring-amber-300' : 'bg-white border-amber-200'">
+                            <div>
+                                @if($imgA)
+                                    <div class="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-slate-900 border border-amber-200">
+                                        <img src="{{ $imgA }}" alt="Karya A" class="w-full h-full object-cover">
+                                    </div>
+                                @endif
+                                <div class="text-xs font-black text-slate-900 line-clamp-2 leading-tight mb-2">
+                                    {{ $battleData['option_a_title'] ?? 'Karya A' }}
+                                </div>
+                            </div>
+                            <button type="button"
+                                    @click="castVote('a')"
+                                    :disabled="voting"
+                                    class="w-full py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                    :class="myVote === 'a' ? 'bg-amber-500 text-slate-950 font-black' : 'bg-amber-50 hover:bg-amber-200 text-amber-950 border border-amber-300'">
+                                <span x-show="myVote === 'a'">⭐ Pilihanmu</span>
+                                <span x-show="myVote !== 'a'">Pilih Karya A</span>
+                            </button>
+                        </div>
+
+                        {{-- Lingkaran VS di Tengah --}}
+                        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-rose-600 text-white font-display font-black text-xs flex items-center justify-center border-2 border-white shadow-md z-10 pointer-events-none">
+                            VS
+                        </div>
+
+                        {{-- Opsi B --}}
+                        <div class="rounded-2xl p-3 border-2 transition flex flex-col justify-between"
+                             :class="myVote === 'b' ? 'bg-rose-100/90 border-rose-500 ring-2 ring-rose-300' : 'bg-white border-rose-200'">
+                            <div>
+                                @if($imgB)
+                                    <div class="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-slate-900 border border-rose-200">
+                                        <img src="{{ $imgB }}" alt="Karya B" class="w-full h-full object-cover">
+                                    </div>
+                                @endif
+                                <div class="text-xs font-black text-slate-900 line-clamp-2 leading-tight mb-2">
+                                    {{ $battleData['option_b_title'] ?? 'Karya B' }}
+                                </div>
+                            </div>
+                            <button type="button"
+                                    @click="castVote('b')"
+                                    :disabled="voting"
+                                    class="w-full py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                    :class="myVote === 'b' ? 'bg-rose-500 text-white font-black' : 'bg-rose-50 hover:bg-rose-200 text-rose-950 border border-rose-300'">
+                                <span x-show="myVote === 'b'">⭐ Pilihanmu</span>
+                                <span x-show="myVote !== 'b'">Pilih Karya B</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Bilah Persentase Pertarungan (Battle Bar) --}}
+                    <div class="p-3 rounded-2xl bg-white/90 border border-rose-200 space-y-1.5">
+                        <div class="flex items-center justify-between text-[11px] font-black">
+                            <span class="text-amber-800"><span x-text="pctA"></span>% Karya A (<span x-text="votesA"></span>)</span>
+                            <span class="text-rose-800">(<span x-text="votesB"></span>) Karya B <span x-text="pctB"></span>%</span>
+                        </div>
+                        <div class="h-3 rounded-full bg-slate-200 overflow-hidden flex">
+                            <div class="bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500" :style="'width: ' + pctA + '%'"></div>
+                            <div class="bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-500" :style="'width: ' + pctB + '%'"></div>
+                        </div>
+                    </div>
                 </div>
             @endif
 
