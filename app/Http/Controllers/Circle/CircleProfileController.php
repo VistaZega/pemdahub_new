@@ -17,9 +17,12 @@ use App\Models\PklLog;
 use App\Models\StudentCounselingRecord;
 use App\Models\Reputation;
 use App\Models\ReputationLog;
+use App\Models\LmsSubmission;
+use App\Services\CircleCommunityService;
 use App\Services\CirclePointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class CircleProfileController extends Controller
@@ -72,6 +75,32 @@ class CircleProfileController extends Controller
         }
 
         $user = $profile->user;
+
+        // Sinkronkan Grup Kelas, Sanggar, Ekskul, Rumpun SMK, Angkatan & Alumni milik pemilik profil
+        $userCommunities = collect();
+        $myCommunities = collect();
+        $userAcademicWorks = collect();
+        try {
+            $communitySvc = app(CircleCommunityService::class);
+            $communitySvc->syncUserCommunities($user);
+            if (Schema::hasTable('circle_communities')) {
+                $userCommunities = $user->circleCommunities()
+                    ->with('school')
+                    ->orderByRaw("CASE type 
+                        WHEN 'class' THEN 1 
+                        WHEN 'sanggar' THEN 2 
+                        WHEN 'extracurricular' THEN 3 
+                        WHEN 'vocation' THEN 4 
+                        WHEN 'cohort' THEN 5 
+                        WHEN 'alumni' THEN 6 
+                        WHEN 'teachers' THEN 7 
+                        ELSE 8 END")
+                    ->get();
+                $myCommunities = $userCommunities;
+            }
+        } catch (\Throwable $e) {
+            // Silent fallback
+        }
 
         // Throttled view count increment (1 view per session)
         $viewSessionKey = 'viewed_circle_profile_' . $profile->id;
@@ -221,6 +250,34 @@ class CircleProfileController extends Controller
                     ->latest('incident_date')
                     ->get();
             }
+
+            // Karya Akademik untuk Post Composer jika pemilik profil sedang login
+            if (Auth::id() === $user->id) {
+                foreach ($finalProjects->take(10) as $fp) {
+                    $userAcademicWorks->push([
+                        'ref_value' => 'final_project:' . $fp->id,
+                        'badge' => $fp->type === 'penelitian_ilmiah' ? '🔬 Penelitian SMA' : '🛠️ Project Akhir SMK',
+                        'title' => $fp->title,
+                        'score' => $fp->final_score ? round($fp->final_score) : null,
+                    ]);
+                }
+                if (class_exists(LmsSubmission::class) && Schema::hasTable('lms_submissions')) {
+                    $subs = LmsSubmission::with('assignment.module.course')
+                        ->where('student_id', $studentId)
+                        ->latest('submitted_at')
+                        ->take(15)
+                        ->get();
+                    foreach ($subs as $sub) {
+                        $courseTitle = $sub->assignment?->module?->course?->course_name ?? 'LMS';
+                        $userAcademicWorks->push([
+                            'ref_value' => 'lms_submission:' . $sub->id,
+                            'badge' => '📚 Tugas LMS (' . $courseTitle . ')',
+                            'title' => $sub->assignment?->title ?? 'Tugas Terkumpul',
+                            'score' => $sub->score,
+                        ]);
+                    }
+                }
+            }
         }
 
         // Endorsement Keahlian dari Guru
@@ -270,6 +327,9 @@ class CircleProfileController extends Controller
         return view('circle.profile', compact(
             'profile',
             'user',
+            'userCommunities',
+            'myCommunities',
+            'userAcademicWorks',
             'wallPosts',
             'portfolioPosts',
             'galleryPosts',

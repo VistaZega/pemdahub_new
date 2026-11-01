@@ -227,6 +227,73 @@
                     {{ $post->content }}
                 </div>
             @endif
+
+            {{-- ── KARTU REFERENSI KARYA AKADEMIK TERVERIFIKASI (LMS / TUGAS AKHIR / PENELITIAN) ── --}}
+            @php
+                $verifiedRef = $post->verified_reference_card;
+            @endphp
+            @if($verifiedRef)
+                <div class="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 via-yellow-50/80 to-emerald-50 border-2 border-amber-300 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-start gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-lg shrink-0 shadow-xs">
+                            🎓
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                <span class="px-2 py-0.5 rounded-md bg-amber-200/90 text-amber-950 text-[10px] font-black uppercase tracking-wider">
+                                    {{ $verifiedRef['badge'] }}
+                                </span>
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black flex items-center gap-1">
+                                    <i class="fas fa-circle-check text-emerald-600 text-[9px]"></i>
+                                    <span>Karya Akademik Terverifikasi</span>
+                                </span>
+                            </div>
+                            <div class="text-xs sm:text-sm font-black text-slate-950 leading-snug">{{ $verifiedRef['title'] }}</div>
+                            @if(!empty($verifiedRef['subtitle']))
+                                <div class="text-[11px] font-bold text-slate-600 mt-0.5">{{ $verifiedRef['subtitle'] }}</div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                        @if(!empty($verifiedRef['score']))
+                            <div class="px-3 py-1.5 rounded-xl bg-white border-2 border-emerald-400 text-center shadow-2xs">
+                                <div class="text-[9px] font-black text-slate-500 uppercase leading-none">Nilai</div>
+                                <div class="text-sm font-black text-emerald-700 leading-tight">{{ round($verifiedRef['score']) }}</div>
+                            </div>
+                        @endif
+                        @if(!empty($verifiedRef['file_url']))
+                            <a href="{{ $verifiedRef['file_url'] }}" target="_blank" rel="noopener noreferrer"
+                               class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition flex items-center gap-1.5 shadow-2xs">
+                                <i class="fas fa-file-arrow-down"></i>
+                                <span>Buka Karya</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            {{-- ── KARTU LAMPIRAN BERKAS DOKUMEN / MODUL / KODE SUMBER ── --}}
+            @if($post->attachment_url)
+                <div class="mb-4 p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-indigo-300 transition flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-base shrink-0 font-black">
+                            📎
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-indigo-700">Lampiran Dokumen / Modul / Berkas</div>
+                            <div class="text-xs font-black text-slate-950 truncate" title="{{ $post->attachment_name ?: basename($post->attachment_path) }}">
+                                {{ $post->attachment_name ?: basename($post->attachment_path) }}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ $post->attachment_url }}" target="_blank" download="{{ $post->attachment_name ?: true }}"
+                       class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shrink-0 transition flex items-center gap-1.5 shadow-2xs">
+                        <i class="fas fa-download text-[10px]"></i>
+                        <span>Unduh</span>
+                    </a>
+                </div>
+            @endif
         </div>
 
         {{-- BLOK KOLASE MEDIA --}}

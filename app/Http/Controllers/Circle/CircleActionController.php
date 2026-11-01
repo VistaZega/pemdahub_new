@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Circle;
 
 use App\Http\Controllers\Controller;
+use App\Models\CircleCommunity;
+use App\Models\CircleCommunityMember;
 use App\Models\CircleProfile;
 use App\Models\CircleProfileVisitor;
 use App\Models\CircleProfileGuestbook;
@@ -14,12 +16,16 @@ use App\Models\CircleSkillEndorsement;
 use App\Models\CirclePoll;
 use App\Models\CirclePollOption;
 use App\Models\CirclePollVote;
+use App\Models\FinalProject;
+use App\Models\LmsSubmission;
 use App\Models\Notification;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\CircleCommunityService;
 use App\Services\CirclePointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -47,6 +53,9 @@ class CircleActionController extends Controller
             'longitude' => 'nullable|numeric',
             'is_live' => 'nullable|boolean',
             'live_stream_url' => 'nullable|string|max:500',
+            'reference_choice' => 'nullable|string|max:120',
+            'attachment' => 'nullable|file|max:30720', // max 30MB dokumen/modul/kode
+            'voice_note' => 'nullable|file|max:20480', // max 20MB rekaman suara
             'media' => 'nullable|file|max:51200', // max 50MB
             'media_files.*' => 'nullable|file|max:51200',
         ]);
@@ -105,7 +114,29 @@ class CircleActionController extends Controller
             ];
         }
 
-        $post = CirclePost::create([
+        // Siapkan lampiran dokumen/modul & referensi karya akademik terverifikasi jika ada
+        $attachmentPath = null;
+        $attachmentName = null;
+        if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
+            $attFile = $request->file('attachment');
+            $attachmentPath = $attFile->store('circle/attachments', 'public');
+            $attachmentName = $attFile->getClientOriginalName();
+        }
+
+        $referenceType = null;
+        $referenceId = null;
+        if ($request->filled('reference_choice') && str_contains($request->reference_choice, ':')) {
+            [$refPrefix, $refRawId] = explode(':', $request->reference_choice, 2);
+            if ($refPrefix === 'final_project' && is_numeric($refRawId)) {
+                $referenceType = FinalProject::class;
+                $referenceId = (int) $refRawId;
+            } elseif ($refPrefix === 'lms_submission' && is_numeric($refRawId)) {
+                $referenceType = LmsSubmission::class;
+                $referenceId = (int) $refRawId;
+            }
+        }
+
+        $postData = [
             'user_id' => $user->id,
             'post_type' => $request->post_type,
             'tab_category' => $request->tab_category,
@@ -130,7 +161,34 @@ class CircleActionController extends Controller
             'major_code' => $majorCode,
             'visibility' => 'public',
             'expires_at' => $expiresAt,
-        ]);
+        ];
+
+        if (Schema::hasColumn('circle_posts', 'attachment_path')) {
+            $postData['attachment_path'] = $attachmentPath;
+            $postData['attachment_name'] = $attachmentName;
+            $postData['reference_type'] = $referenceType;
+            $postData['reference_id'] = $referenceId;
+        }
+
+        $post = CirclePost::create($postData);
+
+        // Tangani Rekaman Suara (Voice Note) langsung dari browser
+        if ($request->hasFile('voice_note') && $request->file('voice_note')->isValid()) {
+            $vnFile = $request->file('voice_note');
+            $vnPath = $vnFile->store('circle/audio', 'public');
+            CirclePostMedia::create([
+                'circle_post_id' => $post->id,
+                'media_type' => 'audio',
+                'file_path' => $vnPath,
+                'aspect_ratio' => 'auto',
+                'order' => 0,
+                'metadata' => [
+                    'caption' => '🎙️ Rekaman Suara (Voice Note)',
+                    'original_name' => $vnFile->getClientOriginalName() ?: 'voice-note.webm',
+                    'size_bytes' => $vnFile->getSize(),
+                ],
+            ]);
+        }
 
         // Kumpulkan semua berkas media (mendukung multi-upload media_files[] maupun single media)
         $uploadedFiles = [];
@@ -187,6 +245,12 @@ class CircleActionController extends Controller
 
         if ($post->community_id) {
             $post->community?->increment('posts_count');
+            try {
+                app(CircleCommunityService::class)->enrollUser((int) $post->community_id, $user->id);
+                app(CircleCommunityService::class)->refreshCommunityCount((int) $post->community_id);
+            } catch (\Throwable $e) {
+                // Silent fail
+            }
         }
 
         // Tangani Polling Interaktif
@@ -1206,5 +1270,122 @@ class CircleActionController extends Controller
         $statusText = $guestbook->is_pinned ? 'Catatan manis berhasil disematkan di atas dinding! (+10 Poin untuk Pengirim ✨)' : 'Sematan catatan dilepas.';
 
         return redirect()->back()->with('success', $statusText);
+    }
+
+    /**
+     * Bergabung ke Grup / Komunitas PembdaCIRCLE (Kelas, Sanggar, Ekskul, Rumpun SMK, Angkatan, Alumni)
+     */
+    public function joinCommunity(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan masuk terlebih dahulu.');
+        }
+
+        $community = CircleCommunity::findOrFail($id);
+        $svc = app(CircleCommunityService::class);
+
+        $titleBadge = $request->input('title_badge');
+        if ($request->filled('section')) {
+            $titleBadge = 'Anggota • ' . trim($request->input('section'));
+        }
+
+        // Jika grup ini terhubung ke Ekstrakurikuler / Sanggar resmi dan pengguna adalah siswa, klaim juga keanggotaan Ekskul
+        if ($community->extracurricular_id && $user->student && $community->extracurricular) {
+            try {
+                app(\App\Services\ExtracurricularService::class)->claimMembership(
+                    $user->student,
+                    $community->extracurricular,
+                    'anggota',
+                    $request->input('notes'),
+                    $request->input('section')
+                );
+            } catch (\Throwable $e) {
+                // Silent fallback
+            }
+        }
+
+        $svc->enrollUser($community->id, $user->id, 'member', $titleBadge);
+        $svc->refreshCommunityCount($community->id);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "Selamat! Kamu resmi bergabung di {$community->name}!",
+            ]);
+        }
+
+        return redirect()->route('circle.feed', ['community' => $community->slug])
+            ->with('success', "🎉 Selamat bergabung di {$community->name}! Sekarang kamu bisa berdiskusi, pamer karya, dan berbagi update di ruang ini.");
+    }
+
+    /**
+     * Keluar dari Grup / Komunitas PembdaCIRCLE
+     */
+    public function leaveCommunity(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $community = CircleCommunity::findOrFail($id);
+
+        CircleCommunityMember::where('community_id', $community->id)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        app(CircleCommunityService::class)->refreshCommunityCount($community->id);
+
+        return redirect()->back()->with('success', "Kamu telah keluar dari grup {$community->name}.");
+    }
+
+    /**
+     * Buat Grup / Squad / Sanggar / Komunitas Baru di PembdaCIRCLE
+     */
+    public function createCommunity(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan masuk terlebih dahulu.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:120',
+            'type' => 'required|in:sanggar,extracurricular,vocation,cohort,alumni,squad,teachers',
+            'description' => 'nullable|string|max:600',
+            'icon' => 'nullable|string|max:15',
+            'cohort_year' => 'nullable|integer|min:1980|max:2040',
+            'major_code' => 'nullable|string|max:20',
+        ]);
+
+        $slug = Str::slug($request->name) . '-' . Str::lower(Str::random(4));
+        $typeMeta = CircleCommunity::TYPES[$request->type] ?? CircleCommunity::TYPES['squad'];
+
+        $data = [
+            'name' => trim($request->name),
+            'slug' => $slug,
+            'type' => $request->type,
+            'icon' => $request->filled('icon') ? trim($request->icon) : $typeMeta['icon'],
+            'description' => $request->description ?: ('Ruang Komunitas & Kolaborasi ' . trim($request->name) . ' di PembdaCIRCLE.'),
+            'school_id' => $request->boolean('is_foundation') ? null : $user->school_id,
+            'leader_user_id' => $user->id,
+            'is_public' => true,
+            'members_count' => 1,
+        ];
+
+        if (Schema::hasColumn('circle_communities', 'cohort_year')) {
+            $data['cohort_year'] = $request->cohort_year;
+            $data['major_code'] = $request->major_code;
+        }
+
+        $community = CircleCommunity::create($data);
+
+        $svc = app(CircleCommunityService::class);
+        $svc->enrollUser($community->id, $user->id, 'leader', $user->role === 'guru' ? 'Pembina / Mentor' : 'Founder / Ketua');
+        $svc->refreshCommunityCount($community->id);
+
+        return redirect()->route('circle.feed', ['community' => $community->slug])
+            ->with('success', "✨ Grup '{$community->name}' berhasil dibuat dan diaktifkan di PembdaCIRCLE!");
     }
 }

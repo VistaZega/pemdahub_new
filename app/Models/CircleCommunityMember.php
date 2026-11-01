@@ -15,6 +15,7 @@ class CircleCommunityMember extends Model
         'community_id',
         'user_id',
         'role', // 'leader', 'moderator', 'member'
+        'title_badge',
         'joined_at',
     ];
 

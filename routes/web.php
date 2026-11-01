@@ -2852,6 +2852,13 @@ Route::get('/run-migrations', function () {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $output .= "<h3>Migration Output:</h3><pre style='background:#f4f4f4;padding:12px;border:1px solid #ccc;'>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
 
+        try {
+            app(\App\Services\CircleCommunityService::class)->ensureEcosystemCommunities(true);
+            $output .= "<p style='color:#0284c7;font-weight:bold;'>✔ Ekosistem Grup PembdaCIRCLE (Kelas, Sanggar, Ekskul, Rumpun Kejuruan SMK, Angkatan & Alumni) berhasil disinkronkan!</p>";
+        } catch (\Throwable $syncErr) {
+            $output .= "<p style='color:#d97706;'>ℹ️ Catatan Sinkronisasi Circle: " . e($syncErr->getMessage()) . "</p>";
+        }
+
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 
@@ -3013,6 +3020,11 @@ Route::prefix('circle')->name('circle.')->group(function () {
     Route::post('/guestbook', [App\Http\Controllers\Circle\CircleActionController::class, 'storeGuestbook'])->name('guestbook.store');
     Route::delete('/guestbook/{id}', [App\Http\Controllers\Circle\CircleActionController::class, 'destroyGuestbook'])->name('guestbook.destroy');
     Route::post('/guestbook/{id}/pin', [App\Http\Controllers\Circle\CircleActionController::class, 'togglePinGuestbook'])->name('guestbook.pin');
+
+    // Grup & Komunitas (Kelas, Sanggar, Ekstrakurikuler, Rumpun SMK, Angkatan, Alumni, Squad)
+    Route::post('/community/{id}/join', [App\Http\Controllers\Circle\CircleActionController::class, 'joinCommunity'])->name('community.join');
+    Route::post('/community/{id}/leave', [App\Http\Controllers\Circle\CircleActionController::class, 'leaveCommunity'])->name('community.leave');
+    Route::post('/community/create', [App\Http\Controllers\Circle\CircleActionController::class, 'createCommunity'])->name('community.create');
     
     // Obrolan Langsung & Kotak Pesan Pribadi (DM)
     Route::get('/messages/inbox', [App\Http\Controllers\Circle\CircleActionController::class, 'getInbox'])->name('messages.inbox');

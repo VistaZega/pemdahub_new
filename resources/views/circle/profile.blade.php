@@ -411,6 +411,39 @@
                 </button>
             </div>
 
+            {{-- ── 2A-2. LENCANA KEANGGOTAAN GRUP KELAS, SANGGAR, EKSKUL, RUMPUN SMK, ANGKATAN & ALUMNI ── --}}
+            @if(isset($userCommunities) && $userCommunities->isNotEmpty())
+                <div class="mb-4 p-3.5 rounded-3xl bg-[#faf8f5] border-2 border-[#e8dfd1] shadow-2xs">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="fas fa-users text-purple-600"></i>
+                            <span>Grup Kelas, Sanggar, Ekstrakurikuler, Rumpun, Angkatan & Alumni ({{ $userCommunities->count() }} Grup):</span>
+                        </span>
+                        <a href="{{ route('circle.feed', ['tab' => 'groups']) }}" class="text-[10px] font-black text-purple-700 hover:underline">
+                            Direktori Grup ➔
+                        </a>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        @foreach($userCommunities as $uComm)
+                            @php
+                                $uCommType = $uComm->type_info;
+                                $pivotBadge = $uComm->pivot?->title_badge;
+                            @endphp
+                            <a href="{{ route('circle.feed', ['community' => $uComm->slug]) }}"
+                               class="px-3 py-1.5 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 hover:border-purple-400 text-xs font-black text-slate-950 transition flex items-center gap-1.5 shadow-2xs hover:scale-102">
+                                <span>{{ $uComm->display_icon }}</span>
+                                <span>{{ $uComm->name }}</span>
+                                @if($pivotBadge)
+                                    <span class="px-1.5 py-0.2 rounded-md bg-purple-100 text-purple-900 text-[9.5px] font-black border border-purple-200">
+                                        {{ $pivotBadge }}
+                                    </span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             {{-- Mood & Vibe Barometer (Kuning Pastel Manis) --}}
             @if($profile->mood_text)
                 <div class="mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-slate-950 text-xs font-black shadow-2xs hover:scale-102 transition-transform duration-200">

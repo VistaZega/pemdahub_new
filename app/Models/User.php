@@ -98,6 +98,110 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship: Komunitas / Grup di PembdaCIRCLE
+     */
+    public function circleCommunities()
+    {
+        return $this->belongsToMany(CircleCommunity::class, 'circle_community_members', 'user_id', 'community_id')
+            ->withPivot('role', 'title_badge', 'joined_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Relationship: Keanggotaan Komunitas PembdaCIRCLE
+     */
+    public function circleCommunityMemberships()
+    {
+        return $this->hasMany(CircleCommunityMember::class, 'user_id');
+    }
+
+    /**
+     * Accessor: Lencana Identitas Lengkap untuk PembdaCIRCLE (Peran, Kelas, Angkatan, Alumni, Sanggar/Ekskul)
+     */
+    public function getCircleIdentityBadgesAttribute(): array
+    {
+        $badges = [];
+
+        // 1. Cek Status Alumni (Role alumni, status siswa lulus/alumni, atau terdaftar di AlumniDirectory)
+        $isAlumniUser = $this->role === 'alumni'
+            || ($this->student && in_array($this->student->status, ['lulus', 'alumni']))
+            || ($this->relationLoaded('alumniDirectory') && $this->alumniDirectory);
+
+        if ($isAlumniUser) {
+            $gradYear = $this->alumniDirectory?->graduation_year
+                ?? $this->student?->graduation_year
+                ?? ($this->student?->entry_year ? ($this->student->entry_year + 3) : null);
+
+            $badges[] = [
+                'type' => 'alumni',
+                'icon' => '🎓',
+                'label' => $gradYear ? "Alumni '{$gradYear}" : 'IKA Alumni',
+                'css' => 'bg-indigo-100 text-indigo-900 border-indigo-300',
+            ];
+
+            if ($this->alumniDirectory?->occupation || $this->alumniDirectory?->company_name) {
+                $occ = trim(($this->alumniDirectory->occupation ?? '') . ($this->alumniDirectory->company_name ? ' @ ' . $this->alumniDirectory->company_name : ''));
+                if ($occ !== '') {
+                    $badges[] = [
+                        'type' => 'career',
+                        'icon' => '💼',
+                        'label' => \Illuminate\Support\Str::limit($occ, 28),
+                        'css' => 'bg-emerald-50 text-emerald-900 border-emerald-200',
+                    ];
+                }
+            }
+        } elseif ($this->role === 'guru' || $this->role === 'pegawai' || $this->teacher) {
+            $badges[] = [
+                'type' => 'teacher',
+                'icon' => '👨‍🏫',
+                'label' => 'Guru / Mentor',
+                'css' => 'bg-sky-100 text-sky-900 border-sky-300',
+            ];
+        } elseif (in_array($this->role, ['superadmin', 'ketua_yayasan', 'admin_yayasan', 'admin_sekolah', 'kepala_sekolah'])) {
+            $badges[] = [
+                'type' => 'admin',
+                'icon' => '👑',
+                'label' => 'Official Pembda',
+                'css' => 'bg-amber-100 text-amber-900 border-amber-300',
+            ];
+        } elseif ($this->student) {
+            // Kelas Aktif
+            $clsName = $this->student->classroom?->class_name ?? $this->student->classroom?->name;
+            if ($clsName) {
+                $badges[] = [
+                    'type' => 'class',
+                    'icon' => '🏫',
+                    'label' => $clsName,
+                    'css' => 'bg-sky-50 text-sky-900 border-sky-200',
+                ];
+            }
+
+            // Angkatan (Entry Year)
+            if ($this->student->entry_year) {
+                $badges[] = [
+                    'type' => 'cohort',
+                    'icon' => '📅',
+                    'label' => 'Angkatan ' . $this->student->entry_year,
+                    'css' => 'bg-emerald-50 text-emerald-900 border-emerald-200',
+                ];
+            }
+        }
+
+        // 2. Flair Sanggar / Ekstrakurikuler (Ketua / Pembina / Section / Anggota)
+        $flair = $this->ekskul_flair;
+        if ($flair) {
+            $badges[] = [
+                'type' => 'ekskul',
+                'icon' => $flair['icon'] ?? '🎭',
+                'label' => $flair['short_label'] ?? $flair['label'],
+                'css' => 'bg-pink-100 text-pink-900 border-pink-300',
+            ];
+        }
+
+        return $badges;
+    }
+
+    /**
      * Relationship: User dapat menjadi Orang Tua
      */
     public function parents()

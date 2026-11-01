@@ -111,19 +111,23 @@ class StudentExtracurricularController extends Controller
         $this->ekskulService->claimMembership($student, $extracurricular, 'anggota', $notes, $section);
 
         $sectionMsg = $section ? " (Section: {$section})" : "";
-        return back()->with('success', "Selamat! Anda resmi terdaftar sebagai anggota {$extracurricular->name}{$sectionMsg} (+15 Poin Reputasi). Kanal Pembda Space Anda kini telah aktif!");
+        return back()->with('success', "Selamat! Anda resmi terdaftar sebagai anggota {$extracurricular->name}{$sectionMsg} (+15 Poin Reputasi). Grup Sanggar/Ekskul Anda di PembdaCIRCLE kini telah aktif!");
     }
 
     /**
-     * Direct Squad Lounge opener: Auto-provisions forum group, registers member if needed, and redirects.
+     * Direct Squad Lounge opener: Auto-provisions CircleCommunity & ForumGroup, registers member if needed, and redirects to PembdaCIRCLE.
      */
     public function openSpace(Request $request, Extracurricular $extracurricular)
     {
         $user = Auth::user();
         $student = $user->student;
 
-        // Auto-provision or verify ForumGroup
+        // Auto-provision or verify ForumGroup (legacy)
         $forumGroup = $this->ekskulService->ensureForumGroup($extracurricular);
+
+        // Auto-provision or verify CircleCommunity (PembdaCIRCLE)
+        $circleSvc = app(\App\Services\CircleCommunityService::class);
+        $circleCommunity = $circleSvc->ensureExtracurricularCommunity($extracurricular);
 
         // Ensure user is enrolled into group members
         if ($user) {
@@ -135,24 +139,28 @@ class StudentExtracurricularController extends Controller
                     ->first();
             }
 
+            $isOfficer = $membership && in_array($membership->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara']);
+
             \App\Models\ForumGroupMember::firstOrCreate(
                 [
                     'group_id' => $forumGroup->id,
                     'user_id' => $user->id,
                 ],
                 [
-                    'role' => ($membership && in_array($membership->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara'])) ? 'moderator' : 'member',
+                    'role' => $isOfficer ? 'moderator' : 'member',
                     'joined_at' => now(),
                 ]
             );
+
+            $badgeTitle = $membership ? ($membership->role_label ?? ucfirst($membership->role ?? 'Anggota')) : 'Anggota';
+            if ($membership && $membership->section) {
+                $badgeTitle .= ' • ' . $membership->section;
+            }
+            $circleSvc->enrollUser($circleCommunity->id, $user->id, $isOfficer ? 'moderator' : 'member', $badgeTitle);
+            $circleSvc->refreshCommunityCount($circleCommunity->id);
         }
 
-        // Detect if request is from mobile app/view
-        if ($request->header('User-Agent') && (str_contains(strtolower($request->header('User-Agent')), 'mobile') || str_contains(strtolower($request->header('User-Agent')), 'android') || str_contains(strtolower($request->header('User-Agent')), 'iphone'))) {
-            return redirect()->route('mobile.space.group.show', $forumGroup->id);
-        }
-
-        return redirect()->route('forum.index', ['group' => $forumGroup->id]);
+        return redirect()->route('circle.feed', ['community' => $circleCommunity->slug]);
     }
 
     /**

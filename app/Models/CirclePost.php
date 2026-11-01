@@ -32,6 +32,11 @@ class CirclePost extends Model
         'live_status',
         'live_stream_url',
         'live_updates',
+        'attachment_path',
+        'attachment_name',
+        'reference_type',
+        'reference_id',
+        'recruitment_meta',
         'tagged_user_ids',
         'school_id',
         'major_code',
@@ -50,6 +55,7 @@ class CirclePost extends Model
         'longitude' => 'float',
         'is_live' => 'boolean',
         'live_updates' => 'array',
+        'recruitment_meta' => 'array',
         'tagged_user_ids' => 'array',
         'is_pinned' => 'boolean',
         'expires_at' => 'datetime',
@@ -142,6 +148,69 @@ class CirclePost extends Model
     }
 
     /**
+     * URL Berkas Lampiran Modul / Dokumen (PDF, Word, Excel, ZIP)
+     */
+    public function getAttachmentUrlAttribute(): ?string
+    {
+        if (empty($this->attachment_path)) {
+            return null;
+        }
+        return asset('storage/' . ltrim($this->attachment_path, '/'));
+    }
+
+    /**
+     * Resolve Kartu Karya Akademik Terverifikasi (LMS Submission, Final Project, CBT Result, Ekskul Activity)
+     */
+    public function getVerifiedReferenceCardAttribute(): ?array
+    {
+        if (empty($this->reference_type) || empty($this->reference_id)) {
+            return null;
+        }
+
+        try {
+            if ($this->reference_type === 'final_project' && class_exists(FinalProject::class)) {
+                $fp = FinalProject::with(['student.school', 'advisor.user'])->find($this->reference_id);
+                if ($fp) {
+                    $isSma = str_contains(strtolower($fp->project_type ?? ''), 'penelitian') || str_contains(strtolower($fp->student?->school?->name ?? ''), 'sma');
+                    return [
+                        'badge' => $isSma ? '🔬 PENELITIAN ILMIAH SMA TERVERIFIKASI' : '🛠️ PROJECT AKHIR SMK TERVERIFIKASI',
+                        'icon' => $isSma ? '🔬' : '🛠️',
+                        'title' => $fp->title,
+                        'subtitle' => 'Pembimbing: ' . ($fp->advisor?->user?->name ?? $fp->advisor?->full_name ?? 'Tim Pembimbing') . ($fp->final_score ? " • Nilai: {$fp->final_score}" : ''),
+                        'color' => 'emerald',
+                    ];
+                }
+            } elseif ($this->reference_type === 'lms_submission' && class_exists(LmsSubmission::class)) {
+                $sub = LmsSubmission::with(['assignment.course.subject'])->find($this->reference_id);
+                if ($sub && $sub->assignment) {
+                    return [
+                        'badge' => '📚 TUGAS & KARYA LMS TERVERIFIKASI',
+                        'icon' => '📚',
+                        'title' => $sub->assignment->title,
+                        'subtitle' => ($sub->assignment->course?->subject?->name ?? $sub->assignment->course?->course_name ?? 'Modul LMS') . ($sub->score !== null ? " • Skor: {$sub->score}/100" : ' • Terkumpul'),
+                        'color' => 'sky',
+                    ];
+                }
+            } elseif ($this->reference_type === 'ekskul_activity' && class_exists(ExtracurricularActivity::class)) {
+                $act = ExtracurricularActivity::with('extracurricular')->find($this->reference_id);
+                if ($act) {
+                    return [
+                        'badge' => '🎭 DOKUMENTASI RESMI SANGGAR / EKSKUL',
+                        'icon' => $act->extracurricular?->display_icon ?? '🏆',
+                        'title' => $act->title,
+                        'subtitle' => ($act->extracurricular?->name ?? 'Unit Ekstrakurikuler') . ($act->location ? " • 📍 {$act->location}" : ''),
+                        'color' => 'amber',
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
      * Dapatkan URL Google Maps jika koordinat GPS atau lokasi tersedia
      */
     public function getGoogleMapsUrlAttribute(): ?string
@@ -178,6 +247,7 @@ class CirclePost extends Model
     {
         $authorName = $this->user?->name ?? 'Warga Pembda';
         $schoolName = $this->school?->name ?? ($this->user?->school?->name ?? 'Perguruan Pembda Nias');
+        $communityName = $this->community?->name;
 
         // Tentukan Kategori & Headline Siaran
         if ($this->is_live || $this->post_type === 'live') {
@@ -215,11 +285,14 @@ class CirclePost extends Model
         $imageUrl = $firstImage ? $firstImage->url : $logoUrl;
 
         // URL Bersih (Tanpa #hash agar bot WhatsApp/Telegram selalu menampilkan preview gambar & tidak duplikat)
-        $shareUrl = route('circle.feed', ['post' => $this->id]);
+        $shareUrl = route('circle.feed', array_filter(['post' => $this->id, 'community' => $this->community?->slug]));
 
         // Susun Kalimat Siaran (Format WhatsApp & Social Media yang Rapi & Menarik)
         $lines = [];
         $lines[] = "*{$badge}*";
+        if ($communityName) {
+            $lines[] = "👥 *Grup/Komunitas:* {$communityName}";
+        }
         if ($this->event_name || $this->title) {
             $lines[] = "📌 *Kegiatan/Topik:* {$headline}";
         }
@@ -252,6 +325,7 @@ class CirclePost extends Model
             'id' => $this->id,
             'badge' => $badge,
             'headline' => $headline,
+            'community_name' => $communityName,
             'event_name' => $this->event_name,
             'time' => $timeFormatted,
             'location' => $locationFormatted,

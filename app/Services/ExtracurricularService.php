@@ -62,6 +62,13 @@ class ExtracurricularService
             // 3. Register Leadership as Members if provided
             $this->syncLeadershipMembers($ekskul, $userId);
 
+            // 4. Auto-provision & sync PembdaCIRCLE Community (Sanggar / Ekskul)
+            try {
+                app(CircleCommunityService::class)->ensureExtracurricularCommunity($ekskul);
+            } catch (\Throwable $e) {
+                // Silent fail if table not migrated yet
+            }
+
             return $ekskul;
         });
     }
@@ -100,6 +107,13 @@ class ExtracurricularService
             }
 
             $this->syncLeadershipMembers($ekskul, $userId);
+
+            // Sinkronkan juga ke Grup PembdaCIRCLE (Sanggar / Ekstrakurikuler)
+            try {
+                app(CircleCommunityService::class)->ensureExtracurricularCommunity($ekskul);
+            } catch (\Throwable $e) {
+                // Silent fail if table not migrated yet
+            }
 
             return $ekskul;
         });
@@ -193,6 +207,23 @@ class ExtracurricularService
                     'joined_at' => now(),
                 ]
             );
+        }
+
+        // 1b. Join CircleCommunity in PembdaCIRCLE (Grup Sanggar / Ekskul)
+        if ($student->user_id) {
+            try {
+                $circleSvc = app(CircleCommunityService::class);
+                $circleCommunity = $circleSvc->ensureExtracurricularCommunity($ekskul);
+                $circleRole = in_array($member->role, ['ketua', 'wakil_ketua', 'sekretaris', 'bendahara']) ? 'moderator' : 'member';
+                $badgeTitle = $member->role_label ?? ucfirst($member->role ?? 'Anggota');
+                if ($member->section) {
+                    $badgeTitle .= ' • ' . $member->section;
+                }
+                $circleSvc->enrollUser($circleCommunity->id, $student->user_id, $circleRole, $badgeTitle);
+                $circleSvc->refreshCommunityCount($circleCommunity->id);
+            } catch (\Throwable $e) {
+                // Silent fail if table not migrated yet
+            }
         }
 
         // 2. Award Gamification Reputation Points
@@ -312,7 +343,7 @@ class ExtracurricularService
             "---\n" .
             "✨ *Dipublikasikan secara resmi oleh Pembina " . ($ekskul->name) . " melalui Pembda Space.*";
 
-        return ForumThread::create([
+        $thread = ForumThread::create([
             'user_id' => $author->id,
             'group_id' => $forumGroup->id,
             'title' => "🏆 [SHOWCASE " . strtoupper($ekskul->name) . "] " . $activity->title,
@@ -322,6 +353,15 @@ class ExtracurricularService
             'is_pinned' => false,
             'views_count' => 1,
         ]);
+
+        // Publikasikan otomatis juga ke Grup Sanggar/Ekskul di PembdaCIRCLE
+        try {
+            app(CircleCommunityService::class)->broadcastActivityToCircle($activity, $author);
+        } catch (\Throwable $e) {
+            // Silent fail
+        }
+
+        return $thread;
     }
 
     /**

@@ -4,12 +4,15 @@
 ═══════════════════════════════════════════════════════════════════════════ --}}
 @php
     $composerUser = Auth::user();
+    $composerCommunities = isset($myCommunities) ? $myCommunities : ($composerUser ? $composerUser->circleCommunities()->get() : collect());
+    $defaultCommunityId = isset($activeCommunity) && $activeCommunity ? $activeCommunity->id : '';
+    $academicWorksList = isset($userAcademicWorks) ? $userAcademicWorks : collect();
 @endphp
 
 @if($composerUser)
 <div id="quick-post-box"
      class="bg-white rounded-3xl border-2 border-pink-200 p-5 sm:p-6 shadow-xs relative overflow-hidden transition-all duration-300 mb-6"
-     x-data="circlePostComposer()">
+     x-data="circlePostComposer('{{ $defaultCommunityId }}')">
 
     {{-- Header Sapaan Penulis --}}
     <div class="flex items-center justify-between gap-3 mb-3.5 flex-wrap">
@@ -53,6 +56,30 @@
         <input type="hidden" name="mood_text" :value="moodText">
         <input type="hidden" name="latitude" :value="latitude">
         <input type="hidden" name="longitude" :value="longitude">
+
+        {{-- ── 0. PILIHAN TARGET GRUP / KOMUNITAS (Kelas, Sanggar, Ekskul, Rumpun SMK, Angkatan, Alumni) ── --}}
+        <div class="mb-3.5 p-2.5 sm:px-3.5 rounded-2xl bg-gradient-to-r from-[#faf5ff] via-[#fff8f1] to-[#f0f9ff] border-2 border-purple-200/80 flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2 text-xs font-black text-slate-900">
+                <span class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-[11px] shrink-0">🎯</span>
+                <span>Tujuan Publikasi:</span>
+            </div>
+            <div class="flex-1 min-w-[210px]">
+                <select name="community_id" x-model="selectedCommunityId"
+                        class="w-full px-3 py-1.5 rounded-xl bg-white border-2 border-purple-200 text-xs font-black text-slate-950 focus:outline-none focus:border-purple-500 cursor-pointer">
+                    <option value="">🌐 Panggung Utama (Publik Seluruh Warga Pembda)</option>
+                    @if(isset($activeCommunity) && $activeCommunity && !$composerCommunities->contains('id', $activeCommunity->id))
+                        <option value="{{ $activeCommunity->id }}">
+                            {{ $activeCommunity->display_icon }} [{{ $activeCommunity->type_info['label'] }}] {{ $activeCommunity->name }}
+                        </option>
+                    @endif
+                    @foreach($composerCommunities as $comm)
+                        <option value="{{ $comm->id }}">
+                            {{ $comm->display_icon }} [{{ $comm->type_info['label'] }}] {{ $comm->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
 
         {{-- ── 1. PILIHAN MODE POSTINGAN (Nongki, Laporan Kegiatan, LIVE, Kilas, Karya, Galeri) ── --}}
         <div class="flex items-center gap-2 mb-3.5 overflow-x-auto pb-1.5 custom-scrollbar">
@@ -422,7 +449,95 @@
             </div>
         </div>
 
-        {{-- ── 10. PANDUAN PROSES UPLOAD REAL-TIME (PROGRESS BAR 0% - 100% SAMPAI TAMPIL) ── --}}
+        {{-- ── 9B. PANEL REKAM SUARA LANGSUNG (VOICE NOTE BROWSER) ── --}}
+        <div x-show="showVoicePanel" x-collapse x-transition class="mb-3.5 p-4 rounded-2xl bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 border-2 border-pink-300 space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black uppercase tracking-wider text-pink-950 flex items-center gap-1.5">
+                    <span>🎙️</span>
+                    <span>Rekam Suara / Voice Note Langsung</span>
+                </span>
+                <button type="button" @click="showVoicePanel = false" class="text-xs font-black text-slate-500 hover:text-rose-600 cursor-pointer">
+                    ✕ Tutup
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 flex-wrap bg-white p-3 rounded-xl border border-pink-200">
+                <div class="flex items-center gap-2.5">
+                    <button type="button"
+                            @click="toggleVoiceRecording()"
+                            :class="isRecordingVoice ? 'bg-rose-600 text-white animate-pulse' : 'bg-pink-600 hover:bg-pink-700 text-white'"
+                            class="px-4 py-2 rounded-xl text-xs font-black cursor-pointer transition flex items-center gap-2 shadow-xs">
+                        <i class="fas" :class="isRecordingVoice ? 'fa-stop' : 'fa-microphone'"></i>
+                        <span x-text="isRecordingVoice ? ('⏹️ Hentikan (' + voiceRecordSeconds + 'd)') : (voicePreviewUrl ? '🎙️ Rekam Ulang' : '🎙️ Mulai Rekam Suara')"></span>
+                    </button>
+                    <span x-show="isRecordingVoice" class="text-xs font-black text-rose-600">Sedang merekam suara Anda...</span>
+                </div>
+
+                <template x-if="voicePreviewUrl">
+                    <div class="flex items-center gap-2 flex-1 min-w-[220px]">
+                        <audio :src="voicePreviewUrl" controls class="h-9 flex-1"></audio>
+                        <button type="button" @click="clearVoiceRecording()"
+                                class="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 text-[11px] font-black cursor-pointer">
+                            ✕ Hapus
+                        </button>
+                    </div>
+                </template>
+            </div>
+            <div x-show="voiceError" class="text-[11px] font-bold text-rose-600" x-text="voiceError"></div>
+            <input type="file" name="voice_note" x-ref="voiceNoteInput" accept="audio/*" class="hidden">
+        </div>
+
+        {{-- ── 9C. PANEL LAMPIRAN DOKUMEN / MODUL & REFERENSI KARYA AKADEMIK TERVERIFIKASI ── --}}
+        <div x-show="showAttachmentPanel" x-collapse x-transition class="mb-3.5 p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-amber-50/60 to-emerald-50/70 border-2 border-indigo-200 space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
+                    <span>📎</span>
+                    <span>Lampiran Modul / Dokumen & Karya Akademik Terverifikasi</span>
+                </span>
+                <button type="button" @click="showAttachmentPanel = false" class="text-xs font-black text-slate-500 hover:text-rose-600 cursor-pointer">
+                    ✕ Tutup
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {{-- Lampirkan Berkas Dokumen / Modul / Kode --}}
+                <div class="p-3 rounded-xl bg-white border border-indigo-200">
+                    <label class="block text-[11px] font-black text-slate-900 mb-1.5">
+                        📄 Lampirkan Dokumen / Modul (PDF, Word, Excel, PPT, ZIP):
+                    </label>
+                    <input type="file" name="attachment"
+                           @change="attachmentFileName = $event.target.files[0] ? $event.target.files[0].name : ''"
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.ino,.py"
+                           class="w-full text-xs font-bold text-slate-700 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-black file:bg-indigo-100 file:text-indigo-900 hover:file:bg-indigo-200 cursor-pointer">
+                    <div x-show="attachmentFileName" class="mt-1.5 text-[11px] font-black text-emerald-700 flex items-center gap-1">
+                        <i class="fas fa-circle-check"></i>
+                        <span x-text="'Siap dilampirkan: ' + attachmentFileName"></span>
+                    </div>
+                </div>
+
+                {{-- Kaitkan Karya Akademik Terverifikasi (Tugas LMS / Penelitian SMA / Project SMK) --}}
+                <div class="p-3 rounded-xl bg-white border border-amber-200">
+                    <label class="block text-[11px] font-black text-slate-900 mb-1.5">
+                        🎓 Kaitkan Karya Akademik Terverifikasi (LMS / Tugas Akhir):
+                    </label>
+                    @if($academicWorksList->isNotEmpty())
+                        <select name="reference_choice" x-model="selectedReference"
+                                class="w-full px-3 py-1.5 rounded-xl bg-amber-50/70 border border-amber-300 text-xs font-black text-slate-950 focus:outline-none focus:border-amber-500">
+                            <option value="">-- Tanpa Referensi Karya Akademik --</option>
+                            @foreach($academicWorksList as $work)
+                                <option value="{{ $work['ref_value'] }}">
+                                    {{ $work['badge'] }}: {{ Str::limit($work['title'], 42) }}{{ $work['score'] ? ' (Nilai: ' . $work['score'] . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div class="text-[11px] font-semibold text-slate-500 leading-snug">
+                            Tugas LMS atau Project Akhir/Penelitian yang sudah kamu kumpulkan akan otomatis muncul di sini untuk dipamerkan dengan lencana Terverifikasi.
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
         <div x-show="isSubmitting || uploadError || uploadSuccess" x-transition
              class="mb-4 p-4 rounded-2xl border-2"
              :class="uploadError ? 'bg-rose-50 border-rose-300' : (uploadSuccess ? 'bg-emerald-50 border-emerald-300' : 'bg-sky-50 border-sky-300')">
@@ -504,6 +619,22 @@
                     <span x-text="selectedMood || '✨'"></span>
                     <span class="hidden md:inline">Mood</span>
                 </button>
+
+                {{-- Tombol Voice Note (Rekam Suara) --}}
+                <button type="button" @click="showVoicePanel = !showVoicePanel"
+                        :class="(showVoicePanel || voicePreviewUrl || isRecordingVoice) ? 'bg-rose-100 border-rose-400 text-rose-950 font-black' : 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-slate-950 font-bold'"
+                        class="px-3 py-2 rounded-2xl border-2 text-xs cursor-pointer transition flex items-center gap-1.5 hover:scale-105">
+                    <span>🎙️</span>
+                    <span class="hidden sm:inline">Voice Note</span>
+                </button>
+
+                {{-- Tombol Modul / Dokumen & Karya LMS --}}
+                <button type="button" @click="showAttachmentPanel = !showAttachmentPanel"
+                        :class="(showAttachmentPanel || attachmentFileName || selectedReference) ? 'bg-indigo-100 border-indigo-400 text-indigo-950 font-black' : 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-slate-950 font-bold'"
+                        class="px-3 py-2 rounded-2xl border-2 text-xs cursor-pointer transition flex items-center gap-1.5 hover:scale-105">
+                    <span>📎</span>
+                    <span class="hidden sm:inline">Modul / Karya LMS</span>
+                </button>
             </div>
 
             {{-- Tombol Submit Utama --}}
@@ -523,7 +654,7 @@
 
 <script>
 if (typeof window.circlePostComposer !== 'function') {
-    window.circlePostComposer = function () {
+    window.circlePostComposer = function (initialCommunityId = '') {
         const nowLocal = new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         return {
             isSubmitting: false,
@@ -533,12 +664,26 @@ if (typeof window.circlePostComposer !== 'function') {
             uploadError: '',
             uploadSuccess: false,
 
+            selectedCommunityId: initialCommunityId || '',
             tabCat: 'wall',
             postType: 'status',
             mediaLayout: 'bottom',
             showTitleInput: false,
             showEventPanel: false,
             showMoodPanel: false,
+            showVoicePanel: false,
+            showAttachmentPanel: false,
+
+            attachmentFileName: '',
+            selectedReference: '',
+
+            isRecordingVoice: false,
+            voiceRecorder: null,
+            voiceChunks: [],
+            voicePreviewUrl: '',
+            voiceRecordSeconds: 0,
+            voiceTimer: null,
+            voiceError: '',
 
             postTitle: '',
             postContent: '',
@@ -737,6 +882,70 @@ if (typeof window.circlePostComposer !== 'function') {
 
             removePollOption(idx) {
                 if (this.pollOptions.length > 2) this.pollOptions.splice(idx, 1);
+            },
+
+            async toggleVoiceRecording() {
+                this.voiceError = '';
+                if (this.isRecordingVoice && this.voiceRecorder) {
+                    this.voiceRecorder.stop();
+                    this.isRecordingVoice = false;
+                    if (this.voiceTimer) clearInterval(this.voiceTimer);
+                    return;
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    this.voiceError = 'Browser Anda tidak mendukung perekaman suara langsung.';
+                    return;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.voiceChunks = [];
+                    this.voiceRecorder = new MediaRecorder(stream);
+
+                    this.voiceRecorder.ondataavailable = (ev) => {
+                        if (ev.data && ev.data.size > 0) {
+                            this.voiceChunks.push(ev.data);
+                        }
+                    };
+
+                    this.voiceRecorder.onstop = () => {
+                        const blob = new Blob(this.voiceChunks, { type: 'audio/webm' });
+                        this.voicePreviewUrl = URL.createObjectURL(blob);
+                        const file = new File([blob], 'voice-note-' + Date.now() + '.webm', { type: 'audio/webm' });
+                        if (this.$refs.voiceNoteInput) {
+                            try {
+                                const dt = new DataTransfer();
+                                dt.items.add(file);
+                                this.$refs.voiceNoteInput.files = dt.files;
+                            } catch (err) {
+                                console.warn('Voice note sync warning:', err);
+                            }
+                        }
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+
+                    this.voiceRecorder.start();
+                    this.isRecordingVoice = true;
+                    this.voiceRecordSeconds = 0;
+                    this.voiceTimer = setInterval(() => {
+                        this.voiceRecordSeconds++;
+                        if (this.voiceRecordSeconds >= 180 && this.isRecordingVoice) {
+                            this.toggleVoiceRecording();
+                        }
+                    }, 1000);
+                } catch (err) {
+                    this.voiceError = 'Gagal mengakses mikrofon. Pastikan izin Mikrofon diberikan pada browser.';
+                }
+            },
+
+            clearVoiceRecording() {
+                this.voicePreviewUrl = '';
+                this.voiceChunks = [];
+                this.voiceRecordSeconds = 0;
+                if (this.$refs.voiceNoteInput) {
+                    this.$refs.voiceNoteInput.value = '';
+                }
             },
 
             submitWithProgress(e) {
