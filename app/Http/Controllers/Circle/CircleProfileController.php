@@ -15,6 +15,9 @@ use App\Models\User;
 use App\Models\FinalProject;
 use App\Models\PklLog;
 use App\Models\StudentCounselingRecord;
+use App\Models\Reputation;
+use App\Models\ReputationLog;
+use App\Services\CirclePointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -26,6 +29,8 @@ class CircleProfileController extends Controller
      */
     public function show(Request $request, string $username)
     {
+        CirclePointService::ensureExistingCircleInteractionsSynced();
+
         // Bersihkan tanda '@' jika ada di URL
         $cleanUsername = ltrim(trim($username), '@');
 
@@ -88,6 +93,9 @@ class CircleProfileController extends Controller
                 $visitorRecord->visit_count = ($visitorRecord->visit_count ?? 0) + 1;
                 $visitorRecord->last_visited_at = now();
                 $visitorRecord->save();
+
+                // Berikan +1 Poin Apresiasi Kunjungan Unik Pertama
+                CirclePointService::awardUniqueVisitor($profile, $visitorRecord, Auth::user());
 
                 session()->put($visitSessionKey, true);
 
@@ -221,6 +229,44 @@ class CircleProfileController extends Controller
             ->latest()
             ->get();
 
+        // Data Reputasi, Level, Peringkat Global & Wall Jejak Perolehan Poin
+        $reputation = Reputation::firstOrCreate(
+            ['user_id' => $user->id],
+            ['total_points' => 0, 'level_name' => 'Newbie']
+        );
+        $userRank = Reputation::where('total_points', '>', $reputation->total_points)->count() + 1;
+
+        // Ambil 120 jejak perolehan poin terbaru untuk ditampilkan di Wall Jejak Poin
+        $pointLogs = ReputationLog::where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->take(120)
+            ->get();
+
+        // Hitung rincian total poin berdasarkan 3 sumber utama (Circle, Akademik/Prestasi, & Arsip Historis PembdaSPACE)
+        $allLogsByCategory = ReputationLog::where('user_id', $user->id)
+            ->selectRaw('category, SUM(points) as sum_points, COUNT(*) as count_logs')
+            ->groupBy('category')
+            ->get();
+
+        $circlePointsTotal = 0;
+        $academicPointsTotal = 0;
+        $achievementPointsTotal = 0;
+        $spaceLegacyPointsTotal = 0;
+
+        foreach ($allLogsByCategory as $row) {
+            $meta = CirclePointService::getCategoryBadgeMeta((string) $row->category);
+            if ($meta['group'] === 'circle') {
+                $circlePointsTotal += (int) $row->sum_points;
+            } elseif ($meta['group'] === 'academic') {
+                $academicPointsTotal += (int) $row->sum_points;
+            } elseif ($meta['group'] === 'achievement') {
+                $achievementPointsTotal += (int) $row->sum_points;
+            } else {
+                $spaceLegacyPointsTotal += (int) $row->sum_points;
+            }
+        }
+
         return view('circle.profile', compact(
             'profile',
             'user',
@@ -233,7 +279,14 @@ class CircleProfileController extends Controller
             'achievements',
             'skillEndorsements',
             'recentVisitors',
-            'guestbookEntries'
+            'guestbookEntries',
+            'reputation',
+            'userRank',
+            'pointLogs',
+            'circlePointsTotal',
+            'academicPointsTotal',
+            'achievementPointsTotal',
+            'spaceLegacyPointsTotal'
         ));
     }
 }

@@ -407,15 +407,9 @@ class MobileSpaceController extends Controller
             'views_count' => 0,
         ]);
 
-        // Gamification: +15 Poin Reputasi (non-blocking)
-        try {
-            \App\Models\ReputationLog::log($user->id, 15, 'forum', "Membuat postingan Pembda Space: {$thread->title}", $thread);
-        } catch (\Throwable $th) {
-            \Log::warning("Reputation log error for thread {$thread->id}: " . $th->getMessage());
-        }
-
+        // Sistem Poin PembdaSPACE telah dialihkan ke PembdaCIRCLE
         return redirect()->route('mobile.space.show', $thread->id)
-            ->with('success', 'Postingan berhasil dibuat di Pembda Space! (+15 Poin Reputasi)');
+            ->with('success', 'Postingan berhasil dibuat di Pembda Space! (Info: Poin Reputasi baru kini diperoleh di PembdaCIRCLE ✨)');
     }
 
     public function show($id)
@@ -460,14 +454,11 @@ class MobileSpaceController extends Controller
             'content' => $validated['content'],
         ]);
 
-        // Gamification: +5 Poin Reputasi
-        \App\Models\ReputationLog::log($user->id, 5, 'forum', "Mengomentari postingan Space: {$thread->title}", $reply);
-
         if ($thread->user_id !== $user->id) {
             \App\Services\WebPushService::notifyForumReply($thread, $reply, $thread->user);
         }
 
-        return back()->with('success', 'Komentar Anda berhasil dikirim! (+5 Poin Reputasi)');
+        return back()->with('success', 'Komentar Anda berhasil dikirim! (Poin Reputasi baru kini diperoleh di PembdaCIRCLE)');
     }
 
     public function like($id)

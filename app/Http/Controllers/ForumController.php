@@ -412,30 +412,8 @@ class ForumController extends Controller
 
             $thread = ForumThread::create($threadData);
 
-            // Gamification hook: Pembobotan berbasis mutu & konten bernilai (Quality Over Quantity)
-            $repPoints = 5;
-            $repMsg = "Membuat topik diskusi: {$thread->title}";
-            $successMsg = "Topik diskusi berhasil diterbitkan! (+5 Poin Reputasi)";
-
-            if (!empty($thread->reference_type)) {
-                $repPoints = 35; // Karya LMS Terverifikasi / Project Akhir SMK / Riset
-                $repMsg = "Mempublikasikan Karya Nyata Terverifikasi: {$thread->title}";
-                $successMsg = "Karya nyata Anda berhasil dipublikasikan ke PembdaSPACE! (+35 Poin Reputasi Inovasi)";
-            } elseif ($category === 'steam_challenge') {
-                $repPoints = 30; // Tantangan STEAM
-                $repMsg = "Menerbitkan Tantangan STEAM & Inovasi: {$thread->title}";
-                $successMsg = "Tantangan STEAM & Inovasi berhasil diterbitkan! (+30 Poin Reputasi)";
-            } elseif (in_array($category, ['tanya_jawab', 'sharing', 'project_idea', 'edutech_radar'])) {
-                $repPoints = 15; // Konten berbobot akademik & pengetahuan
-                $repMsg = "Membagikan materi/ide proyek akademik: {$thread->title}";
-                $successMsg = "Topik akademik berhasil diterbitkan! (+15 Poin Reputasi)";
-            }
-
-            try {
-                ReputationLog::log($user->id, $repPoints, 'forum', $repMsg, $thread);
-            } catch (\Throwable $th) {
-                \Log::warning("Reputation log error for thread {$thread->id}: " . $th->getMessage());
-            }
+            // Sistem Poin PembdaSPACE telah dialihkan ke PembdaCIRCLE (Poin lama tetap dipertahankan)
+            $successMsg = "Topik diskusi berhasil diterbitkan! (Info: Perolehan Poin Reputasi baru kini telah beralih ke PembdaCIRCLE ✨)";
 
             DB::commit();
 
@@ -539,22 +517,8 @@ class ForumController extends Controller
                 'parent_reply_id' => $validated['parent_reply_id'] ?? null,
             ]);
 
-            // Gamification hook: apresiasi lebih tinggi untuk solusi Tantangan STEAM & jawaban akademik
-            $replyPoints = 5;
-            $replyDesc = "Mengomentari diskusi: {$thread->title}";
-            $replyMsg = "Komentar ditambahkan! (+5 Poin Reputasi)";
-
-            if ($thread->category === 'steam_challenge') {
-                $replyPoints = 20; // Mengirimkan solusi nyata untuk tantangan STEAM
-                $replyDesc = "Mengirimkan solusi Tantangan STEAM: {$thread->title}";
-                $replyMsg = "Solusi Tantangan STEAM berhasil dikirim! (+20 Poin Reputasi)";
-            } elseif ($thread->category === 'tanya_jawab') {
-                $replyPoints = 10; // Membantu menjawab pertanyaan belajar
-                $replyDesc = "Membantu menjawab di forum: {$thread->title}";
-                $replyMsg = "Jawaban berhasil dikirim! (+10 Poin Reputasi)";
-            }
-
-            ReputationLog::log($user->id, $replyPoints, 'forum', $replyDesc, $reply);
+            // Sistem Poin PembdaSPACE telah dialihkan ke PembdaCIRCLE
+            $replyMsg = "Komentar berhasil ditambahkan! (Poin Reputasi baru kini diperoleh melalui apresiasi di PembdaCIRCLE)";
 
             // Notification: Send to thread author or parent reply author
             $targetUserId = null;
@@ -676,8 +640,7 @@ class ForumController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($reply->voice_note_path);
             }
 
-            // Remove reputation points
-            ReputationLog::removeLog($reply->user_id, ForumReply::class, $reply->id);
+            // Poin historis tetap dipertahankan (tidak dihapus)
 
             // Re-assign child replies to parent of this reply (or top-level)
             ForumReply::where('parent_reply_id', $reply->id)->update(['parent_reply_id' => $reply->parent_reply_id]);
@@ -711,12 +674,6 @@ class ForumController extends Controller
         DB::beginTransaction();
         try {
             if ($existingLike) {
-                // Reverse points
-                ReputationLog::removeLog($user->id, ForumLike::class, $existingLike->id);
-                if ($author->id !== $user->id) {
-                    ReputationLog::removeLog($author->id, ForumThread::class, $thread->id);
-                }
-
                 $existingLike->delete();
                 $isLiked = false;
                 $message = 'Upvote dibatalkan.';
@@ -726,13 +683,7 @@ class ForumController extends Controller
                     'forum_thread_id' => $thread->id,
                 ]);
 
-                // Liker gets +2 points
-                ReputationLog::log($user->id, 2, 'forum_like', "Menyukai topik: {$thread->title}", $like);
-
-                // Author gets +10 points (if not liking own thread)
                 if ($author->id !== $user->id) {
-                    ReputationLog::log($author->id, 10, 'forum_upvote', "Mendapat upvote pada topik: {$thread->title}", $thread);
-                    
                     \App\Models\Notification::create([
                         'user_id' => $author->id,
                         'title' => "{$user->name} menyukai postingan Anda",
@@ -744,7 +695,7 @@ class ForumController extends Controller
                 }
 
                 $isLiked = true;
-                $message = 'Topik berhasil diupvote! (+2 Poin Liker / +10 Poin Penulis)';
+                $message = 'Topik berhasil diupvote! (Sistem Poin kini beralih ke PembdaCIRCLE)';
             }
             DB::commit();
 
@@ -783,15 +734,12 @@ class ForumController extends Controller
 
             $reply->update(['is_accepted' => true]);
 
-            // Recipient gets +30 points for verified best answer / solution
-            ReputationLog::log($reply->user_id, 30, 'forum_best_answer', "Komentar terpilih sebagai Solusi Terbaik & Terverifikasi di topik: {$thread->title}", $reply);
-
             // Web Push Notifikasi ke penulis komentar terpilih
             \App\Services\WebPushService::notifyForumBestAnswer($thread, $reply->user);
 
             DB::commit();
 
-            return back()->with('success', 'Telah diverifikasi sebagai Solusi / Jawaban Terbaik! (+30 Poin Reputasi untuk Penulis)');
+            return back()->with('success', 'Telah diverifikasi sebagai Solusi / Jawaban Terbaik!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -832,12 +780,9 @@ class ForumController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            // Immediate incentive for joining: +10 points to member
-            ReputationLog::log($user->id, 10, 'forum_join', "Mendaftar dalam tim/kegiatan: {$thread->title}", $member);
-
             DB::commit();
 
-            return back()->with('success', 'Permintaan pendaftaran berhasil dikirim! (+10 Poin Reputasi)');
+            return back()->with('success', 'Permintaan pendaftaran berhasil dikirim!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -862,12 +807,9 @@ class ForumController extends Controller
         try {
             $member->update(['status' => 'approved']);
 
-            // Author gets +5 points for approving a team member
-            ReputationLog::log($thread->user_id, 5, 'forum_team_approve', "Menyetujui anggota tim baru pada: {$thread->title}", $member);
-
             DB::commit();
 
-            return back()->with('success', 'Anggota tim berhasil disetujui! (+5 Poin Penulis)');
+            return back()->with('success', 'Anggota tim berhasil disetujui!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -890,9 +832,6 @@ class ForumController extends Controller
         DB::beginTransaction();
         try {
             $member->update(['status' => 'rejected']);
-
-            // Remove the +10 points the applicant originally got for joining
-            ReputationLog::removeLog($member->user_id, ForumMember::class, $member->id);
 
             DB::commit();
 
@@ -919,28 +858,15 @@ class ForumController extends Controller
             'status' => 'required|string|in:seeking_members,active,completed',
         ]);
 
-        $oldStatus = $thread->status;
         $newStatus = $validated['status'];
 
         DB::beginTransaction();
         try {
             $thread->update(['status' => $newStatus]);
 
-            // Completion reward: +50 points to creator and approved members
-            if ($newStatus === 'completed' && $oldStatus !== 'completed') {
-                // Award points to creator
-                ReputationLog::log($thread->user_id, 50, 'forum_completed_project', "Menyelesaikan kolaborasi proyek/kegiatan: {$thread->title}", $thread);
-                
-                // Award points to all approved team members
-                $approvedMembers = $thread->approvedMembers()->get();
-                foreach ($approvedMembers as $member) {
-                    ReputationLog::log($member->user_id, 50, 'forum_completed_project', "Menyelesaikan kolaborasi proyek/kegiatan: {$thread->title}", $thread);
-                }
-            }
-
             DB::commit();
 
-            return back()->with('success', 'Status kolaborasi diperbarui!' . ($newStatus === 'completed' ? ' (+50 Poin Bonus Penyelesaian dibagikan!)' : ''));
+            return back()->with('success', 'Status kolaborasi diperbarui!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -963,12 +889,9 @@ class ForumController extends Controller
         try {
             $thread->increment('charity_current_amount', $validated['amount']);
 
-            // Reward donor: +10 points for donating
-            ReputationLog::log($user->id, 10, 'forum_charity_donation', "Berdonasi pada aksi sosial: {$thread->title}", $thread);
-
             DB::commit();
 
-            return back()->with('success', 'Terima kasih atas partisipasi donasi Anda! (+10 Poin Reputasi)');
+            return back()->with('success', 'Terima kasih atas partisipasi donasi Anda!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1138,19 +1061,7 @@ class ForumController extends Controller
 
         DB::beginTransaction();
         try {
-            // Revert creator points
-            ReputationLog::removeLog($thread->user_id, ForumThread::class, $thread->id);
-
-            // Revert all reply and like logs for this thread
-            $replies = $thread->replies()->get();
-            foreach ($replies as $reply) {
-                ReputationLog::removeLog($reply->user_id, ForumReply::class, $reply->id);
-            }
-
-            $likes = $thread->likes()->get();
-            foreach ($likes as $like) {
-                ReputationLog::removeLog($like->user_id, ForumLike::class, $like->id);
-            }
+            // Poin historis tetap dipertahankan
 
             // Remove files
             if ($thread->image_path) {
@@ -1679,14 +1590,9 @@ class ForumController extends Controller
             'placed_at' => now(),
         ]);
 
-        // Beri poin reputasi (+10)
-        try {
-            \App\Models\ReputationLog::log($user->id, 10, 'forum', 'Meletakkan kepingan Pembda Colabs');
-        } catch (\Exception $e) {}
-
         return response()->json([
             'success' => true,
-            'message' => 'Mantap! Kepingan berhasil diletakkan (+10 Poin Reputasi)!'
+            'message' => 'Mantap! Kepingan berhasil diletakkan!'
         ]);
     }
 

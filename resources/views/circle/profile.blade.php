@@ -54,6 +54,7 @@
         this.showEditMediaModal = true;
     },
     galleryFilter: 'all',
+    pointFilter: 'all',
     selectedSkill: '', 
     selectedTheme: '{{ $profile->theme_color ?? 'pink' }}', 
     anthemInput: '{{ addslashes($profile->anthem_url ?? '') }}',
@@ -338,7 +339,76 @@
                         <i class="fas fa-eye text-pink-600 text-xs"></i>
                         <span>{{ number_format($profile->views_count) }} Kunjungan</span>
                     </span>
+
+                    {{-- Pill Poin Reputasi & Peringkat (Klik untuk buka Wall Jejak Poin) --}}
+                    <button type="button"
+                            @click="activeTab = 'points'"
+                            class="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-200 via-yellow-200 to-orange-200 hover:from-amber-300 hover:to-orange-300 border-2 border-amber-400 text-slate-950 font-black flex items-center gap-1.5 shadow-2xs hover:scale-105 transition-transform duration-200 cursor-pointer"
+                            title="Klik untuk membuka Wall Jejak Perolehan Poin ({{ $reputation->level_name ?? 'Newbie' }} • Peringkat #{{ $userRank ?? 1 }})">
+                        <span>⚡</span>
+                        <span>{{ number_format($reputation->total_points ?? 0) }} Poin</span>
+                        <span class="px-1.5 py-0.2 rounded-md bg-white/90 text-amber-950 text-[10px] border border-amber-400">
+                            {{ $reputation->level_name ?? 'Newbie' }} • #{{ $userRank ?? 1 }}
+                        </span>
+                    </button>
                 </div>
+            </div>
+
+            {{-- ── 2A. KARTU RINGKASAN REPUTASI & AKumulasi POIN (TERINTEGRASI SPACE + CIRCLE + AKADEMIK) ── --}}
+            @php
+                $totalPts = (int) ($reputation->total_points ?? 0);
+                $lvlName = $reputation->level_name ?? 'Newbie';
+                $nextThreshold = match(true) {
+                    $totalPts < 51 => 51,
+                    $totalPts < 151 => 151,
+                    $totalPts < 301 => 301,
+                    $totalPts < 601 => 601,
+                    $totalPts < 1001 => 1001,
+                    default => max($totalPts, 1500),
+                };
+                $nextLvlLabel = match(true) {
+                    $totalPts < 51 => 'Active Learner (51 Pts)',
+                    $totalPts < 151 => 'Rising Star (151 Pts)',
+                    $totalPts < 301 => 'Campus Champion (301 Pts)',
+                    $totalPts < 601 => 'Master Scholar (601 Pts)',
+                    $totalPts < 1001 => 'Pembda Legend (1.001 Pts)',
+                    default => 'Level Maksimum Tercapai (Pembda Legend 👑)',
+                };
+                $progressPct = $totalPts >= 1001 ? 100 : min(100, max(5, (int) round(($totalPts / $nextThreshold) * 100)));
+            @endphp
+            <div class="mb-4 p-3.5 sm:p-4 rounded-3xl bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-pink-50/90 border-2 border-amber-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white border-2 border-amber-200 flex flex-col items-center justify-center shrink-0 shadow-xs leading-none">
+                        <span class="text-base">⚡</span>
+                        <span class="text-[9px] font-black mt-0.5">#{{ $userRank ?? 1 }}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <span class="font-display font-black text-sm sm:text-base text-slate-950">
+                                {{ number_format($totalPts) }} Poin Reputasi
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-950 border border-amber-400 text-[10px] font-black uppercase tracking-wider">
+                                🏆 {{ $lvlName }}
+                            </span>
+                            <span class="text-[11px] font-bold text-slate-600">
+                                (🔥 Circle: {{ number_format($circlePointsTotal ?? 0) }} • 🎓 Akademik/Prestasi: {{ number_format(($academicPointsTotal ?? 0) + ($achievementPointsTotal ?? 0)) }} • 🏛️ Arsip Space: {{ number_format($spaceLegacyPointsTotal ?? 0) }})
+                            </span>
+                        </div>
+                        <div class="w-full max-w-md bg-white/90 rounded-full h-2 border border-amber-300 overflow-hidden p-0.2">
+                            <div class="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 transition-all duration-500" style="width: {{ $progressPct }}%;"></div>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-600 mt-1">
+                            Target berikutnya: <strong class="text-slate-900">{{ $nextLvlLabel }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <button type="button"
+                        @click="activeTab = 'points'"
+                        class="px-4 py-2 rounded-2xl bg-white hover:bg-amber-100 text-slate-950 border-2 border-amber-300 text-xs font-black transition flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer shadow-2xs hover:scale-105">
+                    <span>⚡</span>
+                    <span>Buka Wall Jejak Poin</span>
+                    <i class="fas fa-arrow-right text-[10px] text-amber-700"></i>
+                </button>
             </div>
 
             {{-- Mood & Vibe Barometer (Kuning Pastel Manis) --}}
@@ -718,6 +788,18 @@
                 <span class="font-display">Buku Tamu</span>
                 <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-pink-100 text-pink-900 border border-pink-300 font-black">
                     {{ $guestbookEntries->count() }}
+                </span>
+            </button>
+            {{-- Tab Wall Jejak Poin (Emas & Oranye Menyala) --}}
+            <button @click="activeTab = 'points'" 
+                    :class="activeTab === 'points' ? 'border-amber-500 text-slate-950 font-black bg-white shadow-xs' : 'border-transparent text-slate-700 hover:text-slate-950 font-bold'"
+                    class="flex items-center gap-2 py-4 px-5 border-b-3 text-sm transition-base -mb-[2px] cursor-pointer rounded-t-2xl shrink-0">
+                <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs">
+                    <i class="fas fa-bolt"></i>
+                </span>
+                <span class="font-display">Jejak Poin</span>
+                <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-gradient-to-r from-amber-200 to-yellow-200 text-amber-950 border border-amber-400 font-black">
+                    ⚡ {{ number_format($reputation->total_points ?? 0) }}
                 </span>
             </button>
         </div>
@@ -1740,6 +1822,221 @@
                             </div>
                         </div>
                     @endforeach
+                </div>
+            @endif
+        </div>
+
+    </div>
+
+    {{-- ═══════════════════════════════════════════
+         TAB 5: WALL JEJAK PEROLEHAN POIN (REPUTATION & APPRECIATION WALL)
+    ═══════════════════════════════════════════ --}}
+    <div x-show="activeTab === 'points'" x-transition class="space-y-6">
+
+        {{-- ── 1. Banner Filosofi Poin Baru & Penghargaan Poin Historis ── --}}
+        <div class="bg-gradient-to-r from-amber-50 via-white to-pink-50 rounded-3xl border-2 border-amber-300 p-5 sm:p-6 shadow-xs relative overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-3.5 min-w-0">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white border-2 border-amber-200 flex items-center justify-center text-xl shrink-0 shadow-xs">
+                        ⚡
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-400 text-[10px] font-black uppercase tracking-wider">
+                                Wall Transparansi Reputasi
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black">
+                                ✓ Poin Lama 100% Dipertahankan
+                            </span>
+                        </div>
+                        <h3 class="font-display font-black text-base sm:text-lg text-slate-950">
+                            Wall Jejak Perolehan Poin {{ $profile->nickname ?? $user->name }}
+                        </h3>
+                        <p class="text-xs font-semibold text-slate-700 leading-relaxed mt-0.5">
+                            Dinding ini merekam seluruh asal-usul perolehan poin secara transparan: mulai dari <strong>Apresiasi & Respon Karya di PembdaCIRCLE</strong>, <strong>Pencapaian Akademik/LMS & Prestasi</strong>, hingga <strong>Poin Historis dari PembdaSPACE</strong> yang tetap diabadikan.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="shrink-0 bg-white rounded-2xl border-2 border-amber-300 px-4 py-3 text-center shadow-2xs">
+                    <div class="text-[10px] font-black uppercase tracking-wider text-slate-500">Total Akumulasi</div>
+                    <div class="font-display font-black text-2xl text-amber-600 leading-tight">
+                        ⚡ {{ number_format($reputation->total_points ?? 0) }}
+                    </div>
+                    <div class="text-[10px] font-black text-slate-800 mt-0.5">
+                        {{ $reputation->level_name ?? 'Newbie' }} • Rank #{{ $userRank ?? 1 }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── 2. Empat Kartu Pilar Sumber Perolehan Poin ── --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {{-- Pilar 1: Apresiasi & Respon PembdaCIRCLE --}}
+            <button type="button" @click="pointFilter = 'circle'"
+                    :class="pointFilter === 'circle' ? 'ring-3 ring-pink-400 border-pink-400 scale-[1.01]' : 'border-pink-200 hover:border-pink-300'"
+                    class="p-4 rounded-3xl bg-white border-2 text-left transition-all shadow-xs cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="w-9 h-9 rounded-2xl bg-pink-100 text-pink-700 border border-pink-200 flex items-center justify-center text-base font-black">
+                        🔥
+                    </span>
+                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-pink-50 text-pink-800 border border-pink-200">
+                        Metode Baru
+                    </span>
+                </div>
+                <div class="font-display font-black text-xl text-slate-950">
+                    +{{ number_format($circlePointsTotal ?? 0) }} <span class="text-xs font-bold text-slate-500">Pts</span>
+                </div>
+                <div class="text-xs font-black text-slate-900 mt-0.5">Apresiasi & Respon Circle</div>
+                <div class="text-[10px] font-semibold text-slate-600 mt-0.5">Reaksi karya, tanggapan, lencana Guru & stiker dinding</div>
+            </button>
+
+            {{-- Pilar 2: Akademik, LMS & CBT --}}
+            <button type="button" @click="pointFilter = 'academic'"
+                    :class="pointFilter === 'academic' ? 'ring-3 ring-sky-400 border-sky-400 scale-[1.01]' : 'border-sky-200 hover:border-sky-300'"
+                    class="p-4 rounded-3xl bg-white border-2 text-left transition-all shadow-xs cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="w-9 h-9 rounded-2xl bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center text-base font-black">
+                        🎓
+                    </span>
+                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200">
+                        KBM & Ujian
+                    </span>
+                </div>
+                <div class="font-display font-black text-xl text-slate-950">
+                    +{{ number_format($academicPointsTotal ?? 0) }} <span class="text-xs font-bold text-slate-500">Pts</span>
+                </div>
+                <div class="text-xs font-black text-slate-900 mt-0.5">Akademik, LMS & CBT</div>
+                <div class="text-[10px] font-semibold text-slate-600 mt-0.5">Ketuntasan modul LMS, tugas KBM & ujian komputer</div>
+            </button>
+
+            {{-- Pilar 3: Prestasi, Ekskul & OSIS --}}
+            <button type="button" @click="pointFilter = 'achievement'"
+                    :class="pointFilter === 'achievement' ? 'ring-3 ring-amber-400 border-amber-400 scale-[1.01]' : 'border-amber-200 hover:border-amber-300'"
+                    class="p-4 rounded-3xl bg-white border-2 text-left transition-all shadow-xs cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="w-9 h-9 rounded-2xl bg-amber-100 text-amber-800 border border-amber-200 flex items-center justify-center text-base font-black">
+                        🏆
+                    </span>
+                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200">
+                        Talenta
+                    </span>
+                </div>
+                <div class="font-display font-black text-xl text-slate-950">
+                    +{{ number_format($achievementPointsTotal ?? 0) }} <span class="text-xs font-bold text-slate-500">Pts</span>
+                </div>
+                <div class="text-xs font-black text-slate-900 mt-0.5">Prestasi, Ekskul & OSIS</div>
+                <div class="text-[10px] font-semibold text-slate-600 mt-0.5">Penghargaan juara, keaktifan ekskul & demokrasi</div>
+            </button>
+
+            {{-- Pilar 4: Arsip Historis PembdaSPACE --}}
+            <button type="button" @click="pointFilter = 'space_legacy'"
+                    :class="pointFilter === 'space_legacy' ? 'ring-3 ring-slate-400 border-slate-400 scale-[1.01]' : 'border-slate-200 hover:border-slate-300'"
+                    class="p-4 rounded-3xl bg-white border-2 text-left transition-all shadow-xs cursor-pointer">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="w-9 h-9 rounded-2xl bg-slate-100 text-slate-700 border border-slate-300 flex items-center justify-center text-base font-black">
+                        🏛️
+                    </span>
+                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+                        Diabadikan
+                    </span>
+                </div>
+                <div class="font-display font-black text-xl text-slate-950">
+                    +{{ number_format($spaceLegacyPointsTotal ?? 0) }} <span class="text-xs font-bold text-slate-500">Pts</span>
+                </div>
+                <div class="text-xs font-black text-slate-900 mt-0.5">Arsip PembdaSPACE</div>
+                <div class="text-[10px] font-semibold text-slate-600 mt-0.5">Penghargaan atas kontribusi lama di PembdaSPACE</div>
+            </button>
+        </div>
+
+        {{-- ── 3. Filter Pills & Daftar Linimasa Wall Jejak Poin ── --}}
+        <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-5 sm:p-6 shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b-2 border-[#f1e8dc]">
+                <div>
+                    <h4 class="font-display font-black text-base text-slate-950 flex items-center gap-2">
+                        <i class="fas fa-list-check text-amber-600"></i>
+                        <span>Linimasa Riwayat Perolehan Poin</span>
+                    </h4>
+                    <p class="text-xs font-bold text-slate-600">
+                        Menampilkan catatan dari mana saja setiap poin diperoleh secara kronologis
+                    </p>
+                </div>
+
+                {{-- Filter Kategori Wall Poin --}}
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button type="button" @click="pointFilter = 'all'"
+                            :class="pointFilter === 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-black border transition cursor-pointer">
+                        Semua ({{ isset($pointLogs) ? $pointLogs->count() : 0 }})
+                    </button>
+                    <button type="button" @click="pointFilter = 'circle'"
+                            :class="pointFilter === 'circle' ? 'bg-pink-600 text-white border-pink-600' : 'bg-pink-50 text-pink-900 border-pink-200 hover:bg-pink-100'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-black border transition cursor-pointer">
+                        🔥 Circle
+                    </button>
+                    <button type="button" @click="pointFilter = 'academic'"
+                            :class="pointFilter === 'academic' ? 'bg-sky-600 text-white border-sky-600' : 'bg-sky-50 text-sky-900 border-sky-200 hover:bg-sky-100'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-black border transition cursor-pointer">
+                        🎓 Akademik
+                    </button>
+                    <button type="button" @click="pointFilter = 'achievement'"
+                            :class="pointFilter === 'achievement' ? 'bg-amber-500 text-slate-950 border-amber-600' : 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-black border transition cursor-pointer">
+                        🏆 Prestasi
+                    </button>
+                    <button type="button" @click="pointFilter = 'space_legacy'"
+                            :class="pointFilter === 'space_legacy' ? 'bg-slate-700 text-white border-slate-800' : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-black border transition cursor-pointer">
+                        🏛️ Arsip Space
+                    </button>
+                </div>
+            </div>
+
+            @if(isset($pointLogs) && $pointLogs->isNotEmpty())
+                <div class="space-y-3">
+                    @foreach($pointLogs as $log)
+                        @php
+                            $meta = \App\Services\CirclePointService::getCategoryBadgeMeta((string) $log->category);
+                        @endphp
+                        <div x-show="pointFilter === 'all' || pointFilter === '{{ $meta['group'] }}'"
+                             class="p-3.5 sm:p-4 rounded-2xl bg-[#faf8f5] hover:bg-white border-2 border-[#f1e8dc] hover:border-amber-300 transition-all flex items-center justify-between gap-3.5 shadow-2xs">
+                            <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+                                <div class="w-10 h-10 rounded-2xl {{ $meta['bg'] }} {{ $meta['text'] }} border {{ $meta['border'] }} flex items-center justify-center text-base shrink-0 shadow-2xs">
+                                    {{ $meta['icon'] }}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-black {{ $meta['bg'] }} {{ $meta['text'] }} border {{ $meta['border'] }}">
+                                            {{ $meta['label'] }}
+                                        </span>
+                                        <span class="text-[11px] font-bold text-slate-500">
+                                            <i class="far fa-clock mr-0.5"></i>{{ $log->created_at?->diffForHumans() }} ({{ $log->created_at?->format('d M Y, H:i') }})
+                                        </span>
+                                    </div>
+                                    <p class="text-xs sm:text-sm font-extrabold text-slate-950 leading-snug">
+                                        {{ $log->description }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="shrink-0">
+                                <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-amber-300 text-amber-950 font-display font-black text-xs sm:text-sm shadow-2xs">
+                                    <span>⚡</span>
+                                    <span>+{{ $log->points }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="p-10 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 border border-amber-300 flex items-center justify-center mx-auto mb-3 text-2xl shadow-xs">
+                        ⚡
+                    </div>
+                    <h4 class="font-display font-black text-base text-slate-950 mb-1">Belum Ada Catatan Jejak Poin</h4>
+                    <p class="text-xs font-bold text-slate-600 max-w-md mx-auto leading-relaxed">
+                        Bagikan karya terbaikmu di PembdaCIRCLE dan dapatkan poin reputasi setiap kali karyamu diapresiasi, dikomentari, atau divalidasi oleh Bapak/Ibu Guru!
+                    </p>
                 </div>
             @endif
         </div>

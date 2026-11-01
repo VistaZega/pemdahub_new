@@ -17,6 +17,7 @@ use App\Models\CirclePollVote;
 use App\Models\Notification;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\CirclePointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -210,13 +211,13 @@ class CircleActionController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Postingan dan media berhasil diterbitkan di PembdaCIRCLE! ✨',
+                'message' => 'Postingan dan media berhasil diterbitkan di PembdaCIRCLE! ✨ Dapatkan Poin Reputasi saat karyamu diapresiasi & ditanggapi!',
                 'post_id' => $post->id,
                 'media_count' => count($uploadedFiles),
             ]);
         }
 
-        return redirect()->back()->with('success', 'Postinganmu berhasil diterbitkan di PembdaCIRCLE! ✨');
+        return redirect()->back()->with('success', 'Postinganmu berhasil diterbitkan di PembdaCIRCLE! ✨ Dapatkan Poin Reputasi setiap kali karyamu diapresiasi & ditanggapi teman atau Guru!');
     }
 
     /**
@@ -378,20 +379,23 @@ class CircleActionController extends Controller
         }
 
         $existing = $query->first();
+        $pointsAwarded = 0;
 
         if ($existing) {
             if ($existing->reaction_type === $request->reaction_type) {
-                // Hapus reaksi jika mengklik tipe yang sama
+                // Hapus poin apresiasi jika reaksi ditarik
+                CirclePointService::revokeReaction($post, $existing);
                 $existing->delete();
                 $post->decrement('likes_count');
                 $status = 'removed';
             } else {
-                // Ganti tipe reaksi
+                // Ganti tipe reaksi & sesuaikan poin apresiasi
                 $existing->update(['reaction_type' => $request->reaction_type]);
+                $pointsAwarded = CirclePointService::awardReaction($post, $existing, Auth::user());
                 $status = 'updated';
             }
         } else {
-            CircleReaction::create([
+            $newReaction = CircleReaction::create([
                 'circle_post_id' => $post->id,
                 'user_id' => $userId,
                 'guest_ip' => $userId ? null : $ip,
@@ -402,6 +406,9 @@ class CircleActionController extends Controller
             $post->increment('likes_count');
             $status = 'added';
 
+            // Berikan Poin Apresiasi kepada pemilik postingan
+            $pointsAwarded = CirclePointService::awardReaction($post, $newReaction, Auth::user());
+
             // Kirim notifikasi jika pembuat post adalah user terdaftar dan bukan dirinya sendiri
             if ($post->user_id && (!$userId || $userId !== $post->user_id)) {
                 try {
@@ -411,15 +418,17 @@ class CircleActionController extends Controller
                         'clap' => '👏 Keren Pol!',
                         'nongki' => '💡 Memicu Ide!',
                         'love' => '❤️ Bangga!',
+                        'proud_parent' => '🌟 Doa Orang Tua!',
                         default => '✨ Apresiasi',
                     };
                     $postTitle = $post->title ? "\"{$post->title}\"" : 'postinganmu';
+                    $ptsSuffix = $pointsAwarded > 0 ? " (+{$pointsAwarded} Poin Apresiasi ⚡)" : '';
                     Notification::create([
                         'user_id' => $post->user_id,
                         'school_id' => $post->school_id,
                         'type' => 'circle_reaction',
-                        'title' => "Apresiasi {$emoji}",
-                        'message' => "{$reactorName} memberikan apresiasi pada {$postTitle}.",
+                        'title' => "Apresiasi {$emoji}{$ptsSuffix}",
+                        'message' => "{$reactorName} memberikan apresiasi pada {$postTitle}{$ptsSuffix}.",
                         'related_model' => 'CirclePost',
                         'related_id' => $post->id,
                         'is_read' => false,
@@ -434,6 +443,7 @@ class CircleActionController extends Controller
             return response()->json([
                 'status' => $status,
                 'likes_count' => $post->fresh()->likes_count,
+                'points_awarded' => $pointsAwarded,
             ]);
         }
 
@@ -453,7 +463,7 @@ class CircleActionController extends Controller
         $user = Auth::user();
         $authorName = $user ? $user->name : ($request->guest_name ?? 'Tamu Pembda');
 
-        CircleComment::create([
+        $comment = CircleComment::create([
             'circle_post_id' => $request->circle_post_id,
             'user_id' => $user?->id,
             'author_name' => $authorName,
@@ -465,16 +475,20 @@ class CircleActionController extends Controller
         if ($post) {
             $post->increment('comments_count');
 
+            // Berikan Poin Respon ke pemilik postingan & penanggap konstruktif
+            $pointsAwarded = CirclePointService::awardComment($post, $comment, $user);
+
             // Kirim notifikasi ke pemilik postingan
             if ($post->user_id && (!$user || $user->id !== $post->user_id)) {
                 try {
                     $postTitle = $post->title ? "\"{$post->title}\"" : 'karyamu';
+                    $ptsSuffix = $pointsAwarded > 0 ? " (+{$pointsAwarded} Poin Respon ⚡)" : '';
                     Notification::create([
                         'user_id' => $post->user_id,
                         'school_id' => $post->school_id,
                         'type' => 'circle_comment',
-                        'title' => 'Komentar Baru di PembdaCIRCLE 💬',
-                        'message' => "{$authorName} mengomentari {$postTitle}: \"" . Str::limit($request->comment_text, 60) . "\"",
+                        'title' => "Komentar Baru di PembdaCIRCLE 💬{$ptsSuffix}",
+                        'message' => "{$authorName} mengomentari {$postTitle}: \"" . Str::limit($request->comment_text, 60) . "\"{$ptsSuffix}",
                         'related_model' => 'CirclePost',
                         'related_id' => $post->id,
                         'is_read' => false,
@@ -485,7 +499,7 @@ class CircleActionController extends Controller
             }
         }
 
-        return redirect()->back()->with('success', 'Komentarmu berhasil dikirim! 💬');
+        return redirect()->back()->with('success', 'Komentarmu berhasil dikirim! 💬 Terus beri tanggapan positif untuk membangun karya temanmu!');
     }
 
     /**
@@ -516,6 +530,7 @@ class CircleActionController extends Controller
                 'endorsement_note' => $request->endorsement_note ?? $existing->endorsement_note,
             ]);
             $endId = $existing->id;
+            CirclePointService::awardSkillEndorsement($existing, $teacher);
         } else {
             $newEnd = CircleSkillEndorsement::create([
                 'student_user_id' => $request->student_user_id,
@@ -525,6 +540,7 @@ class CircleActionController extends Controller
                 'created_at' => now(),
             ]);
             $endId = $newEnd->id;
+            CirclePointService::awardSkillEndorsement($newEnd, $teacher);
         }
 
         // Kirim notifikasi ke siswa penerima lencana
@@ -533,8 +549,8 @@ class CircleActionController extends Controller
                 'user_id' => $request->student_user_id,
                 'school_id' => $teacher->school_id,
                 'type' => 'circle_endorsement',
-                'title' => 'Lencana Piawai Resmi Disahkan! 🏅',
-                'message' => "Guru {$teacher->name} mengesahkan keahlian \"{$request->skill_name}\" pada portofoliomu.",
+                'title' => 'Lencana Piawai Resmi Disahkan! 🏅 (+50 Poin Reputasi)',
+                'message' => "Guru {$teacher->name} mengesahkan keahlian \"{$request->skill_name}\" pada portofoliomu (+50 Poin Reputasi ⚡).",
                 'related_model' => 'CircleSkillEndorsement',
                 'related_id' => $endId,
                 'is_read' => false,
@@ -547,7 +563,7 @@ class CircleActionController extends Controller
             return redirect()->back()->with('success', 'Catatan lencana keahlian siswa berhasil diperbarui! 🏅');
         }
 
-        return redirect()->back()->with('success', 'Lencana keahlian resmi berhasil divalidasi dan disematkan pada portofolio siswa! 🏅✨');
+        return redirect()->back()->with('success', 'Lencana keahlian resmi berhasil divalidasi! Siswa memperoleh +50 Poin Reputasi & Anda memperoleh +15 Poin Mentor! 🏅✨');
     }
 
     /**
@@ -581,6 +597,7 @@ class CircleActionController extends Controller
         $user = Auth::user();
 
         if ($endorsement->teacher_user_id === $user?->id || $user?->isSuperAdmin()) {
+            CirclePointService::revokeSkillEndorsement($endorsement);
             $endorsement->delete();
             return redirect()->back()->with('success', 'Lencana keahlian berhasil dihapus.');
         }
@@ -703,7 +720,7 @@ class CircleActionController extends Controller
         }
 
         // Simpan suara
-        CirclePollVote::create([
+        $vote = CirclePollVote::create([
             'circle_poll_id' => $poll->id,
             'circle_poll_option_id' => $request->circle_poll_option_id,
             'user_id' => $userId,
@@ -713,16 +730,23 @@ class CircleActionController extends Controller
         // Increment count pada opsi yang dipilih
         CirclePollOption::where('id', $request->circle_poll_option_id)->increment('votes_count');
 
+        // Berikan Poin Respon Polling kepada pembuat postingan
+        $pollPoints = 0;
+        if ($poll->post) {
+            $pollPoints = CirclePointService::awardPollVote($poll->post, $vote, $user);
+        }
+
         // Notifikasi ke pembuat postingan jika bukan dirinya sendiri
         if ($poll->post && $poll->post->user_id && (!$userId || $userId !== $poll->post->user_id)) {
             try {
                 $voterName = $userId ? ($user->name ?? 'Warga Pembda') : 'Sahabat Pembda';
+                $ptsSuffix = $pollPoints > 0 ? " (+{$pollPoints} Poin Respon ⚡)" : '';
                 Notification::create([
                     'user_id' => $poll->post->user_id,
                     'school_id' => $poll->post->school_id,
                     'type' => 'circle_poll_vote',
-                    'title' => 'Suara Baru di Pollingmu! 📊',
-                    'message' => "{$voterName} ikut memberikan suara pada polling \"{$poll->question}\"",
+                    'title' => "Suara Baru di Pollingmu! 📊{$ptsSuffix}",
+                    'message' => "{$voterName} ikut memberikan suara pada polling \"{$poll->question}\"{$ptsSuffix}",
                     'related_model' => 'CirclePost',
                     'related_id' => $poll->post->id,
                     'is_read' => false,
@@ -1081,16 +1105,20 @@ class CircleActionController extends Controller
             'is_pinned' => false,
         ]);
 
+        // Berikan Poin Apresiasi Dinding Buku Tamu ke pemilik profil
+        $gbPoints = CirclePointService::awardGuestbook($profile, $guestbook, $sender);
+
         // Kirim Notifikasi ke Pemilik Profil jika pengirim bukan diri sendiri
         if ($sender->id !== $profile->user_id) {
             $senderNick = $sender->circleProfile->nickname ?? explode(' ', $sender->name)[0];
             $msgSnippet = $request->message ? ': "' . Str::limit($request->message, 45) . '"' : '';
+            $ptsSuffix = $gbPoints > 0 ? " (+{$gbPoints} Poin Apresiasi ⚡)" : '';
             Notification::create([
                 'user_id' => $profile->user_id,
                 'school_id' => $sender->school_id,
                 'type' => 'circle_guestbook',
-                'title' => "💌 Stiker Baru dari {$senderNick}!",
-                'message' => "{$sender->name} menempelkan stiker {$meta['emoji']} '{$meta['label']}' di dindingmu{$msgSnippet}.",
+                'title' => "💌 Stiker Baru dari {$senderNick}!{$ptsSuffix}",
+                'message' => "{$sender->name} menempelkan stiker {$meta['emoji']} '{$meta['label']}' di dindingmu{$msgSnippet}{$ptsSuffix}.",
                 'related_model' => 'CircleProfile',
                 'related_id' => $profile->id,
                 'is_read' => false,
@@ -1121,6 +1149,9 @@ class CircleActionController extends Controller
             return redirect()->back()->with('error', 'Kamu tidak memiliki izin untuk menghapus catatan ini.');
         }
 
+        if ($guestbook->circleProfile) {
+            CirclePointService::revokeGuestbook($guestbook->circleProfile, $guestbook);
+        }
         $guestbook->delete();
 
         return redirect()->back()->with('success', 'Catatan stiker berhasil dibersihkan dari dinding.');
@@ -1158,13 +1189,21 @@ class CircleActionController extends Controller
                     ->where('is_pinned', true)
                     ->oldest('updated_at')
                     ->first();
-                $oldestPinned?->update(['is_pinned' => false]);
+                if ($oldestPinned) {
+                    $oldestPinned->update(['is_pinned' => false]);
+                    if ($guestbook->circleProfile) {
+                        CirclePointService::syncGuestbookPin($guestbook->circleProfile, $oldestPinned);
+                    }
+                }
             }
         }
 
         $guestbook->update(['is_pinned' => !$guestbook->is_pinned]);
+        if ($guestbook->circleProfile) {
+            CirclePointService::syncGuestbookPin($guestbook->circleProfile, $guestbook);
+        }
 
-        $statusText = $guestbook->is_pinned ? 'Catatan manis berhasil disematkan di atas dinding!' : 'Sematan catatan dilepas.';
+        $statusText = $guestbook->is_pinned ? 'Catatan manis berhasil disematkan di atas dinding! (+10 Poin untuk Pengirim ✨)' : 'Sematan catatan dilepas.';
 
         return redirect()->back()->with('success', $statusText);
     }

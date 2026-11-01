@@ -344,7 +344,6 @@
                    title="Buka PembdaCHALLENGE: Game Sains & Logika">
                     <span class="text-sm">🎮</span>
                     <span class="text-[10px] font-mono-code font-black whitespace-nowrap">GAMES</span>
-                    <span class="text-[8px] px-1 py-0.2 bg-rose-600 text-white rounded-md font-mono-code font-bold animate-pulse">+50</span>
                 </a>
                 <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="p-2.5 bg-[#faf8f5] border-2 border-[#121316] rounded-xl text-[#121316] shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition">
                     <i class="fa-solid fa-bars text-lg"></i>
@@ -414,13 +413,13 @@
                                     PembdaCHALLENGE
                                 </span>
                             </div>
-                            <!-- Baris 2: Sub-keterangan & Badge Poin -->
+                            <!-- Baris 2: Sub-keterangan & Badge -->
                             <div class="flex items-center justify-between text-[10px] font-mono-code font-bold pl-8">
                                 <span class="{{ request('view') === 'challenge' ? 'text-amber-300' : 'text-indigo-900' }} truncate">
                                     Game Sains & Logika
                                 </span>
                                 <span class="text-[9px] font-mono-code font-black px-1.5 py-0.2 rounded-md bg-purple-700 text-white shadow-xs shrink-0 ml-1">
-                                    +50 Poin
+                                    IQ Arena
                                 </span>
                             </div>
                         </a>
@@ -572,6 +571,47 @@
                 <!-- Arena Permainan PembdaCHALLENGE Utama (Fokus Penuh pada Layar) -->
                 @include('forum.partials.pembda_challenge')
             @else
+                {{-- PENGUMUMAN RESMI PERALIHAN SISTEM POIN DARI PEMBDASPACE KE PEMBDACIRCLE --}}
+                <div class="mb-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-pink-100 via-amber-100 to-sky-100 border-2 border-[#121316] shadow-[4px_4px_0px_#121316] relative overflow-hidden">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex items-start gap-3.5 min-w-0">
+                            <div class="w-11 h-11 rounded-2xl bg-[#121316] text-[#fde047] border-2 border-[#121316] flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                                📢
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-mono-code font-black uppercase tracking-wider border border-[#121316]">
+                                        PEMBERITAHUAN RESMI
+                                    </span>
+                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-300 text-[#121316] text-[9px] font-mono-code font-black uppercase border border-[#121316]">
+                                        ✓ Poin Lama 100% Aman & Dipertahankan
+                                    </span>
+                                </div>
+                                <h3 class="text-sm sm:text-base font-black text-[#121316] leading-snug">
+                                    Sistem Perolehan Poin Reputasi Baru Kini Resmi Dialihkan ke <span class="underline decoration-pink-500 decoration-2">PembdaCIRCLE</span>! ✨
+                                </h3>
+                                <p class="text-[11px] sm:text-xs font-bold text-slate-800 leading-relaxed mt-1">
+                                    Mulai sekarang, aktivitas di PembdaSPACE tidak lagi menambahkan poin baru. Seluruh poin yang telah kamu kumpulkan selama ini <strong>tetap dipertahankan 100% sebagai penghargaan atas usahamu</strong>, dan penambahan poin selanjutnya dihitung di <strong>PembdaCIRCLE</strong> setiap kali karyamu <strong>diapresiasi, ditanggapi, atau divalidasi Guru</strong>!
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0 self-end lg:self-center flex-wrap">
+                            <a href="{{ route('circle.feed') }}"
+                               class="btn-tactile-red px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 whitespace-nowrap">
+                                <span>🚀 Pindah ke PembdaCIRCLE</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                            @auth
+                                <a href="{{ route('circle.profile', ['username' => Auth::user()->circle_username ?? Auth::user()->username ?? 'user-' . Auth::id(), 'tab' => 'points']) }}"
+                                   class="btn-tactile-yellow px-3.5 py-2.5 rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap">
+                                    <span>⚡ Wall Jejak Poinku</span>
+                                </a>
+                            @endauth
+                        </div>
+                    </div>
+                </div>
+
                 {{-- KAMPANYE PEMILIHAN OSIS (OTOMATIS HILANG SAAT SELESAI) --}}
                 @include('components.osis-campaign-widget', ['variant' => 'space'])
 
@@ -586,10 +626,10 @@
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="text-xs sm:text-sm font-black text-[#121316]">PembdaCHALLENGE: 🏛️ Menara Hanoi & 🚣 Misionaris</span>
-                                    <span class="text-[8px] font-mono-code font-black px-1.5 py-0.2 rounded-full bg-rose-600 text-white animate-pulse">GAME BARU</span>
+                                    <span class="text-[8px] font-mono-code font-black px-1.5 py-0.2 rounded-full bg-rose-600 text-white animate-pulse">ARENA LOGIKA</span>
                                 </div>
                                 <p class="text-[10px] sm:text-xs font-mono-code font-bold text-slate-800 truncate mt-0.5">
-                                    Uji IQ & logika rekursif matematika untuk mengklaim +50 Poin Reputasi STEAM!
+                                    Uji IQ & logika rekursif matematika dalam permainan sains interaktif!
                                 </p>
                             </div>
                         </div>

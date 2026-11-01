@@ -304,12 +304,6 @@ class SpaceController extends Controller
             'views_count' => 0,
         ]);
 
-        try {
-            \App\Models\ReputationLog::log($user->id, 15, 'forum', "Membuat postingan Pembda Space: {$thread->title}", 'App\Models\ForumThread', $thread->id);
-        } catch (\Throwable $e) {
-            // Ignore reputation log error
-        }
-
         return response()->json([
             'success' => true,
             'message' => 'Postingan berhasil diterbitkan!',
@@ -405,8 +399,6 @@ class SpaceController extends Controller
             'content' => $validated['content'],
             'voice_note_path' => $voiceNotePath,
         ]);
-
-        \App\Models\ReputationLog::log($user->id, 5, 'forum', "Mengomentari postingan Space: {$thread->title}", 'App\Models\ForumReply', $reply->id);
 
         return response()->json([
             'message' => 'Reply created successfully',

@@ -199,29 +199,19 @@ class PembdaChallengeController extends Controller
             ->whereDate('created_at', now()->toDateString())
             ->exists();
 
-        $pointsAwarded = $alreadyClaimedToday ? 0 : $potentialPoints;
+        // Sistem Poin PembdaSPACE telah diputus dan dialihkan ke PembdaCIRCLE
+        $pointsAwarded = 0;
 
         DB::beginTransaction();
         try {
-            // Berikan poin reputasi jika belum klaim hari ini
-            if ($pointsAwarded > 0) {
-                ReputationLog::log(
-                    $user->id,
-                    $pointsAwarded,
-                    'challenge_won',
-                    $logTitle,
-                    null
-                );
-            }
-
-            // Catat log tantangan
+            // Catat log tantangan (tanpa poin reputasi baru di PembdaSPACE)
             ChallengeLog::create([
                 'user_id' => $user->id,
                 'game_key' => $gameKey,
                 'moves' => $moves,
                 'lives_left' => $lives,
                 'stars' => $stars,
-                'points_awarded' => $pointsAwarded,
+                'points_awarded' => 0,
                 'seconds_taken' => $seconds,
                 'status' => 'won',
             ]);
@@ -232,12 +222,10 @@ class PembdaChallengeController extends Controller
                 'success' => true,
                 'stars' => $stars,
                 'moves' => $moves,
-                'points_awarded' => $pointsAwarded,
+                'points_awarded' => 0,
                 'already_claimed_today' => $alreadyClaimedToday,
                 'rank_title' => $rankTitle,
-                'message' => $pointsAwarded > 0 
-                    ? "Luar Biasa! Anda memecahkan teka-teki logika ini dan memperoleh +{$pointsAwarded} Poin Reputasi!" 
-                    : "Hebat! Rekor permainan Anda ({$moves} langkah) berhasil tercatat!",
+                'message' => "Hebat! Rekor permainan Anda ({$moves} langkah) berhasil tercatat! (Info: Perolehan Poin Reputasi baru kini telah beralih ke PembdaCIRCLE ✨)",
             ]);
 
         } catch (\Throwable $e) {

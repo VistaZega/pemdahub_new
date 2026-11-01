@@ -143,6 +143,93 @@
             </div>
         </div>
 
+        {{-- ── 0B. PEMBERITAHUAN RESMI: SISTEM POIN APRESIASI & RESPON BARU DI PEMBDACIRCLE ── --}}
+        <div x-data="{ openRules: false }" class="bg-gradient-to-r from-amber-50 via-white to-pink-50 rounded-3xl border-2 border-amber-300 p-4 sm:p-5 shadow-xs relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                <div class="flex items-start gap-3.5 min-w-0">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white border-2 border-amber-200 flex items-center justify-center text-lg shrink-0 shadow-xs">
+                        ⚡
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-950 border border-amber-400 text-[9px] font-black uppercase tracking-wider">
+                                🔔 Sistem Poin Baru
+                            </span>
+                            <h3 class="font-display font-black text-xs sm:text-sm text-slate-950">
+                                Poin Reputasi Kini Hadir di PembdaCIRCLE Berbasis Apresiasi & Respon!
+                            </h3>
+                        </div>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-700 leading-relaxed">
+                            Seluruh poin historis kamu dari <strong>PembdaSPACE, LMS & Prestasi tetap 100% utuh</strong>. Kini poin baru diperoleh setiap kali karyamu <strong>diapresiasi, ditanggapi komentar, divalidasi Guru, atau mendapat stiker Buku Tamu</strong>!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    <button type="button" @click="openRules = !openRules"
+                            class="px-3 py-2 rounded-2xl bg-white hover:bg-amber-100 text-slate-900 border-2 border-amber-300 text-[11px] font-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                        <i class="fas fa-circle-info text-amber-600"></i>
+                        <span x-text="openRules ? 'Tutup Rumus' : 'Cara Dapat Poin'">Cara Dapat Poin</span>
+                    </button>
+                    @auth
+                        <a href="{{ route('circle.profile', ['username' => Auth::user()->circle_username ?? Auth::user()->username ?? 'user-' . Auth::id(), 'tab' => 'points']) }}"
+                           class="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 border-2 border-amber-600 text-[11px] font-black transition flex items-center gap-1.5 shadow-xs hover:scale-105">
+                            <span>⚡</span>
+                            <span>Jejak Poinku ({{ number_format(Auth::user()->reputation?->total_points ?? 0) }})</span>
+                        </a>
+                    @endauth
+                </div>
+            </div>
+
+            {{-- Rincian Rumus Perhitungan Poin Apresiasi & Respon --}}
+            <div x-show="openRules" x-collapse x-transition class="mt-4 pt-4 border-t-2 border-amber-200/80">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                    <div class="p-3 rounded-2xl bg-white border border-pink-200 flex items-start gap-2.5 shadow-2xs">
+                        <span class="text-lg">🔥</span>
+                        <div>
+                            <div class="font-black text-slate-950">Diapresiasi Teman (+3 s/d +8 Pts)</div>
+                            <div class="text-[11px] font-semibold text-slate-600">Menyala (+3), Keren (+4), Bangga (+5), Memicu Ide (+6). Bonus +2 jika karya Portofolio!</div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-sky-200 flex items-start gap-2.5 shadow-2xs">
+                        <span class="text-lg">👨‍🏫</span>
+                        <div>
+                            <div class="font-black text-slate-950">Apresiasi & Respon Guru (2x Lipat!)</div>
+                            <div class="text-[11px] font-semibold text-slate-600">Reaksi dari Bapak/Ibu Guru bernilai <strong>2x lipat (+6 s/d +16 Pts)</strong> & komentar Guru <strong>+10 Pts</strong>!</div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-indigo-200 flex items-start gap-2.5 shadow-2xs">
+                        <span class="text-lg">💬</span>
+                        <div>
+                            <div class="font-black text-slate-950">Ditanggapi & Menanggapi (+5 / +2 Pts)</div>
+                            <div class="text-[11px] font-semibold text-slate-600">Pemilik karya dapat <strong>+5 Pts</strong> tiap dikomentari teman, dan penanggap santun dapat <strong>+2 Pts</strong>!</div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-emerald-200 flex items-start gap-2.5 shadow-2xs">
+                        <span class="text-lg">🏅</span>
+                        <div>
+                            <div class="font-black text-slate-950">Lencana Piawai Guru (+50 Pts)</div>
+                            <div class="text-[11px] font-semibold text-slate-600">Saat keahlian portofoliomu disahkan oleh Guru Pembina, raih langsung <strong>+50 Poin</strong>!</div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-rose-200 flex items-start gap-2.5 shadow-2xs">
+                        <span class="text-lg">💌</span>
+                        <div>
+                            <div class="font-black text-slate-950">Stiker Buku Tamu & Pin (+5 / +10 Pts)</div>
+                            <div class="text-[11px] font-semibold text-slate-600">Menerima stiker di dinding profil dapat <strong>+5 Pts</strong>. Jika stikermu di-Pin teman, kamu dapat <strong>+10 Pts</strong>!</div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white border border-amber-300 flex items-start gap-2.5 shadow-2xs">
+                        <span class="text-lg">🚀</span>
+                        <div>
+                            <div class="font-black text-slate-950">Karya Viral (+20 & +50 Pts)</div>
+                            <div class="text-[11px] font-semibold text-slate-600">Tembus 10 apresiasi unik raih bonus <strong>+20 Pts</strong>, dan 25 apresiasi unik raih <strong>+50 Pts</strong>!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- ── 1. Story Bar: ⚡ KILAS (STORY 24 JAM) ── --}}
         @if($activeStories->isNotEmpty() || Auth::check())
             <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-4 shadow-xs">
@@ -516,6 +603,14 @@
                                                 <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]" title="Siswa Aktif Pembda">
                                                     <i class="fas fa-check"></i>
                                                 </span>
+                                            @endif
+                                            @if(($post->user->reputation?->total_points ?? 0) > 0)
+                                                <a href="{{ route('circle.profile', ['username' => $post->user->circle_username ?? $post->user->username ?? 'user-' . $post->user_id, 'tab' => 'points']) }}"
+                                                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-950 text-[10px] font-black transition shadow-2xs"
+                                                   title="Total Poin Reputasi ({{ $post->user->reputation->level_name }}) — Klik untuk melihat Wall Jejak Poin">
+                                                    <span>⚡</span>
+                                                    <span>{{ number_format($post->user->reputation->total_points) }} Pts</span>
+                                                </a>
                                             @endif
                                         </div>
                                         <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 flex-wrap mt-0.5">
@@ -901,26 +996,29 @@
 
                 <div class="space-y-2.5">
                     @foreach($topStudents as $idx => $st)
-                        <a href="{{ route('circle.profile', ['username' => $st->username ?? $st->user?->circle_username ?? 'user']) }}" 
-                           class="flex items-center justify-between p-2.5 rounded-2xl bg-white hover:bg-amber-100/50 border border-amber-200 transition-all hover:scale-102 group shadow-2xs">
+                        <a href="{{ route('circle.profile', ['username' => $st->username ?? $st->user?->circle_username ?? 'user', 'tab' => 'points']) }}" 
+                           class="flex items-center justify-between p-2.5 rounded-2xl bg-white hover:bg-amber-100/50 border border-amber-200 transition-all hover:scale-102 group shadow-2xs"
+                           title="Klik untuk melihat profil & Wall Jejak Poin {{ $st->user->name }}">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <div class="relative shrink-0">
                                     <img src="{{ $st->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
                                          class="w-9 h-9 rounded-xl object-cover ring-2 {{ $idx === 0 ? 'ring-amber-400' : ($idx === 1 ? 'ring-slate-400' : 'ring-orange-300') }}">
                                     <span class="absolute -top-1.5 -left-1.5 text-xs">
-                                        {{ $idx === 0 ? '🥇' : ($idx === 1 ? '🥈' : '🥉') }}
+                                        {{ $idx === 0 ? '🥇' : ($idx === 1 ? '🥈' : ($idx === 2 ? '🥉' : '🌟')) }}
                                     </span>
                                 </div>
                                 <div class="min-w-0">
                                     <div class="text-xs font-black text-slate-950 truncate group-hover:text-pink-600 transition-colors">
                                         {{ $st->nickname ?? $st->user->name }}
                                     </div>
-                                    <div class="text-[10px] font-bold text-slate-600 truncate">
-                                        {{ $st->user->school?->name ?? 'Siswa Pembda' }}
+                                    <div class="text-[10px] font-bold text-slate-600 truncate flex items-center gap-1.5">
+                                        <span>{{ $st->user->school?->name ?? 'Siswa Pembda' }}</span>
+                                        <span>•</span>
+                                        <span class="text-amber-800 font-black">⚡ {{ number_format($st->reputation_points ?? $st->user?->reputation?->total_points ?? 0) }} Pts</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-[11px] font-black text-orange-600 shrink-0 flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200">
+                            <div class="text-[11px] font-black text-orange-600 shrink-0 flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200" title="Total Apresiasi Karya">
                                 <span>🔥</span>
                                 <span>{{ $st->total_likes ?? 0 }}</span>
                             </div>
@@ -931,7 +1029,7 @@
                     @if(isset($topTeacher))
                         <div class="pt-2 border-t border-amber-200/80">
                             <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 block mb-1.5">Guru Pembina Teraktif:</span>
-                            <a href="{{ route('circle.profile', ['username' => $topTeacher->username ?? $topTeacher->user?->circle_username ?? 'user']) }}" 
+                            <a href="{{ route('circle.profile', ['username' => $topTeacher->username ?? $topTeacher->user?->circle_username ?? 'user', 'tab' => 'points']) }}" 
                                class="flex items-center justify-between p-2 rounded-2xl bg-sky-50 hover:bg-sky-100 border border-sky-200 transition group shadow-2xs">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <img src="{{ $topTeacher->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
@@ -940,7 +1038,9 @@
                                         <div class="text-[11px] font-black text-slate-950 truncate group-hover:text-sky-700">
                                             {{ $topTeacher->nickname ?? $topTeacher->user->name }}
                                         </div>
-                                        <div class="text-[9px] font-bold text-slate-600">Guru / Mentor</div>
+                                        <div class="text-[9px] font-bold text-slate-600">
+                                            Guru • ⚡ {{ number_format($topTeacher->reputation_points ?? $topTeacher->user?->reputation?->total_points ?? 0) }} Pts
+                                        </div>
                                     </div>
                                 </div>
                                 <span class="text-[10px] font-black text-sky-800 bg-sky-100 px-2 py-0.5 rounded-md border border-sky-300">

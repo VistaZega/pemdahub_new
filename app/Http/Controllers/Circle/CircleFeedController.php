@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CircleProfile;
 use App\Models\CirclePost;
 use App\Models\School;
+use App\Services\CirclePointService;
 use Illuminate\Http\Request;
 
 class CircleFeedController extends Controller
@@ -15,11 +16,13 @@ class CircleFeedController extends Controller
      */
     public function index(Request $request)
     {
+        CirclePointService::ensureExistingCircleInteractionsSynced();
+
         $schoolFilter = $request->query('school');
         $tabFilter = $request->query('tab', 'all'); // 'all', 'portfolio', 'wall', 'reels'
         $search = trim($request->query('q', ''));
 
-        $query = CirclePost::with(['user.circleProfile', 'user.school', 'media', 'reactions', 'comments', 'poll.options', 'poll.votes'])
+        $query = CirclePost::with(['user.circleProfile', 'user.school', 'user.reputation', 'media', 'reactions', 'comments', 'poll.options', 'poll.votes'])
             ->active()
             ->publicVisible();
 
@@ -161,8 +164,8 @@ class CircleFeedController extends Controller
         $todayDay = now()->format('l');
         $todayChallenge = $dailyPrompts[$todayDay] ?? $dailyPrompts['Friday'];
 
-        // 👑 Bintang Gelora Minggu Ini: Top 3 Siswa & 1 Guru Paling Menyala
-        $topStudents = CircleProfile::with('user.school')
+        // 👑 Bintang Gelora Minggu Ini: Top 3 Siswa & 1 Guru Paling Menyala (Diurutkan dari Apresiasi & Poin Reputasi)
+        $topStudents = CircleProfile::with(['user.school', 'user.reputation'])
             ->whereHas('user', function ($uq) {
                 $uq->where('role', 'siswa');
             })
@@ -173,12 +176,18 @@ class CircleFeedController extends Controller
                   ->whereColumn('circle_posts.user_id', 'circle_profiles.user_id')
                   ->selectRaw('COALESCE(SUM(likes_count), 0)');
             }, 'total_likes')
+            ->selectSub(function ($q) {
+                $q->from('reputations')
+                  ->whereColumn('reputations.user_id', 'circle_profiles.user_id')
+                  ->selectRaw('COALESCE(MAX(total_points), 0)');
+            }, 'reputation_points')
             ->orderByDesc('total_likes')
+            ->orderByDesc('reputation_points')
             ->orderByDesc('views_count')
-            ->take(3)
+            ->take(5)
             ->get();
 
-        $topTeacher = CircleProfile::with('user.school')
+        $topTeacher = CircleProfile::with(['user.school', 'user.reputation'])
             ->whereHas('user', function ($uq) {
                 $uq->where('role', 'guru');
             })
@@ -188,7 +197,13 @@ class CircleFeedController extends Controller
                   ->whereColumn('circle_skill_endorsements.teacher_user_id', 'circle_profiles.user_id')
                   ->selectRaw('COUNT(*)');
             }, 'total_endorsements')
+            ->selectSub(function ($q) {
+                $q->from('reputations')
+                  ->whereColumn('reputations.user_id', 'circle_profiles.user_id')
+                  ->selectRaw('COALESCE(MAX(total_points), 0)');
+            }, 'reputation_points')
             ->orderByDesc('total_endorsements')
+            ->orderByDesc('reputation_points')
             ->orderByDesc('views_count')
             ->first();
 
