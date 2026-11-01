@@ -32,39 +32,18 @@
         </div>
     </div>
 
-    <!-- PENGUMUMAN RESMI PERALIHAN SISTEM POIN KE PEMBDACIRCLE (OTOMATIS HILANG SETELAH 1 MINGGU) -->
+    <!-- PENGUMUMAN RINGKAS PERALIHAN POIN KE PEMBDACIRCLE (OTOMATIS HILANG SETELAH 1 MINGGU) -->
     @php
         $__mobPointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
     @endphp
     @if($__mobPointNotice['show'])
-        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-100 via-amber-100 to-sky-100 border-2 border-[#121316] shadow-[3px_3px_0px_#121316]">
-            <div class="flex items-start gap-2.5 mb-2.5">
-                <div class="w-9 h-9 rounded-xl bg-[#121316] text-[#fde047] flex items-center justify-center text-base shrink-0">
-                    📢
-                </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                        <span class="px-2 py-0.2 rounded-full bg-rose-600 text-white text-[8px] font-mono font-black uppercase">INFO ({{ strtoupper($__mobPointNotice['badge_label']) }})</span>
-                        <span class="px-2 py-0.2 rounded-full bg-emerald-300 text-[#121316] text-[8px] font-mono font-black border border-[#121316]">Poin Lama 100% Utuh</span>
-                    </div>
-                    <h3 class="text-xs font-black text-[#121316] leading-snug">
-                        Poin Kini Beralih ke PembdaCIRCLE Berbasis Apresiasi! ✨
-                    </h3>
-                    <p class="text-[10px] font-bold text-slate-800 leading-relaxed mt-0.5">
-                        Sekadar update status tidak lagi mendapat poin. Poin lama tetap utuh 100%, dan poin baru di <strong>PembdaCIRCLE</strong> diraih murni saat karyamu <strong>diapresiasi, ditanggapi & direspon</strong>!
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('circle.feed') }}" class="flex-1 py-2 px-3 rounded-xl bg-[#ff3823] text-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] text-[11px] font-black text-center">
-                    🚀 Buka PembdaCIRCLE
-                </a>
-                @auth
-                    <a href="{{ route('circle.profile', ['username' => Auth::user()->circle_username ?? Auth::user()->username ?? 'user-' . Auth::id(), 'tab' => 'points']) }}" class="py-2 px-3 rounded-xl bg-[#fde047] text-[#121316] border-2 border-[#121316] shadow-[2px_2px_0px_#121316] text-[11px] font-black text-center">
-                        ⚡ Jejak Poinku
-                    </a>
-                @endauth
-            </div>
+        <div class="px-3 py-2 rounded-xl bg-gradient-to-r from-pink-100 via-amber-100 to-sky-100 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-between gap-2">
+            <p class="text-[11px] font-extrabold text-[#121316] leading-snug">
+                ⚡ Anda mendapatkan Poin di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima!
+            </p>
+            <a href="{{ route('circle.feed') }}" class="py-1 px-2.5 rounded-lg bg-[#ff3823] text-white border border-[#121316] text-[10px] font-black shrink-0">
+                Lihat Tabel ➔
+            </a>
         </div>
     @endif
 

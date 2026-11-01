@@ -143,98 +143,56 @@
             </div>
         </div>
 
-        {{-- ── 0B. PEMBERITAHUAN RESMI (OTOMATIS HILANG SETELAH 1 MINGGU / 7 HARI): SISTEM POIN BERBASIS APRESIASI DI PEMBDACIRCLE ── --}}
+        {{-- ── 0B. PEMBERITAHUAN RINGKAS (OTOMATIS HILANG SETELAH 1 MINGGU): POIN BERDASARKAN APRESIASI ── --}}
         @php
             $__pointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
         @endphp
         @if($__pointNotice['show'])
-            <div x-data="{ openRules: false }" class="bg-gradient-to-r from-amber-50 via-white to-pink-50 rounded-3xl border-2 border-amber-300 p-4 sm:p-5 shadow-xs relative overflow-hidden">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-                    <div class="flex items-start gap-3.5 min-w-0">
-                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white border-2 border-amber-200 flex items-center justify-center text-lg shrink-0 shadow-xs">
-                            ⚡
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap mb-1">
-                                <span class="px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-950 border border-amber-400 text-[9px] font-black uppercase tracking-wider">
-                                    🔔 Sistem Poin Apresiasi Baru
-                                </span>
-                                <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300 text-[9px] font-black uppercase tracking-wider">
-                                    🚫 Update Status Sendiri = 0 Poin
-                                </span>
-                                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-300 text-[9px] font-bold" title="Pemberitahuan ini hanya tampil selama 1 minggu sejak peluncuran">
-                                    ⏳ Info {{ $__pointNotice['badge_label'] }}
-                                </span>
-                            </div>
-                            <h3 class="font-display font-black text-xs sm:text-sm text-slate-950">
-                                Di PembdaCIRCLE, Poin Diraih Karena Karyamu <span class="text-pink-600 underline">DIAPRESIASI & DIRESPON</span> — Bukan Sekadar Update Status!
-                            </h3>
-                            <p class="text-[11px] sm:text-xs font-semibold text-slate-700 leading-relaxed mt-0.5">
-                                Sekadar memposting status tidak lagi menghasilkan poin instan. <strong>Poin baru kini murni mengalir setiap kali karya, ide, atau dindingmu diapresiasi (🔥/👏/❤️/💡), dikomentari, divalidasi Guru (+50 Pts), atau diberi stiker Buku Tamu!</strong> *(Seluruh poin historis kamu dari PembdaSPACE & LMS tetap 100% utuh).*
-                            </p>
-                        </div>
+            <div x-data="{ openRules: false }" class="bg-gradient-to-r from-amber-50 via-white to-pink-50 rounded-2xl border-2 border-amber-300 px-3.5 py-2.5 shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5 flex-wrap">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-6 h-6 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black shrink-0">⚡</span>
+                        <p class="text-xs font-extrabold text-slate-900">
+                            Anda mendapatkan Poin di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima!
+                            <button type="button" @click="openRules = !openRules" class="ml-1 text-pink-600 hover:text-pink-700 underline font-black cursor-pointer">
+                                <span x-text="openRules ? 'Tutup Tabel Poin ▴' : 'Lihat Tabel Poin Apresiasi! ▾'">Lihat Tabel Poin Apresiasi! ▾</span>
+                            </button>
+                        </p>
                     </div>
-
-                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                        <button type="button" @click="openRules = !openRules"
-                                class="px-3 py-2 rounded-2xl bg-white hover:bg-amber-100 text-slate-900 border-2 border-amber-300 text-[11px] font-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                            <i class="fas fa-circle-info text-amber-600"></i>
-                            <span x-text="openRules ? 'Tutup Rumus' : 'Tabel Poin Apresiasi'">Tabel Poin Apresiasi</span>
-                        </button>
-                        @auth
-                            <a href="{{ route('circle.profile', ['username' => Auth::user()->circle_username ?? Auth::user()->username ?? 'user-' . Auth::id(), 'tab' => 'points']) }}"
-                               class="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 border-2 border-amber-600 text-[11px] font-black transition flex items-center gap-1.5 shadow-xs hover:scale-105">
-                                <span>⚡</span>
-                                <span>Jejak Poinku ({{ number_format(Auth::user()->reputation?->total_points ?? 0) }})</span>
-                            </a>
-                        @endauth
-                    </div>
+                    @auth
+                        <a href="{{ route('circle.profile', ['username' => Auth::user()->circle_username ?? Auth::user()->username ?? 'user-' . Auth::id(), 'tab' => 'points']) }}"
+                           class="px-2.5 py-1 rounded-xl bg-amber-200/90 hover:bg-amber-300 text-amber-950 border border-amber-400 text-[11px] font-black transition flex items-center gap-1 shrink-0">
+                            <span>⚡ Jejak Poin ({{ number_format(Auth::user()->reputation?->total_points ?? 0) }})</span>
+                        </a>
+                    @endauth
                 </div>
 
-                {{-- Rincian Rumus Perhitungan Poin Apresiasi & Respon --}}
-                <div x-show="openRules" x-collapse x-transition class="mt-4 pt-4 border-t-2 border-amber-200/80">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-                        <div class="p-3 rounded-2xl bg-white border border-pink-200 flex items-start gap-2.5 shadow-2xs">
-                            <span class="text-lg">🔥</span>
-                            <div>
-                                <div class="font-black text-slate-950">Karya Diapresiasi Teman (+3 s/d +8 Pts)</div>
-                                <div class="text-[11px] font-semibold text-slate-600">Menyala (+3), Keren (+4), Bangga (+5), Memicu Ide (+6). Bonus +2 jika karya Portofolio!</div>
-                            </div>
+                {{-- Tabel Poin Apresiasi (Hanya muncul saat diklik) --}}
+                <div x-show="openRules" x-collapse x-transition class="mt-2.5 pt-2.5 border-t border-amber-200">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                        <div class="p-2 rounded-xl bg-white border border-pink-200">
+                            <strong class="text-slate-950 block">🔥 Reaksi Teman (+3 s/d +8 Pts)</strong>
+                            <span class="text-slate-600">Menyala +3, Keren +4, Bangga +5, Ide +6 (+2 karya portofolio)</span>
                         </div>
-                        <div class="p-3 rounded-2xl bg-white border border-sky-200 flex items-start gap-2.5 shadow-2xs">
-                            <span class="text-lg">👨‍🏫</span>
-                            <div>
-                                <div class="font-black text-slate-950">Apresiasi & Respon Guru (2x Lipat!)</div>
-                                <div class="text-[11px] font-semibold text-slate-600">Reaksi dari Bapak/Ibu Guru bernilai <strong>2x lipat (+6 s/d +16 Pts)</strong> & komentar Guru <strong>+10 Pts</strong>!</div>
-                            </div>
+                        <div class="p-2 rounded-xl bg-white border border-sky-200">
+                            <strong class="text-slate-950 block">👨‍🏫 Respon Guru (2x Lipat!)</strong>
+                            <span class="text-slate-600">Reaksi Guru +6 s/d +16 Pts & Komentar Guru +10 Pts</span>
                         </div>
-                        <div class="p-3 rounded-2xl bg-white border border-indigo-200 flex items-start gap-2.5 shadow-2xs">
-                            <span class="text-lg">💬</span>
-                            <div>
-                                <div class="font-black text-slate-950">Ditanggapi & Menanggapi (+5 / +2 Pts)</div>
-                                <div class="text-[11px] font-semibold text-slate-600">Pemilik karya dapat <strong>+5 Pts</strong> tiap dikomentari teman, dan penanggap santun dapat <strong>+2 Pts</strong>!</div>
-                            </div>
+                        <div class="p-2 rounded-xl bg-white border border-indigo-200">
+                            <strong class="text-slate-950 block">💬 Komentar (+5 / +2 Pts)</strong>
+                            <span class="text-slate-600">Karya dikomentari +5 Pts • Menanggapi teman +2 Pts</span>
                         </div>
-                        <div class="p-3 rounded-2xl bg-white border border-emerald-200 flex items-start gap-2.5 shadow-2xs">
-                            <span class="text-lg">🏅</span>
-                            <div>
-                                <div class="font-black text-slate-950">Lencana Piawai Guru (+50 Pts)</div>
-                                <div class="text-[11px] font-semibold text-slate-600">Saat keahlian portofoliomu disahkan oleh Guru Pembina, raih langsung <strong>+50 Poin</strong>!</div>
-                            </div>
+                        <div class="p-2 rounded-xl bg-white border border-emerald-200">
+                            <strong class="text-slate-950 block">🏅 Lencana Guru (+50 Pts)</strong>
+                            <span class="text-slate-600">Keahlian portofolio divalidasi resmi oleh Guru</span>
                         </div>
-                        <div class="p-3 rounded-2xl bg-white border border-rose-200 flex items-start gap-2.5 shadow-2xs">
-                            <span class="text-lg">💌</span>
-                            <div>
-                                <div class="font-black text-slate-950">Stiker Buku Tamu & Pin (+5 / +10 Pts)</div>
-                                <div class="text-[11px] font-semibold text-slate-600">Menerima stiker di dinding profil dapat <strong>+5 Pts</strong>. Jika stikermu di-Pin teman, kamu dapat <strong>+10 Pts</strong>!</div>
-                            </div>
+                        <div class="p-2 rounded-xl bg-white border border-rose-200">
+                            <strong class="text-slate-950 block">💌 Buku Tamu (+5 / +10 Pts)</strong>
+                            <span class="text-slate-600">Dapat stiker dinding +5 Pts • Stiker di-Pin +10 Pts</span>
                         </div>
-                        <div class="p-3 rounded-2xl bg-white border border-amber-300 flex items-start gap-2.5 shadow-2xs">
-                            <span class="text-lg">🚀</span>
-                            <div>
-                                <div class="font-black text-slate-950">Karya Viral (+20 & +50 Pts)</div>
-                                <div class="text-[11px] font-semibold text-slate-600">Tembus 10 apresiasi unik raih bonus <strong>+20 Pts</strong>, dan 25 apresiasi unik raih <strong>+50 Pts</strong>!</div>
-                            </div>
+                        <div class="p-2 rounded-xl bg-white border border-amber-300">
+                            <strong class="text-slate-950 block">🚀 Karya Viral (+20 & +50 Pts)</strong>
+                            <span class="text-slate-600">Bonus saat tembus 10 & 25 apresiasi unik</span>
                         </div>
                     </div>
                 </div>
@@ -367,7 +325,272 @@
             </div>
         @endif
 
-        {{-- ── 3. Filter Tab Bar: Gelora Pastel (1 Kata: Semua, Karya, Nongki, Reels) ── --}}
+        {{-- ── 2C. PINTASAN GRUP & SQUAD SAYA + BANNER LOUNGE KOMUNITAS AKTIF ── --}}
+        @php
+            $myCommList = isset($myCommunities) ? $myCommunities : collect();
+            $countsByType = $communityCountsByType ?? ['all' => 0, 'class' => 0, 'sanggar' => 0, 'extracurricular' => 0, 'vocation' => 0, 'cohort' => 0, 'alumni' => 0, 'teachers' => 0];
+            $activeGroupType = $groupTypeFilter ?? request('group_type', 'all');
+        @endphp
+
+        <div class="bg-white rounded-3xl border-2 border-[#f1e8dc] p-4 shadow-xs space-y-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-black">
+                        👥
+                    </span>
+                    <div>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-slate-950 leading-none">
+                            Grup Kelas, Sanggar, Ekskul, Rumpun SMK, Angkatan & Alumni
+                        </h3>
+                        <p class="text-[10px] font-bold text-slate-500 mt-0.5">
+                            Klik grup untuk masuk ke ruang diskusi, berbagi modul, atau pamer karya bersama satu tim!
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ route('circle.feed', ['tab' => 'groups']) }}"
+                   class="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-950 border border-purple-300 text-[11px] font-black transition flex items-center gap-1.5 shrink-0">
+                    <span>Jelajahi Semua Grup ({{ $countsByType['all'] ?? 0 }})</span>
+                    <i class="fas fa-arrow-right text-[9px]"></i>
+                </a>
+            </div>
+
+            {{-- Baris Filter Cepat Kategori Grup --}}
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                @php
+                    $quickGroupTypes = [
+                        'all'             => ['icon' => '🌐', 'label' => 'Semua Grup', 'count' => $countsByType['all'] ?? 0],
+                        'class'           => ['icon' => '🏫', 'label' => 'Grup Kelas', 'count' => $countsByType['class'] ?? 0],
+                        'sanggar'         => ['icon' => '🎭', 'label' => 'Sanggar & Seni', 'count' => $countsByType['sanggar'] ?? 0],
+                        'extracurricular' => ['icon' => '🏆', 'label' => 'Ekstrakurikuler', 'count' => $countsByType['extracurricular'] ?? 0],
+                        'vocation'        => ['icon' => '⚙️', 'label' => 'Rumpun SMK', 'count' => $countsByType['vocation'] ?? 0],
+                        'cohort'          => ['icon' => '📅', 'label' => 'Angkatan', 'count' => $countsByType['cohort'] ?? 0],
+                        'alumni'          => ['icon' => '🎓', 'label' => 'Ikatan Alumni', 'count' => $countsByType['alumni'] ?? 0],
+                        'teachers'        => ['icon' => '👨‍🏫', 'label' => 'Ruang Guru', 'count' => $countsByType['teachers'] ?? 0],
+                    ];
+                @endphp
+                @foreach($quickGroupTypes as $gKey => $gMeta)
+                    @php
+                        $isGActive = ($tabFilter === 'groups' && $activeGroupType === $gKey) || ($tabFilter !== 'groups' && $activeGroupType === $gKey && $gKey !== 'all');
+                    @endphp
+                    <a href="{{ route('circle.feed', ['tab' => 'groups', 'group_type' => $gKey]) }}"
+                       class="px-3 py-1.5 rounded-2xl text-[11px] font-black border transition shrink-0 flex items-center gap-1.5 {{ $isGActive ? 'bg-purple-600 text-white border-purple-700 shadow-xs' : 'bg-slate-50 hover:bg-purple-50 text-slate-800 border-slate-200' }}">
+                        <span>{{ $gMeta['icon'] }}</span>
+                        <span>{{ $gMeta['label'] }}</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[9px] {{ $isGActive ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700' }}">
+                            {{ $gMeta['count'] }}
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+
+            {{-- Pintasan Cepat "Grup Saya" jika sudah login --}}
+            @if($myCommList->isNotEmpty())
+                <div class="pt-2 border-t border-slate-100 flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-purple-800 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 shrink-0">
+                        ⭐ Grup Saya:
+                    </span>
+                    @foreach($myCommList as $myComm)
+                        @php
+                            $isCurrComm = isset($activeCommunity) && $activeCommunity && $activeCommunity->id === $myComm->id;
+                        @endphp
+                        <a href="{{ route('circle.feed', ['community' => $myComm->slug]) }}"
+                           class="px-3 py-1 rounded-xl text-[11px] font-black border transition shrink-0 flex items-center gap-1.5 {{ $isCurrComm ? 'bg-pink-600 text-white border-pink-700 shadow-xs' : 'bg-[#faf8f5] hover:bg-pink-50 text-slate-900 border-[#e8dfd1]' }}">
+                            <span>{{ $myComm->display_icon }}</span>
+                            <span>{{ $myComm->name }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        {{-- ── 2D. BANNER LOUNGE GRUP / KOMUNITAS AKTIF (JIKA SEDANG MEMBUKA SUATU GRUP) ── --}}
+        @if(isset($activeCommunity) && $activeCommunity)
+            @php
+                $commTypeInfo = $activeCommunity->type_info;
+                $isMemberOfActive = Auth::check() && $activeCommunity->members->contains('user_id', Auth::id());
+                $myMemberRecord = Auth::check() ? $activeCommunity->members->firstWhere('user_id', Auth::id()) : null;
+                $ekskulRef = $activeCommunity->extracurricular;
+                $classroomRef = $activeCommunity->classroom;
+                $sectionOptions = $ekskulRef ? ($ekskulRef->section_list ?? []) : [];
+            @endphp
+            <div x-data="{ showRosterModal: false, showJoinSection: false }"
+                 class="bg-gradient-to-br from-purple-50 via-white to-amber-50 rounded-3xl border-2 border-purple-400 p-5 sm:p-6 shadow-md relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div class="flex items-start gap-4 min-w-0">
+                        <div class="w-16 h-16 rounded-3xl bg-white border-2 border-purple-300 flex items-center justify-center text-3xl shrink-0 shadow-xs">
+                            {{ $activeCommunity->display_icon }}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $commTypeInfo['badge_bg'] ?? 'bg-purple-100 text-purple-900 border-purple-300' }}">
+                                    {{ $commTypeInfo['icon'] }} {{ $commTypeInfo['label'] }}
+                                </span>
+                                @if($activeCommunity->school)
+                                    <span class="px-2.5 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-black">
+                                        🏫 {{ $activeCommunity->school->name }}
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-400 text-[10px] font-black">
+                                        🏛️ Lintas Unit Yayasan Pembda
+                                    </span>
+                                @endif
+                                @if($myMemberRecord && $myMemberRecord->title_badge)
+                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black">
+                                        🎖️ Peranmu: {{ $myMemberRecord->title_badge }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            <h2 class="font-display font-black text-xl sm:text-2xl text-slate-950 leading-tight">
+                                {{ $activeCommunity->name }}
+                            </h2>
+                            <p class="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
+                                {{ $activeCommunity->description }}
+                            </p>
+
+                            {{-- Baris Info Pembina / Wali Kelas / Pengurus Inti --}}
+                            <div class="mt-3 flex items-center gap-2 flex-wrap text-[11px]">
+                                @if($classroomRef && $classroomRef->homeroomTeacher)
+                                    <span class="px-2.5 py-1 rounded-xl bg-sky-100 text-sky-950 border border-sky-300 font-black flex items-center gap-1.5">
+                                        <span>👨‍🏫 Wali Kelas:</span>
+                                        <span>{{ $classroomRef->homeroomTeacher->full_name }}</span>
+                                    </span>
+                                @endif
+                                @if($ekskulRef && $ekskulRef->advisor)
+                                    <span class="px-2.5 py-1 rounded-xl bg-purple-100 text-purple-950 border border-purple-300 font-black flex items-center gap-1.5">
+                                        <span>🎯 Pembina:</span>
+                                        <span>{{ $ekskulRef->advisor->full_name }}</span>
+                                    </span>
+                                @endif
+                                @if($ekskulRef && $ekskulRef->leader)
+                                    <span class="px-2.5 py-1 rounded-xl bg-amber-100 text-amber-950 border border-amber-300 font-black flex items-center gap-1.5">
+                                        <span>👑 Ketua:</span>
+                                        <span>{{ $ekskulRef->leader->full_name }}</span>
+                                    </span>
+                                @endif
+                                @if($ekskulRef && $ekskulRef->secretary)
+                                    <span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-950 border border-emerald-200 font-bold flex items-center gap-1">
+                                        <span>📝 Sekretaris: {{ $ekskulRef->secretary->full_name }}</span>
+                                    </span>
+                                @endif
+                                @if($ekskulRef && $ekskulRef->treasurer)
+                                    <span class="px-2.5 py-1 rounded-xl bg-pink-50 text-pink-950 border border-pink-200 font-bold flex items-center gap-1">
+                                        <span>💎 Bendahara: {{ $ekskulRef->treasurer->full_name }}</span>
+                                    </span>
+                                @endif
+                                @if($ekskulRef && $ekskulRef->schedule_info)
+                                    <span class="px-2.5 py-1 rounded-xl bg-white text-slate-800 border border-slate-200 font-bold">
+                                        🗓️ Jadwal: {{ $ekskulRef->schedule_info }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Action Buttons Kanan --}}
+                    <div class="flex flex-wrap sm:flex-col items-stretch sm:items-end gap-2 shrink-0">
+                        <a href="{{ route('circle.feed') }}"
+                           class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-black transition flex items-center justify-center gap-1.5">
+                            <span>✕ Kembali ke Feed Utama</span>
+                        </a>
+
+                        <div class="flex items-center gap-2">
+                            <button type="button"
+                                    @click="showRosterModal = !showRosterModal"
+                                    class="px-3.5 py-2 rounded-xl bg-white hover:bg-purple-50 text-purple-950 border-2 border-purple-300 text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                                <i class="fas fa-users text-purple-600"></i>
+                                <span>{{ $activeCommunity->members->count() }} Anggota</span>
+                            </button>
+
+                            @auth
+                                @if($isMemberOfActive)
+                                    <button type="button"
+                                            onclick="document.getElementById('quick-post-box')?.scrollIntoView({ behavior: 'smooth' }); const ta = document.querySelector('textarea[name=content]'); if(ta) ta.focus();"
+                                            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Tulis di Grup Ini</span>
+                                    </button>
+                                @else
+                                    @if(!empty($sectionOptions))
+                                        <button type="button"
+                                                @click="showJoinSection = !showJoinSection"
+                                                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+                                            <i class="fas fa-user-plus"></i>
+                                            <span>+ Gabung Sanggar/Ekskul</span>
+                                        </button>
+                                    @else
+                                        <form action="{{ route('circle.community.join', $activeCommunity->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+                                                <i class="fas fa-user-plus"></i>
+                                                <span>+ Gabung Grup</span>
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endif
+                            @endauth
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Form Pilih Section/Instrumen jika Sanggar / Marching Band --}}
+                @if(!empty($sectionOptions) && !$isMemberOfActive)
+                    <div x-show="showJoinSection" x-collapse x-transition class="mt-4 pt-4 border-t-2 border-purple-200">
+                        <form action="{{ route('circle.community.join', $activeCommunity->id) }}" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 bg-white p-3.5 rounded-2xl border border-purple-200">
+                            @csrf
+                            <div class="text-xs font-black text-slate-900 shrink-0">🎺 Pilih Posisi / Section di {{ $activeCommunity->name }}:</div>
+                            <select name="section" class="flex-1 px-3 py-2 rounded-xl bg-purple-50 border border-purple-300 text-xs font-black text-slate-950">
+                                <option value="">-- Anggota Umum --</option>
+                                @foreach($sectionOptions as $sec)
+                                    <option value="{{ $sec }}">{{ $sec }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black cursor-pointer">
+                                ✅ Konfirmasi Gabung (+15 Poin)
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
+                {{-- Panel Daftar Anggota (Squad Roster) --}}
+                <div x-show="showRosterModal" x-collapse x-transition class="mt-4 pt-4 border-t-2 border-purple-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
+                            <i class="fas fa-id-badge text-purple-600"></i>
+                            <span>Daftar Warga & Pengurus {{ $activeCommunity->name }} ({{ $activeCommunity->members->count() }} Orang)</span>
+                        </h4>
+                        <button type="button" @click="showRosterModal = false" class="text-xs font-black text-slate-500 hover:text-rose-600 cursor-pointer">
+                            ✕ Tutup Daftar
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
+                        @foreach($activeCommunity->members as $mem)
+                            @if($mem->user)
+                                <a href="{{ route('circle.profile', ['username' => $mem->user->circle_username ?? $mem->user->username ?? 'user-' . $mem->user_id]) }}"
+                                   class="p-2.5 rounded-2xl bg-white hover:bg-purple-50 border border-purple-200/80 flex items-center justify-between gap-2 transition shadow-2xs">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <img src="{{ $mem->user->avatar_url ?? asset('images/default-avatar.svg') }}"
+                                             class="w-9 h-9 rounded-xl object-cover ring-2 {{ $mem->role === 'leader' ? 'ring-amber-400' : ($mem->role === 'moderator' ? 'ring-purple-400' : 'ring-slate-100') }} shrink-0">
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-black text-slate-950 truncate">{{ $mem->user->name }}</div>
+                                            <div class="text-[10px] font-bold text-slate-500 truncate">
+                                                {{ $mem->user->student?->classroom?->name ?? ($mem->user->school?->name ?? 'Pembda') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-black shrink-0 {{ $mem->role === 'leader' ? 'bg-amber-200 text-amber-950' : ($mem->role === 'moderator' ? 'bg-purple-200 text-purple-950' : 'bg-slate-100 text-slate-700') }}">
+                                        {{ $mem->title_badge ?: ($mem->role === 'leader' ? '👑 Pembina/Wali' : ($mem->role === 'moderator' ? '⭐ Pengurus' : 'Anggota')) }}
+                                    </span>
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- ── 3. Filter Tab Bar: Gelora Pastel (1 Kata: Semua, Karya, Nongki, Reels, Grup) ── --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-3xl border-2 border-[#f1e8dc] p-2.5 shadow-xs">
             {{-- Tabs Pastel Heboh --}}
             <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
@@ -419,6 +642,14 @@
                         <span class="w-2 h-2 rounded-full bg-rose-600 relative"></span>
                     </span>
                     <span>Liputan LIVE</span>
+                </a>
+                {{-- 7. Direktori Grup & Squad --}}
+                <a href="{{ route('circle.feed', array_filter(['tab' => 'groups', 'q' => request('q')])) }}" 
+                   class="px-4 py-2 rounded-2xl text-xs font-black transition-base shrink-0 flex items-center gap-2 {{ $tabFilter === 'groups' ? 'bg-indigo-600 text-white border-2 border-black shadow-xs' : 'text-indigo-800 hover:bg-indigo-50' }}">
+                    <span class="w-5 h-5 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">
+                        <i class="fas fa-users"></i>
+                    </span>
+                    <span>Grup & Squad</span>
                 </a>
             </div>
 
@@ -473,6 +704,170 @@
                                 </a>
                             @endforeach
                         </div>
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        {{-- ── 3A. DIREKTORI LENGKAP GRUP & SQUAD (Jika Tab = 'groups') ── --}}
+        @if($tabFilter === 'groups')
+            <div x-data="{ showCreateGroupModal: false }" class="bg-white rounded-3xl border-2 border-indigo-200 p-5 sm:p-6 shadow-xs space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 text-[10px] font-black uppercase tracking-wider mb-1">
+                            <span>🏛️ Direktori Komunitas Resmi PembdaCIRCLE</span>
+                        </div>
+                        <h3 class="font-display font-black text-lg sm:text-xl text-slate-950">
+                            Katalog Grup Kelas, Sanggar Seni, Ekskul, Rumpun SMK, Angkatan & Alumni
+                        </h3>
+                        <p class="text-xs font-semibold text-slate-600">
+                            Menampilkan {{ isset($allCommunities) ? $allCommunities->count() : 0 }} ruang komunitas aktif yang terhubung langsung dengan data akademik & kesiswaan.
+                        </p>
+                    </div>
+                    @auth
+                        <button type="button"
+                                @click="showCreateGroupModal = !showCreateGroupModal"
+                                class="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5 shrink-0 shadow-xs">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>+ Buat Grup / Squad Baru</span>
+                        </button>
+                    @endauth
+                </div>
+
+                {{-- Form Buat Grup / Squad / Sanggar / Angkatan Baru --}}
+                @auth
+                    <div x-show="showCreateGroupModal" x-collapse x-transition class="p-4 rounded-2xl bg-indigo-50/80 border-2 border-indigo-300 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-indigo-950">✨ Buat Grup / Squad / Sanggar / Komunitas Baru</h4>
+                            <button type="button" @click="showCreateGroupModal = false" class="text-xs font-black text-slate-500 hover:text-rose-600 cursor-pointer">✕ Batal</button>
+                        </div>
+                        <form action="{{ route('circle.community.create') }}" method="POST" class="space-y-3">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-[11px] font-black text-slate-900 mb-1">Nama Grup / Komunitas:</label>
+                                    <input type="text" name="name" required placeholder="Contoh: Sanggar Tari Nias / Klub Robotik / Ikatan Alumni 2020..."
+                                           class="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs font-bold text-slate-950">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-black text-slate-900 mb-1">Kategori Grup:</label>
+                                    <select name="type" class="w-full px-3 py-2 rounded-xl bg-white border border-indigo-200 text-xs font-black text-slate-950">
+                                        <option value="sanggar">🎭 Sanggar & Seni Budaya</option>
+                                        <option value="extracurricular">🏆 Ekstrakurikuler & Klub</option>
+                                        <option value="vocation">⚙️ Rumpun Kejuruan SMK</option>
+                                        <option value="cohort">📅 Grup Angkatan</option>
+                                        <option value="alumni">🎓 Ikatan Alumni (IKA)</option>
+                                        <option value="squad">🚀 Squad / Kelompok Belajar</option>
+                                        @if(Auth::user()->role === 'guru' || Auth::user()->isSuperAdmin())
+                                            <option value="teachers">👨‍🏫 Ruang Guru / MGMP</option>
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-black text-slate-900 mb-1">Ikon Emoji (Opsional):</label>
+                                    <input type="text" name="icon" placeholder="Contoh: 🎭 / 🎺 / 🚀" maxlength="8"
+                                           class="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs font-bold text-slate-950">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-black text-slate-900 mb-1">Tahun Angkatan (Jika Grup Angkatan/Alumni):</label>
+                                    <input type="number" name="cohort_year" placeholder="Contoh: 2024" min="1980" max="2035"
+                                           class="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs font-bold text-slate-950">
+                                </div>
+                                <div class="flex items-end">
+                                    <label class="flex items-center gap-2 text-xs font-black text-slate-900 cursor-pointer p-2 rounded-xl bg-white border border-indigo-200 w-full">
+                                        <input type="checkbox" name="is_foundation" value="1" class="rounded text-indigo-600">
+                                        <span>🏛️ Lintas Unit (Yayasan)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black text-slate-900 mb-1">Deskripsi Singkat & Jadwal/Visi Grup:</label>
+                                <textarea name="description" rows="2" placeholder="Jelaskan kegiatan, jadwal latihan, atau tujuan grup ini..."
+                                          class="w-full p-3 rounded-xl bg-white border border-indigo-200 text-xs font-bold text-slate-950 resize-none"></textarea>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black cursor-pointer shadow-xs">
+                                    🚀 Aktifkan Grup Sekarang
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                @endauth
+
+                {{-- Grid Kartu Komunitas --}}
+                @if(isset($allCommunities) && $allCommunities->isNotEmpty())
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        @foreach($allCommunities as $comm)
+                            @php
+                                $tInfo = $comm->type_info;
+                                $isJoined = $myCommList->contains('id', $comm->id);
+                            @endphp
+                            <div class="p-4 rounded-3xl bg-[#faf8f5] hover:bg-white border-2 border-[#e8dfd1] hover:border-purple-300 transition-all flex flex-col justify-between gap-3 shadow-2xs hover:shadow-md">
+                                <div class="flex items-start gap-3.5">
+                                    <a href="{{ route('circle.feed', ['community' => $comm->slug]) }}"
+                                       class="w-13 h-13 rounded-2xl bg-white border-2 border-purple-200 flex items-center justify-center text-2xl shrink-0 shadow-2xs hover:scale-105 transition">
+                                        {{ $comm->display_icon }}
+                                    </a>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border {{ $tInfo['badge_bg'] ?? 'bg-purple-100 text-purple-900 border-purple-300' }}">
+                                                {{ $tInfo['label'] }}
+                                            </span>
+                                            @if($comm->school)
+                                                <span class="px-2 py-0.5 rounded-md bg-slate-200/80 text-slate-800 text-[9px] font-bold">
+                                                    {{ $comm->school->name }}
+                                                </span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[9px] font-bold">
+                                                    🏛️ Yayasan
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <a href="{{ route('circle.feed', ['community' => $comm->slug]) }}"
+                                           class="font-display font-black text-sm text-slate-950 hover:text-purple-700 transition-colors block leading-snug">
+                                            {{ $comm->name }}
+                                        </a>
+                                        <p class="text-[11px] font-semibold text-slate-600 line-clamp-2 mt-1 leading-relaxed">
+                                            {{ $comm->description }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2.5 border-t border-[#ece3d5] flex items-center justify-between gap-2 text-[11px]">
+                                    <div class="flex items-center gap-2 font-bold text-slate-600">
+                                        <span>👥 {{ number_format($comm->members_count) }} Anggota</span>
+                                        <span>•</span>
+                                        <span>💬 {{ number_format($comm->posts_count) }} Post</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        @auth
+                                            @if(!$isJoined)
+                                                <form action="{{ route('circle.community.join', $comm->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="px-2.5 py-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 text-[10px] font-black cursor-pointer">
+                                                        + Gabung
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="px-2 py-1 rounded-xl bg-purple-100 text-purple-900 text-[10px] font-black">
+                                                    ✓ Anggota
+                                                </span>
+                                            @endif
+                                        @endauth
+                                        <a href="{{ route('circle.feed', ['community' => $comm->slug]) }}"
+                                           class="px-3 py-1 rounded-xl bg-slate-900 hover:bg-purple-700 text-white text-[10px] font-black transition">
+                                            Buka Ruang ➔
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-8 text-center text-slate-500 text-xs font-bold">
+                        Belum ada grup pada kategori ini. Klik tombol "+ Buat Grup / Squad Baru" untuk memulai!
                     </div>
                 @endif
             </div>
@@ -626,6 +1021,14 @@
                                         </div>
                                         <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 flex-wrap mt-0.5">
                                             <span>{{ $post->created_at->diffForHumans() }}</span>
+                                            @if($post->community)
+                                                <span>•</span>
+                                                <a href="{{ route('circle.feed', ['community' => $post->community->slug]) }}"
+                                                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 hover:bg-purple-200 text-purple-950 border border-purple-300 text-[10px] font-black transition">
+                                                    <span>{{ $post->community->display_icon }}</span>
+                                                    <span>{{ $post->community->name }}</span>
+                                                </a>
+                                            @endif
                                             @if($post->school)
                                                 <span>•</span>
                                                 <span class="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ $post->school->name }}</span>
@@ -635,6 +1038,20 @@
                                                 <span class="text-pink-700 font-bold"><i class="fas fa-location-dot text-[9px] mr-0.5"></i>{{ $post->location_tag }}</span>
                                             @endif
                                         </div>
+                                        {{-- Lencana Identitas Akademik, Kelas, Sanggar, Ekskul, Angkatan & Alumni --}}
+                                        @php
+                                            $authorBadges = $post->user->circle_identity_badges ?? [];
+                                        @endphp
+                                        @if(!empty($authorBadges))
+                                            <div class="flex items-center gap-1 flex-wrap mt-1">
+                                                @foreach(array_slice($authorBadges, 0, 4) as $ab)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-md border text-[9.5px] font-black {{ $ab['color'] ?? 'bg-slate-100 text-slate-700 border-slate-200' }}">
+                                                        <span>{{ $ab['icon'] ?? '' }}</span>
+                                                        <span>{{ $ab['label'] }}</span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -988,6 +1405,73 @@
                     <span>Nilai akademik, rapor & BK tetap 100% aman & privat.</span>
                 </div>
             </div>
+        </div>
+
+        {{-- ── 1A. WIDGET GRUP & SQUAD KOMUNITAS + PINTASAN PEMBDACHALLENGE ── --}}
+        <div class="bg-white rounded-3xl border-2 border-purple-200 p-5 shadow-xs space-y-3.5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs">
+                        🏛️
+                    </span>
+                    <span>Ruang Grup & Squad</span>
+                </h3>
+                <a href="{{ route('circle.feed', ['tab' => 'groups']) }}" class="text-[10px] font-black text-purple-700 hover:underline">
+                    Semua ({{ $countsByType['all'] ?? 0 }}) ➔
+                </a>
+            </div>
+
+            @php
+                $sidebarComms = ($myCommList && $myCommList->isNotEmpty())
+                    ? $myCommList->take(6)
+                    : (isset($allCommunities) ? $allCommunities->take(6) : collect());
+            @endphp
+
+            @if($sidebarComms->isNotEmpty())
+                <div class="space-y-2">
+                    @foreach($sidebarComms as $sComm)
+                        <a href="{{ route('circle.feed', ['community' => $sComm->slug]) }}"
+                           class="flex items-center justify-between p-2.5 rounded-2xl bg-[#faf8f5] hover:bg-purple-50 border border-[#ece3d5] hover:border-purple-200 transition group">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="w-8 h-8 rounded-xl bg-white border border-purple-200 flex items-center justify-center text-base shrink-0">
+                                    {{ $sComm->display_icon }}
+                                </span>
+                                <div class="min-w-0">
+                                    <div class="text-xs font-black text-slate-950 truncate group-hover:text-purple-700">
+                                        {{ $sComm->name }}
+                                    </div>
+                                    <div class="text-[10px] font-bold text-slate-500 truncate">
+                                        {{ $sComm->type_info['label'] }} • 👥 {{ $sComm->members_count }}
+                                    </div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-purple-600"></i>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- Pintasan Arena Game Edukasi PembdaCHALLENGE --}}
+            @if(Route::has('forum.games'))
+                <a href="{{ route('forum.games') }}"
+                   class="block p-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-sm hover:scale-[1.02] transition transform">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg shrink-0">
+                                🎮
+                            </span>
+                            <div>
+                                <div class="text-[10px] font-black uppercase tracking-wider text-amber-300">Arena Game Edukasi</div>
+                                <div class="text-xs font-black leading-tight">PembdaCHALLENGE (5 Game)</div>
+                                <div class="text-[10px] text-white/85 font-semibold">Math Blitz, Circuit Master, Nusantara</div>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-xl bg-white text-slate-950 text-[10px] font-black shrink-0">
+                            Main ➔
+                        </span>
+                    </div>
+                </a>
+            @endif
         </div>
 
         {{-- ── 1B. 👑 JAWARA! (LEADERBOARD MENYALA) ── --}}
