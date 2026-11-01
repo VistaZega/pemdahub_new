@@ -1491,29 +1491,38 @@
 
                 <div class="space-y-2.5">
                     @foreach($topStudents as $idx => $st)
+                        @php
+                            $rawSchool = $st->user->school?->name ?? 'Siswa Pembda';
+                            $schoolShort = trim(preg_replace('/\s+/', ' ', str_ireplace(['Gunungsitoli', 'Swasta'], '', $rawSchool)));
+                            $stPoints = (int) ($st->reputation_points ?? $st->user?->reputation?->total_points ?? 0);
+                        @endphp
                         <a href="{{ route('circle.profile', ['username' => $st->username ?? $st->user?->circle_username ?? 'user', 'tab' => 'points']) }}" 
                            class="flex items-center justify-between p-2.5 rounded-2xl bg-white hover:bg-amber-100/50 border border-amber-200 transition-all hover:scale-102 group shadow-2xs"
                            title="Klik untuk melihat profil & Wall Jejak Poin {{ $st->user->name }}">
-                            <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                                 <div class="relative shrink-0">
                                     <img src="{{ $st->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
-                                         class="w-9 h-9 rounded-xl object-cover ring-2 {{ $idx === 0 ? 'ring-amber-400' : ($idx === 1 ? 'ring-slate-400' : 'ring-orange-300') }}">
+                                         class="w-10 h-10 rounded-xl object-cover ring-2 {{ $idx === 0 ? 'ring-amber-400' : ($idx === 1 ? 'ring-slate-400' : 'ring-orange-300') }}">
                                     <span class="absolute -top-1.5 -left-1.5 text-xs">
                                         {{ $idx === 0 ? '🥇' : ($idx === 1 ? '🥈' : ($idx === 2 ? '🥉' : '🌟')) }}
                                     </span>
                                 </div>
-                                <div class="min-w-0">
+                                <div class="min-w-0 flex-1">
                                     <div class="text-xs font-black text-slate-950 truncate group-hover:text-pink-600 transition-colors">
                                         {{ $st->nickname ?? $st->user->name }}
                                     </div>
-                                    <div class="text-[10px] font-bold text-slate-600 truncate flex items-center gap-1.5">
-                                        <span>{{ $st->user->school?->name ?? 'Siswa Pembda' }}</span>
-                                        <span>•</span>
-                                        <span class="text-amber-800 font-black">⚡ {{ number_format($st->reputation_points ?? $st->user?->reputation?->total_points ?? 0) }} Pts</span>
+                                    <div class="text-[10px] font-bold text-slate-500 truncate" title="{{ $rawSchool }}">
+                                        {{ $schoolShort }}
+                                    </div>
+                                    <div class="text-[10.5px] font-black text-amber-950 flex items-center gap-1 mt-0.5">
+                                        <span class="text-amber-500 text-xs">⚡</span>
+                                        <span class="bg-amber-100/90 text-amber-950 px-1.5 py-0.2 rounded border border-amber-300 text-[10px] font-black whitespace-nowrap shadow-2xs">
+                                            {{ number_format($stPoints) }} Pts
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-[11px] font-black text-orange-600 shrink-0 flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200" title="Total Apresiasi Karya">
+                            <div class="text-[11px] font-black text-orange-600 shrink-0 flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-xl border border-orange-200 self-center" title="Total Apresiasi Karya">
                                 <span>🔥</span>
                                 <span>{{ $st->total_likes ?? 0 }}</span>
                             </div>
@@ -1522,23 +1531,34 @@
 
                     {{-- Guru Pembina Teraktif --}}
                     @if(isset($topTeacher))
+                        @php
+                            $rawTeacherSchool = $topTeacher->user->school?->name ?? 'Guru Pembda';
+                            $teacherSchoolShort = trim(preg_replace('/\s+/', ' ', str_ireplace(['Gunungsitoli', 'Swasta'], '', $rawTeacherSchool)));
+                            $teacherPoints = (int) ($topTeacher->reputation_points ?? $topTeacher->user?->reputation?->total_points ?? 0);
+                        @endphp
                         <div class="pt-2 border-t border-amber-200/80">
                             <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 block mb-1.5">Guru Pembina Teraktif:</span>
                             <a href="{{ route('circle.profile', ['username' => $topTeacher->username ?? $topTeacher->user?->circle_username ?? 'user', 'tab' => 'points']) }}" 
                                class="flex items-center justify-between p-2 rounded-2xl bg-sky-50 hover:bg-sky-100 border border-sky-200 transition group shadow-2xs">
-                                <div class="flex items-center gap-2 min-w-0">
+                                <div class="flex items-center gap-2 min-w-0 flex-1 mr-2">
                                     <img src="{{ $topTeacher->user->avatar_url ?? asset('images/default-avatar.svg') }}" 
-                                         class="w-7 h-7 rounded-lg object-cover ring-2 ring-sky-300 shrink-0">
-                                    <div class="min-w-0">
+                                         class="w-9 h-9 rounded-xl object-cover ring-2 ring-sky-300 shrink-0">
+                                    <div class="min-w-0 flex-1">
                                         <div class="text-[11px] font-black text-slate-950 truncate group-hover:text-sky-700">
                                             {{ $topTeacher->nickname ?? $topTeacher->user->name }}
                                         </div>
-                                        <div class="text-[9px] font-bold text-slate-600">
-                                            Guru • ⚡ {{ number_format($topTeacher->reputation_points ?? $topTeacher->user?->reputation?->total_points ?? 0) }} Pts
+                                        <div class="text-[10px] font-bold text-slate-500 truncate" title="{{ $rawTeacherSchool }}">
+                                            Guru • {{ $teacherSchoolShort }}
+                                        </div>
+                                        <div class="text-[10.5px] font-black text-sky-950 flex items-center gap-1 mt-0.5">
+                                            <span class="text-amber-500 text-xs">⚡</span>
+                                            <span class="bg-white/90 text-sky-950 px-1.5 py-0.2 rounded border border-sky-300 text-[10px] font-black whitespace-nowrap shadow-2xs">
+                                                {{ number_format($teacherPoints) }} Pts
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                                <span class="text-[10px] font-black text-sky-800 bg-sky-100 px-2 py-0.5 rounded-md border border-sky-300">
+                                <span class="text-[10px] font-black text-sky-800 bg-sky-100 px-2.5 py-1 rounded-xl border border-sky-300 shrink-0">
                                     ⭐ Mentor
                                 </span>
                             </a>
