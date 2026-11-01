@@ -138,6 +138,25 @@ class Extracurricular extends Model
     }
 
     /**
+     * Komunitas Resmi di PembdaCIRCLE
+     */
+    public function circleCommunity()
+    {
+        return $this->hasOne(CircleCommunity::class, 'extracurricular_id');
+    }
+
+    /**
+     * Tautan langsung ke ruang komunitas PembdaCIRCLE
+     */
+    public function getCircleUrlAttribute(): string
+    {
+        if ($this->relationLoaded('circleCommunity') && $this->circleCommunity && $this->circleCommunity->slug) {
+            return route('circle.feed', ['community' => $this->circleCommunity->slug]);
+        }
+        return route('circle.ekskul.space', $this->id);
+    }
+
+    /**
      * Kelas LMS Ekstrakurikuler (Materi, Tugas, Quiz & Nilai Extra)
      */
     public function lmsCourse()

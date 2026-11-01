@@ -48,7 +48,13 @@
         </div>
 
         @if($group->type === 'extracurricular')
-            <div class="flex items-center gap-2 pt-1 border-t border-[#121316]/20/60">
+            <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-[#121316]/20/60">
+                @if($group->extracurricular)
+                <a href="{{ route('circle.ekskul.space', $group->extracurricular->id) }}" class="px-3 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-900 text-[10px] font-black border border-pink-300 flex items-center gap-1.5 shadow-xs transition">
+                    <i class="fa-solid fa-sparkles text-pink-600"></i>
+                    <span>Buka di PembdaCIRCLE</span>
+                </a>
+                @endif
                 <a href="{{ in_array(auth()->user()->role ?? '', ['guru', 'admin', 'superadmin', 'kepala_sekolah', 'yayasan']) ? route('mobile.guru.ekskul') : route('mobile.ekskul') }}" class="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-black border border-[#121316]/20 flex items-center gap-1.5 shadow-xs transition">
                     <i class="fa-solid fa-sitemap text-indigo-600"></i>
                     <span>Buka Direktori & Roster Ekskul</span>

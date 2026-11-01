@@ -677,6 +677,12 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0 w-full md:w-auto pt-2 md:pt-0 justify-end flex-wrap sm:flex-nowrap">
+                            @if($isEkskulGroup && $ekskulModel)
+                            <a href="{{ route('circle.ekskul.space', $ekskulModel->id) }}" class="px-3.5 py-2 bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap shadow-xs active:scale-95 transition" title="Buka Ruang Komunitas Resmi di PembdaCIRCLE">
+                                <i class="fa-solid fa-sparkles text-xs"></i>
+                                <span>Buka di PembdaCIRCLE</span>
+                            </a>
+                            @endif
                             <a href="{{ route('forum.create', ['group' => $activeGroup->id]) }}" 
                                class="btn-tactile-red px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-pen-to-square text-xs"></i>

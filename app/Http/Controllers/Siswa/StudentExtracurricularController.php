@@ -152,11 +152,12 @@ class StudentExtracurricularController extends Controller
                 ]
             );
 
-            $badgeTitle = $membership ? ($membership->role_label ?? ucfirst($membership->role ?? 'Anggota')) : 'Anggota';
+            $isStaff = in_array($user->role ?? '', ['guru', 'admin', 'superadmin', 'admin_sekolah', 'kepala_sekolah', 'yayasan']);
+            $badgeTitle = $membership ? ($membership->role_label ?? ucfirst($membership->role ?? 'Anggota')) : ($isStaff ? 'Pembina / Guru' : 'Anggota');
             if ($membership && $membership->section) {
                 $badgeTitle .= ' • ' . $membership->section;
             }
-            $circleSvc->enrollUser($circleCommunity->id, $user->id, $isOfficer ? 'moderator' : 'member', $badgeTitle);
+            $circleSvc->enrollUser($circleCommunity->id, $user->id, ($isOfficer || $isStaff) ? 'moderator' : 'member', $badgeTitle);
             $circleSvc->refreshCommunityCount($circleCommunity->id);
         }
 

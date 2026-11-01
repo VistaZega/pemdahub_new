@@ -603,7 +603,7 @@
                         </div>
                         <div>
                             <h3 style="font-size: 1.15rem; font-weight: 900; color: #0f172a; line-height: 1.3;">Ekstrakurikuler & Karakter</h3>
-                            <p style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 0.25rem;">Unit kegiatan dan ruang diskusi PembdaSPACE</p>
+                            <p style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 0.25rem;">Unit kegiatan dan ruang komunitas PembdaCIRCLE</p>
                         </div>
                     </div>
                     <a href="{{ route('siswa.ekskul.index') }}" style="font-size: 0.75rem; font-weight: 900; color: #4f46e5; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
@@ -635,10 +635,10 @@
                                 <p style="font-size: 0.8rem; font-weight: 900; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->name }}</p>
                             </div>
                         </div>
-                        @if($e->forum_group_id)
-                        <a href="{{ route('forum.index', ['group' => $e->forum_group_id]) }}" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-xs" style="padding: 0.5rem 0.85rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; flex-shrink: 0;" title="Buka Kanal Space">
-                            <i class="fas fa-comments"></i>
-                            <span>Space</span>
+                        @if($e)
+                        <a href="{{ route('circle.ekskul.space', $e->id) }}" class="bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 text-white shadow-xs" style="padding: 0.5rem 0.85rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; flex-shrink: 0;" title="Buka Ruang Komunitas PembdaCIRCLE">
+                            <i class="fas fa-sparkles"></i>
+                            <span>Circle</span>
                         </a>
                         @endif
                     </div>

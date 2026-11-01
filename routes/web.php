@@ -3031,6 +3031,11 @@ Route::prefix('circle')->name('circle.')->group(function () {
     Route::get('/messages/conversation/{userId}', [App\Http\Controllers\Circle\CircleActionController::class, 'getConversation'])->name('messages.conversation');
     Route::post('/messages/send', [App\Http\Controllers\Circle\CircleActionController::class, 'sendMessage'])->name('messages.send');
     Route::get('/messages/search-users', [App\Http\Controllers\Circle\CircleActionController::class, 'searchUsersForMessage'])->name('messages.searchUsers');
+    
+    // Gateway Buka Komunitas Ekskul / Sanggar (Auto-provision & Redirect untuk semua role)
+    Route::get('/ekskul/{extracurricular}', [App\Http\Controllers\Siswa\StudentExtracurricularController::class, 'openSpace'])
+        ->middleware('auth')
+        ->name('ekskul.space');
 });
 
 // Route Profil Publik @username (Contoh: perguruanpembda.com/@fathan atau /@andreas-zebua)
