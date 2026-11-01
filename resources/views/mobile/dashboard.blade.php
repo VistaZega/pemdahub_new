@@ -322,6 +322,7 @@
     </div>
     @endif
 
+    @if(\App\Services\CirclePointService::isSpaceActive())
     <!-- 🌟 Top Stories Bar: Kanal & Squad Pembda Space -->
     <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl border-2 border-slate-200/80 shadow-xs space-y-2">
         <div class="flex items-center justify-between px-0.5">
@@ -386,6 +387,8 @@
             @endif
         </div>
     </div>
+
+    @endif
 
     <!-- 💼 Workspace Duty Switcher Bar (Khusus Guru / Pegawai dengan Multi-Tugas) -->
     @if($isTeacherRole && count($availableDuties ?? []) > 1)

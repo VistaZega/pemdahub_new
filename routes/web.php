@@ -1348,8 +1348,8 @@ Route::middleware('auth')->group(function () {
     // Pembda Space (Alias & Main Route)
     Route::get('/space', [App\Http\Controllers\ForumController::class, 'index'])->name('space.index');
 
-    // Hub Forum (Pembda Space)
-    Route::prefix('forum')->name('forum.')->group(function () {
+    // Hub Forum (Pembda Space - Ditutup & Dialihkan Otomatis Setelah 7 Hari)
+    Route::prefix('forum')->name('forum.')->middleware('space.active')->group(function () {
         Route::get('/', [App\Http\Controllers\ForumController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\ForumController::class, 'create'])->name('create');
         Route::post('/store', [App\Http\Controllers\ForumController::class, 'store'])->name('store');

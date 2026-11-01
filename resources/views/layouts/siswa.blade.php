@@ -169,10 +169,12 @@
         <span>Catatan Perkembangan</span>
     </a>
 
+    @if(\App\Services\CirclePointService::isSpaceActive())
     <a href="{{ route('forum.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('forum.*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-bolt text-[11px] text-yellow-300"></i></div>
         <span>PembdaSPACE</span>
     </a>
+    @endif
 
     <!-- Pembda AI (Tutor, Konsultasi & Asisten Belajar) -->
     <a href="{{ route('siswa.ai.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('siswa.ai.*') ? $ac : $nc }}">

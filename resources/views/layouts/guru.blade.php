@@ -341,11 +341,13 @@
     @endif
     @endif
 
+    @if(\App\Services\CirclePointService::isSpaceActive())
     <!-- PembdaSPACE -->
     <a href="{{ route('forum.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('forum.*') ? $ac : $nc }}">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center border border-black shadow-xs" style="background-color: #4338ca !important; color: #ffffff !important;"><i class="fas fa-bolt text-[11px] text-yellow-300"></i></div>
         <span>PembdaSPACE</span>
     </a>
+    @endif
 
     @if(\App\Models\Setting::getValue('guru_view_reputation_leaderboard', true))
     <!-- Leaderboard / Hall of Fame -->

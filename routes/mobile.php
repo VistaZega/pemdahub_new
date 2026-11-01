@@ -184,8 +184,8 @@ Route::prefix('m')->name('mobile.')->group(function () {
             Route::post('/final-project/{id}/assign-examiner', [MobilePanitiaController::class, 'assignAdvisorExaminer'])->name('final-project.assign-examiner');
         });
 
-        // Pembda Space (Forum & WA Groups)
-        Route::prefix('space')->name('space.')->group(function () {
+        // Pembda Space (Forum & WA Groups - Ditutup & Dialihkan Otomatis Setelah 7 Hari)
+        Route::prefix('space')->name('space.')->middleware('space.active')->group(function () {
             Route::get('/', [MobileSpaceController::class, 'index'])->name('index');
             Route::get('/create', [MobileSpaceController::class, 'create'])->name('create');
             Route::post('/', [MobileSpaceController::class, 'store'])->name('store');

@@ -58,6 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'force.password.change' => \App\Http\Middleware\ForcePasswordChange::class,
             'feature' => \App\Http\Middleware\CheckFeature::class,
+            'space.active' => \App\Http\Middleware\EnsureSpaceIsActive::class,
         ]);
 
         // Smart Guest Redirection for Mobile App & PWA

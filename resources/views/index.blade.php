@@ -192,7 +192,9 @@
     @include('landing.partials.galeri')
 
     {{-- 7. PEMBDASPACE & FORUM STEAM --}}
+    @if(\App\Services\CirclePointService::isSpaceActive())
     @include('landing.partials.pembda-space')
+    @endif
 
     {{-- 8. HALL OF FAME CIVITAS TERPILIH --}}
     @include('landing.partials.hall-of-fame')

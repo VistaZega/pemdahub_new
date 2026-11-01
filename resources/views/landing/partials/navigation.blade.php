@@ -32,7 +32,9 @@
                 <span class="px-1.5 py-0.2 rounded bg-[#ff3823] text-white text-[9px] font-mono-code font-bold">{{ isset($extracurriculars) ? $extracurriculars->count() : '16+' }}</span>
             </a>
             <a href="#galeri" class="hover:text-[#121316] transition-colors">Galeri Foto</a>
+            @if(\App\Services\CirclePointService::isSpaceActive())
             <a href="#pembda-space" class="hover:text-[#121316] transition-colors">PembdaSPACE</a>
+            @endif
             <a href="#fame" class="hover:text-[#121316] transition-colors">Hall of Fame</a>
             <a href="#mitra-industri" class="hover:text-[#121316] transition-colors flex items-center gap-1 text-[#ff3823]">
                 <i class="fa-solid fa-handshake text-[10px]"></i>
@@ -77,7 +79,9 @@
             <a href="#showcase" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Karya Siswa & PKL</a>
             <a href="#ekskul" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Ekstrakurikuler ({{ isset($extracurriculars) ? $extracurriculars->count() : '16+' }})</a>
             <a href="#galeri" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Galeri Foto Momen</a>
+            @if(\App\Services\CirclePointService::isSpaceActive())
             <a href="#pembda-space" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">PembdaSPACE (STEAM)</a>
+            @endif
             <a href="#fame" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1">Hall of Fame Civitas</a>
             <a href="#mitra-industri" onclick="document.getElementById('mobile-nav-drawer').classList.add('hidden')" class="py-1 text-[#ff3823] flex items-center gap-1.5">
                 <i class="fa-solid fa-handshake"></i>

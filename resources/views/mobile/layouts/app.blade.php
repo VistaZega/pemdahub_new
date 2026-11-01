@@ -328,12 +328,14 @@
                 <span class="text-[9px] font-black tracking-tight text-pink-600">CIRCLE</span>
             </a>
 
+            @if(\App\Services\CirclePointService::isSpaceActive())
             <!-- Tab 3: PembdaSPACE (Forum & Tanya Jawab) -->
             <a href="{{ route('mobile.space.index') }}" 
                class="flex flex-col items-center py-1.5 px-1.5 rounded-2xl transition duration-200 {{ request()->routeIs('mobile.space.*') ? 'text-purple-600 font-black bg-purple-50 scale-105 shadow-sm border border-purple-200' : 'text-slate-400 hover:text-slate-700' }}">
                 <i class="fa-solid fa-bolt text-base mb-0.5 {{ request()->routeIs('mobile.space.*') ? 'text-amber-500' : '' }}"></i>
                 <span class="text-[9px] font-black tracking-tight">SPACE</span>
             </a>
+            @endif
 
             <!-- Tab 4: LMS -->
             <a href="{{ route('mobile.lms.index') }}" 

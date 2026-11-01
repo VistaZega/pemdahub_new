@@ -697,4 +697,27 @@ class CirclePointService
             ];
         }
     }
+
+    /**
+     * Cek apakah PembdaSPACE masih aktif dalam masa transisi 7 hari.
+     * Mengembalikan false setelah masa transisi 7 hari berakhir (atau jika dipaksa tutup oleh admin).
+     */
+    public static function isSpaceActive(): bool
+    {
+        $forceClosed = Setting::getValue('pembda_space_force_closed', false);
+        if ($forceClosed) {
+            return false;
+        }
+
+        $info = self::getTransitionNoticeInfo();
+        return (bool) ($info['show'] ?? true);
+    }
+
+    /**
+     * Cek apakah PembdaSPACE sudah ditutup permanen.
+     */
+    public static function isSpaceClosed(): bool
+    {
+        return !self::isSpaceActive();
+    }
 }

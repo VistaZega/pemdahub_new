@@ -167,10 +167,12 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-book-reader text-[10px]"></i></div>
             <span>Pelatihan PembdaHUB</span>
         </a>
+        @if(\App\Services\CirclePointService::isSpaceActive())
         <a href="{{ route('forum.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('forum.*') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-bolt text-[11px] text-yellow-300"></i></div>
             <span>PembdaSPACE</span>
         </a>
+        @endif
         <a href="{{ route('reputation.leaderboard') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('reputation.leaderboard') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-sm"><i class="fas fa-ranking-star text-[10px]"></i></div>
             <span>Hall of Fame</span>
@@ -342,10 +344,12 @@
         <i class="fas fa-chevron-right text-[9px] chevron"></i>
     </button>
     <div class="menu-group-body closed mt-1 space-y-0.5">
+        @if(\App\Services\CirclePointService::isSpaceActive())
         <a href="{{ route('forum.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('forum.*') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white"><i class="fas fa-bolt text-[11px] text-yellow-300"></i></div>
             <span>PembdaSPACE</span>
         </a>
+        @endif
         <a href="{{ route('reputation.leaderboard') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('reputation.leaderboard') ? $ac : $nc }}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white"><i class="fas fa-ranking-star text-[10px]"></i></div>
             <span>Hall of Fame</span>
