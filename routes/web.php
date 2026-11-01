@@ -2859,6 +2859,63 @@ Route::get('/run-migrations', function () {
             $output .= "<p style='color:#d97706;'>ℹ️ Catatan Sinkronisasi Circle: " . e($syncErr->getMessage()) . "</p>";
         }
 
+        try {
+            // 🧹 Pembersihan postingan sampah / kosong (Anti-Ghost Post Cleanup)
+            $ghostPosts = \App\Models\CirclePost::where(function ($q) {
+                // Laporan kegiatan tanpa media & tanpa deskripsi jelas
+                $q->where(function ($sub) {
+                    $sub->where('post_type', 'report')
+                        ->whereDoesntHave('media')
+                        ->whereNull('attachment_path')
+                        ->where(function ($rc) {
+                            $rc->whereNull('content')
+                               ->orWhereRaw("CHAR_LENGTH(TRIM(content)) < 15");
+                        });
+                })
+                // Galeri tanpa berkas media
+                ->orWhere(function ($sub) {
+                    $sub->where(function ($g) {
+                        $g->where('tab_category', 'gallery')->orWhere('post_type', 'media');
+                    })
+                    ->whereDoesntHave('media')
+                    ->whereNull('attachment_path');
+                })
+                // Postingan tanpa teks, tanpa media, tanpa interaktif, tanpa poll, tanpa ref
+                ->orWhere(function ($sub) {
+                    $sub->where(function ($c) {
+                        $c->whereNull('content')
+                          ->orWhereRaw("CHAR_LENGTH(TRIM(content)) < 3")
+                          ->orWhereRaw("TRIM(content) IN ('📢 Laporan Langsung Kegiatan:', 'Laporan Kegiatan:')");
+                    })
+                    ->where(function ($t) {
+                        $t->whereNull('title')
+                          ->orWhereRaw("TRIM(title) IN ('', 'Laporan Kegiatan:', 'Laporan Kegiatan', '📢 Laporan Kegiatan:', '📢 [LIVE] Liputan Langsung:')");
+                    })
+                    ->whereDoesntHave('media')
+                    ->whereNull('attachment_path')
+                    ->whereNull('reference_id')
+                    ->whereDoesntHave('poll')
+                    ->where(function ($i) {
+                        $i->whereNull('interactive_type')->orWhere('interactive_type', 'none');
+                    });
+                });
+            })->get();
+
+            $deletedGhostCount = 0;
+            foreach ($ghostPosts as $ghost) {
+                $ghost->delete();
+                $deletedGhostCount++;
+            }
+
+            if ($deletedGhostCount > 0) {
+                $output .= "<p style='color:#059669;font-weight:bold;'>🧹 Berhasil menghapus {$deletedGhostCount} postingan kosong/sampah dari database PembdaCIRCLE!</p>";
+            } else {
+                $output .= "<p style='color:#0284c7;'>✨ Database PembdaCIRCLE bersih (tidak ada postingan kosong/sampah).</p>";
+            }
+        } catch (\Throwable $purgeErr) {
+            $output .= "<p style='color:#d97706;'>ℹ️ Catatan Pembersihan Postingan Kosong: " . e($purgeErr->getMessage()) . "</p>";
+        }
+
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 

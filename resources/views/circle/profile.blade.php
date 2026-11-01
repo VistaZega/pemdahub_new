@@ -1048,12 +1048,20 @@
                                 </span>
                             @endif
 
-                            {{-- Opsi Hapus Postingan (Pemilik / SuperAdmin) --}}
-                            @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
+                            {{-- Opsi Hapus Postingan (Pemilik / Moderator Guru / SuperAdmin) --}}
+                            @php
+                                $canModerateProfilePost = Auth::check() && (
+                                    Auth::id() === $post->user_id || 
+                                    Auth::user()->isSuperAdmin() || 
+                                    Auth::user()->isAdminSekolah() || 
+                                    Auth::user()->isGuru()
+                                );
+                            @endphp
+                            @if($canModerateProfilePost)
                                 <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus status ini?')" class="shrink-0">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition border border-slate-200 cursor-pointer" title="Hapus Status">
+                                    <button type="submit" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition border border-slate-200 cursor-pointer" title="{{ Auth::id() === $post->user_id ? 'Hapus Status Saya' : 'Moderasi / Hapus (Guru/Admin)' }}">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>

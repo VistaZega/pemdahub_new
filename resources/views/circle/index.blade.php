@@ -1095,11 +1095,19 @@
                                         </span>
                                     @endif
 
-                                    @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()))
+                                    @php
+                                        $canModeratePost = Auth::check() && (
+                                            Auth::id() === $post->user_id || 
+                                            Auth::user()->isSuperAdmin() || 
+                                            Auth::user()->isAdminSekolah() || 
+                                            Auth::user()->isGuru()
+                                        );
+                                    @endphp
+                                    @if($canModeratePost)
                                         <form action="{{ route('circle.post.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus postingan ini?')" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200" title="Hapus Postingan">
+                                            <button type="submit" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200" title="{{ Auth::id() === $post->user_id ? 'Hapus Postingan Saya' : 'Moderasi / Hapus Postingan (Guru/Admin)' }}">
                                                 <i class="fas fa-trash-alt text-[10px]"></i>
                                             </button>
                                         </form>

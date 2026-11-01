@@ -1181,8 +1181,98 @@ if (typeof window.circlePostComposer !== 'function') {
                 }
             },
 
+            validatePostQuality() {
+                const title = (this.postTitle || '').trim();
+                const content = (this.postContent || '').trim();
+                const form = this.$refs.composerForm;
+                const hasMedia = this.mediaItems.length > 0 || (this.voicePreviewUrl !== '') || (this.attachmentFileName !== '');
+                const hasReference = !!this.selectedReference;
+                const hasPoll = this.hasPoll && !!form?.querySelector('[name="poll_question"]')?.value?.trim();
+
+                // 1. Laporan Kegiatan
+                if (this.postType === 'report') {
+                    if (title.length < 5) {
+                        return 'Laporan Kegiatan wajib mencantumkan Judul Laporan yang jelas (minimal 5 karakter).';
+                    }
+                    if (content.length < 15 && !hasMedia) {
+                        return 'Mohon isi ringkasan jalannya kegiatan/lomba (minimal 15 karakter) atau lampirkan foto dokumentasi.';
+                    }
+                }
+
+                // 2. Portofolio / Proyek
+                if (this.tabCat === 'portfolio' || this.postType === 'project' || this.postType === 'devlog') {
+                    if (title.length < 5) {
+                        return 'Karya Portofolio wajib memiliki Judul Karya yang jelas (minimal 5 karakter).';
+                    }
+                    if (content.length < 15 && !hasMedia && !hasReference) {
+                        return 'Mohon berikan ringkasan deskripsi karya Anda (minimal 15 karakter) atau lampirkan berkas/foto karya.';
+                    }
+                }
+
+                // 3. Galeri Media
+                if (this.tabCat === 'gallery' || this.postType === 'media') {
+                    if (!hasMedia) {
+                        return 'Postingan Galeri Media wajib mengunggah minimal satu berkas foto, video, atau rekaman suara.';
+                    }
+                }
+
+                // 4. Liputan Live
+                if (this.postType === 'live') {
+                    if (title.length < 5) {
+                        return 'Liputan LIVE wajib mencantumkan Judul Siaran Acara yang jelas (minimal 5 karakter).';
+                    }
+                }
+
+                // 5. Teka-Teki
+                if (this.interactiveType === 'riddle') {
+                    if (content.length < 10) {
+                        return 'Tuliskan pertanyaan teka-teki dengan jelas pada kolom isi postingan (minimal 10 karakter).';
+                    }
+                    const answer = (form?.querySelector('[name="riddle_answer"]')?.value || '').trim();
+                    if (answer.length < 2) {
+                        return 'Teka-Teki wajib memiliki Kunci Jawaban Rahasia yang valid (minimal 2 karakter).';
+                    }
+                }
+
+                // 6. Battle 1v1
+                if (this.interactiveType === 'battle') {
+                    const a = (form?.querySelector('[name="battle_a_title"]')?.value || '').trim();
+                    const b = (form?.querySelector('[name="battle_b_title"]')?.value || '').trim();
+                    if (!a || !b) {
+                        return 'Arena Battle 1v1 wajib mengisi nama/judul untuk kedua karya (Karya A & Karya B).';
+                    }
+                }
+
+                // 7. Pantun
+                if (this.interactiveType === 'pantun') {
+                    if (content.length < 20) {
+                        return 'Tuliskan bait pantun pembuka Anda secara lengkap (minimal 2-4 baris rima).';
+                    }
+                }
+
+                // 8. Nongki / Status umum
+                if (!hasMedia && this.interactiveType === 'none' && !hasPoll && !hasReference) {
+                    if (!content && !title) {
+                        return 'Postingan tidak boleh kosong! Tuliskan cerita, pemikiran, atau unggah foto/media.';
+                    }
+                    if (content.length < 3 && !title) {
+                        return 'Isi postingan terlalu singkat. Tuliskan pesan yang bermakna bagi warga sekolah.';
+                    }
+                }
+
+                return null;
+            },
+
             submitWithProgress(e) {
                 if (this.isSubmitting) return;
+
+                // 🛡️ Client-side Content Quality Gate
+                const validationError = this.validatePostQuality();
+                if (validationError) {
+                    this.uploadError = validationError;
+                    return;
+                }
+
                 this.syncFileInput();
 
                 const form = this.$refs.composerForm;

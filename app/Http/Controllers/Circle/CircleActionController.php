@@ -81,6 +81,86 @@ class CircleActionController extends Controller
             return redirect()->route('login')->with('error', 'Silakan masuk terlebih dahulu untuk memposting.');
         }
 
+        // =========================================================================
+        // 🛡️ CONTENT QUALITY GATE: VALIDASI KETAT ANTI-POSTINGAN KOSONG / SPAM
+        // =========================================================================
+        $cleanContent = trim(strip_tags((string) $request->content));
+        $cleanTitle = trim((string) $request->title);
+        $hasMediaFiles = $request->hasFile('media') || $request->hasFile('media_files') || $request->hasFile('voice_note') || $request->hasFile('attachment');
+        $hasInteractive = $request->filled('interactive_type') && $request->interactive_type !== 'none';
+        $hasPoll = $request->filled('poll_question') || $request->boolean('has_poll');
+
+        // 1. Validasi Khusus LAPORAN KEGIATAN
+        if ($request->post_type === 'report') {
+            if (mb_strlen($cleanTitle) < 5) {
+                return $this->rejectEmptyPost($request, 'Laporan Kegiatan wajib mencantumkan Judul Laporan yang jelas (minimal 5 karakter).');
+            }
+            if (mb_strlen($cleanContent) < 15 && !$hasMediaFiles) {
+                return $this->rejectEmptyPost($request, 'Mohon isi ringkasan jalannya kegiatan/lomba (minimal 15 karakter) atau lampirkan foto dokumentasi.');
+            }
+        }
+
+        // 2. Validasi Khusus KARYA PORTOFOLIO
+        if ($request->tab_category === 'portfolio' || in_array($request->post_type, ['project', 'devlog'])) {
+            if (mb_strlen($cleanTitle) < 5) {
+                return $this->rejectEmptyPost($request, 'Karya Portofolio wajib memiliki Judul Karya yang jelas (minimal 5 karakter).');
+            }
+            if (mb_strlen($cleanContent) < 15 && !$hasMediaFiles && !$request->filled('reference_choice')) {
+                return $this->rejectEmptyPost($request, 'Mohon berikan ringkasan deskripsi karya Anda (minimal 15 karakter) atau lampirkan foto/video/dokumen karya.');
+            }
+        }
+
+        // 3. Validasi Khusus GALERI MEDIA
+        if ($request->tab_category === 'gallery' || $request->post_type === 'media') {
+            if (!$hasMediaFiles) {
+                return $this->rejectEmptyPost($request, 'Postingan Galeri Media wajib mengunggah minimal satu berkas foto, video, atau rekaman suara.');
+            }
+        }
+
+        // 4. Validasi Khusus LIPUTAN LIVE
+        if ($request->post_type === 'live' || $request->boolean('is_live')) {
+            if (mb_strlen($cleanTitle) < 5) {
+                return $this->rejectEmptyPost($request, 'Liputan LIVE wajib mencantumkan Judul Siaran Acara yang jelas (minimal 5 karakter).');
+            }
+        }
+
+        // 5. Validasi Khusus TEKA-TEKI
+        if ($request->input('interactive_type') === 'riddle') {
+            if (mb_strlen($cleanContent) < 10) {
+                return $this->rejectEmptyPost($request, 'Tuliskan pertanyaan teka-teki dengan jelas pada kolom isi postingan (minimal 10 karakter).');
+            }
+            $cleanAnswer = preg_replace('/[^a-z0-9]/', '', strtolower(trim((string)$request->riddle_answer)));
+            if (mb_strlen($cleanAnswer) < 2) {
+                return $this->rejectEmptyPost($request, 'Teka-Teki wajib memiliki Kunci Jawaban Rahasia yang valid (minimal 2 karakter).');
+            }
+        }
+
+        // 6. Validasi Khusus BATTLE 1v1
+        if ($request->input('interactive_type') === 'battle') {
+            $aTitle = trim((string)$request->battle_a_title);
+            $bTitle = trim((string)$request->battle_b_title);
+            if (empty($aTitle) || empty($bTitle)) {
+                return $this->rejectEmptyPost($request, 'Arena Battle 1v1 wajib mengisi nama/judul untuk kedua karya (Karya A & Karya B).');
+            }
+        }
+
+        // 7. Validasi Khusus PANTUN
+        if ($request->input('interactive_type') === 'pantun') {
+            if (mb_strlen($cleanContent) < 20) {
+                return $this->rejectEmptyPost($request, 'Tuliskan bait pantun pembuka Anda secara lengkap (minimal 2-4 baris rima).');
+            }
+        }
+
+        // 8. Validasi Umum Status / Nongki Biasa (Cegah Postingan Kosong Melompong)
+        if (!$hasMediaFiles && !$hasInteractive && !$hasPoll && !$request->filled('reference_choice')) {
+            if (empty($cleanContent) && empty($cleanTitle)) {
+                return $this->rejectEmptyPost($request, 'Postingan tidak boleh kosong! Tuliskan cerita, pemikiran, atau unggah foto/media.');
+            }
+            if (mb_strlen($cleanContent) < 3 && empty($cleanTitle)) {
+                return $this->rejectEmptyPost($request, 'Isi postingan terlalu singkat. Tuliskan pesan yang bermakna bagi warga sekolah.');
+            }
+        }
+
         // Proteksi Anti Double-Click / Duplicate Post dalam 10 detik
         $recentDuplicate = CirclePost::where('user_id', $user->id)
             ->where('post_type', $request->post_type)
@@ -753,24 +833,45 @@ class CircleActionController extends Controller
     }
 
     /**
-     * Hapus Postingan (Oleh Pemilik atau SuperAdmin)
+     * Hapus Postingan (Oleh Pemilik, Guru Moderator, atau SuperAdmin)
      */
     public function destroyPost($id)
     {
         $post = CirclePost::findOrFail($id);
         $user = Auth::user();
 
-        if ($post->user_id === $user?->id || $user?->isSuperAdmin()) {
+        $canDelete = false;
+        if ($user) {
+            if ($post->user_id === $user->id) {
+                $canDelete = true;
+            } elseif ($user->isSuperAdmin() || $user->isOwnerOrSuperAdmin()) {
+                $canDelete = true;
+            } elseif ($user->isAdminSekolah() || $user->isKepalaSekolah() || $user->isGuru()) {
+                $canDelete = true;
+            }
+        }
+
+        if ($canDelete) {
             // Hapus media terkait dari disk
             foreach ($post->media as $media) {
                 if ($media->file_path) {
                     Storage::disk('public')->delete($media->file_path);
                 }
             }
+            if ($post->attachment_path) {
+                Storage::disk('public')->delete($post->attachment_path);
+            }
             $post->delete();
+
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json(['status' => 'success', 'message' => 'Postingan berhasil dihapus.']);
+            }
             return redirect()->back()->with('success', 'Postingan berhasil dihapus dari PembdaCIRCLE.');
         }
 
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak berwenang menghapus postingan ini.'], 403);
+        }
         return redirect()->back()->with('error', 'Anda tidak berwenang menghapus postingan ini.');
     }
 
@@ -1607,5 +1708,20 @@ class CircleActionController extends Controller
 
         return redirect()->route('circle.feed', ['community' => $community->slug])
             ->with('success', "✨ Grup '{$community->name}' berhasil dibuat dan diaktifkan di PembdaCIRCLE!");
+    }
+
+    /**
+     * Helper penolakan postingan tidak bermakna / kosong (Content Quality Gate).
+     */
+    protected function rejectEmptyPost(Request $request, string $message)
+    {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $message,
+            ], 422);
+        }
+
+        return redirect()->back()->withInput()->with('error', $message);
     }
 }

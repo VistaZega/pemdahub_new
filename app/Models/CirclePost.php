@@ -225,6 +225,62 @@ class CirclePost extends Model
     }
 
     /**
+     * Scope untuk menyaring konten bermakna & membuang postingan sampah/kosong (Anti-Ghost Post)
+     */
+    public function scopeMeaningful($query)
+    {
+        return $query->where(function ($q) {
+            // 1. Laporan kegiatan harus memiliki media dokumentasi atau ringkasan konten >= 15 karakter
+            $q->where(function ($sub) {
+                $sub->where('post_type', 'report')
+                    ->where(function ($r) {
+                        $r->whereHas('media')
+                          ->orWhereNotNull('attachment_path')
+                          ->orWhere(function ($rc) {
+                              $rc->whereNotNull('content')
+                                 ->whereRaw("CHAR_LENGTH(TRIM(content)) >= 15");
+                          });
+                    });
+            })
+            // 2. Galeri media wajib memiliki berkas media atau lampiran
+            ->orWhere(function ($sub) {
+                $sub->where(function ($g) {
+                    $g->where('tab_category', 'gallery')
+                      ->orWhere('post_type', 'media');
+                })
+                ->where(function ($m) {
+                    $m->whereHas('media')
+                      ->orWhereNotNull('attachment_path');
+                });
+            })
+            // 3. Fitur interaktif (teka-teki, battle, pantun, collab)
+            ->orWhere(function ($sub) {
+                $sub->whereNotNull('interactive_type')
+                    ->where('interactive_type', '!=', 'none');
+            })
+            // 4. Postingan referensi portofolio atau polling
+            ->orWhereNotNull('reference_id')
+            ->orWhereHas('poll')
+            // 5. Postingan umum / status (harus ada media/lampiran ATAU konten teks bermakna >= 3 karakter)
+            ->orWhere(function ($sub) {
+                $sub->where(function ($s) {
+                    $s->whereNotIn('post_type', ['report', 'media'])
+                      ->where('tab_category', '!=', 'gallery');
+                })
+                ->where(function ($c) {
+                    $c->whereHas('media')
+                      ->orWhereNotNull('attachment_path')
+                      ->orWhere(function ($tc) {
+                          $tc->whereNotNull('content')
+                             ->whereRaw("CHAR_LENGTH(TRIM(content)) >= 3")
+                             ->whereRaw("TRIM(content) NOT IN ('📢 Laporan Langsung Kegiatan:', 'Laporan Kegiatan:')");
+                      });
+                });
+            });
+        });
+    }
+
+    /**
      * URL Berkas Lampiran Modul / Dokumen (PDF, Word, Excel, ZIP)
      */
     public function getAttachmentUrlAttribute(): ?string

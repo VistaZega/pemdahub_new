@@ -79,6 +79,7 @@ class CircleFeedController extends Controller
             'poll.votes',
         ])
             ->active()
+            ->meaningful()
             ->publicVisible();
 
         // Filter berdasarkan Grup / Komunitas aktif jika sedang dibuka
