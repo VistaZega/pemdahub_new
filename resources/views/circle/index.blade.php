@@ -143,92 +143,103 @@
             </div>
         </div>
 
-        {{-- ── 0B. PEMBERITAHUAN RESMI: SISTEM POIN APRESIASI & RESPON BARU DI PEMBDACIRCLE ── --}}
-        <div x-data="{ openRules: false }" class="bg-gradient-to-r from-amber-50 via-white to-pink-50 rounded-3xl border-2 border-amber-300 p-4 sm:p-5 shadow-xs relative overflow-hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-                <div class="flex items-start gap-3.5 min-w-0">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white border-2 border-amber-200 flex items-center justify-center text-lg shrink-0 shadow-xs">
-                        ⚡
-                    </div>
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span class="px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-950 border border-amber-400 text-[9px] font-black uppercase tracking-wider">
-                                🔔 Sistem Poin Baru
-                            </span>
+        {{-- ── 0B. PEMBERITAHUAN RESMI (OTOMATIS HILANG SETELAH 1 MINGGU / 7 HARI): SISTEM POIN BERBASIS APRESIASI DI PEMBDACIRCLE ── --}}
+        @php
+            $__pointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
+        @endphp
+        @if($__pointNotice['show'])
+            <div x-data="{ openRules: false }" class="bg-gradient-to-r from-amber-50 via-white to-pink-50 rounded-3xl border-2 border-amber-300 p-4 sm:p-5 shadow-xs relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                    <div class="flex items-start gap-3.5 min-w-0">
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white border-2 border-amber-200 flex items-center justify-center text-lg shrink-0 shadow-xs">
+                            ⚡
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-950 border border-amber-400 text-[9px] font-black uppercase tracking-wider">
+                                    🔔 Sistem Poin Apresiasi Baru
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300 text-[9px] font-black uppercase tracking-wider">
+                                    🚫 Update Status Sendiri = 0 Poin
+                                </span>
+                                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-300 text-[9px] font-bold" title="Pemberitahuan ini hanya tampil selama 1 minggu sejak peluncuran">
+                                    ⏳ Info {{ $__pointNotice['badge_label'] }}
+                                </span>
+                            </div>
                             <h3 class="font-display font-black text-xs sm:text-sm text-slate-950">
-                                Poin Reputasi Kini Hadir di PembdaCIRCLE Berbasis Apresiasi & Respon!
+                                Di PembdaCIRCLE, Poin Diraih Karena Karyamu <span class="text-pink-600 underline">DIAPRESIASI & DIRESPON</span> — Bukan Sekadar Update Status!
                             </h3>
+                            <p class="text-[11px] sm:text-xs font-semibold text-slate-700 leading-relaxed mt-0.5">
+                                Sekadar memposting status tidak lagi menghasilkan poin instan. <strong>Poin baru kini murni mengalir setiap kali karya, ide, atau dindingmu diapresiasi (🔥/👏/❤️/💡), dikomentari, divalidasi Guru (+50 Pts), atau diberi stiker Buku Tamu!</strong> *(Seluruh poin historis kamu dari PembdaSPACE & LMS tetap 100% utuh).*
+                            </p>
                         </div>
-                        <p class="text-[11px] sm:text-xs font-semibold text-slate-700 leading-relaxed">
-                            Seluruh poin historis kamu dari <strong>PembdaSPACE, LMS & Prestasi tetap 100% utuh</strong>. Kini poin baru diperoleh setiap kali karyamu <strong>diapresiasi, ditanggapi komentar, divalidasi Guru, atau mendapat stiker Buku Tamu</strong>!
-                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <button type="button" @click="openRules = !openRules"
+                                class="px-3 py-2 rounded-2xl bg-white hover:bg-amber-100 text-slate-900 border-2 border-amber-300 text-[11px] font-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fas fa-circle-info text-amber-600"></i>
+                            <span x-text="openRules ? 'Tutup Rumus' : 'Tabel Poin Apresiasi'">Tabel Poin Apresiasi</span>
+                        </button>
+                        @auth
+                            <a href="{{ route('circle.profile', ['username' => Auth::user()->circle_username ?? Auth::user()->username ?? 'user-' . Auth::id(), 'tab' => 'points']) }}"
+                               class="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 border-2 border-amber-600 text-[11px] font-black transition flex items-center gap-1.5 shadow-xs hover:scale-105">
+                                <span>⚡</span>
+                                <span>Jejak Poinku ({{ number_format(Auth::user()->reputation?->total_points ?? 0) }})</span>
+                            </a>
+                        @endauth
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                    <button type="button" @click="openRules = !openRules"
-                            class="px-3 py-2 rounded-2xl bg-white hover:bg-amber-100 text-slate-900 border-2 border-amber-300 text-[11px] font-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                        <i class="fas fa-circle-info text-amber-600"></i>
-                        <span x-text="openRules ? 'Tutup Rumus' : 'Cara Dapat Poin'">Cara Dapat Poin</span>
-                    </button>
-                    @auth
-                        <a href="{{ route('circle.profile', ['username' => Auth::user()->circle_username ?? Auth::user()->username ?? 'user-' . Auth::id(), 'tab' => 'points']) }}"
-                           class="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 border-2 border-amber-600 text-[11px] font-black transition flex items-center gap-1.5 shadow-xs hover:scale-105">
-                            <span>⚡</span>
-                            <span>Jejak Poinku ({{ number_format(Auth::user()->reputation?->total_points ?? 0) }})</span>
-                        </a>
-                    @endauth
-                </div>
-            </div>
-
-            {{-- Rincian Rumus Perhitungan Poin Apresiasi & Respon --}}
-            <div x-show="openRules" x-collapse x-transition class="mt-4 pt-4 border-t-2 border-amber-200/80">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-                    <div class="p-3 rounded-2xl bg-white border border-pink-200 flex items-start gap-2.5 shadow-2xs">
-                        <span class="text-lg">🔥</span>
-                        <div>
-                            <div class="font-black text-slate-950">Diapresiasi Teman (+3 s/d +8 Pts)</div>
-                            <div class="text-[11px] font-semibold text-slate-600">Menyala (+3), Keren (+4), Bangga (+5), Memicu Ide (+6). Bonus +2 jika karya Portofolio!</div>
+                {{-- Rincian Rumus Perhitungan Poin Apresiasi & Respon --}}
+                <div x-show="openRules" x-collapse x-transition class="mt-4 pt-4 border-t-2 border-amber-200/80">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                        <div class="p-3 rounded-2xl bg-white border border-pink-200 flex items-start gap-2.5 shadow-2xs">
+                            <span class="text-lg">🔥</span>
+                            <div>
+                                <div class="font-black text-slate-950">Karya Diapresiasi Teman (+3 s/d +8 Pts)</div>
+                                <div class="text-[11px] font-semibold text-slate-600">Menyala (+3), Keren (+4), Bangga (+5), Memicu Ide (+6). Bonus +2 jika karya Portofolio!</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-white border border-sky-200 flex items-start gap-2.5 shadow-2xs">
-                        <span class="text-lg">👨‍🏫</span>
-                        <div>
-                            <div class="font-black text-slate-950">Apresiasi & Respon Guru (2x Lipat!)</div>
-                            <div class="text-[11px] font-semibold text-slate-600">Reaksi dari Bapak/Ibu Guru bernilai <strong>2x lipat (+6 s/d +16 Pts)</strong> & komentar Guru <strong>+10 Pts</strong>!</div>
+                        <div class="p-3 rounded-2xl bg-white border border-sky-200 flex items-start gap-2.5 shadow-2xs">
+                            <span class="text-lg">👨‍🏫</span>
+                            <div>
+                                <div class="font-black text-slate-950">Apresiasi & Respon Guru (2x Lipat!)</div>
+                                <div class="text-[11px] font-semibold text-slate-600">Reaksi dari Bapak/Ibu Guru bernilai <strong>2x lipat (+6 s/d +16 Pts)</strong> & komentar Guru <strong>+10 Pts</strong>!</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-white border border-indigo-200 flex items-start gap-2.5 shadow-2xs">
-                        <span class="text-lg">💬</span>
-                        <div>
-                            <div class="font-black text-slate-950">Ditanggapi & Menanggapi (+5 / +2 Pts)</div>
-                            <div class="text-[11px] font-semibold text-slate-600">Pemilik karya dapat <strong>+5 Pts</strong> tiap dikomentari teman, dan penanggap santun dapat <strong>+2 Pts</strong>!</div>
+                        <div class="p-3 rounded-2xl bg-white border border-indigo-200 flex items-start gap-2.5 shadow-2xs">
+                            <span class="text-lg">💬</span>
+                            <div>
+                                <div class="font-black text-slate-950">Ditanggapi & Menanggapi (+5 / +2 Pts)</div>
+                                <div class="text-[11px] font-semibold text-slate-600">Pemilik karya dapat <strong>+5 Pts</strong> tiap dikomentari teman, dan penanggap santun dapat <strong>+2 Pts</strong>!</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-white border border-emerald-200 flex items-start gap-2.5 shadow-2xs">
-                        <span class="text-lg">🏅</span>
-                        <div>
-                            <div class="font-black text-slate-950">Lencana Piawai Guru (+50 Pts)</div>
-                            <div class="text-[11px] font-semibold text-slate-600">Saat keahlian portofoliomu disahkan oleh Guru Pembina, raih langsung <strong>+50 Poin</strong>!</div>
+                        <div class="p-3 rounded-2xl bg-white border border-emerald-200 flex items-start gap-2.5 shadow-2xs">
+                            <span class="text-lg">🏅</span>
+                            <div>
+                                <div class="font-black text-slate-950">Lencana Piawai Guru (+50 Pts)</div>
+                                <div class="text-[11px] font-semibold text-slate-600">Saat keahlian portofoliomu disahkan oleh Guru Pembina, raih langsung <strong>+50 Poin</strong>!</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-white border border-rose-200 flex items-start gap-2.5 shadow-2xs">
-                        <span class="text-lg">💌</span>
-                        <div>
-                            <div class="font-black text-slate-950">Stiker Buku Tamu & Pin (+5 / +10 Pts)</div>
-                            <div class="text-[11px] font-semibold text-slate-600">Menerima stiker di dinding profil dapat <strong>+5 Pts</strong>. Jika stikermu di-Pin teman, kamu dapat <strong>+10 Pts</strong>!</div>
+                        <div class="p-3 rounded-2xl bg-white border border-rose-200 flex items-start gap-2.5 shadow-2xs">
+                            <span class="text-lg">💌</span>
+                            <div>
+                                <div class="font-black text-slate-950">Stiker Buku Tamu & Pin (+5 / +10 Pts)</div>
+                                <div class="text-[11px] font-semibold text-slate-600">Menerima stiker di dinding profil dapat <strong>+5 Pts</strong>. Jika stikermu di-Pin teman, kamu dapat <strong>+10 Pts</strong>!</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-white border border-amber-300 flex items-start gap-2.5 shadow-2xs">
-                        <span class="text-lg">🚀</span>
-                        <div>
-                            <div class="font-black text-slate-950">Karya Viral (+20 & +50 Pts)</div>
-                            <div class="text-[11px] font-semibold text-slate-600">Tembus 10 apresiasi unik raih bonus <strong>+20 Pts</strong>, dan 25 apresiasi unik raih <strong>+50 Pts</strong>!</div>
+                        <div class="p-3 rounded-2xl bg-white border border-amber-300 flex items-start gap-2.5 shadow-2xs">
+                            <span class="text-lg">🚀</span>
+                            <div>
+                                <div class="font-black text-slate-950">Karya Viral (+20 & +50 Pts)</div>
+                                <div class="text-[11px] font-semibold text-slate-600">Tembus 10 apresiasi unik raih bonus <strong>+20 Pts</strong>, dan 25 apresiasi unik raih <strong>+50 Pts</strong>!</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        @endif
 
         {{-- ── 1. Story Bar: ⚡ KILAS (STORY 24 JAM) ── --}}
         @if($activeStories->isNotEmpty() || Auth::check())

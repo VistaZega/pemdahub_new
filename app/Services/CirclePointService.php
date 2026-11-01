@@ -659,4 +659,42 @@ class CirclePointService
             ],
         };
     }
+
+    /**
+     * Cek apakah banner pemberitahuan transisi sistem poin (PembdaSPACE -> PembdaCIRCLE) masih dalam masa tayang 1 minggu (7 hari).
+     * Otomatis menyimpan waktu mulai tayang pertama kali di tabel settings, dan otomatis hilang setelah 7 hari.
+     */
+    public static function getTransitionNoticeInfo(): array
+    {
+        try {
+            $rawStart = Setting::getValue('circle_point_notice_started_at');
+            if (!$rawStart) {
+                $startedAt = now();
+                Setting::setValue('circle_point_notice_started_at', $startedAt->toIso8601String(), 'string', 'circle');
+            } else {
+                $startedAt = \Carbon\Carbon::parse($rawStart);
+            }
+
+            $expiresAt = $startedAt->copy()->addDays(7);
+            $isActive = now()->lessThan($expiresAt);
+            $secondsLeft = max(0, now()->diffInSeconds($expiresAt, false));
+            $daysLeft = (int) max(1, ceil($secondsLeft / 86400));
+
+            return [
+                'show'        => $isActive,
+                'started_at'  => $startedAt,
+                'expires_at'  => $expiresAt,
+                'days_left'   => $daysLeft,
+                'badge_label' => "Tayang {$daysLeft} Hari Lagi",
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'show'        => true,
+                'started_at'  => now(),
+                'expires_at'  => now()->addDays(7),
+                'days_left'   => 7,
+                'badge_label' => 'Tayang 7 Hari',
+            ];
+        }
+    }
 }
