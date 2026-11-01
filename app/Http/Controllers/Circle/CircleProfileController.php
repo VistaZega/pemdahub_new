@@ -111,44 +111,51 @@ class CircleProfileController extends Controller
 
         // Jejak Kunjungan Profil ("Siapa yang Baru Mampir?")
         if (Auth::check() && Auth::id() !== $user->id) {
-            $visitorId = Auth::id();
-            $visitSessionKey = 'visited_profile_' . $profile->id . '_by_' . $visitorId;
-            if (!session()->has($visitSessionKey)) {
-                $visitorRecord = CircleProfileVisitor::firstOrNew([
-                    'circle_profile_id' => $profile->id,
-                    'visitor_user_id' => $visitorId,
-                ]);
-
-                $visitorRecord->visit_count = ($visitorRecord->visit_count ?? 0) + 1;
-                $visitorRecord->last_visited_at = now();
-                $visitorRecord->save();
-
-                // Berikan +1 Poin Apresiasi Kunjungan Unik Pertama
-                CirclePointService::awardUniqueVisitor($profile, $visitorRecord, Auth::user());
-
-                session()->put($visitSessionKey, true);
-
-                // Kirim notifikasi ramah ke pemilik profil jika belum ada notif dari visitor ini dalam 6 jam terakhir
-                $recentNotif = Notification::where('user_id', $user->id)
-                    ->where('type', 'circle_visitor')
-                    ->where('related_id', $visitorId)
-                    ->where('created_at', '>=', now()->subHours(6))
-                    ->first();
-
-                if (!$recentNotif) {
-                    $visitorUser = Auth::user();
-                    $visitorNick = $visitorUser->circleProfile->nickname ?? explode(' ', $visitorUser->name)[0];
-                    Notification::create([
-                        'user_id' => $user->id,
-                        'school_id' => $visitorUser->school_id,
-                        'type' => 'circle_visitor',
-                        'title' => "👀 {$visitorNick} baru saja mampir!",
-                        'message' => "{$visitorUser->name} mengunjungi dinding profilmu. Yuk mampir balik!",
-                        'related_model' => 'User',
-                        'related_id' => $visitorId,
-                        'is_read' => false,
+            try {
+                $visitorId = Auth::id();
+                $visitSessionKey = 'visited_profile_' . $profile->id . '_by_' . $visitorId;
+                if (!session()->has($visitSessionKey)) {
+                    $visitorRecord = CircleProfileVisitor::firstOrNew([
+                        'circle_profile_id' => $profile->id,
+                        'visitor_user_id' => $visitorId,
                     ]);
+
+                    $visitorRecord->visit_count = ($visitorRecord->visit_count ?? 0) + 1;
+                    $visitorRecord->last_visited_at = now();
+                    $visitorRecord->save();
+
+                    // Berikan +1 Poin Apresiasi Kunjungan Unik Pertama
+                    CirclePointService::awardUniqueVisitor($profile, $visitorRecord, Auth::user());
+
+                    session()->put($visitSessionKey, true);
+
+                    // Kirim notifikasi ramah ke pemilik profil jika belum ada notif dari visitor ini dalam 6 jam terakhir
+                    $recentNotif = Notification::where('user_id', $user->id)
+                        ->where('type', 'circle_visitor')
+                        ->where('related_id', $visitorId)
+                        ->where('created_at', '>=', now()->subHours(6))
+                        ->first();
+
+                    if (!$recentNotif) {
+                        try {
+                            $visitorUser = Auth::user();
+                            $visitorNick = $visitorUser->circleProfile->nickname ?? explode(' ', $visitorUser->name)[0];
+                            Notification::create([
+                                'user_id' => $user->id,
+                                'type' => 'circle_visitor',
+                                'title' => "👀 {$visitorNick} baru saja mampir!",
+                                'message' => "{$visitorUser->name} mengunjungi dinding profilmu. Yuk mampir balik!",
+                                'related_model' => 'User',
+                                'related_id' => $visitorId,
+                                'is_read' => false,
+                            ]);
+                        } catch (\Throwable $notifEx) {
+                            \Log::warning('Failed creating circle visitor notification: ' . $notifEx->getMessage());
+                        }
+                    }
                 }
+            } catch (\Throwable $visitorEx) {
+                \Log::warning('Failed recording profile visit: ' . $visitorEx->getMessage());
             }
         }
 

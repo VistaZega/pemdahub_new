@@ -652,7 +652,6 @@ class CircleActionController extends Controller
                     $ptsSuffix = $pointsAwarded > 0 ? " (+{$pointsAwarded} Poin Apresiasi ⚡)" : '';
                     Notification::create([
                         'user_id' => $post->user_id,
-                        'school_id' => $post->school_id,
                         'type' => 'circle_reaction',
                         'title' => "Apresiasi {$emoji}{$ptsSuffix}",
                         'message' => "{$reactorName} memberikan apresiasi pada {$postTitle}{$ptsSuffix}.",
@@ -712,7 +711,6 @@ class CircleActionController extends Controller
                     $ptsSuffix = $pointsAwarded > 0 ? " (+{$pointsAwarded} Poin Respon ⚡)" : '';
                     Notification::create([
                         'user_id' => $post->user_id,
-                        'school_id' => $post->school_id,
                         'type' => 'circle_comment',
                         'title' => "Komentar Baru di PembdaCIRCLE 💬{$ptsSuffix}",
                         'message' => "{$authorName} mengomentari {$postTitle}: \"" . Str::limit($request->comment_text, 60) . "\"{$ptsSuffix}",
@@ -774,7 +772,6 @@ class CircleActionController extends Controller
         try {
             Notification::create([
                 'user_id' => $request->student_user_id,
-                'school_id' => $teacher->school_id,
                 'type' => 'circle_endorsement',
                 'title' => 'Lencana Piawai Resmi Disahkan! 🏅 (+50 Poin Reputasi)',
                 'message' => "Guru {$teacher->name} mengesahkan keahlian \"{$request->skill_name}\" pada portofoliomu (+50 Poin Reputasi ⚡).",
@@ -1091,7 +1088,6 @@ class CircleActionController extends Controller
                 try {
                     Notification::create([
                         'user_id' => $post->user_id,
-                        'school_id' => $post->school_id,
                         'type' => 'circle_riddle_solved',
                         'title' => "🎉 Teka-Tekimu Terpecahkan! (+20 Poin Kreator)",
                         'message' => "{$user->name} berhasil menebak dengan tepat: \"{$guessRaw}\"!",
@@ -1494,19 +1490,22 @@ class CircleActionController extends Controller
 
         // Kirim Notifikasi ke Pemilik Profil jika pengirim bukan diri sendiri
         if ($sender->id !== $profile->user_id) {
-            $senderNick = $sender->circleProfile->nickname ?? explode(' ', $sender->name)[0];
-            $msgSnippet = $request->message ? ': "' . Str::limit($request->message, 45) . '"' : '';
-            $ptsSuffix = $gbPoints > 0 ? " (+{$gbPoints} Poin Apresiasi ⚡)" : '';
-            Notification::create([
-                'user_id' => $profile->user_id,
-                'school_id' => $sender->school_id,
-                'type' => 'circle_guestbook',
-                'title' => "💌 Stiker Baru dari {$senderNick}!{$ptsSuffix}",
-                'message' => "{$sender->name} menempelkan stiker {$meta['emoji']} '{$meta['label']}' di dindingmu{$msgSnippet}{$ptsSuffix}.",
-                'related_model' => 'CircleProfile',
-                'related_id' => $profile->id,
-                'is_read' => false,
-            ]);
+            try {
+                $senderNick = $sender->circleProfile->nickname ?? explode(' ', $sender->name)[0];
+                $msgSnippet = $request->message ? ': "' . Str::limit($request->message, 45) . '"' : '';
+                $ptsSuffix = $gbPoints > 0 ? " (+{$gbPoints} Poin Apresiasi ⚡)" : '';
+                Notification::create([
+                    'user_id' => $profile->user_id,
+                    'type' => 'circle_guestbook',
+                    'title' => "💌 Stiker Baru dari {$senderNick}!{$ptsSuffix}",
+                    'message' => "{$sender->name} menempelkan stiker {$meta['emoji']} '{$meta['label']}' di dindingmu{$msgSnippet}{$ptsSuffix}.",
+                    'related_model' => 'CircleProfile',
+                    'related_id' => $profile->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Failed creating circle guestbook notification: ' . $e->getMessage());
+            }
         }
 
         return redirect()->back()->with('success', "Stiker {$meta['emoji']} '{$meta['label']}' berhasil ditempelkan di dinding!");

@@ -86,7 +86,6 @@ class WebPushService
         try {
             Notification::create([
                 'user_id' => $userId,
-                'school_id' => User::find($userId)?->school_id,
                 'title' => $title,
                 'message' => $body,
                 'type' => $type,
