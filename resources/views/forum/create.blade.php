@@ -139,6 +139,24 @@
         </div>
     @endif
 
+    @php
+        $__spacePointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
+    @endphp
+    @if($__spacePointNotice['show'])
+        <div class="mb-5 max-w-5xl mx-auto p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 text-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="text-xl">⏳</span>
+                <div>
+                    <p class="text-xs sm:text-sm font-black text-white">PembdaSPACE akan Ditutup dalam {{ $__spacePointNotice['days_left'] ?? 7 }} Hari!</p>
+                    <p class="text-[11px] text-rose-100 font-semibold">Diharapkan untuk beralih ke PembdaCIRCLE. Semua fitur diskusi dan squad sudah tersedia di sana, dan karya yang diapresiasi menghasilkan Poin Prestasi.</p>
+                </div>
+            </div>
+            <a href="{{ route('circle.feed') }}" class="px-4 py-2 bg-[#fde047] hover:bg-yellow-400 text-slate-950 border-2 border-[#121316] rounded-xl text-xs font-black shrink-0 whitespace-nowrap shadow-xs">
+                Buat Post di PembdaCIRCLE ➔
+            </a>
+        </div>
+    @endif
+
     <form action="{{ route('forum.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 max-w-5xl mx-auto">
         @csrf
 

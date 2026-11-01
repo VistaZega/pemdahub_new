@@ -9,6 +9,31 @@
         <i class="fa-solid fa-arrow-left"></i> Batal
     </a>
 
+    {{-- PENGUMUMAN PENUTUPAN PEMBDASPACE & PERALIHAN KE PEMBDACIRCLE --}}
+    @php
+        $__mobPointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
+    @endphp
+    @if($__mobPointNotice['show'])
+        <div class="p-3 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 text-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] space-y-2">
+            <div class="flex items-start gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-[#fde047] text-slate-950 flex items-center justify-center text-sm shrink-0 border border-[#121316] font-black">
+                    ⏳
+                </span>
+                <div class="space-y-0.5 min-w-0">
+                    <p class="text-xs font-black text-white leading-tight">
+                        PembdaSPACE akan Ditutup dalam {{ $__mobPointNotice['days_left'] ?? 7 }} Hari
+                    </p>
+                    <p class="text-[10px] text-rose-100 font-semibold leading-tight">
+                        Semua fitur sudah ada di PembdaCIRCLE dan karya di sana diapresiasi dengan Poin Prestasi!
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('circle.feed') }}" class="w-full py-1.5 px-3 rounded-xl bg-[#fde047] text-slate-950 border-2 border-[#121316] text-[10px] font-black flex items-center justify-center gap-1.5 shadow-2xs">
+                <span>Buat Postingan di PembdaCIRCLE ➔</span>
+            </a>
+        </div>
+    @endif
+
     <!-- Form Neo-Brutalist Card -->
     <div class="p-5 space-y-4 bg-white border-2 border-[#121316] rounded-2xl shadow-[4px_4px_0px_#121316]">
         <div class="border-b-2 border-[#121316]/10 pb-3">

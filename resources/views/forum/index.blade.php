@@ -576,17 +576,37 @@
                     $__spacePointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
                 @endphp
                 @if($__spacePointNotice['show'])
-                    <div class="mb-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-pink-100 via-amber-100 to-sky-100 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-between gap-3 flex-wrap">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <span class="text-sm shrink-0">📢</span>
-                            <p class="text-xs font-extrabold text-[#121316]">
-                                Anda mendapatkan Point di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima ...
-                            </p>
+                    <div class="mb-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 text-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] relative overflow-hidden">
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-xl bg-[#fde047] text-slate-950 flex items-center justify-center text-xl shrink-0 border-2 border-[#121316] shadow-xs font-black">
+                                    ⏳
+                                </div>
+                                <div class="space-y-0.5 min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#fde047] text-slate-950 border border-[#121316] shadow-2xs">
+                                            ⚠️ PENGUMUMAN PENUTUPAN
+                                        </span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-white/25 text-white backdrop-blur-xs">
+                                            Ditutup dalam {{ $__spacePointNotice['days_left'] ?? 7 }} Hari
+                                        </span>
+                                    </div>
+                                    <h3 class="text-xs sm:text-sm font-black text-white leading-tight">
+                                        PembdaSPACE akan Ditutup dalam {{ $__spacePointNotice['days_left'] ?? 7 }} Hari — Diharapkan untuk Beralih ke PembdaCIRCLE!
+                                    </h3>
+                                    <p class="text-[11px] sm:text-xs text-rose-100 font-semibold leading-relaxed">
+                                        Semua fitur yang ada di PembdaSPACE sudah ada di <strong>PembdaCIRCLE</strong> (Forum feed, tanya jawab, squad kelas & sanggar ekskul). Anda mendapatkan Point di PembdaCIRCLE berdasarkan apresiasi yang Anda terima!
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                                <a href="{{ route('circle.feed') }}"
+                                   class="px-4 py-2 bg-[#fde047] hover:bg-yellow-400 text-slate-950 border-2 border-[#121316] rounded-xl text-xs font-black shadow-[2px_2px_0px_#121316] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition flex items-center gap-1.5 whitespace-nowrap">
+                                    <i class="fa-solid fa-sparkles text-pink-600"></i>
+                                    <span>Beralih ke PembdaCIRCLE ➔</span>
+                                </a>
+                            </div>
                         </div>
-                        <a href="{{ route('circle.feed') }}"
-                           class="btn-tactile-red px-3 py-1 rounded-lg text-[11px] font-black flex items-center gap-1.5 shrink-0">
-                            <span>lihat tabel point prestasi ! ➔</span>
-                        </a>
                     </div>
                 @endif
 

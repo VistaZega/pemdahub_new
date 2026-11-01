@@ -37,12 +37,28 @@
         $__mobPointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
     @endphp
     @if($__mobPointNotice['show'])
-        <div class="px-3 py-2 rounded-xl bg-gradient-to-r from-pink-100 via-amber-100 to-sky-100 border-2 border-[#121316] shadow-[2px_2px_0px_#121316] flex items-center justify-between gap-2">
-            <p class="text-[11px] font-extrabold text-[#121316] leading-snug">
-                ⚡ Anda mendapatkan Point di <strong>PembdaCIRCLE</strong> berdasarkan apresiasi yang Anda terima ...
-            </p>
-            <a href="{{ route('circle.feed') }}" class="py-1 px-2.5 rounded-lg bg-[#ff3823] text-white border border-[#121316] text-[10px] font-black shrink-0">
-                lihat tabel point prestasi ! ➔
+        <div class="p-3 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 text-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] space-y-2">
+            <div class="flex items-start gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-[#fde047] text-slate-950 flex items-center justify-center text-sm shrink-0 border border-[#121316] font-black">
+                    ⏳
+                </span>
+                <div class="space-y-0.5 min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#fde047] text-slate-950 border border-[#121316]">
+                            ⚠️ DITUTUP DALAM {{ $__mobPointNotice['days_left'] ?? 7 }} HARI
+                        </span>
+                    </div>
+                    <p class="text-xs font-black text-white leading-tight">
+                        Diharapkan untuk segera beralih ke PembdaCIRCLE!
+                    </p>
+                    <p class="text-[10px] text-rose-100 font-semibold leading-tight">
+                        Semua fitur yang ada di PembdaSPACE sudah ada di <strong>PembdaCIRCLE</strong>. Poin kini didapatkan dari apresiasi & respon karya!
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('circle.feed') }}" class="w-full py-1.5 px-3 rounded-xl bg-[#fde047] hover:bg-yellow-400 text-slate-950 border-2 border-[#121316] text-[11px] font-black flex items-center justify-center gap-1.5 shadow-[1px_1px_0px_#121316] active:scale-95 transition">
+                <i class="fa-solid fa-sparkles text-pink-600"></i>
+                <span>Beralih ke PembdaCIRCLE Sekarang ➔</span>
             </a>
         </div>
     @endif
