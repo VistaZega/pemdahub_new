@@ -527,7 +527,7 @@
         </div>
 
         <!-- MAIN FEED (Center) -->
-        <div id="forum-main-feed" class="flex-1 flex flex-col min-w-0 w-full graph-canvas p-2.5 sm:p-4 lg:p-5 {{ request('view') === 'challenge' ? 'min-h-[85vh] overflow-visible' : 'max-h-[85vh] overflow-y-auto no-scrollbar' }}">
+        <div id="forum-main-feed" class="flex-1 min-w-0 w-full graph-canvas p-2.5 sm:p-4 lg:p-5 {{ request('view') === 'challenge' ? 'min-h-[85vh] overflow-visible' : 'max-h-[85vh] overflow-y-auto no-scrollbar' }}">
             
             <!-- QUICK DOCK: TOMBOL BUKA/TUTUP SIDEBAR (MUNCUL JIKA SIDEBAR DITUTUP ATAU MODE GAME) -->
             <div class="mb-3 flex items-center justify-between gap-2 z-10 select-none" x-show="!leftSidebarOpen || !rightSidebarOpen || '{{ request('view') }}' === 'challenge'">
@@ -576,7 +576,7 @@
                     $__spacePointNotice = \App\Services\CirclePointService::getTransitionNoticeInfo();
                 @endphp
                 @if($__spacePointNotice['show'])
-                    <div class="mb-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 text-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] relative overflow-hidden">
+                    <div class="mb-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 text-white border-2 border-[#121316] shadow-[3px_3px_0px_#121316] relative shrink-0 w-full" style="min-height: fit-content;">
                         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                             <div class="flex items-start gap-3 min-w-0">
                                 <div class="w-10 h-10 rounded-xl bg-[#fde047] text-slate-950 flex items-center justify-center text-xl shrink-0 border-2 border-[#121316] shadow-xs font-black">

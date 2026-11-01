@@ -287,14 +287,14 @@
 {{-- KONDISI 4: VARIAN PEMBDASPACE (Pinned Spotlight Bar di Feed Komunitas)     --}}
 {{-- ========================================================================= --}}
 @elseif($variant === 'space')
-    <div class="mb-5 block p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] relative overflow-hidden group">
+    <div class="mb-5 block p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border-2 border-[#121316] rounded-2xl shadow-[3px_3px_0px_#121316] relative shrink-0 w-full group" style="min-height: fit-content;">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 mb-3">
-            <div class="flex items-center gap-2.5">
-                <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow shrink-0">
                     🗳️
                 </span>
-                <div>
-                    <div class="flex items-center gap-2">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
                         @if($campaign->is_simulation)
                             <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-300 px-2 py-0.5 rounded border border-black shadow-2xs">
                                 🧪 Simulasi E-Voting
@@ -306,11 +306,11 @@
                         @endif
                         <span class="text-[11px] font-mono text-slate-600 font-bold">OSIS {{ $campaign->period }}</span>
                     </div>
-                    <h3 class="text-sm font-black text-slate-900 leading-tight mt-0.5">{{ $campaign->title }}</h3>
+                    <h3 class="text-sm font-black text-slate-900 leading-tight mt-0.5 truncate">{{ $campaign->title }}</h3>
                 </div>
             </div>
 
-            <a href="{{ route('osis.booth') }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#121316] hover:bg-slate-800 text-white text-xs font-black shadow transition active:scale-95 flex-shrink-0">
+            <a href="{{ route('osis.booth') }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#121316] hover:bg-slate-800 text-white text-xs font-black shadow transition active:scale-95 shrink-0 self-start sm:self-center">
                 <i class="fas fa-vote-yea text-emerald-400"></i>
                 <span>Bilik Suara & Kenali Paslon</span>
                 <i class="fas fa-arrow-right text-[10px]"></i>
