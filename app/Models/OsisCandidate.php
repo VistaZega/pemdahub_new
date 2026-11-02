@@ -53,6 +53,14 @@ class OsisCandidate extends Model
         'points_awarded_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'photo_url',
+        'poster_url',
+        'video_embed_url',
+        'video_type',
+        'has_video',
+    ];
+
     public function election(): BelongsTo
     {
         return $this->belongsTo(OsisElection::class, 'election_id');
@@ -87,25 +95,92 @@ class OsisCandidate extends Model
     // Helper untuk foto kartu paslon
     public function getPhotoUrlAttribute(): string
     {
-        if ($this->photo && file_exists(public_path($this->photo))) {
-            return asset($this->photo);
+        if (!empty($this->photo)) {
+            $p = trim($this->photo);
+            if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
+                return $p;
+            }
+            if (str_starts_with($p, 'storage/') || str_starts_with($p, '/storage/')) {
+                return asset(ltrim($p, '/'));
+            }
+            if (file_exists(public_path($p))) {
+                return asset($p);
+            }
+            return asset('storage/' . ltrim($p, '/'));
         }
-        if ($this->photo && file_exists(storage_path('app/public/' . $this->photo))) {
-            return asset('storage/' . $this->photo);
-        }
-        return asset('images/osis/paslon_' . $this->candidate_number . '.jpg');
+        return asset('images/osis/paslon_' . ($this->candidate_number ?: 1) . '.jpg');
     }
 
     // Helper untuk poster HD
     public function getPosterUrlAttribute(): string
     {
-        if ($this->poster_flyer && file_exists(public_path($this->poster_flyer))) {
-            return asset($this->poster_flyer);
-        }
-        if ($this->poster_flyer && file_exists(storage_path('app/public/' . $this->poster_flyer))) {
-            return asset('storage/' . $this->poster_flyer);
+        if (!empty($this->poster_flyer)) {
+            $p = trim($this->poster_flyer);
+            if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
+                return $p;
+            }
+            if (str_starts_with($p, 'storage/') || str_starts_with($p, '/storage/')) {
+                return asset(ltrim($p, '/'));
+            }
+            if (file_exists(public_path($p))) {
+                return asset($p);
+            }
+            return asset('storage/' . ltrim($p, '/'));
         }
         return $this->photo_url;
+    }
+
+    // Helper cek status video kampanye
+    public function getHasVideoAttribute(): bool
+    {
+        return !empty($this->video_url);
+    }
+
+    // Helper tipe video (youtube, drive, video_file)
+    public function getVideoTypeAttribute(): ?string
+    {
+        if (empty($this->video_url)) return null;
+
+        $url = trim($this->video_url);
+
+        if (preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)/i', $url)) {
+            return 'youtube';
+        }
+
+        if (preg_match('/drive\.google\.com\/file\/d\//i', $url)) {
+            return 'drive';
+        }
+
+        return 'video_file';
+    }
+
+    // Helper URL embed video untuk iframe atau pemutar HTML5
+    public function getVideoEmbedUrlAttribute(): ?string
+    {
+        if (empty($this->video_url)) return null;
+
+        $url = trim($this->video_url);
+
+        // 1. YouTube (Watch URL, Shorts, Embed, youtu.be)
+        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i', $url, $matches)) {
+            return 'https://www.youtube-nocookie.com/embed/' . $matches[1] . '?rel=0&modestbranding=1';
+        }
+
+        // 2. Google Drive
+        if (preg_match('/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i', $url, $matches)) {
+            return 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
+        }
+
+        // 3. Local Upload / Direct Video URL
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            return $url;
+        }
+
+        if (str_starts_with($url, 'storage/') || str_starts_with($url, '/storage/')) {
+            return asset(ltrim($url, '/'));
+        }
+
+        return asset('storage/' . ltrim($url, '/'));
     }
 
     // Hitung persentase perolehan suara

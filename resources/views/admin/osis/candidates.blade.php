@@ -93,6 +93,28 @@
                             &ldquo;{{ $c->quote_slogan }}&rdquo;
                         </p>
 
+                        <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                            @if($c->poster_flyer)
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                    <i class="fas fa-image"></i> Poster Terpasang
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                                    <i class="fas fa-image"></i> Tanpa Poster
+                                </span>
+                            @endif
+
+                            @if($c->video_url)
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                                    <i class="fas fa-video"></i> Video Terpasang
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                                    <i class="fas fa-video-slash"></i> Tanpa Video
+                                </span>
+                            @endif
+                        </div>
+
                         <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
                             {{-- Tombol Edit Paslon --}}
                             <button type="button" 
@@ -167,6 +189,30 @@
                 <div>
                     <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Flyer Poster HD / Brosur</label>
                     <input type="file" name="poster_flyer" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-2 file:border-slate-900 file:text-xs file:font-bold file:bg-slate-100 hover:file:bg-slate-200">
+                </div>
+
+                {{-- Video Presentasi / Kampanye Paslon --}}
+                <div class="p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5">
+                            <i class="fas fa-video text-rose-600"></i> Video Presentasi / Kampanye
+                        </label>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase">Opsional</span>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 mb-1">Opsi 1: Unggah Berkas Video Langsung (MP4 / WebM / MOV)</label>
+                        <input type="file" name="video_file" accept="video/mp4,video/webm,video/quicktime,video/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-2 file:border-slate-900 file:text-xs file:font-bold file:bg-slate-100 hover:file:bg-slate-200">
+                        <span class="text-[9px] text-slate-400 block mt-0.5">Dapat merekam video presentasi dari HP/kamera lalu unggah ke sini (maks. 150 MB).</span>
+                    </div>
+                    <div class="relative flex items-center justify-center py-0.5">
+                        <div class="border-t border-slate-300 w-full"></div>
+                        <span class="bg-slate-50 px-2 text-[9px] font-black text-slate-400 uppercase tracking-widest absolute">ATAU</span>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 mb-1">Opsi 2: Tautan Video YouTube / Google Drive</label>
+                        <input type="text" name="video_url" class="w-full rounded-xl border-2 border-slate-900 p-2 text-xs font-mono" placeholder="https://www.youtube.com/watch?v=... atau https://drive.google.com/file/d/.../view">
+                        <span class="text-[9px] text-slate-400 block mt-0.5">Mendukung link YouTube biasa, YouTube Shorts, atau link publik Google Drive.</span>
+                    </div>
                 </div>
 
                 <div>
@@ -252,6 +298,44 @@
                 <input type="file" name="poster_flyer" accept="image/*" class="w-full text-xs text-slate-500">
             </div>
 
+            {{-- Video Presentasi / Kampanye Paslon --}}
+            <div class="p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <label class="block text-[11px] font-black uppercase text-slate-800 flex items-center gap-1.5">
+                        <i class="fas fa-video text-rose-600"></i> Video Presentasi / Kampanye
+                    </label>
+                    <span id="edit-video-badge-active" class="hidden text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                        <i class="fas fa-check-circle"></i> Video Aktif
+                    </span>
+                </div>
+
+                {{-- Status Video Saat Ini --}}
+                <div id="edit-current-video-box" class="hidden text-xs text-slate-700 bg-white p-2.5 rounded-xl border border-slate-300 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[10px] font-black uppercase text-slate-500">Berkas / URL Saat Ini:</span>
+                        <label class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 cursor-pointer hover:underline">
+                            <input type="checkbox" name="remove_video" value="1" class="rounded text-rose-600"> Hapus Video Ini
+                        </label>
+                    </div>
+                    <p class="font-mono text-[11px] truncate text-slate-800" id="edit-current-video-path"></p>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Ganti Berkas Video Baru (MP4 / WebM, maks. 150 MB)</label>
+                    <input type="file" name="video_file" accept="video/mp4,video/webm,video/quicktime,video/*" class="w-full text-xs text-slate-500">
+                </div>
+
+                <div class="relative flex items-center justify-center py-0.5">
+                    <div class="border-t border-slate-300 w-full"></div>
+                    <span class="bg-slate-50 px-2 text-[9px] font-black text-slate-400 uppercase tracking-widest absolute">ATAU</span>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Tautan Video YouTube / Google Drive</label>
+                    <input type="text" id="edit-video-url" name="video_url" class="w-full rounded-xl border-2 border-slate-900 p-2 text-xs font-mono" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+            </div>
+
             <div>
                 <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Kutipan Slogan</label>
                 <textarea id="edit-quote-slogan" name="quote_slogan" rows="2" class="w-full rounded-xl border-2 border-slate-900 p-2 text-xs"></textarea>
@@ -296,6 +380,24 @@
         document.getElementById('edit-treasurer-name').value = c.treasurer_name || '';
         document.getElementById('edit-quote-slogan').value = c.quote_slogan || '';
         document.getElementById('edit-vision').value = c.vision || '';
+
+        // Video
+        const videoBadge = document.getElementById('edit-video-badge-active');
+        const videoBox = document.getElementById('edit-current-video-box');
+        const videoPathText = document.getElementById('edit-current-video-path');
+        const videoUrlInput = document.getElementById('edit-video-url');
+
+        if (c.video_url) {
+            videoBadge.classList.remove('hidden');
+            videoBox.classList.remove('hidden');
+            videoPathText.innerText = c.video_url;
+            videoUrlInput.value = c.video_url.startsWith('http') ? c.video_url : '';
+        } else {
+            videoBadge.classList.add('hidden');
+            videoBox.classList.add('hidden');
+            videoPathText.innerText = '';
+            videoUrlInput.value = '';
+        }
 
         if (Array.isArray(c.mission)) {
             document.getElementById('edit-mission').value = c.mission.join("\n");

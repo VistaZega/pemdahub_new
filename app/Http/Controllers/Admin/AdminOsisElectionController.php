@@ -166,6 +166,10 @@ class AdminOsisElectionController extends Controller
             'candidate_number' => 'required|integer|min:1',
             'leader_name' => 'required|string|max:255',
             'quote_slogan' => 'nullable|string',
+            'photo' => 'nullable|image|max:10240',
+            'poster_flyer' => 'nullable|image|max:15360',
+            'video_file' => 'nullable|file|mimes:mp4,webm,mov,m4v,ogg,avi,mkv|max:153600',
+            'video_url' => 'nullable|string|max:500',
         ]);
 
         $photoPath = null;
@@ -176,6 +180,11 @@ class AdminOsisElectionController extends Controller
         $posterPath = null;
         if ($request->hasFile('poster_flyer')) {
             $posterPath = $request->file('poster_flyer')->store('osis/posters', 'public');
+        }
+
+        $videoUrl = $request->video_url ? trim($request->video_url) : null;
+        if ($request->hasFile('video_file')) {
+            $videoUrl = $request->file('video_file')->store('osis/videos', 'public');
         }
 
         // Parse missions & programs from textarea lines
@@ -197,7 +206,7 @@ class AdminOsisElectionController extends Controller
             'work_programs' => array_values($programs),
             'photo' => $photoPath,
             'poster_flyer' => $posterPath,
-            'video_url' => $request->video_url,
+            'video_url' => $videoUrl,
             'color_badge' => $request->color_badge ?? '#3b82f6',
         ]);
 
@@ -214,6 +223,10 @@ class AdminOsisElectionController extends Controller
         $request->validate([
             'candidate_number' => 'required|integer|min:1',
             'leader_name' => 'required|string|max:255',
+            'photo' => 'nullable|image|max:10240',
+            'poster_flyer' => 'nullable|image|max:15360',
+            'video_file' => 'nullable|file|mimes:mp4,webm,mov,m4v,ogg,avi,mkv|max:153600',
+            'video_url' => 'nullable|string|max:500',
         ]);
 
         $data = [
@@ -226,9 +239,17 @@ class AdminOsisElectionController extends Controller
             'vice_name' => $request->vice_name,
             'quote_slogan' => $request->quote_slogan,
             'vision' => $request->vision,
-            'video_url' => $request->video_url,
             'color_badge' => $request->color_badge ?? $candidate->color_badge,
         ];
+
+        // Video Handling: Upload berkas baru, hapus, atau ganti URL
+        if ($request->hasFile('video_file')) {
+            $data['video_url'] = $request->file('video_file')->store('osis/videos', 'public');
+        } elseif ($request->boolean('remove_video')) {
+            $data['video_url'] = null;
+        } elseif ($request->filled('video_url')) {
+            $data['video_url'] = trim($request->video_url);
+        }
 
         if ($request->has('mission')) {
             $missions = array_filter(array_map('trim', explode("\n", $request->mission ?? '')));

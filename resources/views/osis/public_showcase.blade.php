@@ -248,6 +248,12 @@
 
                         {{-- Foto Paslon --}}
                         <div class="relative bg-slate-100 overflow-hidden" style="aspect-ratio: 4/3;">
+                            @if(!empty($candidate->video_url))
+                                <span class="absolute top-2 right-2 bg-rose-600/90 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-lg backdrop-blur-xs flex items-center gap-1 z-10 border border-white/30 animate-pulse">
+                                    <i class="fas fa-play text-[8px]"></i> Video
+                                </span>
+                            @endif
+
                             <img src="{{ $candidate->photo_url }}" 
                                  alt="Paslon {{ $candidate->candidate_number }}" 
                                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -372,8 +378,24 @@
             </div>
 
             <div class="p-6 space-y-6">
-                <div class="rounded-2xl overflow-hidden border-2 border-slate-900 shadow-md bg-slate-100">
+                {{-- Flyer / Poster HD --}}
+                <div id="m-poster-container" class="rounded-2xl overflow-hidden border-2 border-slate-900 shadow-md bg-slate-100 relative">
                     <img id="m-poster-img" src="" alt="Poster" class="w-full h-auto object-contain max-h-96 mx-auto">
+                </div>
+
+                {{-- Video Presentasi & Kampanye Paslon --}}
+                <div id="m-video-container" class="hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+                            <i class="fas fa-play-circle animate-pulse text-sm"></i> VIDEO PRESENTASI & KAMPANYE
+                        </h4>
+                        <span class="text-[10px] font-bold text-slate-500 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                            Visi & Gagasan Paslon
+                        </span>
+                    </div>
+                    <div class="rounded-2xl overflow-hidden border-2 border-slate-900 shadow-md bg-black relative aspect-video flex items-center justify-center" id="m-video-wrapper">
+                        <!-- Dynamic video player -->
+                    </div>
                 </div>
 
                 <div>
@@ -438,6 +460,18 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
+        function resolveOsisAssetUrl(path, fallback = '') {
+            if (!path) return fallback;
+            if (path.startsWith('http://') || path.startsWith('https://')) return path;
+            if (path.startsWith('/storage/') || path.startsWith('storage/')) {
+                return '/' + path.replace(/^\//, '');
+            }
+            if (path.startsWith('/images/') || path.startsWith('images/')) {
+                return '/' + path.replace(/^\//, '');
+            }
+            return '/storage/' + path.replace(/^\//, '');
+        }
+
         function openDetailModal(c) {
             document.getElementById('m-badge-number').innerText = c.candidate_number;
             document.getElementById('m-candidate-title').innerText = 'PASLON NOMOR ' + c.candidate_number;
@@ -446,8 +480,40 @@
             if (c.secretary_name) names += ' (Ketua) & ' + c.secretary_name + ' (Sekretaris)';
             document.getElementById('m-candidate-names').innerText = names;
 
+            // Poster Flyer HD (dengan perbaikan fallback path storage)
             const posterImg = document.getElementById('m-poster-img');
-            posterImg.src = c.poster_flyer ? (c.poster_flyer.startsWith('http') ? c.poster_flyer : '/' + c.poster_flyer) : (c.photo ? '/' + c.photo : 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80');
+            const defaultFallback = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80';
+            const photoFallback = c.photo_url || resolveOsisAssetUrl(c.photo, defaultFallback);
+            const posterSrc = c.poster_url || resolveOsisAssetUrl(c.poster_flyer, photoFallback);
+
+            posterImg.src = posterSrc;
+            posterImg.onerror = function() {
+                if (this.src !== photoFallback) {
+                    this.src = photoFallback;
+                } else if (this.src !== defaultFallback) {
+                    this.src = defaultFallback;
+                }
+            };
+
+            // Video Presentasi & Kampanye Paslon
+            const videoContainer = document.getElementById('m-video-container');
+            const videoWrapper = document.getElementById('m-video-wrapper');
+            videoWrapper.innerHTML = '';
+
+            const hasVideo = c.has_video || !!c.video_url;
+            const videoType = c.video_type || (c.video_url && c.video_url.includes('youtu') ? 'youtube' : (c.video_url && c.video_url.includes('drive.google.com') ? 'drive' : 'video_file'));
+            const videoEmbedUrl = c.video_embed_url || resolveOsisAssetUrl(c.video_url);
+
+            if (hasVideo && videoEmbedUrl) {
+                videoContainer.classList.remove('hidden');
+                if (videoType === 'youtube' || videoType === 'drive') {
+                    videoWrapper.innerHTML = `<iframe src="${videoEmbedUrl}" class="w-full h-full border-0 rounded-2xl" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+                } else {
+                    videoWrapper.innerHTML = `<video controls playsinline preload="metadata" class="w-full h-full object-contain bg-black rounded-2xl"><source src="${videoEmbedUrl}" type="video/mp4"><source src="${videoEmbedUrl}" type="video/webm"><source src="${videoEmbedUrl}" type="video/quicktime">Peramban Anda tidak mendukung pemutar video langsung.</video>`;
+                }
+            } else {
+                videoContainer.classList.add('hidden');
+            }
 
             document.getElementById('m-vision').innerText = c.vision || c.quote_slogan || '-';
 
@@ -480,6 +546,8 @@
         }
 
         function closeDetailModal() {
+            const videoWrapper = document.getElementById('m-video-wrapper');
+            if (videoWrapper) videoWrapper.innerHTML = '';
             document.getElementById('modal-public-detail').classList.add('hidden');
         }
     </script>

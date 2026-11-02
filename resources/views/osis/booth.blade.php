@@ -279,6 +279,12 @@
 
                     {{-- Foto Paslon --}}
                     <div class="relative bg-slate-100 overflow-hidden" style="aspect-ratio: 4/3;">
+                        @if(!empty($candidate->video_url))
+                            <span class="absolute top-2 right-2 bg-rose-600/90 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-lg backdrop-blur-xs flex items-center gap-1 z-10 border border-white/30 animate-pulse">
+                                <i class="fas fa-play text-[8px]"></i> Video
+                            </span>
+                        @endif
+
                         <img src="{{ $candidate->photo_url }}" 
                              alt="Paslon {{ $candidate->candidate_number }}" 
                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -474,8 +480,23 @@
         {{-- Modal Content --}}
         <div class="p-6 space-y-6">
             {{-- Flyer / Poster HD --}}
-            <div class="rounded-2xl overflow-hidden border-2 border-slate-900 shadow-md bg-slate-100">
+            <div id="modal-poster-container" class="rounded-2xl overflow-hidden border-2 border-slate-900 shadow-md bg-slate-100 relative">
                 <img id="modal-poster-img" src="" alt="Poster Flyer" class="w-full h-auto object-contain max-h-96 mx-auto">
+            </div>
+
+            {{-- Video Presentasi & Kampanye Paslon --}}
+            <div id="modal-video-container" class="hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+                        <i class="fas fa-play-circle animate-pulse text-sm"></i> VIDEO PRESENTASI & KAMPANYE
+                    </h4>
+                    <span class="text-[10px] font-bold text-slate-500 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                        Visi & Gagasan Paslon
+                    </span>
+                </div>
+                <div class="rounded-2xl overflow-hidden border-2 border-slate-900 shadow-md bg-black relative aspect-video flex items-center justify-center" id="modal-video-wrapper">
+                    <!-- Dynamic video/iframe player -->
+                </div>
             </div>
 
             {{-- Visi --}}
@@ -587,6 +608,19 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
+    // Helper resolve asset URL
+    function resolveOsisAssetUrl(path, fallback = '') {
+        if (!path) return fallback;
+        if (path.startsWith('http://') || path.startsWith('https://')) return path;
+        if (path.startsWith('/storage/') || path.startsWith('storage/')) {
+            return '/' + path.replace(/^\//, '');
+        }
+        if (path.startsWith('/images/') || path.startsWith('images/')) {
+            return '/' + path.replace(/^\//, '');
+        }
+        return '/storage/' + path.replace(/^\//, '');
+    }
+
     // 2. MODAL DETAIL PASLON
     function openCandidateModal(c) {
         document.getElementById('modal-badge-number').innerText = c.candidate_number;
@@ -596,9 +630,41 @@
         if (c.secretary_name) names += ' (Ketua) & ' + c.secretary_name + ' (Sekretaris)';
         document.getElementById('modal-candidate-names').innerText = names;
 
-        // Poster
+        // Poster Flyer HD (dengan perbaikan fallback path storage)
+        const posterContainer = document.getElementById('modal-poster-container');
         const posterImg = document.getElementById('modal-poster-img');
-        posterImg.src = c.poster_flyer ? (c.poster_flyer.startsWith('http') ? c.poster_flyer : '/' + c.poster_flyer) : (c.photo ? '/' + c.photo : 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80');
+        const defaultFallback = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80';
+        const photoFallback = c.photo_url || resolveOsisAssetUrl(c.photo, defaultFallback);
+        const posterSrc = c.poster_url || resolveOsisAssetUrl(c.poster_flyer, photoFallback);
+
+        posterImg.src = posterSrc;
+        posterImg.onerror = function() {
+            if (this.src !== photoFallback) {
+                this.src = photoFallback;
+            } else if (this.src !== defaultFallback) {
+                this.src = defaultFallback;
+            }
+        };
+
+        // Video Presentasi & Kampanye Paslon
+        const videoContainer = document.getElementById('modal-video-container');
+        const videoWrapper = document.getElementById('modal-video-wrapper');
+        videoWrapper.innerHTML = '';
+
+        const hasVideo = c.has_video || !!c.video_url;
+        const videoType = c.video_type || (c.video_url && c.video_url.includes('youtu') ? 'youtube' : (c.video_url && c.video_url.includes('drive.google.com') ? 'drive' : 'video_file'));
+        const videoEmbedUrl = c.video_embed_url || resolveOsisAssetUrl(c.video_url);
+
+        if (hasVideo && videoEmbedUrl) {
+            videoContainer.classList.remove('hidden');
+            if (videoType === 'youtube' || videoType === 'drive') {
+                videoWrapper.innerHTML = `<iframe src="${videoEmbedUrl}" class="w-full h-full border-0 rounded-2xl" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+            } else {
+                videoWrapper.innerHTML = `<video controls playsinline preload="metadata" class="w-full h-full object-contain bg-black rounded-2xl"><source src="${videoEmbedUrl}" type="video/mp4"><source src="${videoEmbedUrl}" type="video/webm"><source src="${videoEmbedUrl}" type="video/quicktime">Peramban Anda tidak mendukung pemutar video langsung.</video>`;
+            }
+        } else {
+            videoContainer.classList.add('hidden');
+        }
 
         // Visi
         document.getElementById('modal-vision').innerText = c.vision || c.quote_slogan || '-';
@@ -636,6 +702,8 @@
     }
 
     function closeCandidateModal() {
+        const videoWrapper = document.getElementById('modal-video-wrapper');
+        if (videoWrapper) videoWrapper.innerHTML = '';
         document.getElementById('modal-candidate-detail').classList.add('hidden');
     }
 
