@@ -193,14 +193,47 @@
                 </div>
 
                 {{-- Student Answer Card --}}
-                <div class="p-5 bg-blue-50/70 rounded-xl border border-blue-100">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i class="fas fa-pen text-blue-600"></i>
-                        <span class="text-xs font-bold text-blue-700 uppercase tracking-wider">Jawaban Siswa</span>
+                <div class="p-5 bg-blue-50/70 rounded-xl border border-blue-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-pen text-blue-600"></i>
+                            <span class="text-xs font-bold text-blue-700 uppercase tracking-wider">Jawaban Siswa</span>
+                        </div>
+                        @if($answer->handwriting_image)
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                            <i class="fas fa-signature text-purple-600"></i> Tulisan Tangan Manual (Arab/Jepang)
+                        </span>
+                        @endif
                     </div>
-                    <div class="text-base text-gray-800 whitespace-pre-wrap font-medium">
-                        {{ !empty(trim($answer->text_answer ?? '')) ? $answer->text_answer : '(Siswa tidak mengisi jawaban teks)' }}
+
+                    @if(!empty(trim($answer->text_answer ?? '')))
+                    <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 text-base text-gray-800 whitespace-pre-wrap font-medium">
+                        {{ $answer->text_answer }}
                     </div>
+                    @endif
+
+                    @if($answer->handwriting_image)
+                    <div class="bg-white p-3.5 rounded-xl border border-purple-200/70">
+                        <div class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+                            <span><i class="fas fa-signature mr-1"></i> Hasil Goresan Tulisan Tangan Siswa:</span>
+                            <a href="{{ $answer->handwriting_image_url }}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 underline inline-flex items-center gap-1 font-semibold">
+                                <i class="fas fa-expand-alt"></i> Lihat Resolusi Penuh
+                            </a>
+                        </div>
+                        <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 flex justify-center">
+                            <img src="{{ $answer->handwriting_image_url }}" alt="Tulisan tangan {{ $student->full_name ?? 'siswa' }}"
+                                 class="max-w-full max-h-[380px] object-contain rounded-lg bg-white shadow-sm cursor-zoom-in border border-slate-200"
+                                 onclick="window.open(this.src, '_blank')"
+                                 title="Klik untuk membuka ukuran penuh">
+                        </div>
+                    </div>
+                    @endif
+
+                    @if(empty(trim($answer->text_answer ?? '')) && !$answer->handwriting_image)
+                    <div class="text-sm text-gray-400 italic">
+                        (Siswa tidak mengisi jawaban teks maupun tulisan tangan)
+                    </div>
+                    @endif
                 </div>
 
                 {{-- Answer Key (if available) --}}

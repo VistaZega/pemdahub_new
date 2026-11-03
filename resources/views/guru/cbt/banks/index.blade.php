@@ -239,6 +239,7 @@
                         <input type="file" name="import_file" accept=".xlsx,.xls,.zip" required
                                class="w-full text-sm text-gray-700 font-medium file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 border border-gray-300 rounded-xl p-1.5 bg-gray-50">
                         <p class="text-xs text-gray-500 mt-2 font-medium">Mendukung file .xlsx (Excel saja) atau .zip (Excel beserta folder images/). Maksimal 50MB.</p>
+                        <p class="text-xs text-emerald-700 mt-1 font-semibold flex items-center gap-1.5"><i class="fas fa-check-circle text-emerald-600"></i> Pilihan ganda bergambar: cukup isi kolom <code>option_a</code> s/d <code>option_e</code> dengan nama file gambar (contoh: <code>opsi_a.png</code>) di dalam folder <code>images/</code>.</p>
                     </div>
                 </div>
                 <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">

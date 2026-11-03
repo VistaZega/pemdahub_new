@@ -137,6 +137,38 @@ class CbtQuestionsDataSheet implements FromArray, WithHeadings, WithStyles, Shou
                 '',
                 '',
             ],
+            [
+                'Perhatikan grafik di bawah ini. Manakah grafik yang menunjukkan fungsi trigonometri $y = \cos(x)$?',
+                'multiple_choice',
+                'A',
+                2,
+                'sedang',
+                'Trigonometri Bergambar',
+                'Grafik A menunjukkan kurva kosinus yang dimulai dari titik puncak (0, 1).',
+                '',
+                '',
+                'opsi_a.png',
+                'opsi_b.png',
+                'opsi_c.png',
+                'opsi_d.png',
+                '',
+            ],
+            [
+                'Tulislah kalimat thayyibah (lafadz basmalah) atau tulislah salam dalam bahasa Jepang (Konnichiwa) menggunakan huruf aslinya!',
+                'essay',
+                'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ / こんにちは',
+                5,
+                'sedang',
+                'Agama & Bahasa',
+                'Siswa dapat mengetik teks atau menulis manual dengan jari/stylus di lembar kanvas tulisan tangan CBT.',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+            ],
         ];
     }
 
@@ -210,6 +242,7 @@ class CbtQuestionsDataSheet implements FromArray, WithHeadings, WithStyles, Shou
         $sheet->getComment('E1')->getText()->createTextRun("Tingkat kesulitan:\n- mudah\n- sedang (default)\n- sulit");
         $sheet->getComment('H1')->getText()->createTextRun("Nama file gambar di folder images/\ndalam ZIP. Contoh: soal1.jpg\n\nKosongkan jika upload Excel tanpa gambar.");
         $sheet->getComment('I1')->getText()->createTextRun("URL video (YouTube, dll).\nContoh: https://youtube.com/watch?v=xxx\n\nKosongkan jika tidak ada video.");
+        $sheet->getComment('J1')->getText()->createTextRun("Opsi A (WAJIB untuk MC).\nBisa berupa teks ATAU nama file gambar (contoh: opsi_a.png).\nJika berupa gambar, masukkan file gambarnya ke folder images/ dalam file .zip.");
 
         // Wrap text for long columns
         $sheet->getStyle("A2:A{$lastRow}")->getAlignment()->setWrapText(true);
@@ -245,7 +278,20 @@ class CbtQuestionsGuideSheet implements FromArray, WithStyles, ShouldAutoSize, W
             ['explanation', 'Pembahasan jawaban (mendukung LaTeX)', 'TIDAK', 'Penjelasan jawaban benar'],
             ['image_filename', 'Nama file gambar dalam folder images/', 'TIDAK', 'soal1.jpg, diagram.png'],
             ['video_url', 'URL video YouTube atau link langsung', 'TIDAK', 'https://youtube.com/watch?v=xxx'],
-            ['option_a - option_e', 'Opsi jawaban (mendukung LaTeX)', 'YA (MC)', '$x = 2$, $x = 3$'],
+            ['option_a - option_e', 'Opsi pilihan ganda: teks/LaTeX ATAU nama gambar', 'YA (MC)', 'Teks biasa, formula $x=2$, atau nama file opsi_a.png'],
+            [''],
+            ['═══ PANDUAN OPSI JAWABAN BERGAMBAR ═══'],
+            ['Jika pilihan jawaban A, B, C, D, atau E berupa gambar:'],
+            ['1. Cukup tulis nama file gambar di kolom option_a sampai option_e (contoh: opsi_a.png atau grafik1.jpg).'],
+            ['2. Masukkan file-file gambar tersebut ke dalam folder images/ di dalam file ZIP yang diunggah.'],
+            ['3. Saat ujian CBT, sistem akan otomatis menampilkan gambar pada tombol pilihan jawaban siswa.'],
+            [''],
+            ['═══ PANDUAN SOAL ESAI TULIS TANGAN (ARAB / JEPANG / MULOK) ═══'],
+            ['Untuk soal esai yang membutuhkan tulisan tangan (seperti huruf Hijaiyah/Arab pada Agama Islam, atau Hiragana/Katakana/Kanji pada Bahasa Jepang):'],
+            ['1. Pilih question_type = "essay".'],
+            ['2. Di aplikasi CBT siswa, disediakan kanvas "Tulis Tangan" khusus dengan pena digital halus.'],
+            ['3. Siswa dapat mencoret/menulis manual menggunakan sentuhan jari pada HP/tablet atau mouse komputer layaknya tanda tangan digital.'],
+            ['4. Guru dapat melihat hasil goresan tulisan tangan siswa secara utuh saat melakukan koreksi esai.'],
             [''],
             ['═══ FORMAT UPLOAD ═══'],
             ['Mode', 'Kapan Digunakan', 'Format', 'Keterangan'],

@@ -1628,6 +1628,25 @@ class CbtController extends Controller
                 if (!in_array($answer, ['A', 'B', 'C', 'D', 'E'])) {
                     $rowErrors[] = "Jawaban benar '{$answer}' tidak valid (harus A-E)";
                 }
+
+                // Check option images if any option is specified as an image file
+                foreach (['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e'] as $lbl => $col) {
+                    $optVal = trim($row[$col] ?? '');
+                    if (!empty($optVal)) {
+                        $isImg = preg_match('/^[\w\-. ]+\.(png|jpe?g|gif|webp|svg)$/i', $optVal);
+                        $imgName = $isImg ? $optVal : null;
+                        if (!$isImg && preg_match('/\[(?:img:)?([\w\-. ]+\.(png|jpe?g|gif|webp|svg))\]/i', $optVal, $mTag)) {
+                            $imgName = $mTag[1];
+                        }
+                        if ($imgName) {
+                            if (!$imagesDir) {
+                                $rowErrors[] = "Opsi {$lbl} ('{$optVal}') berupa gambar, tetapi file yang diunggah berupa Excel (.xlsx). Harap unggah file .zip berisi Excel dan folder images/.";
+                            } elseif (!file_exists($imagesDir . DIRECTORY_SEPARATOR . $imgName)) {
+                                $rowErrors[] = "File gambar opsi '{$imgName}' (opsi {$lbl}) tidak ditemukan di folder images/";
+                            }
+                        }
+                    }
+                }
             }
 
             if ($type === 'true_false') {
@@ -1716,10 +1735,38 @@ class CbtController extends Controller
                 foreach ($labels as $label => $col) {
                     $optText = trim($row[$col] ?? '');
                     if (!empty($optText)) {
+                        $optionImagePath = null;
+                        $displayText = $optText;
+
+                        // Check if option is a pure image file (e.g. opsi_a.png)
+                        if (preg_match('/^[\w\-. ]+\.(png|jpe?g|gif|webp|svg)$/i', $optText)) {
+                            if ($imagesDir && file_exists($imagesDir . DIRECTORY_SEPARATOR . $optText)) {
+                                $sourcePath = $imagesDir . DIRECTORY_SEPARATOR . $optText;
+                                $cleanFilename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $optText);
+                                $storageName = 'cbt/options/' . uniqid() . '_' . $cleanFilename;
+                                Storage::disk('public')->put($storageName, file_get_contents($sourcePath));
+                                $optionImagePath = $storageName;
+                                $displayText = '';
+                            }
+                        }
+                        // Check if option has tag format: [img:filename.png] or [filename.png]
+                        elseif (preg_match('/\[(?:img:)?([\w\-. ]+\.(png|jpe?g|gif|webp|svg))\]/i', $optText, $matches)) {
+                            $imgFile = $matches[1];
+                            if ($imagesDir && file_exists($imagesDir . DIRECTORY_SEPARATOR . $imgFile)) {
+                                $sourcePath = $imagesDir . DIRECTORY_SEPARATOR . $imgFile;
+                                $cleanFilename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $imgFile);
+                                $storageName = 'cbt/options/' . uniqid() . '_' . $cleanFilename;
+                                Storage::disk('public')->put($storageName, file_get_contents($sourcePath));
+                                $optionImagePath = $storageName;
+                                $displayText = trim(str_replace($matches[0], '', $optText));
+                            }
+                        }
+
                         CbtQuestionOption::create([
                             'question_id'  => $question->id,
                             'option_label' => $label,
-                            'option_text'  => $optText,
+                            'option_text'  => $displayText ?: '',
+                            'option_image' => $optionImagePath,
                             'is_correct'   => ($label === $correctAnswer),
                             'sort_order'   => $sortOrder++,
                         ]);

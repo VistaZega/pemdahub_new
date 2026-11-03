@@ -14,7 +14,7 @@ class CbtAnswer extends Model
 
     protected $fillable = [
         'session_id', 'question_id',
-        'selected_option', 'text_answer',
+        'selected_option', 'text_answer', 'handwriting_image',
         'is_correct', 'score_obtained', 'is_flagged',
         'manual_score', 'teacher_feedback', 'graded_by', 'graded_at',
         'time_spent_seconds',
@@ -34,10 +34,16 @@ class CbtAnswer extends Model
     public function question(): BelongsTo { return $this->belongsTo(CbtQuestion::class, 'question_id'); }
     public function gradedByUser(): BelongsTo { return $this->belongsTo(User::class, 'graded_by'); }
 
+    // Media URL Accessor
+    public function getHandwritingImageUrlAttribute(): ?string
+    {
+        return $this->handwriting_image ? asset('storage/' . $this->handwriting_image) : null;
+    }
+
     // Helpers
     public function isAnswered(): bool
     {
-        return !is_null($this->selected_option) || !empty($this->text_answer);
+        return !is_null($this->selected_option) || !empty(trim($this->text_answer ?? '')) || !empty($this->handwriting_image);
     }
 
     public function needsManualGrading(): bool

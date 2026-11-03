@@ -315,16 +315,22 @@ class CbtController extends Controller
             'question_id' => 'required|integer',
             'selected_option' => 'nullable|string',
             'text_answer' => 'nullable|string',
+            'handwriting_data' => 'nullable|string',
         ]);
 
         try {
+            $payload = [
+                'selected_option' => $validated['selected_option'] ?? null,
+                'text_answer' => $validated['text_answer'] ?? null,
+            ];
+            if ($request->has('handwriting_data')) {
+                $payload['handwriting_data'] = $request->input('handwriting_data');
+            }
+
             $this->cbtService->saveAnswer(
                 $session,
                 $validated['question_id'],
-                [
-                    'selected_option' => $validated['selected_option'] ?? null,
-                    'text_answer' => $validated['text_answer'] ?? null,
-                ]
+                $payload
             );
 
             return response()->json(['success' => true]);

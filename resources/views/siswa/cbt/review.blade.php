@@ -20,7 +20,7 @@
     @php
         $pendingReviewCount = $answers->filter(function($a) {
             return in_array($a->question?->question_type, ['essay', 'fill_blank'])
-                && !empty(trim($a->text_answer ?? ''))
+                && (!empty(trim($a->text_answer ?? '')) || !empty($a->handwriting_image))
                 && $a->manual_score === null;
         })->count();
     @endphp
@@ -44,7 +44,7 @@
     @php
         $answer = $answers->get($question->id);
         $isEssayType = in_array($question->question_type, ['essay', 'fill_blank']);
-        $hasTextAnswer = $answer && !empty(trim($answer->text_answer ?? ''));
+        $hasTextAnswer = $answer && (!empty(trim($answer->text_answer ?? '')) || !empty($answer->handwriting_image));
         $isGraded = $answer && $answer->manual_score !== null;
 
         if ($isEssayType) {
@@ -100,7 +100,14 @@
                 @endphp
                 <div class="flex items-start gap-3 p-3 rounded-xl border {{ $optBg }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm {{ $isKey && $showAnswerKey ? 'bg-emerald-500 text-white' : ($isSelected ? ($isKey ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white') : 'bg-white text-gray-600 border border-gray-200') }}">{{ $option->option_label }}</div>
-                    <span class="text-gray-800 pt-1 flex-1 text-sm">{{ $option->option_text }}</span>
+                    <div class="flex-1 min-w-0">
+                        @if(!empty(trim($option->option_text)) && trim($option->option_text) !== '(Gambar)')
+                        <span class="text-gray-800 pt-1 text-sm block">{{ $option->option_text }}</span>
+                        @endif
+                        @if($option->option_image)
+                        <img src="{{ $option->option_image_url }}" alt="Opsi {{ $option->option_label }}" class="mt-2 max-w-[220px] max-h-36 rounded-lg border border-gray-200 bg-white p-1.5 object-contain shadow-xs">
+                        @endif
+                    </div>
                     @if($isSelected)
                     <span class="text-xs flex items-center gap-1 {{ $isKey ? 'text-emerald-600' : 'text-red-600' }}"><i class="fas fa-{{ $isKey ? 'check' : 'times' }}"></i>Jawaban Anda</span>
                     @elseif($isKey && $showAnswerKey)
@@ -114,9 +121,22 @@
             {{-- Essay/Fill Blank --}}
             @if(in_array($question->question_type, ['essay', 'fill_blank']))
             <div class="space-y-3">
-                <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <div class="p-4 bg-blue-50/70 rounded-xl border border-blue-100 space-y-2">
                     <div class="flex items-center gap-2 mb-1.5"><i class="fas fa-pen text-blue-500 text-xs"></i><span class="text-xs font-bold text-blue-600 uppercase tracking-wider">Jawaban Anda</span></div>
-                    <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ $answer->text_answer ?? '(Tidak dijawab)' }}</p>
+                    @if(!empty(trim($answer->text_answer ?? '')))
+                    <p class="text-sm text-gray-800 whitespace-pre-wrap font-medium">{{ $answer->text_answer }}</p>
+                    @endif
+                    @if($answer && $answer->handwriting_image)
+                    <div class="mt-2 pt-2 border-t border-blue-200/60">
+                        <div class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <i class="fas fa-signature text-purple-600"></i> Tulisan Tangan:
+                        </div>
+                        <img src="{{ $answer->handwriting_image_url }}" alt="Tulisan tangan Anda" class="max-w-full max-h-48 rounded-lg border border-slate-200 bg-white p-1.5 shadow-xs">
+                    </div>
+                    @endif
+                    @if(empty(trim($answer->text_answer ?? '')) && (!$answer || !$answer->handwriting_image))
+                    <p class="text-sm text-gray-400 italic">(Tidak dijawab)</p>
+                    @endif
                 </div>
                 @if($showAnswerKey && $question->answer_key)
                 <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">

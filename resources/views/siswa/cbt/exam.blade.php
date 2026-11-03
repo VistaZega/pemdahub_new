@@ -210,14 +210,21 @@
                                 <span>{{ $displayLabel }}</span>
                             </div>
 
-                            {{-- Option Text --}}
-                            <div class="flex-1">
-                                <span class="text-[15px] leading-relaxed transition-colors"
+                            {{-- Option Text & Image --}}
+                            <div class="flex-1 min-w-0">
+                                @if(!empty(trim($option->option_text)) && trim($option->option_text) !== '(Gambar)')
+                                <span class="text-[15px] leading-relaxed transition-colors block"
                                     :class="selectedAnswers[{{ $question->id }}] === '{{ $option->option_label }}' ? 'text-white font-medium' : 'text-slate-700'">
                                     {{ $option->option_text }}
                                 </span>
+                                @endif
                                 @if($option->option_image)
-                                <img src="{{ $option->option_image_url }}" alt="Opsi {{ $displayLabel }}" class="mt-2 max-w-[200px] rounded-lg border border-slate-200">
+                                <div class="mt-1.5 inline-block">
+                                    <img src="{{ $option->option_image_url }}" alt="Opsi {{ $displayLabel }}"
+                                         class="max-w-full sm:max-w-md max-h-48 object-contain rounded-xl border border-slate-200 bg-white p-2 shadow-xs transition hover:scale-[1.02] cursor-pointer"
+                                         onclick="event.stopPropagation(); window.open(this.src, '_blank')"
+                                         title="Klik untuk memperbesar gambar">
+                                </div>
                                 @endif
                             </div>
                         </div>
@@ -243,13 +250,129 @@
                     </div>
 
                     @elseif($question->question_type === 'essay')
-                    <div class="mb-3 flex items-center gap-2 text-xs text-slate-400 uppercase tracking-widest font-bold">
-                        <i class="fas fa-pen text-[8px]"></i> Tulis jawaban
+                    <div x-data="{
+                            essayMode: (handwritingAnswers[{{ $question->id }}] ? 'draw' : 'text')
+                         }"
+                         x-init="$watch('currentIndex', () => { if (currentIndex === {{ $idx }}) window.dispatchEvent(new CustomEvent('cbt-resize-canvas-{{ $question->id }}')); })"
+                         class="space-y-3">
+
+                        {{-- Mode Selector Tabs --}}
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                            <div class="flex items-center gap-1.5 p-1 bg-slate-200/70 rounded-xl text-xs font-bold">
+                                <button type="button" @click="essayMode = 'text'"
+                                    :class="essayMode === 'text' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+                                    class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                                    <i class="fas fa-keyboard"></i>
+                                    <span>Ketik Teks</span>
+                                    <span x-show="textAnswers[{{ $question->id }}] && textAnswers[{{ $question->id }}].trim()" class="w-2 h-2 rounded-full bg-emerald-500" title="Teks terisi"></span>
+                                </button>
+                                <button type="button" @click="essayMode = 'draw'; $nextTick(() => window.dispatchEvent(new CustomEvent('cbt-resize-canvas-{{ $question->id }}')))"
+                                    :class="essayMode === 'draw' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+                                    class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                                    <i class="fas fa-signature text-purple-600"></i>
+                                    <span>Tulis Tangan</span>
+                                    <span x-show="handwritingAnswers[{{ $question->id }}]" class="w-2 h-2 rounded-full bg-purple-500" title="Tulisan tangan tersimpan"></span>
+                                </button>
+                                <button type="button" @click="essayMode = 'both'; $nextTick(() => window.dispatchEvent(new CustomEvent('cbt-resize-canvas-{{ $question->id }}')))"
+                                    :class="essayMode === 'both' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+                                    class="px-3 py-1.5 rounded-lg transition hidden sm:flex items-center gap-1.5">
+                                    <i class="fas fa-columns text-blue-600"></i>
+                                    <span>Teks + Tulis Tangan</span>
+                                </button>
+                            </div>
+
+                            <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                                <span class="hidden md:inline text-slate-400">Pilihan input untuk:</span>
+                                <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-semibold border border-purple-200/60">Arab / Jepang / Rumus</span>
+                            </div>
+                        </div>
+
+                        {{-- Mode 1: Keyboard Textarea --}}
+                        <div x-show="essayMode === 'text' || essayMode === 'both'" class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                <i class="fas fa-pen text-[10px] mr-1"></i> Jawaban Ketik (Teks):
+                            </label>
+                            <textarea rows="5" class="w-full rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-4 py-3 text-slate-800 text-[15px] leading-relaxed transition"
+                                placeholder="Ketik jawaban Anda di sini..."
+                                x-model="textAnswers[{{ $question->id }}]"
+                                @input.debounce.1000ms="saveTextAnswer({{ $question->id }})"></textarea>
+                        </div>
+
+                        {{-- Mode 2: Handwriting Canvas Pad --}}
+                        <div x-show="essayMode === 'draw' || essayMode === 'both'"
+                             x-data="cbtHandwritingPad({{ $question->id }}, '{{ $answers[$question->id]->handwriting_image_url ?? '' }}')"
+                             x-init="init()"
+                             class="space-y-2">
+
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                        <i class="fas fa-pen-nib text-purple-600"></i> Pena:
+                                    </span>
+                                    {{-- Color choices --}}
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" @click="setColor('#0f172a')"
+                                            :class="color === '#0f172a' ? 'ring-2 ring-purple-500 scale-110' : 'opacity-70 hover:opacity-100'"
+                                            class="w-6 h-6 rounded-full bg-slate-900 transition shadow-xs" title="Tinta Hitam"></button>
+                                        <button type="button" @click="setColor('#1d4ed8')"
+                                            :class="color === '#1d4ed8' ? 'ring-2 ring-purple-500 scale-110' : 'opacity-70 hover:opacity-100'"
+                                            class="w-6 h-6 rounded-full bg-blue-600 transition shadow-xs" title="Tinta Biru"></button>
+                                        <button type="button" @click="setColor('#047857')"
+                                            :class="color === '#047857' ? 'ring-2 ring-purple-500 scale-110' : 'opacity-70 hover:opacity-100'"
+                                            class="w-6 h-6 rounded-full bg-emerald-600 transition shadow-xs" title="Tinta Hijau"></button>
+                                    </div>
+
+                                    <div class="h-4 w-px bg-slate-300 mx-1"></div>
+
+                                    {{-- Size choices --}}
+                                    <div class="flex items-center gap-1 text-xs">
+                                        <button type="button" @click="setSize(2.5)"
+                                            :class="size === 2.5 ? 'bg-purple-600 text-white font-bold' : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'"
+                                            class="px-2 py-1 rounded-md transition text-[11px]">Sedang</button>
+                                        <button type="button" @click="setSize(4.5)"
+                                            :class="size === 4.5 ? 'bg-purple-600 text-white font-bold' : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'"
+                                            class="px-2 py-1 rounded-md transition text-[11px]">Tebal</button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="undo()" :disabled="history.length === 0"
+                                        :class="history.length === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-200 active:scale-95 cursor-pointer'"
+                                        class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition shadow-xs">
+                                        <i class="fas fa-undo text-[11px]"></i>
+                                        <span>Undo</span>
+                                    </button>
+                                    <button type="button" @click="clear()"
+                                        class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold flex items-center gap-1 transition active:scale-95 cursor-pointer">
+                                        <i class="fas fa-trash-alt text-[11px]"></i>
+                                        <span>Bersihkan</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Canvas Wrapper with Lined Paper Effect --}}
+                            <div class="relative w-full rounded-2xl overflow-hidden border-2 border-slate-300 bg-white shadow-inner group">
+                                <canvas x-ref="canvas"
+                                    class="w-full block cursor-crosshair touch-none"
+                                    style="height: 280px; background-color: #ffffff; background-image: repeating-linear-gradient(transparent, transparent 27px, #e2e8f0 27px, #e2e8f0 28px); background-position: 0 20px;"
+                                    @pointerdown="startDrawing($event)"
+                                    @pointermove="draw($event)"
+                                    @pointerup="stopDrawing($event)"
+                                    @pointerleave="stopDrawing($event)"
+                                    @pointercancel="stopDrawing($event)"></canvas>
+
+                                {{-- Watermark guide --}}
+                                <div class="pointer-events-none absolute bottom-2 right-3 text-[11px] font-semibold text-slate-400 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1.5">
+                                    <span x-show="isSaving" class="text-amber-600"><i class="fas fa-spinner fa-spin"></i> Menyimpan...</span>
+                                    <span x-show="!isSaving && hasDrawn" class="text-emerald-600"><i class="fas fa-check-circle"></i> Tulisan tersimpan otomatis</span>
+                                    <span x-show="!isSaving && !hasDrawn"><i class="fas fa-pen-nib"></i> Sentuh atau gunakan mouse untuk menulis</span>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 italic">
+                                * Cocok untuk mapel Agama Islam (ayat/tulisan Arab), Bahasa Jepang (Hiragana/Katakana/Kanji), maupun notasi matematika. Goresan Anda tersimpan otomatis.
+                            </p>
+                        </div>
                     </div>
-                    <textarea rows="6" class="w-full rounded-xl border-2 border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-4 py-3 text-slate-800"
-                        placeholder="Tulis jawaban Anda di sini..."
-                        x-model="textAnswers[{{ $question->id }}]"
-                        @input.debounce.1000ms="saveTextAnswer({{ $question->id }})"></textarea>
 
                     @elseif($question->question_type === 'fill_blank')
                     <div class="mb-3 flex items-center gap-2 text-xs text-slate-400 uppercase tracking-widest font-bold">
@@ -442,6 +565,7 @@ function examApp() {
         tabSwitchCount: {{ $session->tab_switch_count ?? 0 }},
         selectedAnswers: @json($answers->mapWithKeys(fn($a) => [$a->question_id => $a->selected_option])->filter()->toArray()),
         textAnswers: @json($answers->mapWithKeys(fn($a) => [$a->question_id => $a->text_answer])->filter()->toArray()),
+        handwritingAnswers: @json($answers->mapWithKeys(fn($a) => [$a->question_id => $a->handwriting_image_url])->filter()->toArray()),
         answeredQuestions: {},
         flaggedQuestions: {},
         sessionId: {{ $session->id }},
@@ -473,6 +597,9 @@ function examApp() {
             for (let qid in this.textAnswers) {
                 if (this.textAnswers[qid]) this.answeredQuestions[qid] = true;
             }
+            for (let qid in this.handwritingAnswers) {
+                if (this.handwritingAnswers[qid]) this.answeredQuestions[qid] = true;
+            }
             // Mark locally pending questions as answered
             for (let qid in this.unsyncedAnswers) {
                 this.answeredQuestions[qid] = true;
@@ -482,7 +609,15 @@ function examApp() {
                 if (this.unsyncedAnswers[qid].text_answer) {
                     this.textAnswers[qid] = this.unsyncedAnswers[qid].text_answer;
                 }
+                if (this.unsyncedAnswers[qid].handwriting_data) {
+                    this.handwritingAnswers[qid] = this.unsyncedAnswers[qid].handwriting_data;
+                }
             }
+
+            // Listen to handwriting save events from drawing canvas pads
+            window.addEventListener('save-handwriting', (e) => {
+                this.saveHandwriting(e.detail.questionId, e.detail.dataUrl);
+            });
 
             this.updateTimer();
             this.timerInterval = setInterval(() => {
@@ -575,33 +710,49 @@ function examApp() {
         clearAnswer(questionId) {
             delete this.selectedAnswers[questionId];
             delete this.textAnswers[questionId];
+            delete this.handwritingAnswers[questionId];
             this.answeredQuestions[questionId] = false;
-            this.saveToServer(questionId, null, null);
+            window.dispatchEvent(new CustomEvent('cbt-clear-canvas-' + questionId));
+            this.saveToServer(questionId, null, null, '');
         },
 
         saveTextAnswer(questionId) {
             let text = this.textAnswers[questionId] || '';
-            this.answeredQuestions[questionId] = !!text.trim();
-            this.saveToServer(questionId, null, text);
+            let hasHw = !!this.handwritingAnswers[questionId];
+            this.answeredQuestions[questionId] = !!text.trim() || hasHw;
+            this.saveToServer(questionId, null, text, undefined);
         },
 
-        saveToServer(questionId, selectedOption, textAnswer) {
+        saveHandwriting(questionId, dataUrl) {
+            if (dataUrl) {
+                this.handwritingAnswers[questionId] = dataUrl;
+                this.answeredQuestions[questionId] = true;
+            } else {
+                delete this.handwritingAnswers[questionId];
+                let hasText = this.textAnswers[questionId] && this.textAnswers[questionId].trim();
+                this.answeredQuestions[questionId] = !!hasText;
+            }
+            let currentText = this.textAnswers[questionId] || '';
+            this.saveToServer(questionId, null, currentText, dataUrl || '');
+        },
+
+        saveToServer(questionId, selectedOption, textAnswer, handwritingData) {
             // Write to local cache first
             let key = 'cbt_pending_' + this.sessionId;
             let pending = JSON.parse(localStorage.getItem(key) || '{}');
-            pending[questionId] = {
-                question_id: questionId,
-                selected_option: selectedOption,
-                text_answer: textAnswer,
-                timestamp: Date.now()
-            };
+            let item = pending[questionId] || { question_id: questionId };
+            if (typeof selectedOption !== 'undefined') item.selected_option = selectedOption;
+            if (typeof textAnswer !== 'undefined') item.text_answer = textAnswer;
+            if (typeof handwritingData !== 'undefined') item.handwriting_data = handwritingData;
+            item.timestamp = Date.now();
+            pending[questionId] = item;
             localStorage.setItem(key, JSON.stringify(pending));
             this.unsyncedAnswers = pending;
 
             if (!this.isOnline) return; // Stored locally, will sync when online
 
             // Queue pending save — always keep the latest answer
-            this.pendingSave = { questionId, selectedOption, textAnswer };
+            this.pendingSave = { questionId, selectedOption, textAnswer, handwritingData };
             if (this.savingAnswer) return;
             this._processSaveQueue();
         },
@@ -612,10 +763,19 @@ function examApp() {
             const data = this.pendingSave;
             this.pendingSave = null;
 
+            let bodyPayload = {
+                question_id: data.questionId,
+                selected_option: data.selectedOption,
+                text_answer: data.textAnswer,
+            };
+            if (typeof data.handwritingData !== 'undefined') {
+                bodyPayload.handwriting_data = data.handwritingData;
+            }
+
             fetch(`{{ url('siswa/cbt/sessions') }}/${this.sessionId}/save-answer`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrfToken },
-                body: JSON.stringify({ question_id: data.questionId, selected_option: data.selectedOption, text_answer: data.textAnswer })
+                body: JSON.stringify(bodyPayload)
             })
             .then(r => { if (!r.ok) throw new Error('Save failed'); return r.json(); })
             .then(() => {
@@ -645,10 +805,18 @@ function examApp() {
             keys.forEach(qid => {
                 let data = pending[qid];
                 pChain = pChain.then(() => {
+                    let bodyPayload = {
+                        question_id: data.question_id,
+                        selected_option: data.selected_option,
+                        text_answer: data.text_answer,
+                    };
+                    if (typeof data.handwriting_data !== 'undefined') {
+                        bodyPayload.handwriting_data = data.handwriting_data;
+                    }
                     return fetch(`{{ url('siswa/cbt/sessions') }}/${this.sessionId}/save-answer`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrfToken },
-                        body: JSON.stringify({ question_id: data.question_id, selected_option: data.selected_option, text_answer: data.text_answer })
+                        body: JSON.stringify(bodyPayload)
                     })
                     .then(r => {
                         if (r.ok) {
@@ -712,6 +880,247 @@ function examApp() {
             }
         }
     }
+}
+
+/**
+ * Controller untuk kanvas tulisan tangan (Signature-pad style untuk Arab/Jepang/Mulok)
+ */
+function cbtHandwritingPad(questionId, initialImageUrl) {
+    return {
+        questionId: questionId,
+        initialImageUrl: initialImageUrl,
+        color: '#0f172a',
+        size: 3.5,
+        isDrawing: false,
+        hasDrawn: !!initialImageUrl,
+        isSaving: false,
+        history: [],
+        currentStroke: null,
+        ctx: null,
+        saveTimeout: null,
+
+        init() {
+            this.$nextTick(() => {
+                this.setupCanvas();
+            });
+
+            window.addEventListener('resize', () => {
+                this.handleResize();
+            });
+
+            window.addEventListener('cbt-resize-canvas-' + this.questionId, () => {
+                this.$nextTick(() => this.handleResize());
+            });
+
+            window.addEventListener('cbt-clear-canvas-' + this.questionId, () => {
+                this.clear(false);
+            });
+        },
+
+        setupCanvas() {
+            const canvas = this.$refs.canvas;
+            if (!canvas) return;
+            this.ctx = canvas.getContext('2d');
+
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            const displayWidth = rect.width > 50 ? rect.width : (canvas.parentElement?.clientWidth || 600);
+            const displayHeight = 280;
+
+            canvas.width = Math.floor(displayWidth * dpr);
+            canvas.height = Math.floor(displayHeight * dpr);
+            this.ctx.scale(dpr, dpr);
+
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+
+            if (this.initialImageUrl) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    this.ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+                    this.hasDrawn = true;
+                };
+                img.src = this.initialImageUrl;
+            }
+        },
+
+        handleResize() {
+            const canvas = this.$refs.canvas;
+            if (!canvas || !this.ctx) return;
+            const rect = canvas.getBoundingClientRect();
+            const displayWidth = rect.width > 50 ? rect.width : (canvas.parentElement?.clientWidth || 600);
+            const displayHeight = 280;
+            const dpr = window.devicePixelRatio || 1;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(canvas, 0, 0);
+
+            canvas.width = Math.floor(displayWidth * dpr);
+            canvas.height = Math.floor(displayHeight * dpr);
+            this.ctx.scale(dpr, dpr);
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+
+            this.ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width / dpr, tempCanvas.height / dpr, 0, 0, displayWidth, displayHeight);
+        },
+
+        setColor(newColor) {
+            this.color = newColor;
+        },
+
+        setSize(newSize) {
+            this.size = newSize;
+        },
+
+        getPos(e) {
+            const rect = this.$refs.canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        },
+
+        startDrawing(e) {
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            try { this.$refs.canvas.setPointerCapture(e.pointerId); } catch(err) {}
+
+            this.isDrawing = true;
+            const pos = this.getPos(e);
+            this.currentStroke = {
+                color: this.color,
+                size: this.size,
+                points: [pos]
+            };
+
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = this.color;
+            this.ctx.lineWidth = this.size;
+            this.ctx.moveTo(pos.x, pos.y);
+            this.ctx.lineTo(pos.x + 0.1, pos.y + 0.1);
+            this.ctx.stroke();
+        },
+
+        draw(e) {
+            if (!this.isDrawing || !this.currentStroke) return;
+            e.preventDefault();
+            const pos = this.getPos(e);
+            this.currentStroke.points.push(pos);
+
+            const points = this.currentStroke.points;
+            if (points.length < 2) return;
+
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = this.color;
+            this.ctx.lineWidth = this.size;
+
+            const p1 = points[points.length - 2];
+            const p2 = points[points.length - 1];
+            const midPoint = {
+                x: (p1.x + p2.x) / 2,
+                y: (p1.y + p2.y) / 2
+            };
+
+            this.ctx.moveTo(p1.x, p1.y);
+            this.ctx.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
+            this.ctx.stroke();
+        },
+
+        stopDrawing(e) {
+            if (!this.isDrawing) return;
+            this.isDrawing = false;
+            try { this.$refs.canvas.releasePointerCapture(e.pointerId); } catch(err) {}
+
+            if (this.currentStroke && this.currentStroke.points.length > 0) {
+                this.history.push(this.currentStroke);
+                this.currentStroke = null;
+                this.hasDrawn = true;
+                this.triggerAutoSave();
+            }
+        },
+
+        triggerAutoSave() {
+            clearTimeout(this.saveTimeout);
+            this.isSaving = true;
+            this.saveTimeout = setTimeout(() => {
+                const canvas = this.$refs.canvas;
+                const dataUrl = canvas.toDataURL('image/png');
+                window.dispatchEvent(new CustomEvent('save-handwriting', {
+                    detail: { questionId: this.questionId, dataUrl: dataUrl }
+                }));
+                this.isSaving = false;
+            }, 750);
+        },
+
+        undo() {
+            if (this.history.length === 0) return;
+            this.history.pop();
+            this.redrawAll();
+            this.triggerAutoSave();
+            if (this.history.length === 0 && !this.initialImageUrl) {
+                this.hasDrawn = false;
+                window.dispatchEvent(new CustomEvent('save-handwriting', {
+                    detail: { questionId: this.questionId, dataUrl: '' }
+                }));
+            }
+        },
+
+        redrawAll() {
+            const canvas = this.$refs.canvas;
+            const rect = canvas.getBoundingClientRect();
+            const displayWidth = rect.width > 50 ? rect.width : (canvas.parentElement?.clientWidth || 600);
+            const displayHeight = 280;
+
+            this.ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+            for (const stroke of this.history) {
+                if (!stroke.points || stroke.points.length === 0) continue;
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = stroke.color;
+                this.ctx.lineWidth = stroke.size;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+
+                const points = stroke.points;
+                this.ctx.moveTo(points[0].x, points[0].y);
+                if (points.length === 1) {
+                    this.ctx.lineTo(points[0].x + 0.1, points[0].y + 0.1);
+                } else {
+                    for (let i = 1; i < points.length; i++) {
+                        const midPoint = {
+                            x: (points[i - 1].x + points[i].x) / 2,
+                            y: (points[i - 1].y + points[i].y) / 2
+                        };
+                        this.ctx.quadraticCurveTo(points[i - 1].x, points[i - 1].y, midPoint.x, midPoint.y);
+                    }
+                    this.ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+                }
+                this.ctx.stroke();
+            }
+        },
+
+        clear(emitSave = true) {
+            const canvas = this.$refs.canvas;
+            if (!canvas || !this.ctx) return;
+            const rect = canvas.getBoundingClientRect();
+            const displayWidth = rect.width > 50 ? rect.width : (canvas.parentElement?.clientWidth || 600);
+            const displayHeight = 280;
+
+            this.ctx.clearRect(0, 0, displayWidth, displayHeight);
+            this.history = [];
+            this.initialImageUrl = null;
+            this.hasDrawn = false;
+
+            if (emitSave) {
+                window.dispatchEvent(new CustomEvent('save-handwriting', {
+                    detail: { questionId: this.questionId, dataUrl: '' }
+                }));
+            }
+        }
+    };
 }
 </script>
 </body>

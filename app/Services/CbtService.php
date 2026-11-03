@@ -250,17 +250,66 @@ class CbtService
             throw new \RuntimeException('Waktu ujian telah habis.');
         }
 
+        $existingAnswer = CbtAnswer::where('session_id', $session->id)
+            ->where('question_id', $questionId)
+            ->first();
+
+        $updateFields = [
+            'is_flagged' => $data['is_flagged'] ?? ($existingAnswer->is_flagged ?? false),
+            'time_spent_seconds' => $data['time_spent_seconds'] ?? ($existingAnswer->time_spent_seconds ?? 0),
+        ];
+
+        if (array_key_exists('selected_option', $data)) {
+            $updateFields['selected_option'] = $data['selected_option'];
+        } elseif ($existingAnswer) {
+            $updateFields['selected_option'] = $existingAnswer->selected_option;
+        } else {
+            $updateFields['selected_option'] = null;
+        }
+
+        if (array_key_exists('text_answer', $data)) {
+            $updateFields['text_answer'] = $data['text_answer'];
+        } elseif ($existingAnswer) {
+            $updateFields['text_answer'] = $existingAnswer->text_answer;
+        } else {
+            $updateFields['text_answer'] = null;
+        }
+
+        // Process handwriting canvas image if provided
+        if (array_key_exists('handwriting_data', $data)) {
+            $hwData = $data['handwriting_data'];
+            if (empty($hwData)) {
+                // Clear existing handwriting file
+                if ($existingAnswer && $existingAnswer->handwriting_image) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($existingAnswer->handwriting_image);
+                }
+                $updateFields['handwriting_image'] = null;
+            } elseif (str_starts_with($hwData, 'data:image')) {
+                // Decode base64 image data URL
+                $imgData = preg_replace('#^data:image/\w+;base64,#i', '', $hwData);
+                $decoded = base64_decode($imgData);
+                if ($decoded !== false) {
+                    if ($existingAnswer && $existingAnswer->handwriting_image) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($existingAnswer->handwriting_image);
+                    }
+                    $fileName = 'cbt/handwriting/session_' . $session->id . '_q_' . $questionId . '_' . time() . '.png';
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $decoded);
+                    $updateFields['handwriting_image'] = $fileName;
+                }
+            }
+        }
+
+        // Safety check if column not yet migrated
+        if (array_key_exists('handwriting_image', $updateFields) && !\Illuminate\Support\Facades\Schema::hasColumn('cbt_answers', 'handwriting_image')) {
+            unset($updateFields['handwriting_image']);
+        }
+
         return CbtAnswer::updateOrCreate(
             [
                 'session_id' => $session->id,
                 'question_id' => $questionId,
             ],
-            [
-                'selected_option' => $data['selected_option'] ?? null,
-                'text_answer' => $data['text_answer'] ?? null,
-                'is_flagged' => $data['is_flagged'] ?? false,
-                'time_spent_seconds' => $data['time_spent_seconds'] ?? 0,
-            ]
+            $updateFields
         );
     }
 

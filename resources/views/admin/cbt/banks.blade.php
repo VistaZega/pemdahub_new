@@ -417,9 +417,10 @@
                                 <div>📦 soal.zip</div>
                                 <div class="ml-3">📄 soal.xlsx</div>
                                 <div class="ml-3">📁 images/</div>
-                                <div class="ml-6">🖼️ soal1.jpg, soal2.png...</div>
+                                <div class="ml-6">🖼️ soal1.jpg, opsi_a.png...</div>
                             </div>
                             <p class="mt-1">Video: isi kolom <code class="bg-amber-100 px-1 rounded">video_url</code> dengan URL YouTube</p>
+                            <p class="mt-1 text-[11px] text-amber-900 font-semibold"><i class="fas fa-check-circle text-emerald-600"></i> <strong>Opsi Bergambar:</strong> isi kolom <code>option_a</code> s/d <code>option_e</code> langsung dengan nama file gambar (contoh: <code>opsi_a.png</code>).</p>
                         </div>
                     </div>
                 </div>
