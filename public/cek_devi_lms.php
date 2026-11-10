@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 use App\Models\Teacher;
+use App\Models\Employee;
 use App\Models\School;
 use App\Models\AcademicYear;
 use App\Models\TeachingAssignment;
@@ -29,18 +30,34 @@ use App\Models\LmsAssignment;
 
 $format = $_GET['format'] ?? 'html';
 
-// 1. Cari data User & Guru
+// 1. Cari data User
 $users = User::where('name', 'like', '%Devi Asri%')
     ->orWhere('email', 'like', '%deviasri%')
     ->orWhere('username', 'like', '%devi%')
     ->get();
 
-$teachers = Teacher::where('name', 'like', '%Devi Asri%')
-    ->orWhere('name', 'like', '%Devi%Halawa%')
-    ->orWhere('nuptk', 'like', '%6538776677230133%')
-    ->with('school', 'user')
-    ->get();
+// Cari data Pegawai (Employee)
+$employees = [];
+if (Schema::hasTable('employees')) {
+    $employees = Employee::where('full_name', 'like', '%Devi Asri%')
+        ->orWhere('full_name', 'like', '%Devi%Halawa%')
+        ->orWhere('nuptk', 'like', '%6538776677230133%')
+        ->get();
+}
 
+// Cari data Guru (Teacher)
+$teachersQuery = Teacher::query();
+if (Schema::hasColumn('teachers', 'full_name')) {
+    $teachersQuery->where('full_name', 'like', '%Devi Asri%')
+        ->orWhere('full_name', 'like', '%Devi%Halawa%')
+        ->orWhere('nuptk', 'like', '%6538776677230133%');
+} else {
+    $teachersQuery->where('nuptk', 'like', '%6538776677230133%');
+}
+
+$teachers = $teachersQuery->with(['school', 'user'])->get();
+
+// Kumpulkan ID
 $teacherIds = $teachers->pluck('id')->toArray();
 $userIds = $users->pluck('id')->merge($teachers->pluck('user_id')->filter())->unique()->toArray();
 
@@ -58,7 +75,7 @@ if (!empty($teacherIds) && Schema::hasTable('teaching_assignments')) {
 $schedules = [];
 if (!empty($teacherIds) && Schema::hasTable('schedules')) {
     $schedules = Schedule::whereIn('teacher_id', $teacherIds)
-        ->with(['subject', 'classroom', 'academicYear'])
+        ->with(['subject', 'classroom'])
         ->get();
 }
 
@@ -127,14 +144,6 @@ if (Schema::hasTable('teacher_attendances') && !empty($teacherIds)) {
     $teachingRecords = DB::table('presensi_mengajar')->whereIn('teacher_id', $teacherIds)->orderByDesc('id')->limit(10)->get();
 }
 
-// 8. Cek Aktivitas Login / Sesi Terakhir (jika ada)
-$lastLoginInfo = null;
-foreach ($users as $u) {
-    if (isset($u->last_login_at)) {
-        $lastLoginInfo = $u->last_login_at;
-    }
-}
-
 // Ringkasan Keaktifan
 $isLmsActive = count($lmsCourses) > 0 || count($directMaterials) > 0 || count($cbtBanks) > 0;
 $hasTeachingAssignment = count($teachingAssignments) > 0;
@@ -156,6 +165,7 @@ if ($format === 'json') {
         ],
         'users' => $users,
         'teachers' => $teachers,
+        'employees' => $employees,
         'teaching_assignments' => $teachingAssignments,
         'schedules' => $schedules,
         'lms_courses' => $lmsCourses,
@@ -212,8 +222,8 @@ header('Content-Type: text/html; charset=utf-8');
 
     <!-- 1. DATA PENGGUNA & GURU -->
     <div class="card">
-        <h3>1. Profil Akun & Data Guru</h3>
-        <?php if ($teachers->isEmpty() && $users->isEmpty()): ?>
+        <h3>1. Profil Akun & Data Guru / Pegawai</h3>
+        <?php if ($teachers->isEmpty() && $users->isEmpty() && empty($employees)): ?>
             <p style="color:#f87171;">Data guru / user dengan nama atau NUPTK tersebut tidak ditemukan di database production.</p>
         <?php else: ?>
             <table>
@@ -227,7 +237,7 @@ header('Content-Type: text/html; charset=utf-8');
                 <?php foreach ($teachers as $t): ?>
                     <tr>
                         <td><span class="badge badge-info">Teacher Record</span></td>
-                        <td><strong><?= htmlspecialchars($t->name) ?></strong> <code>ID: <?= $t->id ?></code></td>
+                        <td><strong><?= htmlspecialchars($t->full_name ?? $t->name ?? '-') ?></strong> <code>ID: <?= $t->id ?></code></td>
                         <td><?= htmlspecialchars($t->user?->email ?? '-') ?></td>
                         <td><?= htmlspecialchars($t->school?->name ?? 'SMK Swasta Pemda Nias') ?></td>
                         <td>NUPTK: <code><?= htmlspecialchars($t->nuptk ?? '-') ?></code> | Status: <?= $t->is_active ? 'Aktif' : 'Non-Aktif' ?></td>
@@ -242,6 +252,17 @@ header('Content-Type: text/html; charset=utf-8');
                         <td>Role: <span class="badge badge-warning"><?= htmlspecialchars($u->role) ?></span></td>
                     </tr>
                 <?php endforeach; ?>
+                <?php if (!empty($employees)): ?>
+                    <?php foreach ($employees as $emp): ?>
+                        <tr>
+                            <td><span class="badge badge-warning">Employee (Kepegawaian)</span></td>
+                            <td><strong><?= htmlspecialchars($emp->full_name) ?></strong> <code>ID: <?= $emp->id ?></code></td>
+                            <td><?= htmlspecialchars($emp->email ?? '-') ?></td>
+                            <td>School ID: <code><?= $emp->school_id ?? '-' ?></code></td>
+                            <td>NUPTK: <code><?= htmlspecialchars($emp->nuptk ?? '-') ?></code></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </table>
         <?php endif; ?>
     </div>
@@ -250,7 +271,7 @@ header('Content-Type: text/html; charset=utf-8');
     <div class="card">
         <h3>2. Kursus LMS (LmsCourse) yang Dikelola</h3>
         <?php if (empty($lmsCourses) || count($lmsCourses) === 0): ?>
-            <p style="color:#94a3b8; font-style:italic;">Nol (0) Kursus LMS. Beliau belum pernah membuat atau ditugaskan mengelola Kursus di modul LMS.</p>
+            <p style="color:#94a3b8; font-style:italic;">Nol (0) Kursus LMS. Beliau belum pernah membuat atau mengelola Kursus di modul LMS.</p>
         <?php else: ?>
             <table>
                 <tr>
@@ -261,7 +282,7 @@ header('Content-Type: text/html; charset=utf-8');
                 </tr>
                 <?php foreach ($lmsCourses as $c): ?>
                     <tr>
-                        <td><strong><?= htmlspecialchars($c->title ?? $c->name ?? '-') ?></strong> <code><?= htmlspecialchars($c->course_code ?? '-') ?></code></td>
+                        <td><strong><?= htmlspecialchars($c->course_name ?? $c->title ?? '-') ?></strong> <code><?= htmlspecialchars($c->code ?? '-') ?></code></td>
                         <td><?= htmlspecialchars($c->subject?->name ?? '-') ?></td>
                         <td><?= htmlspecialchars($c->classroom?->class_name ?? '-') ?></td>
                         <td><span class="badge badge-info"><?= $c->modules?->count() ?? 0 ?> Modul</span></td>
@@ -310,7 +331,7 @@ header('Content-Type: text/html; charset=utf-8');
                 </tr>
                 <?php foreach ($schedules as $s): ?>
                     <tr>
-                        <td>Hari: <?= htmlspecialchars($s->day ?? '-') ?> (Jam ke-<?= $s->period ?? '-' ?>)</td>
+                        <td>Hari: <?= htmlspecialchars($s->day_of_week ?? '-') ?> (Jam: <?= $s->start_time ?? '-' ?> - <?= $s->end_time ?? '-' ?>)</td>
                         <td><strong><?= htmlspecialchars($s->subject?->name ?? '-') ?></strong></td>
                         <td><?= htmlspecialchars($s->classroom?->class_name ?? '-') ?></td>
                     </tr>
