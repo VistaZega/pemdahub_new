@@ -78,6 +78,18 @@
             <p class="text-sm text-gray-600">Laporan otomatis kegagalan sistem (500 Error) langsung ke WhatsApp dan Telegram Super Admin.</p>
         </a>
 
+        <!-- Kartu Pintasan Pengaturan: AI Engine (ClassAI Router & Gemini) -->
+        <a href="{{ route('admin.settings.ai') }}" class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block border-t-4 border-violet-600">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <span class="text-gray-400"><i class="fas fa-chevron-right"></i></span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Pengaturan AI (ClassAI & Gemini)</h3>
+            <p class="text-sm text-gray-600">Konfigurasi API Key ClassAI Router / Gemini dan model AI untuk Asisten Siswa, RPP, Soal CBT, dan LMS.</p>
+        </a>
+
         <!-- Tempat placeholder untuk pengaturan lain -->
         @foreach($settings as $group => $items)
         <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border-t-4 border-indigo-500">

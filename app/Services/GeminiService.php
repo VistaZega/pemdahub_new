@@ -27,12 +27,14 @@ class GeminiService
             ?: (\App\Models\Setting::getValue('gemini_api_key') ?? env('GEMINI_API_KEY'));
 
         $this->classAiBaseUrl = rtrim((string) (
-            config('services.ai.classai.base_url')
+            \App\Models\Setting::getValue('classai_base_url')
+            ?: config('services.ai.classai.base_url')
             ?: env('CLASSAI_BASE_URL', 'https://router.classai.id/v1')
         ), '/');
         $this->classAiModel = (string) (
-            config('services.ai.classai.model')
-            ?: (\App\Models\Setting::getValue('classai_model') ?? env('CLASSAI_MODEL', 'deepseek-v4-flash-0731'))
+            \App\Models\Setting::getValue('classai_model')
+            ?: config('services.ai.classai.model')
+            ?: env('CLASSAI_MODEL', 'deepseek-v4-flash-0731')
         );
         $this->timeout = (int) (config('services.ai.classai.timeout') ?: 60);
 
@@ -60,6 +62,90 @@ class GeminiService
         }
 
         return $this->generateViaGemini($prompt);
+    }
+
+    /**
+     * Test live AI connection without falling back to mock responses.
+     */
+    public function testConnection(): array
+    {
+        if (empty($this->apiKey)) {
+            return [
+                'success'  => false,
+                'provider' => $this->activeProvider,
+                'model'    => $this->activeProvider === 'classai' ? $this->classAiModel : 'gemini-1.5-flash',
+                'message'  => 'API Key belum diisi untuk provider ' . strtoupper($this->activeProvider) . '.',
+            ];
+        }
+
+        $testPrompt = 'Balas hanya dengan satu kalimat singkat: Koneksi AI PembdaHUB berhasil.';
+
+        try {
+            if ($this->activeProvider === 'classai') {
+                $response = Http::timeout(20)
+                    ->withToken($this->apiKey)
+                    ->acceptJson()
+                    ->post($this->classAiBaseUrl . '/chat/completions', [
+                        'model' => $this->classAiModel,
+                        'messages' => [
+                            ['role' => 'user', 'content' => $testPrompt],
+                        ],
+                    ]);
+
+                if ($response->successful()) {
+                    $reply = trim((string) ($response->json('choices.0.message.content') ?? ''));
+                    if ($reply !== '') {
+                        return [
+                            'success'  => true,
+                            'provider' => 'ClassAI Router',
+                            'model'    => $this->classAiModel,
+                            'message'  => 'Koneksi ClassAI Router berhasil! Respons: ' . \Illuminate\Support\Str::limit($reply, 120),
+                        ];
+                    }
+                }
+
+                return [
+                    'success'  => false,
+                    'provider' => 'ClassAI Router',
+                    'model'    => $this->classAiModel,
+                    'message'  => 'Gagal terhubung ke ClassAI Router (HTTP ' . $response->status() . '): ' . \Illuminate\Support\Str::limit($response->body(), 200),
+                ];
+            }
+
+            $response = Http::timeout(20)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->baseUrl . '?key=' . $this->apiKey, [
+                    'contents' => [
+                        ['parts' => [['text' => $testPrompt]]]
+                    ]
+                ]);
+
+            if ($response->successful()) {
+                $reply = trim((string) ($response->json('candidates.0.content.parts.0.text') ?? ''));
+                if ($reply !== '') {
+                    return [
+                        'success'  => true,
+                        'provider' => 'Google Gemini',
+                        'model'    => 'gemini-1.5-flash',
+                        'message'  => 'Koneksi Google Gemini berhasil! Respons: ' . \Illuminate\Support\Str::limit($reply, 120),
+                    ];
+                }
+            }
+
+            return [
+                'success'  => false,
+                'provider' => 'Google Gemini',
+                'model'    => 'gemini-1.5-flash',
+                'message'  => 'Gagal terhubung ke Google Gemini (HTTP ' . $response->status() . '): ' . \Illuminate\Support\Str::limit($response->body(), 200),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success'  => false,
+                'provider' => $this->activeProvider,
+                'model'    => $this->activeProvider === 'classai' ? $this->classAiModel : 'gemini-1.5-flash',
+                'message'  => 'Exception saat tes koneksi: ' . $e->getMessage(),
+            ];
+        }
     }
 
     /**

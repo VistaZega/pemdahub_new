@@ -1060,4 +1060,83 @@ class SettingsController extends Controller
             ->route('admin.settings.error_alerts')
             ->with('success', $finalMsg ?: 'Pemeriksaan alert WhatsApp selesai.');
     }
+
+    /**
+     * Display AI Provider Settings page (ClassAI Router & Google Gemini).
+     */
+    public function ai()
+    {
+        $this->authorizeFeatureAccess();
+
+        $aiProvider = Setting::getValue('ai_provider') ?: config('services.ai.provider', 'gemini');
+        $classAiBaseUrl = Setting::getValue('classai_base_url') ?: config('services.ai.classai.base_url', 'https://router.classai.id/v1');
+        $classAiApiKey = Setting::getValue('classai_api_key') ?: config('services.ai.classai.api_key', '');
+        $classAiModel = Setting::getValue('classai_model') ?: config('services.ai.classai.model', 'deepseek-v4-flash-0731');
+        $geminiApiKey = Setting::getValue('gemini_api_key') ?: config('services.gemini.key', '');
+
+        return view('admin.settings.ai', compact(
+            'aiProvider',
+            'classAiBaseUrl',
+            'classAiApiKey',
+            'classAiModel',
+            'geminiApiKey'
+        ));
+    }
+
+    /**
+     * Save AI Provider Settings to database.
+     */
+    public function updateAi(Request $request)
+    {
+        $this->authorizeFeatureAccess();
+
+        $validated = $request->validate([
+            'ai_provider'      => 'required|string|in:classai,gemini',
+            'classai_base_url' => 'nullable|url|max:255',
+            'classai_api_key'  => 'nullable|string|max:500',
+            'classai_model'    => 'nullable|string|max:150',
+            'gemini_api_key'   => 'nullable|string|max:500',
+        ]);
+
+        Setting::setValue('ai_provider', $validated['ai_provider'], 'string', 'ai');
+        Setting::setValue(
+            'classai_base_url',
+            rtrim(trim((string) ($validated['classai_base_url'] ?: 'https://router.classai.id/v1')), '/'),
+            'string',
+            'ai'
+        );
+        Setting::setValue(
+            'classai_model',
+            trim((string) ($validated['classai_model'] ?: 'deepseek-v4-flash-0731')),
+            'string',
+            'ai'
+        );
+        Setting::setValue('classai_api_key', trim((string) ($validated['classai_api_key'] ?? '')), 'string', 'ai');
+        Setting::setValue('gemini_api_key', trim((string) ($validated['gemini_api_key'] ?? '')), 'string', 'ai');
+
+        return redirect()
+            ->route('admin.settings.ai')
+            ->with('success', 'Konfigurasi AI berhasil disimpan! Seluruh fitur AI (Asisten Siswa, RPP, Bank Soal CBT, Materi LMS) kini menggunakan pengaturan terbaru.');
+    }
+
+    /**
+     * Test live AI connection using currently saved settings.
+     */
+    public function testAi()
+    {
+        $this->authorizeFeatureAccess();
+
+        $service = new \App\Services\GeminiService();
+        $result = $service->testConnection();
+
+        if (!empty($result['success'])) {
+            return redirect()
+                ->route('admin.settings.ai')
+                ->with('success', $result['message']);
+        }
+
+        return redirect()
+            ->route('admin.settings.ai')
+            ->with('error', $result['message']);
+    }
 }
