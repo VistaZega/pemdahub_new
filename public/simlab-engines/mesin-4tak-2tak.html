@@ -103,7 +103,7 @@
     .card {
       background: var(--panel);
       border: 1px solid var(--panel-border);
-      border-radius: 14px;
+      border-radius: 6px;
       padding: 16px;
       display: flex;
       flex-direction: column;
@@ -114,7 +114,7 @@
       position: relative;
       background: #0b1220;
       border: 1px solid #263349;
-      border-radius: 12px;
+      border-radius: 6px;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -336,12 +336,10 @@
 </head>
 <body>
   <header>
-    <div>
-      <h1>Simulasi Sistem Kerja Mesin &amp; Mekanisme Katup</h1>
+    <div><h1>Simulasi Sistem Kerja Mesin &amp; Mekanisme Katup</h1>
       <p>Media Pembelajaran Interaktif Teknik Otomotif SMK (TKR / TBSM)</p>
     </div>
-    <div class="mode-switch">
-      <button class="mode-btn active" id="btn4Tak">4-Tak (1 Silinder)</button>
+    <div class="mode-switch"><button class="mode-btn active" id="btn4Tak">4-Tak (1 Silinder)</button>
       <button class="mode-btn" id="btn4Sil">4 Langkah Bersamaan (4 Silinder)</button>
       <button class="mode-btn" id="btn2Tak">2-Tak (Porting)</button>
     </div>
@@ -350,11 +348,9 @@
   <main>
     <!-- Panel Kiri: Visualisasi Mesin -->
     <section class="card">
-      <div class="canvas-wrap">
-        <canvas id="engineCanvas" width="640" height="560"></canvas>
+      <div class="canvas-wrap"><canvas id="engineCanvas" width="640" height="560"></canvas>
       </div>
-      <div class="legend">
-        <span><i class="dot" style="background:#38bdf8"></i> Campuran Udara + BBM</span>
+      <div class="legend"><span><i class="dot" style="background:#38bdf8"></i> Campuran Udara + BBM</span>
         <span><i class="dot" style="background:#f59e0b"></i> Kompresi</span>
         <span><i class="dot" style="background:#ef4444"></i> Pembakaran / Usaha</span>
         <span><i class="dot" style="background:#64748b"></i> Gas Buang</span>
@@ -364,41 +360,32 @@
 
     <!-- Panel Kanan: Kontrol & Data Real-Time -->
     <section class="card">
-      <div class="stroke-banner" id="strokeBanner">
-        <div>
-          <div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;">Langkah Aktif</div>
+      <div class="stroke-banner" id="strokeBanner"><div><div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;">Langkah Aktif</div>
           <div class="stroke-title" id="strokeName">1. Langkah Hisap (Intake)</div>
         </div>
         <div class="stroke-angle" id="angleDisplay">0° / 720°</div>
       </div>
 
-      <p class="stroke-desc" id="strokeDesc">
-        Piston bergerak dari TMA ke TMB. Noken as menekan katup hisap hingga terbuka, mengisap kabut campuran udara dan bahan bakar ke dalam silinder.
+      <p class="stroke-desc" id="strokeDesc">Piston bergerak dari TMA ke TMB. Noken as menekan katup hisap hingga terbuka, mengisap kabut campuran udara dan bahan bakar ke dalam silinder.
       </p>
 
-      <div class="controls-grid">
-        <div class="slider-box">
-          <div class="slider-header">
-            <span>Putaran Mesin (RPM)</span>
+      <div class="controls-grid"><div class="slider-box"><div class="slider-header"><span>Putaran Mesin (RPM)</span>
             <span class="rpm-badge" id="rpmValue">600 RPM</span>
           </div>
           <input type="range" id="rpmSlider" min="60" max="3600" step="60" value="600" />
-          <div class="rpm-presets">
-            <span>60 (Slow-Mo)</span>
+          <div class="rpm-presets"><span>60 (Slow-Mo)</span>
             <span>800 (Idle)</span>
             <span>2000 (Menengah)</span>
             <span>3600 (Tinggi)</span>
           </div>
         </div>
 
-        <div class="btn-row">
-          <button class="ctrl primary" id="playPauseBtn">⏸ Jeda</button>
+        <div class="btn-row"><button class="ctrl primary" id="playPauseBtn">⏸ Jeda</button>
           <button class="ctrl" id="stepBtn">⏭ +15° Engkol</button>
           <button class="ctrl" id="resetBtn">↺ Reset (0° TMA)</button>
         </div>
 
-        <div>
-          <div style="font-size:0.78rem; color:var(--muted); margin-bottom:6px;">Lompat ke Langkah Tertentu:</div>
+        <div><div style="font-size:0.78rem; color:var(--muted); margin-bottom:6px;">Lompat ke Langkah Tertentu:</div>
           <div class="step-jumps" id="jumpContainer"></div>
         </div>
 
@@ -408,21 +395,16 @@
         </label>
       </div>
 
-      <div class="status-grid">
-        <div class="stat-item">
-          <div class="stat-label">Posisi Piston</div>
+      <div class="status-grid"><div class="stat-item"><div class="stat-label">Posisi Piston</div>
           <div class="stat-value" id="pistonStatus">TMA (Atas)</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="intakeLabel">Katup Hisap</div>
+        <div class="stat-item"><div class="stat-label" id="intakeLabel">Katup Hisap</div>
           <div class="stat-value" id="intakeStatus">Terbuka</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="exhaustLabel">Katup Buang</div>
+        <div class="stat-item"><div class="stat-label" id="exhaustLabel">Katup Buang</div>
           <div class="stat-value" id="exhaustStatus">Tertutup</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label">Pengabutan &amp; Busi</div>
+        <div class="stat-item"><div class="stat-label">Pengabutan &amp; Busi</div>
           <div class="stat-value" id="ignitionStatus">Injektor Menyemprot</div>
         </div>
       </div>
@@ -686,7 +668,7 @@
         offsets.forEach((off, idx) => {
           const cDeg = (angle + off) % 720;
           const st = get4TakStrokeShort(cDeg);
-          const spark = (cDeg >= 348 && cDeg <= 372) ? ' ⚡' : '';
+          const spark = (cDeg >= 348 && cDeg <= 372) ? ' ' : '';
           targets[idx].textContent = `${st.label}${spark} (${Math.round(cDeg)}°)`;
           targets[idx].className = 'stat-value';
           targets[idx].style.color = st.color;
@@ -722,7 +704,7 @@
 
         const isSpark = angle >= 348 && angle <= 372;
         if (isSpark) {
-          ignitionStatus.textContent = '⚡ Busi Memercik!';
+          ignitionStatus.textContent = ' Busi Memercik!';
           ignitionStatus.className = 'stat-value badge-spark';
         } else if (angle < 180) {
           ignitionStatus.textContent = 'Pengabutan BBM Aktif';
@@ -742,7 +724,7 @@
 
         const isSpark = angle >= 348 || angle <= 15;
         if (isSpark) {
-          ignitionStatus.textContent = '⚡ Busi Memercik!';
+          ignitionStatus.textContent = ' Busi Memercik!';
           ignitionStatus.className = 'stat-value badge-spark';
         } else {
           ignitionStatus.textContent = angle > 180 ? 'Pengabutan ke Crankcase' : 'Pembilasan';

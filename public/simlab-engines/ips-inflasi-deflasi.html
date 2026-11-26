@@ -9,7 +9,7 @@
   body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
   h2{text-align:center;font-size:1.3rem;color:#7c3aed;margin-bottom:4px}
   .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
-  .wrap{max-width:900px;margin:0 auto}
+  .wrap{max-width: 100%;margin:0 auto}
   canvas{background:#0f172a;border-radius:10px;width:100%;display:block}
   .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
   @media(max-width:600px){.panels{grid-template-columns:1fr}}
@@ -33,19 +33,16 @@
   .basket{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
   .item{background:#ede9fe;border:1px solid #c4b5fd;border-radius:4px;padding:2px 6px;font-size:0.75rem;cursor:default}
 </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-<div class="wrap">
-  <h2>📊 Simulator IPS: Inflasi, Deflasi & Daya Beli Masyarakat</h2>
+<div class="wrap"><h2>Simulator IPS: Inflasi, Deflasi & Daya Beli Masyarakat</h2>
   <p class="subtitle">Mengapa harga barang terus naik setiap tahun dan bagaimana inflasi mengikis nilai uang?</p>
   <canvas id="cv" height="260"></canvas>
-  <div class="panels">
-    <div class="panel">
-      <h3>⚙️ Kontrol Inflasi</h3>
-      <div class="btn-row">
-        <button class="btn btn-red" onclick="setScenario('hiperinflasi')">🔥 Hiperinflasi</button>
-        <button class="btn btn-purple" onclick="setScenario('inflasi')">📈 Inflasi Normal</button>
-        <button class="btn btn-green" onclick="setScenario('deflasi')">📉 Deflasi</button>
+  <div class="panels"><div class="panel"><h3>Kontrol Inflasi</h3>
+      <div class="btn-row"><button class="btn btn-red" onclick="setScenario('hiperinflasi')">Hiperinflasi</button>
+        <button class="btn btn-purple" onclick="setScenario('inflasi')">Inflasi Normal</button>
+        <button class="btn btn-green" onclick="setScenario('deflasi')">Deflasi</button>
       </div>
       <label>Tingkat Inflasi Tahunan (%): <span class="val" id="vinfl">5</span>%</label>
       <input type="range" id="sinfl" min="-5" max="80" value="5" oninput="update()">
@@ -55,15 +52,14 @@
       <input type="range" id="sthn" min="1" max="30" value="10" oninput="update()">
       <div class="info-box" id="hasil">—</div>
     </div>
-    <div class="panel">
-      <h3>📐 Rumus & Soal HOTS Ekonomi</h3>
+    <div class="panel"><h3>Rumus & Soal HOTS Ekonomi</h3>
       <div class="rumus">IHK = (Harga sekarang / Harga dasar) × 100<br>Inflasi = (IHK_t - IHK_{t-1}) / IHK_{t-1} × 100%<br>Daya Beli Riil = Nominal / (1 + r)^n</div>
       <div class="soal">Jika inflasi 10% per tahun, berapa daya beli uang Rp 10 juta setelah 5 tahun?</div>
       <button class="opsi-btn" onclick="cek(this,'salah')">A. Rp 6.000.000</button>
       <button class="opsi-btn" onclick="cek(this,'benar')">B. Rp 6.209.213</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">C. Rp 5.000.000</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">D. Rp 7.500.000</button>
-      <div class="pembahasan" id="pem">✅ Daya beli riil = 10.000.000 / (1,10)⁵ = 10.000.000 / 1,61051 ≈ <strong>Rp 6.209.213</strong>. Inflasi 10%/tahun menghilangkan ~38% daya beli dalam 5 tahun.</div>
+      <div class="pembahasan" id="pem">Daya beli riil = 10.000.000 / (1,10)⁵ = 10.000.000 / 1,61051 ≈ <strong>Rp 6.209.213</strong>. Inflasi 10%/tahun menghilangkan ~38% daya beli dalam 5 tahun.</div>
     </div>
   </div>
 </div>
@@ -91,14 +87,14 @@ function update(){
   const hargaAkhir = hargaAwal * Math.pow(1+r, n);
   const dayaBeli = g / Math.pow(1+r, n);
   const naik = r >= 0;
-  let status = r > 0.3 ? '🔥 Hiperinflasi — Ekonomi kritis!' : r > 0 ? '📈 Inflasi — Harga naik wajar' : r < 0 ? '📉 Deflasi — Harga turun, produktivitas lesu' : '✅ Stabil';
+  let status = r > 0.3 ? ' Hiperinflasi — Ekonomi kritis!' : r > 0 ? ' Inflasi — Harga naik wajar' : r < 0 ? ' Deflasi — Harga turun, produktivitas lesu' : ' Stabil';
   document.getElementById('hasil').innerHTML =
     `<b>${status}</b><br>Harga beras awal Rp15.000/kg → setelah ${n} tahun: <b>Rp ${hargaAkhir.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.').length>5?'..':''}${Math.round(hargaAkhir).toLocaleString('id-ID')}/kg</b><br>Daya beli riil gaji Rp${g.toLocaleString('id-ID')} → setara <b>Rp${Math.round(dayaBeli).toLocaleString('id-ID')}</b> saat ini`;
   draw(r, g, n);
 }
 
 function draw(r, g, n){
-  cv.width=cv.offsetWidth; cv.height=260;
+  cv.width = cv.offsetWidth || 640; cv.height=260;
   const W=cv.width, H=260;
   const plotW=W-PAD.l-PAD.r, plotH=H-PAD.t-PAD.b;
   const years=[];

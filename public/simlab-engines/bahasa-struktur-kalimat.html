@@ -8,55 +8,50 @@
     :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; }
     * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
     body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; padding:16px; gap:16px; }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:18px; }
     h1 { font-size:1.2rem; font-weight:800; }
     p.sub { font-size:0.85rem; color:var(--muted); margin-top:4px; }
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
     label { display:block; font-size:0.78rem; font-weight:700; color:#cbd5e1; margin-bottom:6px; text-transform:uppercase; }
     select { width:100%; background:#090d16; border:1px solid #334155; color:#fff; padding:10px; border-radius:10px; font-size:0.9rem; font-weight:600; }
-    .stage { display:flex; flex-wrap:wrap; gap:12px; align-items:stretch; justify-content:center; padding:24px 12px; background:#070b14; border-radius:14px; border:1px solid #1e293b; }
-    .block { padding:14px 18px; border-radius:12px; min-width:130px; text-align:center; transition:transform 0.2s; }
+    .stage { display:flex; flex-wrap:wrap; gap:12px; align-items:stretch; justify-content:center; padding:24px 12px; background:#070b14; border-radius: 6px; border:1px solid #1e293b; }
+    .block { padding:14px 18px; border-radius: 6px; min-width:130px; text-align:center; transition:transform 0.2s; }
     .block:hover { transform:translateY(-3px); }
     .b-tag { font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; opacity:0.9; }
     .b-word { font-size:1.15rem; font-weight:800; margin-top:4px; }
-    .timeline { display:flex; align-items:center; justify-content:space-between; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:14px 20px; position:relative; }
-    .tl-node { text-align:center; font-size:0.78rem; font-weight:700; color:var(--muted); padding:6px 12px; border-radius:999px; }
-    .tl-node.active { background:#38bdf8; color:#0f172a; box-shadow:0 0 18px rgba(56,189,248,0.5); }
+    .timeline { display:flex; align-items:center; justify-content:space-between; background:#090d16; border:1px solid #1e293b; border-radius: 6px; padding:14px 20px; position:relative; }
+    .tl-node { text-align:center; font-size:0.78rem; font-weight:700; color:var(--muted); padding:6px 12px; border-radius: 4px; }
+    .tl-node.active { background:#38bdf8; color:#0f172a;  }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <div class="card">
-    <h1>📚 Simulator Bahasa: Struktur Kalimat (SPOK) &amp; Garis Waktu Tenses</h1>
+  <div class="card"><h1>Simulator Bahasa: Struktur Kalimat (SPOK) &amp; Garis Waktu Tenses</h1>
     <p class="sub">Pilih komponen Subjek, Predikat, Objek, dan Waktu untuk melihat perubahan struktur kalimat Bahasa Indonesia &amp; Bahasa Inggris secara visual</p>
   </div>
 
-  <div class="card grid">
-    <div>
-      <label>Subjek (Pelaku)</label>
+  <div class="card grid"><div><label>Subjek (Pelaku)</label>
       <select id="sSubj" onchange="render()">
         <option value="0">Siswa / The student</option>
         <option value="1">Para guru / The teachers</option>
         <option value="2">Saya / I</option>
       </select>
     </div>
-    <div>
-      <label>Predikat (Kata Kerja)</label>
+    <div><label>Predikat (Kata Kerja)</label>
       <select id="sVerb" onchange="render()">
         <option value="0">mempelajari / study</option>
         <option value="1">merancang / design</option>
         <option value="2">menguji / test</option>
       </select>
     </div>
-    <div>
-      <label>Objek (Sasaran)</label>
+    <div><label>Objek (Sasaran)</label>
       <select id="sObj" onchange="render()">
         <option value="0">rangkaian listrik / electrical circuits</option>
         <option value="1">persamaan kimia / chemical equations</option>
         <option value="2">topologi jaringan / network topology</option>
       </select>
     </div>
-    <div>
-      <label>Kala Waktu (Tense)</label>
+    <div><label>Kala Waktu (Tense)</label>
       <select id="sTense" onchange="render()">
         <option value="past">Lampau (Past Tense)</option>
         <option value="present" selected>Sekarang / Rutin (Present)</option>
@@ -66,15 +61,13 @@
     </div>
   </div>
 
-  <div class="card" style="display:flex;flex-direction:column;gap:16px;">
-    <div style="font-size:0.8rem;font-weight:800;color:#38bdf8;text-transform:uppercase;">Visualisasi Blok Fungsi Kalimat (Bahasa Indonesia)</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:16px;"><div style="font-size:0.8rem;font-weight:800;color:#38bdf8;text-transform:uppercase;">Visualisasi Blok Fungsi Kalimat (Bahasa Indonesia)</div>
     <div class="stage" id="idStage"></div>
 
     <div style="font-size:0.8rem;font-weight:800;color:#34d399;text-transform:uppercase;">Transformasi Bahasa Inggris &amp; Garis Waktu (Timeline)</div>
     <div class="stage" id="enStage"></div>
 
-    <div class="timeline">
-      <div class="tl-node" id="tlPast">◀ Masa Lampau (Past)</div>
+    <div class="timeline"><div class="tl-node" id="tlPast">◀ Masa Lampau (Past)</div>
       <div class="tl-node" id="tlPresent">● Sekarang (Present / Continuous)</div>
       <div class="tl-node" id="tlFuture">Masa Depan (Future) ▶</div>
     </div>

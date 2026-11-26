@@ -3,106 +3,166 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator IPA/Geografi: Efek Rumah Kaca &amp; Pemanasan Global</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#047857; }
-    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#020617; border-radius:12px; display:block; }
-    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
-    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-    .s-val { font-size:1.15rem; font-weight:800; margin-top:2px; font-family:monospace; }
-    .soal-box { background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; color:#065f46; }
-  </style>
+  <title>Simulator IPA: Efek Rumah Kaca &amp; Neraca Radiasi Bumi</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>🌍 Simulator IPA &amp; Geografi: Efek Rumah Kaca &amp; Pemanasan Global</h1>
-    <p>Mengapa Bumi tetap hangat di malam hari, dan apa yang terjadi jika kadar gas CO₂ di atmosfer terus meningkat?</p>
-  </header>
-
-  <main>
-    <div class="card">
-      <canvas id="earthCanvas" width="760" height="400"></canvas>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;">
-        <span style="color:#d97706">● Sinar Matahari Masuk</span>
-        <span style="color:#e11d48">● Panas Inframerah Terpantul/Terperangkap CO₂</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Kadar Gas CO₂</div><div class="s-val" id="vCo2" style="color:#0284c7">420 ppm</div></div>
-        <div class="s-box"><div class="s-lbl">Suhu Rata-rata Bumi</div><div class="s-val" id="vTemp" style="color:#e11d48">15.2 °C</div></div>
-      </div>
-
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Konsentrasi Gas Rumah Kaca (CO₂)</span><span id="lblCo2" style="color:#0284c7">420 ppm</span>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Neraca Radiasi Atmosfer &amp; Efek Rumah Kaca</div>
+          <div class="sl-bar-sub">Perbedaan transmisi sinar tampak matahari (gelombang pendek) dan penyerapan panas inframerah (gelombang panjang) oleh gas CO₂</div>
         </div>
-        <input type="range" id="inCo2" min="150" max="900" step="20" value="420" style="width:100%;accent-color:#0284c7;cursor:pointer;">
       </div>
 
-      <div class="soal-box">
-        <strong>📝 Misteri &amp; Pembuktian Iklim:</strong>
-        <p id="earthExplain" style="margin-top:4px;">
-          Sinar tampak Matahari menembus atmosfer dan menghangatkan permukaan Bumi. Bumi memancarkan kembali panas berupa <strong>gelombang inframerah</strong>. Gas CO₂ di atmosfer memantulkan sebagian panas itu kembali ke Bumi agar suhu tetap layak huni (~15°C), namun jika CO₂ berlebih, panas terperangkap dan memicu pemanasan global!
-        </p>
+      <div class="sl-viewport">
+        <canvas id="ghCanvas" height="400"></canvas>
       </div>
-    </div>
-  </main>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Parameter Atmosfer &amp; Permukaan</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Konsentrasi CO₂ Atmosfer</span><span class="sl-ctrl-val" id="lblCo2">420 ppm</span></div>
+          <input type="range" id="inCo2" min="280" max="900" step="20" value="420" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Albedo Permukaan Bumi (Pantulan)</span><span class="sl-ctrl-val" id="lblAlb">0.30 (Normal)</span></div>
+          <input type="range" id="inAlb" min="0.15" max="0.60" step="0.05" value="0.30" oninput="onParam()" />
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" onclick="setPreset(280, 0.35)">Pra-Industri (280 ppm)</button>
+          <button type="button" class="sl-btn" onclick="setPreset(420, 0.30)">Saat Ini (420 ppm)</button>
+          <button type="button" class="sl-btn" onclick="setPreset(820, 0.20)">Skenario Tinggi (820 ppm)</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Suhu &amp; Radiasi</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Suhu Global</div><div class="sl-readout-val" id="valTemp" style="color:#d97706;">15.0 °C</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Anomali vs 1850</div><div class="sl-readout-val" id="valAnom">+1.2 °C</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Inframerah Terperangkap</div><div class="sl-readout-val" id="valTrap">62%</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Interpretasi Fisika Iklim</div>
+        <div class="sl-note" id="climateNote">
+          Radiasi sinar tampak (kuning) menembus atmosfer menuju permukaan bumi, lalu dipancarkan kembali sebagai panas inframerah (merah) yang sebagian diserap gas CO₂.
+        </div>
+      </div>
+    </aside>
+  </div>
 
   <script>
-    const c = document.getElementById('earthCanvas'), ctx = c.getContext('2d');
-    const inCo2 = document.getElementById('inCo2');
-    const rays = Array.from({length: 14}, (_, i) => ({ x: 140 + i*42, y: Math.random()*300, dir: 1, isIR: false }));
+    const cv = document.getElementById('ghCanvas');
+    const ctx = cv.getContext('2d');
+    const photons = [];
+
+    for (let i = 0; i < 30; i++) {
+      photons.push({ x: 40 + i * 24, y: Math.random() * 280, vy: 2.1, vx: 0.3, kind: 'sun' });
+    }
+
+    function setPreset(co2, alb) {
+      document.getElementById('inCo2').value = co2;
+      document.getElementById('inAlb').value = alb;
+      onParam();
+    }
+
+    function onParam() {
+      const co2 = +document.getElementById('inCo2').value;
+      const alb = +document.getElementById('inAlb').value;
+      const trap = Math.min(92, Math.round(45 + ((co2 - 280) / 620) * 42));
+      const baseTemp = 13.8 + ((co2 - 280) / 140) * 1.15 - (alb - 0.30) * 9.5;
+      const anom = baseTemp - 13.8;
+
+      document.getElementById('lblCo2').textContent = co2 + ' ppm';
+      document.getElementById('lblAlb').textContent = alb.toFixed(2) + (alb >= 0.45 ? ' (Es/Salju)' : (alb <= 0.2 ? ' (Gelap/Aspal)' : ' (Normal)'));
+      document.getElementById('valTemp').textContent = baseTemp.toFixed(1) + ' °C';
+      document.getElementById('valAnom').textContent = (anom >= 0 ? '+' : '') + anom.toFixed(1) + ' °C';
+      document.getElementById('valTrap').textContent = trap + '%';
+      document.getElementById('climateNote').innerHTML = anom > 2.0
+        ? `<strong>Pemanasan Kritis (+${anom.toFixed(1)} °C):</strong> Konsentrasi CO₂ tinggi menahan mayoritas foton inframerah di troposfer.`
+        : `Gas rumah kaca alami menjaga suhu bumi layak huni (~14–15 °C). Kenaikan CO₂ memperbesar fraksi panas yang dipantulkan balik ke permukaan.`;
+    }
 
     function loop() {
-      const co2 = +inCo2.value;
-      const temp = 11 + (co2 / 420) * 4.2;
-      document.getElementById('lblCo2').textContent = co2 + ' ppm';
-      document.getElementById('vCo2').textContent = co2 + ' ppm';
-      document.getElementById('vTemp').textContent = temp.toFixed(1) + ' °C';
-      document.getElementById('vTemp').style.color = temp > 17 ? '#e11d48' : (temp < 13 ? '#0284c7' : '#059669');
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      const co2 = +document.getElementById('inCo2').value;
+      const alb = +document.getElementById('inAlb').value;
+      const trapProb = Math.min(0.92, 0.42 + ((co2 - 280) / 620) * 0.46);
 
-      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.clearRect(0, 0, W, H);
 
-      // Matahari
-      ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(70, 65, 36, 0, Math.PI*2); ctx.fill();
+      // Lapisan Atmosfer & Konsentrasi CO2
+      const atmTop = 78, atmBot = 170;
+      ctx.fillStyle = `rgba(56,189,248,${0.08 + ((co2 - 280) / 620) * 0.24})`;
+      ctx.fillRect(0, atmTop, W, atmBot - atmTop);
+      ctx.strokeStyle = 'rgba(56,189,248,0.35)'; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(0, atmTop); ctx.lineTo(W, atmTop); ctx.moveTo(0, atmBot); ctx.lineTo(W, atmBot); ctx.stroke();
+      ctx.setLineDash([]);
 
       // Permukaan Bumi
-      ctx.fillStyle = temp > 17.5 ? '#78350f' : '#065f46';
-      ctx.fillRect(0, 325, c.width, 75);
+      ctx.fillStyle = alb >= 0.45 ? '#1e3a5f' : '#064e3b';
+      ctx.fillRect(0, 326, W, 74);
 
-      // Lapisan Atmosfer & Gas CO2
-      const alpha = Math.min(0.65, co2 / 1100);
-      ctx.fillStyle = `rgba(148,163,184,${alpha})`;
-      ctx.fillRect(0, 120, c.width, 50);
-      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px sans-serif';
-      ctx.fillText(`Lapisan Atmosfer & Gas CO₂ (${co2} ppm)`, 20, 150);
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('ANGKASA LUAR', 16, 26);
+      ctx.fillStyle = '#7dd3fc';
+      ctx.fillText(`LAPISAN GAS RUMAH KACA (CO₂: ${co2} ppm)`, 16, 128);
+      ctx.fillStyle = '#6ee7b7';
+      ctx.fillText('PERMUKAAN BUMI', 16, 355);
 
-      const trapProb = Math.min(0.85, co2 / 950);
-      rays.forEach(r => {
-        r.y += r.dir * 2.5;
-        if (r.dir === 1 && r.y >= 320) { r.dir = -1; r.isIR = true; }
-        if (r.dir === -1 && r.isIR && r.y <= 150 && r.y >= 135) {
-          if (Math.random() < trapProb) r.dir = 1;
+      photons.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x > W - 16) p.x = 16;
+        if (p.x < 16) p.x = W - 16;
+
+        // Sinar matahari mencapai permukaan -> dipantul langsung (albedo) atau diserap lalu dipancar jadi inframerah
+        if (p.kind === 'sun' && p.y >= 324) {
+          p.kind = Math.random() < alb ? 'sun_ref' : 'ir';
+          p.vy = p.kind === 'sun_ref' ? -2.3 : -1.7;
+          p.vx = (Math.random() - 0.5) * 1.1;
         }
-        if (r.y < 10) { r.dir = 1; r.isIR = false; }
+        // Inframerah mengenai lapisan CO2
+        if (p.kind === 'ir' && p.y <= atmBot && p.y >= atmTop && p.vy < 0) {
+          if (Math.random() < trapProb) {
+            p.vy = 1.65;
+          }
+        }
+        // Inframerah kembali ke bumi -> serap & pantul ulang
+        if (p.kind === 'ir' && p.vy > 0 && p.y >= 324) {
+          p.vy = -1.7;
+        }
+        // Keluar ke angkasa -> reset jadi sinar matahari baru
+        if (p.y < 0) {
+          p.y = 4;
+          p.x = 20 + Math.random() * (W - 40);
+          p.kind = 'sun';
+          p.vy = 2.2;
+          p.vx = 0.25;
+        }
 
-        ctx.fillStyle = r.isIR ? '#f43f5e' : '#fde047';
-        ctx.beginPath(); ctx.arc(r.x, r.y, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = p.kind === 'ir' ? '#ef4444' : '#facc15';
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.kind === 'ir' ? 4.5 : 4, 0, Math.PI * 2); ctx.fill();
       });
+
+      // Legenda kanan atas
+      ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(W - 210, 22, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '10px sans-serif'; ctx.fillText('Sinar Tampak', W - 200, 26);
+      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(W - 110, 22, 4.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText('Panas Inframerah', W - 100, 26);
 
       requestAnimationFrame(loop);
     }
+
+    onParam();
     loop();
   </script>
 </body>

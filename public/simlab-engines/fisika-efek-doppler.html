@@ -3,94 +3,176 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator Fisika: Efek Doppler &amp; Sirine Ambulans</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#dc2626; }
-    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
-    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-    .s-val { font-size:1.1rem; font-weight:800; margin-top:2px; font-family:monospace; }
-  </style>
+  <title>Simulator Fisika: Efek Doppler &amp; Osiloskop Frekuensi</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>🚑 Simulator Fisika: Efek Doppler &amp; Muka Gelombang Sirine</h1>
-    <p>Amati bagaimana muka gelombang bunyi merapat di depan ambulans yang melaju (frekuensi tinggi) dan meregang di belakangnya (frekuensi rendah)!</p>
-  </header>
-
-  <main>
-    <div class="card">
-      <canvas id="dopCanvas" width="760" height="390"></canvas>
-    </div>
-
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Frekuensi Saat Mendekat</div><div class="s-val" id="vApp" style="color:#059669">0 Hz</div></div>
-        <div class="s-box"><div class="s-lbl">Frekuensi Saat Menjauh</div><div class="s-val" id="vRec" style="color:#e11d48">0 Hz</div></div>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Efek Doppler Gelombang Bunyi &amp; Osiloskop Frekuensi</div>
+          <div class="sl-bar-sub">Perbandingan muka gelombang di depan vs belakang sumber bergerak dan pergeseran frekuensi pengamat</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" id="btnToggle" onclick="toggleRun()">Jeda</button>
+          <button type="button" class="sl-btn" onclick="resetSim()">Reset Posisi</button>
+        </div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Kecepatan Ambulans (v<sub>s</sub>)</span><span id="lblVs">30 m/s</span></div>
-        <input type="range" id="inVs" min="0" max="120" step="5" value="30" style="width:100%;accent-color:#dc2626;cursor:pointer;">
+      <div class="sl-viewport">
+        <canvas id="dopCanvas" height="410"></canvas>
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Frekuensi Sirine Asli (f<sub>s</sub>)</span><span id="lblFs">640 Hz</span></div>
-        <input type="range" id="inFs" min="300" max="1000" step="20" value="640" style="width:100%;accent-color:#0284c7;cursor:pointer;">
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Parameter Gerak &amp; Bunyi</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kecepatan Sumber (v<sub>s</sub>)</span><span class="sl-ctrl-val" id="lblVs">40 m/s</span></div>
+          <input type="range" id="inVs" min="0" max="320" step="10" value="40" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kecepatan Pengamat Kanan (v<sub>p</sub>)</span><span class="sl-ctrl-val" id="lblVp">0 m/s</span></div>
+          <input type="range" id="inVp" min="-60" max="60" step="5" value="0" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Frekuensi Sirine Asli (f<sub>s</sub>)</span><span class="sl-ctrl-val" id="lblFs">640 Hz</span></div>
+          <input type="range" id="inFs" min="300" max="1000" step="20" value="640" oninput="onParam()" />
+        </div>
       </div>
-    </div>
-  </main>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan Frekuensi (v<sub>bunyi</sub> = 340 m/s)</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Pengamat Depan (f<sub>+</sub>)</div><div class="sl-readout-val" id="vApp" style="color:#059669;">0 Hz</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Pengamat Belakang (f<sub>-</sub>)</div><div class="sl-readout-val" id="vRec" style="color:#dc2626;">0 Hz</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Angka Mach (v<sub>s</sub>/v)</div><div class="sl-readout-val" id="vMach">0.12</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Persamaan &amp; Fenomena</div>
+        <div class="sl-formula">f_p = ((v ± v_p) / (v ∓ v_s)) × f_s</div>
+        <div class="sl-note" id="noteMach" style="margin-top:8px;">
+          Sumber mendekati pengamat di kanan menekan jarak antar muka gelombang (λ memendek → frekuensi terdengar naik).
+        </div>
+      </div>
+    </aside>
+  </div>
 
   <script>
-    const c = document.getElementById('dopCanvas'), ctx = c.getContext('2d');
-    const inVs = document.getElementById('inVs'), inFs = document.getElementById('inFs');
-    let ambX = 120, waves = [], tick = 0;
+    const cv = document.getElementById('dopCanvas');
+    const ctx = cv.getContext('2d');
+    let ambX = 120, waves = [], tick = 0, running = true, phase = 0;
 
-    function loop() {
-      const vs = +inVs.value, fs = +inFs.value, vSound = 340;
-      const fApp = (vSound / (vSound - vs)) * fs;
-      const fRec = (vSound / (vSound + vs)) * fs;
+    function toggleRun() {
+      running = !running;
+      document.getElementById('btnToggle').textContent = running ? 'Jeda' : 'Lanjutkan';
+    }
+
+    function resetSim() {
+      ambX = 80;
+      waves = [];
+    }
+
+    function onParam() {
+      const vs = +document.getElementById('inVs').value;
+      const vp = +document.getElementById('inVp').value;
+      const fs = +document.getElementById('inFs').value;
+      const vSound = 340;
+      const fApp = ((vSound + vp) / Math.max(10, vSound - vs)) * fs;
+      const fRec = ((vSound - vp) / (vSound + vs)) * fs;
+      const mach = vs / vSound;
+
       document.getElementById('lblVs').textContent = vs + ' m/s';
+      document.getElementById('lblVp').textContent = (vp > 0 ? '+' : '') + vp + ' m/s';
       document.getElementById('lblFs').textContent = fs + ' Hz';
       document.getElementById('vApp').textContent = fApp.toFixed(1) + ' Hz';
       document.getElementById('vRec').textContent = fRec.toFixed(1) + ' Hz';
+      document.getElementById('vMach').textContent = mach.toFixed(2);
+      document.getElementById('noteMach').innerHTML = mach >= 0.88
+        ? '<strong>Mendekati Kecepatan Bunyi (Mach ≈ 1):</strong> Muka gelombang menumpuk di bagian depan membentuk kerucut gelombang kejut (sonic boom).'
+        : 'Sumber bergerak ke kanan: muka gelombang merapat di depan (λ pendek, f tinggi) dan meregang di belakang (λ panjang, f rendah).';
+    }
 
-      ambX += vs * 0.04;
-      if (ambX > c.width + 60) { ambX = -60; waves = []; }
-      tick++;
-      if (tick % 10 === 0) waves.push({ x: ambX, y: 200, r: 10 });
+    function drawOsc(x, y, w, h, freqScale, color, label) {
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+      ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(label, x + 8, y + 14);
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i <= w - 16; i++) {
+        const px = x + 8 + i;
+        const py = y + h * 0.6 + Math.sin(i * 0.08 * freqScale - phase) * (h * 0.24);
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
 
-      ctx.clearRect(0, 0, c.width, c.height);
-      // Pengamat diam
-      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(540, 310, 12, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('🧍 Pengamat Diam', 540, 340);
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const vs = +document.getElementById('inVs').value;
+      const fs = +document.getElementById('inFs').value;
+      const vp = +document.getElementById('inVp').value;
+      const vSound = 340;
+      const vPx = 3.2;
+      const speedPx = (vs / vSound) * vPx;
 
-      // Gelombang Suara
-      ctx.lineWidth = 2;
+      if (running) {
+        ambX += speedPx;
+        if (ambX > W - 40) { ambX = 60; waves = []; }
+        tick++;
+        phase += 0.14;
+        if (tick % 9 === 0) waves.push({ x: ambX, y: 150, r: 6 });
+        waves.forEach(w => { w.r += vPx; });
+        waves = waves.filter(w => w.r < W * 1.1);
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      // Ruang Simulasi Gelombang (bagian atas H=0..285)
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)'; ctx.lineWidth = 1;
+      for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 285); ctx.stroke(); }
+
+      // Muka gelombang
       waves.forEach(w => {
-        w.r += 3.2;
-        const alpha = Math.max(0, 1 - w.r / 420);
+        const alpha = Math.max(0.08, 1 - w.r / (W * 0.85));
         ctx.strokeStyle = `rgba(56,189,248,${alpha})`;
-        ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, Math.PI*2); ctx.stroke();
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2); ctx.stroke();
       });
-      waves = waves.filter(w => w.r < 420);
 
-      // Mobil Ambulans
-      ctx.fillStyle = '#f8fafc'; ctx.beginPath(); ctx.roundRect(ambX - 36, 180, 72, 34, 8); ctx.fill();
-      ctx.fillStyle = '#ef4444'; ctx.fillRect(ambX - 6, 188, 12, 18); ctx.fillRect(ambX - 9, 191, 18, 12);
-      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(ambX, 176, 5, 0, Math.PI*2); ctx.fill();
+      // Pengamat Kiri (Belakang) & Pengamat Kanan (Depan)
+      const obsL = 52, obsR = W - 52;
+      ctx.fillStyle = '#f87171'; ctx.beginPath(); ctx.arc(obsL, 150, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#34d399'; ctx.beginPath(); ctx.arc(obsR, 150, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('Pengamat -', obsL, 174);
+      ctx.fillText('Pengamat +', obsR, 174);
+
+      // Sumber bunyi (Unit Sirine)
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(ambX - 20, 138, 40, 24);
+      ctx.strokeStyle = '#fef3c7'; ctx.lineWidth = 1.5; ctx.strokeRect(ambX - 20, 138, 40, 24);
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 10px monospace';
+      ctx.fillText('SUMBER', ambX, 154);
+
+      // Osiloskop Bawah: Sumber vs Depan vs Belakang
+      const fApp = ((vSound + vp) / Math.max(10, vSound - vs)) * fs;
+      const fRec = ((vSound - vp) / (vSound + vs)) * fs;
+      const oy = 300, oh = 94, gap = 10, ow = (W - 40 - gap * 2) / 3;
+      drawOsc(20, oy, ow, oh, fs / 450, '#94a3b8', `ASLI: ${fs} Hz`);
+      drawOsc(20 + ow + gap, oy, ow, oh, fApp / 450, '#34d399', `MENDEKAT: ${fApp.toFixed(0)} Hz`);
+      drawOsc(20 + (ow + gap) * 2, oy, ow, oh, fRec / 450, '#f87171', `MENJAUH: ${fRec.toFixed(0)} Hz`);
 
       requestAnimationFrame(loop);
     }
+
+    onParam();
     loop();
   </script>
 </body>

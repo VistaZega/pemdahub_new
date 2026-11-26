@@ -9,7 +9,7 @@
   body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;padding:16px}
   h2{text-align:center;font-size:1.3rem;color:#0284c7;margin-bottom:4px}
   .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:16px}
-  .container{max-width:900px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:14px}
+  .container{max-width: 100%;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:14px}
   @media(max-width:640px){.container{grid-template-columns:1fr}}
   canvas{background:#0f172a;border-radius:10px;display:block;width:100%}
   .panel{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
@@ -31,19 +31,15 @@
   .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
   .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
 </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-<h2 style="margin-bottom:4px">🛗 Simulator Fisika: Hukum Newton di Dalam Lift</h2>
+<h2 style="margin-bottom:4px">Simulator Fisika: Hukum Newton di Dalam Lift</h2>
 <p class="subtitle">Mengapa badan terasa berat saat lift naik dan ringan saat turun?</p>
-<div class="container">
-  <div>
-    <canvas id="cv" height="380"></canvas>
+<div class="container"><div><canvas id="cv" height="380"></canvas>
   </div>
-  <div>
-    <div class="panel">
-      <h3>⚙️ Kontrol Lift</h3>
-      <div class="btn-row">
-        <button class="btn btn-blue" onclick="setMode('naik')">⬆ Naik</button>
+  <div><div class="panel"><h3>Kontrol Lift</h3>
+      <div class="btn-row"><button class="btn btn-blue" onclick="setMode('naik')">⬆ Naik</button>
         <button class="btn btn-red" onclick="setMode('turun')">⬇ Turun</button>
         <button class="btn btn-green" onclick="setMode('diam')">◼ Diam</button>
         <button class="btn btn-gray" onclick="setMode('berhenti_naik')">⬆⤵ Berhenti Naik</button>
@@ -54,8 +50,7 @@
       <input type="range" id="sa" min="0" max="10" value="3" oninput="update()">
       <div class="info-box" id="hasil">—</div>
     </div>
-    <div class="panel" style="margin-top:12px">
-      <h3>📐 Rumus & Soal HOTS</h3>
+    <div class="panel" style="margin-top:12px"><h3>Rumus & Soal HOTS</h3>
       <div class="rumus">ΣF = m × a<br>W_semu = m(g ± a)</div>
       <p style="font-size:0.79rem;color:#64748b;margin:4px 0">g = 10 m/s², Berat sejati W = m × g</p>
       <div class="soal">Orang bermassa 70 kg berada di lift yang bergerak turun dengan perlambatan 4 m/s². Berapakah berat semu orang tersebut?</div>
@@ -63,7 +58,7 @@
       <button class="opsi-btn" onclick="cek(this,'salah')">B. 700 N</button>
       <button class="opsi-btn" onclick="cek(this,'benar')">C. 980 N</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">D. 1050 N</button>
-      <div class="pembahasan" id="pem">✅ Lift turun dengan perlambatan berarti percepatannya ke atas (a = +4 m/s²). W_semu = m(g+a) = 70×(10+4) = 70×14 = 980 N (lebih berat dari berat sejati 700 N).</div>
+      <div class="pembahasan" id="pem">Lift turun dengan perlambatan berarti percepatannya ke atas (a = +4 m/s²). W_semu = m(g+a) = 70×(10+4) = 70×14 = 980 N (lebih berat dari berat sejati 700 N).</div>
     </div>
   </div>
 </div>
@@ -89,7 +84,7 @@ function update(){
     case 'berhenti_naik': Ws=m*(g-a); dir='Berhenti saat naik (perlambatan)'; aDir=-1; break;
   }
   document.getElementById('hasil').innerHTML =
-    `Kondisi: <b>${dir}</b><br>Berat sejati W = <b>${W} N</b><br>Berat semu W_semu = <b>${Ws.toFixed(0)} N</b><br>${Ws>W?'🔴 Terasa lebih BERAT':Ws<W?'🔵 Terasa lebih RINGAN':'⚪ Terasa normal'}`;
+    `Kondisi: <b>${dir}</b><br>Berat sejati W = <b>${W} N</b><br>Berat semu W_semu = <b>${Ws.toFixed(0)} N</b><br>${Ws>W?' Terasa lebih BERAT':Ws<W?' Terasa lebih RINGAN':' Terasa normal'}`;
   draw(m, a, Ws);
 }
 

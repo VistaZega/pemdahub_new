@@ -12,9 +12,9 @@
     header h1 { font-size:1.1rem; font-weight:800; color:#7c3aed; }
     header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px;  }
+    canvas { width:100%; background:#0f172a; border-radius: 6px; display:block; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
@@ -22,40 +22,34 @@
     button { border:1px solid #cbd5e1; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
     button.active { background:#10b981; color:#fff; border-color:#059669; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <h1>⚗️ Simulator Kimia: Teori Tumbukan Molekul &amp; Energi Aktivasi (E<sub>a</sub>)</h1>
+    <h1>Simulator Kimia: Teori Tumbukan Molekul &amp; Energi Aktivasi (E<sub>a</sub>)</h1>
     <p>Mengapa suhu tinggi dan katalis membuat reaksi kimia berlangsung jauh lebih cepat? Amati tumbukan partikel &amp; grafik energi aktivasi!</p>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="chemCanvas" width="760" height="270"></canvas>
+    <div class="card"><canvas id="chemCanvas" width="760" height="270"></canvas>
       <canvas id="eaCanvas" width="760" height="150"></canvas>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Laju Reaksi</div><div class="s-val" id="vRate" style="color:#059669">0x</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Laju Reaksi</div><div class="s-val" id="vRate" style="color:#059669">0x</div></div>
         <div class="s-box"><div class="s-lbl">Energi Aktivasi</div><div class="s-val" id="vEa" style="color:#7c3aed">75 kJ</div></div>
         <div class="s-box"><div class="s-lbl">Produk Terbentuk</div><div class="s-val" id="vProd" style="color:#0284c7">0</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Suhu Reaktor (T)</span><span id="lblT" style="color:#e11d48">35°C</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Suhu Reaktor (T)</span><span id="lblT" style="color:#e11d48">35°C</span>
         </div>
         <input type="range" id="inT" min="15" max="120" step="5" value="35" style="width:100%;accent-color:#e11d48;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Konsentrasi Reaktan ([A])</span><span id="lblC" style="color:#0284c7">30 Partikel</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Konsentrasi Reaktan ([A])</span><span id="lblC" style="color:#0284c7">30 Partikel</span>
         </div>
         <input type="range" id="inC" min="10" max="60" step="5" value="30" style="width:100%;accent-color:#0284c7;cursor:pointer;">
       </div>
 
-      <button id="btnCat" onclick="toggleCat()">⚡ Tambahkan Katalis (Turunkan Bukit Energi Aktivasi)</button>
+      <button id="btnCat" onclick="toggleCat()">Tambahkan Katalis (Turunkan Bukit Energi Aktivasi)</button>
       <button onclick="resetMols()" style="background:#0f172a;color:#fff;">↺ Isi Ulang Reaktan Segar</button>
     </div>
   </main>
@@ -80,7 +74,7 @@
     function toggleCat() {
       catalyst = !catalyst;
       document.getElementById('btnCat').classList.toggle('active', catalyst);
-      document.getElementById('btnCat').textContent = catalyst ? '✅ Katalis Aktif (Ea Turun ke 40 kJ)' : '⚡ Tambahkan Katalis (Turunkan Bukit Energi Aktivasi)';
+      document.getElementById('btnCat').textContent = catalyst ? ' Katalis Aktif (Ea Turun ke 40 kJ)' : ' Tambahkan Katalis (Turunkan Bukit Energi Aktivasi)';
     }
     inC.oninput = resetMols;
 

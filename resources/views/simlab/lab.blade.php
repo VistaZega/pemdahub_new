@@ -6,235 +6,225 @@
     <title>{{ $lab->title }} - PembdaHUB Simulator Lab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
-            background-image:
-                linear-gradient(to right, rgba(14, 165, 233, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
-            background-size: 36px 36px;
+            font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+            background-color: #f6f7f8;
             color: #0f172a;
+            -webkit-font-smoothing: antialiased;
         }
-        .font-mono-lab { font-family: 'JetBrains Mono', monospace; }
+        .font-mono-lab { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
         [x-cloak] { display: none !important; }
     </style>
 </head>
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
+    $vTag = '?v=20261127b';
     $proEngineMap = [
-        'gasoline_engine'    => asset('simlab-engines/mesin-4tak-2tak.html'),
-        'beam_load'          => asset('simlab-engines/teknik-gambar-bangunan.html'),
-        'subnetting'         => asset('simlab-engines/tkj-jaringan.html'),
-        'physics_motion'     => asset('simlab-engines/fisika-gerak-gaya.html'),
-        'biology_cell'       => asset('simlab-engines/biologi-pembelahan-sel.html'),
-        'math_statistics'    => asset('simlab-engines/matematika-statistika.html'),
-        'sociology_dynamics' => asset('simlab-engines/sosiologi-dinamika-sosial.html'),
-        'language_syntax'    => asset('simlab-engines/bahasa-struktur-kalimat.html'),
-        'chem_ph'            => asset('simlab-engines/kimia-asam-basa-ph.html'),
-        'bio_photosynthesis' => asset('simlab-engines/biologi-fotosintesis.html'),
-        'physics_parabola'   => asset('simlab-engines/fisika-gerak-parabola.html'),
-        'math_trigonometry'  => asset('simlab-engines/matematika-trigonometri.html'),
-        'econ_market'        => asset('simlab-engines/ekonomi-pasar-keseimbangan.html'),
-        'physics_wave'       => asset('simlab-engines/ipa-gelombang-bunyi.html'),
-        'bio_blood'          => asset('simlab-engines/bio-peredaran-darah.html'),
-        'physics_archimedes' => asset('simlab-engines/fisika-archimedes-apung.html'),
-        'chem_atom'          => asset('simlab-engines/kimia-struktur-atom.html'),
-        'ipa_greenhouse'     => asset('simlab-engines/ipa-efek-rumah-kaca.html'),
-        'olympiad_5'         => asset('simlab-engines/olimpiade-5-soal.html'),
-        'chemical_reaction'  => asset('simlab-engines/kimia-reaksi-laju.html'),
-        'quadratic_graph'    => asset('simlab-engines/matematika-kuadrat-parabola.html'),
-        'ohm_law'            => asset('simlab-engines/fisika-hukum-ohm-rangkaian.html'),
-        'logic_gate'         => asset('simlab-engines/informatika-gerbang-logika.html'),
-        'physics_doppler'    => asset('simlab-engines/fisika-efek-doppler.html'),
-        'physics_pulley'     => asset('simlab-engines/fisika-katrol-usaha.html'),
-        'chem_stoichiometry' => asset('simlab-engines/kimia-stoikiometri-pembatas.html'),
-        'math_probability'   => asset('simlab-engines/matematika-peluang-kombinasi.html'),
-        'ptn_speed'          => asset('simlab-engines/ptn-soal-cepat.html'),
-        'ipa_renewable'           => asset('simlab-engines/ipa-energi-terbarukan.html'),
-        'bio_genetics'            => asset('simlab-engines/biologi-genetika-mendel.html'),
-        'math_transform'          => asset('simlab-engines/matematika-transformasi-geometri.html'),
-        'vokasi_plc'              => asset('simlab-engines/vokasi-otomasi-relay.html'),
-        'econ_compound'           => asset('simlab-engines/ekonomi-bunga-majemuk.html'),
-        // === Simulator Batch Baru ===
-        'physics_optics'          => asset('simlab-engines/fisika-optika-lensa.html') . '?v=20261127',
-        'physics_elevator'        => asset('simlab-engines/fisika-newton-lift.html') . '?v=20261127',
-        'physics_electric_field'  => asset('simlab-engines/fisika-medan-listrik.html') . '?v=20261127',
-        'bio_osmosis'             => asset('simlab-engines/biologi-osmosis-sel.html') . '?v=20261127',
-        'bio_nervous'             => asset('simlab-engines/biologi-sistem-saraf.html') . '?v=20261127',
-        'math_integral'           => asset('simlab-engines/matematika-integral-riemann.html') . '?v=20261127',
-        'math_trig_circle'        => asset('simlab-engines/matematika-trigonometri-interaktif.html') . '?v=20261127',
-        'vokasi_lan_topo'         => asset('simlab-engines/vokasi-jaringan-lan.html') . '?v=20261127',
-        'vokasi_cad_dpib'         => asset('simlab-engines/vokasi-cad-denah.html') . '?v=20261127',
-        'econ_inflation'          => asset('simlab-engines/ips-inflasi-deflasi.html') . '?v=20261127',
-        'ptn_speed_advanced'      => asset('simlab-engines/ptn-soal-cepat-lanjutan.html') . '?v=20261127',
+        'gasoline_engine'        => asset('simlab-engines/mesin-4tak-2tak.html') . $vTag,
+        'beam_load'              => asset('simlab-engines/teknik-gambar-bangunan.html') . $vTag,
+        'subnetting'             => asset('simlab-engines/tkj-jaringan.html') . $vTag,
+        'physics_motion'         => asset('simlab-engines/fisika-gerak-gaya.html') . $vTag,
+        'biology_cell'           => asset('simlab-engines/biologi-pembelahan-sel.html') . $vTag,
+        'math_statistics'        => asset('simlab-engines/matematika-statistika.html') . $vTag,
+        'sociology_dynamics'     => asset('simlab-engines/sosiologi-dinamika-sosial.html') . $vTag,
+        'language_syntax'        => asset('simlab-engines/bahasa-struktur-kalimat.html') . $vTag,
+        'chem_ph'                => asset('simlab-engines/kimia-asam-basa-ph.html') . $vTag,
+        'bio_photosynthesis'     => asset('simlab-engines/biologi-fotosintesis.html') . $vTag,
+        'physics_parabola'       => asset('simlab-engines/fisika-gerak-parabola.html') . $vTag,
+        'math_trigonometry'      => asset('simlab-engines/matematika-trigonometri.html') . $vTag,
+        'econ_market'            => asset('simlab-engines/ekonomi-pasar-keseimbangan.html') . $vTag,
+        'physics_wave'           => asset('simlab-engines/ipa-gelombang-bunyi.html') . $vTag,
+        'bio_blood'              => asset('simlab-engines/bio-peredaran-darah.html') . $vTag,
+        'physics_archimedes'     => asset('simlab-engines/fisika-archimedes-apung.html') . $vTag,
+        'chem_atom'              => asset('simlab-engines/kimia-struktur-atom.html') . $vTag,
+        'ipa_greenhouse'         => asset('simlab-engines/ipa-efek-rumah-kaca.html') . $vTag,
+        'olympiad_5'             => asset('simlab-engines/olimpiade-5-soal.html') . $vTag,
+        'chemical_reaction'      => asset('simlab-engines/kimia-reaksi-laju.html') . $vTag,
+        'quadratic_graph'        => asset('simlab-engines/matematika-kuadrat-parabola.html') . $vTag,
+        'ohm_law'                => asset('simlab-engines/fisika-hukum-ohm-rangkaian.html') . $vTag,
+        'logic_gate'             => asset('simlab-engines/informatika-gerbang-logika.html') . $vTag,
+        'physics_doppler'        => asset('simlab-engines/fisika-efek-doppler.html') . $vTag,
+        'physics_pulley'         => asset('simlab-engines/fisika-katrol-usaha.html') . $vTag,
+        'chem_stoichiometry'     => asset('simlab-engines/kimia-stoikiometri-pembatas.html') . $vTag,
+        'math_probability'       => asset('simlab-engines/matematika-peluang-kombinasi.html') . $vTag,
+        'ptn_speed'              => asset('simlab-engines/ptn-soal-cepat.html') . $vTag,
+        'ipa_renewable'          => asset('simlab-engines/ipa-energi-terbarukan.html') . $vTag,
+        'bio_genetics'           => asset('simlab-engines/biologi-genetika-mendel.html') . $vTag,
+        'math_transform'         => asset('simlab-engines/matematika-transformasi-geometri.html') . $vTag,
+        'vokasi_plc'             => asset('simlab-engines/vokasi-otomasi-relay.html') . $vTag,
+        'econ_compound'          => asset('simlab-engines/ekonomi-bunga-majemuk.html') . $vTag,
+        'physics_optics'         => asset('simlab-engines/fisika-optika-lensa.html') . $vTag,
+        'physics_elevator'       => asset('simlab-engines/fisika-newton-lift.html') . $vTag,
+        'physics_electric_field' => asset('simlab-engines/fisika-medan-listrik.html') . $vTag,
+        'bio_osmosis'            => asset('simlab-engines/biologi-osmosis-sel.html') . $vTag,
+        'bio_nervous'            => asset('simlab-engines/biologi-sistem-saraf.html') . $vTag,
+        'math_integral'          => asset('simlab-engines/matematika-integral-riemann.html') . $vTag,
+        'math_trig_circle'       => asset('simlab-engines/matematika-trigonometri-interaktif.html') . $vTag,
+        'vokasi_lan_topo'        => asset('simlab-engines/vokasi-jaringan-lan.html') . $vTag,
+        'vokasi_cad_dpib'        => asset('simlab-engines/vokasi-cad-denah.html') . $vTag,
+        'econ_inflation'         => asset('simlab-engines/ips-inflasi-deflasi.html') . $vTag,
+        'ptn_speed_advanced'     => asset('simlab-engines/ptn-soal-cepat-lanjutan.html') . $vTag,
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
     $tc = $lab->theory_and_challenge;
 @endphp
 <body class="min-h-screen flex flex-col" x-data="virtualLabRunner()">
 
-    <!-- Top Toolbar (Clean Bright Lab) -->
-    <header class="border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+    <!-- Top Toolbar (Datar & Tegas) -->
+    <header class="border-b border-slate-300 bg-white sticky top-0 z-40">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-                <a href="{{ route('simlab.index') }}" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-sm font-bold transition shrink-0">
+                <a href="{{ route('simlab.index') }}" class="px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition shrink-0">
                     <i class="fas fa-arrow-left mr-1"></i> Katalog Lab
                 </a>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 text-[11px] font-bold uppercase">{{ $lab->discipline_label }}</span>
-                        @if($isInstructor)
-                        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold">Mode Instruktur</span>
-                        @else
-                        <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold">Mode Praktikan</span>
-                        @endif
-                        <span class="text-xs text-slate-500 font-semibold truncate hidden sm:inline">{{ $lab->subject_name }}</span>
+                    <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+                        <span class="font-mono-lab font-bold text-slate-800">{{ $lab->discipline_label }}</span>
+                        <span>·</span>
+                        <span class="truncate hidden sm:inline">{{ $lab->subject_name }}</span>
+                        <span>·</span>
+                        <span class="text-slate-600">{{ $isInstructor ? 'Instruktur' : 'Praktikan' }}</span>
                     </div>
-                    <h1 class="text-base sm:text-lg font-extrabold text-slate-900 truncate">{{ $lab->title }}</h1>
+                    <h1 class="text-sm sm:text-base font-extrabold text-slate-900 truncate">{{ $lab->title }}</h1>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
                 <button type="button" @click="showSop = !showSop"
-                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition">
-                    <i class="fas" :class="showSop ? 'fa-compress-alt' : 'fa-clipboard-list text-amber-600'"></i>
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold border border-slate-300 transition">
+                    <i class="fas" :class="showSop ? 'fa-compress-alt' : 'fa-clipboard-list'"></i>
                     <span class="hidden md:inline" x-text="showSop ? 'Luaskan Kanvas' : 'Tampilkan SOP Lab'"></span>
                 </button>
                 @if($isInstructor)
                 <button type="button" @click="copyLabUrl()"
-                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs">
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
                     <i class="fas fa-link"></i>
-                    <span class="hidden sm:inline" x-text="copied ? 'Tersalin!' : 'Salin Link LMS'"></span>
+                    <span class="hidden sm:inline" x-text="copied ? 'Tersalin' : 'Salin Link LMS'"></span>
                 </button>
                 @endif
                 @if($lab->course && auth()->check() && auth()->user()->student)
-                <a href="{{ route('siswa.lms.show', $lab->course->id) }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                <a href="{{ route('siswa.lms.show', $lab->course->id) }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition">
                     <i class="fas fa-book-open"></i> Course LMS
                 </a>
                 @endif
                 @if(auth()->check() && auth()->user()->student)
                 <a href="{{ route('siswa.ai.index', ['mode' => 'tutor', 'prompt' => 'Saya sedang melakukan praktikum "' . $lab->title . '" (' . $lab->subject_name . '). Tolong jelaskan konsep dan variabel utamanya.']) }}"
-                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold transition">
-                    <i class="fas fa-robot text-amber-300"></i> <span class="hidden sm:inline">Tanya AI</span>
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                    <i class="fas fa-comment-dots"></i> <span class="hidden sm:inline">Tanya AI</span>
                 </a>
                 @endif
             </div>
         </div>
     </header>
 
-    <!-- Main Lab Workspace -->
-    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+    <!-- Main Lab Workspace (Konsol Terpadu) -->
+    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full flex-grow">
+      <div class="bg-white border border-slate-300 rounded-lg overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
 
         <!-- LEFT: SOP PRAKTIKUM, TEORI/RUMUS, & TANTANGAN SOAL HOTS -->
-        <aside x-show="showSop" x-transition class="lg:col-span-3 space-y-4" x-data="{ sideTab: 'sop', chosenOpt: null, checkedAns: false }">
-            <!-- Tab Switcher Panel Belajar Mandiri -->
-            <div class="grid grid-cols-3 gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-xs">
-                <button type="button" @click="sideTab = 'sop'" :class="sideTab === 'sop' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'" class="py-2 px-2 rounded-xl text-[11px] font-bold transition">
-                    <i class="fas fa-clipboard-list mr-1"></i>SOP
-                </button>
-                <button type="button" @click="sideTab = 'teori'" :class="sideTab === 'teori' ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-100'" class="py-2 px-2 rounded-xl text-[11px] font-bold transition">
-                    <i class="fas fa-book-open mr-1"></i>Teori
-                </button>
-                <button type="button" @click="sideTab = 'soal'" :class="sideTab === 'soal' ? 'bg-amber-500 text-slate-950' : 'text-slate-600 hover:bg-slate-100'" class="py-2 px-2 rounded-xl text-[11px] font-bold transition">
-                    <i class="fas fa-bullseye mr-1"></i>Soal
-                </button>
-            </div>
-
-            <!-- TAB 1: SOP PRAKTIKUM -->
-            <div x-show="sideTab === 'sop'" class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-700 flex items-center gap-2">
-                        <i class="fas fa-clipboard-list text-amber-500"></i> SOP &amp; Petunjuk Lab
-                    </h2>
-                    <span class="text-xs font-mono-lab font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200" x-text="checkedSteps.length + '/' + totalSteps + ' Selesai'"></span>
-                </div>
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">{{ $lab->description }}</p>
-
-                <div class="space-y-2 pt-2 border-t border-slate-100">
-                    @foreach(($lab->sop_steps ?? []) as $idx => $step)
-                    <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:border-emerald-400 cursor-pointer transition">
-                        <input type="checkbox" value="{{ $idx }}" x-model="checkedSteps" class="mt-1 rounded text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-xs text-slate-700 leading-snug">
-                            <strong class="text-emerald-700">Langkah {{ $idx + 1 }}:</strong> {{ $step }}
-                        </span>
-                    </label>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- TAB 2: TEORI, HUKUM ALAM & RUMUS KUNCI -->
-            <div x-show="sideTab === 'teori'" x-cloak class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-3.5">
-                <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-100 text-sky-800">Hukum &amp; Prinsip Alam</span>
-                    <h3 class="text-sm font-extrabold text-slate-900 mt-1.5">{{ $tc['law'] }}</h3>
-                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mt-1">{{ $tc['theory'] }}</p>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono-lab text-xs sm:text-sm font-bold text-center">
-                    {{ $tc['formula'] }}
-                </div>
-                <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-900 leading-relaxed">
-                    <strong>Keterangan Simbol:</strong><br>{{ $tc['variables'] }}
-                </div>
-            </div>
-
-            <!-- TAB 3: TANTANGAN SOAL RUMIT (HOTS) -->
-            <div x-show="sideTab === 'soal'" x-cloak class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-3.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700"><i class="fas fa-brain mr-1"></i> Tantangan Soal HOTS</span>
-                </div>
-                <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">{{ $tc['challenge_q'] }}</p>
-                <div class="space-y-2">
-                    @foreach($tc['options'] as $oIdx => $optText)
-                    <button type="button"
-                            @click="chosenOpt = {{ $oIdx }}; checkedAns = true"
-                            :class="checkedAns
-                                ? ({{ $oIdx }} === {{ $tc['answer_idx'] }}
-                                    ? 'bg-emerald-50 border-emerald-500 text-emerald-900 font-bold'
-                                    : (chosenOpt === {{ $oIdx }} ? 'bg-rose-50 border-rose-400 text-rose-800' : 'bg-slate-50 border-slate-200 text-slate-500'))
-                                : 'bg-slate-50 hover:bg-sky-50 border-slate-200 text-slate-800'"
-                            class="w-full text-left px-3 py-2 rounded-xl border text-xs transition flex items-center justify-between gap-2">
-                        <span>{{ chr(65 + $oIdx) }}. {{ $optText }}</span>
-                        <template x-if="checkedAns && {{ $oIdx }} === {{ $tc['answer_idx'] }}">
-                            <i class="fas fa-check-circle text-emerald-600"></i>
-                        </template>
+        <aside x-show="showSop" x-transition class="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-slate-300 bg-slate-50/70 flex flex-col justify-between" x-data="{ sideTab: 'sop', chosenOpt: null, checkedAns: false }">
+            <div>
+                <div class="grid grid-cols-3 border-b border-slate-200 bg-white">
+                    <button type="button" @click="sideTab = 'sop'" :class="sideTab === 'sop' ? 'border-b-2 border-slate-900 text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-2.5 px-2 text-xs font-bold transition">
+                        SOP
                     </button>
-                    @endforeach
+                    <button type="button" @click="sideTab = 'teori'" :class="sideTab === 'teori' ? 'border-b-2 border-slate-900 text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-2.5 px-2 text-xs font-bold transition">
+                        Teori
+                    </button>
+                    <button type="button" @click="sideTab = 'soal'" :class="sideTab === 'soal' ? 'border-b-2 border-slate-900 text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-2.5 px-2 text-xs font-bold transition">
+                        Soal
+                    </button>
                 </div>
-                <div x-show="checkedAns" x-transition class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 leading-relaxed">
-                    <strong><i class="fas fa-lightbulb text-amber-500 mr-1"></i> Pembahasan:</strong><br>
-                    {{ $tc['solution'] }}
+
+                <!-- TAB 1: SOP PRAKTIKUM -->
+                <div x-show="sideTab === 'sop'" class="p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">SOP Praktikum</h2>
+                        <span class="text-xs font-mono-lab font-bold text-slate-700" x-text="checkedSteps.length + '/' + totalSteps + ' Selesai'"></span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">{{ $lab->description }}</p>
+
+                    <div class="divide-y divide-slate-200 border border-slate-200 rounded-md bg-white">
+                        @foreach(($lab->sop_steps ?? []) as $idx => $step)
+                        <label class="flex items-start gap-2.5 p-2.5 hover:bg-slate-50 cursor-pointer transition">
+                            <input type="checkbox" value="{{ $idx }}" x-model="checkedSteps" class="mt-0.5 rounded text-slate-900">
+                            <span class="text-xs text-slate-700 leading-snug">
+                                <strong class="font-mono-lab text-slate-900">0{{ $idx + 1 }}.</strong> {{ $step }}
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- TAB 2: TEORI, HUKUM ALAM & RUMUS KUNCI -->
+                <div x-show="sideTab === 'teori'" x-cloak class="p-4 space-y-3">
+                    <div>
+                        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Prinsip &amp; Hukum</div>
+                        <h3 class="text-sm font-extrabold text-slate-900 mt-1">{{ $tc['law'] }}</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed mt-1">{{ $tc['theory'] }}</p>
+                    </div>
+                    <div class="p-3 rounded-md bg-slate-900 text-slate-100 font-mono-lab text-xs font-bold">
+                        {{ $tc['formula'] }}
+                    </div>
+                    <div class="p-3 rounded-md bg-white border border-slate-200 text-xs text-slate-700 leading-relaxed">
+                        <strong>Keterangan Simbol:</strong><br>{{ $tc['variables'] }}
+                    </div>
+                </div>
+
+                <!-- TAB 3: TANTANGAN SOAL RUMIT (HOTS) -->
+                <div x-show="sideTab === 'soal'" x-cloak class="p-4 space-y-3">
+                    <div class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Uji Pemahaman HOTS</div>
+                    <p class="text-xs font-semibold text-slate-900 leading-relaxed">{{ $tc['challenge_q'] }}</p>
+                    <div class="space-y-1.5">
+                        @foreach($tc['options'] as $oIdx => $optText)
+                        <button type="button"
+                                @click="chosenOpt = {{ $oIdx }}; checkedAns = true"
+                                :class="checkedAns
+                                    ? ({{ $oIdx }} === {{ $tc['answer_idx'] }}
+                                        ? 'bg-emerald-50 border-emerald-600 text-emerald-950 font-bold'
+                                        : (chosenOpt === {{ $oIdx }} ? 'bg-rose-50 border-rose-500 text-rose-900' : 'bg-white border-slate-200 text-neutral-500'))
+                                    : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-800'"
+                                class="w-full text-left px-3 py-2 rounded-md border text-xs transition flex items-center justify-between gap-2">
+                            <span>{{ chr(65 + $oIdx) }}. {{ $optText }}</span>
+                            <template x-if="checkedAns && {{ $oIdx }} === {{ $tc['answer_idx'] }}">
+                                <i class="fas fa-check text-emerald-700"></i>
+                            </template>
+                        </button>
+                        @endforeach
+                    </div>
+                    <div x-show="checkedAns" x-transition class="p-3 rounded-md bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 leading-relaxed">
+                        <strong>Pembahasan:</strong><br>
+                        {{ $tc['solution'] }}
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-2">
-                <label class="text-xs font-extrabold uppercase tracking-wider text-sky-700 block">
-                    <i class="fas fa-pen-to-square mr-1"></i> {{ $isInstructor ? 'Catatan Instruktur / Bahan Ajar' : 'Catatan Pengamatan Siswa' }}
+            <div class="p-4 border-t border-slate-200 bg-white space-y-2">
+                <label class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 block">
+                    {{ $isInstructor ? 'Catatan Instruktur' : 'Catatan Pengamatan' }}
                 </label>
-                <textarea rows="3" x-model="labNotes" placeholder="Catat hasil pengamatan variabel & kesimpulan eksperimen di sini..."
-                          class="w-full rounded-xl bg-slate-50 border border-slate-300 p-3 text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-sky-500"></textarea>
+                <textarea rows="3" x-model="labNotes" placeholder="Catat hasil pengamatan variabel &amp; kesimpulan eksperimen di sini..."
+                          class="w-full rounded-md bg-slate-50 border border-slate-300 p-2.5 text-xs text-slate-800 placeholder-slate-400 outline-none focus:border-slate-900"></textarea>
             </div>
         </aside>
 
         <!-- RIGHT: INTERACTIVE ANIMATED SIMULATOR -->
-        <section :class="showSop ? 'lg:col-span-9' : 'lg:col-span-12'" class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-4">
+        <section :class="showSop ? 'lg:col-span-9' : 'lg:col-span-12'" class="bg-white flex flex-col min-w-0">
 
             @if($proEngineUrl)
                 <!-- PRO INTERACTIVE ENGINE -->
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span class="text-sm font-bold text-slate-900">Meja Praktikum Interaktif &amp; Pembuktian Real-Time</span>
-                    </div>
-                    <a href="{{ $proEngineUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-sky-700 border border-slate-300 text-xs font-bold transition">
-                        <i class="fas fa-up-right-from-square"></i> Buka Layar Penuh
+                <div class="px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
+                    <span class="text-xs font-bold text-slate-700">Meja Praktikum Interaktif</span>
+                    <a href="{{ $proEngineUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition">
+                        <i class="fas fa-up-right-from-square text-[10px]"></i> Tab Baru
                     </a>
                 </div>
-                <iframe src="{{ $proEngineUrl }}" class="w-full rounded-xl border border-slate-200 bg-white" style="height: 780px;"></iframe>
+                <iframe src="{{ $proEngineUrl }}" class="w-full border-0 block bg-white" style="height: 780px;"></iframe>
 
             @elseif($lab->engine_type === 'gasoline_engine')
                 <!-- 1. SIMULATOR MESIN BENSIN 4-TAK -->
@@ -445,7 +435,7 @@
                     <h3 class="text-lg font-extrabold text-white">Lab Gerbang Logika Digital</h3>
                     <div class="flex flex-wrap gap-1.5">
                         <template x-for="g in ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'NOT']" :key="g">
-                            <button type="button" @click="logicGate = g" :class="logicGate === g ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-300'" class="px-3 py-1 rounded-lg text-xs font-extrabold font-mono-lab cursor-pointer" x-text="g"></button>
+                            <button type="button" @click="logicGate = g" :class="logicGate === g ? 'bg-sky-600 text-white' : 'bg-zinc-800 text-zinc-200'" class="px-3 py-1 rounded-lg text-xs font-extrabold font-mono-lab cursor-pointer" x-text="g"></button>
                         </template>
                     </div>
                 </div>
@@ -453,17 +443,17 @@
                     <div class="space-y-3">
                         <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center">
                             <span class="font-bold text-sm">Input A</span>
-                            <button type="button" @click="logicA = logicA ? 0 : 1" :class="logicA ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'" class="w-12 h-8 rounded-lg font-mono-lab font-extrabold cursor-pointer" x-text="logicA"></button>
+                            <button type="button" @click="logicA = logicA ? 0 : 1" :class="logicA ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-zinc-200'" class="w-12 h-8 rounded-lg font-mono-lab font-extrabold cursor-pointer" x-text="logicA"></button>
                         </div>
                         <div x-show="logicGate !== 'NOT'" class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center">
                             <span class="font-bold text-sm">Input B</span>
-                            <button type="button" @click="logicB = logicB ? 0 : 1" :class="logicB ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'" class="w-12 h-8 rounded-lg font-mono-lab font-extrabold cursor-pointer" x-text="logicB"></button>
+                            <button type="button" @click="logicB = logicB ? 0 : 1" :class="logicB ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-zinc-200'" class="w-12 h-8 rounded-lg font-mono-lab font-extrabold cursor-pointer" x-text="logicB"></button>
                         </div>
                     </div>
                     <div class="p-6 rounded-2xl bg-slate-950 border border-slate-800 text-center">
-                        <div class="text-2xl font-extrabold font-mono-lab text-violet-400 mb-3" x-text="logicGate"></div>
+                        <div class="text-2xl font-extrabold font-mono-lab text-sky-400 mb-3" x-text="logicGate"></div>
                         <div class="w-14 h-14 mx-auto rounded-full border-4 flex items-center justify-center font-mono-lab text-xl font-black transition-all"
-                             :class="logicOut ? 'bg-emerald-400 border-emerald-200 text-slate-950 shadow-[0_0_25px_rgba(52,211,153,0.75)]' : 'bg-slate-800 border-slate-700 text-slate-400'"
+                             :class="logicOut ? 'bg-emerald-600 border-emerald-200 text-white' : 'bg-zinc-800 border-zinc-700 text-zinc-300'"
                              x-text="logicOut"></div>
                         <div class="text-xs font-bold mt-2" x-text="logicOut ? 'OUTPUT: HIGH (1)' : 'OUTPUT: LOW (0)'"></div>
                     </div>
@@ -473,7 +463,7 @@
                             <thead><tr class="text-slate-400 border-b border-slate-800"><th>A</th><th x-show="logicGate !== 'NOT'">B</th><th>OUT</th></tr></thead>
                             <tbody>
                                 <template x-for="(row, idx) in truthTable" :key="idx">
-                                    <tr :class="(row.a === logicA && (logicGate === 'NOT' || row.b === logicB)) ? 'bg-violet-500/20 text-white font-bold' : 'text-slate-400'">
+                                    <tr :class="(row.a === logicA && (logicGate === 'NOT' || row.b === logicB)) ? 'bg-sky-600/20 text-white font-bold' : 'text-zinc-400'">
                                         <td class="py-1" x-text="row.a"></td>
                                         <td class="py-1" x-show="logicGate !== 'NOT'" x-text="row.b"></td>
                                         <td class="py-1" :class="row.out ? 'text-emerald-400' : 'text-rose-400'" x-text="row.out"></td>
@@ -508,17 +498,18 @@
 
             @else
                 <!-- 8. AI CUSTOM HTML5 SIMULATOR -->
-                <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-                    <h3 class="text-lg font-extrabold text-white">Simulator Interaktif Kustom</h3>
-                    <span class="text-xs text-cyan-400 font-bold">HTML5 Interactive Lab</span>
+                <div class="px-4 py-2.5 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-800">Simulator Interaktif Kustom</h3>
+                    <span class="font-mono-lab text-[11px] font-bold text-slate-600">HTML5 Interactive Lab</span>
                 </div>
                 <iframe sandbox="allow-scripts"
                         srcdoc="{{ $lab->custom_html }}"
-                        class="w-full rounded-xl border border-slate-800 bg-slate-950"
-                        style="height: 540px;"></iframe>
+                        class="w-full border-0 block bg-white"
+                        style="height: 680px;"></iframe>
             @endif
 
         </section>
+      </div>
     </main>
 
     <script>

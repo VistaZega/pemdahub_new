@@ -100,7 +100,7 @@
     .card {
       background: var(--panel);
       border: 1px solid var(--panel-border);
-      border-radius: 14px;
+      border-radius: 6px;
       padding: 16px;
       display: flex;
       flex-direction: column;
@@ -111,7 +111,7 @@
       position: relative;
       background: #0b1220;
       border: 1px solid #263349;
-      border-radius: 12px;
+      border-radius: 6px;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -323,12 +323,10 @@
 </head>
 <body>
   <header>
-    <div>
-      <h1>Simulasi Sistem Kerja Jaringan &amp; Subnetting IPv4</h1>
+    <div><h1>Simulasi Sistem Kerja Jaringan &amp; Subnetting IPv4</h1>
       <p>Media Pembelajaran Interaktif SMK Teknik Komputer dan Jaringan (TKJ)</p>
     </div>
-    <div class="mode-switch">
-      <button class="mode-btn active" id="btnRouting">1. Aliran Paket, Routing &amp; Firewall</button>
+    <div class="mode-switch"><button class="mode-btn active" id="btnRouting">1. Aliran Paket, Routing &amp; Firewall</button>
       <button class="mode-btn" id="btnSubnet">2. Simulasi Subnetting IPv4 (CIDR)</button>
     </div>
   </header>
@@ -336,11 +334,9 @@
   <main>
     <!-- Panel Kiri: Canvas Simulasi -->
     <section class="card">
-      <div class="canvas-wrap">
-        <canvas id="netCanvas" width="640" height="560"></canvas>
+      <div class="canvas-wrap"><canvas id="netCanvas" width="640" height="560"></canvas>
       </div>
-      <div class="legend" id="legendBox">
-        <span><i class="dot" style="background:#38bdf8"></i> Paket Request (ARP/ICMP/HTTP)</span>
+      <div class="legend" id="legendBox"><span><i class="dot" style="background:#38bdf8"></i> Paket Request (ARP/ICMP/HTTP)</span>
         <span><i class="dot" style="background:#22c55e"></i> Paket Balasan (Reply / OK)</span>
         <span><i class="dot" style="background:#f59e0b"></i> Proses NAT / Routing</span>
         <span><i class="dot" style="background:#ef4444"></i> Paket Gagal / Diblokir</span>
@@ -349,33 +345,25 @@
 
     <!-- Panel Kanan: Kontrol & Status -->
     <section class="card">
-      <div class="status-banner" id="statusBanner">
-        <div>
-          <div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;" id="bannerSub">Status Simulasi Jaringan</div>
+      <div class="status-banner" id="statusBanner"><div><div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;" id="bannerSub">Status Simulasi Jaringan</div>
           <div class="banner-title" id="bannerTitle">SIAP MENGIRIM PAKET</div>
         </div>
         <div class="banner-badge" id="bannerBadge">IDLE</div>
       </div>
 
-      <p class="desc-text" id="descText">
-        Pilih tujuan pengiriman paket dari <strong>PC 1 (192.168.10.2)</strong> untuk melihat cara kerja Switch (MAC Address), Router (Routing Table &amp; NAT), dan Firewall. Aktifkan simulasi gangguan untuk berlatih troubleshooting.
+      <p class="desc-text" id="descText">Pilih tujuan pengiriman paket dari <strong>PC 1 (192.168.10.2)</strong> untuk melihat cara kerja Switch (MAC Address), Router (Routing Table &amp; NAT), dan Firewall. Aktifkan simulasi gangguan untuk berlatih troubleshooting.
       </p>
 
       <!-- Kontrol Mode 1: Routing & Paket -->
-      <div class="controls-grid" id="routingControls">
-        <div class="box">
-          <div class="box-title">Kirim Paket dari PC 1 (192.168.10.2/24) ke:</div>
-          <div class="btn-row">
-            <button class="ctrl primary" id="sendSameBtn">PC 2 (192.168.10.3) [1 Subnet]</button>
+      <div class="controls-grid" id="routingControls"><div class="box"><div class="box-title">Kirim Paket dari PC 1 (192.168.10.2/24) ke:</div>
+          <div class="btn-row"><button class="ctrl primary" id="sendSameBtn">PC 2 (192.168.10.3) [1 Subnet]</button>
             <button class="ctrl primary" id="sendDiffBtn">Server Lokal (192.168.20.10) [Beda Subnet]</button>
             <button class="ctrl primary" id="sendInetBtn">Web Internet (8.8.8.8) [NAT + Firewall]</button>
           </div>
         </div>
 
-        <div class="box">
-          <div class="box-title">Simulasi Gangguan (Troubleshooting):</div>
-          <div class="fault-list">
-            <label class="toggle-row">
+        <div class="box"><div class="box-title">Simulasi Gangguan (Troubleshooting):</div>
+          <div class="fault-list"><label class="toggle-row">
               <input type="checkbox" id="faultGateway" />
               Salah Default Gateway pada PC 1 (diisi 192.168.10.99)
             </label>
@@ -390,51 +378,39 @@
           </div>
         </div>
 
-        <div class="log-box" id="netLog">
-          > Menunggu perintah pengiriman paket dari PC 1...
+        <div class="log-box" id="netLog">> Menunggu perintah pengiriman paket dari PC 1...
         </div>
       </div>
 
       <!-- Kontrol Mode 2: Subnetting -->
-      <div class="controls-grid" id="subnetControls" style="display:none;">
-        <div class="box">
-          <div class="slider-header">
-            <span>Prefix CIDR</span>
+      <div class="controls-grid" id="subnetControls" style="display:none;"><div class="box"><div class="slider-header"><span>Prefix CIDR</span>
             <span class="val-badge" id="cidrVal">/24 (255.255.255.0)</span>
           </div>
           <input type="range" id="cidrSlider" min="24" max="30" step="1" value="24" />
-          <div class="presets-row">
-            <span>/24 (254 Host)</span>
+          <div class="presets-row"><span>/24 (254 Host)</span>
             <span>/26 (62 Host)</span>
             <span>/28 (14 Host)</span>
             <span>/30 (2 Host)</span>
           </div>
         </div>
 
-        <div class="box">
-          <div class="box-title">Blok IP Dasar (Class C):</div>
-          <div class="btn-row">
-            <button class="ctrl primary" id="baseIp1Btn">192.168.1.0</button>
+        <div class="box"><div class="box-title">Blok IP Dasar (Class C):</div>
+          <div class="btn-row"><button class="ctrl primary" id="baseIp1Btn">192.168.1.0</button>
             <button class="ctrl" id="baseIp2Btn">192.168.10.0</button>
           </div>
         </div>
       </div>
 
-      <div class="status-grid">
-        <div class="stat-item">
-          <div class="stat-label" id="stat1Label">Source IP / MAC</div>
+      <div class="status-grid"><div class="stat-item"><div class="stat-label" id="stat1Label">Source IP / MAC</div>
           <div class="stat-value" id="stat1Val">192.168.10.2</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="stat2Label">Destination IP</div>
+        <div class="stat-item"><div class="stat-label" id="stat2Label">Destination IP</div>
           <div class="stat-value" id="stat2Val">-</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="stat3Label">Perangkat Dilewati</div>
+        <div class="stat-item"><div class="stat-label" id="stat3Label">Perangkat Dilewati</div>
           <div class="stat-value" id="stat3Val">-</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="stat4Label">Status Koneksi</div>
+        <div class="stat-item"><div class="stat-label" id="stat4Label">Status Koneksi</div>
           <div class="stat-value" id="stat4Val">Siap</div>
         </div>
       </div>
@@ -699,7 +675,7 @@
         ctx.fillStyle = '#ef4444';
         ctx.font = '700 14px Segoe UI, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('✖ PUTUS', mx, my - 8);
+        ctx.fillText(' PUTUS', mx, my - 8);
       }
       ctx.restore();
     }
@@ -769,13 +745,13 @@
         ctx.fillStyle = '#ef4444';
         ctx.font = '700 11px Segoe UI, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('⚠ GW Salah: .10.99', nodes.pc1.x, nodes.pc1.y + 42);
+        ctx.fillText(' GW Salah: .10.99', nodes.pc1.x, nodes.pc1.y + 42);
       }
       if (faultFirewall.checked) {
         ctx.fillStyle = '#ef4444';
         ctx.font = '700 11px Segoe UI, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('🛡 FW: BLOCK ALL', nodes.router.x, nodes.router.y - 36);
+        ctx.fillText(' FW: BLOCK ALL', nodes.router.x, nodes.router.y - 36);
       }
 
       // Gambar paket bergerak

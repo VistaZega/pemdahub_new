@@ -12,63 +12,51 @@
     header h1 { font-size:1.1rem; font-weight:800; }
     header p { font-size:0.8rem; color:var(--muted); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(320px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
     .s-val { font-size:1.1rem; font-weight:800; font-family:monospace; margin-top:2px; }
-    .soal-box { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.35); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    .soal-box { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.35); border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; }
     button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#10b981; color:#022c22; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <div>
-      <h1>🌿 Simulator Biologi: Percobaan Fotosintesis Ingenhousz (6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂)</h1>
+    <div><h1>Simulator Biologi: Percobaan Fotosintesis Ingenhousz (6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂)</h1>
       <p>Amati gelembung gas Oksigen (O₂) dari tumbuhan air Hydrilla saat intensitas cahaya, kadar CO₂, dan suhu diubah</p>
     </div>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="bioCanvas" width="760" height="420"></canvas>
+    <div class="card"><canvas id="bioCanvas" width="760" height="420"></canvas>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Laju Gelembung O₂</div><div class="s-val" id="vRate" style="color:#34d399">0 /menit</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Laju Gelembung O₂</div><div class="s-val" id="vRate" style="color:#34d399">0 /menit</div></div>
         <div class="s-box"><div class="s-lbl">Volume O₂ Terkumpul</div><div class="s-val" id="vVol" style="color:#38bdf8">0.0 ml</div></div>
         <div class="s-box"><div class="s-lbl">Faktor Pembatas</div><div class="s-val" id="vLim" style="color:#fbbf24;font-size:0.85rem;">Optimal</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Intensitas Cahaya Lampu</span><span id="lblLight" style="color:#fbbf24">70%</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Intensitas Cahaya Lampu</span><span id="lblLight" style="color:#fbbf24">70%</span>
         </div>
         <input type="range" id="inLight" min="0" max="100" step="5" value="70" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Kadar NaHCO₃ (Sumber CO₂)</span><span id="lblCo2" style="color:#38bdf8">50%</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Kadar NaHCO₃ (Sumber CO₂)</span><span id="lblCo2" style="color:#38bdf8">50%</span>
         </div>
         <input type="range" id="inCo2" min="0" max="100" step="5" value="50" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Suhu Air</span><span id="lblTemp" style="color:#f43f5e">28°C</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Suhu Air</span><span id="lblTemp" style="color:#f43f5e">28°C</span>
         </div>
         <input type="range" id="inTemp" min="10" max="50" step="1" value="28" style="width:100%;accent-color:#f43f5e;cursor:pointer;">
       </div>
 
-      <div class="soal-box">
-        <strong style="color:#6ee7b7;">📝 Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
-        <p id="soalBio" style="margin-top:4px;">
-          <em>Soal:</em> Mengapa penambahan NaHCO₃ (soda kue) ke dalam air percobaan Ingenhousz dapat mempercepat munculnya gelembung O₂, namun pada suhu 48°C gelembung justru berhenti?
+      <div class="soal-box"><strong style="color:#6ee7b7;">Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
+        <p id="soalBio" style="margin-top:4px;"><em>Soal:</em> Mengapa penambahan NaHCO₃ (soda kue) ke dalam air percobaan Ingenhousz dapat mempercepat munculnya gelembung O₂, namun pada suhu 48°C gelembung justru berhenti?
         </p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-          <button onclick="ujiNaHco3()">1. Uji Tambah NaHCO₃</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"><button onclick="ujiNaHco3()">1. Uji Tambah NaHCO₃</button>
           <button onclick="ujiSuhuTinggi()" style="background:#f43f5e;color:#fff;">2. Uji Suhu 48°C (Enzim Rusak)</button>
         </div>
       </div>

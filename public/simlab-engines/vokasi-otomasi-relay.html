@@ -3,74 +3,270 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator Vokasi SMK: Kontrol Kontaktor Relay &amp; Motor Industri</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#ea580c; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    button { border:none; border-radius:10px; padding:12px; font-weight:800; font-size:0.86rem; cursor:pointer; }
-  </style>
+  <title>Simulator Vokasi SMK: Panel DOL Starter &amp; Kontaktor Relay 3-Fasa</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>⚙️ Simulator Vokasi SMK: Panel Kontrol Relay Self-Holding &amp; Motor Industri</h1>
-    <p style="font-size:0.82rem;color:#475569;">Latihan kerja teknisi industri: uji rangkaian pengunci (Self-Holding), tombol START, STOP, dan Emergency Stop!</p>
-  </header>
-  <main>
-    <div class="card"><canvas id="plcCanvas" width="760" height="390"></canvas></div>
-    <div class="card">
-      <div style="padding:12px;border-radius:12px;background:#f1f5f9;font-weight:800;font-size:0.95rem;" id="stMotor">STATUS: MOTOR STANDBY (MATI)</div>
-      <button onclick="startMotor()" style="background:#10b981;color:#fff;">🟢 Tekan Push Button START (NO)</button>
-      <button onclick="stopMotor()" style="background:#f59e0b;color:#451a03;">🟡 Tekan Push Button STOP (NC)</button>
-      <button onclick="emgStop()" style="background:#e11d48;color:#fff;">🛑 EMERGENCY STOP (Kunci Pengaman)</button>
-      <button onclick="resetEmg()" style="background:#475569;color:#fff;">↺ Reset Emergency Stop</button>
-    </div>
-  </main>
-  <script>
-    const c = document.getElementById('plcCanvas'), ctx = c.getContext('2d');
-    let running = false, emergency = false, ang = 0;
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Panel Kontrol DOL Starter (Self-Holding K1) &amp; Motor 3-Fasa</div>
+          <div class="sl-bar-sub">Diagram kendali 220V (L-N), kontak pengunci 13-14, Thermal Overload Relay (TOR), dan rotor 3-fasa</div>
+        </div>
+        <span id="badgeStatus" style="font-family:var(--sl-font-mono);font-size:0.75rem;font-weight:700;padding:4px 10px;border-radius:4px;background:#f1f5f9;border:1px solid #cbd5e1;color:#334155;">STANDBY</span>
+      </div>
 
-    function startMotor() { if(!emergency) running = true; updateText(); }
-    function stopMotor() { running = false; updateText(); }
-    function emgStop() { emergency = true; running = false; updateText(); }
-    function resetEmg() { emergency = false; updateText(); }
-    function updateText() {
-      const el = document.getElementById('stMotor');
-      el.textContent = emergency ? 'STATUS: EMERGENCY STOP AKTIF!' : (running ? 'STATUS: MOTOR BERPUTAR (SELF-HOLDING AKTIF)' : 'STATUS: MOTOR STANDBY (MATI)');
-      el.style.color = emergency ? '#e11d48' : (running ? '#059669' : '#475569');
+      <div class="sl-viewport">
+        <canvas id="plcCanvas" height="420"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Panel Operasi Teknis</div>
+        <div class="sl-btn-row" style="margin-bottom:8px;">
+          <button type="button" class="sl-btn" id="btnMcb" onclick="toggleMcb()">MCB Kontrol: ON</button>
+          <button type="button" class="sl-btn sl-btn-primary" onclick="pressStart()">PB START (NO 3-4)</button>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" onclick="pressStop()">PB STOP (NC 1-2)</button>
+          <button type="button" class="sl-btn" onclick="triggerOverload()" style="border-color:#dc2626;color:#dc2626;">Simulasi Overload (TOR)</button>
+          <button type="button" class="sl-btn" onclick="resetFault()">Reset TOR / E-Stop</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Beban Mekanis Poros Motor</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Torsi Beban Poros</span><span class="sl-ctrl-val" id="lblLoad">40%</span></div>
+          <input type="range" id="inLoad" min="10" max="130" step="5" value="40" oninput="onLoadChange()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Kelistrikan</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Tegangan R-S-T</div><div class="sl-readout-val" id="valVolt">380 V</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Arus Beban (I)</div><div class="sl-readout-val" id="valAmp">0.0 A</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Putaran Rotor</div><div class="sl-readout-val" id="valRpm">0 RPM</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Kontaktor K1</div><div class="sl-readout-val" id="valCoil">OFF</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Analisis Rangkaian Self-Holding</div>
+        <div class="sl-note" id="diagBox">
+          MCB aktif. Tekan <strong>PB START (NO)</strong> sesaat: arus mengalir ke koil K1 (A1-A2) dan mengunci kontak bantu <strong>K1 (13-14)</strong> paralel terhadap tombol START sehingga motor tetap hidup saat tombol dilepas.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('plcCanvas');
+    const ctx = cv.getContext('2d');
+    let mcbOn = true, running = false, overload = false, ang = 0, startPulse = 0, stopPulse = 0;
+
+    function toggleMcb() {
+      mcbOn = !mcbOn;
+      if (!mcbOn) running = false;
+      document.getElementById('btnMcb').textContent = mcbOn ? 'MCB Kontrol: ON' : 'MCB Kontrol: OFF';
+      updatePanel();
+    }
+
+    function pressStart() {
+      startPulse = 14;
+      if (mcbOn && !overload) running = true;
+      updatePanel();
+    }
+
+    function pressStop() {
+      stopPulse = 14;
+      running = false;
+      updatePanel();
+    }
+
+    function triggerOverload() {
+      overload = true;
+      running = false;
+      updatePanel();
+    }
+
+    function resetFault() {
+      overload = false;
+      updatePanel();
+    }
+
+    function onLoadChange() {
+      const load = +document.getElementById('inLoad').value;
+      document.getElementById('lblLoad').textContent = load + '%';
+      if (running && load > 110) {
+        overload = true;
+        running = false;
+      }
+      updatePanel();
+    }
+
+    function updatePanel() {
+      const load = +document.getElementById('inLoad').value;
+      const amp = running ? (2.2 + (load / 100) * 6.4).toFixed(1) : '0.0';
+      const rpm = running ? Math.round(1480 - (load / 100) * 55) : 0;
+
+      document.getElementById('valVolt').textContent = mcbOn ? '380 V' : '0 V';
+      document.getElementById('valAmp').textContent = amp + ' A';
+      document.getElementById('valRpm').textContent = rpm + ' RPM';
+      document.getElementById('valCoil').textContent = running ? 'ENERGIZED' : 'OFF';
+
+      const badge = document.getElementById('badgeStatus');
+      const diag = document.getElementById('diagBox');
+      if (overload) {
+        badge.textContent = 'TRIP / OVERLOAD';
+        badge.style.background = '#fef2f2'; badge.style.color = '#991b1b'; badge.style.borderColor = '#fca5a5';
+        diag.innerHTML = '<strong>TOR 95-96 Terputus!</strong> Arus melebihi batas nominal (beban >110%). Tekan <em>Reset TOR / E-Stop</em> setelah beban diturunkan di bawah 100%.';
+      } else if (!mcbOn) {
+        badge.textContent = 'MCB OFF';
+        badge.style.background = '#f1f5f9'; badge.style.color = '#475569'; badge.style.borderColor = '#cbd5e1';
+        diag.innerHTML = 'Sumber kendali 220V terputus di MCB. Aktifkan MCB terlebih dahulu sebelum menekan START.';
+      } else if (running) {
+        badge.textContent = 'RUN (SELF-HOLDING)';
+        badge.style.background = '#ecfdf5'; badge.style.color = '#065f46'; badge.style.borderColor = '#6ee7b7';
+        diag.innerHTML = '<strong>Kontak 13-14 Mengunci:</strong> Meskipun PB START dilepas, koil K1 tetap mendapat tegangan melalui cabang pengunci 13-14. Naikkan torsi beban >110% untuk menguji proteksi TOR.';
+      } else {
+        badge.textContent = 'STANDBY';
+        badge.style.background = '#f1f5f9'; badge.style.color = '#334155'; badge.style.borderColor = '#cbd5e1';
+        diag.innerHTML = 'MCB aktif. Tekan <strong>PB START (NO)</strong> sesaat untuk memberi energi koil K1 dan mengunci kontak bantu 13-14.';
+      }
+    }
+
+    function drawWire(x1, y1, x2, y2, live) {
+      ctx.strokeStyle = live ? '#22c55e' : '#475569';
+      ctx.lineWidth = live ? 3 : 2;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
     }
 
     function loop() {
-      if (running) ang += 0.12;
-      ctx.clearRect(0,0,760,390);
-      // Sumber 24V/220V
-      ctx.strokeStyle = running ? '#34d399' : '#475569'; ctx.lineWidth = 5;
-      ctx.beginPath(); ctx.moveTo(80,100); ctx.lineTo(540,100); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(80,290); ctx.lineTo(540,290); ctx.stroke();
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 420;
+      const W = cv.width, H = cv.height;
+      const load = +document.getElementById('inLoad').value;
+      if (running) ang += 0.08 * (1.2 - load / 250);
+      if (startPulse > 0) startPulse--;
+      if (stopPulse > 0) stopPulse--;
 
-      // Kontaktor Relay
-      ctx.fillStyle = running ? '#059669' : '#1e293b'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
-      ctx.fillRect(220,140,120,100); ctx.strokeRect(220,140,120,100);
-      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('KONTAKTOR K1', 280, 195);
+      ctx.clearRect(0, 0, W, H);
+      // Grid latar
+      ctx.strokeStyle = 'rgba(148,163,184,0.07)'; ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 28) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y < H; y += 28) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
-      // Motor 3 Fasa
-      ctx.save(); ctx.translate(580,195);
-      ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(0,0,65,0,Math.PI*2); ctx.fill();
-      ctx.rotate(ang);
-      ctx.strokeStyle = running ? '#38bdf8' : '#64748b'; ctx.lineWidth = 8;
-      ctx.beginPath(); ctx.moveTo(-45,0); ctx.lineTo(45,0); ctx.moveTo(0,-45); ctx.lineTo(0,45); ctx.stroke();
+      // Bagian Kiri: Ladder / Rangkaian Kontrol (x: 30..W*0.58)
+      const leftW = W * 0.58;
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('DIAGRAM KONTROL 220V (L — N)', 24, 24);
+
+      const yTop = 64, yBot = 365;
+      // Rail L & N
+      drawWire(44, yTop, leftW, yTop, mcbOn);
+      drawWire(44, yBot, leftW, yBot, true);
+      ctx.fillStyle = '#f87171'; ctx.fillText('L', 26, yTop + 4);
+      ctx.fillStyle = '#38bdf8'; ctx.fillText('N', 26, yBot + 4);
+
+      const xMain = Math.min(180, leftW * 0.42);
+      const xHold = xMain + Math.min(115, leftW * 0.28);
+
+      // MCB -> TOR (95-96) -> PB STOP (1-2)
+      const afterMcb = mcbOn;
+      const afterTor = afterMcb && !overload;
+      const afterStop = afterTor && stopPulse === 0;
+
+      drawWire(xMain, yTop, xMain, 115, afterMcb);
+      // Simbol TOR 95-96
+      ctx.fillStyle = overload ? '#ef4444' : '#cbd5e1';
+      ctx.font = '10px monospace';
+      ctx.fillText('TOR 95-96', xMain + 12, 128);
+      drawWire(xMain, 115, xMain + (overload ? -10 : 0), 140, afterTor);
+      drawWire(xMain, 140, xMain, 175, afterTor);
+
+      // PB STOP NC
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText('PB STOP', xMain + 12, 188);
+      drawWire(xMain, 175, xMain + (stopPulse > 0 ? -12 : 0), 202, afterStop);
+      drawWire(xMain, 202, xMain, 232, afterStop);
+
+      // Cabang paralel ke K1 13-14
+      drawWire(xMain, 224, xHold, 224, afterStop);
+
+      // PB START NO
+      const startClosed = startPulse > 0;
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText('PB START', xMain + 12, 248);
+      drawWire(xMain, 232, xMain + (startClosed ? 0 : -12), 262, afterStop && startClosed);
+      drawWire(xMain, 262, xMain, 290, running || (afterStop && startClosed));
+
+      // Kontak Pengunci K1 13-14
+      ctx.fillStyle = running ? '#4ade80' : '#94a3b8';
+      ctx.fillText('K1 (13-14)', xHold + 10, 248);
+      drawWire(xHold, 224, xHold, 234, afterStop);
+      drawWire(xHold, 234, xHold + (running ? 0 : -12), 262, running);
+      drawWire(xHold, 262, xHold, 290, running);
+      drawWire(xHold, 290, xMain, 290, running);
+
+      // Koil K1 (A1-A2)
+      drawWire(xMain, 290, xMain, 308, running);
+      ctx.fillStyle = running ? '#059669' : '#1e293b';
+      ctx.strokeStyle = running ? '#34d399' : '#64748b';
+      ctx.lineWidth = 2;
+      ctx.fillRect(xMain - 26, 308, 52, 34);
+      ctx.strokeRect(xMain - 26, 308, 52, 34);
+      ctx.fillStyle = '#f8fafc'; ctx.textAlign = 'center'; ctx.font = 'bold 11px monospace';
+      ctx.fillText('K1', xMain, 329);
+      drawWire(xMain, 342, xMain, yBot, running);
+
+      // Pembatas vertikal antara ladder & motor
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(leftW + 18, 20); ctx.lineTo(leftW + 18, H - 20); ctx.stroke();
+
+      // Bagian Kanan: Panel Lampu & Motor 3-Fasa
+      const rx = leftW + (W - leftW) * 0.52;
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('MOTOR INDUKSI 3-FASA', rx, 24);
+
+      // 3 Lampu Indikator Panel
+      const lamps = [
+        { lbl: 'RUN', on: running, col: '#22c55e', dx: -68 },
+        { lbl: 'STOP', on: !running && !overload && mcbOn, col: '#f59e0b', dx: 0 },
+        { lbl: 'TRIP', on: overload, col: '#ef4444', dx: 68 }
+      ];
+      lamps.forEach(l => {
+        ctx.fillStyle = l.on ? l.col : '#1e293b';
+        ctx.beginPath(); ctx.arc(rx + l.dx, 70, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px monospace';
+        ctx.fillText(l.lbl, rx + l.dx, 96);
+      });
+
+      // Rumah Motor & Rotor
+      const my = 235;
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = running ? '#38bdf8' : '#475569'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(rx, my, 82, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+      ctx.save(); ctx.translate(rx, my); ctx.rotate(ang);
+      ctx.strokeStyle = running ? '#38bdf8' : '#64748b'; ctx.lineWidth = 6;
+      for (let i = 0; i < 3; i++) {
+        ctx.rotate(Math.PI / 3);
+        ctx.beginPath(); ctx.moveTo(-58, 0); ctx.lineTo(58, 0); ctx.stroke();
+      }
+      ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
-      ctx.fillStyle = '#fff'; ctx.fillText(running ? '1450 RPM' : '0 RPM', 580, 290);
+
+      ctx.fillStyle = running ? '#34d399' : '#94a3b8';
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText(running ? 'AKTIF · 380V' : (overload ? 'PROTEKSI TRIP' : 'POROS DIAM'), rx, 355);
 
       requestAnimationFrame(loop);
     }
+
+    window.addEventListener('load', updatePanel);
+    updatePanel();
     loop();
   </script>
 </body>

@@ -1,0 +1,364 @@
+:root {
+  --sl-paper: #f6f7f8;
+  --sl-surface: #ffffff;
+  --sl-panel: #f8fafc;
+  --sl-ink: #0f172a;
+  --sl-ink-2: #334155;
+  --sl-muted: #64748b;
+  --sl-line: #d8dee6;
+  --sl-line-soft: #e2e8f0;
+  --sl-viewport: #0b111e;
+  --sl-viewport-line: #1e293b;
+  --sl-accent: #0f172a;
+  --sl-accent-2: #0284c7;
+  --sl-ok: #059669;
+  --sl-warn: #d97706;
+  --sl-err: #dc2626;
+  --sl-font-sans: 'Public Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --sl-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  background: var(--sl-surface) !important;
+  color: var(--sl-ink);
+  font-family: var(--sl-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hilangkan container sempit & padding berlebih agar konsol menyatu dengan workbench */
+.container, .wrap, main.sl-container {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Instrument Workbench Grid */
+.sl-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.95fr);
+  min-height: 100vh;
+  width: 100%;
+  background: var(--sl-surface);
+}
+
+@media (max-width: 900px) {
+  .sl-workbench {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+}
+
+.sl-stage {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--sl-surface);
+  min-width: 0;
+}
+
+.sl-console {
+  padding: 16px;
+  border-left: 1px solid var(--sl-line);
+  background: var(--sl-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .sl-console {
+    border-left: none;
+    border-top: 1px solid var(--sl-line);
+  }
+}
+
+/* Instrument Header Strip */
+.sl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--sl-line-soft);
+}
+
+.sl-bar-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sl-ink);
+  letter-spacing: -0.01em;
+}
+
+.sl-bar-sub {
+  font-size: 0.78rem;
+  color: var(--sl-muted);
+  margin-top: 2px;
+}
+
+/* Precision Canvas Viewport */
+.sl-viewport {
+  background: var(--sl-viewport);
+  border: 1px solid var(--sl-viewport-line);
+  border-radius: 6px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sl-viewport canvas,
+canvas {
+  display: block;
+  width: 100%;
+  background: var(--sl-viewport);
+  border-radius: 6px;
+}
+
+/* Section blocks inside console without nested card borders */
+.sl-group {
+  padding-top: 12px;
+  border-top: 1px solid var(--sl-line-soft);
+}
+
+.sl-group:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.sl-group-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sl-muted);
+  margin-bottom: 8px;
+}
+
+/* Telemetry Readout Grid */
+.sl-readouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px;
+  background: var(--sl-line);
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sl-readout {
+  background: var(--sl-surface);
+  padding: 10px 12px;
+}
+
+.sl-readout-lbl {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sl-muted);
+}
+
+.sl-readout-val {
+  font-family: var(--sl-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sl-ink);
+  margin-top: 3px;
+}
+
+/* Controls & Sliders */
+.sl-ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.sl-ctrl-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sl-ink-2);
+}
+
+.sl-ctrl-val {
+  font-family: var(--sl-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--sl-ink);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #0f172a;
+  cursor: pointer;
+}
+
+select, input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  background: var(--sl-surface);
+  color: var(--sl-ink);
+  font-family: var(--sl-font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+select:focus, input:focus {
+  outline: 2px solid #0284c7;
+  outline-offset: 1px;
+}
+
+/* Tactile Architectural Buttons */
+.sl-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--sl-line);
+  background: var(--sl-surface);
+  color: var(--sl-ink);
+  font-family: var(--sl-font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.sl-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.sl-btn-primary {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+.sl-btn-primary:hover {
+  background: #1e293b;
+  border-color: #1e293b;
+}
+
+.sl-btn.is-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+/* Inline Formula & Question Blocks */
+.sl-formula {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.sl-note {
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--sl-ink-2);
+}
+
+.sl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+}
+
+.sl-table th, .sl-table td {
+  border: 1px solid var(--sl-line-soft);
+  padding: 6px 8px;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-table th {
+  background: #f1f5f9;
+  color: var(--sl-ink-2);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Override flat look on legacy engine cards/headers without breaking JS IDs */
+.card, .panel {
+  box-shadow: none !important;
+  border-radius: 6px !important;
+  border-color: var(--sl-line) !important;
+}
+
+.opsi-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  margin: 4px 0;
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--sl-surface);
+  color: var(--sl-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.opsi-btn:hover {
+  background: #f1f5f9;
+}
+
+.opsi-btn.benar {
+  background: #ecfdf5;
+  border-color: #059669;
+  color: #065f46;
+}
+
+.opsi-btn.salah {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.pembahasan {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  color: #065f46;
+  margin-top: 8px;
+  line-height: 1.5;
+}

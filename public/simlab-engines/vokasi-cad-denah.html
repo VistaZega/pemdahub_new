@@ -9,7 +9,7 @@
   body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
   h2{text-align:center;font-size:1.3rem;color:#0ea5e9;margin-bottom:4px}
   .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
-  .wrap{max-width:980px;margin:0 auto}
+  .wrap{max-width: 100%;margin:0 auto}
   .main{display:grid;grid-template-columns:200px 1fr;gap:12px}
   @media(max-width:640px){.main{grid-template-columns:1fr}}
   canvas{background:#0f172a;border-radius:10px;display:block;width:100%;cursor:crosshair}
@@ -36,44 +36,38 @@
   .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
   .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:9px;font-size:0.79rem;margin-top:7px;display:none}
 </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-<div class="wrap">
-  <h2>🏗️ Simulator DPIB: CAD Denah & Struktur Bangunan</h2>
+<div class="wrap"><h2>Simulator DPIB: CAD Denah & Struktur Bangunan</h2>
   <p class="subtitle">Gambar denah ruang, hitung luas otomatis, dan pelajari simbol-simbol CAD bangunan!</p>
-  <div class="main">
-    <div class="sidebar">
-      <div class="panel">
-        <h3>🔧 Alat Gambar</h3>
-        <button class="tool-btn active" id="toolWall" onclick="setTool('wall')">🧱 Dinding</button>
-        <button class="tool-btn" id="toolDoor" onclick="setTool('door')">🚪 Pintu</button>
-        <button class="tool-btn" id="toolWindow" onclick="setTool('window')">🪟 Jendela</button>
-        <button class="tool-btn" id="toolRoom" onclick="setTool('room')">📐 Ruangan</button>
+  <div class="main"><div class="sidebar"><div class="panel"><h3>Alat Gambar</h3>
+        <button class="tool-btn active" id="toolWall" onclick="setTool('wall')">Dinding</button>
+        <button class="tool-btn" id="toolDoor" onclick="setTool('door')">Pintu</button>
+        <button class="tool-btn" id="toolWindow" onclick="setTool('window')">Jendela</button>
+        <button class="tool-btn" id="toolRoom" onclick="setTool('room')">Ruangan</button>
         <label>Tebal Dinding: <span class="val" id="vthick">8</span> px</label>
         <input type="range" id="sthick" min="4" max="20" value="8" oninput="document.getElementById('vthick').textContent=this.value">
         <label>Warna:</label>
         <input type="color" id="scolor" value="#94a3b8">
         <button class="btn btn-gray" onclick="undo()">↩ Undo</button>
-        <button class="btn btn-red" onclick="clearAll()">🗑 Hapus Semua</button>
-        <button class="btn btn-blue" onclick="loadSample()">📋 Contoh Denah</button>
+        <button class="btn btn-red" onclick="clearAll()">Hapus Semua</button>
+        <button class="btn btn-blue" onclick="loadSample()">Contoh Denah</button>
       </div>
-      <div class="panel">
-        <h3>📊 Kalkulasi</h3>
+      <div class="panel"><h3>Kalkulasi</h3>
         <div id="calc" style="font-size:0.78rem;color:#475569;line-height:1.7">—</div>
       </div>
     </div>
-    <div>
-      <canvas id="cv" height="400"></canvas>
+    <div><canvas id="cv" height="400"></canvas>
       <div class="info-bar" id="infoBar">Klik dan seret untuk menggambar | Alat aktif: Dinding</div>
-      <div class="panel" style="margin-top:10px">
-        <h3>📐 Rumus & Soal HOTS DPIB</h3>
+      <div class="panel" style="margin-top:10px"><h3>Rumus & Soal HOTS DPIB</h3>
         <div class="rumus">Luas = p × l | Keliling = 2(p + l)<br>Volume beton = Luas penampang × Panjang<br>Skala 1:100 → 1cm gambar = 100cm nyata</div>
         <div class="soal">Sebuah ruang tamu berukuran 4m × 5m pada gambar skala 1:100. Berapakah ukuran ruang tamu pada gambar (dalam cm)?</div>
         <button class="opsi-btn" onclick="cek(this,'salah')">A. 4 cm × 5 cm</button>
         <button class="opsi-btn" onclick="cek(this,'benar')">B. 4 cm × 5 cm di kertas, skala 1:100 → benar</button>
         <button class="opsi-btn" onclick="cek(this,'salah')">C. 40 cm × 50 cm</button>
         <button class="opsi-btn" onclick="cek(this,'salah')">D. 400 cm × 500 cm</button>
-        <div class="pembahasan" id="pem">✅ Skala 1:100 → setiap 1 cm di gambar = 100 cm (1 m) di lapangan. Ruang 4m × 5m = 400cm × 500cm nyata → pada gambar = 400/100 × 500/100 = <strong>4 cm × 5 cm</strong>.</div>
+        <div class="pembahasan" id="pem">Skala 1:100 → setiap 1 cm di gambar = 100 cm (1 m) di lapangan. Ruang 4m × 5m = 400cm × 500cm nyata → pada gambar = 400/100 × 500/100 = <strong>4 cm × 5 cm</strong>.</div>
       </div>
     </div>
   </div>
@@ -210,7 +204,7 @@ function loadSample(){
     {type:'window',x1:GRID*10,y1:GRID*0.5,x2:GRID*14,y2:GRID*1,color:'#60a5fa',thick:3},
   ];
   updateCalc(); draw();
-  document.getElementById('infoBar').textContent='📋 Contoh denah dimuat: 3 ruangan (Ruang Tamu, Kamar Tidur, Ruang Makan) — Klik & seret untuk menambah elemen';
+  document.getElementById('infoBar').textContent=' Contoh denah dimuat: 3 ruangan (Ruang Tamu, Kamar Tidur, Ruang Makan) — Klik & seret untuk menambah elemen';
 }
 
 function cek(el,s){

@@ -101,7 +101,7 @@
     .card {
       background: var(--panel);
       border: 1px solid var(--panel-border);
-      border-radius: 14px;
+      border-radius: 6px;
       padding: 16px;
       display: flex;
       flex-direction: column;
@@ -112,7 +112,7 @@
       position: relative;
       background: #0b1220;
       border: 1px solid #263349;
-      border-radius: 12px;
+      border-radius: 6px;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -291,12 +291,10 @@
 </head>
 <body>
   <header>
-    <div>
-      <h1>Simulasi Sistem Struktur &amp; Gambar Kerja Bangunan</h1>
+    <div><h1>Simulasi Sistem Struktur &amp; Gambar Kerja Bangunan</h1>
       <p>Media Pembelajaran Interaktif SMK Teknik Gambar Bangunan (DPIB)</p>
     </div>
-    <div class="mode-switch">
-      <button class="mode-btn active" id="btnStruktur">1. Penyaluran Beban &amp; Gaya Kuda-Kuda</button>
+    <div class="mode-switch"><button class="mode-btn active" id="btnStruktur">1. Penyaluran Beban &amp; Gaya Kuda-Kuda</button>
       <button class="mode-btn" id="btnGambar">2. Tahapan Konstruksi &amp; Gambar Kerja</button>
     </div>
   </header>
@@ -304,11 +302,9 @@
   <main>
     <!-- Panel Kiri: Canvas Simulasi -->
     <section class="card">
-      <div class="canvas-wrap">
-        <canvas id="buildCanvas" width="640" height="560"></canvas>
+      <div class="canvas-wrap"><canvas id="buildCanvas" width="640" height="560"></canvas>
       </div>
-      <div class="legend" id="legendBox">
-        <span><i class="dot" style="background:#ef4444"></i> Gaya Tekan (Compression)</span>
+      <div class="legend" id="legendBox"><span><i class="dot" style="background:#ef4444"></i> Gaya Tekan (Compression)</span>
         <span><i class="dot" style="background:#3b82f6"></i> Gaya Tarik (Tension)</span>
         <span><i class="dot" style="background:#facc15"></i> Aliran Penyaluran Beban</span>
         <span><i class="dot" style="background:#22c55e"></i> Reaksi Tumpuan Pondasi</span>
@@ -317,69 +313,53 @@
 
     <!-- Panel Kanan: Kontrol & Analisis -->
     <section class="card">
-      <div class="status-banner" id="statusBanner">
-        <div>
-          <div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;" id="bannerSub">Status Struktur Bangunan</div>
+      <div class="status-banner" id="statusBanner"><div><div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;" id="bannerSub">Status Struktur Bangunan</div>
           <div class="banner-title" id="bannerTitle">STRUKTUR AMAN</div>
         </div>
         <div class="banner-badge" id="bannerBadge">Rasio: 42%</div>
       </div>
 
-      <p class="desc-text" id="descText">
-        Beban dari penutup atap disalurkan melalui kuda-kuda ke ring balk, kolom, sloof, lalu ke pondasi dan tanah keras. Ubah bentang, sudut atap, atau beban untuk melihat perubahan gaya tekan, tarik, dan lendutan.
+      <p class="desc-text" id="descText">Beban dari penutup atap disalurkan melalui kuda-kuda ke ring balk, kolom, sloof, lalu ke pondasi dan tanah keras. Ubah bentang, sudut atap, atau beban untuk melihat perubahan gaya tekan, tarik, dan lendutan.
       </p>
 
       <!-- Kontrol Mode 1: Struktur & Pembebanan -->
-      <div class="controls-grid" id="strukturControls">
-        <div class="slider-box">
-          <div class="slider-header">
-            <span>Bentang Bangunan (L)</span>
+      <div class="controls-grid" id="strukturControls"><div class="slider-box"><div class="slider-header"><span>Bentang Bangunan (L)</span>
             <span class="val-badge" id="spanVal">6.0 m</span>
           </div>
           <input type="range" id="spanSlider" min="4" max="10" step="0.5" value="6" />
           <div class="presets-row"><span>4 m (Kecil)</span><span>7 m (Standar)</span><span>10 m (Lebar)</span></div>
         </div>
 
-        <div class="slider-box">
-          <div class="slider-header">
-            <span>Sudut Kemiringan Atap (&alpha;)</span>
+        <div class="slider-box"><div class="slider-header"><span>Sudut Kemiringan Atap (&alpha;)</span>
             <span class="val-badge" id="angleVal">30&deg;</span>
           </div>
           <input type="range" id="angleSlider" min="15" max="45" step="1" value="30" />
           <div class="presets-row"><span>15&deg; (Landai)</span><span>30&deg; (Ideal)</span><span>45&deg; (Curam)</span></div>
         </div>
 
-        <div class="slider-box">
-          <div class="slider-header">
-            <span>Beban Atap Total (q)</span>
+        <div class="slider-box"><div class="slider-header"><span>Beban Atap Total (q)</span>
             <span class="val-badge" id="loadVal">120 kg/m&sup2;</span>
           </div>
           <input type="range" id="loadSlider" min="50" max="300" step="10" value="120" />
           <div class="presets-row"><span>50 (Spandek/Ringan)</span><span>150 (Genteng)</span><span>300 (Beton + Angin)</span></div>
         </div>
 
-        <div class="btn-row">
-          <button class="ctrl active" id="toggleAnimBtn">⏸ Animasi Aliran Beban</button>
+        <div class="btn-row"><button class="ctrl active" id="toggleAnimBtn">⏸ Animasi Aliran Beban</button>
           <button class="ctrl" id="resetStrukturBtn">↺ Reset Standar (6m, 30&deg;)</button>
         </div>
       </div>
 
       <!-- Kontrol Mode 2: Gambar Kerja & Tahapan Konstruksi -->
-      <div class="controls-grid" id="gambarControls" style="display:none;">
-        <div class="btn-row">
-          <button class="ctrl active" id="viewPotonganBtn">Potongan A-A (Struktur)</button>
+      <div class="controls-grid" id="gambarControls" style="display:none;"><div class="btn-row"><button class="ctrl active" id="viewPotonganBtn">Potongan A-A (Struktur)</button>
           <button class="ctrl" id="viewTampakBtn">Tampak Depan</button>
           <button class="ctrl" id="viewDenahBtn">Denah Lantai</button>
         </div>
 
-        <div class="slider-box">
-          <div class="slider-header">
-            <span>Tahap Pelaksanaan Konstruksi</span>
+        <div class="slider-box"><div class="slider-header"><span>Tahap Pelaksanaan Konstruksi</span>
             <span class="val-badge" id="stageVal">100% (Selesai)</span>
           </div>
           <input type="range" id="stageSlider" min="1" max="5" step="1" value="5" />
-          <div class="presets-row">
-            <span>1. Pondasi</span>
+          <div class="presets-row"><span>1. Pondasi</span>
             <span>2. Sloof</span>
             <span>3. Dinding/Kolom</span>
             <span>4. Ring Balk</span>
@@ -393,21 +373,16 @@
         Tampilkan label komponen struktur &amp; elevasi gambar kerja
       </label>
 
-      <div class="status-grid">
-        <div class="stat-item">
-          <div class="stat-label" id="stat1Label">Reaksi Tumpuan (RA = RB)</div>
+      <div class="status-grid"><div class="stat-item"><div class="stat-label" id="stat1Label">Reaksi Tumpuan (RA = RB)</div>
           <div class="stat-value" id="stat1Val">360 kg</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="stat2Label">Gaya Tekan Kaki Kuda-Kuda</div>
+        <div class="stat-item"><div class="stat-label" id="stat2Label">Gaya Tekan Kaki Kuda-Kuda</div>
           <div class="stat-value" style="color:#f87171" id="stat2Val">720 kg (Tekan)</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="stat3Label">Gaya Tarik Balok Dasar</div>
+        <div class="stat-item"><div class="stat-label" id="stat3Label">Gaya Tarik Balok Dasar</div>
           <div class="stat-value" style="color:#60a5fa" id="stat3Val">624 kg (Tarik)</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label" id="stat4Label">Lendutan Tengah (Simulasi)</div>
+        <div class="stat-item"><div class="stat-label" id="stat4Label">Lendutan Tengah (Simulasi)</div>
           <div class="stat-value" id="stat4Val">2.4 mm (Aman)</div>
         </div>
       </div>

@@ -77,7 +77,7 @@ class VirtualLab extends Model
     public function getDisciplineLabelAttribute(): string
     {
         return match ($this->discipline_key) {
-            'olimpiade'     => '🏆 Lab Olimpiade & PTN',
+            'olimpiade'     => 'Lab Olimpiade & PTN',
             'fisika'        => 'Lab IPA & Fisika',
             'kimia_biologi' => 'Lab Kimia & Biologi',
             'matematika'    => 'Lab Matematika',
@@ -668,7 +668,7 @@ class VirtualLab extends Model
             ],
             [
                 'slug'         => 'lab-5-soal-olimpiade-internasional',
-                'title'        => '🏆 Lab Tantangan 5 Soal Olimpiade Sains Internasional',
+                'title'        => 'Lab Tantangan 5 Soal Olimpiade Sains Internasional',
                 'category'     => 'sma',
                 'subject_name' => 'Olimpiade Sains (IPhO, IMO, IChO, IBO, IOI)',
                 'engine_type'  => 'olympiad_5',
@@ -893,7 +893,7 @@ class VirtualLab extends Model
             ],
             [
                 'slug'         => 'ptn-soal-cepat-lanjutan',
-                'title'        => '⚡ Simulator 20 Soal Cepat SNBT/UTBK Lanjutan (Kimia · Bio · B.Indo · B.Ing · Sosiologi)',
+                'title'        => 'Simulator 20 Soal SNBT/UTBK Lanjutan (Lintas Disiplin)',
                 'category'     => 'sma',
                 'subject_name' => 'Persiapan PTN / SNBT / UTBK (Lintas Ilmu Lanjutan)',
                 'engine_type'  => 'ptn_speed_advanced',
@@ -908,7 +908,7 @@ class VirtualLab extends Model
             ],
             [
                 'slug'         => 'ptn-soal-cepat-snbt',
-                'title'        => '⚡ Simulator Penyelesaian Soal Cepat PTN Favorit (15 Soal SNBT / UTBK)',
+                'title'        => 'Simulator Penyelesaian Cepat Soal SNBT/UTBK (15 Soal Inti)',
                 'category'     => 'sma',
                 'subject_name' => 'Persiapan PTN / SNBT / UTBK (Lintas Ilmu)',
                 'engine_type'  => 'ptn_speed',

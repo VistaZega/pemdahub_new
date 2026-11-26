@@ -4,110 +4,181 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Simulator Informatika &amp; Elektronika: Gerbang Logika Digital</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#4f46e5; }
-    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    .gate-row { display:flex; gap:6px; flex-wrap:wrap; }
-    button { border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
-    button.active { background:#4f46e5; color:#fff; border-color:#4338ca; }
-    table { width:100%; border-collapse:collapse; font-family:monospace; font-size:0.88rem; text-align:center; }
-    th, td { padding:8px; border-bottom:1px solid #e2e8f0; }
-    tr.hi { background:#e0e7ff; font-weight:800; color:#312e81; }
-  </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>🔌 Simulator Informatika &amp; Elektronika: Gerbang Logika Digital (0 &amp; 1)</h1>
-    <p>Bagaimana komputer memproses logika biner? Ubah saklar Input A &amp; B, amati aliran sinyal kabel serta Tabel Kebenaran aktif!</p>
-  </header>
-
-  <main>
-    <div class="card">
-      <canvas id="logicCanvas" width="760" height="360"></canvas>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <button onclick="A = A?0:1; render()" id="btnA" style="flex:1;padding:12px;">Saklar Input A: 0</button>
-        <button onclick="B = B?0:1; render()" id="btnB" style="flex:1;padding:12px;">Saklar Input B: 0</button>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Simulator Skematik Gerbang Logika Digital (Level TTL 0V / 5V)</div>
+          <div class="sl-bar-sub">Pilih jenis gerbang IEEE dan ubah saklar biner A/B untuk mengamati jalur sinyal, LED output, dan tabel kebenaran</div>
+        </div>
+        <div class="sl-btn-row" id="gateRow">
+          <button type="button" class="sl-btn is-active" onclick="setGate('AND')">AND</button>
+          <button type="button" class="sl-btn" onclick="setGate('OR')">OR</button>
+          <button type="button" class="sl-btn" onclick="setGate('NAND')">NAND</button>
+          <button type="button" class="sl-btn" onclick="setGate('NOR')">NOR</button>
+          <button type="button" class="sl-btn" onclick="setGate('XOR')">XOR</button>
+          <button type="button" class="sl-btn" onclick="setGate('XNOR')">XNOR</button>
+          <button type="button" class="sl-btn" onclick="setGate('NOT')">NOT</button>
+        </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="gate-row" id="gateBtns"></div>
-      <table>
-        <thead><tr><th>Input A</th><th>Input B</th><th>Output (Y)</th></tr></thead>
-        <tbody id="ttBody"></tbody>
-      </table>
-    </div>
-  </main>
+      <div class="sl-viewport">
+        <canvas id="lgCanvas" height="390"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Saklar Input Biner</div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" id="btnA" onclick="toggleA()">Input A: 1 (HIGH)</button>
+          <button type="button" class="sl-btn" id="btnB" onclick="toggleB()">Input B: 0 (LOW)</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Status Output &amp; Ekspresi Boolean</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Output Y</div><div class="sl-readout-val" id="valOut">0 (LOW)</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Tegangan Pin Out</div><div class="sl-readout-val" id="valVolt">0.0 V</div></div>
+        </div>
+        <div class="sl-formula" id="exprBox" style="margin-top:8px;">Y = A · B</div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Tabel Kebenaran Aktif</div>
+        <table class="sl-table" id="truthTbl"></table>
+      </div>
+    </aside>
+  </div>
 
   <script>
-    const c = document.getElementById('logicCanvas'), ctx = c.getContext('2d');
-    const gates = ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'NOT'];
-    let gate = 'AND', A = 0, B = 0;
+    const cv = document.getElementById('lgCanvas');
+    const ctx = cv.getContext('2d');
+    let gate = 'AND', inA = 1, inB = 0;
 
     function evalGate(g, a, b) {
-      if (g === 'AND') return a & b;
-      if (g === 'OR') return a | b;
-      if (g === 'NAND') return (a & b) ? 0 : 1;
-      if (g === 'NOR') return (a | b) ? 0 : 1;
-      if (g === 'XOR') return a ^ b;
+      if (g === 'AND') return (a && b) ? 1 : 0;
+      if (g === 'OR') return (a || b) ? 1 : 0;
+      if (g === 'NAND') return !(a && b) ? 1 : 0;
+      if (g === 'NOR') return !(a || b) ? 1 : 0;
+      if (g === 'XOR') return (a ^ b) ? 1 : 0;
+      if (g === 'XNOR') return (a ^ b) ? 0 : 1;
       return a ? 0 : 1;
     }
 
-    function render() {
-      document.getElementById('gateBtns').innerHTML = gates.map(g =>
-        `<button class="${g===gate?'active':''}" onclick="gate='${g}';render()">${g}</button>`
-      ).join('');
-      document.getElementById('btnA').textContent = `Saklar Input A: ${A} (${A?'HIGH':'LOW'})`;
-      document.getElementById('btnA').style.background = A ? '#10b981' : '#f1f5f9';
-      document.getElementById('btnA').style.color = A ? '#fff' : '#0f172a';
-      document.getElementById('btnB').style.display = gate === 'NOT' ? 'none' : 'block';
-      document.getElementById('btnB').textContent = `Saklar Input B: ${B} (${B?'HIGH':'LOW'})`;
-      document.getElementById('btnB').style.background = B ? '#10b981' : '#f1f5f9';
-      document.getElementById('btnB').style.color = B ? '#fff' : '#0f172a';
+    const EXPRS = {
+      AND: 'Y = A · B (Bernilai 1 hanya jika semua input 1)',
+      OR: 'Y = A + B (Bernilai 1 jika minimal satu input 1)',
+      NAND: 'Y = (A · B)\' (Kebalikan gerbang AND)',
+      NOR: 'Y = (A + B)\' (Kebalikan gerbang OR)',
+      XOR: 'Y = A ⊕ B (Bernilai 1 jika A dan B berbeda)',
+      XNOR: 'Y = (A ⊕ B)\' (Bernilai 1 jika A dan B sama)',
+      NOT: 'Y = A\' (Membalik keadaan logika input A)'
+    };
 
-      const rows = gate === 'NOT' ? [[0, '-'], [1, '-']] : [[0,0],[0,1],[1,0],[1,1]];
-      document.getElementById('ttBody').innerHTML = rows.map(([ra, rb]) => {
-        const out = evalGate(gate, ra, rb === '-' ? 0 : rb);
-        const match = ra === A && (gate === 'NOT' || rb === B);
-        return `<tr class="${match?'hi':''}"><td>${ra}</td><td>${rb}</td><td style="color:${out?'#059669':'#e11d48'}">${out}</td></tr>`;
-      }).join('');
-
-      const Y = evalGate(gate, A, B);
-      ctx.clearRect(0, 0, c.width, c.height);
-
-      // Kabel A & B
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = A ? '#34d399' : '#475569';
-      ctx.beginPath(); ctx.moveTo(110, gate==='NOT'?180:130); ctx.lineTo(310, gate==='NOT'?180:130); ctx.stroke();
-      if (gate !== 'NOT') {
-        ctx.strokeStyle = B ? '#34d399' : '#475569';
-        ctx.beginPath(); ctx.moveTo(110, 230); ctx.lineTo(310, 230); ctx.stroke();
-      }
-      // Kabel Output Y
-      ctx.strokeStyle = Y ? '#34d399' : '#475569';
-      ctx.beginPath(); ctx.moveTo(450, 180); ctx.lineTo(620, 180); ctx.stroke();
-
-      // Chip IC Gerbang
-      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.roundRect(310, 100, 140, 160, 18); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#fff'; ctx.font = 'bold 26px monospace'; ctx.textAlign = 'center';
-      ctx.fillText(gate, 380, 190);
-
-      // LED Output
-      ctx.fillStyle = Y ? '#34d399' : '#334155';
-      ctx.beginPath(); ctx.arc(645, 180, 32, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = Y ? '#a7f3d0' : '#64748b'; ctx.stroke();
-      ctx.fillStyle = Y ? '#022c22' : '#94a3b8'; ctx.font = 'bold 18px monospace';
-      ctx.fillText(Y, 645, 186);
+    function setGate(g) {
+      gate = g;
+      document.querySelectorAll('#gateRow .sl-btn').forEach(b => b.classList.toggle('is-active', b.textContent === g));
+      document.getElementById('btnB').style.display = g === 'NOT' ? 'none' : 'inline-flex';
+      render();
     }
+
+    function toggleA() { inA = inA ? 0 : 1; render(); }
+    function toggleB() { inB = inB ? 0 : 1; render(); }
+
+    function render() {
+      const out = evalGate(gate, inA, inB);
+      document.getElementById('btnA').textContent = `Input A: ${inA} (${inA ? 'HIGH' : 'LOW'})`;
+      document.getElementById('btnA').classList.toggle('is-active', inA === 1);
+      document.getElementById('btnB').textContent = `Input B: ${inB} (${inB ? 'HIGH' : 'LOW'})`;
+      document.getElementById('btnB').classList.toggle('is-active', inB === 1);
+
+      const vOutEl = document.getElementById('valOut');
+      vOutEl.textContent = `${out} (${out ? 'HIGH' : 'LOW'})`;
+      vOutEl.style.color = out ? '#059669' : '#64748b';
+      document.getElementById('valVolt').textContent = out ? '5.0 V' : '0.0 V';
+      document.getElementById('exprBox').textContent = EXPRS[gate];
+
+      const rows = gate === 'NOT' ? [[0], [1]] : [[0, 0], [0, 1], [1, 0], [1, 1]];
+      let tbl = `<thead><tr><th>A</th>${gate !== 'NOT' ? '<th>B</th>' : ''}<th>Output Y</th></tr></thead><tbody>`;
+      rows.forEach(r => {
+        const y = evalGate(gate, r[0], r[1] || 0);
+        const active = r[0] === inA && (gate === 'NOT' || r[1] === inB);
+        tbl += `<tr style="${active ? 'background:#0f172a;color:#ffffff;font-weight:700;' : ''}"><td>${r[0]}</td>${gate !== 'NOT' ? `<td>${r[1]}</td>` : ''}<td>${y}</td></tr>`;
+      });
+      tbl += '</tbody>';
+      document.getElementById('truthTbl').innerHTML = tbl;
+
+      drawCanvas(out);
+    }
+
+    function drawCanvas(out) {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 390;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)'; ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 28) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y < H; y += 28) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+      const gx = W * 0.45, gy = H * 0.48;
+      const wireCol = v => v ? '#34d399' : '#475569';
+
+      // Jalur Kabel Input
+      if (gate === 'NOT') {
+        ctx.strokeStyle = wireCol(inA); ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(W * 0.16, gy); ctx.lineTo(gx - 35, gy); ctx.stroke();
+        ctx.fillStyle = wireCol(inA); ctx.beginPath(); ctx.arc(W * 0.16, gy, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('A=' + inA, W * 0.16, gy + 4);
+      } else {
+        const yA = gy - 32, yB = gy + 32;
+        ctx.strokeStyle = wireCol(inA); ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(W * 0.16, yA); ctx.lineTo(gx - 35, yA); ctx.stroke();
+        ctx.strokeStyle = wireCol(inB); ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(W * 0.16, yB); ctx.lineTo(gx - 35, yB); ctx.stroke();
+
+        ctx.fillStyle = wireCol(inA); ctx.beginPath(); ctx.arc(W * 0.16, yA, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = wireCol(inB); ctx.beginPath(); ctx.arc(W * 0.16, yB, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('A=' + inA, W * 0.16, yA + 4);
+        ctx.fillText('B=' + inB, W * 0.16, yB + 4);
+      }
+
+      // Badan Simbol Gerbang IEEE
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      ctx.fillRect(gx - 40, gy - 54, 90, 108);
+      ctx.strokeRect(gx - 40, gy - 54, 90, 108);
+      ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 18px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(gate, gx + 5, gy + 6);
+
+      // Bubble inverter jika NAND, NOR, XNOR, NOT
+      const hasBubble = ['NAND', 'NOR', 'XNOR', 'NOT'].includes(gate);
+      let outStart = gx + 50;
+      if (hasBubble) {
+        ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(gx + 58, gy, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        outStart = gx + 66;
+      }
+
+      // Jalur Kabel Output & Lampu LED
+      ctx.strokeStyle = wireCol(out); ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(outStart, gy); ctx.lineTo(W * 0.82, gy); ctx.stroke();
+
+      ctx.fillStyle = out ? '#22c55e' : '#1e293b';
+      ctx.strokeStyle = out ? '#86efac' : '#475569'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(W * 0.82, gy, 28, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = out ? '#0f172a' : '#94a3b8'; ctx.font = 'bold 14px monospace';
+      ctx.fillText('Y=' + out, W * 0.82, gy + 5);
+    }
+
+    window.addEventListener('resize', render);
+    window.addEventListener('load', render);
     render();
   </script>
 </body>

@@ -9,7 +9,7 @@
   body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
   h2{text-align:center;font-size:1.3rem;color:#7c3aed;margin-bottom:4px}
   .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
-  .wrap{max-width:900px;margin:0 auto}
+  .wrap{max-width: 100%;margin:0 auto}
   canvas{background:#0f172a;border-radius:10px;width:100%;display:block}
   .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
   @media(max-width:600px){.panels{grid-template-columns:1fr}}
@@ -29,32 +29,29 @@
   .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
   .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
 </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-<div class="wrap">
-  <h2>🧠 Simulator Biologi: Sistem Saraf & Penjalaran Impuls Neuron</h2>
+<div class="wrap"><h2>Simulator Biologi: Sistem Saraf & Penjalaran Impuls Neuron</h2>
   <p class="subtitle">Bagaimana sinyal listrik (impuls saraf) merambat dari reseptor → neuron → otak dalam hitungan milidetik?</p>
   <canvas id="cv" height="280"></canvas>
-  <div class="panels">
-    <div class="panel">
-      <h3>⚙️ Kontrol Eksperimen Neuron</h3>
-      <button class="btn" onclick="firePulse()">⚡ Kirim Impuls Saraf</button>
-      <button class="btn btn-orange" onclick="fireReflex()">🔥 Gerak Refleks</button>
+  <div class="panels"><div class="panel"><h3>Kontrol Eksperimen Neuron</h3>
+      <button class="btn" onclick="firePulse()">Kirim Impuls Saraf</button>
+      <button class="btn btn-orange" onclick="fireReflex()">Gerak Refleks</button>
       <label>Kecepatan Hantar Saraf: <span class="val" id="vspeed">70</span> m/s</label>
       <input type="range" id="sspeed" min="10" max="120" value="70" oninput="updateSpeed()">
       <label>Intensitas Rangsang: <span class="val" id="vint">60</span>%</label>
       <input type="range" id="sint" min="10" max="100" value="60" oninput="updateInfo()">
       <div class="info-box" id="info">Klik "Kirim Impuls" untuk memulai simulasi penjalaran impuls saraf di sepanjang neuron!</div>
     </div>
-    <div class="panel">
-      <h3>📐 Konsep & Soal HOTS Biologi</h3>
+    <div class="panel"><h3>Konsep & Soal HOTS Biologi</h3>
       <div class="rumus">Jalur Impuls Saraf Biasa:<br>Reseptor → Saraf Sensorik → Otak → Saraf Motorik → Efektor<br><br>Jalur Refleks:<br>Reseptor → Saraf Sensorik → Sumsum Tulang Belakang → Saraf Motorik → Efektor</div>
       <div class="soal">Saat tangan menyentuh benda panas, respons gerak refleks terjadi TANPA melalui otak. Bagian sistem saraf mana yang berperan sebagai pusat refleks?</div>
       <button class="opsi-btn" onclick="cek(this,'salah')">A. Otak besar (Cerebrum)</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">B. Otak kecil (Cerebellum)</button>
       <button class="opsi-btn" onclick="cek(this,'benar')">C. Sumsum Tulang Belakang</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">D. Saraf Otonom</button>
-      <div class="pembahasan" id="pem">✅ Gerak refleks dikoordinasikan oleh <strong>sumsum tulang belakang</strong> (medula spinalis), bukan otak. Itulah mengapa respons refleks sangat cepat — impuls tidak perlu menempuh perjalanan ke otak terlebih dahulu.</div>
+      <div class="pembahasan" id="pem">Gerak refleks dikoordinasikan oleh <strong>sumsum tulang belakang</strong> (medula spinalis), bukan otak. Itulah mengapa respons refleks sangat cepat — impuls tidak perlu menempuh perjalanan ke otak terlebih dahulu.</div>
     </div>
   </div>
 </div>
@@ -78,14 +75,14 @@ const LINKS_REFLEX = [[0,1],[1,2],[2,3],[3,4]];
 function firePulse(){
   isReflexMode = false;
   pulses = [{path: LINKS_NORMAL, pos: 0, speed: speed/700, color:'#fbbf24'}];
-  document.getElementById('info').innerHTML = '⚡ Impuls biasa: Reseptor → Saraf Sensorik → <strong>Otak</strong> → Saraf Motorik → Efektor<br>Waktu tempuh ≈ lebih lambat (melalui otak)';
+  document.getElementById('info').innerHTML = ' Impuls biasa: Reseptor → Saraf Sensorik → <strong>Otak</strong> → Saraf Motorik → Efektor<br>Waktu tempuh ≈ lebih lambat (melalui otak)';
   animate();
 }
 
 function fireReflex(){
   isReflexMode = true;
   pulses = [{path: LINKS_REFLEX, pos: 0, speed: speed/400, color:'#f87171'}];
-  document.getElementById('info').innerHTML = '🔥 Gerak Refleks: Reseptor → Saraf Sensorik → <strong>Sumsum Tulang Belakang</strong> → Saraf Motorik → Efektor<br>⚡ <strong>Sangat cepat</strong> — tidak melalui otak!';
+  document.getElementById('info').innerHTML = ' Gerak Refleks: Reseptor → Saraf Sensorik → <strong>Sumsum Tulang Belakang</strong> → Saraf Motorik → Efektor<br> <strong>Sangat cepat</strong> — tidak melalui otak!';
   animate();
 }
 
@@ -107,7 +104,7 @@ function animate(){
 }
 
 function draw(){
-  cv.width = cv.offsetWidth; cv.height = 280;
+  cv.width = cv.offsetWidth || 640; cv.height = 280;
   const W = cv.width, H = 280;
   const nx = i => NODES[i].x * W;
   const ny = i => NODES[i].y * H;

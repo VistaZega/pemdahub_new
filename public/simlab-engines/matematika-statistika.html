@@ -12,9 +12,9 @@
     header h1 { font-size:1.1rem; font-weight:800; }
     header p { font-size:0.8rem; color:var(--muted); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.45fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
     .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); text-transform:uppercase; font-weight:700; }
@@ -24,47 +24,39 @@
     button:hover { border-color:var(--accent); color:#fff; }
     textarea { width:100%; background:#090d16; border:1px solid #334155; border-radius:10px; padding:10px; color:#f8fafc; font-family:monospace; font-size:0.85rem; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <div>
-      <h1>📊 Simulator Matematika: Statistika &amp; Distribusi Data</h1>
+    <div><h1>Simulator Matematika: Statistika &amp; Distribusi Data</h1>
       <p>Ubah kumpulan angka atau pilih pola distribusi untuk melihat pergeseran Mean, Median, Modus &amp; Histogram secara langsung</p>
     </div>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="histCanvas" width="760" height="400"></canvas>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;">
-        <span style="color:#fbbf24">━━ Mean (Rata-rata)</span>
+    <div class="card"><canvas id="histCanvas" width="760" height="400"></canvas>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;"><span style="color:#fbbf24">━━ Mean (Rata-rata)</span>
         <span style="color:#38bdf8">━━ Median (Nilai Tengah)</span>
         <span style="color:#f472b6">● Modus (Frekuensi Tertinggi)</span>
       </div>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Mean (Rata-rata)</div><div class="s-val" id="vMean" style="color:#fbbf24">0</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Mean (Rata-rata)</div><div class="s-val" id="vMean" style="color:#fbbf24">0</div></div>
         <div class="s-box"><div class="s-lbl">Median (Tengah)</div><div class="s-val" id="vMed" style="color:#38bdf8">0</div></div>
         <div class="s-box"><div class="s-lbl">Modus</div><div class="s-val" id="vMode" style="color:#f472b6">-</div></div>
         <div class="s-box"><div class="s-lbl">Simpangan Baku (σ)</div><div class="s-val" id="vStd" style="color:#34d399">0</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Jumlah Kelas Interval (Bins)</span><span id="lblBins" style="color:#10b981">6 Kelas</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Jumlah Kelas Interval (Bins)</span><span id="lblBins" style="color:#10b981">6 Kelas</span>
         </div>
         <input type="range" id="inBins" min="4" max="12" step="1" value="6" style="width:100%;accent-color:#10b981;cursor:pointer;">
       </div>
 
-      <div>
-        <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:6px;">Data Nilai Siswa (pisahkan dengan koma):</label>
+      <div><label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:6px;">Data Nilai Siswa (pisahkan dengan koma):</label>
         <textarea id="inData" rows="3">65, 70, 72, 75, 75, 78, 80, 80, 80, 82, 85, 88, 90, 95</textarea>
       </div>
 
-      <div class="btn-row">
-        <button onclick="loadPreset('normal')">Distribusi Normal</button>
+      <div class="btn-row"><button onclick="loadPreset('normal')">Distribusi Normal</button>
         <button onclick="loadPreset('skewRight')">Miring Kanan (Nilai Ekstrem Tinggi)</button>
         <button onclick="loadPreset('skewLeft')">Miring Kiri (Banyak Nilai Tinggi)</button>
         <button onclick="addOutlier()" style="background:rgba(244,63,94,0.18);border-color:#f43f5e;color:#fda4af;">+ Tambah Nilai Ekstrem (100)</button>

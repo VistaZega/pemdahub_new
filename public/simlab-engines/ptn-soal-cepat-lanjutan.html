@@ -9,16 +9,16 @@
   body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
   h2{text-align:center;font-size:1.3rem;color:#2563eb;margin-bottom:4px}
   .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
-  .wrap{max-width:900px;margin:0 auto}
-  .header-bar{background:#1e3a8a;color:#fff;border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+  .wrap{max-width: 100%;margin:0 auto}
+  .header-bar{background:#1e3a8a;color:#fff;border-radius: 6px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
   .timer{font-size:1.4rem;font-weight:800;font-family:monospace;color:#fbbf24}
   .score-box{background:#1d4ed8;border-radius:8px;padding:6px 14px;font-size:0.9rem;font-weight:700}
   .progress{background:#1e40af;border-radius:8px;overflow:hidden;height:8px;margin-bottom:14px}
-  .progress-bar{height:100%;background:linear-gradient(90deg,#60a5fa,#2563eb);transition:width 0.3s}
-  .question-card{background:#fff;border:2px solid #bfdbfe;border-radius:14px;padding:18px;margin-bottom:12px}
+  .progress-bar{height:100%;background: #ffffff;transition:width 0.3s}
+  .question-card{background:#fff;border:2px solid #bfdbfe;border-radius: 6px;padding:18px;margin-bottom:12px}
   .q-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
   .q-num{background:#2563eb;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0}
-  .q-topic{background:#dbeafe;color:#1d4ed8;border-radius:12px;padding:3px 10px;font-size:0.75rem;font-weight:600}
+  .q-topic{background:#dbeafe;color:#1d4ed8;border-radius: 6px;padding:3px 10px;font-size:0.75rem;font-weight:600}
   .q-text{font-size:0.9rem;line-height:1.6;margin-bottom:12px;color:#1e293b}
   .options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   @media(max-width:500px){.options{grid-template-columns:1fr}}
@@ -34,17 +34,15 @@
   .btn-blue{background:#2563eb;color:#fff}
   .btn-green{background:#16a34a;color:#fff}
   .btn-gray{background:#64748b;color:#fff}
-  .final-card{background:#1e3a8a;color:#fff;border-radius:14px;padding:24px;text-align:center;display:none}
+  .final-card{background:#1e3a8a;color:#fff;border-radius: 6px;padding:24px;text-align:center;display:none}
   .final-score{font-size:3rem;font-weight:900;color:#fbbf24}
 </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-<div class="wrap">
-  <h2>⚡ Simulator 20 Soal Cepat SNBT/UTBK Lanjutan</h2>
+<div class="wrap"><h2>Simulator 20 Soal Cepat SNBT/UTBK Lanjutan</h2>
   <p class="subtitle">Kimia · Biologi · Bahasa Indonesia · Bahasa Inggris · Sosiologi · Geografi · Penalaran Matematis</p>
-  <div class="header-bar">
-    <div>
-      <div style="font-size:0.8rem;opacity:0.8">Waktu per soal</div>
+  <div class="header-bar"><div><div style="font-size:0.8rem;opacity:0.8">Waktu per soal</div>
       <div class="timer" id="timer">00:45</div>
     </div>
     <div class="score-box">Skor: <span id="scoreDisp">0</span>/20</div>
@@ -52,17 +50,15 @@
   </div>
   <div class="progress"><div class="progress-bar" id="progBar" style="width:5%"></div></div>
   <div id="questionArea"></div>
-  <div class="nav">
-    <button class="nav-btn btn-gray" onclick="prevQ()">◀ Prev</button>
-    <button class="nav-btn btn-blue" onclick="showTrick()">💡 Lihat Trik</button>
+  <div class="nav"><button class="nav-btn btn-gray" onclick="prevQ()">◀ Prev</button>
+    <button class="nav-btn btn-blue" onclick="showTrick()">Lihat Trik</button>
     <button class="nav-btn btn-green" onclick="nextQ()">Next ▶</button>
   </div>
-  <div class="final-card" id="finalCard">
-    <div style="font-size:1.1rem;margin-bottom:8px">🎓 Hasil Latihan SNBT/UTBK</div>
+  <div class="final-card" id="finalCard"><div style="font-size:1.1rem;margin-bottom:8px">Hasil Latihan SNBT/UTBK</div>
     <div class="final-score" id="finalScore">0</div>
     <div style="font-size:1rem;margin:8px 0">/20 Soal Benar</div>
     <div id="finalMsg" style="font-size:0.9rem;opacity:0.9;margin-top:8px"></div>
-    <button class="nav-btn btn-blue" onclick="restart()" style="margin-top:16px">🔄 Ulangi Latihan</button>
+    <button class="nav-btn btn-blue" onclick="restart()" style="margin-top:16px">Ulangi Latihan</button>
   </div>
 </div>
 <script>
@@ -86,7 +82,7 @@ const QUESTIONS = [
   {topic:'Penalaran',q:'Jika semua A adalah B, dan semua B adalah C, maka...',opts:['Semua C adalah A','Semua A adalah C','Semua C adalah B','Sebagian A bukan C'],ans:1,exp:'Silogisme: A⊆B dan B⊆C → A⊆C (semua A pasti termasuk dalam C). Ini hukum transitif himpunan',trick:'A→B, B→C → pasti A→C (seperti rantai implikasi). Gambarkan diagram Venn: lingkaran A dalam B, B dalam C'},
   {topic:'Penalaran',q:'Barisan: 2, 6, 18, 54, ... Suku ke-6 adalah...',opts:['108','162','486','243'],ans:2,exp:'Rasio umum r = 6/2 = 3 (geometri). Suku ke-5 = 54×3=162, suku ke-6 = 162×3=486',trick:'Cek rasio: 6/2=3, 18/6=3, 54/18=3 → r=3. Suku ke-n = 2×3^(n-1). n=6 → 2×3⁵ = 2×243 = 486'},
   {topic:'Penalaran',q:'Rata-rata 5 bilangan adalah 20. Jika satu bilangan 30 ditambahkan, rata-rata baru adalah...',opts:['20','21,67','25','22'],ans:1,exp:'Total lama = 5×20=100. Total baru = 100+30=130. Rata-rata baru = 130/6 ≈ 21,67',trick:'Total = rata² × n. Tambah 30: total=130, n=6. 130÷6=21,666... ≈ 21,67'},
-  {topic:'Penalaran',q:'Jika P > Q dan Q > R, manakah pernyataan yang PASTI benar?',opts:['R > P','P > R','Q = R','P = Q'],ans:1,exp:'Transitif: P>Q dan Q>R → pasti P>R. Ini hukum transitif ketidaksamaan',trick:'Gunakan angka konkrit: P=10, Q=7, R=3 → 10>3 (P>R) ✓. Selalu substitusi angka untuk soal logika sederhana!'},
+  {topic:'Penalaran',q:'Jika P > Q dan Q > R, manakah pernyataan yang PASTI benar?',opts:['R > P','P > R','Q = R','P = Q'],ans:1,exp:'Transitif: P>Q dan Q>R → pasti P>R. Ini hukum transitif ketidaksamaan',trick:'Gunakan angka konkrit: P=10, Q=7, R=3 → 10>3 (P>R) . Selalu substitusi angka untuk soal logika sederhana!'},
 ];
 
 let curQ = 0, score = 0, answered = new Array(20).fill(null);
@@ -118,17 +114,14 @@ function renderQ(){
   document.getElementById('scoreDisp').textContent = score;
   const sel = answered[curQ];
   document.getElementById('questionArea').innerHTML = `
-    <div class="question-card">
-      <div class="q-header">
-        <div class="q-num">${curQ+1}</div>
+    <div class="question-card"><div class="q-header"><div class="q-num">${curQ+1}</div>
         <div class="q-topic">${q.topic}</div>
       </div>
       <div class="q-text">${q.q}</div>
-      <div class="options">
-        ${q.opts.map((o,i)=>`<button class="opt-btn${sel!==null?(i===q.ans?' correct':i===sel&&sel!==q.ans?' wrong':''):''}" onclick="selectOpt(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+      <div class="options">${q.opts.map((o,i)=>`<button class="opt-btn${sel!==null?(i===q.ans?' correct':i===sel&&sel!==q.ans?' wrong':''):''}" onclick="selectOpt(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
       </div>
-      ${sel!==null?`<div class="explanation" style="display:block">📝 ${q.exp}</div>`:''}
-      <div class="trick-box" id="trickBox">⚡ Trik Super Cepat: ${q.trick}</div>
+      ${sel!==null?`<div class="explanation" style="display:block">${q.exp}</div>`:''}
+      <div class="trick-box" id="trickBox">Trik Super Cepat: ${q.trick}</div>
     </div>`;
   startTimer();
 }
@@ -162,7 +155,7 @@ function showFinal(){
   fc.style.display='block';
   document.getElementById('finalScore').textContent=score;
   const pct=score/20*100;
-  document.getElementById('finalMsg').innerHTML = pct>=90?'🏆 SEMPURNA! Siap SNBT Favorit!':pct>=75?'✅ Bagus! Latihan intensif 1 bulan lagi = PTN Favorit!':pct>=60?'📈 Baik! Pelajari kembali topik yang salah':pct>=40?'⚠️ Perlu latihan lebih! Fokus pada topik lemah':'💪 Jangan menyerah! Ulangi dari awal dengan fokus';
+  document.getElementById('finalMsg').innerHTML = pct>=90?' SEMPURNA! Siap SNBT Favorit!':pct>=75?' Bagus! Latihan intensif 1 bulan lagi = PTN Favorit!':pct>=60?' Baik! Pelajari kembali topik yang salah':pct>=40?' Perlu latihan lebih! Fokus pada topik lemah':' Jangan menyerah! Ulangi dari awal dengan fokus';
 }
 
 function restart(){

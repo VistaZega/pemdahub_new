@@ -3,99 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator Energi Terbarukan: Panel Surya &amp; Turbin Angin</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#0284c7; }
-    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
-    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-    .s-val { font-size:1.05rem; font-weight:800; margin-top:2px; font-family:monospace; }
-  </style>
+  <title>Simulator Energi Terbarukan: Mikrogrid PLTS, PLTB &amp; Baterai</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>☀️💨 Simulator Energi Terbarukan: Pembangkit Listrik Tenaga Surya &amp; Bayu</h1>
-    <p>Bagaimana sudut panel surya dan kecepatan angin memengaruhi daya listrik (Watt) untuk menyalakan rumah modern?</p>
-  </header>
-  <main>
-    <div class="card"><canvas id="enCanvas" width="760" height="390"></canvas></div>
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Daya Surya</div><div class="s-val" id="vSun" style="color:#d97706">0 W</div></div>
-        <div class="s-box"><div class="s-lbl">Daya Angin</div><div class="s-val" id="vWind" style="color:#0284c7">0 W</div></div>
-        <div class="s-box"><div class="s-lbl">Total Listrik</div><div class="s-val" id="vTot" style="color:#059669">0 W</div></div>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Simulasi Mikrogrid Energi Terbarukan (PLTS + PLTB + Penyimpanan Baterai)</div>
+          <div class="sl-bar-sub">Analisis keluaran daya surya berdasarkan sudut kemiringan panel, kecepatan angin (P ∝ v³), dan neraca daya beban</div>
+        </div>
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Intensitas Cahaya Matahari</span><span id="lblS">80%</span></div>
-        <input type="range" id="inS" min="0" max="100" step="5" value="80" style="width:100%;accent-color:#f59e0b;cursor:pointer;">
+
+      <div class="sl-viewport">
+        <canvas id="enCanvas" height="400"></canvas>
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Kecepatan Angin</span><span id="lblW">8 m/s</span></div>
-        <input type="range" id="inW" min="0" max="20" step="1" value="8" style="width:100%;accent-color:#0284c7;cursor:pointer;">
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Variabel Cuaca &amp; Konfigurasi Panel</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Intensitas Radiasi Matahari</span><span class="sl-ctrl-val" id="lblS">80%</span></div>
+          <input type="range" id="inS" min="0" max="100" step="5" value="80" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Sudut Kemiringan Panel (θ)</span><span class="sl-ctrl-val" id="lblA">25°</span></div>
+          <input type="range" id="inA" min="0" max="60" step="5" value="25" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kecepatan Angin (v)</span><span class="sl-ctrl-val" id="lblW">8 m/s</span></div>
+          <input type="range" id="inW" min="0" max="20" step="1" value="8" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Beban Listrik Sekolah/Rumah</span><span class="sl-ctrl-val" id="lblL">900 W</span></div>
+          <input type="range" id="inL" min="200" max="2500" step="100" value="900" oninput="calc()" />
+        </div>
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Sudut Kemiringan Panel Surya</span><span id="lblA">30°</span></div>
-        <input type="range" id="inA" min="0" max="60" step="5" value="30" style="width:100%;accent-color:#10b981;cursor:pointer;">
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Pembangkitan Daya</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">PLTS Surya</div><div class="sl-readout-val" id="vSun" style="color:#d97706;">0 W</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">PLTB Angin</div><div class="sl-readout-val" id="vWind" style="color:#0284c7;">0 W</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Total Pasokan</div><div class="sl-readout-val" id="vTot" style="color:#059669;">0 W</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Status Baterai</div><div class="sl-readout-val" id="vBat">65%</div></div>
+        </div>
       </div>
-    </div>
-  </main>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Neraca Energi</div>
+        <div class="sl-formula">P_surya = P_max × cos(θ - θ_opt)<br>P_angin = ½ · ρ · A · v³</div>
+        <div class="sl-note" id="netNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
   <script>
-    const c = document.getElementById('enCanvas'), ctx = c.getContext('2d');
-    const inS = document.getElementById('inS'), inW = document.getElementById('inW'), inA = document.getElementById('inA');
-    let bladeAng = 0;
+    const cv = document.getElementById('enCanvas');
+    const ctx = cv.getContext('2d');
+    let bladeAng = 0, batPct = 65, flowOffset = 0;
+
+    function calc() {
+      const S = +document.getElementById('inS').value;
+      const A = +document.getElementById('inA').value;
+      const W = +document.getElementById('inW').value;
+      const L = +document.getElementById('inL').value;
+      document.getElementById('lblS').textContent = S + '%';
+      document.getElementById('lblA').textContent = A + '°';
+      document.getElementById('lblW').textContent = W + ' m/s';
+      document.getElementById('lblL').textContent = L + ' W';
+    }
 
     function loop() {
-      const S = +inS.value, W = +inW.value, A = +inA.value;
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const CW = cv.width, CH = cv.height;
+      const S = +document.getElementById('inS').value;
+      const A = +document.getElementById('inA').value;
+      const W = +document.getElementById('inW').value;
+      const L = +document.getElementById('inL').value;
+
       const eff = Math.cos(((A - 25) * Math.PI) / 180);
       const pSun = Math.max(0, Math.round(S * 12 * eff));
       const pWind = Math.round(Math.pow(W, 3) * 0.45);
       const pTot = pSun + pWind;
+      const surplus = pTot - L;
 
-      document.getElementById('lblS').textContent = S + '%';
-      document.getElementById('lblW').textContent = W + ' m/s';
-      document.getElementById('lblA').textContent = A + '°';
+      batPct = Math.max(0, Math.min(100, batPct + surplus * 0.00018));
+      bladeAng += W * 0.015;
+      flowOffset = (flowOffset + 1.5) % 24;
+
       document.getElementById('vSun').textContent = pSun + ' W';
       document.getElementById('vWind').textContent = pWind + ' W';
       document.getElementById('vTot').textContent = pTot + ' W';
+      document.getElementById('vBat').textContent = batPct.toFixed(0) + '%';
+      document.getElementById('netNote').innerHTML = surplus >= 0
+        ? `Surplus <strong>+${surplus} W</strong>: Daya berlebih dialirkan untuk mengisi baterai penyimpanan.`
+        : `Defisit <strong>${surplus} W</strong>: Kekurangan daya diambil dari cadangan baterai (${batPct.toFixed(0)}%).`;
 
-      bladeAng += W * 0.015;
-      ctx.clearRect(0,0,760,390);
+      ctx.clearRect(0, 0, CW, CH);
+      // Lapisan tanah
+      ctx.fillStyle = '#0f2922'; ctx.fillRect(0, 326, CW, 74);
+      ctx.strokeStyle = '#134e4a'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, 326); ctx.lineTo(CW, 326); ctx.stroke();
+
       // Matahari
-      ctx.fillStyle = `rgba(253,224,71,${0.25 + S/130})`; ctx.beginPath(); ctx.arc(90,70,35,0,Math.PI*2); ctx.fill();
-      // Tanah
-      ctx.fillStyle = '#064e3b'; ctx.fillRect(0,330,760,60);
+      ctx.fillStyle = `rgba(250,204,21,${0.15 + S / 120})`;
+      ctx.beginPath(); ctx.arc(76, 68, 28 + S * 0.1, 0, Math.PI * 2); ctx.fill();
+      if (S > 10) {
+        ctx.strokeStyle = `rgba(250,204,21,${S / 220})`; ctx.lineWidth = 1.5; ctx.setLineDash([4, 6]);
+        ctx.beginPath(); ctx.moveTo(96, 86); ctx.lineTo(CW * 0.2, 270); ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
-      // Panel Surya
-      ctx.save(); ctx.translate(180,295); ctx.rotate((-A * Math.PI)/180);
-      ctx.fillStyle = '#1e3a8a'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
-      ctx.fillRect(-65,-10,130,18); ctx.strokeRect(-65,-10,130,18);
+      // Panel Surya (Kiri)
+      const px = CW * 0.2, py = 286;
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, 326); ctx.stroke();
+      ctx.save(); ctx.translate(px, py); ctx.rotate((-A * Math.PI) / 180);
+      ctx.fillStyle = '#1e3a8a'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+      ctx.fillRect(-58, -9, 116, 16); ctx.strokeRect(-58, -9, 116, 16);
       ctx.restore();
-      ctx.fillStyle = '#64748b'; ctx.fillRect(174,295,12,35);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '11px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`PLTS: ${pSun} W`, px, 355);
 
-      // Turbin Angin
-      ctx.fillStyle = '#cbd5e1'; ctx.fillRect(394,140,12,190);
-      ctx.save(); ctx.translate(400,140); ctx.rotate(bladeAng);
+      // Turbin Angin (Tengah-Kiri)
+      const tx = CW * 0.46, ty = 175;
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx, 326); ctx.stroke();
+      ctx.save(); ctx.translate(tx, ty); ctx.rotate(bladeAng);
       ctx.fillStyle = '#f8fafc';
-      for(let i=0;i<3;i++){ ctx.rotate(Math.PI*2/3); ctx.fillRect(-5,-85,10,85); }
+      for (let i = 0; i < 3; i++) {
+        ctx.rotate((Math.PI * 2) / 3);
+        ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(74, 0); ctx.lineTo(0, 4); ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText(`PLTB: ${pWind} W`, tx, 355);
 
-      // Rumah & Lampu menyala sesuai daya
-      ctx.fillStyle = '#334155'; ctx.fillRect(570,220,120,110);
-      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(555,220); ctx.lineTo(630,165); ctx.lineTo(705,220); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = pTot > 500 ? '#fde047' : (pTot > 150 ? '#fbbf24' : '#1e293b');
-      ctx.fillRect(605,250,50,45);
+      // Baterai Penyimpanan (Tengah-Kanan)
+      const bx = CW * 0.68, by = 258;
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+      ctx.fillRect(bx - 28, by, 56, 68); ctx.strokeRect(bx - 28, by, 56, 68);
+      const fillH = (batPct / 100) * 60;
+      ctx.fillStyle = batPct > 25 ? '#22c55e' : '#ef4444';
+      ctx.fillRect(bx - 24, by + 64 - fillH, 48, fillH);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px monospace';
+      ctx.fillText(`${batPct.toFixed(0)}%`, bx, by + 40);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '11px monospace';
+      ctx.fillText('BATERAI', bx, 355);
 
-      requestAnimationFrame(loop);
+      // Beban Bangunan (Kanan)
+      const hx = CW * 0.87, hy = 256;
+      const lit = (pTot > 0 || batPct > 1);
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+      ctx.fillRect(hx - 32, hy, 64, 70); ctx.strokeRect(hx - 32, hy, 64, 70);
+      ctx.fillStyle = lit ? '#fde047' : '#334155';
+      ctx.fillRect(hx - 16, hy + 18, 12, 16);
+      ctx.fillRect(hx + 4, hy + 18, 12, 16);
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText(`BEBAN: ${L} W`, hx, 355);
+
+      // Jalur Kabel Busbar DC/AC
+      ctx.strokeStyle = pTot > 0 ? '#34d399' : '#475569';
+      ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.lineDashOffset = -flowOffset;
+      ctx.beginPath(); ctx.moveTo(px, 316); ctx.lineTo(tx, 316); ctx.lineTo(bx - 28, 316);
+      ctx.moveTo(bx + 28, 300); ctx.lineTo(hx - 32, 300); ctx.stroke();
+      ctx.setLineDash([]);
     }
+
+    calc();
     loop();
   </script>
 </body>

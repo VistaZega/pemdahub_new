@@ -11,11 +11,11 @@
     header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
     header h1 { font-size:1.1rem; font-weight:800; color:#fff; }
     header p { font-size:0.8rem; color:var(--muted); }
-    .badge { padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3); }
+    .badge { padding:4px 10px; border-radius: 4px; font-size:0.75rem; font-weight:700; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .ctrl { display:flex; flex-direction:column; gap:6px; }
     .ctrl-head { display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; }
     input[type=range] { width:100%; accent-color:var(--accent); cursor:pointer; }
@@ -29,30 +29,26 @@
     .t-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
     .t-label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; font-weight:700; }
     .t-val { font-size:1.1rem; font-weight:800; font-family:monospace; margin-top:2px; }
-    .info-box { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; color:#e2e8f0; }
+    .info-box { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; color:#e2e8f0; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <div>
-      <h1>🚀 Simulator Fisika: Gerak &amp; Gaya (Hukum II Newton)</h1>
+    <div><h1>Simulator Fisika: Gerak &amp; Gaya (Hukum II Newton)</h1>
       <p>Amati hubungan Gaya Dorong (F), Massa (m), Gaya Gesek (f<sub>k</sub>), dan Percepatan (a = ΣF / m)</p>
     </div>
     <span class="badge">Fisika / IPA • Animasi Vektor Real-Time</span>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="simCanvas" width="760" height="360"></canvas>
+    <div class="card"><canvas id="simCanvas" width="760" height="360"></canvas>
       <canvas id="graphCanvas" width="760" height="150"></canvas>
-      <div class="info-box" id="physicsExplain">
-        Geser slider <strong>Gaya Dorong</strong> dan <strong>Massa Benda</strong>, lalu tekan <strong>Jalankan</strong>. Panah biru menunjukkan gaya dorong, panah merah menunjukkan gaya gesek yang melawan arah gerak.
+      <div class="info-box" id="physicsExplain">Geser slider <strong>Gaya Dorong</strong> dan <strong>Massa Benda</strong>, lalu tekan <strong>Jalankan</strong>. Panah biru menunjukkan gaya dorong, panah merah menunjukkan gaya gesek yang melawan arah gerak.
       </div>
     </div>
 
-    <div class="card">
-      <div class="telemetry">
-        <div class="t-box"><div class="t-label">Resultan Gaya (ΣF)</div><div class="t-val" id="valFnet" style="color:#38bdf8">0 N</div></div>
+    <div class="card"><div class="telemetry"><div class="t-box"><div class="t-label">Resultan Gaya (ΣF)</div><div class="t-val" id="valFnet" style="color:#38bdf8">0 N</div></div>
         <div class="t-box"><div class="t-label">Percepatan (a)</div><div class="t-val" id="valAcc" style="color:#34d399">0.00 m/s²</div></div>
         <div class="t-box"><div class="t-label">Kecepatan (v)</div><div class="t-val" id="valVel" style="color:#fbbf24">0.00 m/s</div></div>
         <div class="t-box"><div class="t-label">Gaya Gesek Maks</div><div class="t-val" id="valFric" style="color:#f43f5e">0.0 N</div></div>
@@ -60,25 +56,20 @@
         <div class="t-box"><div class="t-label">Waktu (t)</div><div class="t-val" id="valTime" style="color:#f8fafc">0.0 s</div></div>
       </div>
 
-      <div class="ctrl">
-        <div class="ctrl-head"><span>Gaya Dorong (F<sub>dorong</sub>)</span><span id="lblForce" style="color:#38bdf8">80 N</span></div>
+      <div class="ctrl"><div class="ctrl-head"><span>Gaya Dorong (F<sub>dorong</sub>)</span><span id="lblForce" style="color:#38bdf8">80 N</span></div>
         <input type="range" id="inForce" min="0" max="250" step="5" value="80">
       </div>
-      <div class="ctrl">
-        <div class="ctrl-head"><span>Massa Benda (m)</span><span id="lblMass" style="color:#34d399">10 kg</span></div>
+      <div class="ctrl"><div class="ctrl-head"><span>Massa Benda (m)</span><span id="lblMass" style="color:#34d399">10 kg</span></div>
         <input type="range" id="inMass" min="2" max="50" step="1" value="10">
       </div>
-      <div class="ctrl">
-        <div class="ctrl-head"><span>Koefisien Gesek Lantai (μ)</span><span id="lblMu" style="color:#f43f5e">0.20</span></div>
+      <div class="ctrl"><div class="ctrl-head"><span>Koefisien Gesek Lantai (μ)</span><span id="lblMu" style="color:#f43f5e">0.20</span></div>
         <input type="range" id="inMu" min="0" max="0.8" step="0.05" value="0.20">
       </div>
-      <div class="ctrl">
-        <div class="ctrl-head"><span>Sudut Kemiringan Bidang (θ)</span><span id="lblAngle" style="color:#fbbf24">0°</span></div>
+      <div class="ctrl"><div class="ctrl-head"><span>Sudut Kemiringan Bidang (θ)</span><span id="lblAngle" style="color:#fbbf24">0°</span></div>
         <input type="range" id="inAngle" min="0" max="30" step="1" value="0">
       </div>
 
-      <div class="btn-row">
-        <button class="btn-primary" id="btnToggle">▶ Jalankan Simulasi</button>
+      <div class="btn-row"><button class="btn-primary" id="btnToggle">▶ Jalankan Simulasi</button>
         <button class="btn-warn" id="btnReset">↺ Reset Posisi</button>
         <button class="btn-muted" onclick="setPreset(0,10,0,0)">Preset: Es Licin (μ=0)</button>
         <button class="btn-muted" onclick="setPreset(140,15,0.35,10)">Preset: Jalan Menanjak</button>

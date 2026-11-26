@@ -4,69 +4,312 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Simulator Biologi: Genetika Mendel &amp; Papan Punnett</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
   <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; padding:16px; gap:16px; }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; }
-    h1 { font-size:1.15rem; font-weight:800; color:#059669; }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    @media(max-width:800px){ .grid { grid-template-columns:1fr; } }
-    select { width:100%; padding:10px; border-radius:10px; border:1px solid #cbd5e1; font-weight:700; margin-top:6px; }
-    table { width:100%; border-collapse:collapse; text-align:center; font-size:1.1rem; font-weight:800; }
-    td, th { border:2px solid #cbd5e1; padding:16px; }
-    th { background:#0f172a; color:#34d399; }
-    .dom { background:#d1fae5; color:#065f46; }
-    .het { background:#fef3c7; color:#92400e; }
-    .res { background:#ffe4e6; color:#9f1239; }
+    .punnett-table { width: 100%; border-collapse: collapse; text-align: center; font-family: var(--sl-font-mono); font-size: 0.88rem; font-weight: 700; }
+    .punnett-table th, .punnett-table td { border: 1px solid var(--sl-line); padding: 10px 6px; }
+    .punnett-table th { background: #0f172a; color: #f8fafc; font-size: 0.8rem; }
+    .g-dom { background: #ecfdf5; color: #065f46; }
+    .g-het { background: #fffbeb; color: #92400e; }
+    .g-res { background: #fef2f2; color: #991b1b; }
+    .bar-track { height: 10px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+    .bar-fill { height: 100%; transition: width 0.25s ease; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>🌱 Simulator Biologi: Hukum Pewarisan Sifat Mendel &amp; Papan Punnett</h1>
-    <p style="font-size:0.84rem;color:#475569;margin-top:4px;">Pilih genotipe Induk Jantan dan Betina untuk melihat probabilitas keturunan (AA, Aa, aa) secara instan.</p>
-  </div>
-  <div class="grid">
-    <div class="card" style="display:flex;flex-direction:column;gap:14px;">
-      <div>
-        <label style="font-weight:700;font-size:0.85rem;">Genotipe Induk 1 (A = Dominan Tinggi, a = Resesif Pendek)</label>
-        <select id="p1" onchange="calc()"><option value="AA">AA (Homozigot Dominan)</option><option value="Aa" selected>Aa (Heterozigot)</option><option value="aa">aa (Homozigot Resesif)</option></select>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Persilangan Genetika Hukum I &amp; II Mendel</div>
+          <div class="sl-bar-sub">Visualisasi fenotipe induk, segregasi gamet, papan Punnett, dan simulasi sampel panen 100 keturunan</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnMono" onclick="setMode('mono')">Monohibrid (1 Sifat)</button>
+          <button type="button" class="sl-btn" id="btnDi" onclick="setMode('di')">Dihibrid (2 Sifat)</button>
+        </div>
       </div>
-      <div>
-        <label style="font-weight:700;font-size:0.85rem;">Genotipe Induk 2</label>
-        <select id="p2" onchange="calc()"><option value="AA">AA (Homozigot Dominan)</option><option value="Aa" selected>Aa (Heterozigot)</option><option value="aa">aa (Homozigot Resesif)</option></select>
+
+      <div class="sl-viewport">
+        <canvas id="genCanvas" height="360"></canvas>
       </div>
-      <div id="summary" style="background:#f1f5f9;padding:14px;border-radius:12px;font-size:0.9rem;line-height:1.6;"></div>
-    </div>
-    <div class="card">
-      <table>
-        <thead><tr><th>Gamet</th><th id="g2a">A</th><th id="g2b">a</th></tr></thead>
-        <tbody>
-          <tr><th id="g1a">A</th><td id="c00"></td><td id="c01"></td></tr>
-          <tr><th id="g1b">a</th><td id="c10"></td><td id="c11"></td></tr>
-        </tbody>
-      </table>
-    </div>
+
+      <div>
+        <div class="sl-group-label" id="punnettTitle">Matriks Papan Punnett (F1 / F2)</div>
+        <div id="punnettWrap"></div>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Konfigurasi Genotipe Induk</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Induk 1 (Jantan / P₁)</span><span class="sl-ctrl-val" id="lblP1">Tt</span></div>
+          <select id="selP1" onchange="calc()"></select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Induk 2 (Betina / P₂)</span><span class="sl-ctrl-val" id="lblP2">Tt</span></div>
+          <select id="selP2" onchange="calc()"></select>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn sl-btn-primary" onclick="runHarvest(100)">Simulasi Panen 100 Biji</button>
+          <button type="button" class="sl-btn" onclick="resetHarvest()">Reset Sampel</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Rasio Teoretis vs Empiris</div>
+        <div id="ratioBars" style="display:flex;flex-direction:column;gap:8px;font-size:0.8rem;"></div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hasil Sampel Eksperimen</div>
+        <div class="sl-readouts" id="harvestStats">
+          <div class="sl-readout"><div class="sl-readout-lbl">Total Panen</div><div class="sl-readout-val" id="hTotal">0</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Dominan Penuh</div><div class="sl-readout-val" id="hDom">0</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Resesif Penuh</div><div class="sl-readout-val" id="hRec">0</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Catatan Hukum Pewarisan</div>
+        <div class="sl-note" id="noteBox">
+          <strong>T / t:</strong> Batang Tinggi (T dominan) vs Kerdil (t resesif).<br>
+          <strong>B / b:</strong> Biji Bulat (B dominan) vs Keriput (b resesif).
+        </div>
+      </div>
+    </aside>
   </div>
+
   <script>
-    function norm(x, y) { return [x, y].sort().join(''); }
-    function cls(g) { return g === 'AA' ? 'dom' : (g === 'Aa' ? 'het' : 'res'); }
-    function calc() {
-      const a = document.getElementById('p1').value, b = document.getElementById('p2').value;
-      document.getElementById('g1a').textContent = a[0]; document.getElementById('g1b').textContent = a[1];
-      document.getElementById('g2a').textContent = b[0]; document.getElementById('g2b').textContent = b[1];
-      const cells = [[norm(a[0],b[0]), 'c00'], [norm(a[0],b[1]), 'c01'], [norm(a[1],b[0]), 'c10'], [norm(a[1],b[1]), 'c11']];
-      let cAA=0, cAa=0, caa=0;
-      cells.forEach(([g, id]) => {
-        const el = document.getElementById(id);
-        el.textContent = g; el.className = cls(g);
-        if (g==='AA') cAA++; else if (g==='Aa') cAa++; else caa++;
-      });
-      document.getElementById('summary').innerHTML =
-        `<strong>Rasio Genotipe:</strong> AA (${cAA*25}%) : Aa (${cAa*25}%) : aa (${caa*25}%)<br>` +
-        `<strong>Rasio Fenotipe:</strong> Dominan Tinggi = <strong>${(cAA+cAa)*25}%</strong> | Resesif Pendek = <strong>${caa*25}%</strong>`;
+    const cv = document.getElementById('genCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'mono';
+    let harvested = [];
+    let lastOutcomes = [];
+
+    const MONO_OPTS = [
+      { v: 'TT', t: 'TT (Homozigot Dominan — Tinggi)' },
+      { v: 'Tt', t: 'Tt (Heterozigot — Tinggi)' },
+      { v: 'tt', t: 'tt (Homozigot Resesif — Kerdil)' }
+    ];
+    const DI_OPTS = [
+      { v: 'TTBB', t: 'TTBB (Tinggi, Biji Bulat)' },
+      { v: 'TtBb', t: 'TtBb (Dihibrid Heterozigot)' },
+      { v: 'TTbb', t: 'TTbb (Tinggi, Biji Keriput)' },
+      { v: 'ttBB', t: 'ttBB (Kerdil, Biji Bulat)' },
+      { v: 'ttbb', t: 'ttbb (Kerdil, Biji Keriput)' }
+    ];
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnMono').classList.toggle('is-active', m === 'mono');
+      document.getElementById('btnDi').classList.toggle('is-active', m === 'di');
+      populateSelects();
+      harvested = [];
+      calc();
     }
-    calc();
+
+    function populateSelects() {
+      const opts = mode === 'mono' ? MONO_OPTS : DI_OPTS;
+      const def = mode === 'mono' ? 'Tt' : 'TtBb';
+      ['selP1', 'selP2'].forEach(id => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = opts.map(o => `<option value="${o.v}" ${o.v === def ? 'selected' : ''}>${o.t}</option>`).join('');
+      });
+    }
+
+    function getGametes(g) {
+      if (mode === 'mono') return [g[0], g[1]];
+      const t = [g[0], g[1]], b = [g[2], g[3]];
+      const out = [];
+      t.forEach(a => b.forEach(c => out.push(a + c)));
+      return out;
+    }
+
+    function combineGametes(g1, g2) {
+      if (mode === 'mono') return [g1, g2].sort((a, b) => a.toUpperCase() === b.toUpperCase() ? (a < b ? -1 : 1) : 0).join('');
+      const t = [g1[0], g2[0]].sort((a, b) => a < b ? -1 : 1).join('');
+      const b = [g1[1], g2[1]].sort((a, b) => a < b ? -1 : 1).join('');
+      return t + b;
+    }
+
+    function phenotypeLabel(geno) {
+      if (mode === 'mono') return geno.includes('T') ? 'Batang Tinggi' : 'Batang Kerdil';
+      const tall = geno.slice(0, 2).includes('T') ? 'Tinggi' : 'Kerdil';
+      const round = geno.slice(2, 4).includes('B') ? 'Bulat' : 'Keriput';
+      return `${tall}, ${round}`;
+    }
+
+    function cellClass(geno) {
+      if (mode === 'mono') return geno === 'TT' ? 'g-dom' : (geno === 'Tt' ? 'g-het' : 'g-res');
+      if (geno === 'ttbb') return 'g-res';
+      if (geno.includes('T') && geno.includes('B')) return 'g-dom';
+      return 'g-het';
+    }
+
+    function calc() {
+      const p1 = document.getElementById('selP1').value;
+      const p2 = document.getElementById('selP2').value;
+      document.getElementById('lblP1').textContent = p1;
+      document.getElementById('lblP2').textContent = p2;
+
+      const gm1 = getGametes(p1);
+      const gm2 = getGametes(p2);
+      lastOutcomes = [];
+
+      let html = '<table class="punnett-table"><thead><tr><th>Gamet P₁ \\ P₂</th>';
+      gm2.forEach(g => { html += `<th>${g}</th>`; });
+      html += '</tr></thead><tbody>';
+
+      gm1.forEach(a => {
+        html += `<tr><th>${a}</th>`;
+        gm2.forEach(b => {
+          const child = combineGametes(a, b);
+          lastOutcomes.push(child);
+          html += `<td class="${cellClass(child)}">${child}<div style="font-size:0.65rem;font-weight:600;opacity:0.8;">${phenotypeLabel(child)}</div></td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      document.getElementById('punnettWrap').innerHTML = html;
+
+      // Hitung rasio fenotipe teoretis
+      const phenoMap = {};
+      lastOutcomes.forEach(o => {
+        const lbl = phenotypeLabel(o);
+        phenoMap[lbl] = (phenoMap[lbl] || 0) + 1;
+      });
+      const total = lastOutcomes.length;
+      const colors = ['#059669', '#0284c7', '#d97706', '#dc2626'];
+      let barsHtml = '';
+      Object.entries(phenoMap).forEach(([lbl, cnt], idx) => {
+        const pct = ((cnt / total) * 100).toFixed(1);
+        const empCnt = harvested.filter(h => h.pheno === lbl).length;
+        const empStr = harvested.length ? ` | Sampel: ${empCnt}/${harvested.length} (${((empCnt / harvested.length) * 100).toFixed(1)}%)` : '';
+        barsHtml += `
+          <div>
+            <div style="display:flex;justify-content:space-between;font-weight:600;">
+              <span>${lbl}</span>
+              <span style="font-family:var(--sl-font-mono);font-variant-numeric:tabular-nums;">${cnt}/${total} (${pct}%)${empStr}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colors[idx % colors.length]};"></div></div>
+          </div>`;
+      });
+      document.getElementById('ratioBars').innerHTML = barsHtml;
+      updateHarvestSummary();
+      drawCanvas(p1, p2, gm1, gm2);
+    }
+
+    function runHarvest(n) {
+      if (!lastOutcomes.length) return;
+      for (let i = 0; i < n; i++) {
+        const g = lastOutcomes[Math.floor(Math.random() * lastOutcomes.length)];
+        harvested.push({ geno: g, pheno: phenotypeLabel(g) });
+      }
+      calc();
+    }
+
+    function resetHarvest() {
+      harvested = [];
+      calc();
+    }
+
+    function updateHarvestSummary() {
+      document.getElementById('hTotal').textContent = harvested.length;
+      const domLabel = mode === 'mono' ? 'Batang Tinggi' : 'Tinggi, Bulat';
+      const recLabel = mode === 'mono' ? 'Batang Kerdil' : 'Kerdil, Keriput';
+      document.getElementById('hDom').textContent = harvested.filter(h => h.pheno === domLabel).length;
+      document.getElementById('hRec').textContent = harvested.filter(h => h.pheno === recLabel).length;
+    }
+
+    function drawPlant(x, y, isTall, isRound, label, geno) {
+      const h = isTall ? 74 : 38;
+      // Pot / Media tanah
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(x - 16, y, 32, 10);
+      // Batang
+      ctx.strokeStyle = isTall ? '#22c55e' : '#eab308';
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - h); ctx.stroke();
+      // Daun
+      ctx.fillStyle = isTall ? '#4ade80' : '#facc15';
+      ctx.beginPath(); ctx.ellipse(x - 10, y - h * 0.55, 9, 4, -0.4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x + 10, y - h * 0.72, 9, 4, 0.4, 0, Math.PI * 2); ctx.fill();
+      // Polong / Biji di puncak
+      ctx.fillStyle = isRound ? '#38bdf8' : '#f87171';
+      if (isRound) {
+        ctx.beginPath(); ctx.arc(x, y - h - 6, 7, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.beginPath();
+        for (let a = 0; a < 8; a++) {
+          const r = a % 2 === 0 ? 8 : 5;
+          const ang = (a / 8) * Math.PI * 2;
+          const px = x + Math.cos(ang) * r, py = y - h - 6 + Math.sin(ang) * r;
+          a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(geno, x, y + 24);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(label, x, y + 37);
+    }
+
+    function drawCanvas(p1, p2, gm1, gm2) {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 340;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      // Grid halus instrumen
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+      for (let gy = 0; gy < H; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+      // Bagian Atas: Induk P1 x P2
+      const yParent = 112;
+      const x1 = W * 0.25, x2 = W * 0.75;
+      drawPlant(x1, yParent, p1.includes('T'), mode === 'mono' || p1.includes('B'), 'Induk P₁', p1);
+      drawPlant(x2, yParent, p2.includes('T'), mode === 'mono' || p2.includes('B'), 'Induk P₂', p2);
+
+      // Tanda silang
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('×', W * 0.5, yParent - 28);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px monospace';
+      ctx.fillText(`Gamet P₁: ${gm1.join(', ')}   |   Gamet P₂: ${gm2.join(', ')}`, W * 0.5, 166);
+
+      // Garis pembatas generasi
+      ctx.strokeStyle = 'rgba(148,163,184,0.22)';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(24, 184); ctx.lineTo(W - 24, 184); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Bagian Bawah: Contoh 4 Keturunan F1/F2 representatif (atau sampel panen)
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(harvested.length ? `Sampel Acak Hasil Panen Terbaru (${harvested.length} Biji)` : 'Representasi Kombinasi Keturunan (F₁ / F₂)', 20, 206);
+
+      const sampleList = harvested.length
+        ? harvested.slice(-4).map(h => h.geno)
+        : lastOutcomes.slice(0, 4);
+      sampleList.forEach((g, idx) => {
+        const px = W * (0.14 + idx * 0.24);
+        drawPlant(px, 294, g.includes('T'), mode === 'mono' || g.includes('B'), phenotypeLabel(g), g);
+      });
+    }
+
+    window.addEventListener('resize', calc);
+    window.addEventListener('load', calc);
+    setMode('mono');
   </script>
 </body>
 </html>

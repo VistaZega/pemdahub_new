@@ -4,80 +4,196 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Simulator Matematika: Peluang Dua Dadu &amp; Hukum Bilangan Besar</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
   <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#047857; }
-    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    .dice-row { display:flex; gap:16px; justify-content:center; align-items:center; padding:12px; background:#f1f5f9; border-radius:12px; }
-    .die { width:56px; height:56px; background:#fff; border:2px solid #0f172a; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:900; }
-    button { border:none; border-radius:10px; padding:10px 14px; font-weight:700; font-size:0.84rem; cursor:pointer; background:#059669; color:#fff; }
+    .dice-pair { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px; background: #ffffff; border: 1px solid var(--sl-line); border-radius: 6px; }
+    .die-face { width: 48px; height: 48px; border: 2px solid #0f172a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--sl-font-mono); font-size: 1.4rem; font-weight: 800; background: #f8fafc; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>🎲 Simulator Matematika: Peluang Dua Dadu &amp; Distribusi Frekuensi</h1>
-    <p>Mengapa jumlah 7 selalu paling sering muncul saat 2 dadu dilempar ratusan kali?</p>
-  </header>
-
-  <main>
-    <div class="card">
-      <canvas id="probCanvas" width="760" height="380"></canvas>
-    </div>
-
-    <div class="card">
-      <div class="dice-row">
-        <div class="die" id="d1">3</div>
-        <span style="font-size:1.4rem;font-weight:800;">+</span>
-        <div class="die" id="d2">4</div>
-        <span style="font-size:1.4rem;font-weight:800;">=</span>
-        <div class="die" id="dSum" style="background:#d1fae5;border-color:#059669;color:#065f46;">7</div>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Ruang Sampel 36 Pasangan Dadu &amp; Distribusi Frekuensi Empiris</div>
+          <div class="sl-bar-sub">Bandingkan histogram hasil percobaan terhadap kurva peluang teoretis (garis kuning)</div>
+        </div>
       </div>
-      <div style="font-size:0.88rem;font-weight:700;text-align:center;" id="totInfo">Total Lemparan: 0 | Frekuensi Jumlah 7: 0%</div>
-      <button onclick="roll(1)">🎲 Lempar 1× Dadu</button>
-      <button onclick="roll(500)" style="background:#0284c7;">⚡ Lempar 500× Sekaligus (Hukum Bilangan Besar)</button>
-      <button onclick="counts.fill(0);total=0;draw();" style="background:#475569;">↺ Reset Data</button>
-    </div>
-  </main>
+
+      <div class="sl-viewport">
+        <canvas id="probCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Lemparan Terakhir</div>
+        <div class="dice-pair">
+          <div class="die-face" id="d1">3</div>
+          <span style="font-weight:800;">+</span>
+          <div class="die-face" id="d2">4</div>
+          <span style="font-weight:800;">=</span>
+          <div class="die-face" id="dSum" style="background:#0f172a;color:#ffffff;">7</div>
+        </div>
+        <div class="sl-btn-row" style="margin-top:10px;">
+          <button type="button" class="sl-btn" onclick="roll(1)">Lempar 1×</button>
+          <button type="button" class="sl-btn" onclick="roll(100)">100× Cepat</button>
+          <button type="button" class="sl-btn sl-btn-primary" onclick="roll(1000)">1.000× Uji Konvergensi</button>
+          <button type="button" class="sl-btn" onclick="resetData()">Reset</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Filter Kejadian Target (Matriks 6×6)</div>
+        <select id="selEvent" onchange="draw()">
+          <option value="sum7">Jumlah Mata Dadu = 7 (6/36 = 16.7%)</option>
+          <option value="ge9">Jumlah ≥ 9 (10/36 = 27.8%)</option>
+          <option value="double">Mata Dadu Kembar / Sama (6/36 = 16.7%)</option>
+          <option value="even">Jumlah Genap (18/36 = 50.0%)</option>
+        </select>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Peluang</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Total Percobaan</div><div class="sl-readout-val" id="tTotal">0</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Peluang Teori</div><div class="sl-readout-val" id="tTheo">16.7%</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Frekuensi Empiris</div><div class="sl-readout-val" id="tEmp">0.0%</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hukum Bilangan Besar</div>
+        <div class="sl-note">
+          Pada sedikit lemparan, frekuensi empiris bisa menyimpang jauh dari teori. Semakin banyak percobaan (N ≥ 1.000), frekuensi relatif semakin mendekati probabilitas teoretis <strong>P(A) = n(A)/36</strong>.
+        </div>
+      </div>
+    </aside>
+  </div>
 
   <script>
-    const c = document.getElementById('probCanvas'), ctx = c.getContext('2d');
+    const cv = document.getElementById('probCanvas');
+    const ctx = cv.getContext('2d');
     const counts = Array(13).fill(0);
-    let total = 0;
+    let total = 0, eventHits = 0, lastA = 3, lastB = 4;
+
+    function matchEvent(a, b, ev) {
+      const s = a + b;
+      if (ev === 'sum7') return s === 7;
+      if (ev === 'ge9') return s >= 9;
+      if (ev === 'double') return a === b;
+      return s % 2 === 0;
+    }
+
+    function theoCount(ev) {
+      let c = 0;
+      for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) if (matchEvent(a, b, ev)) c++;
+      return c;
+    }
+
+    const matrixHits = Array.from({ length: 7 }, () => Array(7).fill(0));
 
     function roll(n) {
-      let a = 1, b = 1;
       for (let i = 0; i < n; i++) {
-        a = 1 + Math.floor(Math.random()*6);
-        b = 1 + Math.floor(Math.random()*6);
-        counts[a + b]++;
+        lastA = 1 + Math.floor(Math.random() * 6);
+        lastB = 1 + Math.floor(Math.random() * 6);
+        counts[lastA + lastB]++;
+        matrixHits[lastA][lastB]++;
         total++;
       }
-      document.getElementById('d1').textContent = a;
-      document.getElementById('d2').textContent = b;
-      document.getElementById('dSum').textContent = a + b;
-      document.getElementById('totInfo').textContent = `Total Lemparan: ${total} | Frekuensi Jumlah 7: ${total ? ((counts[7]/total)*100).toFixed(1) : 0}% (Teori: 16.7%)`;
+      document.getElementById('d1').textContent = lastA;
+      document.getElementById('d2').textContent = lastB;
+      document.getElementById('dSum').textContent = lastA + lastB;
+      draw();
+    }
+
+    function resetData() {
+      counts.fill(0);
+      for (let i = 1; i <= 6; i++) matrixHits[i].fill(0);
+      total = 0;
       draw();
     }
 
     function draw() {
-      ctx.clearRect(0, 0, c.width, c.height);
-      const maxC = Math.max(1, ...counts);
-      for (let s = 2; s <= 12; s++) {
-        const i = s - 2, x = 50 + i * 62, h = (counts[s] / maxC) * 260;
-        ctx.fillStyle = s === 7 ? '#fbbf24' : '#34d399';
-        ctx.fillRect(x, 320 - h, 44, h);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(s, x + 22, 345);
-        if (counts[s] > 0) ctx.fillText(counts[s], x + 22, 312 - h);
+      const ev = document.getElementById('selEvent').value;
+      const nA = theoCount(ev);
+      let hits = 0;
+      for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) if (matchEvent(a, b, ev)) hits += matrixHits[a][b];
+      document.getElementById('tTotal').textContent = total.toLocaleString('id-ID');
+      document.getElementById('tTheo').textContent = ((nA / 36) * 100).toFixed(1) + '%';
+      document.getElementById('tEmp').textContent = total ? ((hits / total) * 100).toFixed(1) + '%' : '0.0%';
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      // Kiri: Matriks Ruang Sampel 6x6
+      const matSize = Math.min(230, W * 0.34);
+      const cell = matSize / 6;
+      const mx = 34, my = 56;
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(`MATRIKS RUANG SAMPEL 6×6 (${nA}/36)`, mx, 30);
+
+      for (let a = 1; a <= 6; a++) {
+        ctx.fillStyle = '#64748b'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(a, mx + (a - 0.5) * cell, my - 8);
+        ctx.fillText(a, mx - 12, my + (a - 0.5) * cell + 4);
+        for (let b = 1; b <= 6; b++) {
+          const cx = mx + (b - 1) * cell, cy = my + (a - 1) * cell;
+          const ok = matchEvent(a, b, ev);
+          const cur = (total > 0 && a === lastA && b === lastB);
+          ctx.fillStyle = ok ? 'rgba(56,189,248,0.25)' : '#111827';
+          ctx.fillRect(cx + 1, cy + 1, cell - 2, cell - 2);
+          ctx.strokeStyle = cur ? '#fbbf24' : (ok ? '#38bdf8' : '#1e293b');
+          ctx.lineWidth = cur ? 2 : 1;
+          ctx.strokeRect(cx + 1, cy + 1, cell - 2, cell - 2);
+          ctx.fillStyle = ok ? '#e0f2fe' : '#64748b';
+          ctx.font = '10px monospace';
+          ctx.fillText(a + b, cx + cell / 2, cy + cell / 2 + 3);
+        }
       }
+
+      // Kanan: Histogram Distribusi Jumlah 2..12 vs Garis Teoretis
+      const hx = mx + matSize + 44, hw = W - hx - 24, hy = 56, hh = 265;
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('HISTOGRAM EMPIRIS vs TEORI (%)', hx, 30);
+
+      const theoPct = [0, 0, 1/36, 2/36, 3/36, 4/36, 5/36, 6/36, 5/36, 4/36, 3/36, 2/36, 1/36];
+      const maxPct = Math.max(0.22, ...counts.map(c => total ? c / total : 0));
+      const slot = hw / 11;
+
+      for (let s = 2; s <= 12; s++) {
+        const i = s - 2;
+        const bx = hx + i * slot + slot * 0.14;
+        const bw = slot * 0.72;
+        const empP = total ? counts[s] / total : 0;
+        const bh = (empP / maxPct) * hh;
+        ctx.fillStyle = s === 7 ? '#34d399' : '#38bdf8';
+        ctx.fillRect(bx, hy + hh - bh, bw, bh);
+
+        ctx.fillStyle = '#94a3b8'; ctx.font = '11px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(s, bx + bw / 2, hy + hh + 18);
+        if (counts[s] > 0) {
+          ctx.fillStyle = '#f8fafc'; ctx.font = '9px monospace';
+          ctx.fillText((empP * 100).toFixed(0) + '%', bx + bw / 2, hy + hh - bh - 6);
+        }
+      }
+
+      // Kurva probabilitas teoretis
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let s = 2; s <= 12; s++) {
+        const i = s - 2;
+        const px = hx + i * slot + slot * 0.5;
+        const py = hy + hh - (theoPct[s] / maxPct) * hh;
+        s === 2 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.stroke();
     }
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
     draw();
   </script>
 </body>

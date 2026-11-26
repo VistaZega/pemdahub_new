@@ -3,109 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator Kimia: Stoikiometri &amp; Pereaksi Pembatas (2H₂ + O₂ → 2H₂O)</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#6d28d9; }
-    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
-    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-    .s-val { font-size:1rem; font-weight:800; margin-top:2px; font-family:monospace; }
-  </style>
+  <title>Simulator Kimia: Stoikiometri, Pereaksi Pembatas &amp; Tabel MRS</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>⚗️ Simulator Kimia: Stoikiometri &amp; Pereaksi Pembatas (2H₂ + O₂ → 2H₂O)</h1>
-    <p>Lihat molekul mana yang habis duluan (Pereaksi Pembatas) dan berapa molekul yang tersisa!</p>
-  </header>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Reaktor Stoikiometri &amp; Penentuan Pereaksi Pembatas (Tabel MRS)</div>
+          <div class="sl-bar-sub">Perbandingan rasio mol terhadap koefisien reaksi untuk mengidentifikasi zat habis dan zat bersisa</div>
+        </div>
+        <select id="selRxn" onchange="calc()" style="max-width:300px;">
+          <option value="water">2H₂ + O₂ → 2H₂O (Sintesis Air)</option>
+          <option value="ammonia">N₂ + 3H₂ → 2NH₃ (Haber-Bosch)</option>
+          <option value="methane">CH₄ + 2O₂ → CO₂ + 2H₂O (Pembakaran)</option>
+        </select>
+      </div>
 
-  <main>
-    <div class="card">
-      <canvas id="stCanvas" width="760" height="390"></canvas>
-    </div>
-
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Produk H₂O</div><div class="s-val" id="vH2O" style="color:#0284c7">0 mol</div></div>
-        <div class="s-box"><div class="s-lbl">Pereaksi Pembatas</div><div class="s-val" id="vLim" style="color:#e11d48">-</div></div>
-        <div class="s-box"><div class="s-lbl">Zat Bersisa</div><div class="s-val" id="vRem" style="color:#d97706">-</div></div>
+      <div class="sl-viewport">
+        <canvas id="stCanvas" height="330"></canvas>
       </div>
 
       <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Jumlah Awal Mol H₂ (Putih-Biru)</span><span id="lblH2">6 mol</span></div>
-        <input type="range" id="inH2" min="1" max="12" step="1" value="6" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
+        <div class="sl-group-label">Tabel Stoikiometri (Mula-mula · Bereaksi · Sisa)</div>
+        <table class="sl-table" id="mrsTable"></table>
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Jumlah Awal Mol O₂ (Merah)</span><span id="lblO2">2 mol</span></div>
-        <input type="range" id="inO2" min="1" max="8" step="1" value="2" style="width:100%;accent-color:#f43f5e;cursor:pointer;">
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Input Jumlah Mol Reaktan</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span id="lblNameA">Reaktan A</span><span class="sl-ctrl-val" id="lblA">6 mol</span></div>
+          <input type="range" id="inA" min="1" max="12" step="1" value="6" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span id="lblNameB">Reaktan B</span><span class="sl-ctrl-val" id="lblB">2 mol</span></div>
+          <input type="range" id="inB" min="1" max="12" step="1" value="2" oninput="calc()" />
+        </div>
       </div>
-    </div>
-  </main>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hasil Reaksi</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Pereaksi Pembatas</div><div class="sl-readout-val" id="valLim" style="color:#dc2626;">—</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Produk Utama</div><div class="sl-readout-val" id="valProd" style="color:#059669;">—</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Sisa Berlebih</div><div class="sl-readout-val" id="valEx">—</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Langkah Penentuan</div>
+        <div class="sl-note" id="stepNote">—</div>
+      </div>
+    </aside>
+  </div>
 
   <script>
-    const c = document.getElementById('stCanvas'), ctx = c.getContext('2d');
-    const inH2 = document.getElementById('inH2'), inO2 = document.getElementById('inO2');
+    const cv = document.getElementById('stCanvas');
+    const ctx = cv.getContext('2d');
 
-    function draw() {
-      const h2 = +inH2.value, o2 = +inO2.value;
-      const rx = Math.min(h2 / 2, o2);
-      const h2o = rx * 2;
-      const remH2 = h2 - rx * 2, remO2 = o2 - rx;
+    const RXNS = {
+      water: { nameA: 'H₂', nameB: 'O₂', prod: 'H₂O', cA: 2, cB: 1, cP: 2, colA: '#38bdf8', colB: '#f87171', colP: '#34d399' },
+      ammonia: { nameA: 'N₂', nameB: 'H₂', prod: 'NH₃', cA: 1, cB: 3, cP: 2, colA: '#a78bfa', colB: '#38bdf8', colP: '#34d399' },
+      methane: { nameA: 'CH₄', nameB: 'O₂', prod: 'CO₂ (+2H₂O)', cA: 1, cB: 2, cP: 1, colA: '#fbbf24', colB: '#f87171', colP: '#34d399' }
+    };
 
-      document.getElementById('lblH2').textContent = h2 + ' mol';
-      document.getElementById('lblO2').textContent = o2 + ' mol';
-      document.getElementById('vH2O').textContent = h2o + ' mol';
-      document.getElementById('vLim').textContent = (h2/2 < o2) ? 'H₂ Habis' : ((o2 < h2/2) ? 'O₂ Habis' : 'Pas Habis');
-      document.getElementById('vRem').textContent = remH2 > 0 ? `${remH2} mol H₂` : (remO2 > 0 ? `${remO2} mol O₂` : '0 (Habis)');
+    function calc() {
+      const r = RXNS[document.getElementById('selRxn').value];
+      const nA = +document.getElementById('inA').value;
+      const nB = +document.getElementById('inB').value;
+      document.getElementById('lblNameA').textContent = `Mol Awal ${r.nameA} (koef: ${r.cA})`;
+      document.getElementById('lblNameB').textContent = `Mol Awal ${r.nameB} (koef: ${r.cB})`;
+      document.getElementById('lblA').textContent = nA + ' mol';
+      document.getElementById('lblB').textContent = nB + ' mol';
 
-      ctx.clearRect(0, 0, c.width, c.height);
-      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 13px sans-serif';
-      ctx.fillText('SEBELUM REAKSI (Reaktan)', 40, 35);
-      ctx.fillText('SETELAH REAKSI (Produk H₂O + Sisa)', 400, 35);
-      ctx.strokeStyle = '#334155'; ctx.beginPath(); ctx.moveTo(375, 20); ctx.lineTo(375, 370); ctx.stroke();
+      const ratioA = nA / r.cA;
+      const ratioB = nB / r.cB;
+      const factor = Math.min(ratioA, ratioB);
 
-      // Gambar H2 awal
-      for (let i = 0; i < h2; i++) {
-        const x = 60 + (i % 4)*70, y = 75 + Math.floor(i/4)*55;
-        ctx.fillStyle = '#38bdf8';
-        ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2); ctx.arc(x+16, y, 10, 0, Math.PI*2); ctx.fill();
-      }
-      // Gambar O2 awal
-      for (let i = 0; i < o2; i++) {
-        const x = 60 + (i % 4)*70, y = 260 + Math.floor(i/4)*50;
-        ctx.fillStyle = '#f43f5e';
-        ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI*2); ctx.arc(x+20, y, 13, 0, Math.PI*2); ctx.fill();
-      }
+      const usedA = factor * r.cA;
+      const usedB = factor * r.cB;
+      const remA = nA - usedA;
+      const remB = nB - usedB;
+      const prodMol = factor * r.cP;
 
-      // Gambar H2O hasil
-      for (let i = 0; i < h2o; i++) {
-        const x = 420 + (i % 4)*80, y = 85 + Math.floor(i/4)*65;
-        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#38bdf8';
-        ctx.beginPath(); ctx.arc(x-13, y+10, 8, 0, Math.PI*2); ctx.arc(x+13, y+10, 8, 0, Math.PI*2); ctx.fill();
-      }
+      const lim = Math.abs(ratioA - ratioB) < 1e-6 ? 'Habis Tepat (Ekuivalen)' : (ratioA < ratioB ? r.nameA : r.nameB);
+      const exStr = remA > 1e-6 ? `${remA.toFixed(2)} mol ${r.nameA}` : (remB > 1e-6 ? `${remB.toFixed(2)} mol ${r.nameB}` : '0 mol');
 
-      // Gambar Sisa
-      ctx.fillStyle = '#fbbf24'; ctx.fillText('SISA TAK BEREAKSI:', 400, 290);
-      for (let i = 0; i < remH2; i++) {
-        const x = 420 + i*45, y = 325;
-        ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2); ctx.arc(x+14, y, 9, 0, Math.PI*2); ctx.fill();
-      }
-      for (let i = 0; i < remO2; i++) {
-        const x = 420 + i*55, y = 325;
-        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.arc(x+18, y, 12, 0, Math.PI*2); ctx.fill();
-      }
+      document.getElementById('valLim').textContent = lim;
+      document.getElementById('valProd').textContent = `${prodMol.toFixed(2)} mol ${r.prod}`;
+      document.getElementById('valEx').textContent = exStr;
+
+      document.getElementById('mrsTable').innerHTML = `
+        <thead><tr><th>Tahap</th><th>${r.cA} ${r.nameA}</th><th>${r.cB} ${r.nameB}</th><th>→ ${r.cP} ${r.prod}</th></tr></thead>
+        <tbody>
+          <tr><td><strong>M</strong>ula-mula</td><td>${nA.toFixed(2)} mol</td><td>${nB.toFixed(2)} mol</td><td>0.00 mol</td></tr>
+          <tr><td><strong>R</strong>eaksi</td><td>−${usedA.toFixed(2)} mol</td><td>−${usedB.toFixed(2)} mol</td><td>+${prodMol.toFixed(2)} mol</td></tr>
+          <tr><td><strong>S</strong>isa</td><td>${remA.toFixed(2)} mol</td><td>${remB.toFixed(2)} mol</td><td><strong>${prodMol.toFixed(2)} mol</strong></td></tr>
+        </tbody>`;
+
+      document.getElementById('stepNote').innerHTML =
+        `Rasio mol/koefisien: ${r.nameA} = ${nA}/${r.cA} = <strong>${ratioA.toFixed(2)}</strong>, ${r.nameB} = ${nB}/${r.cB} = <strong>${ratioB.toFixed(2)}</strong>. Nilai terkecil (${factor.toFixed(2)}) menentukan <strong>${lim}</strong>.`;
+
+      drawScene(r, nA, nB, prodMol, remA, remB);
     }
-    [inH2, inO2].forEach(el => el.oninput = draw);
-    draw();
+
+    function drawChamber(x, y, w, h, title, items) {
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5;
+      ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(title, x + w / 2, y - 10);
+
+      let idx = 0;
+      const cols = Math.max(4, Math.floor((w - 24) / 26));
+      items.forEach(it => {
+        const count = Math.round(it.count * 2);
+        for (let k = 0; k < count; k++) {
+          const col = idx % cols, row = Math.floor(idx / cols);
+          const px = x + 22 + col * 26, py = y + 26 + row * 28;
+          if (py < y + h - 14) {
+            ctx.fillStyle = it.color;
+            ctx.beginPath(); ctx.arc(px, py, 9, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#0f172a'; ctx.font = 'bold 8px monospace';
+            ctx.fillText(it.label, px, py + 3);
+          }
+          idx++;
+        }
+      });
+    }
+
+    function drawScene(r, nA, nB, prodMol, remA, remB) {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 330;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const boxW = (W - 110) / 2;
+      drawChamber(28, 42, boxW, H - 64, `SEBELUM REAKSI (${nA} ${r.nameA} + ${nB} ${r.nameB})`, [
+        { count: nA, color: r.colA, label: r.nameA },
+        { count: nB, color: r.colB, label: r.nameB }
+      ]);
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('→', W / 2, H / 2);
+
+      drawChamber(28 + boxW + 54, 42, boxW, H - 64, `SETELAH REAKSI (Produk + Sisa)`, [
+        { count: prodMol, color: r.colP, label: r.prod.split(' ')[0] },
+        { count: remA, color: r.colA, label: r.nameA },
+        { count: remB, color: r.colB, label: r.nameB }
+      ]);
+    }
+
+    window.addEventListener('resize', calc);
+    window.addEventListener('load', calc);
+    calc();
   </script>
 </body>
 </html>

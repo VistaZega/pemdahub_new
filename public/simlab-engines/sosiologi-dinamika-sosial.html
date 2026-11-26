@@ -12,9 +12,9 @@
     header h1 { font-size:1.1rem; font-weight:800; }
     header p { font-size:0.8rem; color:var(--muted); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .ctrl-head { display:flex; justify-content:space-between; font-size:0.84rem; font-weight:700; margin-bottom:6px; }
     input[type=range] { width:100%; accent-color:var(--accent); cursor:pointer; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
@@ -23,47 +23,39 @@
     .s-val { font-size:1.1rem; font-weight:800; margin-top:2px; }
     button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <div>
-      <h1>🤝 Simulator Sosiologi: Interaksi Sosial &amp; Penyebaran Inovasi/Norma</h1>
+    <div><h1>Simulator Sosiologi: Interaksi Sosial &amp; Penyebaran Inovasi/Norma</h1>
       <p>Model berbasis agen (Agent-Based Model) bagaimana ide baru, norma, atau kerja sama menyebar dalam masyarakat</p>
     </div>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="socCanvas" width="760" height="400"></canvas>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;">
-        <span style="color:#94a3b8">● Belum Terpengaruh</span>
+    <div class="card"><canvas id="socCanvas" width="760" height="400"></canvas>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;"><span style="color:#94a3b8">● Belum Terpengaruh</span>
         <span style="color:#34d399">● Mengadopsi Norma/Inovasi</span>
-        <span style="color:#fbbf24">★ Agen Perubahan (Tokoh Masyarakat)</span>
+        <span style="color:#fbbf24">Agen Perubahan (Tokoh Masyarakat)</span>
       </div>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Total Warga</div><div class="s-val" id="vTotal" style="color:#38bdf8">60</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Total Warga</div><div class="s-val" id="vTotal" style="color:#38bdf8">60</div></div>
         <div class="s-box"><div class="s-lbl">Mengadopsi</div><div class="s-val" id="vAdopt" style="color:#34d399">0%</div></div>
         <div class="s-box"><div class="s-lbl">Interaksi</div><div class="s-val" id="vHits" style="color:#fbbf24">0</div></div>
       </div>
 
-      <div>
-        <div class="ctrl-head"><span>Mobilitas &amp; Frekuensi Interaksi</span><span id="lblMob" style="color:#38bdf8">Sedang</span></div>
+      <div><div class="ctrl-head"><span>Mobilitas &amp; Frekuensi Interaksi</span><span id="lblMob" style="color:#38bdf8">Sedang</span></div>
         <input type="range" id="inMob" min="0.5" max="4" step="0.5" value="2">
       </div>
-      <div>
-        <div class="ctrl-head"><span>Daya Persuasif / Keterbukaan Masyarakat</span><span id="lblPers" style="color:#34d399">35%</span></div>
+      <div><div class="ctrl-head"><span>Daya Persuasif / Keterbukaan Masyarakat</span><span id="lblPers" style="color:#34d399">35%</span></div>
         <input type="range" id="inPers" min="5" max="95" step="5" value="35">
       </div>
-      <div>
-        <div class="ctrl-head"><span>Jumlah Agen Perubahan (Tokoh)</span><span id="lblLead" style="color:#fbbf24">3 Orang</span></div>
+      <div><div class="ctrl-head"><span>Jumlah Agen Perubahan (Tokoh)</span><span id="lblLead" style="color:#fbbf24">3 Orang</span></div>
         <input type="range" id="inLead" min="1" max="10" step="1" value="3">
       </div>
 
-      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px;font-size:0.83rem;line-height:1.5;">
-        <strong>Konsep Sosiologi:</strong> Ketika mobilitas dan keterbukaan sosial tinggi, difusi inovasi/norma berlangsung jauh lebih cepat (<em>Efek Bola Salju</em>) dibandingkan masyarakat tertutup.
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius: 6px;padding:12px;font-size:0.83rem;line-height:1.5;"><strong>Konsep Sosiologi:</strong> Ketika mobilitas dan keterbukaan sosial tinggi, difusi inovasi/norma berlangsung jauh lebih cepat (<em>Efek Bola Salju</em>) dibandingkan masyarakat tertutup.
       </div>
 
       <button onclick="initAgents()" style="background:#f59e0b;color:#451a03;">↺ Mulai Ulang Simulasi Masyarakat</button>

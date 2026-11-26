@@ -12,51 +12,43 @@
     header h1 { font-size:1.1rem; font-weight:800; }
     header p { font-size:0.8rem; color:var(--muted); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
     .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
     .s-val { font-size:1.1rem; font-weight:800; font-family:monospace; margin-top:2px; }
-    .soal-box { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.35); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    .soal-box { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.35); border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; }
     button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#f59e0b; color:#451a03; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <h1>⚖️ Simulator Ekonomi: Hukum Permintaan, Penawaran &amp; Titik Keseimbangan Pasar</h1>
+    <h1>Simulator Ekonomi: Hukum Permintaan, Penawaran &amp; Titik Keseimbangan Pasar</h1>
     <p>Geser kekuatan Permintaan Pembeli (Demand) dan Penawaran Produsen (Supply) untuk melihat perubahan Harga Keseimbangan (P<sub>e</sub>)</p>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="econCanvas" width="760" height="400"></canvas>
+    <div class="card"><canvas id="econCanvas" width="760" height="400"></canvas>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Harga Keseimbangan (Pe)</div><div class="s-val" id="vPe" style="color:#fbbf24">Rp 0</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Harga Keseimbangan (Pe)</div><div class="s-val" id="vPe" style="color:#fbbf24">Rp 0</div></div>
         <div class="s-box"><div class="s-lbl">Jumlah Keseimbangan (Qe)</div><div class="s-val" id="vQe" style="color:#34d399">0 Unit</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Tingkat Permintaan Konsumen (Demand)</span><span id="lblD" style="color:#38bdf8">Normal (100)</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Tingkat Permintaan Konsumen (Demand)</span><span id="lblD" style="color:#38bdf8">Normal (100)</span>
         </div>
         <input type="range" id="inD" min="60" max="150" step="5" value="100" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Kapasitas Penawaran Produsen (Supply)</span><span id="lblS" style="color:#f43f5e">Normal (20)</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Kapasitas Penawaran Produsen (Supply)</span><span id="lblS" style="color:#f43f5e">Normal (20)</span>
         </div>
         <input type="range" id="inS" min="-10" max="50" step="5" value="20" style="width:100%;accent-color:#f43f5e;cursor:pointer;">
       </div>
 
-      <div class="soal-box">
-        <strong style="color:#fcd34d;">📝 Contoh Kasus Nyata &amp; Soal:</strong>
-        <p id="soalEcon" style="margin-top:4px;">
-          <em>Kasus:</em> Menjelang Hari Raya, permintaan beras melonjak tajam (Kurva Demand bergeser ke kanan), sementara pasokan tetap. Apa yang terjadi pada Harga Keseimbangan (P<sub>e</sub>)?
+      <div class="soal-box"><strong style="color:#fcd34d;">Contoh Kasus Nyata &amp; Soal:</strong>
+        <p id="soalEcon" style="margin-top:4px;"><em>Kasus:</em> Menjelang Hari Raya, permintaan beras melonjak tajam (Kurva Demand bergeser ke kanan), sementara pasokan tetap. Apa yang terjadi pada Harga Keseimbangan (P<sub>e</sub>)?
         </p>
         <button onclick="ujiEcon()" style="margin-top:8px;">▶ Simulasikan Lonjakan Permintaan</button>
       </div>

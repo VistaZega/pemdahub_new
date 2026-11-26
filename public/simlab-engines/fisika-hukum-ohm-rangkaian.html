@@ -12,9 +12,9 @@
     header h1 { font-size:1.1rem; font-weight:800; color:#b45309; }
     header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px;  }
+    canvas { width:100%; background:#0f172a; border-radius: 6px; display:block; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
@@ -22,40 +22,34 @@
     button { border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
     button.active { background:#f59e0b; color:#451a03; border-color:#d97706; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <h1>⚡ Simulator Fisika &amp; Elektronika: Hukum Ohm &amp; Rangkaian Seri vs Paralel</h1>
+    <h1>Simulator Fisika &amp; Elektronika: Hukum Ohm &amp; Rangkaian Seri vs Paralel</h1>
     <p>Mengapa lampu di rumah (paralel) tetap menyala terang meski satu lampu dimatikan, berbeda dengan rangkaian seri?</p>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="ohmCanvas" width="760" height="400"></canvas>
+    <div class="card"><canvas id="ohmCanvas" width="760" height="400"></canvas>
     </div>
 
-    <div class="card">
-      <div style="display:flex;gap:8px;">
-        <button class="active" id="btnSeri" onclick="setMode('series')">🔗 Rangkaian Seri (R₁ + R₂)</button>
-        <button id="btnPar" onclick="setMode('parallel')">🔀 Rangkaian Paralel (R₁ || R₂)</button>
+    <div class="card"><div style="display:flex;gap:8px;"><button class="active" id="btnSeri" onclick="setMode('series')">Rangkaian Seri (R₁ + R₂)</button>
+        <button id="btnPar" onclick="setMode('parallel')">Rangkaian Paralel (R₁ || R₂)</button>
       </div>
 
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Hambatan Total</div><div class="s-val" id="vRtot" style="color:#0284c7">0 Ω</div></div>
+      <div class="stats"><div class="s-box"><div class="s-lbl">Hambatan Total</div><div class="s-val" id="vRtot" style="color:#0284c7">0 Ω</div></div>
         <div class="s-box"><div class="s-lbl">Arus Total (I)</div><div class="s-val" id="vI" style="color:#059669">0 A</div></div>
         <div class="s-box"><div class="s-lbl">Daya Total (P)</div><div class="s-val" id="vP" style="color:#d97706">0 W</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Tegangan Baterai (V)</span><span id="lblV">12 V</span></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Tegangan Baterai (V)</span><span id="lblV">12 V</span></div>
         <input type="range" id="inV" min="3" max="24" step="1" value="12" style="width:100%;accent-color:#f59e0b;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Lampu 1 (R<sub>1</sub>)</span><span id="lblR1">6 Ω</span></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Lampu 1 (R<sub>1</sub>)</span><span id="lblR1">6 Ω</span></div>
         <input type="range" id="inR1" min="2" max="20" step="1" value="6" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Lampu 2 (R<sub>2</sub>)</span><span id="lblR2">3 Ω</span></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Lampu 2 (R<sub>2</sub>)</span><span id="lblR2">3 Ω</span></div>
         <input type="range" id="inR2" min="2" max="20" step="1" value="3" style="width:100%;accent-color:#34d399;cursor:pointer;">
       </div>
     </div>

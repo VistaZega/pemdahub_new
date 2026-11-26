@@ -8,33 +8,32 @@
     :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
     * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
     body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:linear-gradient(90deg,#fffbeb,#ffffff); display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background: #ffffff; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
     header h1 { font-size:1.15rem; font-weight:800; color:#b45309; }
     header p { font-size:0.82rem; color:var(--muted); }
     .tabs { display:flex; flex-wrap:wrap; gap:8px; padding:12px 20px; background:#fff; border-bottom:1px solid var(--border); }
     .tab-btn { border:1px solid #cbd5e1; background:#f8fafc; color:#334155; padding:8px 14px; border-radius:10px; font-weight:700; font-size:0.82rem; cursor:pointer; transition:0.15s; }
-    .tab-btn.active { background:#f59e0b; color:#451a03; border-color:#d97706; box-shadow:0 2px 8px rgba(245,158,11,0.25); }
+    .tab-btn.active { background:#f59e0b; color:#451a03; border-color:#d97706;  }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(320px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    .soal-badge { display:inline-block; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:800; background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
-    .answer-box { background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:14px; font-size:0.85rem; line-height:1.55; color:#065f46; }
-    .ctrl-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:10px; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px;  }
+    canvas { width:100%; background:#0f172a; border-radius: 6px; display:block; }
+    .soal-badge { display:inline-block; padding:4px 10px; border-radius: 4px; font-size:0.75rem; font-weight:800; background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+    .answer-box { background:#ecfdf5; border:1px solid #a7f3d0; border-radius: 6px; padding:14px; font-size:0.85rem; line-height:1.55; color:#065f46; }
+    .ctrl-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius: 6px; padding:12px; display:flex; flex-direction:column; gap:10px; }
     button.act { border:none; border-radius:10px; padding:10px 14px; font-weight:700; font-size:0.84rem; cursor:pointer; background:#0f172a; color:#fff; }
     button.act:hover { background:#0284c7; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <div>
-      <h1>🏆 Lab Tantangan 5 Soal Olimpiade Sains Internasional</h1>
+    <div><h1>Lab Tantangan 5 Soal Olimpiade Sains Internasional</h1>
       <p>Pecahkan 5 soal klasik IPhO, IMO, IChO, IBO &amp; IOI — ubah variabelnya dan lihat pembuktian visualnya langsung!</p>
     </div>
   </header>
 
-  <div class="tabs">
-    <button class="tab-btn active" onclick="selectProblem(0, this)">1. Fisika (IPhO): Meriam Galileo</button>
+  <div class="tabs"><button class="tab-btn active" onclick="selectProblem(0, this)">1. Fisika (IPhO): Meriam Galileo</button>
     <button class="tab-btn" onclick="selectProblem(1, this)">2. Matematika (IMO): Paradoks Ulang Tahun</button>
     <button class="tab-btn" onclick="selectProblem(2, this)">3. Kimia (IChO): Kesetimbangan Le Chatelier</button>
     <button class="tab-btn" onclick="selectProblem(3, this)">4. Biologi (IBO): Genetika Hardy-Weinberg</button>
@@ -42,22 +41,18 @@
   </div>
 
   <main>
-    <div class="card">
-      <canvas id="olyCanvas" width="760" height="410"></canvas>
+    <div class="card"><canvas id="olyCanvas" width="760" height="410"></canvas>
       <div id="liveMetrics" style="font-family:monospace;font-size:0.88rem;font-weight:700;color:#0369a1;"></div>
     </div>
 
-    <div class="card">
-      <div>
-        <span class="soal-badge" id="pBadge">IPhO</span>
+    <div class="card"><div><span class="soal-badge" id="pBadge">IPhO</span>
         <h2 id="pTitle" style="font-size:1.1rem;font-weight:800;margin-top:8px;"></h2>
         <p id="pQuestion" style="font-size:0.88rem;color:#334155;line-height:1.55;margin-top:6px;"></p>
       </div>
 
       <div class="ctrl-box" id="pControls"></div>
 
-      <div class="answer-box">
-        <strong>💡 Pembahasan &amp; Pembuktian Jawaban:</strong>
+      <div class="answer-box"><strong>Pembahasan &amp; Pembuktian Jawaban:</strong>
         <p id="pAnswer" style="margin-top:6px;"></p>
       </div>
     </div>
@@ -87,7 +82,7 @@
         controls: () => `
           <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:700;"><span>Rasio Massa (m₂ / m₁)</span><span id="lblM">${p1.mRatio}x</span></div>
           <input type="range" min="1" max="20" value="${p1.mRatio}" oninput="p1.mRatio=+this.value;document.getElementById('lblM').textContent=this.value+'x'">
-          <button class="act" onclick="p1={active:true,yBig:120,vBig:0,ySmall:88,vSmall:0,mRatio:p1.mRatio,maxH:88}">🚀 Jatuhkan Kedua Bola Sekarang!</button>
+          <button class="act" onclick="p1={active:true,yBig:120,vBig:0,ySmall:88,vSmall:0,mRatio:p1.mRatio,maxH:88}">Jatuhkan Kedua Bola Sekarang!</button>
         `
       },
       {
@@ -98,7 +93,7 @@
         controls: () => `
           <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:700;"><span>Jumlah Orang di Ruangan (n)</span><span id="lblN">${p2.n} Orang</span></div>
           <input type="range" min="5" max="60" value="${p2.n}" oninput="p2.n=+this.value;document.getElementById('lblN').textContent=this.value+' Orang'">
-          <button class="act" onclick="runMonteCarlo()">🎲 Uji 100 Simulasi Acak Ruangan!</button>
+          <button class="act" onclick="runMonteCarlo()">Uji 100 Simulasi Acak Ruangan!</button>
         `
       },
       {
@@ -131,7 +126,7 @@
         controls: () => `
           <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:700;"><span>Angka Target (1–100)</span><span id="lblT5">${p5.target}</span></div>
           <input type="range" min="1" max="100" value="${p5.target}" oninput="p5.target=+this.value;document.getElementById('lblT5').textContent=this.value">
-          <button class="act" onclick="stepSearch()">🔍 Jalankan 1 Langkah Pencarian (Binary vs Linear)</button>
+          <button class="act" onclick="stepSearch()">Jalankan 1 Langkah Pencarian (Binary vs Linear)</button>
           <button class="act" style="background:#475569" onclick="p5={target:p5.target,stepBin:0,stepLin:0,lo:1,hi:100,mid:50,linIdx:1,done:false}">↺ Reset Pencarian</button>
         `
       }
@@ -244,7 +239,7 @@
         ctx.fillText(`Binary Search: Langkah ke-${p5.stepBin} (Tebakan Tengah = ${p5.mid}, Target = ${p5.target})`, 380, 95);
         ctx.fillStyle = '#94a3b8';
         ctx.fillText(`Linear Search baru memeriksa hingga kotak ke-${p5.linIdx} (butuh ${p5.target} langkah)`, 380, 240);
-        met.textContent = p5.done ? `🎉 Ditemukan oleh Binary Search hanya dalam ${p5.stepBin} langkah!` : `Rentang Aktif Binary Search: [${p5.lo} .. ${p5.hi}]`;
+        met.textContent = p5.done ? ` Ditemukan oleh Binary Search hanya dalam ${p5.stepBin} langkah!` : `Rentang Aktif Binary Search: [${p5.lo} .. ${p5.hi}]`;
       }
       requestAnimationFrame(loop);
     }

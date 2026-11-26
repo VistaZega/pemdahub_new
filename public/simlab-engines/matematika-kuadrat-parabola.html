@@ -12,45 +12,40 @@
     header h1 { font-size:1.1rem; font-weight:800; color:#047857; }
     header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px;  }
+    canvas { width:100%; background:#0f172a; border-radius: 6px; display:block; }
     .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
     .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
     .s-val { font-size:1rem; font-weight:800; margin-top:2px; font-family:monospace; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <h1>📈 Simulator Matematika: Grafik Persamaan Kuadrat (y = ax² + bx + c)</h1>
+    <h1>Simulator Matematika: Grafik Persamaan Kuadrat (y = ax² + bx + c)</h1>
     <p>Bagaimana perubahan koefisien a, b, c memengaruhi bukaan parabola, titik puncak, dan jumlah akar persamaan kuadrat?</p>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="qCanvas" width="760" height="410"></canvas>
+    <div class="card"><canvas id="qCanvas" width="760" height="410"></canvas>
     </div>
 
-    <div class="card">
-      <div style="background:#0f172a;color:#34d399;padding:12px;border-radius:12px;font-family:monospace;font-size:1.15rem;font-weight:800;text-align:center;" id="eqBox">y = 1x² + 0x - 4</div>
+    <div class="card"><div style="background:#0f172a;color:#34d399;padding:12px;border-radius: 6px;font-family:monospace;font-size:1.15rem;font-weight:800;text-align:center;" id="eqBox">y = 1x² + 0x - 4</div>
 
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Diskriminan (D)</div><div class="s-val" id="vD" style="color:#0284c7">16</div></div>
+      <div class="stats"><div class="s-box"><div class="s-lbl">Diskriminan (D)</div><div class="s-val" id="vD" style="color:#0284c7">16</div></div>
         <div class="s-box"><div class="s-lbl">Titik Puncak (Xp, Yp)</div><div class="s-val" id="vPeak" style="color:#d97706">(0, -4)</div></div>
         <div class="s-box" style="grid-column:span 2;"><div class="s-lbl">Akar-akar Pembuat Nol (x₁, x₂)</div><div class="s-val" id="vRoots" style="color:#059669">x₁ = -2.00, x₂ = 2.00</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Koefisien a (Bukaan Kurva)</span><span id="lblA">1</span></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Koefisien a (Bukaan Kurva)</span><span id="lblA">1</span></div>
         <input type="range" id="inA" min="-3" max="3" step="0.5" value="1" style="width:100%;accent-color:#10b981;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Koefisien b (Pergeseran Horizontal)</span><span id="lblB">0</span></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Koefisien b (Pergeseran Horizontal)</span><span id="lblB">0</span></div>
         <input type="range" id="inB" min="-6" max="6" step="1" value="0" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Konstanta c (Titik Potong Sumbu Y)</span><span id="lblC">-4</span></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Konstanta c (Titik Potong Sumbu Y)</span><span id="lblC">-4</span></div>
         <input type="range" id="inC" min="-8" max="8" step="1" value="-4" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
       </div>
     </div>

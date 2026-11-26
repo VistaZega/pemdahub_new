@@ -3,72 +3,173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator Ekonomi &amp; Karier: Bunga Majemuk vs Bunga Tunggal</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#7c3aed; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-    .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
-    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
-    .s-val { font-size:1rem; font-weight:800; margin-top:2px; font-family:monospace; }
-  </style>
+  <title>Simulator Ekonomi: Bunga Majemuk, Setoran Rutin &amp; Inflasi</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>💰 Simulator Literasi Keuangan: Kekuatan Bunga Majemuk (Compound Interest)</h1>
-    <p style="font-size:0.82rem;color:#475569;">Bekal sukses karier &amp; finansial: bandingkan pertumbuhan investasi Bunga Majemuk (Hijau) vs Bunga Tunggal (Biru)!</p>
-  </header>
-  <main>
-    <div class="card"><canvas id="finCanvas" width="760" height="390"></canvas></div>
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Bunga Tunggal</div><div class="s-val" id="vSimp" style="color:#0284c7">Rp 0</div></div>
-        <div class="s-box"><div class="s-lbl">Bunga Majemuk</div><div class="s-val" id="vComp" style="color:#059669">Rp 0</div></div>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Proyeksi Pertumbuhan Nilai Investasi: Bunga Majemuk vs Bunga Tunggal &amp; Nilai Riil</div>
+          <div class="sl-bar-sub">Perbandingan pertumbuhan eksponensial bunga majemuk terhadap bunga sederhana dan penyesuaian daya beli inflasi</div>
+        </div>
       </div>
-      <div><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.84rem;"><span>Modal Awal</span><span id="lP">Rp 10 Juta</span></div><input type="range" id="inP" min="5" max="50" step="5" value="10" style="width:100%;"></div>
-      <div><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.84rem;"><span>Imbal Hasil / Tahun (r)</span><span id="lR">10%</span></div><input type="range" id="inR" min="2" max="20" step="1" value="10" style="width:100%;"></div>
-      <div><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.84rem;"><span>Lama Waktu (t)</span><span id="lT">15 Tahun</span></div><input type="range" id="inT" min="5" max="30" step="1" value="15" style="width:100%;"></div>
-    </div>
-  </main>
+
+      <div class="sl-viewport">
+        <canvas id="finCanvas" height="390"></canvas>
+      </div>
+
+      <div class="sl-readouts">
+        <div class="sl-readout"><div class="sl-readout-lbl">Total Setoran Pokok</div><div class="sl-readout-val" id="vPokok">Rp 0</div></div>
+        <div class="sl-readout"><div class="sl-readout-lbl">Bunga Tunggal</div><div class="sl-readout-val" id="vSimp" style="color:#0284c7;">Rp 0</div></div>
+        <div class="sl-readout"><div class="sl-readout-lbl">Bunga Majemuk (Nominal)</div><div class="sl-readout-val" id="vComp" style="color:#059669;">Rp 0</div></div>
+        <div class="sl-readout"><div class="sl-readout-lbl">Nilai Riil (Setelah Inflasi)</div><div class="sl-readout-val" id="vReal" style="color:#d97706;">Rp 0</div></div>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Parameter Portofolio</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Modal Awal</span><span class="sl-ctrl-val" id="lP">Rp 10 Juta</span></div>
+          <input type="range" id="inP" min="5" max="100" step="5" value="10" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Setoran Rutin / Bulan</span><span class="sl-ctrl-val" id="lM">Rp 500 rb</span></div>
+          <input type="range" id="inM" min="0" max="5000" step="250" value="500" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Imbal Hasil Tahunan (r)</span><span class="sl-ctrl-val" id="lR">10%</span></div>
+          <input type="range" id="inR" min="2" max="20" step="1" value="10" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Asumsi Inflasi Tahunan</span><span class="sl-ctrl-val" id="lInf">4%</span></div>
+          <input type="range" id="inInf" min="0" max="10" step="0.5" value="4" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Jangka Waktu (t)</span><span class="sl-ctrl-val" id="lT">20 Tahun</span></div>
+          <input type="range" id="inT" min="5" max="40" step="1" value="20" oninput="draw()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Formula &amp; Kesimpulan Analisis</div>
+        <div class="sl-formula">FV = P(1 + r/12)^(12t) + PMT × [((1 + r/12)^(12t) - 1) / (r/12)]<br>Nilai Riil = FV / (1 + inflasi)^t</div>
+        <div class="sl-note" id="summaryNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
   <script>
-    const c = document.getElementById('finCanvas'), ctx = c.getContext('2d');
+    const cv = document.getElementById('finCanvas');
+    const ctx = cv.getContext('2d');
+
+    function fmtRp(val) {
+      if (val >= 1e9) return 'Rp ' + (val / 1e9).toFixed(2) + ' M';
+      return 'Rp ' + Math.round(val / 1e6).toLocaleString('id-ID') + ' Jt';
+    }
+
     function draw() {
-      const P = +document.getElementById('inP').value * 1000000;
+      const P = +document.getElementById('inP').value * 1e6;
+      const pmt = +document.getElementById('inM').value * 1e3;
       const r = +document.getElementById('inR').value / 100;
+      const inf = +document.getElementById('inInf').value / 100;
       const T = +document.getElementById('inT').value;
-      document.getElementById('lP').textContent = `Rp ${P/1000000} Juta`;
-      document.getElementById('lR').textContent = `${Math.round(r*100)}%`;
+
+      document.getElementById('lP').textContent = `Rp ${P / 1e6} Juta`;
+      document.getElementById('lM').textContent = pmt >= 1e6 ? `Rp ${(pmt / 1e6).toFixed(2)} Jt` : `Rp ${pmt / 1e3} rb`;
+      document.getElementById('lR').textContent = `${Math.round(r * 100)}%`;
+      document.getElementById('lInf').textContent = `${(inf * 100).toFixed(1)}%`;
       document.getElementById('lT').textContent = `${T} Tahun`;
 
-      const simpArr = [], compArr = [];
-      for (let t = 0; t <= T; t++) {
-        simpArr.push(P * (1 + r * t));
-        compArr.push(P * Math.pow(1 + r, t));
-      }
-      document.getElementById('vSimp').textContent = 'Rp ' + Math.round(simpArr[T]/1000000) + ' Jt';
-      document.getElementById('vComp').textContent = 'Rp ' + Math.round(compArr[T]/1000000) + ' Jt';
+      const pokokArr = [], simpArr = [], compArr = [], realArr = [];
+      const rm = r / 12;
 
-      ctx.clearRect(0,0,760,390);
-      const maxV = compArr[T];
-      const plot = (arr, col) => {
-        ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.beginPath();
+      for (let y = 0; y <= T; y++) {
+        const pokok = P + pmt * 12 * y;
+        const simp = P * (1 + r * y) + (pmt * 12 * y) * (1 + r * y * 0.5);
+        const months = y * 12;
+        const comp = months === 0 ? P : P * Math.pow(1 + rm, months) + pmt * ((Math.pow(1 + rm, months) - 1) / rm);
+        const real = comp / Math.pow(1 + inf, y);
+        pokokArr.push(pokok);
+        simpArr.push(simp);
+        compArr.push(comp);
+        realArr.push(real);
+      }
+
+      document.getElementById('vPokok').textContent = fmtRp(pokokArr[T]);
+      document.getElementById('vSimp').textContent = fmtRp(simpArr[T]);
+      document.getElementById('vComp').textContent = fmtRp(compArr[T]);
+      document.getElementById('vReal').textContent = fmtRp(realArr[T]);
+
+      const gain = compArr[T] - pokokArr[T];
+      const share = ((gain / compArr[T]) * 100).toFixed(1);
+      document.getElementById('summaryNote').innerHTML =
+        `Dalam ${T} tahun, total uang disetor = <strong>${fmtRp(pokokArr[T])}</strong>. Keuntungan bunga berbunga menghasilkan tambahan <strong>${fmtRp(gain)}</strong> (${share}% dari saldo akhir).`;
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 390;
+      const W = cv.width, H = cv.height;
+      const PAD = { l: 68, r: 24, t: 32, b: 40 };
+      const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+      ctx.clearRect(0, 0, W, H);
+
+      const maxV = Math.max(1, compArr[T] * 1.08);
+      // Grid horisontal & skala Rupiah
+      ctx.font = '10px monospace';
+      for (let i = 0; i <= 4; i++) {
+        const y = PAD.t + (i / 4) * ph;
+        ctx.strokeStyle = 'rgba(148,163,184,0.16)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke();
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'right';
+        ctx.fillText(fmtRp(maxV * (1 - i / 4)), PAD.l - 8, y + 3);
+      }
+      // Sumbu tahun
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 4; i++) {
+        const yr = Math.round((T * i) / 4);
+        const x = PAD.l + (yr / T) * pw;
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('Th ' + yr, x, H - 16);
+      }
+
+      function plotLine(arr, color, dashed) {
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        ctx.setLineDash(dashed ? [5, 4] : []);
+        ctx.beginPath();
         arr.forEach((v, i) => {
-          const x = 50 + (i / T) * 660, y = 340 - (v / maxV) * 280;
-          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          const x = PAD.l + (i / T) * pw;
+          const y = PAD.t + (1 - v / maxV) * ph;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
         });
         ctx.stroke();
-      };
-      plot(simpArr, '#38bdf8');
-      plot(compArr, '#34d399');
+        ctx.setLineDash([]);
+      }
+
+      plotLine(pokokArr, '#64748b', true);
+      plotLine(simpArr, '#38bdf8', false);
+      plotLine(realArr, '#fbbf24', false);
+      plotLine(compArr, '#34d399', false);
+
+      // Legenda di pojok kiri atas
+      const leg = [
+        ['Bunga Majemuk', '#34d399'],
+        ['Nilai Riil', '#fbbf24'],
+        ['Bunga Tunggal', '#38bdf8'],
+        ['Pokok Disetor', '#64748b']
+      ];
+      let lx = PAD.l + 8;
+      leg.forEach(([lbl, col]) => {
+        ctx.fillStyle = col; ctx.fillRect(lx, 12, 10, 3);
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(lbl, lx + 14, 17);
+        lx += ctx.measureText(lbl).width + 32;
+      });
     }
-    ['inP','inR','inT'].forEach(id=>document.getElementById(id).oninput=draw);
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
     draw();
   </script>
 </body>

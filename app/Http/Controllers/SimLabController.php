@@ -108,11 +108,12 @@ class SimLabController extends Controller
             . "- Narasi Pengantar Siswa: {$validated['description']}\n"
             . "- Instruksi Pembangkit dari Guru: {$validated['prompt_spec']}\n\n"
             . "SYARAT WAJIB HTML:\n"
-            . "1. Gunakan tema Lab Terang Bersih (#f8fafc background, panel putih #ffffff dengan border #cbd5e1, dan kanvas <canvas> berlatar #0f172a agar objek animasi terlihat tajam & penuh warna).\n"
-            . "2. Harus memiliki <canvas> animasi objek nyata yang bergerak halus (requestAnimationFrame) dan berubah real-time saat slider/tombol diubah.\n"
-            . "3. Harus memiliki minimal 2 kontrol tuning variabel (<input type='range'> atau tombol) beserta pembacaan nilai hasil secara langsung.\n"
-            . "4. JANGAN gunakan tanda dolar LaTeX ($...$). Gunakan HTML <sub>/<sup> atau Unicode (v₀, θ, λ, α, μ, ρ).\n"
-            . "5. Jangan gunakan markdown code fence (```html). Kembalikan HANYA kode HTML valid mulai dari <!DOCTYPE html> hingga </html>.";
+            . "1. Sertakan <link rel=\"stylesheet\" href=\"/simlab-engines/simlab-theme.css\"> di <head> dan gunakan tata letak konsol instrumen penuh (<div class=\"sl-workbench\"><div class=\"sl-stage\">...</div><div class=\"sl-console\">...</div></div>).\n"
+            . "2. Gaya arsitektural terang & tegas (#ffffff / #f8fafc, garis batas 1px solid #d8dee6, kanvas <canvas> berlatar #0b111e agar objek animasi terlihat tajam). DILARANG menggunakan nested cards berlapis, gradien dekoratif, shadow kabur, atau emoji dekoratif pada judul/tombol.\n"
+            . "3. Harus memiliki <canvas> animasi objek nyata yang bergerak halus (requestAnimationFrame) dan berubah real-time saat slider/tombol diubah.\n"
+            . "4. Harus memiliki minimal 2 kontrol tuning variabel (<input type='range'> atau tombol .sl-btn) beserta pembacaan nilai hasil (.sl-readouts / .sl-readout dengan tabular-nums) secara langsung.\n"
+            . "5. JANGAN gunakan tanda dolar LaTeX ($...$). Gunakan HTML <sub>/<sup> atau Unicode (v₀, θ, λ, α, μ, ρ).\n"
+            . "6. Jangan gunakan markdown code fence (```html). Kembalikan HANYA kode HTML valid mulai dari <!DOCTYPE html> hingga </html>.";
 
         try {
             $gemini = app(\App\Services\GeminiService::class);

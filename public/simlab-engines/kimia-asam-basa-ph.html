@@ -12,10 +12,10 @@
     header h1 { font-size:1.1rem; font-weight:800; }
     header p { font-size:0.8rem; color:var(--muted); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(320px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
-    .ph-bar { height:16px; border-radius:999px; background:linear-gradient(90deg,#ef4444 0%,#f97316 20%,#eab308 38%,#22c55e 50%,#06b6d4 65%,#3b82f6 82%,#7e22ce 100%); position:relative; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
+    .ph-bar { height:16px; border-radius: 4px; background: #ffffff; position:relative; }
     .ph-pin { position:absolute; top:-5px; width:10px; height:26px; background:#fff; border:2px solid #000; border-radius:4px; transform:translateX(-50%); transition:left 0.15s; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
@@ -24,52 +24,43 @@
     .btn-row { display:flex; gap:6px; flex-wrap:wrap; }
     button { border:1px solid #334155; border-radius:10px; padding:8px 11px; font-weight:700; font-size:0.78rem; cursor:pointer; background:#1e293b; color:#e2e8f0; }
     button:hover { border-color:#38bdf8; color:#fff; }
-    .soal-box { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.35); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    .soal-box { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.35); border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <div>
-      <h1>🧪 Simulator Kimia: Gelas Reaksi pH, Asam-Basa &amp; Kertas Lakmus</h1>
+    <div><h1>Simulator Kimia: Gelas Reaksi pH, Asam-Basa &amp; Kertas Lakmus</h1>
       <p>Uji larutan nyata (Asam Lambung, Cuka, Air Murni, Sabun, Pemutih), amati ion H⁺/OH⁻ dan perubahan warna indikator</p>
     </div>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="chemBeaker" width="760" height="390"></canvas>
+    <div class="card"><canvas id="chemBeaker" width="760" height="390"></canvas>
       <div class="ph-bar"><div class="ph-pin" id="phPin" style="left:50%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#94a3b8;font-weight:700;">
-        <span>pH 0 (Asam Kuat)</span><span>pH 7 (Netral)</span><span>pH 14 (Basa Kuat)</span>
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#94a3b8;font-weight:700;"><span>pH 0 (Asam Kuat)</span><span>pH 7 (Netral)</span><span>pH 14 (Basa Kuat)</span>
       </div>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Nilai pH</div><div class="s-val" id="vPh" style="color:#22c55e">7.0</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Nilai pH</div><div class="s-val" id="vPh" style="color:#22c55e">7.0</div></div>
         <div class="s-box"><div class="s-lbl">Sifat Larutan</div><div class="s-val" id="vSifat" style="color:#38bdf8">Netral</div></div>
         <div class="s-box"><div class="s-lbl">Kertas Lakmus</div><div class="s-val" id="vLakmus" style="color:#fbbf24">Tetap</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Atur pH Larutan / Titrasi</span><span id="lblPh" style="color:#38bdf8">pH 7.0</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Atur pH Larutan / Titrasi</span><span id="lblPh" style="color:#38bdf8">pH 7.0</span>
         </div>
         <input type="range" id="inPh" min="0" max="14" step="0.2" value="7" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
 
-      <div class="btn-row">
-        <button onclick="setSample(1.2, 'Asam Lambung (HCl)')">🍋 Asam Lambung (1.2)</button>
-        <button onclick="setSample(3.0, 'Cuka Dapur (CH₃COOH)')">🍶 Cuka (3.0)</button>
-        <button onclick="setSample(7.0, 'Air Murni (H₂O)')">💧 Air Murni (7.0)</button>
-        <button onclick="setSample(9.5, 'Air Sabun')">🧼 Sabun (9.5)</button>
-        <button onclick="setSample(13.0, 'Natrium Hidroksida (NaOH)')">⚗️ NaOH 0.1M (13.0)</button>
+      <div class="btn-row"><button onclick="setSample(1.2, 'Asam Lambung (HCl)')">Asam Lambung (1.2)</button>
+        <button onclick="setSample(3.0, 'Cuka Dapur (CH₃COOH)')">Cuka (3.0)</button>
+        <button onclick="setSample(7.0, 'Air Murni (H₂O)')">Air Murni (7.0)</button>
+        <button onclick="setSample(9.5, 'Air Sabun')">Sabun (9.5)</button>
+        <button onclick="setSample(13.0, 'Natrium Hidroksida (NaOH)')">NaOH 0.1M (13.0)</button>
       </div>
 
-      <div class="soal-box">
-        <strong style="color:#c4b5fd;">📝 Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
-        <p style="margin-top:4px;" id="soalText">
-          <em>Soal:</em> Suatu larutan HCl memiliki konsentrasi <strong>[H⁺] = 0,01 M = 10⁻² M</strong>. Berapakah nilai pH dan warna kertas lakmus biru saat dicelupkan?
+      <div class="soal-box"><strong style="color:#c4b5fd;">Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
+        <p style="margin-top:4px;" id="soalText"><em>Soal:</em> Suatu larutan HCl memiliki konsentrasi <strong>[H⁺] = 0,01 M = 10⁻² M</strong>. Berapakah nilai pH dan warna kertas lakmus biru saat dicelupkan?
         </p>
         <button onclick="ujiSoal()" style="margin-top:8px;background:#7c3aed;border-color:#8b5cf6;color:#fff;">▶ Uji Kasus Soal di Gelas Kimia (pH = -log[10⁻²] = 2)</button>
       </div>

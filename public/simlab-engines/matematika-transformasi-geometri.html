@@ -3,67 +3,174 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator Matematika: Transformasi Geometri 2D (Translasi, Rotasi, Dilatasi)</title>
-  <style>
-    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
-    header h1 { font-size:1.1rem; font-weight:800; color:#4f46e5; }
-    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
-  </style>
+  <title>Simulator Matematika: Transformasi Geometri 2D &amp; Matriks</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>📐 Simulator Matematika: Transformasi Geometri (Translasi, Rotasi &amp; Dilatasi)</h1>
-    <p style="font-size:0.82rem;color:#475569;">Dasar grafika komputer &amp; robotika: geser, putar, dan perbesar bangun segitiga biru menjadi bayangan hijau!</p>
-  </header>
-  <main>
-    <div class="card"><canvas id="trCanvas" width="760" height="400"></canvas></div>
-    <div class="card">
-      <div><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.84rem;"><span>Translasi X (dx)</span><span id="lDx">3</span></div><input type="range" id="dx" min="-6" max="6" value="3" style="width:100%;"></div>
-      <div><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.84rem;"><span>Translasi Y (dy)</span><span id="lDy">2</span></div><input type="range" id="dy" min="-4" max="4" value="2" style="width:100%;"></div>
-      <div><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.84rem;"><span>Rotasi Sudut (θ)</span><span id="lRot">45°</span></div><input type="range" id="rot" min="0" max="360" step="15" value="45" style="width:100%;"></div>
-      <div><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.84rem;"><span>Skala Dilatasi (k)</span><span id="lSc">1.5x</span></div><input type="range" id="sc" min="0.5" max="2.5" step="0.25" value="1.5" style="width:100%;"></div>
-      <div id="coords" style="background:#f1f5f9;padding:12px;border-radius:12px;font-family:monospace;font-size:0.82rem;"></div>
-    </div>
-  </main>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Transformasi Geometri Bidang Kartesius &amp; Matriks 2×2</div>
+          <div class="sl-bar-sub">Bangun asal A(1,1), B(3,1), C(2,3) dipetakan menjadi bayangan A', B', C' dengan proyeksi lintasan</div>
+        </div>
+      </div>
+      <div class="sl-viewport">
+        <canvas id="trCanvas" height="420"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Mode Refleksi Tambahan</div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="refNone" onclick="setRef('none')">Tanpa Refleksi</button>
+          <button type="button" class="sl-btn" id="refX" onclick="setRef('x')">Sumbu X</button>
+          <button type="button" class="sl-btn" id="refY" onclick="setRef('y')">Sumbu Y</button>
+          <button type="button" class="sl-btn" id="refYX" onclick="setRef('yx')">Garis y = x</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Parameter Transformasi</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Translasi X (dx)</span><span class="sl-ctrl-val" id="lDx">3</span></div>
+          <input type="range" id="dx" min="-6" max="6" step="1" value="3" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Translasi Y (dy)</span><span class="sl-ctrl-val" id="lDy">2</span></div>
+          <input type="range" id="dy" min="-5" max="5" step="1" value="2" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Rotasi Sudut (θ)</span><span class="sl-ctrl-val" id="lRot">45°</span></div>
+          <input type="range" id="rot" min="0" max="360" step="15" value="45" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Skala Dilatasi (k)</span><span class="sl-ctrl-val" id="lSc">1.5×</span></div>
+          <input type="range" id="sc" min="0.5" max="2.5" step="0.25" value="1.5" oninput="draw()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Matriks Linear &amp; Determinan</div>
+        <div class="sl-formula" id="matBox">—</div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Koordinat &amp; Luas Bangun</div>
+        <div class="sl-note" id="coords" style="font-family:var(--sl-font-mono);font-size:0.76rem;">—</div>
+      </div>
+    </aside>
+  </div>
+
   <script>
-    const c = document.getElementById('trCanvas'), ctx = c.getContext('2d');
-    const base = [[1,1],[3,1],[2,3]];
+    const cv = document.getElementById('trCanvas');
+    const ctx = cv.getContext('2d');
+    const base = [[1, 1], [3, 1], [2, 3]];
+    const names = ['A', 'B', 'C'];
+    let refMode = 'none';
+
+    function setRef(m) {
+      refMode = m;
+      ['refNone', 'refX', 'refY', 'refYX'].forEach(id => document.getElementById(id).classList.remove('is-active'));
+      const mapId = { none: 'refNone', x: 'refX', y: 'refY', yx: 'refYX' };
+      document.getElementById(mapId[m]).classList.add('is-active');
+      draw();
+    }
+
     function draw() {
-      const dx=+document.getElementById('dx').value, dy=+document.getElementById('dy').value,
-            rot=+document.getElementById('rot').value, k=+document.getElementById('sc').value;
-      document.getElementById('lDx').textContent=dx; document.getElementById('lDy').textContent=dy;
-      document.getElementById('lRot').textContent=rot+'°'; document.getElementById('lSc').textContent=k+'x';
+      const dx = +document.getElementById('dx').value;
+      const dy = +document.getElementById('dy').value;
+      const rot = +document.getElementById('rot').value;
+      const k = +document.getElementById('sc').value;
+
+      document.getElementById('lDx').textContent = dx;
+      document.getElementById('lDy').textContent = dy;
+      document.getElementById('lRot').textContent = rot + '°';
+      document.getElementById('lSc').textContent = k.toFixed(2) + '×';
 
       const rad = rot * Math.PI / 180;
-      const trans = base.map(([x,y]) => {
-        const sx = x*k, sy = y*k;
-        return [sx*Math.cos(rad) - sy*Math.sin(rad) + dx, sx*Math.sin(rad) + sy*Math.cos(rad) + dy];
-      });
-      document.getElementById('coords').innerHTML = 'Bayangan: ' + trans.map((p,i)=>`P${i+1}'(${p[0].toFixed(1)}, ${p[1].toFixed(1)})`).join(' | ');
+      const c = Math.cos(rad), s = Math.sin(rad);
+      // Matriks dilatasi * rotasi = [[k*c, -k*s], [k*s, k*c]]
+      let m00 = k * c, m01 = -k * s, m10 = k * s, m11 = k * c;
+      if (refMode === 'x') { m10 = -m10; m11 = -m11; }
+      else if (refMode === 'y') { m00 = -m00; m01 = -m01; }
+      else if (refMode === 'yx') { [m00, m10] = [m10, m00]; [m01, m11] = [m11, m01]; }
 
-      ctx.clearRect(0,0,760,400);
-      const ox=380, oy=200, u=28;
-      ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
-      for(let i=-13;i<=13;i++){ctx.beginPath();ctx.moveTo(ox+i*u,0);ctx.lineTo(ox+i*u,400);ctx.stroke();}
-      for(let j=-7;j<=7;j++){ctx.beginPath();ctx.moveTo(0,oy+j*u);ctx.lineTo(760,oy+j*u);ctx.stroke();}
-      ctx.strokeStyle='#64748b'; ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(760,oy);ctx.moveTo(ox,0);ctx.lineTo(ox,400);ctx.stroke();
+      const det = m00 * m11 - m01 * m10;
+      const trans = base.map(([x, y]) => [m00 * x + m01 * y + dx, m10 * x + m11 * y + dy]);
 
-      const drawPoly = (pts, col) => {
-        ctx.fillStyle=col; ctx.beginPath();
-        pts.forEach(([x,y],i)=> i===0?ctx.moveTo(ox+x*u,oy-y*u):ctx.lineTo(ox+x*u,oy-y*u));
-        ctx.closePath(); ctx.fill();
-      };
-      drawPoly(base, 'rgba(56,189,248,0.65)');
-      drawPoly(trans, 'rgba(52,211,153,0.75)');
+      document.getElementById('matBox').innerHTML =
+        `[ ${m00.toFixed(2).padStart(6)}  ${m01.toFixed(2).padStart(6)} ] [x] + [${dx}]<br>` +
+        `[ ${m10.toFixed(2).padStart(6)}  ${m11.toFixed(2).padStart(6)} ] [y]   [${dy}]<br>` +
+        `det(M) = ${det.toFixed(2)}  |  Luas' = |det| × 2.0 = ${(Math.abs(det) * 2).toFixed(2)} satuan²`;
+
+      document.getElementById('coords').innerHTML = trans.map((p, i) =>
+        `${names[i]}(${base[i][0]}, ${base[i][1]}) → ${names[i]}'(${p[0].toFixed(2)}, ${p[1].toFixed(2)})`
+      ).join('<br>');
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 420;
+      const W = cv.width, H = cv.height;
+      const ox = W / 2, oy = H / 2, u = Math.min(W, H) / 16;
+      ctx.clearRect(0, 0, W, H);
+
+      // Grid & angka koordinat
+      ctx.font = '10px monospace';
+      for (let i = -12; i <= 12; i++) {
+        const x = ox + i * u;
+        ctx.strokeStyle = i === 0 ? '#64748b' : 'rgba(148,163,184,0.12)';
+        ctx.lineWidth = i === 0 ? 1.5 : 1;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+        if (i !== 0 && i % 2 === 0 && x > 14 && x < W - 14) {
+          ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.fillText(i, x, oy + 12);
+        }
+      }
+      for (let j = -8; j <= 8; j++) {
+        const y = oy - j * u;
+        ctx.strokeStyle = j === 0 ? '#64748b' : 'rgba(148,163,184,0.12)';
+        ctx.lineWidth = j === 0 ? 1.5 : 1;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        if (j !== 0 && j % 2 === 0 && y > 14 && y < H - 14) {
+          ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.fillText(j, ox - 5, y + 3);
+        }
+      }
+
+      if (refMode === 'yx') {
+        ctx.strokeStyle = 'rgba(251,191,36,0.4)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(ox - 10 * u, oy + 10 * u); ctx.lineTo(ox + 10 * u, oy - 10 * u); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Garis proyeksi dari titik asal ke bayangan
+      ctx.strokeStyle = 'rgba(148,163,184,0.35)'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(ox + base[i][0] * u, oy - base[i][1] * u);
+        ctx.lineTo(ox + trans[i][0] * u, oy - trans[i][1] * u);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      function drawPoly(pts, fill, stroke, prefix) {
+        ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 2;
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(ox + x * u, oy - y * u) : ctx.lineTo(ox + x * u, oy - y * u));
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        pts.forEach(([x, y], i) => {
+          const px = ox + x * u, py = oy - y * u;
+          ctx.fillStyle = stroke; ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+          ctx.fillText(names[i] + prefix, px + 6, py - 4);
+        });
+      }
+
+      drawPoly(base, 'rgba(56,189,248,0.28)', '#38bdf8', '');
+      drawPoly(trans, 'rgba(52,211,153,0.32)', '#34d399', "'");
     }
-    ['dx','dy','rot','sc'].forEach(id=>document.getElementById(id).oninput=draw);
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
     draw();
   </script>
 </body>

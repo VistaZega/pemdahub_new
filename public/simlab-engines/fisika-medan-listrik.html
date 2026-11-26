@@ -9,7 +9,7 @@
   body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
   h2{text-align:center;font-size:1.3rem;color:#eab308;margin-bottom:4px}
   .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
-  .wrap{max-width:900px;margin:0 auto}
+  .wrap{max-width: 100%;margin:0 auto}
   canvas{background:#0f172a;border-radius:10px;width:100%;display:block;cursor:crosshair}
   .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
   @media(max-width:600px){.panels{grid-template-columns:1fr}}
@@ -31,19 +31,16 @@
   .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
   .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
 </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-<div class="wrap">
-  <h2>⚡ Simulator Fisika: Medan Listrik & Gaya Coulomb</h2>
+<div class="wrap"><h2>Simulator Fisika: Medan Listrik & Gaya Coulomb</h2>
   <p class="subtitle">Klik kanvas untuk menempatkan muatan! Lihat garis medan listrik terbentuk real-time.</p>
   <canvas id="cv" height="300"></canvas>
-  <div class="panels">
-    <div class="panel">
-      <h3>⚙️ Kontrol Muatan</h3>
-      <div class="btn-row">
-        <button class="btn btn-red" onclick="setCharge('pos')">➕ Muatan Positif (+q)</button>
-        <button class="btn btn-blue" onclick="setCharge('neg')">➖ Muatan Negatif (-q)</button>
-        <button class="btn btn-yellow" onclick="clearCharges()">🗑 Hapus Semua</button>
+  <div class="panels"><div class="panel"><h3>Kontrol Muatan</h3>
+      <div class="btn-row"><button class="btn btn-red" onclick="setCharge('pos')">Muatan Positif (+q)</button>
+        <button class="btn btn-blue" onclick="setCharge('neg')">Muatan Negatif (-q)</button>
+        <button class="btn btn-yellow" onclick="clearCharges()">Hapus Semua</button>
       </div>
       <label>Besar Muatan: <span class="val" id="vq">5</span> × 10⁻⁹ C</label>
       <input type="range" id="sq" min="1" max="10" value="5" oninput="document.getElementById('vq').textContent=this.value;draw()">
@@ -55,8 +52,7 @@
       <input type="range" id="sq2" min="1" max="10" value="3" oninput="calcCoulomb()">
       <div class="info-box" id="coulombResult">—</div>
     </div>
-    <div class="panel">
-      <h3>📐 Rumus & Soal HOTS</h3>
+    <div class="panel"><h3>Rumus & Soal HOTS</h3>
       <div class="rumus">F = k × |Q₁ × Q₂| / r²<br>k = 9 × 10⁹ N·m²/C²<br>E = F / q = k × Q / r²</div>
       <p style="font-size:0.79rem;color:#64748b;margin:4px 0">F = gaya Coulomb (N), E = kuat medan listrik (N/C), r = jarak (m)</p>
       <div class="soal">Dua muatan +3 µC dan -3 µC diletakkan berjarak 3 cm. Gaya tarik-menarik antara keduanya adalah... (k=9×10⁹)</div>
@@ -64,7 +60,7 @@
       <button class="opsi-btn" onclick="cek(this,'benar')">B. 90 N</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">C. 270 N</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">D. 9 N</button>
-      <div class="pembahasan" id="pem">✅ F = k|Q₁Q₂|/r² = 9×10⁹ × (3×10⁻⁶)² / (0,03)² = 9×10⁹ × 9×10⁻¹² / 9×10⁻⁴ = 81×10⁻³ / 9×10⁻⁴ = <strong>90 N</strong>.</div>
+      <div class="pembahasan" id="pem">F = k|Q₁Q₂|/r² = 9×10⁹ × (3×10⁻⁶)² / (0,03)² = 9×10⁹ × 9×10⁻¹² / 9×10⁻⁴ = 81×10⁻³ / 9×10⁻⁴ = <strong>90 N</strong>.</div>
     </div>
   </div>
 </div>
@@ -106,7 +102,7 @@ function calcCoulomb(){
 }
 
 function draw(){
-  cv.width = cv.offsetWidth; cv.height = 300;
+  cv.width = cv.offsetWidth || 640; cv.height = 300;
   const W = cv.width, H = 300;
   if(charges.length === 0){
     ctx.fillStyle='#334155'; ctx.font='14px sans-serif'; ctx.textAlign='center';

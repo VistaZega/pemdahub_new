@@ -9,7 +9,7 @@
   body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
   h2{text-align:center;font-size:1.3rem;color:#4f46e5;margin-bottom:4px}
   .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
-  .wrap{max-width:900px;margin:0 auto}
+  .wrap{max-width: 100%;margin:0 auto}
   canvas{background:#0f172a;border-radius:10px;width:100%;display:block}
   .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
   @media(max-width:600px){.panels{grid-template-columns:1fr}}
@@ -27,15 +27,13 @@
   .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
   .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
 </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
-<div class="wrap">
-  <h2>∫ Simulator Matematika: Integral Riemann Visual</h2>
+<div class="wrap"><h2>∫ Simulator Matematika: Integral Riemann Visual</h2>
   <p class="subtitle">Bagaimana menghitung luas area di bawah kurva menggunakan jumlah persegi panjang tak terbatas?</p>
   <canvas id="cv" height="300"></canvas>
-  <div class="panels">
-    <div class="panel">
-      <h3>⚙️ Kontrol Integral</h3>
+  <div class="panels"><div class="panel"><h3>Kontrol Integral</h3>
       <label>Fungsi f(x):</label>
       <select id="func" onchange="update()">
         <option value="x2">f(x) = x²</option>
@@ -52,8 +50,7 @@
       <input type="range" id="sn" min="2" max="200" value="10" oninput="update()">
       <div class="info-box" id="hasil">—</div>
     </div>
-    <div class="panel">
-      <h3>📐 Konsep & Soal HOTS</h3>
+    <div class="panel"><h3>Konsep & Soal HOTS</h3>
       <div class="rumus">∫[a→b] f(x)dx ≈ Σ f(xᵢ)·Δx<br>Δx = (b-a)/n</div>
       <p style="font-size:0.79rem;color:#64748b;margin:4px 0">Semakin besar n (lebih banyak partisi), aproksimasi semakin mendekati luas eksak.</p>
       <div class="soal">Hitung ∫[0→3] x² dx menggunakan rumus anti-turunan. Berapa nilai eksak integralnya?</div>
@@ -61,7 +58,7 @@
       <button class="opsi-btn" onclick="cek(this,'benar')">B. 9</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">C. 12</button>
       <button class="opsi-btn" onclick="cek(this,'salah')">D. 27/4</button>
-      <div class="pembahasan" id="pem">✅ Anti-turunan x² adalah x³/3. Maka ∫[0→3] x² dx = [x³/3] dari 0 ke 3 = (27/3) - (0/3) = 9 - 0 = <strong>9</strong>.</div>
+      <div class="pembahasan" id="pem">Anti-turunan x² adalah x³/3. Maka ∫[0→3] x² dx = [x³/3] dari 0 ke 3 = (27/3) - (0/3) = 9 - 0 = <strong>9</strong>.</div>
     </div>
   </div>
 </div>
@@ -98,12 +95,12 @@ function update(){
   for(let i=0;i<1000;i++) exact+=f(a+i*ex_dx)*ex_dx;
   const err=Math.abs((sum-exact)/(exact||1)*100);
   document.getElementById('hasil').innerHTML=
-    `Aproksimasi Riemann (n=${n}): <b>${sum.toFixed(4)}</b><br>Nilai Eksak (≈): <b>${exact.toFixed(4)}</b><br>Error: <b>${err.toFixed(2)}%</b><br>${n>=100?'🎯 Sangat akurat!':n>=30?'✅ Cukup akurat':'⚠️ Tambah partisi untuk lebih akurat'}`;
+    `Aproksimasi Riemann (n=${n}): <b>${sum.toFixed(4)}</b><br>Nilai Eksak (≈): <b>${exact.toFixed(4)}</b><br>Error: <b>${err.toFixed(2)}%</b><br>${n>=100?' Sangat akurat!':n>=30?' Cukup akurat':' Tambah partisi untuk lebih akurat'}`;
   draw(a,b,n,fnKey);
 }
 
 function draw(a,b,n,fnKey){
-  cv.width=cv.offsetWidth; cv.height=300;
+  cv.width = cv.offsetWidth || 640; cv.height=300;
   const W=cv.width, H=300;
   const f=fns[fnKey];
   // Rentang y

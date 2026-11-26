@@ -12,53 +12,46 @@
     header h1 { font-size:1.1rem; font-weight:800; color:#0369a1; }
     header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
-    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px;  }
+    canvas { width:100%; background:#0f172a; border-radius: 6px; display:block; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
     .s-val { font-size:1.05rem; font-weight:800; margin-top:2px; font-family:monospace; }
     button { border:1px solid #cbd5e1; border-radius:10px; padding:9px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
     button.active { background:#0284c7; color:#fff; border-color:#0369a1; }
-    .soal-box { background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; color:#0c4a6e; }
+    .soal-box { background:#f0f9ff; border:1px solid #bae6fd; border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; color:#0c4a6e; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <h1>🚢 Simulator Fisika: Hukum Archimedes &amp; Gaya Apung (F<sub>a</sub> = ρ · g · V<sub>celup</sub>)</h1>
+    <h1>Simulator Fisika: Hukum Archimedes &amp; Gaya Apung (F<sub>a</sub> = ρ · g · V<sub>celup</sub>)</h1>
     <p>Mengapa paku besi kecil langsung tenggelam di air, sedangkan kapal baja ribuan ton bisa mengapung?</p>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="archCanvas" width="760" height="400"></canvas>
+    <div class="card"><canvas id="archCanvas" width="760" height="400"></canvas>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Massa Jenis Benda</div><div class="s-val" id="vRho" style="color:#0284c7">0 kg/m³</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Massa Jenis Benda</div><div class="s-val" id="vRho" style="color:#0284c7">0 kg/m³</div></div>
         <div class="s-box"><div class="s-lbl">Gaya Apung (Fa)</div><div class="s-val" id="vFa" style="color:#059669">0 N</div></div>
         <div class="s-box"><div class="s-lbl">Status Benda</div><div class="s-val" id="vStat" style="color:#d97706">Mengapung</div></div>
       </div>
 
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="active" onclick="setObj('ship', this)">🚢 Kapal Baja Berongga</button>
-        <button onclick="setObj('wood', this)">🪵 Balok Kayu</button>
-        <button onclick="setObj('iron', this)">🔩 Besi Pejal</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="active" onclick="setObj('ship', this)">Kapal Baja Berongga</button>
+        <button onclick="setObj('wood', this)">Balok Kayu</button>
+        <button onclick="setObj('iron', this)">Besi Pejal</button>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Massa Jenis Zat Cair (ρ<sub>cair</sub>)</span><span id="lblLiq" style="color:#0284c7">1000 kg/m³ (Air Tawar)</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Massa Jenis Zat Cair (ρ<sub>cair</sub>)</span><span id="lblLiq" style="color:#0284c7">1000 kg/m³ (Air Tawar)</span>
         </div>
         <input type="range" id="inLiq" min="700" max="1400" step="50" value="1000" style="width:100%;accent-color:#0284c7;cursor:pointer;">
       </div>
 
-      <div class="soal-box">
-        <strong>📝 Pembuktian Misteri Kapal Baja:</strong>
-        <p id="soalArch" style="margin-top:4px;">
-          Besi pejal memiliki massa jenis <strong>7.800 kg/m³</strong> (> air 1.000), sehingga langsung tenggelam. Namun <strong>Kapal Baja dibuat berongga berisi udara</strong> sehingga massa jenis rata-ratanya turun menjadi ~<strong>450 kg/m³</strong> dan volume air yang dipindahkan sangat besar!
+      <div class="soal-box"><strong>Pembuktian Misteri Kapal Baja:</strong>
+        <p id="soalArch" style="margin-top:4px;">Besi pejal memiliki massa jenis <strong>7.800 kg/m³</strong> (> air 1.000), sehingga langsung tenggelam. Namun <strong>Kapal Baja dibuat berongga berisi udara</strong> sehingga massa jenis rata-ratanya turun menjadi ~<strong>450 kg/m³</strong> dan volume air yang dipindahkan sangat besar!
         </p>
       </div>
     </div>

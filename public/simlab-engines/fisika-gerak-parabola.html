@@ -12,56 +12,47 @@
     header h1 { font-size:1.1rem; font-weight:800; }
     header p { font-size:0.8rem; color:var(--muted); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
     .s-val { font-size:1.05rem; font-weight:800; font-family:monospace; margin-top:2px; }
-    .soal-box { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    .soal-box { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.3); border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; }
     button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <div>
-      <h1>🎯 Simulator Fisika: Gerak Parabola (Peluru &amp; Bola)</h1>
+    <div><h1>Simulator Fisika: Gerak Parabola (Peluru &amp; Bola)</h1>
       <p>Ubah Kecepatan Awal (v<sub>0</sub>) dan Sudut Elevasi (α) untuk melihat lintasan parabola, Tinggi Maksimum (H<sub>max</sub>), dan Jarak Terjauh (X<sub>max</sub>)</p>
     </div>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="paraCanvas" width="760" height="400"></canvas>
+    <div class="card"><canvas id="paraCanvas" width="760" height="400"></canvas>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Tinggi Maks (Hmax)</div><div class="s-val" id="vHmax" style="color:#38bdf8">0 m</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Tinggi Maks (Hmax)</div><div class="s-val" id="vHmax" style="color:#38bdf8">0 m</div></div>
         <div class="s-box"><div class="s-lbl">Jarak Terjauh (Xmax)</div><div class="s-val" id="vXmax" style="color:#34d399">0 m</div></div>
         <div class="s-box"><div class="s-lbl">Waktu Terbang</div><div class="s-val" id="vTmax" style="color:#fbbf24">0 s</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Kecepatan Awal (v<sub>0</sub>)</span><span id="lblV0" style="color:#38bdf8">30 m/s</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Kecepatan Awal (v<sub>0</sub>)</span><span id="lblV0" style="color:#38bdf8">30 m/s</span>
         </div>
         <input type="range" id="inV0" min="10" max="50" step="1" value="30" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Sudut Elevasi (α)</span><span id="lblAng" style="color:#fbbf24">45°</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Sudut Elevasi (α)</span><span id="lblAng" style="color:#fbbf24">45°</span>
         </div>
         <input type="range" id="inAng" min="15" max="80" step="5" value="45" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
       </div>
 
-      <button onclick="fire()" style="background:#10b981;color:#022c22;">🚀 Tembakkan Bola / Peluru!</button>
+      <button onclick="fire()" style="background:#10b981;color:#022c22;">Tembakkan Bola / Peluru!</button>
 
-      <div class="soal-box">
-        <strong style="color:#38bdf8;">📝 Contoh Kasus Soal &amp; Pembuktian:</strong>
-        <p id="soalPara" style="margin-top:4px;">
-          <em>Soal:</em> Sebuah bola ditendang dengan kecepatan awal <strong>30 m/s</strong> dan sudut <strong>45°</strong> (g = 10 m/s²). Berapakah jarak terjauh (X<sub>max</sub>) yang dicapai bola?
+      <div class="soal-box"><strong style="color:#38bdf8;">Contoh Kasus Soal &amp; Pembuktian:</strong>
+        <p id="soalPara" style="margin-top:4px;"><em>Soal:</em> Sebuah bola ditendang dengan kecepatan awal <strong>30 m/s</strong> dan sudut <strong>45°</strong> (g = 10 m/s²). Berapakah jarak terjauh (X<sub>max</sub>) yang dicapai bola?
         </p>
         <button onclick="ujiSoalPara()" style="margin-top:8px;background:#0284c7;color:#fff;">▶ Uji Soal di Simulasi (v₀=30, α=45°)</button>
       </div>

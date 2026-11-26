@@ -12,52 +12,44 @@
     header h1 { font-size:1.1rem; font-weight:800; }
     header p { font-size:0.8rem; color:var(--muted); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width:900px){ main { grid-template-columns:1fr; } }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
     .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
     .s-val { font-size:1.05rem; font-weight:800; font-family:monospace; margin-top:2px; }
-    .soal-box { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    .soal-box { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3); border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; }
     button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#10b981; color:#022c22; }
   </style>
+  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
-    <h1>📐 Simulator Matematika: Aplikasi Trigonometri (Mengukur Tinggi Menara)</h1>
+    <h1>Simulator Matematika: Aplikasi Trigonometri (Mengukur Tinggi Menara)</h1>
     <p>Lihat bagaimana Sin, Cos, dan Tan dipakai di dunia nyata untuk menghitung tinggi menara tanpa harus memanjatnya</p>
   </header>
 
   <main>
-    <div class="card">
-      <canvas id="trigCanvas" width="760" height="410"></canvas>
+    <div class="card"><canvas id="trigCanvas" width="760" height="410"></canvas>
     </div>
 
-    <div class="card">
-      <div class="stats">
-        <div class="s-box"><div class="s-lbl">Tinggi Menara (t)</div><div class="s-val" id="vHeight" style="color:#34d399">0 m</div></div>
+    <div class="card"><div class="stats"><div class="s-box"><div class="s-lbl">Tinggi Menara (t)</div><div class="s-val" id="vHeight" style="color:#34d399">0 m</div></div>
         <div class="s-box"><div class="s-lbl">Jarak Pandang (Miring)</div><div class="s-val" id="vHyp" style="color:#38bdf8">0 m</div></div>
         <div class="s-box"><div class="s-lbl">tan(θ)</div><div class="s-val" id="vTan" style="color:#fbbf24">0.00</div></div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Jarak Pengamat ke Menara (Samping / x)</span><span id="lblDist" style="color:#38bdf8">20 m</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Jarak Pengamat ke Menara (Samping / x)</span><span id="lblDist" style="color:#38bdf8">20 m</span>
         </div>
         <input type="range" id="inDist" min="10" max="60" step="2" value="20" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Sudut Elevasi Klinometer (θ)</span><span id="lblAng" style="color:#fbbf24">45°</span>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;"><span>Sudut Elevasi Klinometer (θ)</span><span id="lblAng" style="color:#fbbf24">45°</span>
         </div>
         <input type="range" id="inAng" min="15" max="75" step="5" value="45" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
       </div>
 
-      <div class="soal-box">
-        <strong style="color:#6ee7b7;">📝 Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
-        <p id="soalTrig" style="margin-top:4px;">
-          <em>Soal:</em> Seorang siswa berdiri <strong>20 meter</strong> dari kaki menara dan melihat puncak menara dengan sudut elevasi <strong>60°</strong>. Berapa tinggi menara tersebut? (tan 60° = √3 ≈ 1,73)
+      <div class="soal-box"><strong style="color:#6ee7b7;">Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
+        <p id="soalTrig" style="margin-top:4px;"><em>Soal:</em> Seorang siswa berdiri <strong>20 meter</strong> dari kaki menara dan melihat puncak menara dengan sudut elevasi <strong>60°</strong>. Berapa tinggi menara tersebut? (tan 60° = √3 ≈ 1,73)
         </p>
         <button onclick="ujiTrig()" style="margin-top:8px;">▶ Uji Soal di Simulasi (x=20m, θ=60°)</button>
       </div>
