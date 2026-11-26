@@ -219,7 +219,9 @@ function cek(el,s){
 }
 
 window.addEventListener('resize',draw);
+window.addEventListener('load',draw);
 loadSample();
+requestAnimationFrame(draw);
 </script>
 </body>
 </html>

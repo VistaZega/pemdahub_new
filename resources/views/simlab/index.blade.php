@@ -66,17 +66,17 @@
         'vokasi_plc'              => asset('simlab-engines/vokasi-otomasi-relay.html'),
         'econ_compound'           => asset('simlab-engines/ekonomi-bunga-majemuk.html'),
         // === Simulator Batch Baru ===
-        'physics_optics'          => asset('simlab-engines/fisika-optika-lensa.html'),
-        'physics_elevator'        => asset('simlab-engines/fisika-newton-lift.html'),
-        'physics_electric_field'  => asset('simlab-engines/fisika-medan-listrik.html'),
-        'bio_osmosis'             => asset('simlab-engines/biologi-osmosis-sel.html'),
-        'bio_nervous'             => asset('simlab-engines/biologi-sistem-saraf.html'),
-        'math_integral'           => asset('simlab-engines/matematika-integral-riemann.html'),
-        'math_trig_circle'        => asset('simlab-engines/matematika-trigonometri-interaktif.html'),
-        'vokasi_lan_topo'         => asset('simlab-engines/vokasi-jaringan-lan.html'),
-        'vokasi_cad_dpib'         => asset('simlab-engines/vokasi-cad-denah.html'),
-        'econ_inflation'          => asset('simlab-engines/ips-inflasi-deflasi.html'),
-        'ptn_speed_advanced'      => asset('simlab-engines/ptn-soal-cepat-lanjutan.html'),
+        'physics_optics'          => asset('simlab-engines/fisika-optika-lensa.html') . '?v=20261127',
+        'physics_elevator'        => asset('simlab-engines/fisika-newton-lift.html') . '?v=20261127',
+        'physics_electric_field'  => asset('simlab-engines/fisika-medan-listrik.html') . '?v=20261127',
+        'bio_osmosis'             => asset('simlab-engines/biologi-osmosis-sel.html') . '?v=20261127',
+        'bio_nervous'             => asset('simlab-engines/biologi-sistem-saraf.html') . '?v=20261127',
+        'math_integral'           => asset('simlab-engines/matematika-integral-riemann.html') . '?v=20261127',
+        'math_trig_circle'        => asset('simlab-engines/matematika-trigonometri-interaktif.html') . '?v=20261127',
+        'vokasi_lan_topo'         => asset('simlab-engines/vokasi-jaringan-lan.html') . '?v=20261127',
+        'vokasi_cad_dpib'         => asset('simlab-engines/vokasi-cad-denah.html') . '?v=20261127',
+        'econ_inflation'          => asset('simlab-engines/ips-inflasi-deflasi.html') . '?v=20261127',
+        'ptn_speed_advanced'      => asset('simlab-engines/ptn-soal-cepat-lanjutan.html') . '?v=20261127',
     ];
 
     $rooms = [

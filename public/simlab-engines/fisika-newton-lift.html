@@ -94,7 +94,7 @@ function update(){
 }
 
 function draw(m, a, Ws){
-  cv.width = cv.offsetWidth; cv.height = 380;
+  cv.width = cv.offsetWidth || 320; cv.height = 380;
   const W = cv.width, H = cv.height;
   // Rel lift
   ctx.strokeStyle='#475569'; ctx.lineWidth=3;
@@ -147,6 +147,7 @@ function cek(el,s){
 }
 
 window.addEventListener('resize',update);
+window.addEventListener('load',update);
 update();
 </script>
 </body>
