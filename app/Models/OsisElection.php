@@ -122,7 +122,7 @@ class OsisElection extends Model
     {
         return array_key_exists('is_simulation', $this->attributes) 
             ? (bool) $this->attributes['is_simulation'] 
-            : true;
+            : false;
     }
 
     // Statistik

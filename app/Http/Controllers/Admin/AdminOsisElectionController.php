@@ -87,6 +87,7 @@ class AdminOsisElectionController extends Controller
             'allow_staff' => $request->has('allow_staff'),
             'show_realtime_count' => $request->has('show_realtime_count'),
             'is_active' => true,
+            'is_simulation' => $request->boolean('is_simulation'),
         ]);
 
         return redirect()->route('admin.osis.candidates', $election->id)
