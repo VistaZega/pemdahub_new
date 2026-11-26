@@ -80,12 +80,126 @@
     ];
 
     $rooms = [
-        'fisika'        => ['code' => 'LAB-01', 'name' => 'Sayap IPA & Fisika', 'sub' => 'Gerak, Gaya, Fluida, Bunyi & Listrik', 'icon' => 'fa-atom', 'color' => '#0284c7', 'ring' => 'ring-sky-500 border-sky-500 bg-sky-50/90'],
-        'kimia_biologi' => ['code' => 'LAB-02', 'name' => 'Sayap Kimia & Biologi', 'sub' => 'Reaksi, Atom, pH, Sel & Tubuh', 'icon' => 'fa-flask', 'color' => '#059669', 'ring' => 'ring-emerald-500 border-emerald-500 bg-emerald-50/90'],
-        'matematika'    => ['code' => 'LAB-03', 'name' => 'Sayap Matematika', 'sub' => 'Grafik, Statistika, Trigonometri & Peluang', 'icon' => 'fa-square-root-variable', 'color' => '#4f46e5', 'ring' => 'ring-indigo-500 border-indigo-500 bg-indigo-50/90'],
-        'vokasi'        => ['code' => 'LAB-04', 'name' => 'Bengkel Vokasi (SMK)', 'sub' => 'Otomotif 4-Tak, DPIB, TKJ & Logika', 'icon' => 'fa-gears', 'color' => '#ea580c', 'ring' => 'ring-orange-500 border-orange-500 bg-orange-50/90'],
-        'ips_bahasa'    => ['code' => 'LAB-05', 'name' => 'Sayap IPS & Bahasa', 'sub' => 'Ekonomi Pasar, Sosiologi & Bahasa', 'icon' => 'fa-earth-asia', 'color' => '#7c3aed', 'ring' => 'ring-purple-500 border-purple-500 bg-purple-50/90'],
-        'olimpiade'     => ['code' => 'LAB-06', 'name' => 'Arena Olimpiade & PTN', 'sub' => '5 Soal Dunia & Trik Cepat SNBT', 'icon' => 'fa-trophy', 'color' => '#d97706', 'ring' => 'ring-amber-500 border-amber-500 bg-amber-50/90'],
+        'fisika' => [
+            'code'       => 'LAB-01',
+            'floor'      => 'Lantai 1 · Sayap Timur',
+            'name'       => 'Lab IPA & Fisika',
+            'sub'        => 'Mekanika, Optika, Fluida, Gelombang & Listrik',
+            'icon'       => 'fa-atom',
+            'color'      => '#0284c7',
+            'ring'       => 'ring-sky-500 border-sky-500 bg-sky-50/90',
+            'grad'       => 'from-sky-950 via-sky-900 to-cyan-900',
+            'badge_bg'   => 'bg-sky-500/20 text-sky-200 border-sky-400/30',
+            'prof_name'  => 'Prof. Dr. Albertus Surya, M.Si.',
+            'prof_title' => 'Kepala Lab Fisika & Optika',
+            'prof_quote' => 'Selamat datang di Sayap Fisika! Mari buktikan hukum alam lewat eksperimen nyata—dari lensa optik hingga medan listrik.',
+            'prof_coat'  => '#ffffff',
+            'prof_tie'   => '#0284c7',
+            'prof_hair'  => '#cbd5e1',
+            'prof_skin'  => '#f1c27d',
+            'prof_item'  => 'prisma',
+            'equipment'  => ['Meja Optika & Lensa', 'Generator Medan Listrik', 'Lift Hukum Newton', 'Rangkaian Hukum Ohm'],
+        ],
+        'kimia_biologi' => [
+            'code'       => 'LAB-02',
+            'floor'      => 'Lantai 1 · Sayap Barat',
+            'name'       => 'Lab Kimia & Biologi',
+            'sub'        => 'Reaksi Molekul, pH, Osmosis Sel & Saraf',
+            'icon'       => 'fa-flask',
+            'color'      => '#059669',
+            'ring'       => 'ring-emerald-500 border-emerald-500 bg-emerald-50/90',
+            'grad'       => 'from-emerald-950 via-teal-900 to-emerald-900',
+            'badge_bg'   => 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30',
+            'prof_name'  => 'Prof. Dr. Clara Wijaya, Ph.D.',
+            'prof_title' => 'Kepala Lab Biokimia & Sel',
+            'prof_quote' => 'Kenakan jas labmu! Di sini kita mengamati reaksi molekul, skala pH, osmosis sel, hingga penjalaran impuls saraf.',
+            'prof_coat'  => '#ffffff',
+            'prof_tie'   => '#059669',
+            'prof_hair'  => '#334155',
+            'prof_skin'  => '#ffdbac',
+            'prof_item'  => 'erlenmeyer',
+            'equipment'  => ['Rak Tabung & pH Meter', 'Mikroskop Osmosis Sel', 'Model Atom Bohr', 'Simulator Sistem Saraf'],
+        ],
+        'matematika' => [
+            'code'       => 'LAB-03',
+            'floor'      => 'Lantai 2 · Sayap Timur',
+            'name'       => 'Lab Matematika',
+            'sub'        => 'Grafik, Trigonometri, Integral & Peluang',
+            'icon'       => 'fa-square-root-variable',
+            'color'      => '#4f46e5',
+            'ring'       => 'ring-indigo-500 border-indigo-500 bg-indigo-50/90',
+            'grad'       => 'from-indigo-950 via-violet-900 to-slate-900',
+            'badge_bg'   => 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
+            'prof_name'  => 'Prof. Dr. Hendra Kusuma, M.Mat.',
+            'prof_title' => 'Kepala Lab Analisis & Geometri',
+            'prof_quote' => 'Matematika itu hidup! Lihat bagaimana kurva parabola, lingkaran trigonometri, dan integral Riemann bekerja secara visual.',
+            'prof_coat'  => '#e2e8f0',
+            'prof_tie'   => '#4f46e5',
+            'prof_hair'  => '#1e293b',
+            'prof_skin'  => '#e0ac69',
+            'prof_item'  => 'kompas',
+            'equipment'  => ['Plotter Parabola', 'Lingkaran Trigonometri', 'Mesin Integral Riemann', 'Distribusi Statistika'],
+        ],
+        'vokasi' => [
+            'code'       => 'LAB-04',
+            'floor'      => 'Lantai 1 · Gedung Bengkel',
+            'name'       => 'Bengkel Vokasi (SMK)',
+            'sub'        => 'Otomotif 4-Tak, CAD DPIB, Jaringan LAN & PLC',
+            'icon'       => 'fa-gears',
+            'color'      => '#ea580c',
+            'ring'       => 'ring-orange-500 border-orange-500 bg-orange-50/90',
+            'grad'       => 'from-orange-950 via-amber-900 to-stone-900',
+            'badge_bg'   => 'bg-orange-500/20 text-orange-200 border-orange-400/30',
+            'prof_name'  => 'Ir. Bima Pratama, M.T.',
+            'prof_title' => 'Kepala Bengkel Vokasi & Industri',
+            'prof_quote' => 'Siap kerja industri! Uji mesin 4-tak, rakit topologi jaringan LAN, gambar denah CAD DPIB, dan kendalikan motor PLC.',
+            'prof_coat'  => '#fb923c',
+            'prof_tie'   => '#1e293b',
+            'prof_hair'  => '#0f172a',
+            'prof_skin'  => '#c68642',
+            'prof_item'  => 'kunci',
+            'equipment'  => ['Engine Stand 4-Tak', 'Rack Topologi LAN TKJ', 'Meja Gambar CAD DPIB', 'Panel Relay PLC'],
+        ],
+        'ips_bahasa' => [
+            'code'       => 'LAB-05',
+            'floor'      => 'Lantai 2 · Sayap Barat',
+            'name'       => 'Lab IPS & Bahasa',
+            'sub'        => 'Ekonomi Pasar, Inflasi, Sosiologi & Bahasa',
+            'icon'       => 'fa-earth-asia',
+            'color'      => '#7c3aed',
+            'ring'       => 'ring-purple-500 border-purple-500 bg-purple-50/90',
+            'grad'       => 'from-purple-950 via-fuchsia-900 to-slate-900',
+            'badge_bg'   => 'bg-purple-500/20 text-purple-200 border-purple-400/30',
+            'prof_name'  => 'Prof. Dr. Ratna Sari, M.Hum.',
+            'prof_title' => 'Kepala Lab Sosial, Ekonomi & Bahasa',
+            'prof_quote' => 'Pahami dinamika pasar, dampak inflasi terhadap daya beli, penyebaran norma sosial, hingga struktur kalimat lintas bahasa.',
+            'prof_coat'  => '#f3e8ff',
+            'prof_tie'   => '#7c3aed',
+            'prof_hair'  => '#292524',
+            'prof_skin'  => '#f1c27d',
+            'prof_item'  => 'buku',
+            'equipment'  => ['Bursa Kurva Pasar', 'Monitor Inflasi & Deflasi', 'Peta Dinamika Sosial', 'Analisis SPOK & Tenses'],
+        ],
+        'olimpiade' => [
+            'code'       => 'LAB-06',
+            'floor'      => 'Lantai 3 · Menara Prestasi',
+            'name'       => 'Arena Olimpiade & PTN',
+            'sub'        => '5 Soal Dunia & 35 Soal Cepat SNBT/UTBK',
+            'icon'       => 'fa-trophy',
+            'color'      => '#d97706',
+            'ring'       => 'ring-amber-500 border-amber-500 bg-amber-50/90',
+            'grad'       => 'from-amber-950 via-yellow-900 to-slate-900',
+            'badge_bg'   => 'bg-amber-500/20 text-amber-200 border-amber-400/30',
+            'prof_name'  => 'Prof. Dr. Satria Nusantara',
+            'prof_title' => 'Pelatih Kepala Olimpiade & SNBT',
+            'prof_quote' => 'Asah kecepatan berpikirmu! Kuasai soal Olimpiade Sains Internasional & trik cepat <15 detik menembus PTN favorit.',
+            'prof_coat'  => '#1e293b',
+            'prof_tie'   => '#fbbf24',
+            'prof_hair'  => '#94a3b8',
+            'prof_skin'  => '#e0ac69',
+            'prof_item'  => 'piala',
+            'equipment'  => ['Arena 5 Soal Olimpiade', 'Tryout SNBT 15 Soal', 'Paket Lanjutan 20 Soal', 'Stopwatch Trik Cepat'],
+        ],
     ];
 
     $labsPayload = $virtualLabs->map(function ($lab) use ($engineUrls) {
@@ -140,15 +254,15 @@
                 <!-- Search Global -->
                 <div class="relative hidden sm:block w-56 lg:w-64">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" x-model="searchQuery" @input="if(searchQuery.trim() !== '') activeRoom = 'all'"
+                    <input type="text" x-model="searchQuery" @input="if(searchQuery.trim() !== '') { activeRoom = 'all'; viewMode = 'inside'; }"
                            placeholder="Cari fenomena / soal..."
                            class="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-sky-500 transition">
                 </div>
 
-                <button type="button" @click="showFloorplan = !showFloorplan"
+                <button type="button" @click="viewMode === 'lobby' ? enterRoom(activeRoom === 'all' ? 'fisika' : activeRoom) : backToLobby()"
                         class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold transition inline-flex items-center gap-1.5">
-                    <i class="fas" :class="showFloorplan ? 'fa-map-location-dot text-sky-600' : 'fa-map'"></i>
-                    <span class="hidden md:inline" x-text="showFloorplan ? 'Sembunyikan Denah' : 'Buka Denah Gedung'"></span>
+                    <i class="fas" :class="viewMode === 'lobby' ? 'fa-door-open text-sky-600' : 'fa-building text-sky-600'"></i>
+                    <span class="hidden md:inline" x-text="viewMode === 'lobby' ? 'Masuk Meja Riset' : 'Lobi Gedung Lab'"></span>
                 </button>
 
                 @if($isInstructor)
@@ -170,54 +284,229 @@
 
     <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
 
-        <!-- BAGIAN 1: DENAH KOMPLEKS LABORATORIUM INTERAKTIF (BLUEPRINT FLOORPLAN) -->
-        <section x-show="showFloorplan" x-transition class="bg-white border border-slate-300 rounded-3xl p-4 sm:p-5 shadow-sm">
-            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-200">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 text-[10px] font-extrabold uppercase tracking-wider">Denah Gedung Riset</span>
-                        <h1 class="text-base sm:text-lg font-extrabold text-slate-900">Pilih Ruangan Laboratorium untuk Memasuki Meja Praktikum</h1>
+        <!-- BAGIAN 1: LOBI GEDUNG LABORATORIUM DISIPLIN ILMU (6 RUANGAN KHUSUS + PROFESOR KEPALA LAB) -->
+        <section x-show="viewMode === 'lobby'" x-transition class="space-y-5">
+            <!-- Fasad & Direktori Gedung Riset -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl border border-slate-800">
+                <div class="absolute inset-0 opacity-15 pointer-events-none" style="background-image: radial-gradient(#38bdf8 1px, transparent 1px); background-size: 24px 24px;"></div>
+                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                    <div class="space-y-2 max-w-3xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-bold">
+                            <i class="fas fa-landmark"></i>
+                            <span>Gedung Laboratorium Terpadu PembdaHUB · 6 Ruangan Disiplin Ilmu</span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+                            Selamat Datang di Kompleks Laboratorium Riset &amp; Vokasi
+                        </h1>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            Setiap ruangan dipimpin langsung oleh <strong class="text-white">Profesor Kepala Lab</strong> sesuai bidang keilmuannya dan dilengkapi meja praktikum, instrumen eksperimen, SOP, teori, serta soal tantangan HOTS. Pilih pintu ruangan di bawah ini untuk masuk.
+                        </p>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5">Klik salah satu sayap ruangan di bawah ini — rak instrumen &amp; meja simulasi live akan langsung menyala tanpa pindah halaman.</p>
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <div class="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15 text-center">
+                            <div class="text-2xl font-extrabold text-sky-300">6</div>
+                            <div class="text-[11px] text-slate-300 font-semibold">Ruangan Lab</div>
+                        </div>
+                        <div class="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15 text-center">
+                            <div class="text-2xl font-extrabold text-emerald-300">{{ $virtualLabs->count() }}</div>
+                            <div class="text-[11px] text-slate-300 font-semibold">Alat Simulasi</div>
+                        </div>
+                        <button type="button" @click="activeRoom = 'all'; viewMode = 'inside'"
+                                class="px-4 py-3 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs sm:text-sm transition shadow-lg shadow-sky-500/25 inline-flex items-center gap-2">
+                            <i class="fas fa-compass"></i>
+                            <span>Jelajahi Semua Alat</span>
+                        </button>
+                    </div>
                 </div>
-                <button type="button" @click="activeRoom = 'all'"
-                        :class="activeRoom === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
-                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition">
-                    Tampilkan Semua ({{ $virtualLabs->count() }} Alat)
-                </button>
             </div>
 
-            <!-- Floorplan Architectural Grid (6 Wing Rooms) -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Grid 6 Pintu Ruangan Lab & Profesor Kepala Lab -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 @foreach($rooms as $rKey => $r)
                 @php $rCount = $virtualLabs->filter(fn($v) => $v->discipline_key === $rKey)->count(); @endphp
-                <button type="button" @click="selectRoom('{{ $rKey }}')"
-                        :class="activeRoom === '{{ $rKey }}' ? '{{ $r['ring'] }} ring-2 shadow-md' : 'border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-300'"
-                        class="blueprint-room text-left rounded-2xl border-2 p-3.5 flex flex-col justify-between gap-2.5">
-                    <div class="flex items-center justify-between w-full">
-                        <span class="font-mono text-[10px] font-extrabold px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600">{{ $r['code'] }}</span>
-                        <span class="w-2.5 h-2.5 rounded-full" :class="activeRoom === '{{ $rKey }}' ? 'bg-emerald-500 animate-ping' : 'bg-slate-300'"></span>
-                    </div>
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-base shrink-0 shadow-xs" style="background: {{ $r['color'] }};">
-                            <i class="fas {{ $r['icon'] }}"></i>
+                <div @click="enterRoom('{{ $rKey }}')"
+                     class="group cursor-pointer rounded-3xl bg-white border-2 border-slate-200 hover:border-sky-500 shadow-sm hover:shadow-xl transition-all duration-200 overflow-hidden flex flex-col">
+
+                    <!-- Jendela Kaca Interior Ruangan Lab + Ilustrasi Alat + Profesor Kepala Lab -->
+                    <div class="relative h-48 bg-gradient-to-br {{ $r['grad'] }} p-4 flex items-end justify-between overflow-hidden">
+                        <!-- Latar Grid Arsitektural & Alat Lab SVG -->
+                        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                        <!-- Badge Kode Ruangan & Lantai -->
+                        <div class="absolute top-3.5 left-4 right-4 flex items-center justify-between gap-2 z-10">
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-950/60 backdrop-blur-sm border border-white/15 text-white font-mono text-[11px] font-extrabold">
+                                {{ $r['code'] }} · {{ $r['floor'] }}
+                            </span>
+                            <span class="px-2.5 py-1 rounded-full border text-[11px] font-bold {{ $r['badge_bg'] }}">
+                                {{ $rCount }} Alat Lab
+                            </span>
                         </div>
-                        <div class="min-w-0">
-                            <div class="font-extrabold text-xs sm:text-sm text-slate-900 leading-tight">{{ $r['name'] }}</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{{ $r['sub'] }}</div>
+
+                        <!-- Ilustrasi Peralatan Khas Ruangan (Kiri) -->
+                        <div class="relative z-10 flex flex-col justify-end h-full pt-8 max-w-[58%]">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white text-lg shadow-inner">
+                                    <i class="fas {{ $r['icon'] }}"></i>
+                                </div>
+                                <div class="text-white">
+                                    <div class="font-extrabold text-base leading-tight">{{ $r['name'] }}</div>
+                                    <div class="text-[11px] text-slate-200/90 line-clamp-1">{{ $r['sub'] }}</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                @foreach(array_slice($r['equipment'], 0, 3) as $eq)
+                                <span class="px-2 py-0.5 rounded-md bg-slate-950/45 border border-white/15 text-[10px] text-slate-100 font-medium">{{ $eq }}</span>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Ilustrasi SVG Profesor Kepala Lab (Kanan) -->
+                        <div class="relative z-10 shrink-0 -mb-4 group-hover:scale-105 transition-transform duration-300">
+                            <svg width="112" height="128" viewBox="0 0 112 128" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="{{ $r['prof_name'] }}">
+                                <!-- Bayangan -->
+                                <ellipse cx="56" cy="122" rx="38" ry="6" fill="rgba(0,0,0,0.35)"/>
+                                <!-- Jas Lab / Wearpack -->
+                                <path d="M22 122 C22 92, 34 80, 56 80 C78 80, 90 92, 90 122 Z" fill="{{ $r['prof_coat'] }}" stroke="#cbd5e1" stroke-width="1.5"/>
+                                <!-- Kemeja dalam & Dasi -->
+                                <polygon points="48,80 64,80 56,104" fill="#e2e8f0"/>
+                                <polygon points="54,82 58,82 60,104 56,110 52,104" fill="{{ $r['prof_tie'] }}"/>
+                                <!-- Kerah Jas Lab -->
+                                <polygon points="42,81 52,81 48,104 38,94" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+                                <polygon points="70,81 60,81 64,104 74,94" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+                                <!-- Lencana Nama Profesor -->
+                                <rect x="65" y="96" width="16" height="8" rx="2" fill="#0f172a"/>
+                                <rect x="67" y="99" width="12" height="2" rx="1" fill="#38bdf8"/>
+                                <!-- Leher -->
+                                <rect x="49" y="66" width="14" height="16" rx="6" fill="{{ $r['prof_skin'] }}"/>
+                                <!-- Rambut Belakang -->
+                                <circle cx="56" cy="44" r="24" fill="{{ $r['prof_hair'] }}"/>
+                                <!-- Wajah -->
+                                <ellipse cx="56" cy="48" rx="20" ry="22" fill="{{ $r['prof_skin'] }}"/>
+                                <!-- Rambut Atas -->
+                                <path d="M36 44 C36 25, 76 25, 76 44 C70 34, 42 34, 36 44 Z" fill="{{ $r['prof_hair'] }}"/>
+                                <!-- Kacamata Ahli -->
+                                <rect x="40" y="43" width="13" height="9" rx="3" fill="rgba(255,255,255,0.25)" stroke="#0f172a" stroke-width="2"/>
+                                <rect x="59" y="43" width="13" height="9" rx="3" fill="rgba(255,255,255,0.25)" stroke="#0f172a" stroke-width="2"/>
+                                <line x1="53" y1="47" x2="59" y2="47" stroke="#0f172a" stroke-width="2"/>
+                                <!-- Mata & Senyum -->
+                                <circle cx="46.5" cy="47.5" r="1.8" fill="#0f172a"/>
+                                <circle cx="65.5" cy="47.5" r="1.8" fill="#0f172a"/>
+                                <path d="M49 58 Q56 63 63 58" stroke="#7c2d12" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <!-- Alat Khas di Tangan Kiri -->
+                                @if($r['prof_item'] === 'erlenmeyer')
+                                <path d="M18 96 L24 96 L28 112 Q28 116 24 116 L18 116 Q14 116 14 112 Z" fill="#34d399" stroke="#ecfdf5" stroke-width="1.5"/>
+                                <rect x="19" y="88" width="4" height="8" fill="#a7f3d0"/>
+                                @elseif($r['prof_item'] === 'prisma')
+                                <polygon points="20,90 31,112 9,112" fill="rgba(56,189,248,0.65)" stroke="#e0f2fe" stroke-width="1.5"/>
+                                @elseif($r['prof_item'] === 'piala')
+                                <path d="M13 92 H29 L26 105 H16 Z" fill="#fbbf24" stroke="#fef3c7" stroke-width="1.2"/>
+                                <rect x="19" y="105" width="4" height="7" fill="#f59e0b"/>
+                                <rect x="15" y="112" width="12" height="4" rx="1" fill="#d97706"/>
+                                @elseif($r['prof_item'] === 'kunci')
+                                <rect x="17" y="92" width="5" height="22" rx="2" fill="#cbd5e1" stroke="#475569" stroke-width="1"/>
+                                <circle cx="19.5" cy="91" r="5" fill="#94a3b8" stroke="#475569" stroke-width="1"/>
+                                @elseif($r['prof_item'] === 'kompas')
+                                <line x1="21" y1="88" x2="12" y2="114" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round"/>
+                                <line x1="21" y1="88" x2="30" y2="114" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round"/>
+                                <circle cx="21" cy="88" r="3" fill="#fbbf24"/>
+                                @else
+                                <rect x="12" y="92" width="18" height="22" rx="2" fill="#a855f7" stroke="#f3e8ff" stroke-width="1.5"/>
+                                <line x1="15" y1="98" x2="27" y2="98" stroke="#fff" stroke-width="1.5"/>
+                                <line x1="15" y1="103" x2="25" y2="103" stroke="#fff" stroke-width="1.5"/>
+                                @endif
+                            </svg>
                         </div>
                     </div>
-                    <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between text-[11px] font-bold text-slate-600">
-                        <span>{{ $rCount }} Simulasi</span>
-                        <span class="text-sky-600" x-show="activeRoom === '{{ $rKey }}'">Aktif ●</span>
+
+                    <!-- Detail Kepala Lab & Tombol Masuk Ruangan -->
+                    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-3">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <div>
+                                    <div class="text-xs sm:text-sm font-extrabold text-slate-900">{{ $r['prof_name'] }}</div>
+                                    <div class="text-[11px] font-bold" style="color: {{ $r['color'] }};">{{ $r['prof_title'] }}</div>
+                                </div>
+                                <span class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-sky-100 text-slate-500 group-hover:text-sky-600 flex items-center justify-center transition">
+                                    <i class="fas fa-door-open text-xs"></i>
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600 italic leading-relaxed bg-slate-50 border border-slate-200/80 rounded-xl p-2.5">
+                                "{{ $r['prof_quote'] }}"
+                            </p>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-500">Klik untuk masuk ruangan</span>
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-white shadow-xs transition group-hover:translate-x-0.5"
+                                  style="background: {{ $r['color'] }};">
+                                Masuk Lab <i class="fas fa-arrow-right text-[10px]"></i>
+                            </span>
+                        </div>
                     </div>
-                </button>
+                </div>
                 @endforeach
             </div>
         </section>
 
-        <!-- BAGIAN 2: MEJA RISET SPLIT-SCREEN (RAK INSTRUMEN KIRI + MEJA PRAKTIKUM LIVE KANAN) -->
-        <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- BAGIAN 2: DI DALAM RUANGAN LAB (SAMBUTAN PROFESOR + RAK INSTRUMEN + MEJA PRAKTIKUM LIVE) -->
+        <section x-show="viewMode === 'inside'" x-cloak class="space-y-4">
+
+            <!-- Koridor Navigasi Ruangan & Sambutan Profesor Kepala Lab -->
+            <div class="bg-white border border-slate-300 rounded-3xl p-4 shadow-sm space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" @click="backToLobby()"
+                                class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-sky-700 text-white text-xs font-extrabold transition inline-flex items-center gap-1.5">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Keluar ke Lobi Gedung</span>
+                        </button>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            @foreach($rooms as $rKey => $r)
+                            <button type="button" @click="selectRoom('{{ $rKey }}')"
+                                    :class="activeRoom === '{{ $rKey }}' ? 'text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                                    :style="activeRoom === '{{ $rKey }}' ? 'background: {{ $r['color'] }}' : ''"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5">
+                                <i class="fas {{ $r['icon'] }} text-[11px]"></i>
+                                <span>{{ $r['code'] }}</span>
+                            </button>
+                            @endforeach
+                            <button type="button" @click="activeRoom = 'all'"
+                                    :class="activeRoom === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition">
+                                Semua ({{ $virtualLabs->count() }})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner Sambutan Profesor Kepala Lab Saat Berada di Dalam Ruangan -->
+                <template x-if="currentRoomMeta">
+                    <div class="rounded-2xl bg-gradient-to-r p-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                         :class="currentRoomMeta.grad">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <div class="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 text-2xl">
+                                <i class="fas" :class="currentRoomMeta.icon"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-white/20 text-[10px] font-extrabold uppercase" x-text="currentRoomMeta.code + ' · ' + currentRoomMeta.floor"></span>
+                                    <span class="text-xs font-bold text-sky-200" x-text="currentRoomMeta.prof_name + ' — ' + currentRoomMeta.prof_title"></span>
+                                </div>
+                                <p class="text-xs sm:text-sm text-white/95 mt-1 leading-relaxed">
+                                    "<span x-text="currentRoomMeta.prof_quote"></span>"
+                                </p>
+                            </div>
+                        </div>
+                        <div class="hidden xl:flex flex-wrap gap-1.5 shrink-0 max-w-xs justify-end">
+                            <template x-for="eq in currentRoomMeta.equipment" :key="eq">
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-950/40 border border-white/15 text-[11px] font-semibold text-slate-100" x-text="eq"></span>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
             <!-- PANEL KIRI: RAK INSTRUMEN & DAFTAR FENOMENA -->
             <aside class="lg:col-span-4 xl:col-span-3 bg-white border border-slate-300 rounded-3xl p-4 shadow-sm space-y-3">
@@ -394,6 +683,7 @@
                     </div>
                 </div>
             </div>
+            </div>
         </section>
     </main>
 
@@ -535,9 +825,11 @@
     <script>
         function labFloorplanApp() {
             const labs = @json($labsPayload);
+            const roomsMeta = @json($rooms);
             const params = new URLSearchParams(window.location.search);
-            const initRoom = params.get('room') || 'fisika';
+            const initRoomParam = params.get('room');
             const initSlug = params.get('lab');
+            const initRoom = initRoomParam || 'fisika';
             const initLab = (initSlug && labs.find(l => l.slug === initSlug))
                 || labs.find(l => l.discipline_key === initRoom)
                 || labs[0]
@@ -545,9 +837,10 @@
 
             return {
                 labs,
+                roomsMeta,
+                viewMode: (initRoomParam || initSlug) ? 'inside' : 'lobby',
                 activeRoom: initRoom,
                 searchQuery: '',
-                showFloorplan: true,
                 selectedLab: initLab,
                 workTab: 'sim',
                 chosenOpt: null,
@@ -603,6 +896,9 @@
                         this.isSavingEdit = false;
                     }
                 },
+                get currentRoomMeta() {
+                    return this.activeRoom && this.activeRoom !== 'all' ? (this.roomsMeta[this.activeRoom] || null) : null;
+                },
                 get filteredLabs() {
                     const q = this.searchQuery.toLowerCase().trim();
                     return this.labs.filter(l => {
@@ -610,6 +906,16 @@
                         const matchQ = !q || (l.title + ' ' + l.subject_name + ' ' + l.description + ' ' + l.discipline_label).toLowerCase().includes(q);
                         return matchRoom && matchQ;
                     });
+                },
+                enterRoom(roomKey) {
+                    this.selectRoom(roomKey);
+                    this.viewMode = 'inside';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+                backToLobby() {
+                    this.searchQuery = '';
+                    this.viewMode = 'lobby';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
                 selectRoom(roomKey) {
                     this.activeRoom = roomKey;
