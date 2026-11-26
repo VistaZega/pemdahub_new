@@ -190,6 +190,9 @@
                             </div>
                             <div style="font-size: 1.04rem; font-weight: 800; color: #0f172a; line-height: 1.3;">{{ $course->name }}</div>
                             <div style="font-size: 0.86rem; color: #475569; font-weight: 600; margin-top: 0.15rem;">{{ $subjectLabel }}</div>
+                            <p style="font-size: 0.84rem; color: #64748b; line-height: 1.45; margin: 0.3rem 0 0; max-width: 420px;">
+                                {{ \Illuminate\Support\Str::limit($course->description ?: 'Kelola materi digital, tugas, dan kuis untuk ' . $subjectLabel . '.', 110) }}
+                            </p>
                         </td>
 
                         {{-- Kolom 2: Rombel --}}

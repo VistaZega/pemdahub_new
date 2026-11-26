@@ -288,6 +288,9 @@
                                     <div style="font-size: 0.85rem; color: #475569; font-weight: 600; margin-top: 0.15rem;">
                                         <i class="fas fa-user-tie" style="color: #64748b; margin-right: 0.25rem;"></i> {{ $teacherName }}
                                     </div>
+                                    <p style="font-size: 0.84rem; color: #64748b; line-height: 1.45; margin: 0.3rem 0 0; max-width: 420px;">
+                                        {{ \Illuminate\Support\Str::limit($course->description ?: 'Pelajari materi dan aktivitas ' . ($course->subject->subject_name ?? '') . ' secara interaktif.', 110) }}
+                                    </p>
                                 </div>
                             </div>
                         </td>
