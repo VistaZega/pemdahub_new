@@ -52,22 +52,22 @@ class VirtualLab extends Model
         $eng = strtolower((string) $this->engine_type);
         $subj = strtolower((string) $this->subject_name . ' ' . (string) $this->title);
 
-        if (in_array($eng, ['olympiad_5', 'ptn_speed']) || str_contains($subj, 'olimpiade') || str_contains($subj, 'ptn') || str_contains($subj, 'snbt') || str_contains($subj, 'utbk')) {
+        if (in_array($eng, ['olympiad_5', 'ptn_speed', 'ptn_speed_advanced']) || str_contains($subj, 'olimpiade') || str_contains($subj, 'ptn') || str_contains($subj, 'snbt') || str_contains($subj, 'utbk')) {
             return 'olimpiade';
         }
-        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc']) || $this->category === 'vokasi' || str_contains($subj, 'smk') || str_contains($subj, 'tkj') || str_contains($subj, 'tkr') || str_contains($subj, 'dpib')) {
+        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc', 'vokasi_lan_topo', 'vokasi_cad_dpib']) || $this->category === 'vokasi' || str_contains($subj, 'smk') || str_contains($subj, 'tkj') || str_contains($subj, 'tkr') || str_contains($subj, 'dpib')) {
             return 'vokasi';
         }
-        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform']) || str_contains($subj, 'matematika') || str_contains($subj, 'gradien') || str_contains($subj, 'aljabar') || str_contains($subj, 'geometri') || str_contains($subj, 'kalkulus')) {
+        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform', 'math_integral', 'math_trig_circle']) || str_contains($subj, 'matematika') || str_contains($subj, 'gradien') || str_contains($subj, 'aljabar') || str_contains($subj, 'geometri') || str_contains($subj, 'kalkulus')) {
             return 'matematika';
         }
-        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics', 'bio_osmosis', 'bio_nervous']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
             return 'kimia_biologi';
         }
-        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa')) {
+        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound', 'econ_inflation']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa')) {
             return 'ips_bahasa';
         }
-        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law']) || str_contains($subj, 'fisika')) {
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'physics_optics', 'physics_elevator', 'physics_electric_field', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law']) || str_contains($subj, 'fisika')) {
             return 'fisika';
         }
 
