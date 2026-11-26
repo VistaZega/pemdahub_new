@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Kimia: Titrasi Asam-Basa &amp; Kurva Ekivalen</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Laboratorium Titrasi Asam-Basa (Buret NaOH &amp; Kurva pH Real-Time)</div>
+          <div class="sl-bar-sub">Teteskan basa kuat NaOH ke dalam larutan asam dan amati lonjakan pH pada titik ekivalen</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" onclick="addVol(0.2)">+0.2 mL (Tetes)</button>
+          <button type="button" class="sl-btn sl-btn-primary" onclick="addVol(1.0)">+1.0 mL</button>
+          <button type="button" class="sl-btn" onclick="addVol(5.0)">+5.0 mL</button>
+          <button type="button" class="sl-btn" onclick="resetTitration()">Reset</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="titCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Konfigurasi Analit &amp; Indikator</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Larutan Asam di Erlenmeyer (25 mL)</span></div>
+          <select id="selAcid" onchange="resetTitration()">
+            <option value="strong" selected>Asam Kuat: HCl 0.10 M (Titik Ekivalen pH 7.0)</option>
+            <option value="weak">Asam Lemah: CH₃COOH 0.10 M (Ka = 1.8×10⁻⁵)</option>
+          </select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Konsentrasi Titran NaOH</span><span class="sl-ctrl-val" id="lMb">0.10 M</span></div>
+          <input type="range" id="inMb" min="0.05" max="0.20" step="0.05" value="0.10" oninput="onMb()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Indikator Asam-Basa</span></div>
+          <select id="selInd" onchange="draw()">
+            <option value="pp" selected>Fenolftalein (Tak berwarna → Merah muda di pH 8.2–10)</option>
+            <option value="btb">Bromtimol Biru (Kuning → Hijau → Biru di pH 6.0–7.6)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan pH Meter &amp; Volume</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Volume NaOH</div><div class="sl-readout-val" id="vVol">0.0 mL</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">pH Larutan</div><div class="sl-readout-val" id="vPh" style="color:#0284c7;">1.00</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Vol. Ekivalen</div><div class="sl-readout-val" id="vEq">25.0 mL</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Persamaan Stoikiometri Titrasi</div>
+        <div class="sl-formula">M_a · V_a · n_a = M_b · V_b · n_b</div>
+        <div class="sl-note" id="titNote" style="margin-top:8px;">
+          Klik <strong>+1.0 mL</strong> atau <strong>+0.2 mL (Tetes)</strong> menjelang Volume Ekivalen untuk menangkap perubahan warna indikator yang presisi.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('titCanvas');
+    const ctx = cv.getContext('2d');
+    let vBase = 0;
+    const history = [];
+
+    function calcPh(vb) {
+      const acidType = document.getElementById('selAcid').value;
+      const Ma = 0.10, Va = 25.0;
+      const Mb = +document.getElementById('inMb').value;
+      const molA = Ma * Va, molB = Mb * vb, totV = Va + vb;
+
+      if (acidType === 'strong') {
+        if (Math.abs(molA - molB) < 1e-5) return 7.0;
+        if (molA > molB) return -Math.log10((molA - molB) / totV);
+        return 14 + Math.log10((molB - molA) / totV);
+      } else {
+        const Ka = 1.8e-5, pKa = -Math.log10(Ka);
+        if (vb === 0) return 0.5 * (pKa - Math.log10(Ma));
+        if (molB < molA - 1e-4) return pKa + Math.log10(molB / (molA - molB));
+        if (Math.abs(molA - molB) <= 1e-4) {
+          const Cs = molA / totV;
+          const oh = Math.sqrt((1e-14 / Ka) * Cs);
+          return 14 + Math.log10(oh);
+        }
+        return 14 + Math.log10((molB - molA) / totV);
+      }
+    }
+
+    function solutionColor(ph) {
+      const ind = document.getElementById('selInd').value;
+      if (ind === 'pp') {
+        if (ph < 8.2) return 'rgba(226,232,240,0.35)';
+        if (ph < 9.5) return 'rgba(244,114,182,0.45)';
+        return 'rgba(236,72,153,0.78)';
+      } else {
+        if (ph < 6.0) return 'rgba(250,204,21,0.75)';
+        if (ph < 7.6) return 'rgba(34,197,94,0.72)';
+        return 'rgba(37,99,235,0.75)';
+      }
+    }
+
+    function onMb() {
+      document.getElementById('lMb').textContent = (+document.getElementById('inMb').value).toFixed(2) + ' M';
+      resetTitration();
+    }
+
+    function addVol(dv) {
+      vBase = Math.min(50, +(vBase + dv).toFixed(2));
+      history.push([vBase, calcPh(vBase)]);
+      draw();
+    }
+
+    function resetTitration() {
+      vBase = 0;
+      history.length = 0;
+      history.push([0, calcPh(0)]);
+      draw();
+    }
+
+    function draw() {
+      const Mb = +document.getElementById('inMb').value;
+      const vEq = (0.10 * 25.0) / Mb;
+      const ph = calcPh(vBase);
+
+      document.getElementById('vVol').textContent = vBase.toFixed(1) + ' mL';
+      document.getElementById('vPh').textContent = ph.toFixed(2);
+      document.getElementById('vEq').textContent = vEq.toFixed(1) + ' mL';
+      document.getElementById('titNote').innerHTML = Math.abs(vBase - vEq) < 0.6
+        ? '<strong>Titik Ekivalen Tercapai!</strong> Jumlah mol H⁺ tepat habis bereaksi dengan mol OH⁻.'
+        : (vBase > vEq ? 'Titran NaOH berlebih — larutan bersifat basa.' : 'Analit asam masih bersisa di dalam Erlenmeyer.');
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      // Kiri: Buret + Labu Erlenmeyer
+      const bx = W * 0.2;
+      // Buret
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.fillRect(bx - 12, 24, 24, 175); ctx.strokeRect(bx - 12, 24, 24, 175);
+      const buretFrac = Math.max(0.05, 1 - vBase / 50);
+      ctx.fillStyle = 'rgba(56,189,248,0.45)';
+      ctx.fillRect(bx - 10, 26 + (1 - buretFrac) * 165, 20, buretFrac * 165);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('NaOH Buret', bx, 16);
+
+      // Labu Erlenmeyer
+      ctx.fillStyle = solutionColor(ph);
+      ctx.beginPath();
+      ctx.moveTo(bx - 18, 250); ctx.lineTo(bx + 18, 250);
+      ctx.lineTo(bx + 54, 344); ctx.lineTo(bx - 54, 344); ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(bx - 14, 224); ctx.lineTo(bx - 14, 250); ctx.lineTo(bx - 56, 348);
+      ctx.lineTo(bx + 56, 348); ctx.lineTo(bx + 14, 250); ctx.lineTo(bx + 14, 224);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px monospace';
+      ctx.fillText('pH ' + ph.toFixed(2), bx, 326);
+
+      // Kanan: Kurva Titrasi (Volume vs pH)
+      const gx = W * 0.42, gw = W - gx - 26, gy = 36, gh = 315;
+      ctx.strokeStyle = 'rgba(148,163,184,0.16)'; ctx.lineWidth = 1;
+      for (let p = 0; p <= 14; p += 2) {
+        const y = gy + (1 - p / 14) * gh;
+        ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke();
+        ctx.fillStyle = '#94a3b8'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+        ctx.fillText(p, gx - 6, y + 3);
+      }
+      ctx.textAlign = 'center';
+      for (let v = 0; v <= 50; v += 10) {
+        const x = gx + (v / 50) * gw;
+        ctx.fillStyle = '#94a3b8'; ctx.fillText(v + 'mL', x, gy + gh + 18);
+      }
+
+      // Garis batas pH 7
+      const y7 = gy + (1 - 7 / 14) * gh;
+      ctx.strokeStyle = 'rgba(250,204,21,0.35)'; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(gx, y7); ctx.lineTo(gx + gw, y7); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Kurva teoritis halus latar
+      ctx.strokeStyle = 'rgba(56,189,248,0.28)'; ctx.lineWidth = 1.5; ctx.beginPath();
+      for (let v = 0; v <= 50; v += 0.5) {
+        const px = gx + (v / 50) * gw, py = gy + (1 - calcPh(v) / 14) * gh;
+        v === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Jejak titrasi aktual
+      if (history.length > 0) {
+        ctx.strokeStyle = '#34d399'; ctx.lineWidth = 3; ctx.beginPath();
+        history.forEach(([v, p], i) => {
+          const px = gx + (v / 50) * gw, py = gy + (1 - p / 14) * gh;
+          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+        const [lv, lp] = history[history.length - 1];
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath(); ctx.arc(gx + (lv / 50) * gw, gy + (1 - lp / 14) * gh, 6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
+    resetTitration();
+  </script>
+</body>
+</html>

@@ -13,7 +13,7 @@
     header p { font-size:0.8rem; color:var(--muted); }
     .badge { padding:4px 10px; border-radius: 4px; font-size:0.75rem; font-weight:700; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3); }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    @media (max-width: 900px){ main { grid-template-columns:1fr; } }
     .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:14px; }
     canvas { width:100%; background:#070b14; border-radius: 6px; border:1px solid #1e293b; display:block; }
     .ctrl { display:flex; flex-direction:column; gap:6px; }
@@ -31,7 +31,6 @@
     .t-val { font-size:1.1rem; font-weight:800; font-family:monospace; margin-top:2px; }
     .info-box { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius: 6px; padding:12px; font-size:0.82rem; line-height:1.5; color:#e2e8f0; }
   </style>
-  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>

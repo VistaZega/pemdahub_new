@@ -169,8 +169,16 @@ function cek(el,s){
   el.classList.add(s); document.getElementById('pem').style.display='block';
 }
 
+function initDipole(){
+  const W = cv.offsetWidth || 640;
+  charges = [
+    { x: W * 0.35, y: 150, q: 5e-9, type: 'pos' },
+    { x: W * 0.65, y: 150, q: -5e-9, type: 'neg' }
+  ];
+}
 window.addEventListener('resize',draw);
-draw(); calcCoulomb();
+window.addEventListener('load',()=>{ if(!charges.length) initDipole(); draw(); });
+initDipole(); draw(); calcCoulomb();
 </script>
 </body>
 </html>

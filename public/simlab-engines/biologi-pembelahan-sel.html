@@ -15,7 +15,7 @@
     .mode-btn { border:none; padding:7px 14px; border-radius:7px; font-weight:700; font-size:0.82rem; cursor:pointer; background:transparent; color:#94a3b8; }
     .mode-btn.active { background:var(--accent); color:#fff; }
     main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
-    @media(max-width: 100%){ main { grid-template-columns:1fr; } }
+    @media (max-width: 900px){ main { grid-template-columns:1fr; } }
     .card { background:var(--panel); border:1px solid var(--border); border-radius: 6px; padding:16px; display:flex; flex-direction:column; gap:14px; }
     canvas { width:100%; background:radial-gradient(circle at center,#131c31 0%,#060913 100%); border-radius: 6px; border:1px solid #1e293b; display:block; }
     .phases { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
@@ -29,7 +29,6 @@
     .s-lbl { font-size:0.7rem; color:var(--muted); text-transform:uppercase; font-weight:700; }
     .s-val { font-size:1rem; font-weight:800; margin-top:2px; color:var(--cyan); }
   </style>
-  <link rel="stylesheet" href="simlab-theme.css" />
 </head>
 <body>
   <header>
@@ -103,7 +102,7 @@
     document.getElementById('inProg').oninput = e => { progress = +e.target.value; playing = false; document.getElementById('btnPlay').textContent = '▶ Lanjut Animasi'; updateLabels(); };
 
     function updateLabels() {
-      const idx = Math.min(4, Math.floor(progress));
+      const idx = Math.max(0, Math.min(4, Math.floor(progress)));
       document.getElementById('stPhase').textContent = phaseInfo[idx].name;
       document.getElementById('bioExplain').innerHTML = `<strong>${phaseInfo[idx].name}:</strong> ${phaseInfo[idx].desc}`;
       document.getElementById('inProg').value = progress;
@@ -125,7 +124,7 @@
     function draw() {
       ctx.clearRect(0, 0, c.width, c.height);
       const cx = c.width / 2, cy = c.height / 2;
-      const idx = Math.min(4, Math.floor(progress)), frac = progress - idx;
+      const idx = Math.max(0, Math.min(4, Math.floor(progress))), frac = progress - idx;
 
       let pinch = 0, split = 0;
       if (idx === 3) pinch = frac * 55;
@@ -184,7 +183,7 @@
 
     let last = performance.now();
     function loop(now) {
-      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
       if (playing && speed > 0) {
         progress = (progress + dt * 0.45 * speed) % 5;
         updateLabels();

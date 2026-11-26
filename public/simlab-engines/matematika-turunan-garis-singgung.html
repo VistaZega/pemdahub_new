@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Matematika: Limit, Turunan &amp; Garis Singgung Kurva</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Konsep Limit Turunan: Garis Potong (Sekan) Menuju Garis Singgung (Tangen)</div>
+          <div class="sl-bar-sub">Perkecil jarak h → 0 agar garis sekan PQ berimpit dengan garis singgung kurva tepat di titik P(x₀, f(x₀))</div>
+        </div>
+        <select id="selFn" onchange="draw()" style="max-width:260px;">
+          <option value="quad" selected>f(x) = 0.5x²  [f'(x) = x]</option>
+          <option value="cubic">f(x) = 0.25x³ − 1.5x  [f'(x) = 0.75x² − 1.5]</option>
+          <option value="sine">f(x) = 2 sin(x)  [f'(x) = 2 cos(x)]</option>
+        </select>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="derCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Titik Uji &amp; Langkah Limit h</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Absis Titik P (x₀)</span><span class="sl-ctrl-val" id="lX0">1.50</span></div>
+          <input type="range" id="inX0" min="-3.5" max="3.5" step="0.1" value="1.5" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Jarak Sekan (h = Δx)</span><span class="sl-ctrl-val" id="lH">1.50</span></div>
+          <input type="range" id="inH" min="0.02" max="2.50" step="0.02" value="1.50" oninput="draw()" />
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" onclick="setH(2.0)">h = 2.0 (Sekan)</button>
+          <button type="button" class="sl-btn" onclick="setH(0.5)">h = 0.5</button>
+          <button type="button" class="sl-btn sl-btn-primary" onclick="setH(0.02)">h → 0 (Tangen)</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Perbandingan Gradien (Kemiringan)</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Gradien Sekan (Δy/h)</div><div class="sl-readout-val" id="vSec" style="color:#d97706;">—</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Turunan Eksak f'(x₀)</div><div class="sl-readout-val" id="vTan" style="color:#059669;">—</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Selisih Error</div><div class="sl-readout-val" id="vErr">—</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Definisi Turunan Pertama</div>
+        <div class="sl-formula">f'(x₀) = lim(h→0) [f(x₀ + h) − f(x₀)] / h</div>
+        <div class="sl-note" id="statNote" style="margin-top:8px;">
+          Ketika gradien garis singgung = 0, kurva berada tepat di titik stasioner (puncak maksimum atau lembah minimum lokal).
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('derCanvas');
+    const ctx = cv.getContext('2d');
+
+    const FUNCS = {
+      quad: { f: x => 0.5 * x * x, df: x => x },
+      cubic: { f: x => 0.25 * x * x * x - 1.5 * x, df: x => 0.75 * x * x - 1.5 },
+      sine: { f: x => 2 * Math.sin(x), df: x => 2 * Math.cos(x) }
+    };
+
+    function setH(val) {
+      document.getElementById('inH').value = val;
+      draw();
+    }
+
+    function draw() {
+      const fk = document.getElementById('selFn').value;
+      const fn = FUNCS[fk];
+      const x0 = +document.getElementById('inX0').value;
+      const h = +document.getElementById('inH').value;
+
+      const y0 = fn.f(x0);
+      const x1 = x0 + h, y1 = fn.f(x1);
+      const mSec = (y1 - y0) / h;
+      const mTan = fn.df(x0);
+      const err = Math.abs(mSec - mTan);
+
+      document.getElementById('lX0').textContent = x0.toFixed(2);
+      document.getElementById('lH').textContent = h.toFixed(2);
+      document.getElementById('vSec').textContent = mSec.toFixed(3);
+      document.getElementById('vTan').textContent = mTan.toFixed(3);
+      document.getElementById('vErr').textContent = err.toFixed(3);
+
+      document.getElementById('statNote').innerHTML = Math.abs(mTan) < 0.12
+        ? `<strong>Mendekati Titik Stasioner!</strong> f'(${x0.toFixed(1)}) ≈ 0 → Garis singgung mendatar sejajar sumbu X.`
+        : (h <= 0.08
+          ? `<strong>Limit h → 0 tercapai:</strong> Garis sekan (kuning) dan garis singgung (hijau) hampir berimpit sempurna dengan selisih gradien ${err.toFixed(4)}.`
+          : `Di x₀ = ${x0.toFixed(2)}, fungsi sedang ${mTan > 0 ? 'NAIK (gradien positif)' : 'TURUN (gradien negatif)'}. Perkecil h menuju 0 untuk melihat konvergensi.`);
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const ox = W / 2, oy = H * 0.56;
+      const ux = W / 11, uy = H / 8;
+      const toX = x => ox + x * ux;
+      const toY = y => oy - y * uy;
+
+      ctx.clearRect(0, 0, W, H);
+      // Grid Kartesius
+      ctx.font = '10px monospace';
+      for (let gx = -5; gx <= 5; gx++) {
+        const px = toX(gx);
+        ctx.strokeStyle = gx === 0 ? '#64748b' : 'rgba(148,163,184,0.12)';
+        ctx.lineWidth = gx === 0 ? 1.5 : 1;
+        ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+        if (gx !== 0) { ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.fillText(gx, px, oy + 14); }
+      }
+      for (let gy = -4; gy <= 4; gy++) {
+        const py = toY(gy);
+        ctx.strokeStyle = gy === 0 ? '#64748b' : 'rgba(148,163,184,0.12)';
+        ctx.lineWidth = gy === 0 ? 1.5 : 1;
+        ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+        if (gy !== 0) { ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.fillText(gy, ox - 6, py + 3); }
+      }
+
+      // Kurva f(x)
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; ctx.beginPath();
+      for (let i = 0; i <= 240; i++) {
+        const x = -5.5 + (i / 240) * 11;
+        const y = fn.f(x);
+        const px = toX(x), py = toY(y);
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Garis singgung eksak di P (Hijau)
+      ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(toX(-5.5), toY(y0 + mTan * (-5.5 - x0)));
+      ctx.lineTo(toX(5.5), toY(y0 + mTan * (5.5 - x0)));
+      ctx.stroke();
+
+      // Garis sekan PQ (Kuning)
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.beginPath();
+      ctx.moveTo(toX(-5.5), toY(y0 + mSec * (-5.5 - x0)));
+      ctx.lineTo(toX(5.5), toY(y0 + mSec * (5.5 - x0)));
+      ctx.stroke(); ctx.setLineDash([]);
+
+      // Segitiga delta x dan delta y
+      ctx.strokeStyle = 'rgba(251,191,36,0.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(toX(x0), toY(y0)); ctx.lineTo(toX(x1), toY(y0)); ctx.lineTo(toX(x1), toY(y1)); ctx.stroke();
+
+      // Titik P dan Q
+      ctx.fillStyle = '#34d399'; ctx.beginPath(); ctx.arc(toX(x0), toY(y0), 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(toX(x1), toY(y1), 5.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('P', toX(x0) + 8, toY(y0) - 8);
+      ctx.fillText('Q', toX(x1) + 8, toY(y1) - 8);
+    }
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
+    draw();
+  </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Bandul Matematis &amp; Getaran Harmonik Sederhana</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Bandul Matematis, Kekekalan Energi Mekanik &amp; Grafik Simpangan</div>
+          <div class="sl-bar-sub">Uji pengaruh panjang tali (L), gravitasi (g), dan massa (m) terhadap periode ayunan T = 2π√(L/g)</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn sl-btn-primary" id="btnToggle" onclick="toggleRun()">Jeda</button>
+          <button type="button" class="sl-btn" onclick="resetPendulum()">Ulangi Ayunan</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="pendCanvas" height="420"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Parameter Eksperimen Bandul</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Panjang Tali (L)</span><span class="sl-ctrl-val" id="lLen">1.00 m</span></div>
+          <input type="range" id="inL" min="0.25" max="2.50" step="0.05" value="1.00" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Massa Beban (m)</span><span class="sl-ctrl-val" id="lMass">1.5 kg</span></div>
+          <input type="range" id="inM" min="0.5" max="5.0" step="0.5" value="1.5" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Sudut Simpangan Awal (θ₀)</span><span class="sl-ctrl-val" id="lDeg">20°</span></div>
+          <input type="range" id="inDeg" min="5" max="35" step="1" value="20" oninput="resetPendulum()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Percepatan Gravitasi (g)</span><span class="sl-ctrl-val" id="lGrav">9.8 m/s²</span></div>
+          <select id="inG" onchange="onParam()">
+            <option value="9.8" selected>Bumi (9.8 m/s²)</option>
+            <option value="1.6">Bulan (1.6 m/s²)</option>
+            <option value="3.7">Mars (3.7 m/s²)</option>
+            <option value="24.8">Jupiter (24.8 m/s²)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Periode &amp; Energi</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Periode (T)</div><div class="sl-readout-val" id="vT" style="color:#0284c7;">2.01 s</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Frekuensi (f)</div><div class="sl-readout-val" id="vF">0.50 Hz</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Energi Kinetik</div><div class="sl-readout-val" id="vEk" style="color:#059669;">0.00 J</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Energi Potensial</div><div class="sl-readout-val" id="vEp" style="color:#d97706;">0.00 J</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hukum Periode Ayunan</div>
+        <div class="sl-formula">T = 2π √(L / g)   |   f = 1 / T   |   EM = EP + EK</div>
+        <div class="sl-note" style="margin-top:8px;">
+          Perhatikan: mengubah massa beban (m) meningkatkan energi mekanik total (Joule), namun <strong>tidak mengubah periode (T)</strong> sama sekali!
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('pendCanvas');
+    const ctx = cv.getContext('2d');
+    let running = true, theta = 20 * Math.PI / 180, omega = 0;
+    const waveHist = [];
+
+    function toggleRun() {
+      running = !running;
+      document.getElementById('btnToggle').textContent = running ? 'Jeda' : 'Lanjutkan';
+    }
+
+    function resetPendulum() {
+      const deg = +document.getElementById('inDeg').value;
+      theta = deg * Math.PI / 180;
+      omega = 0;
+      waveHist.length = 0;
+      onParam();
+    }
+
+    function onParam() {
+      const L = +document.getElementById('inL').value;
+      const m = +document.getElementById('inM').value;
+      const deg = +document.getElementById('inDeg').value;
+      const g = +document.getElementById('inG').value;
+      const T = 2 * Math.PI * Math.sqrt(L / g);
+      const f = 1 / T;
+
+      document.getElementById('lLen').textContent = L.toFixed(2) + ' m';
+      document.getElementById('lMass').textContent = m.toFixed(1) + ' kg';
+      document.getElementById('lDeg').textContent = deg + '°';
+      document.getElementById('lGrav').textContent = g.toFixed(1) + ' m/s²';
+      document.getElementById('vT').textContent = T.toFixed(2) + ' s';
+      document.getElementById('vF').textContent = f.toFixed(2) + ' Hz';
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 420;
+      const W = cv.width, H = cv.height;
+      const L = +document.getElementById('inL').value;
+      const m = +document.getElementById('inM').value;
+      const g = +document.getElementById('inG').value;
+      const theta0 = (+document.getElementById('inDeg').value) * Math.PI / 180;
+
+      if (running) {
+        const dt = 0.016;
+        // Integrasi semi-implisit Euler agar energi stabil
+        for (let step = 0; step < 3; step++) {
+          const sDt = dt / 3;
+          const alpha = -(g / L) * Math.sin(theta);
+          omega += alpha * sDt;
+          theta += omega * sDt;
+        }
+        waveHist.push(theta);
+        if (waveHist.length > 180) waveHist.shift();
+      }
+
+      const hCur = L * (1 - Math.cos(theta));
+      const vLin = omega * L;
+      const Ep = m * g * hCur;
+      const Ek = 0.5 * m * vLin * vLin;
+      const EmMax = Math.max(0.01, m * g * L * (1 - Math.cos(theta0)));
+
+      document.getElementById('vEk').textContent = Ek.toFixed(2) + ' J';
+      document.getElementById('vEp').textContent = Ep.toFixed(2) + ' J';
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)'; ctx.lineWidth = 1;
+      for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+
+      // Kiri: Ayunan Bandul
+      const px = W * 0.34, py = 46;
+      const ropePx = 95 + L * 76;
+      const bx = px + Math.sin(theta) * ropePx;
+      const by = py + Math.cos(theta) * ropePx;
+
+      // Penyangga
+      ctx.fillStyle = '#334155'; ctx.fillRect(px - 60, py - 10, 120, 10);
+      ctx.strokeStyle = '#475569'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py + ropePx + 24); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Tali & Beban
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(bx, by); ctx.stroke();
+      const rad = 11 + m * 2.2;
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(bx, by, rad, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#e0f2fe'; ctx.lineWidth = 2; ctx.stroke();
+
+      // Vektor gaya pemulih (-mg sin theta)
+      const fScale = -Math.sin(theta) * 52;
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + fScale * Math.cos(theta), by - fScale * Math.sin(theta)); ctx.stroke();
+
+      // Kanan Atas: Bar Energi EK, EP, EM
+      const ex = W * 0.62, ew = W * 0.32, ey = 46;
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('NERACA ENERGI MEKANIK', ex, ey - 10);
+      const drawBar = (y, lbl, val, col) => {
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(ex, y, ew, 18);
+        ctx.fillStyle = col; ctx.fillRect(ex, y, Math.min(ew, (val / EmMax) * ew), 18);
+        ctx.fillStyle = '#f8fafc'; ctx.font = '10px monospace';
+        ctx.fillText(`${lbl}: ${val.toFixed(2)} J`, ex + 6, y + 13);
+      };
+      drawBar(ey + 6, 'EK', Ek, '#10b981');
+      drawBar(ey + 32, 'EP', Ep, '#f59e0b');
+      drawBar(ey + 58, 'EM', Ek + Ep, '#0284c7');
+
+      // Kanan Bawah: Osiloskop Gelombang Simpangan theta(t)
+      const gy = 186, gh = 180;
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+      ctx.fillRect(ex, gy, ew, gh); ctx.strokeRect(ex, gy, ew, gh);
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px monospace';
+      ctx.fillText('GRAFIK SIMPANGAN θ(t)', ex + 8, gy + 16);
+      const gMid = gy + gh * 0.54;
+      ctx.strokeStyle = '#334155'; ctx.beginPath(); ctx.moveTo(ex, gMid); ctx.lineTo(ex + ew, gMid); ctx.stroke();
+
+      if (waveHist.length > 1) {
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.beginPath();
+        waveHist.forEach((val, idx) => {
+          const wx = ex + 8 + (idx / 180) * (ew - 16);
+          const wy = gMid - (val / Math.max(0.1, theta0)) * (gh * 0.34);
+          idx === 0 ? ctx.moveTo(wx, wy) : ctx.lineTo(wx, wy);
+        });
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    onParam();
+    loop();
+  </script>
+</body>
+</html>

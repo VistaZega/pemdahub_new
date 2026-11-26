@@ -37,10 +37,10 @@
   <p class="subtitle">Klik node untuk memilih pengirim, lalu klik node lain sebagai tujuan — lihat paket data melompat antar switch!</p>
   <canvas id="cv" height="300"></canvas>
   <div class="panels"><div class="panel"><h3>Kontrol Topologi</h3>
-      <div class="btn-row" id="topoBtn"><button class="btn btn-sel" onclick="setTopo('bus')">Bus</button>
-        <button class="btn btn-blue" onclick="setTopo('star')">Star</button>
-        <button class="btn btn-blue" onclick="setTopo('ring')">Ring</button>
-        <button class="btn btn-blue" onclick="setTopo('mesh')">Mesh</button>
+      <div class="btn-row" id="topoBtn"><button class="btn btn-sel" onclick="setTopo('bus', this)">Bus</button>
+        <button class="btn btn-blue" onclick="setTopo('star', this)">Star</button>
+        <button class="btn btn-blue" onclick="setTopo('ring', this)">Ring</button>
+        <button class="btn btn-blue" onclick="setTopo('mesh', this)">Mesh</button>
       </div>
       <label>Jumlah Host: <span class="val" id="vhost">6</span></label>
       <input type="range" id="shost" min="3" max="8" value="6" oninput="setNodes()">
@@ -62,10 +62,10 @@ const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 let topo='bus', nHost=6, nodes=[], selected=-1, packet=null;
 
-function setTopo(t){
+function setTopo(t, btn){
   topo=t;
   document.querySelectorAll('#topoBtn .btn').forEach(b=>{b.className='btn btn-blue';});
-  event.target.className='btn btn-sel';
+  if (btn) btn.className='btn btn-sel';
   buildNodes(); draw();
   updateInfo();
 }

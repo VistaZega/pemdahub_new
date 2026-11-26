@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Matematika: Barisan, Deret &amp; Pantulan Geometri Tak Hingga</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title" id="barTitle">Visualisasi Barisan &amp; Akumulasi Deret (U_n dan S_n)</div>
+          <div class="sl-bar-sub" id="barSub">Bandingkan pertumbuhan linear barisan aritmetika terhadap lonjakan eksponensial barisan geometri</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnArith" onclick="setMode('arith')">Aritmetika</button>
+          <button type="button" class="sl-btn" id="btnGeo" onclick="setMode('geo')">Geometri</button>
+          <button type="button" class="sl-btn" id="btnBounce" onclick="setMode('bounce')">Bola Tak Hingga (S∞)</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="seqCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label" id="paramHeader">Parameter Barisan</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span id="lblAName">Suku Pertama (a / U₁)</span><span class="sl-ctrl-val" id="lA">2</span></div>
+          <input type="range" id="inA" min="1" max="10" step="1" value="2" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span id="lblBName">Beda / Rasio</span><span class="sl-ctrl-val" id="lB">3</span></div>
+          <input type="range" id="inB" min="1" max="10" step="1" value="3" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl" id="ctrlN">
+          <div class="sl-ctrl-head"><span>Banyak Suku (n)</span><span class="sl-ctrl-val" id="lN">8 Suku</span></div>
+          <input type="range" id="inN" min="3" max="12" step="1" value="8" oninput="calc()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hasil Perhitungan</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblV1">Suku Terakhir U_n</div><div class="sl-readout-val" id="v1" style="color:#0284c7;">—</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblV2">Jumlah Deret S_n</div><div class="sl-readout-val" id="v2" style="color:#059669;">—</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Rumus Kunci &amp; Barisan Terbentuk</div>
+        <div class="sl-formula" id="formBox">U_n = a + (n − 1)b   |   S_n = (n/2)(a + U_n)</div>
+        <div class="sl-note" id="seqList" style="margin-top:8px;font-family:var(--sl-font-mono);font-size:0.76rem;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('seqCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'arith';
+
+    function setMode(m) {
+      mode = m;
+      ['btnArith', 'btnGeo', 'btnBounce'].forEach(id => document.getElementById(id).classList.remove('is-active'));
+      const btnId = m === 'arith' ? 'btnArith' : (m === 'geo' ? 'btnGeo' : 'btnBounce');
+      document.getElementById(btnId).classList.add('is-active');
+
+      const inB = document.getElementById('inB');
+      if (m === 'arith') {
+        document.getElementById('lblAName').textContent = 'Suku Pertama (a)';
+        document.getElementById('lblBName').textContent = 'Beda (b)';
+        inB.min = 1; inB.max = 10; inB.step = 1; inB.value = 3;
+        document.getElementById('ctrlN').style.display = 'flex';
+      } else if (m === 'geo') {
+        document.getElementById('lblAName').textContent = 'Suku Pertama (a)';
+        document.getElementById('lblBName').textContent = 'Rasio (r)';
+        inB.min = 1.2; inB.max = 2.5; inB.step = 0.1; inB.value = 2.0;
+        document.getElementById('ctrlN').style.display = 'flex';
+      } else {
+        document.getElementById('lblAName').textContent = 'Tinggi Jatuh Awal h₀ (m)';
+        document.getElementById('lblBName').textContent = 'Rasio Pantul (r < 1)';
+        inB.min = 0.30; inB.max = 0.85; inB.step = 0.05; inB.value = 0.60;
+        document.getElementById('ctrlN').style.display = 'none';
+      }
+      calc();
+    }
+
+    function calc() {
+      const a = +document.getElementById('inA').value;
+      const b = +document.getElementById('inB').value;
+      const n = +document.getElementById('inN').value;
+
+      document.getElementById('lA').textContent = mode === 'bounce' ? a + ' m' : a;
+      document.getElementById('lB').textContent = mode === 'arith' ? b : b.toFixed(2);
+      document.getElementById('lN').textContent = n + ' Suku';
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      if (mode === 'bounce') {
+        const S_down = a / (1 - b);
+        const S_up = (a * b) / (1 - b);
+        const L_tot = S_down + S_up; // h0 * (1+r)/(1-r)
+
+        document.getElementById('lblV1').textContent = 'Tinggi Pantul ke-1';
+        document.getElementById('v1').textContent = (a * b).toFixed(2) + ' m';
+        document.getElementById('lblV2').textContent = 'Total Lintasan (S∞)';
+        document.getElementById('v2').textContent = L_tot.toFixed(2) + ' m';
+        document.getElementById('formBox').textContent = 'L_total = h₀ × (1 + r) / (1 − r) = ' + L_tot.toFixed(2) + ' m';
+        document.getElementById('seqList').textContent = `Turun S∞ = ${S_down.toFixed(2)} m | Naik S∞ = ${S_up.toFixed(2)} m`;
+
+        const floorY = 345, maxH = 260;
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(24, floorY); ctx.lineTo(W - 24, floorY); ctx.stroke();
+
+        // Gambar kurva pantulan bola 10 kali
+        let x = 52;
+        const stepX = (W - 96) / 10;
+        let curH = a;
+        // Jatuh pertama
+        const yStart = floorY - maxH;
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(x, yStart); ctx.lineTo(x + stepX * 0.4, floorY); ctx.stroke();
+        ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(x, yStart, 7, 0, Math.PI * 2); ctx.fill();
+        x += stepX * 0.4;
+
+        for (let k = 1; k <= 9; k++) {
+          curH *= b;
+          const arcH = (curH / a) * maxH;
+          const peakX = x + stepX * 0.5;
+          const nextX = x + stepX;
+          ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x, floorY);
+          ctx.quadraticCurveTo(peakX, floorY - arcH * 1.9, nextX, floorY);
+          ctx.stroke();
+          if (k <= 5) {
+            ctx.fillStyle = '#cbd5e1'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+            ctx.fillText(curH.toFixed(1) + 'm', peakX, floorY - arcH - 12);
+          }
+          x = nextX;
+        }
+      } else {
+        const terms = [];
+        let sum = 0;
+        for (let i = 0; i < n; i++) {
+          const val = mode === 'arith' ? a + i * b : a * Math.pow(b, i);
+          terms.push(val);
+          sum += val;
+        }
+
+        document.getElementById('lblV1').textContent = `Suku U_${n}`;
+        document.getElementById('v1').textContent = terms[n - 1].toFixed(mode === 'arith' ? 0 : 1);
+        document.getElementById('lblV2').textContent = `Jumlah S_${n}`;
+        document.getElementById('v2').textContent = sum.toFixed(mode === 'arith' ? 0 : 1);
+        document.getElementById('formBox').textContent = mode === 'arith'
+          ? 'U_n = a + (n − 1)b   |   S_n = (n/2)(a + U_n)'
+          : 'U_n = a · r^(n−1)   |   S_n = a(r^n − 1) / (r − 1)';
+        document.getElementById('seqList').textContent = terms.map(v => Number.isInteger(v) ? v : v.toFixed(1)).join(', ');
+
+        const PAD = { l: 44, r: 24, t: 38, b: 44 };
+        const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+        const maxU = Math.max(1, ...terms);
+        const slot = pw / n;
+
+        terms.forEach((v, idx) => {
+          const bx = PAD.l + idx * slot + slot * 0.16;
+          const bw = slot * 0.68;
+          const bh = (v / maxU) * ph;
+          ctx.fillStyle = mode === 'arith' ? '#38bdf8' : '#34d399';
+          ctx.fillRect(bx, PAD.t + ph - bh, bw, bh);
+          ctx.fillStyle = '#94a3b8'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+          ctx.fillText('U' + (idx + 1), bx + bw / 2, PAD.t + ph + 16);
+          ctx.fillStyle = '#f8fafc'; ctx.font = '9px monospace';
+          ctx.fillText(Number.isInteger(v) ? v : v.toFixed(1), bx + bw / 2, PAD.t + ph - bh - 6);
+        });
+      }
+    }
+
+    window.addEventListener('resize', calc);
+    window.addEventListener('load', calc);
+    calc();
+  </script>
+</body>
+</html>

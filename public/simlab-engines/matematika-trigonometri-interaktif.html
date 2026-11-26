@@ -40,10 +40,10 @@
   <p class="subtitle">Geser titik pada lingkaran satuan dan saksikan gelombang sin/cos terbentuk secara real-time!</p>
   <canvas id="cv" height="300"></canvas>
   <div class="panels"><div class="panel"><h3>Kontrol Fungsi</h3>
-      <div class="btn-row" id="fnBtns"><button class="btn btn-sel" onclick="setFn('sin')">sin(x)</button>
-        <button class="btn btn-indigo" onclick="setFn('cos')">cos(x)</button>
-        <button class="btn btn-indigo" onclick="setFn('tan')">tan(x)</button>
-        <button class="btn btn-indigo" onclick="setFn('all')">Semua</button>
+      <div class="btn-row" id="fnBtns"><button class="btn btn-sel" onclick="setFn('sin', this)">sin(x)</button>
+        <button class="btn btn-indigo" onclick="setFn('cos', this)">cos(x)</button>
+        <button class="btn btn-indigo" onclick="setFn('tan', this)">tan(x)</button>
+        <button class="btn btn-indigo" onclick="setFn('all', this)">Semua</button>
       </div>
       <label>Sudut θ: <span class="val" id="vtheta">45</span>° (<span id="vrad">π/4</span>)</label>
       <input type="range" id="stheta" min="0" max="360" value="45" oninput="update()">
@@ -78,10 +78,10 @@ const ctx = cv.getContext('2d');
 let fn = 'sin', theta = 45, A = 1, freq = 1;
 let animT = 0, animId;
 
-function setFn(f){
+function setFn(f, btn){
   fn = f;
   document.querySelectorAll('#fnBtns .btn').forEach(b => b.className = 'btn btn-indigo');
-  event.target.className = 'btn btn-sel';
+  if (btn) btn.className = 'btn btn-sel';
   update();
 }
 

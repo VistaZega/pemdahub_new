@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Kalor, Asas Black &amp; Perubahan Wujud Zat</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title" id="modeTitle">Kalorimeter Pencampuran Asas Black (Q_lepas = Q_terima)</div>
+          <div class="sl-bar-sub" id="modeSub">Pencampuran dua zat bersuhu berbeda hingga mencapai kesetimbangan termal</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnMix" onclick="setMode('mix')">Asas Black (Campuran)</button>
+          <button type="button" class="sl-btn" id="btnPhase" onclick="setMode('phase')">Grafik Perubahan Wujud</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="calCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div id="ctrlMix">
+        <div class="sl-group">
+          <div class="sl-group-label">Zat 1 — Air / Logam Panas</div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Jenis Zat Panas</span><span class="sl-ctrl-val" id="lC1">4200 J/kg°C</span></div>
+            <select id="selMat1" onchange="calc()">
+              <option value="4200" selected>Air Panas (c = 4200 J/kg°C)</option>
+              <option value="900">Aluminium Panas (c = 900 J/kg°C)</option>
+              <option value="450">Besi Panas (c = 450 J/kg°C)</option>
+              <option value="390">Tembaga Panas (c = 390 J/kg°C)</option>
+            </select>
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Massa m₁</span><span class="sl-ctrl-val" id="lM1">0.50 kg</span></div>
+            <input type="range" id="inM1" min="0.1" max="2.0" step="0.1" value="0.5" oninput="calc()" />
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Suhu Awal T₁</span><span class="sl-ctrl-val" id="lT1">80 °C</span></div>
+            <input type="range" id="inT1" min="40" max="100" step="5" value="80" oninput="calc()" />
+          </div>
+        </div>
+
+        <div class="sl-group">
+          <div class="sl-group-label">Zat 2 — Air Dingin (c₂ = 4200 J/kg°C)</div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Massa Air Dingin m₂</span><span class="sl-ctrl-val" id="lM2">1.00 kg</span></div>
+            <input type="range" id="inM2" min="0.2" max="2.5" step="0.1" value="1.0" oninput="calc()" />
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Suhu Awal T₂</span><span class="sl-ctrl-val" id="lT2">20 °C</span></div>
+            <input type="range" id="inT2" min="5" max="35" step="5" value="20" oninput="calc()" />
+          </div>
+        </div>
+      </div>
+
+      <div id="ctrlPhase" style="display:none;">
+        <div class="sl-group">
+          <div class="sl-group-label">Pemanasan Es (−20°C → Uap 120°C)</div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Massa Es</span><span class="sl-ctrl-val" id="lIceM">0.50 kg</span></div>
+            <input type="range" id="inIceM" min="0.1" max="2.0" step="0.1" value="0.5" oninput="calc()" />
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Energi Kalor Diberikan (Q)</span><span class="sl-ctrl-val" id="lIceQ">250 kJ</span></div>
+            <input type="range" id="inIceQ" min="0" max="1600" step="10" value="250" oninput="calc()" />
+          </div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Termal</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblR1">Suhu Setimbang Tc</div><div class="sl-readout-val" id="valR1" style="color:#0284c7;">40.0 °C</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblR2">Kalor Berpindah</div><div class="sl-readout-val" id="valR2" style="color:#059669;">84.0 kJ</div></div>
+        </div>
+        <div class="sl-formula" id="eqBox" style="margin-top:8px;">m₁·c₁·(T₁ - Tc) = m₂·c₂·(Tc - T₂)</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('calCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'mix';
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnMix').classList.toggle('is-active', m === 'mix');
+      document.getElementById('btnPhase').classList.toggle('is-active', m === 'phase');
+      document.getElementById('ctrlMix').style.display = m === 'mix' ? 'block' : 'none';
+      document.getElementById('ctrlPhase').style.display = m === 'phase' ? 'block' : 'none';
+      document.getElementById('modeTitle').textContent = m === 'mix'
+        ? 'Kalorimeter Pencampuran Asas Black (Q_lepas = Q_terima)'
+        : 'Kurva Pemanasan & Kalor Laten Perubahan Wujud Air (H₂O)';
+      document.getElementById('modeSub').textContent = m === 'mix'
+        ? 'Pencampuran dua zat bersuhu berbeda hingga mencapai kesetimbangan termal'
+        : 'Fase mendatar menunjukkan suhu konstan saat kalor dipakai memutus ikatan wujud (melebur / menguap)';
+      calc();
+    }
+
+    function calc() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      if (mode === 'mix') {
+        const c1 = +document.getElementById('selMat1').value;
+        const m1 = +document.getElementById('inM1').value;
+        const t1 = +document.getElementById('inT1').value;
+        const m2 = +document.getElementById('inM2').value;
+        const t2 = +document.getElementById('inT2').value;
+        const c2 = 4200;
+
+        document.getElementById('lC1').textContent = c1 + ' J/kg°C';
+        document.getElementById('lM1').textContent = m1.toFixed(2) + ' kg';
+        document.getElementById('lT1').textContent = t1 + ' °C';
+        document.getElementById('lM2').textContent = m2.toFixed(2) + ' kg';
+        document.getElementById('lT2').textContent = t2 + ' °C';
+
+        const Tc = (m1 * c1 * t1 + m2 * c2 * t2) / (m1 * c1 + m2 * c2);
+        const Q = m1 * c1 * (t1 - Tc);
+
+        document.getElementById('lblR1').textContent = 'Suhu Setimbang Tc';
+        document.getElementById('valR1').textContent = Tc.toFixed(1) + ' °C';
+        document.getElementById('lblR2').textContent = 'Kalor Lepas = Terima';
+        document.getElementById('valR2').textContent = (Q / 1000).toFixed(1) + ' kJ';
+        document.getElementById('eqBox').textContent = `Tc = (${m1}×${c1}×${t1} + ${m2}×4200×${t2}) / (${m1 * c1 + m2 * c2}) = ${Tc.toFixed(2)} °C`;
+
+        // Gambar 3 Bejana: Zat 1 (Panas) + Zat 2 (Dingin) -> Kalorimeter Campuran
+        const drawBeaker = (x, y, title, temp, col) => {
+          ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#475569'; ctx.lineWidth = 2;
+          ctx.fillRect(x - 54, y, 108, 120); ctx.strokeRect(x - 54, y, 108, 120);
+          ctx.fillStyle = col; ctx.fillRect(x - 50, y + 34, 100, 82);
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(temp.toFixed(1) + '°C', x, y + 82);
+          ctx.fillStyle = '#cbd5e1'; ctx.font = '11px sans-serif';
+          ctx.fillText(title, x, y - 10);
+        };
+        drawBeaker(W * 0.2, 130, `Zat 1 (${m1} kg)`, t1, 'rgba(239,68,68,0.65)');
+        drawBeaker(W * 0.48, 130, `Air Dingin (${m2} kg)`, t2, 'rgba(56,189,248,0.6)');
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('+', W * 0.34, 195);
+        ctx.fillText('→', W * 0.63, 195);
+        drawBeaker(W * 0.79, 130, `Setimbang (${(m1 + m2).toFixed(1)} kg)`, Tc, 'rgba(16,185,129,0.65)');
+      } else {
+        const m = +document.getElementById('inIceM').value;
+        const Qk = +document.getElementById('inIceQ').value;
+        document.getElementById('lIceM').textContent = m.toFixed(2) + ' kg';
+        document.getElementById('lIceQ').textContent = Qk + ' kJ';
+
+        // Segmen kalor dalam kJ untuk massa m (c_es=2.1, L=336, c_air=4.2, U=2260, c_uap=2.0 kJ/kg°C)
+        const q1 = m * 2.1 * 20;      // -20 -> 0
+        const q2 = q1 + m * 336;      // melebur di 0
+        const q3 = q2 + m * 4.2 * 100;// 0 -> 100
+        const q4 = q3 + m * 2260;     // menguap di 100
+        const q5 = q4 + m * 2.0 * 20; // 100 -> 120
+
+        let T = -20, fase = 'Es Padat';
+        if (Qk <= q1) { T = -20 + (Qk / (m * 2.1)); fase = 'Es Padat (Kalor Sensibel)'; }
+        else if (Qk <= q2) { T = 0; fase = 'Melebur: Campuran Es + Air (0°C)'; }
+        else if (Qk <= q3) { T = (Qk - q2) / (m * 4.2); fase = 'Air Cair'; }
+        else if (Qk <= q4) { T = 100; fase = 'Mendidih: Campuran Air + Uap (100°C)'; }
+        else { T = 100 + (Qk - q4) / (m * 2.0); fase = 'Uap Air Panas'; }
+
+        document.getElementById('lblR1').textContent = 'Suhu Zat Sekarang';
+        document.getElementById('valR1').textContent = T.toFixed(1) + ' °C';
+        document.getElementById('lblR2').textContent = 'Wujud Zat';
+        document.getElementById('valR2').textContent = fase.split(' ')[0];
+        document.getElementById('eqBox').textContent = `${fase} | Total Kalor Lebur = ${Math.round(m * 336)} kJ | Kalor Uap = ${Math.round(m * 2260)} kJ`;
+
+        const PAD = { l: 56, r: 24, t: 32, b: 40 };
+        const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+        const maxQ = Math.max(1600, q5);
+        const toX = q => PAD.l + (q / maxQ) * pw;
+        const toY = t => PAD.t + ((130 - t) / 160) * ph;
+
+        ctx.strokeStyle = 'rgba(148,163,184,0.15)'; ctx.lineWidth = 1;
+        [-20, 0, 50, 100].forEach(tv => {
+          const y = toY(tv);
+          ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke();
+          ctx.fillStyle = '#94a3b8'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+          ctx.fillText(tv + '°C', PAD.l - 6, y + 3);
+        });
+
+        const pts = [[0, -20], [q1, 0], [q2, 0], [q3, 100], [q4, 100], [q5, 120]];
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; ctx.beginPath();
+        pts.forEach(([qv, tv], i) => i === 0 ? ctx.moveTo(toX(qv), toY(tv)) : ctx.lineTo(toX(qv), toY(tv)));
+        ctx.stroke();
+
+        // Titik aktif Qk
+        const px = toX(Math.min(Qk, maxQ)), py = toY(T);
+        ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fef3c7'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+        ctx.fillText(`Q=${Qk} kJ, T=${T.toFixed(1)}°C`, Math.min(px + 10, W - 150), py - 10);
+      }
+    }
+
+    window.addEventListener('resize', calc);
+    window.addEventListener('load', calc);
+    calc();
+  </script>
+</body>
+</html>

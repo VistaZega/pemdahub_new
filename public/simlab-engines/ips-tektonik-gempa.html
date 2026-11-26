@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Geografi: Tektonik Lempeng, Gelombang Gempa P-S &amp; Seismograf</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Penampang Lempeng Tektonik &amp; Rekaman Seismogram Gelombang Gempa (P dan S)</div>
+          <div class="sl-bar-sub">Amati jenis batas lempeng, rambatan gelombang primer (P) vs sekunder (S), dan hitung jarak episentrum dengan Rumus Laska</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnSub" onclick="setBound('subduction')">Subduksi (Konvergen)</button>
+          <button type="button" class="sl-btn" id="btnDiv" onclick="setBound('divergent')">Divergen</button>
+          <button type="button" class="sl-btn" id="btnTrf" onclick="setBound('transform')">Sesar Transform</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="geoCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Pemicu &amp; Parameter Gempa</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Jarak Stasiun ke Episentrum</span><span class="sl-ctrl-val" id="lDist">1500 km</span></div>
+          <input type="range" id="inDist" min="500" max="4000" step="250" value="1500" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Magnitudo Gempa (M_w)</span><span class="sl-ctrl-val" id="lMag">6.5 SR</span></div>
+          <input type="range" id="inMag" min="4.0" max="8.5" step="0.5" value="6.5" oninput="onParam()" />
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn sl-btn-primary" onclick="triggerQuake()">Lepaskan Energi Gempa (Rupture)</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan Seismograf (Rumus Laska)</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Selisih Waktu (S − P)</div><div class="sl-readout-val" id="vSp" style="color:#d97706;">2m 30s</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Jarak Episentrum (Δ)</div><div class="sl-readout-val" id="vDelta" style="color:#0284c7;">1500 km</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Potensi Tsunami</div><div class="sl-readout-val" id="vTsunami">Waspada</div></div>
+        </div>
+        <div class="sl-formula" style="margin-top:8px;">Δ = ((S − P) − 1 menit) × 1000 km</div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Karakteristik Geologi &amp; Mitigasi</div>
+        <div class="sl-note" id="geoNote">
+          <strong>Zona Subduksi Konvergen:</strong> Lempeng samudra yang lebih rapat menunjam ke bawah lempeng benua—rawan gempa megathrust dan gunung api busur kepulauan.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('geoCanvas');
+    const ctx = cv.getContext('2d');
+    let bound = 'subduction', waveP = 0, waveS = 0, quaking = false, t = 0;
+
+    function setBound(b) {
+      bound = b;
+      ['btnSub', 'btnDiv', 'btnTrf'].forEach(id => document.getElementById(id).classList.remove('is-active'));
+      const map = { subduction: 'btnSub', divergent: 'btnDiv', transform: 'btnTrf' };
+      document.getElementById(map[b]).classList.add('is-active');
+      onParam();
+    }
+
+    function triggerQuake() {
+      waveP = 8;
+      waveS = 4;
+      quaking = true;
+    }
+
+    function onParam() {
+      const dist = +document.getElementById('inDist').value;
+      const mag = +document.getElementById('inMag').value;
+      // Rumus Laska balik: sp_menit = dist/1000 + 1
+      const spMin = dist / 1000 + 1;
+      const m = Math.floor(spMin), s = Math.round((spMin - m) * 60);
+
+      document.getElementById('lDist').textContent = dist + ' km';
+      document.getElementById('lMag').textContent = mag.toFixed(1) + ' SR';
+      document.getElementById('vSp').textContent = `${m}m ${String(s).padStart(2, '0')}s`;
+      document.getElementById('vDelta').textContent = dist + ' km';
+
+      const tsunami = bound === 'subduction' && mag >= 7.0 ? 'TINGGI' : (bound === 'subduction' && mag >= 6.0 ? 'Waspada' : 'Rendah');
+      const elTs = document.getElementById('vTsunami');
+      elTs.textContent = tsunami;
+      elTs.style.color = tsunami === 'TINGGI' ? '#dc2626' : (tsunami === 'Waspada' ? '#d97706' : '#059669');
+
+      const desc = {
+        subduction: '<strong>Zona Subduksi Konvergen:</strong> Lempeng samudra yang lebih padat menunjam ke astenosfer. Pergeseran vertikal dasar laut pada M ≥ 7.0 memicu gelombang tsunami.',
+        divergent: '<strong>Zona Divergen (Pematang Tengah Samudra):</strong> Dua lempeng saling menjauh, magma basaltik naik membentuk kerak samudra baru; gempa umumnya dangkal.',
+        transform: '<strong>Sesar Geser Transform:</strong> Dua lempeng bergeser mendatar berlawanan arah (seperti Patahan Semangko / San Andreas); menyimpan energi gesekan besar.'
+      };
+      document.getElementById('geoNote').innerHTML = desc[bound];
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const dist = +document.getElementById('inDist').value;
+      t += 0.04;
+
+      if (quaking) {
+        waveP += 5.0;
+        waveS += 2.9;
+        if (waveS > W) quaking = false;
+      }
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Astenosfer (Magma Hangat)
+      ctx.fillStyle = '#451a03'; ctx.fillRect(0, 210, W, 72);
+      ctx.fillStyle = '#fdba74'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('ASTENOSFER / MANTEL ATAS', 16, 266);
+
+      // Lempeng Tektonik Kiri & Kanan
+      if (bound === 'subduction') {
+        // Lempeng Samudra menunjam ke bawah Lempeng Benua
+        ctx.fillStyle = '#0c4a6e'; ctx.fillRect(0, 128, W * 0.45, 22); // Laut
+        ctx.fillStyle = '#334155';
+        ctx.beginPath(); ctx.moveTo(0, 150); ctx.lineTo(W * 0.38, 150); ctx.lineTo(W * 0.56, 240); ctx.lineTo(W * 0.50, 256); ctx.lineTo(W * 0.34, 178); ctx.lineTo(0, 178); ctx.closePath(); ctx.fill();
+        // Lempeng Benua Kanan
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(W * 0.42, 134, W * 0.58, 56);
+      } else if (bound === 'divergent') {
+        const shift = Math.sin(t) * 6;
+        ctx.fillStyle = '#334155'; ctx.fillRect(0, 146, W * 0.46 - shift, 44);
+        ctx.fillStyle = '#475569'; ctx.fillRect(W * 0.54 + shift, 146, W * 0.46, 44);
+        ctx.fillStyle = '#ea580c'; ctx.fillRect(W * 0.47, 154, W * 0.06, 56); // Magma naik
+      } else {
+        const slide = Math.sin(t * 1.4) * 14;
+        ctx.fillStyle = '#334155'; ctx.fillRect(0, 142 + slide * 0.3, W * 0.49, 46);
+        ctx.fillStyle = '#475569'; ctx.fillRect(W * 0.51, 142 - slide * 0.3, W * 0.49, 46);
+      }
+
+      // Hiposentrum & Stasiun Seismograf
+      const hx = W * 0.42, hy = 176;
+      const sx = Math.min(W - 44, hx + (dist / 4000) * (W * 0.48));
+      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(hx, hy, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('Hiposentrum', hx, hy + 20);
+
+      // Gelombang P & S
+      if (quaking) {
+        ctx.strokeStyle = 'rgba(56,189,248,0.75)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(hx, hy, waveP, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = 'rgba(251,191,36,0.85)'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(hx, hy, waveS, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // Stasiun Seismograf
+      ctx.fillStyle = '#22c55e'; ctx.fillRect(sx - 10, 118, 20, 16);
+      ctx.fillStyle = '#86efac'; ctx.font = 'bold 10px monospace';
+      ctx.fillText('Stasiun', sx, 110);
+
+      // Seismogram Bawah (y: 295..395)
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+      ctx.fillRect(16, 294, W - 32, 98); ctx.strokeRect(16, 294, W - 32, 98);
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('REKAMAN SEISMOGRAM: GELOMBANG P (CEPAT) vs GELOMBANG S (BESAR)', 26, 312);
+
+      const pIdx = 0.22;
+      const sIdx = Math.min(0.84, pIdx + (dist / 4000) * 0.56);
+      ctx.strokeStyle = '#34d399'; ctx.lineWidth = 1.8; ctx.beginPath();
+      for (let i = 0; i <= W - 60; i++) {
+        const u = i / (W - 60);
+        let amp = 0;
+        if (Math.abs(u - pIdx) < 0.05) amp = Math.sin(u * 140) * 12 * (1 - Math.abs(u - pIdx) / 0.05);
+        else if (Math.abs(u - sIdx) < 0.09) amp = Math.sin(u * 95) * 28 * (1 - Math.abs(u - sIdx) / 0.09);
+        const py = 352 + amp;
+        i === 0 ? ctx.moveTo(28 + i, py) : ctx.lineTo(28 + i, py);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8'; ctx.fillText('P', 28 + pIdx * (W - 60), 332);
+      ctx.fillStyle = '#fbbf24'; ctx.fillText('S', 28 + sIdx * (W - 60), 332);
+
+      requestAnimationFrame(loop);
+    }
+
+    onParam();
+    loop();
+  </script>
+</body>
+</html>

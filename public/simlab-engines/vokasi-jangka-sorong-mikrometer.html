@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Teknik &amp; Fisika: Jangka Sorong &amp; Mikrometer Sekrup</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title" id="toolTitle">Pembacaan Presisi Jangka Sorong (Ketelitian 0,05 mm)</div>
+          <div class="sl-bar-sub">Temukan garis skala utama (cm/mm) tepat sebelum nol nonius dan garis nonius yang paling sejajar lurus</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnCal" onclick="setInst('caliper')">Jangka Sorong (0.05 mm)</button>
+          <button type="button" class="sl-btn" id="btnMic" onclick="setInst('micrometer')">Mikrometer Sekrup (0.01 mm)</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="measCanvas" height="390"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Geser Rahang / Putar Timbel</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Posisi Pengukuran Benda Kerja</span><span class="sl-ctrl-val" id="lRaw">24.65 mm</span></div>
+          <input type="range" id="inMeas" min="2.00" max="60.00" step="0.05" value="24.65" oninput="draw()" />
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn sl-btn-primary" onclick="randomTarget()">Acak Soal Ukur</button>
+          <button type="button" class="sl-btn" id="btnHideAns" onclick="toggleReveal()">Sembunyikan Jawaban (Uji Diri)</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Rincian Bacaan Skala</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Skala Utama (SU)</div><div class="sl-readout-val" id="vSu">24.0 mm</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Skala Nonius (SN)</div><div class="sl-readout-val" id="vSn" style="color:#d97706;">0.65 mm</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Hasil Akhir (SU+SN)</div><div class="sl-readout-val" id="vTot" style="color:#059669;">24.65 mm</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Panduan Membaca Garis Sejajar</div>
+        <div class="sl-note" id="measNote">
+          Garis angka 0 nonius berada setelah garis 24 mm skala utama, dan garis nonius ke-13 (13 × 0.05 = 0.65 mm) berimpit lurus dengan garis di atasnya.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('measCanvas');
+    const ctx = cv.getContext('2d');
+    let inst = 'caliper', hideAns = false;
+
+    function setInst(mode) {
+      inst = mode;
+      document.getElementById('btnCal').classList.toggle('is-active', mode === 'caliper');
+      document.getElementById('btnMic').classList.toggle('is-active', mode === 'micrometer');
+      const sl = document.getElementById('inMeas');
+      if (mode === 'caliper') {
+        sl.min = 2.00; sl.max = 60.00; sl.step = 0.05; sl.value = 24.65;
+        document.getElementById('toolTitle').textContent = 'Pembacaan Presisi Jangka Sorong (Ketelitian 0,05 mm)';
+      } else {
+        sl.min = 0.50; sl.max = 20.00; sl.step = 0.01; sl.value = 6.73;
+        document.getElementById('toolTitle').textContent = 'Pembacaan Presisi Mikrometer Sekrup (Ketelitian 0,01 mm)';
+      }
+      draw();
+    }
+
+    function randomTarget() {
+      if (inst === 'caliper') {
+        const steps = Math.floor(Math.random() * 1000) + 80;
+        document.getElementById('inMeas').value = (steps * 0.05).toFixed(2);
+      } else {
+        const steps = Math.floor(Math.random() * 1800) + 100;
+        document.getElementById('inMeas').value = (steps * 0.01).toFixed(2);
+      }
+      draw();
+    }
+
+    function toggleReveal() {
+      hideAns = !hideAns;
+      document.getElementById('btnHideAns').textContent = hideAns ? 'Tampilkan Jawaban' : 'Sembunyikan Jawaban (Uji Diri)';
+      draw();
+    }
+
+    function draw() {
+      const val = +document.getElementById('inMeas').value;
+      document.getElementById('lRaw').textContent = hideAns ? '??.?? mm' : val.toFixed(2) + ' mm';
+
+      let su, sn, coinc;
+      if (inst === 'caliper') {
+        su = Math.floor(val + 1e-6);
+        sn = +(val - su).toFixed(2);
+        coinc = Math.round(sn / 0.05);
+      } else {
+        su = Math.floor(val * 2 + 1e-6) / 2;
+        sn = +(val - su).toFixed(2);
+        coinc = Math.round(sn / 0.01);
+      }
+
+      document.getElementById('vSu').textContent = hideAns ? '—' : su.toFixed(inst === 'caliper' ? 1 : 2) + ' mm';
+      document.getElementById('vSn').textContent = hideAns ? '—' : sn.toFixed(2) + ' mm';
+      document.getElementById('vTot').textContent = hideAns ? 'Mode Uji' : val.toFixed(2) + ' mm';
+      document.getElementById('measNote').innerHTML = hideAns
+        ? '<strong>Mode Uji Diri Aktif:</strong> Baca skala utama dan cari garis sejajar di kanvas, lalu klik <em>Tampilkan Jawaban</em> untuk memeriksa hasil Anda.'
+        : (inst === 'caliper'
+          ? `Nol nonius melewati <strong>${su.toFixed(1)} mm</strong> (${(su / 10).toFixed(2)} cm). Garis nonius ke-<strong>${coinc}</strong> sejajar lurus (× 0,05 = ${sn.toFixed(2)} mm).`
+          : `Skala utama terlihat terakhir <strong>${su.toFixed(2)} mm</strong>. Garis selubung putar (timbel) sejajar sumbu utama di angka <strong>${coinc}</strong> (× 0,01 = ${sn.toFixed(2)} mm).`);
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 390;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      if (inst === 'caliper') {
+        // Gambar Rahang & Skala Utama (zoom agar jelas dibaca siswa)
+        const pxPerMm = 9;
+        const baseZeroX = 110;
+        const jawX = baseZeroX + val * pxPerMm;
+
+        // Batang Skala Utama (Atas)
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(20, 86, W - 40, 74);
+        ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.5; ctx.strokeRect(20, 86, W - 40, 74);
+
+        // Skala mm pada Skala Utama (0..65 mm)
+        for (let mm = 0; mm <= 65; mm++) {
+          const x = baseZeroX + mm * pxPerMm;
+          if (x > W - 30) break;
+          const isCm = mm % 10 === 0, isHalf = mm % 5 === 0;
+          const tickH = isCm ? 26 : (isHalf ? 18 : 11);
+          ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = isCm ? 1.8 : 1;
+          ctx.beginPath(); ctx.moveTo(x, 160); ctx.lineTo(x, 160 - tickH); ctx.stroke();
+          if (isCm) {
+            ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+            ctx.fillText(mm / 10 + 'cm', x, 122);
+          }
+        }
+
+        // Benda kerja dijepit di antara 0 dan jawX
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(baseZeroX, 240, val * pxPerMm, 76);
+        ctx.strokeStyle = '#7dd3fc'; ctx.strokeRect(baseZeroX, 240, val * pxPerMm, 76);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('BENDA KERJA', baseZeroX + (val * pxPerMm) / 2, 282);
+
+        // Rahang Tetap Kiri
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(baseZeroX - 24, 160, 24, 175);
+
+        // Skala Nonius (Vernier) 20 skala = 19 mm (0.05 mm resolusi) -> bergeser sesuai jawX
+        const vWidth = 19 * pxPerMm + 46;
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(jawX - 18, 162, vWidth, 62);
+        ctx.strokeStyle = '#94a3b8'; ctx.strokeRect(jawX - 18, 162, vWidth, 62);
+        // Rahang geser
+        ctx.fillRect(jawX, 224, 22, 111);
+
+        const stepV = (19 / 20) * pxPerMm;
+        for (let i = 0; i <= 20; i++) {
+          const vx = jawX + i * stepV;
+          const isMatch = i === coinc;
+          const isEven = i % 2 === 0;
+          ctx.strokeStyle = isMatch ? '#fbbf24' : '#cbd5e1';
+          ctx.lineWidth = isMatch ? 2.5 : 1;
+          ctx.beginPath(); ctx.moveTo(vx, 162); ctx.lineTo(vx, 162 + (isEven ? 22 : 14)); ctx.stroke();
+          if (i % 4 === 0) {
+            ctx.fillStyle = '#f8fafc'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+            ctx.fillText(i / 2, vx, 206);
+          }
+          if (isMatch) {
+            ctx.strokeStyle = 'rgba(251,191,36,0.55)'; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(vx, 118); ctx.lineTo(vx, 224); ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+      } else {
+        // Mikrometer Sekrup: Sleeve Utama + Thimble Berputar
+        const sx = 90, sy = 195, pxMm = 16;
+        // Poros sleeve
+        ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+        ctx.fillRect(sx, sy - 42, 340, 84); ctx.strokeRect(sx, sy - 42, 340, 84);
+        // Garis datum horizontal
+        ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(sx + 12, sy); ctx.lineTo(sx + 335, sy); ctx.stroke();
+
+        // Skala 1 mm di atas garis datum, 0.5 mm di bawah
+        const sleeveEnd = sx + 20 + val * pxMm;
+        for (let mm = 0; mm <= 20; mm++) {
+          const x = sx + 20 + mm * pxMm;
+          if (x > sleeveEnd + 2) break;
+          ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(x, sy); ctx.lineTo(x, sy - 20); ctx.stroke();
+          if (mm % 5 === 0) {
+            ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+            ctx.fillText(mm, x, sy - 26);
+          }
+          const xHalf = x + pxMm * 0.5;
+          if (xHalf <= sleeveEnd + 1) {
+            ctx.beginPath(); ctx.moveTo(xHalf, sy); ctx.lineTo(xHalf, sy + 16); ctx.stroke();
+          }
+        }
+
+        // Thimble Putar (Kanan) menutupi skala setelah sleeveEnd
+        ctx.fillStyle = '#334155'; ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+        ctx.fillRect(sleeveEnd, sy - 70, 175, 140); ctx.strokeRect(sleeveEnd, sy - 70, 175, 140);
+
+        // Skala Timbel 0..49
+        for (let d = -8; d <= 8; d++) {
+          const tickVal = ((coinc + d) % 50 + 50) % 50;
+          const ty = sy - d * 8;
+          const isMatch = d === 0;
+          ctx.strokeStyle = isMatch ? '#fbbf24' : '#cbd5e1';
+          ctx.lineWidth = isMatch ? 2.5 : 1;
+          ctx.beginPath(); ctx.moveTo(sleeveEnd, ty); ctx.lineTo(sleeveEnd + (tickVal % 5 === 0 ? 28 : 16), ty); ctx.stroke();
+          if (tickVal % 5 === 0) {
+            ctx.fillStyle = isMatch ? '#fbbf24' : '#f8fafc';
+            ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+            ctx.fillText(tickVal, sleeveEnd + 34, ty + 4);
+          }
+        }
+      }
+    }
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
+    setInst('caliper');
+  </script>
+</body>
+</html>

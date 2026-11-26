@@ -55,19 +55,19 @@ class VirtualLab extends Model
         if (in_array($eng, ['olympiad_5', 'ptn_speed', 'ptn_speed_advanced']) || str_contains($subj, 'olimpiade') || str_contains($subj, 'ptn') || str_contains($subj, 'snbt') || str_contains($subj, 'utbk')) {
             return 'olimpiade';
         }
-        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc', 'vokasi_lan_topo', 'vokasi_cad_dpib']) || $this->category === 'vokasi' || str_contains($subj, 'smk') || str_contains($subj, 'tkj') || str_contains($subj, 'tkr') || str_contains($subj, 'dpib')) {
+        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc', 'vokasi_lan_topo', 'vokasi_cad_dpib', 'vokasi_caliper']) || $this->category === 'vokasi' || str_contains($subj, 'smk') || str_contains($subj, 'tkj') || str_contains($subj, 'tkr') || str_contains($subj, 'dpib')) {
             return 'vokasi';
         }
-        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform', 'math_integral', 'math_trig_circle']) || str_contains($subj, 'matematika') || str_contains($subj, 'gradien') || str_contains($subj, 'aljabar') || str_contains($subj, 'geometri') || str_contains($subj, 'kalkulus')) {
+        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform', 'math_integral', 'math_trig_circle', 'math_derivative', 'math_sequences']) || str_contains($subj, 'matematika') || str_contains($subj, 'gradien') || str_contains($subj, 'aljabar') || str_contains($subj, 'geometri') || str_contains($subj, 'kalkulus')) {
             return 'matematika';
         }
-        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics', 'bio_osmosis', 'bio_nervous']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'chem_titration', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics', 'bio_osmosis', 'bio_nervous', 'bio_enzyme']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
             return 'kimia_biologi';
         }
-        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound', 'econ_inflation']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa')) {
+        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound', 'econ_inflation', 'geo_tectonics']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa') || str_contains($subj, 'geografi')) {
             return 'ips_bahasa';
         }
-        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'physics_optics', 'physics_elevator', 'physics_electric_field', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law']) || str_contains($subj, 'fisika')) {
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'physics_optics', 'physics_elevator', 'physics_electric_field', 'physics_pendulum', 'physics_calorimetry', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law']) || str_contains($subj, 'fisika')) {
             return 'fisika';
         }
 
@@ -302,6 +302,86 @@ class VirtualLab extends Model
                 'options'     => ['108', '162', '486', '243'],
                 'answer_idx'  => 2,
                 'solution'    => 'Rasio r = 6/2 = 3 (geometri). Suku ke-5 = 54×3=162, suku ke-6 = 162×3=486. Rumus: Un = 2×3^(n-1), U6 = 2×3^5 = 2×243 = 486.',
+            ],
+            'physics_pendulum' => [
+                'law'         => 'Gerak Harmonik Sederhana & Periode Bandul Matematis',
+                'theory'      => 'Untuk simpangan sudut kecil, ayunan bandul bersifat isokron (periode tetap) yang hanya bergantung pada panjang tali L dan percepatan gravitasi g, serta TIDAK bergantung pada massa beban.',
+                'formula'     => 'T = 2π √(L / g)   |   f = 1 / T   |   EM = EK + EP = konstan',
+                'variables'   => 'T = periode (s), L = panjang tali (m), g = percepatan gravitasi (m/s²), f = frekuensi (Hz)',
+                'challenge_q' => 'Jika panjang tali bandul diperpanjang menjadi 4 kali semula di tempat yang sama, berapakah periode ayunannya sekarang?',
+                'options'     => ['Tetap sama', '2 kali semula', '4 kali semula', '1/2 kali semula'],
+                'answer_idx'  => 1,
+                'solution'    => 'Karena T sebanding dengan √L, jika L menjadi 4L maka T\' = √4 × T = 2T (2 kali semula).',
+            ],
+            'physics_calorimetry' => [
+                'law'         => 'Asas Black & Kalor Laten Perubahan Wujud',
+                'theory'      => 'Dalam sistem kalorimeter terisolasi, kalor yang dilepaskan benda bersuhu tinggi sama dengan kalor yang diserap benda bersuhu rendah. Saat terjadi perubahan wujud (melebur/menguap), suhu tetap konstan.',
+                'formula'     => 'Q_lepas = Q_terima   |   Q_sensibel = m · c · ΔT   |   Q_laten = m · L',
+                'variables'   => 'm = massa (kg), c = kalor jenis (J/kg°C), ΔT = perubahan suhu (°C), L = kalor laten (J/kg)',
+                'challenge_q' => 'Air 0,5 kg bersuhu 80°C dicampur dengan air 1 kg bersuhu 20°C. Berapakah suhu akhir campurannya?',
+                'options'     => ['35°C', '40°C', '50°C', '60°C'],
+                'answer_idx'  => 1,
+                'solution'    => 'm₁·c·(80 - Tc) = m₂·c·(Tc - 20) → 0,5(80 - Tc) = 1(Tc - 20) → 40 - 0,5Tc = Tc - 20 → 1,5Tc = 60 → Tc = 40°C.',
+            ],
+            'chem_titration' => [
+                'law'         => 'Stoikiometri Titrasi Netralisasi Asam-Basa',
+                'theory'      => 'Pada titik ekivalen titrasi, jumlah mol ion H⁺ dari asam tepat habis bereaksi dengan jumlah mol ion OH⁻ dari basa. Lonjakan pH paling tajam terjadi tepat melewati titik ekivalen.',
+                'formula'     => 'M_a · V_a · n_a = M_b · V_b · n_b',
+                'variables'   => 'M = molaritas (M), V = volume larutan (mL), n = valensi asam/basa',
+                'challenge_q' => '25 mL larutan HCl 0,10 M dititrasi tepat dengan NaOH 0,125 M. Berapakah volume NaOH yang diperlukan hingga titik ekivalen?',
+                'options'     => ['15 mL', '20 mL', '25 mL', '30 mL'],
+                'answer_idx'  => 1,
+                'solution'    => 'M_a·V_a·1 = M_b·V_b·1 → 0,10 × 25 = 0,125 × V_b → V_b = 2,5 / 0,125 = 20 mL.',
+            ],
+            'bio_enzyme' => [
+                'law'         => 'Biokatalis Enzim (Teori Lock & Key) & Denaturasi',
+                'theory'      => 'Enzim mempercepat reaksi metabolisme dengan menurunkan energi aktivasi secara spesifik melalui sisi aktifnya. Suhu tinggi (>55°C) atau pH ekstrem merusak struktur protein enzim (denaturasi permanen).',
+                'formula'     => 'E + S ⇌ ES → E + P   (Katalase: 2H₂O₂ → 2H₂O + O₂)',
+                'variables'   => 'E = Enzim, S = Substrat, ES = Kompleks Enzim-Substrat, P = Produk',
+                'challenge_q' => 'Mengapa aktivitas enzim katalase langsung turun menjadi nol saat dipanaskan hingga 65°C?',
+                'options'     => ['Substrat H₂O₂ membeku', 'Protein enzim mengalami denaturasi sehingga sisi aktif rusak', 'Produk O₂ menghambat katalis', 'pH otomatis berubah menjadi basa kuat'],
+                'answer_idx'  => 1,
+                'solution'    => 'Enzim tersusun atas protein. Pemanasan di atas batas termal (~55–65°C) memutus ikatan hidrogen/disulfida sehingga struktur tiga dimensi sisi aktif berubah (denaturasi).',
+            ],
+            'math_derivative' => [
+                'law'         => 'Definisi Limit Turunan & Gradien Garis Singgung',
+                'theory'      => 'Turunan pertama f\'(x₀) menyatakan gradien garis singgung kurva di titik x₀ yang diperoleh saat jarak titik kedua pada garis potong (h) diperkecil menuju nol.',
+                'formula'     => 'f\'(x₀) = lim(h→0) [f(x₀ + h) − f(x₀)] / h',
+                'variables'   => 'x₀ = absis titik singgung, h = selisih Δx, f\'(x₀) = kemiringan garis singgung kurva',
+                'challenge_q' => 'Diketahui kurva f(x) = x² − 4x + 5. Pada nilai x berapakah garis singgung kurva mendatar (stasioner)?',
+                'options'     => ['x = −2', 'x = 0', 'x = 2', 'x = 4'],
+                'answer_idx'  => 2,
+                'solution'    => 'Garis singgung mendatar berarti f\'(x) = 0. Turunan f\'(x) = 2x − 4 = 0 → 2x = 4 → x = 2.',
+            ],
+            'math_sequences' => [
+                'law'         => 'Barisan Aritmetika, Geometri & Deret Konvergen Tak Hingga',
+                'theory'      => 'Pada barisan aritmetika selisih antar suku tetap (b), sedangkan pada barisan geometri rasio antar suku tetap (r). Untuk bola memantul dengan rasio 0 < r < 1, panjang lintasan total konvergen ke nilai tertentu.',
+                'formula'     => 'U_n = a + (n−1)b   |   U_n = a·r^(n−1)   |   L_pantul = h₀ · (1 + r) / (1 − r)',
+                'variables'   => 'a = suku pertama, b = beda, r = rasio, h₀ = tinggi jatuh awal (m)',
+                'challenge_q' => 'Bola dijatuhkan dari ketinggian 10 meter dan memantul kembali setinggi 3/5 dari tinggi sebelumnya terus-menerus. Berapakah panjang total lintasan bola sampai berhenti?',
+                'options'     => ['25 m', '35 m', '40 m', '50 m'],
+                'answer_idx'  => 2,
+                'solution'    => 'L = h₀ × (1 + r) / (1 − r) = 10 × (1 + 3/5) / (1 − 3/5) = 10 × (8/5) / (2/5) = 10 × 4 = 40 meter.',
+            ],
+            'vokasi_caliper' => [
+                'law'         => 'Metrologi Industri: Jangka Sorong & Mikrometer Sekrup',
+                'theory'      => 'Pembacaan alat ukur presisi adalah penjumlahan Skala Utama (SU) tepat sebelum nol/tepi timbel dengan Skala Nonius (SN) yang garisnya berimpit paling lurus dengan skala utama.',
+                'formula'     => 'Hasil = SU + (Garis Sejajar × Ketelitian)   [0,05 mm Jangka | 0,01 mm Mikrometer]',
+                'variables'   => 'SU = Skala Utama (mm), SN = Skala Nonius/Timbel (mm)',
+                'challenge_q' => 'Pembacaan mikrometer sekrup menunjukkan garis 6,5 mm pada skala utama dan garis ke-23 pada skala putar berimpit dengan sumbu utama. Berapa tebal benda?',
+                'options'     => ['6,23 mm', '6,523 mm', '6,73 mm', '8,80 mm'],
+                'answer_idx'  => 2,
+                'solution'    => 'SU = 6,5 mm. SN = 23 × 0,01 mm = 0,23 mm. Total hasil pengukuran = 6,5 + 0,23 = 6,73 mm.',
+            ],
+            'geo_tectonics' => [
+                'law'         => 'Dinamika Lempeng Tektonik & Rumus Episenter Laska',
+                'theory'      => 'Gelombang primer (P) merambat lebih cepat daripada gelombang sekunder (S). Selisih waktu tiba keduanya di stasiun seismograf (S − P) dipakai menghitung jarak pusat gempa (episentrum).',
+                'formula'     => 'Δ = ((S − P) − 1 menit) × 1.000 km',
+                'variables'   => 'Δ = jarak episentrum (km), S = waktu tiba gelombang S, P = waktu tiba gelombang P',
+                'challenge_q' => 'Gelombang P tiba di stasiun seismograf pukul 08.12\'30\" dan gelombang S tiba pukul 08.15\'00\". Berapakah jarak episentrum gempa?',
+                'options'     => ['1.000 km', '1.500 km', '2.000 km', '2.500 km'],
+                'answer_idx'  => 1,
+                'solution'    => 'S − P = 2 menit 30 detik = 2,5 menit. Δ = (2,5 − 1) × 1.000 km = 1,5 × 1.000 = 1.500 km.',
             ],
         ];
 
@@ -994,6 +1074,126 @@ class VirtualLab extends Model
                     'Atur modal awal, tingkat imbal hasil tahunan (%), dan lama waktu investasi (tahun).',
                     'Bandingkan kurva biru (Bunga Tunggal lurus) dengan kurva hijau (Bunga Majemuk eksponensial).',
                     'Amati lonjakan nilai investasi setelah melewati tahun ke-15.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-bandul-harmonik',
+                'title'        => 'Simulator Fisika: Bandul Matematis & Getaran Harmonik Sederhana',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika / IPA (SMP, SMA & UTBK)',
+                'engine_type'  => 'physics_pendulum',
+                'icon'         => 'fas fa-wave-square',
+                'accent_color' => '#0369a1',
+                'description'  => 'Mengapa mengganti beban bandul menjadi 5 kali lebih berat TIDAK mempercepat ayunannya, tetapi memanjangkan tali justru memperlambat periode? Uji juga ayunan di Bulan & Jupiter!',
+                'sop_steps'    => [
+                    'Ubah Massa Beban (m) dari 0.5 kg ke 5 kg dan amati bahwa Periode T tidak berubah.',
+                    'Perpanjang tali menjadi 4 kali lipat dan verifikasi bahwa Periode T menjadi 2 kali semula.',
+                    'Bandingkan ayunan bandul di Bumi (9.8 m/s²) vs Bulan (1.6 m/s²) dan amati neraca energi EK/EP.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-asas-black-kalor',
+                'title'        => 'Simulator Fisika: Kalor, Asas Black & Grafik Perubahan Wujud Zat',
+                'category'     => 'smp',
+                'subject_name' => 'Fisika / IPA (SMP & SMA)',
+                'engine_type'  => 'physics_calorimetry',
+                'icon'         => 'fas fa-temperature-high',
+                'accent_color' => '#0369a1',
+                'description'  => 'Mengapa suhu es yang sedang mencair tetap bertahan di 0°C meski kompor terus menyala? Hitung juga suhu akhir pencampuran air panas dan logam pada Kalorimeter Asas Black!',
+                'sop_steps'    => [
+                    'Pada mode Asas Black, atur massa dan suhu zat panas vs air dingin lalu amati suhu kesetimbangan Tc.',
+                    'Beralih ke mode Grafik Perubahan Wujud dan geser kalor Q melewati titik 0°C dan 100°C.',
+                    'Amati bagian kurva mendatar tempat kalor laten digunakan mengubah wujud tanpa menaikkan suhu.',
+                ],
+            ],
+            [
+                'slug'         => 'kimia-titrasi-asam-basa',
+                'title'        => 'Simulator Kimia: Titrasi Asam-Basa & Kurva Ekivalen Indikator',
+                'category'     => 'sma',
+                'subject_name' => 'Kimia (SMA / UTBK)',
+                'engine_type'  => 'chem_titration',
+                'icon'         => 'fas fa-vial',
+                'accent_color' => '#047857',
+                'description'  => 'Bagaimana menentukan kadar asam yang tidak diketahui menggunakan buret NaOH setetes demi setetes hingga indikator berubah warna tepat di titik ekivalen?',
+                'sop_steps'    => [
+                    'Tambahkan titran NaOH menggunakan tombol +5.0 mL lalu perlambat dengan +1.0 mL dan +0.2 mL mendekati volume ekivalen.',
+                    'Amati lonjakan tajam kurva pH di sekitar titik ekivalen dan perubahan warna larutan di Erlenmeyer.',
+                    'Bandingkan kurva Asam Kuat (HCl) dengan Asam Lemah (CH₃COOH).',
+                ],
+            ],
+            [
+                'slug'         => 'biologi-enzim-katalase',
+                'title'        => 'Simulator Biologi: Mekanisme Kerja Enzim, Suhu Optimum & Denaturasi',
+                'category'     => 'sma',
+                'subject_name' => 'Biologi (SMA / UTBK)',
+                'engine_type'  => 'bio_enzyme',
+                'icon'         => 'fas fa-dna',
+                'accent_color' => '#047857',
+                'description'  => 'Bagaimana sisi aktif enzim mengikat substrat menurut teori Lock & Key, dan mengapa pemanasan berlebih membuat enzim mati permanen akibat denaturasi?',
+                'sop_steps'    => [
+                    'Uji reaksi pada suhu optimal tubuh (37°C) dan pH 7.0 lalu amati laju penguraian H₂O₂.',
+                    'Naikkan suhu di atas 55°C untuk mengamati kerusakan sisi aktif (denaturasi) dan turunnya laju ke 0%.',
+                    'Aktifkan Inhibitor Kompetitif untuk melihat persaingan memperebutkan sisi aktif enzim.',
+                ],
+            ],
+            [
+                'slug'         => 'matematika-turunan-garis-singgung',
+                'title'        => 'Simulator Matematika: Konsep Limit, Turunan & Garis Singgung Kurva',
+                'category'     => 'sma',
+                'subject_name' => 'Matematika / Kalkulus (SMA & UTBK)',
+                'engine_type'  => 'math_derivative',
+                'icon'         => 'fas fa-chart-line',
+                'accent_color' => '#3730a3',
+                'description'  => 'Pahami arti geometris turunan pertama f\'(x₀): bagaimana garis potong (sekan) antara dua titik berubah menjadi garis singgung saat jarak h diperkecil menuju nol!',
+                'sop_steps'    => [
+                    'Pilih fungsi kuadrat atau kubik lalu atur absis titik P(x₀).',
+                    'Perkecil nilai h dari 2.0 menuju 0.02 dan amati garis sekan kuning berimpit dengan garis singgung hijau.',
+                    'Cari posisi x₀ di mana f\'(x₀) = 0 (garis singgung mendatar pada titik puncak/lembah).',
+                ],
+            ],
+            [
+                'slug'         => 'matematika-barisan-deret',
+                'title'        => 'Simulator Matematika: Barisan, Deret & Pantulan Geometri Tak Hingga',
+                'category'     => 'sma',
+                'subject_name' => 'Matematika (SMP, SMA & UTBK)',
+                'engine_type'  => 'math_sequences',
+                'icon'         => 'fas fa-bars-staggered',
+                'accent_color' => '#3730a3',
+                'description'  => 'Bandingkan pertumbuhan linear Barisan Aritmetika vs lonjakan eksponensial Geometri, lalu buktikan rumus panjang lintasan bola memantul tak hingga kali (S∞)!',
+                'sop_steps'    => [
+                    'Uji mode Aritmetika dan Geometri untuk mengamati perbandingan suku ke-n dan jumlah S_n.',
+                    'Beralih ke mode Bola Tak Hingga (S∞), atur tinggi jatuh awal h₀ dan rasio pantul r.',
+                    'Verifikasi bahwa total jarak turun dan naik konvergen ke L = h₀·(1+r)/(1−r).',
+                ],
+            ],
+            [
+                'slug'         => 'vokasi-jangka-sorong-mikrometer',
+                'title'        => 'Simulator Teknik & Fisika: Pembacaan Jangka Sorong & Mikrometer Sekrup',
+                'category'     => 'vokasi',
+                'subject_name' => 'Teknik Pemesinan / Otomotif / Fisika',
+                'engine_type'  => 'vokasi_caliper',
+                'icon'         => 'fas fa-ruler',
+                'accent_color' => '#c2410c',
+                'description'  => 'Latih ketelitian membaca alat ukur bengkel & laboratorium hingga 0,01 mm! Geser rahang ukur, temukan garis nonius yang sejajar lurus, dan uji kemampuan membaca tanpa bantuan.',
+                'sop_steps'    => [
+                    'Pilih alat ukur Jangka Sorong (0,05 mm) atau Mikrometer Sekrup (0,01 mm).',
+                    'Geser ukuran benda dan amati garis skala nonius yang disorot kuning karena sejajar lurus dengan skala utama.',
+                    'Aktifkan "Sembunyikan Jawaban" dan klik "Acak Soal Ukur" untuk menguji ketelitian bacaan Anda.',
+                ],
+            ],
+            [
+                'slug'         => 'ips-tektonik-gempa',
+                'title'        => 'Simulator Geografi: Lempeng Tektonik, Gelombang Gempa P-S & Mitigasi',
+                'category'     => 'sma',
+                'subject_name' => 'Geografi / IPS / Kebumian',
+                'engine_type'  => 'geo_tectonics',
+                'icon'         => 'fas fa-earth-asia',
+                'accent_color' => '#9f1239',
+                'description'  => 'Bagaimana ahli geofisika menentukan jarak pusat gempa dan potensi tsunami di Kepulauan Nias & Sumatra hanya dari rekaman waktu gelombang P dan S di seismograf?',
+                'sop_steps'    => [
+                    'Pilih jenis batas lempeng (Subduksi Konvergen, Divergen, atau Sesar Transform).',
+                    'Klik "Lepaskan Energi Gempa" untuk mengamati gelombang P yang cepat disusul gelombang S ke stasiun.',
+                    'Ubah jarak stasiun dan magnitudo untuk menghitung jarak episentrum via Rumus Laska & status tsunami.',
                 ],
             ],
         ];

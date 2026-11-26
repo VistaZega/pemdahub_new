@@ -23,7 +23,7 @@
 </head>
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
-    $vTag = '?v=20261127b';
+    $vTag = '?v=20261127c';
     $proEngineMap = [
         'gasoline_engine'        => asset('simlab-engines/mesin-4tak-2tak.html') . $vTag,
         'beam_load'              => asset('simlab-engines/teknik-gambar-bangunan.html') . $vTag,
@@ -69,9 +69,25 @@
         'vokasi_cad_dpib'        => asset('simlab-engines/vokasi-cad-denah.html') . $vTag,
         'econ_inflation'         => asset('simlab-engines/ips-inflasi-deflasi.html') . $vTag,
         'ptn_speed_advanced'     => asset('simlab-engines/ptn-soal-cepat-lanjutan.html') . $vTag,
+        'physics_pendulum'       => asset('simlab-engines/fisika-bandul-harmonik.html') . $vTag,
+        'physics_calorimetry'    => asset('simlab-engines/fisika-asas-black-kalor.html') . $vTag,
+        'chem_titration'         => asset('simlab-engines/kimia-titrasi-asam-basa.html') . $vTag,
+        'bio_enzyme'             => asset('simlab-engines/biologi-enzim-katalase.html') . $vTag,
+        'math_derivative'        => asset('simlab-engines/matematika-turunan-garis-singgung.html') . $vTag,
+        'math_sequences'         => asset('simlab-engines/matematika-barisan-deret.html') . $vTag,
+        'vokasi_caliper'         => asset('simlab-engines/vokasi-jangka-sorong-mikrometer.html') . $vTag,
+        'geo_tectonics'          => asset('simlab-engines/ips-tektonik-gempa.html') . $vTag,
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
     $tc = $lab->theory_and_challenge;
+    $roomOrdered = \App\Models\VirtualLab::where('is_active', true)
+        ->orderByRaw("CASE WHEN engine_type = 'ai_custom_html' THEN 0 ELSE 1 END")
+        ->orderByDesc('id')
+        ->get()
+        ->filter(fn($v) => $v->discipline_key === $lab->discipline_key)
+        ->values();
+    $foundPos = $roomOrdered->search(fn($v) => $v->id === $lab->id);
+    $labNo = str_pad((string) (($foundPos !== false ? $foundPos : 0) + 1), 2, '0', STR_PAD_LEFT);
 @endphp
 <body class="min-h-screen flex flex-col" x-data="virtualLabRunner()">
 
@@ -84,6 +100,7 @@
                 </a>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
+                        <span class="px-1.5 py-0.5 rounded bg-sky-600 text-white font-mono-lab font-bold">NO. {{ $labNo }}</span>
                         <span class="font-mono-lab font-bold text-sky-400">{{ $lab->discipline_label }}</span>
                         <span>·</span>
                         <span class="truncate hidden sm:inline">{{ $lab->subject_name }}</span>

@@ -27,7 +27,7 @@ html, body {
   padding: 0;
   width: 100%;
   min-height: 100%;
-  background: var(--sl-surface) !important;
+  background: var(--sl-surface);
   color: var(--sl-ink);
   font-family: var(--sl-font-sans);
   -webkit-font-smoothing: antialiased;

@@ -32,7 +32,7 @@
 </head>
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
-    $vTag = '?v=20261127b';
+    $vTag = '?v=20261127c';
 
     $engineUrls = [
         'gasoline_engine'        => asset('simlab-engines/mesin-4tak-2tak.html') . $vTag,
@@ -79,6 +79,14 @@
         'vokasi_cad_dpib'        => asset('simlab-engines/vokasi-cad-denah.html') . $vTag,
         'econ_inflation'         => asset('simlab-engines/ips-inflasi-deflasi.html') . $vTag,
         'ptn_speed_advanced'     => asset('simlab-engines/ptn-soal-cepat-lanjutan.html') . $vTag,
+        'physics_pendulum'       => asset('simlab-engines/fisika-bandul-harmonik.html') . $vTag,
+        'physics_calorimetry'    => asset('simlab-engines/fisika-asas-black-kalor.html') . $vTag,
+        'chem_titration'         => asset('simlab-engines/kimia-titrasi-asam-basa.html') . $vTag,
+        'bio_enzyme'             => asset('simlab-engines/biologi-enzim-katalase.html') . $vTag,
+        'math_derivative'        => asset('simlab-engines/matematika-turunan-garis-singgung.html') . $vTag,
+        'math_sequences'         => asset('simlab-engines/matematika-barisan-deret.html') . $vTag,
+        'vokasi_caliper'         => asset('simlab-engines/vokasi-jangka-sorong-mikrometer.html') . $vTag,
+        'geo_tectonics'          => asset('simlab-engines/ips-tektonik-gempa.html') . $vTag,
     ];
 
     $rooms = [
@@ -392,16 +400,21 @@
                     </div>
 
                     <div class="divide-y divide-slate-200 max-h-[760px] overflow-y-auto flex-1">
-                        <template x-for="lab in filteredLabs" :key="lab.id">
+                        <template x-for="(lab, idx) in filteredLabs" :key="lab.id">
                             <button type="button" @click="selectLab(lab)"
                                     :class="selectedLab && selectedLab.id === lab.id ? 'bg-white text-slate-950' : 'hover:bg-white/80 text-slate-700'"
-                                    class="w-full text-left px-4 py-3 transition-colors flex flex-col gap-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="text-[11px] font-semibold text-slate-500 truncate" x-text="lab.subject_name"></span>
-                                    <span x-show="selectedLab && selectedLab.id === lab.id" class="font-mono-lab text-[10px] font-bold text-emerald-700 shrink-0">● AKTIF</span>
+                                    class="w-full text-left px-4 py-3 transition-colors flex items-start gap-3">
+                                <span :class="selectedLab && selectedLab.id === lab.id ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-700'"
+                                      class="font-mono-lab text-[11px] font-extrabold px-1.5 py-0.5 rounded shrink-0 mt-0.5"
+                                      x-text="String(idx + 1).padStart(2, '0')"></span>
+                                <div class="min-w-0 flex-1 flex flex-col gap-1">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[11px] font-semibold text-slate-500 truncate" x-text="lab.subject_name"></span>
+                                        <span x-show="selectedLab && selectedLab.id === lab.id" class="font-mono-lab text-[10px] font-bold text-emerald-700 shrink-0">● AKTIF</span>
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-bold text-slate-900 leading-snug" x-text="lab.title"></div>
+                                    <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed" x-text="lab.description"></p>
                                 </div>
-                                <div class="text-xs sm:text-sm font-bold text-slate-900 leading-snug" x-text="lab.title"></div>
-                                <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed" x-text="lab.description"></p>
                             </button>
                         </template>
                         <div x-show="filteredLabs.length === 0" class="p-6 text-center text-xs text-slate-500">
@@ -416,6 +429,7 @@
                     <div class="px-5 py-4 border-b border-slate-200 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-semibold">
+                                <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono-lab text-[11px] font-bold" x-text="'NO. ' + selectedLabNumber"></span>
                                 <span class="font-mono-lab font-bold text-slate-800" x-text="selectedLab?.discipline_label"></span>
                                 <span>·</span>
                                 <span x-text="selectedLab?.subject_name"></span>
@@ -759,6 +773,13 @@
                         const matchQ = !q || (l.title + ' ' + l.subject_name + ' ' + l.description + ' ' + l.discipline_label).toLowerCase().includes(q);
                         return matchRoom && matchQ;
                     });
+                },
+                get selectedLabNumber() {
+                    if (!this.selectedLab) return '01';
+                    const i = this.filteredLabs.findIndex(l => l.id === this.selectedLab.id);
+                    if (i >= 0) return String(i + 1).padStart(2, '0');
+                    const allIdx = this.labs.findIndex(l => l.id === this.selectedLab.id);
+                    return String((allIdx >= 0 ? allIdx : 0) + 1).padStart(2, '0');
                 },
                 enterRoom(roomKey) {
                     this.selectRoom(roomKey);
