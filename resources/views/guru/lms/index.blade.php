@@ -1,253 +1,227 @@
 @extends('layouts.guru')
 
-@section('title', 'LMS - Portal Guru')
-
-@push('styles')
-<style>
-    .rombel-card { animation: fadeUp 0.35s ease both; }
-    .rombel-card:nth-child(1) { animation-delay: 0s; }
-    .rombel-card:nth-child(2) { animation-delay: 0.05s; }
-    .rombel-card:nth-child(3) { animation-delay: 0.10s; }
-    .rombel-card:nth-child(4) { animation-delay: 0.15s; }
-    .rombel-card:nth-child(5) { animation-delay: 0.20s; }
-    .rombel-card:nth-child(6) { animation-delay: 0.25s; }
-    .course-card { animation: fadeUp 0.3s ease both; }
-    @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(16px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .rombel-btn.active {
-        background-color: #000 !important;
-        color: #fbbf24 !important;
-        border-color: #000 !important;
-    }
-</style>
-@endpush
+@section('title', 'LMS - Ruang Ajar Digital Guru')
 
 @section('content')
-<div class="space-y-8">
+<style>
+    .glms-wrap {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding-bottom: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    .glms-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #064e3b 65%, #065f46 100%);
+        border: 1px solid #1e293b;
+        border-radius: 1.35rem;
+        padding: 1.5rem 1.75rem;
+        color: #ffffff;
+        box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.28);
+        position: relative;
+        overflow: hidden;
+    }
+    .glms-hero::after {
+        content: '';
+        position: absolute;
+        top: -45px;
+        right: -45px;
+        width: 210px;
+        height: 210px;
+        border-radius: 9999px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0) 70%);
+        pointer-events: none;
+    }
+    .glms-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+    @media (max-width: 1180px) {
+        .glms-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 700px) {
+        .glms-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+    .glms-card {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .glms-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+    }
+</style>
 
-    {{-- ═══════════════════════════════════════════════ --}}
-    {{-- HERO BANNER --}}
-    {{-- ═══════════════════════════════════════════════ --}}
-    <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-                <div class="flex items-center gap-5 md:gap-6 mb-3" style="gap: 1.25rem;">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-black shrink-0" style="background-color: #090d16 !important; color: #ffffff !important;">
-                        <i class="fas fa-chalkboard-teacher text-2xl text-amber-400"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-black text-xs font-black uppercase tracking-[0.2em] mb-1">Learning Management System Guru</p>
-                        <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight">Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}! 👋</h1>
-                    </div>
-                </div>
-                <p class="text-black font-bold text-sm max-w-md leading-relaxed">Pilih rombel untuk mengelola materi, tugas, dan kuis secara terfokus per kelas.</p>
+<div class="glms-wrap" x-data="{ search: '' }">
 
-                @if($activeSemester)
-                <div class="mt-4 inline-flex items-center gap-2 border-2 border-black rounded-xl px-4 py-2 shadow-sm font-black text-xs bg-amber-300 text-black">
-                    <i class="fas fa-calendar-alt text-black text-sm"></i>
-                    <span>{{ $activeSemester->semester_name }}</span>
+    {{-- 1. HERO HEADER GURU --}}
+    <div class="glms-hero">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem; position: relative; z-index: 1;">
+            <div style="min-width: 250px; flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <span style="padding: 0.22rem 0.65rem; border-radius: 9999px; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.45); color: #fde68a; font-size: 0.68rem; font-weight: 800; text-transform: uppercase;">
+                        <i class="fas fa-chalkboard-teacher"></i> LMS Guru PembdaHUB
+                    </span>
+                    @if($activeSemester)
+                    <span style="padding: 0.22rem 0.65rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.14); color: #e2e8f0; font-size: 0.68rem; font-weight: 700;">
+                        {{ $activeSemester->semester_name }}
+                    </span>
+                    @endif
                 </div>
-                @endif
+                <h1 style="font-size: 1.5rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">
+                    Selamat Datang, {{ explode(' ', $teacher->user->name ?? 'Guru')[0] }}
+                </h1>
+                <p style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.35rem; max-width: 540px; line-height: 1.5;">
+                    Kelola materi ajar interaktif, tugas, kuis, kelas tatap muka PembdaTEMU, serta asisten AI untuk penyusunan modul &amp; soal.
+                </p>
             </div>
 
             {{-- Quick Actions --}}
-            <div class="flex flex-wrap items-center gap-3 shrink-0">
-                <button type="button" onclick="openTemuModal()" class="inline-flex items-center gap-2 bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 hover:opacity-90 text-white px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md border-2 border-black">
-                    <i class="fas fa-video text-amber-300 text-sm"></i> PembdaTEMU Live
+            <div style="display: flex; flex-wrap: wrap; gap: 0.55rem; flex-shrink: 0;">
+                <button type="button" onclick="openTemuModal()" style="padding: 0.6rem 1rem; border-radius: 0.8rem; background: #e11d48; color: #ffffff; border: none; font-size: 0.74rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);">
+                    <i class="fas fa-video"></i> PembdaTEMU Live
                 </button>
-                <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-black hover:bg-amber-400 hover:text-black text-white px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md border-2 border-black">
-                    <i class="fas fa-plus-circle text-amber-400 text-sm"></i> Buat Course Baru
+                <a href="{{ route('guru.lms.create') }}" style="padding: 0.6rem 1rem; border-radius: 0.8rem; background: #fbbf24; color: #0f172a; font-size: 0.74rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-plus-circle"></i> Buat Course
                 </a>
-                <a href="{{ route('guru.cbt.banks.index') }}" class="inline-flex items-center gap-2 bg-amber-300 hover:bg-amber-400 text-black px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md border-2 border-black">
-                    <i class="fas fa-database text-sm"></i> Bank Soal
+                <a href="{{ route('guru.ai.lesson-plan') }}" style="padding: 0.6rem 0.9rem; border-radius: 0.8rem; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); color: #ffffff; font-size: 0.74rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <i class="fas fa-magic" style="color: #fde047;"></i> AI RPP
+                </a>
+                <a href="{{ route('guru.ai.question-generator') }}" style="padding: 0.6rem 0.9rem; border-radius: 0.8rem; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); color: #ffffff; font-size: 0.74rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <i class="fas fa-robot" style="color: #7dd3fc;"></i> AI Soal
+                </a>
+                <a href="{{ route('guru.cbt.banks.index') }}" style="padding: 0.6rem 0.9rem; border-radius: 0.8rem; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); color: #ffffff; font-size: 0.74rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <i class="fas fa-database"></i> Bank Soal
                 </a>
             </div>
         </div>
     </div>
 
-    {{-- ═══════════════════════════════════════════════ --}}
-    {{-- PILIH ROMBEL --}}
-    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- 2. FILTER ROMBEL & PENCARIAN --}}
     @if($classrooms->count() > 0)
-    <div>
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-9 h-9 bg-black rounded-xl flex items-center justify-center shrink-0">
-                <i class="fas fa-users text-amber-400 text-sm"></i>
-            </div>
+    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1.15rem; padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: 0.85rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem;">
             <div>
-                <h2 class="text-base font-black text-black uppercase tracking-wider">Pilih Rombel</h2>
-                <p class="text-xs text-gray-500 font-semibold">Klik rombel untuk melihat course, tugas, dan kuis kelas tersebut</p>
+                <div style="font-size: 0.82rem; font-weight: 800; color: #0f172a;">Filter Rombel &amp; Pencarian Course</div>
+                <div style="font-size: 0.72rem; color: #64748b;">Klik rombel untuk memfokuskan materi, tugas, dan kuis kelas tersebut</div>
+            </div>
+            <div style="position: relative; min-width: 220px; max-width: 300px; width: 100%;">
+                <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.78rem;"></i>
+                <input type="text" x-model="search" placeholder="Cari nama course atau mapel..."
+                       style="width: 100%; padding: 0.48rem 0.85rem 0.48rem 2.2rem; border-radius: 0.75rem; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 0.76rem; color: #0f172a; outline: none;">
             </div>
         </div>
 
-        {{-- Rombel Filter Buttons --}}
-        <div class="flex flex-wrap gap-2 mb-6">
+        <div style="display: flex; flex-wrap: wrap; gap: 0.45rem;">
             <a href="{{ route('guru.lms.index') }}"
-               class="rombel-btn inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black border-2 border-black transition-all shadow-sm
-                      {{ !$selectedClassroomId ? 'bg-black text-amber-400' : 'bg-white text-black hover:bg-amber-300' }}">
-                <i class="fas fa-th-large text-xs"></i> Semua Rombel
+               style="padding: 0.45rem 0.9rem; border-radius: 9999px; font-size: 0.74rem; font-weight: 800; text-decoration: none; {{ !$selectedClassroomId ? 'background:#0f172a;color:#fbbf24;' : 'background:#f1f5f9;color:#475569;' }}">
+                Semua Rombel
             </a>
             @foreach($classrooms as $classroom)
             <a href="{{ route('guru.lms.index', ['classroom_id' => $classroom->id]) }}"
-               class="rombel-btn inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black border-2 border-black transition-all shadow-sm
-                      {{ $selectedClassroomId == $classroom->id ? 'bg-black text-amber-400' : 'bg-white text-black hover:bg-amber-300' }}">
-                <i class="fas fa-users text-xs"></i>
+               style="padding: 0.45rem 0.9rem; border-radius: 9999px; font-size: 0.74rem; font-weight: 800; text-decoration: none; {{ $selectedClassroomId == $classroom->id ? 'background:#0f172a;color:#fbbf24;' : 'background:#f1f5f9;color:#475569;' }}">
                 {{ $classroom->class_name }}
             </a>
             @endforeach
         </div>
-
-        {{-- Rombel Context Banner (when a rombel is selected) --}}
-        @if($selectedClassroomId)
-        @php $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId); @endphp
-        @if($selectedClassroom)
-        <div class="bg-black text-white rounded-2xl px-6 py-4 mb-6 border-2 border-black flex items-center justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center shrink-0">
-                    <i class="fas fa-chalkboard text-black text-lg"></i>
-                </div>
-                <div>
-                    <p class="text-amber-300 text-[10px] font-black uppercase tracking-widest">Menampilkan course untuk rombel</p>
-                    <p class="text-white font-black text-lg leading-tight">{{ $selectedClassroom->class_name }}</p>
-                </div>
-            </div>
-            <a href="{{ route('guru.lms.index') }}" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white px-4 py-2 rounded-xl text-xs font-black transition">
-                <i class="fas fa-times text-xs"></i> Lihat Semua
-            </a>
-        </div>
-        @endif
-        @endif
     </div>
     @endif
 
-    {{-- ═══════════════════════════════════════════════ --}}
-    {{-- COURSE GRID --}}
-    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- 3. COURSE GRID --}}
     @if($courses->count() > 0)
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div class="glms-grid">
         @foreach($courses as $course)
         @php
-            $scientist = $course->getScientistConfig();
-            $classNames = $course->lmsClasses->pluck('classroom.class_name')->filter()->implode(', ');
-            $cardColors = ['#4f46e5', '#059669', '#2563eb', '#d97706', '#9333ea', '#0891b2', '#e11d48'];
-            $headerBg = $cardColors[$loop->index % count($cardColors)];
+            $headerBg = $course->getActiveThemeHexColor() ?: '#0f172a';
+            $subjectLabel = $course->isExtracurricular()
+                ? ($course->extracurricular?->name ?? 'Ekstrakurikuler')
+                : ($course->subject->subject_name ?? '-');
+            $classNames = $course->classes->pluck('classroom.class_name')->filter()->implode(', ');
+            $searchKey = strtolower($course->name . ' ' . $subjectLabel . ' ' . $classNames);
         @endphp
-        <div class="course-card group">
-            <div class="bg-white rounded-3xl border-2 border-black overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                {{-- Card Header --}}
-                <div class="relative p-5 overflow-hidden border-b-2 border-black text-white" style="background-color: {{ $headerBg }} !important;">
-                    <div class="relative z-10">
-                        <div class="flex items-start gap-3 mb-3">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-black flex-shrink-0 shadow-md" style="background-color: #fbbf24 !important; color: #000000 !important;">
-                                @if($scientist)
-                                <svg class="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $scientist['icon'] !!}</svg>
-                                @else
-                                <i class="fas fa-book text-black text-xl"></i>
-                                @endif
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h3 class="font-black text-white text-base leading-snug line-clamp-2">{{ $course->name }}</h3>
-                                <p class="text-amber-400 text-[11px] font-black tracking-wide mt-0.5">
-                                    @if($course->isExtracurricular())
-                                        🏆 EKSTRAKURIKULER &bull; {{ $course->extracurricular?->name ?? 'Nilai Extra Mandiri' }}
-                                    @else
-                                        {{ $course->subject->subject_name ?? '-' }}
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="bg-slate-800 text-amber-300 px-3 py-1 rounded-xl text-[10px] font-black tracking-widest uppercase border border-slate-700">{{ $course->getShortCode() }}</span>
-                            @if($course->is_published)
-                            <span class="px-3 py-1 rounded-xl text-[10px] font-black tracking-widest uppercase bg-emerald-600 text-white border-2 border-black"><i class="fas fa-check-circle mr-1"></i> PUBLISHED</span>
-                            @else
-                            <span class="px-3 py-1 rounded-xl text-[10px] font-black tracking-widest uppercase bg-slate-200 text-black border-2 border-black">DRAFT</span>
-                            @endif
-                        </div>
+        <div class="glms-card" x-show="!search.trim() || @js($searchKey).includes(search.toLowerCase().trim())">
+            {{-- Header --}}
+            <div style="padding: 1.15rem 1.25rem; background: linear-gradient(135deg, {{ $headerBg }} 0%, #0f172a 135%); color: #ffffff;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem;">
+                    <span style="background: rgba(15, 23, 42, 0.55); color: #fde047; padding: 0.15rem 0.5rem; border-radius: 0.45rem; font-size: 0.62rem; font-weight: 800;">{{ $course->getShortCode() }}</span>
+                    @if($course->is_published)
+                        <span style="background: #059669; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.62rem; font-weight: 800;">PUBLISHED</span>
+                    @else
+                        <span style="background: rgba(255,255,255,0.2); color: #e2e8f0; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.62rem; font-weight: 800;">DRAFT</span>
+                    @endif
+                </div>
+                <h3 style="font-size: 0.96rem; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.3;">{{ $course->name }}</h3>
+                <div style="font-size: 0.72rem; color: #fde68a; font-weight: 600; margin-top: 0.2rem;">{{ $subjectLabel }}</div>
+            </div>
+
+            {{-- Body --}}
+            <div style="padding: 1.15rem 1.25rem; flex: 1; display: flex; flex-direction: column; gap: 0.85rem;">
+                <p style="font-size: 0.76rem; color: #475569; line-height: 1.5; margin: 0;">
+                    {{ \Illuminate\Support\Str::limit($course->description ?: 'Kelola materi digital, tugas, dan kuis untuk ' . $subjectLabel . '.', 90) }}
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; background: #f8fafc; padding: 0.6rem; border-radius: 0.85rem; border: 1px solid #e2e8f0; text-align: center;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">{{ $course->materials_count }}</div>
+                        <div style="font-size: 0.62rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Materi</div>
+                    </div>
+                    <div style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">{{ $course->assignments_count }}</div>
+                        <div style="font-size: 0.62rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Tugas</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">{{ $course->quizzes_count }}</div>
+                        <div style="font-size: 0.62rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Quiz</div>
                     </div>
                 </div>
 
-                {{-- Card Body --}}
-                <div class="p-5 flex-1 flex flex-col bg-white">
-                    <p class="text-black font-bold text-xs mb-4 line-clamp-2 leading-relaxed flex-shrink-0">{{ $course->description ?: 'Kelola materi dan aktivitas belajar untuk ' . ($course->subject->subject_name ?? '') . '.' }}</p>
+                @if($classNames)
+                <div style="padding: 0.5rem 0.75rem; border-radius: 0.75rem; background: #fffbeb; border: 1px solid #fde68a; font-size: 0.72rem; font-weight: 700; color: #92400e;">
+                    <i class="fas fa-users" style="margin-right: 0.3rem;"></i> {{ $classNames }}
+                </div>
+                @endif
 
-                    {{-- Stats Row --}}
-                    <div class="grid grid-cols-3 gap-2 mb-4 flex-shrink-0">
-                        <div class="p-2.5 rounded-2xl text-center border-2 border-black shadow-xs bg-slate-50">
-                            <div class="text-xl font-black text-black leading-none">{{ $course->materials_count }}</div>
-                            <div class="text-[9px] font-black uppercase tracking-wider text-black mt-1">Materi</div>
-                        </div>
-                        <div class="p-2.5 rounded-2xl text-center border-2 border-black shadow-xs bg-slate-50">
-                            <div class="text-xl font-black text-black leading-none">{{ $course->assignments_count }}</div>
-                            <div class="text-[9px] font-black uppercase tracking-wider text-black mt-1">Tugas</div>
-                        </div>
-                        <div class="p-2.5 rounded-2xl text-center border-2 border-black shadow-xs bg-slate-50">
-                            <div class="text-xl font-black text-black leading-none">{{ $course->quizzes_count }}</div>
-                            <div class="text-[9px] font-black uppercase tracking-wider text-black mt-1">Quiz</div>
-                        </div>
-                    </div>
-
-                    {{-- Rombel / Ekskul Info --}}
-                    @if($course->isExtracurricular())
-                    <div class="flex items-center justify-between gap-2 text-xs text-purple-950 font-black mb-4 bg-purple-100 p-3 rounded-2xl border-2 border-black flex-shrink-0">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-medal text-purple-700 text-sm shrink-0"></i>
-                            <span class="font-black">Anggota Ekskul Lintas Kelas</span>
-                        </div>
-                        @if($course->extracurricular)
-                        <a href="{{ route('guru.extracurricular.show', $course->extracurricular->id) }}" class="px-2.5 py-1 bg-black text-amber-300 rounded-lg text-[10px] font-black uppercase hover:bg-purple-900 transition">
-                            Nilai Extra &rarr;
+                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.45rem;">
+                    @if($course->meeting_active)
+                        <a href="{{ route('guru.lms.meeting.join', $course->id) }}" style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem; border-radius: 0.75rem; background: #e11d48; color: #ffffff; font-size: 0.74rem; font-weight: 800; text-decoration: none;">
+                            <i class="fas fa-video"></i> Masuk PembdaTEMU (LIVE)
                         </a>
-                        @endif
-                    </div>
-                    @elseif($classNames)
-                    <div class="flex items-start gap-2 text-xs text-black font-black mb-4 bg-amber-50 p-3 rounded-2xl border-2 border-black flex-shrink-0">
-                        <i class="fas fa-users text-black text-sm mt-0.5 shrink-0"></i>
-                        <span class="font-bold leading-relaxed">{{ $classNames }}</span>
-                    </div>
+                    @else
+                        <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" onsubmit="return confirm('Mulai sesi tatap muka PembdaTEMU untuk kelas \'{{ addslashes($course->name) }}\'?');">
+                            @csrf
+                            <button type="submit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.55rem; border-radius: 0.75rem; background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; font-size: 0.73rem; font-weight: 800; cursor: pointer;">
+                                <i class="fas fa-video"></i> Buka PembdaTEMU
+                            </button>
+                        </form>
                     @endif
 
-                    {{-- CTA Actions --}}
-                    <div class="mt-auto space-y-2">
-                        @if($course->meeting_active)
-                            <a href="{{ route('guru.lms.meeting.join', $course->id) }}" 
-                               class="flex items-center justify-center gap-2 w-full bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black animate-pulse">
-                                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                                <i class="fas fa-video text-amber-300"></i>
-                                Masuk PembdaTEMU (LIVE)
-                            </a>
-                        @else
-                            <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" onsubmit="return confirm('Mulai sesi tatap muka PembdaTEMU untuk kelas \'{{ addslashes($course->name) }}\'? Seluruh siswa akan otomatis mendapatkan notifikasi live.');">
-                                @csrf
-                                <button type="submit" class="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-95 text-white px-4 py-2 rounded-xl transition-all shadow-sm text-xs font-black uppercase tracking-wider border-2 border-black">
-                                    <i class="fas fa-video text-amber-300"></i>
-                                    Buka PembdaTEMU
-                                </button>
-                            </form>
-                        @endif
+                    <a href="{{ route('guru.lms.show', $course->id) }}{{ $selectedClassroomId ? '?classroom_id='.$selectedClassroomId : '' }}"
+                       style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.65rem; border-radius: 0.75rem; background: #059669; color: #ffffff; font-size: 0.75rem; font-weight: 800; text-decoration: none;">
+                        <i class="fas fa-door-open"></i> Kelola Ruang Ajar
+                    </a>
 
-                        <a href="{{ route('guru.lms.show', $course->id) }}{{ $selectedClassroomId ? '?classroom_id='.$selectedClassroomId : '' }}"
-                           class="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl transition-all shadow-md text-xs font-black uppercase tracking-wider border-2 border-black">
-                            <i class="fas fa-arrow-right-to-bracket text-xs text-amber-400"></i>
-                            Kelola Ruang Ajar
-                            @if($selectedClassroomId)
-                            <span class="ml-1 opacity-70 text-[9px] normal-case font-bold">({{ $selectedClassroom->class_name ?? '' }})</span>
-                            @endif
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem;">
+                        <a href="{{ route('guru.lms.edit', $course->id) }}" style="display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.5rem; border-radius: 0.75rem; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; font-size: 0.72rem; font-weight: 700; text-decoration: none;">
+                            <i class="fas fa-edit"></i> Edit
                         </a>
-                        <div class="grid grid-cols-2 gap-2">
-                            <a href="{{ route('guru.lms.edit', $course->id) }}"
-                               class="flex items-center justify-center gap-1.5 w-full bg-slate-100 hover:bg-amber-300 text-black px-3 py-2 rounded-xl transition-all text-xs font-black border-2 border-black shadow-xs">
-                                <i class="fas fa-edit text-xs"></i> Edit
-                            </a>
-                            <form action="{{ route('guru.lms.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus course \'{{ addslashes($course->name) }}\'? Semua modul dan materi di dalamnya akan terhapus.');">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="flex items-center justify-center gap-1.5 w-full bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-800 px-3 py-2 rounded-xl transition-all text-xs font-black border-2 border-black shadow-xs">
-                                    <i class="fas fa-trash text-xs"></i> Hapus
-                                </button>
-                            </form>
-                        </div>
+                        <form action="{{ route('guru.lms.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus course \'{{ addslashes($course->name) }}\'?');">
+                            @csrf @method('DELETE')
+                            <button type="submit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.5rem; border-radius: 0.75rem; background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -255,66 +229,33 @@
         @endforeach
     </div>
 
-    <div class="mt-6">{{ $courses->links() }}</div>
-
-    @elseif($selectedClassroomId)
-    {{-- Empty state when rombel selected but no courses --}}
-    <div class="bg-white rounded-3xl shadow-md border-2 border-black p-12 text-center">
-        <div class="w-16 h-16 bg-amber-300 border-2 border-black rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-folder-open text-2xl text-black"></i></div>
-        <h3 class="text-lg font-black text-black mb-1">Belum Ada Course untuk Rombel Ini</h3>
-        <p class="text-black font-bold text-xs mb-6 max-w-sm mx-auto">Buat course baru dan tautkan ke rombel <strong>{{ optional($classrooms->firstWhere('id', $selectedClassroomId))->class_name }}</strong>.</p>
-        <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-black hover:bg-amber-400 hover:text-black text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider border-2 border-black shadow-md">
-            <i class="fas fa-plus-circle text-sm text-amber-400"></i> Buat Course Baru
-        </a>
-    </div>
-
+    <div class="mt-4">{{ $courses->links() }}</div>
     @else
-    {{-- Empty state no courses at all --}}
-    <div class="bg-white rounded-3xl shadow-md border-2 border-black p-16 text-center">
-        <div class="w-20 h-20 bg-amber-300 border-2 border-black rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-book-open text-3xl text-black"></i></div>
-        <h3 class="text-lg font-black text-black mb-1">Belum Ada Course Ajar di Unit Ini</h3>
-        @if(($totalAllUnitsCourses ?? 0) > 0)
-        <div class="my-4 max-w-md mx-auto p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 text-xs font-bold leading-relaxed text-left">
-            <div class="flex items-start gap-2.5">
-                <i class="fas fa-info-circle text-amber-600 text-base mt-0.5 shrink-0"></i>
-                <div>
-                    <span>Anda memiliki <strong>{{ $totalAllUnitsCourses }} course ajar</strong> di unit sekolah lain. Silakan gunakan menu pemilih unit sekolah (SMK / SMA / SMP) di pojok kanan atas navbar untuk beralih unit.</span>
-                </div>
-            </div>
-        </div>
-        @else
-        <p class="text-black font-bold text-xs mb-6 max-w-sm mx-auto">Mulai buat course pertama Anda untuk mengunggah materi digital dan tugas siswa.</p>
-        @endif
-        <a href="{{ route('guru.lms.create') }}" class="inline-flex items-center gap-2 bg-black hover:bg-amber-400 hover:text-black text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider border-2 border-black shadow-md">
-            <i class="fas fa-plus-circle text-sm text-amber-400"></i> Buat Course Baru
+    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1.25rem; padding: 3.5rem 1.5rem; text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📖</div>
+        <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;">Belum Ada Course di Unit / Rombel Ini</h3>
+        <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.3rem; margin-bottom: 1rem;">Mulai buat course baru untuk mengunggah materi ajar dan tugas siswa.</p>
+        <a href="{{ route('guru.lms.create') }}" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.25rem; border-radius: 0.8rem; background: #0f172a; color: #fbbf24; font-size: 0.76rem; font-weight: 800; text-decoration: none;">
+            <i class="fas fa-plus-circle"></i> Buat Course Baru
         </a>
     </div>
     @endif
 
-    {{-- ═══════════════════════════════════════════════ --}}
-    {{-- ORPHAN COURSES (Belum Ditautkan ke Rombel) --}}
-    {{-- ═══════════════════════════════════════════════ --}}
+    {{-- ORPHAN COURSES --}}
     @if($orphanCourses->count() > 0)
-    <div class="mt-4">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-9 h-9 bg-amber-400 rounded-xl flex items-center justify-center shrink-0 border-2 border-black">
-                <i class="fas fa-exclamation-triangle text-black text-sm"></i>
-            </div>
-            <div>
-                <h2 class="text-sm font-black text-black uppercase tracking-wider">Course Belum Ditautkan ke Rombel</h2>
-                <p class="text-xs text-gray-500 font-semibold">Course berikut perlu diedit dan ditautkan ke rombel agar muncul di navigasi rombel</p>
-            </div>
+    <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 1.15rem; padding: 1.1rem 1.25rem;">
+        <div style="font-size: 0.84rem; font-weight: 800; color: #92400e; margin-bottom: 0.65rem;">
+            <i class="fas fa-exclamation-triangle"></i> Course Belum Ditautkan ke Rombel ({{ $orphanCourses->count() }})
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.65rem;">
             @foreach($orphanCourses as $course)
-            <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 flex items-center justify-between gap-4">
-                <div class="min-w-0">
-                    <p class="font-black text-black text-sm truncate">{{ $course->name }}</p>
-                    <p class="text-xs text-amber-700 font-bold mt-0.5">{{ $course->subject->subject_name ?? 'Tanpa Mapel' }}</p>
+            <div style="background: #ffffff; border: 1px solid #fde68a; border-radius: 0.85rem; padding: 0.75rem 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.8rem; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $course->name }}</div>
+                    <div style="font-size: 0.7rem; color: #b45309;">{{ $course->subject->subject_name ?? 'Tanpa Mapel' }}</div>
                 </div>
-                <a href="{{ route('guru.lms.edit', $course->id) }}"
-                   class="shrink-0 inline-flex items-center gap-1.5 bg-black hover:bg-amber-400 hover:text-black text-white px-3 py-2 rounded-xl text-xs font-black border-2 border-black transition">
-                    <i class="fas fa-link text-xs"></i> Edit & Tautkan
+                <a href="{{ route('guru.lms.edit', $course->id) }}" style="padding: 0.4rem 0.75rem; border-radius: 0.65rem; background: #0f172a; color: #fbbf24; font-size: 0.7rem; font-weight: 800; text-decoration: none; white-space: nowrap;">
+                    Tautkan
                 </a>
             </div>
             @endforeach
@@ -323,95 +264,81 @@
     @endif
 
     {{-- MODAL PEMBDATEMU DESKTOP --}}
-    <div id="modal-pembdatemu" class="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-black space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-black">
+    <div id="modal-pembdatemu" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-2xl p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 via-pink-600 to-rose-700 text-white flex items-center justify-center text-xl shadow-md border-2 border-black">
-                        <i class="fas fa-video text-amber-300"></i>
+                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg">
+                        <i class="fas fa-video"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-black text-black uppercase tracking-wider">PembdaTEMU - Tatap Muka KBM</h3>
-                        <p class="text-xs text-gray-500 font-bold">Pilih mata pelajaran untuk membuka video conference KBM virtual</p>
+                        <h3 class="text-base font-extrabold text-slate-900">PembdaTEMU - Tatap Muka KBM</h3>
+                        <p class="text-xs text-slate-500">Pilih mata pelajaran untuk membuka video conference KBM virtual</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeTemuModal()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-100 hover:text-rose-700 text-black border-2 border-black flex items-center justify-center font-black">
+                <button type="button" onclick="closeTemuModal()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-rose-100 hover:text-rose-700 text-slate-600 flex items-center justify-center">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <div class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-xs font-bold text-rose-900 leading-relaxed">
-                <p>💡 <strong>Alur Otomatis PembdaTEMU:</strong> Saat Anda memulai temu, server otomatis menyiarkan notifikasi live ke seluruh siswa yang terdaftar di kelas tersebut. Siswa akan melihat banner kedip live di aplikasi mereka untuk langsung masuk.</p>
-            </div>
-
-            <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
+            <div class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
                 @forelse($courses as $c)
-                    <div class="p-4 rounded-2xl border-2 {{ $c->meeting_active ? 'border-rose-500 bg-rose-50/50' : 'border-black bg-white' }} shadow-xs flex items-center justify-between gap-4">
+                    <div class="p-3.5 rounded-xl border {{ $c->meeting_active ? 'border-rose-300 bg-rose-50/50' : 'border-slate-200 bg-white' }} flex items-center justify-between gap-3">
                         <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                                <h4 class="font-black text-black text-sm truncate">{{ $c->name }}</h4>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-slate-900 text-sm truncate">{{ $c->name }}</h4>
                                 @if($c->meeting_active)
-                                    <span class="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-black uppercase animate-pulse border border-black">LIVE</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-extrabold uppercase">LIVE</span>
                                 @endif
                             </div>
-                            <p class="text-xs text-gray-600 font-bold truncate">
+                            <p class="text-xs text-slate-500 truncate">
                                 {{ $c->subject->name ?? ($c->subject->subject_name ?? 'Mapel') }} &bull; {{ $c->classroom->class_name ?? ($c->classes->pluck('classroom.class_name')->implode(', ') ?: 'Semua Rombel') }}
                             </p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             @if($c->meeting_active)
-                                <a href="{{ route('guru.lms.meeting.join', $c->id) }}" class="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-black border-2 border-black shadow-xs animate-pulse">
-                                    <i class="fas fa-video text-amber-300"></i> Masuk Temu
+                                <a href="{{ route('guru.lms.meeting.join', $c->id) }}" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold">
+                                    Masuk Temu
                                 </a>
                                 <form action="{{ route('guru.lms.meeting.stop', $c->id) }}" method="POST" onsubmit="return confirm('Akhiri sesi PembdaTEMU?');">
                                     @csrf
-                                    <button type="submit" class="bg-black hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-black border-2 border-black" title="Akhiri Sesi">
+                                    <button type="submit" class="bg-slate-800 hover:bg-rose-600 text-white px-2.5 py-2 rounded-lg text-xs font-bold" title="Akhiri Sesi">
                                         <i class="fas fa-stop"></i>
                                     </button>
                                 </form>
                             @else
-                                <form action="{{ route('guru.lms.meeting.start', $c->id) }}" method="POST" onsubmit="return confirm('Mulai sesi PembdaTEMU untuk kelas \'{{ addslashes($c->name) }}\'? Seluruh siswa akan mendapatkan notifikasi live.');">
+                                <form action="{{ route('guru.lms.meeting.start', $c->id) }}" method="POST" onsubmit="return confirm('Mulai sesi PembdaTEMU untuk kelas \'{{ addslashes($c->name) }}\'?');">
                                     @csrf
-                                    <button type="submit" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-black border-2 border-black shadow-xs">
-                                        <i class="fas fa-video text-amber-300"></i> Mulai Temu
+                                    <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold">
+                                        Mulai Temu
                                     </button>
                                 </form>
                             @endif
-                            <button type="button" onclick="navigator.clipboard.writeText('{{ route('siswa.lms.meeting.join', $c->id) }}'); alert('Tautan siswa disalin ke clipboard! Bagikan ke WhatsApp:\n{{ route('siswa.lms.meeting.join', $c->id) }}');" class="bg-slate-100 hover:bg-amber-300 text-black border-2 border-black px-2.5 py-2 rounded-xl text-xs font-black" title="Salin Link Siswa">
-                                <i class="fas fa-share-nodes"></i>
-                            </button>
                         </div>
                     </div>
                 @empty
-                    <div class="p-8 text-center text-gray-500 font-bold text-xs">Belum ada course aktif.</div>
+                    <div class="p-8 text-center text-slate-500 text-xs">Belum ada course aktif.</div>
                 @endforelse
             </div>
 
-            <div class="pt-3 border-t-2 border-black">
-                <button type="button" onclick="closeTemuModal()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-black border-2 border-black rounded-xl text-xs font-black">
+            <div class="pt-2 border-t border-slate-200">
+                <button type="button" onclick="closeTemuModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
                     Tutup
                 </button>
             </div>
         </div>
     </div>
-
 </div>
 
 @push('scripts')
 <script>
     function openTemuModal() {
         const modal = document.getElementById('modal-pembdatemu');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
+        if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     }
     function closeTemuModal() {
         const modal = document.getElementById('modal-pembdatemu');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
 </script>
 @endpush
