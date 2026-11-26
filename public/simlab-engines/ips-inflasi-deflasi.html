@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator IPS: Inflasi & Deflasi Ekonomi</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
+  h2{text-align:center;font-size:1.3rem;color:#7c3aed;margin-bottom:4px}
+  .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
+  .wrap{max-width:900px;margin:0 auto}
+  canvas{background:#0f172a;border-radius:10px;width:100%;display:block}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:600px){.panels{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
+  h3{font-size:0.9rem;color:#7c3aed;margin-bottom:8px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+  label{font-size:0.8rem;color:#475569;display:block;margin:8px 0 2px}
+  input[type=range]{width:100%;accent-color:#7c3aed}
+  .val{font-weight:700;color:#7c3aed}
+  .btn-row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:600}
+  .btn-purple{background:#7c3aed;color:#fff}
+  .btn-red{background:#dc2626;color:#fff}
+  .btn-green{background:#16a34a;color:#fff}
+  .info-box{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;line-height:1.6}
+  .rumus{background:#1e293b;color:#c4b5fd;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:0.84rem;margin:6px 0}
+  .soal{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:0.82rem;margin:8px 0}
+  .opsi-btn{display:block;width:100%;text-align:left;padding:7px 10px;margin:3px 0;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;background:#fff;font-size:0.82rem}
+  .opsi-btn.benar{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+  .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
+  .basket{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+  .item{background:#ede9fe;border:1px solid #c4b5fd;border-radius:4px;padding:2px 6px;font-size:0.75rem;cursor:default}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>📊 Simulator IPS: Inflasi, Deflasi & Daya Beli Masyarakat</h2>
+  <p class="subtitle">Mengapa harga barang terus naik setiap tahun dan bagaimana inflasi mengikis nilai uang?</p>
+  <canvas id="cv" height="260"></canvas>
+  <div class="panels">
+    <div class="panel">
+      <h3>⚙️ Kontrol Inflasi</h3>
+      <div class="btn-row">
+        <button class="btn btn-red" onclick="setScenario('hiperinflasi')">🔥 Hiperinflasi</button>
+        <button class="btn btn-purple" onclick="setScenario('inflasi')">📈 Inflasi Normal</button>
+        <button class="btn btn-green" onclick="setScenario('deflasi')">📉 Deflasi</button>
+      </div>
+      <label>Tingkat Inflasi Tahunan (%): <span class="val" id="vinfl">5</span>%</label>
+      <input type="range" id="sinfl" min="-5" max="80" value="5" oninput="update()">
+      <label>Gaji Bulanan Awal: Rp <span class="val" id="vgaji">3.000.000</span></label>
+      <input type="range" id="sgaji" min="2000000" max="10000000" step="500000" value="3000000" oninput="update()">
+      <label>Proyeksi Tahun ke: <span class="val" id="vthn">10</span> tahun</label>
+      <input type="range" id="sthn" min="1" max="30" value="10" oninput="update()">
+      <div class="info-box" id="hasil">—</div>
+    </div>
+    <div class="panel">
+      <h3>📐 Rumus & Soal HOTS Ekonomi</h3>
+      <div class="rumus">IHK = (Harga sekarang / Harga dasar) × 100<br>Inflasi = (IHK_t - IHK_{t-1}) / IHK_{t-1} × 100%<br>Daya Beli Riil = Nominal / (1 + r)^n</div>
+      <div class="soal">Jika inflasi 10% per tahun, berapa daya beli uang Rp 10 juta setelah 5 tahun?</div>
+      <button class="opsi-btn" onclick="cek(this,'salah')">A. Rp 6.000.000</button>
+      <button class="opsi-btn" onclick="cek(this,'benar')">B. Rp 6.209.213</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">C. Rp 5.000.000</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">D. Rp 7.500.000</button>
+      <div class="pembahasan" id="pem">✅ Daya beli riil = 10.000.000 / (1,10)⁵ = 10.000.000 / 1,61051 ≈ <strong>Rp 6.209.213</strong>. Inflasi 10%/tahun menghilangkan ~38% daya beli dalam 5 tahun.</div>
+    </div>
+  </div>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const PAD = {l:60,r:20,t:20,b:40};
+
+function setScenario(s){
+  if(s==='hiperinflasi') document.getElementById('sinfl').value=50;
+  else if(s==='inflasi') document.getElementById('sinfl').value=5;
+  else document.getElementById('sinfl').value=-3;
+  update();
+}
+
+function update(){
+  const r = +document.getElementById('sinfl').value/100;
+  const g = +document.getElementById('sgaji').value;
+  const n = +document.getElementById('sthn').value;
+  document.getElementById('vinfl').textContent = (r*100).toFixed(0);
+  document.getElementById('vgaji').textContent = g.toLocaleString('id-ID');
+  document.getElementById('vthn').textContent = n;
+  // Harga beras referensi Rp 15.000/kg
+  const hargaAwal = 15000;
+  const hargaAkhir = hargaAwal * Math.pow(1+r, n);
+  const dayaBeli = g / Math.pow(1+r, n);
+  const naik = r >= 0;
+  let status = r > 0.3 ? '🔥 Hiperinflasi — Ekonomi kritis!' : r > 0 ? '📈 Inflasi — Harga naik wajar' : r < 0 ? '📉 Deflasi — Harga turun, produktivitas lesu' : '✅ Stabil';
+  document.getElementById('hasil').innerHTML =
+    `<b>${status}</b><br>Harga beras awal Rp15.000/kg → setelah ${n} tahun: <b>Rp ${hargaAkhir.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.').length>5?'..':''}${Math.round(hargaAkhir).toLocaleString('id-ID')}/kg</b><br>Daya beli riil gaji Rp${g.toLocaleString('id-ID')} → setara <b>Rp${Math.round(dayaBeli).toLocaleString('id-ID')}</b> saat ini`;
+  draw(r, g, n);
+}
+
+function draw(r, g, n){
+  cv.width=cv.offsetWidth; cv.height=260;
+  const W=cv.width, H=260;
+  const plotW=W-PAD.l-PAD.r, plotH=H-PAD.t-PAD.b;
+  const years=[];
+  const prices=[], dbeli=[];
+  for(let i=0;i<=n;i++){
+    years.push(i);
+    prices.push(15000*Math.pow(1+r,i));
+    dbeli.push(g/Math.pow(1+r,i));
+  }
+  const maxP=Math.max(...prices,g);
+  const toX=i=>(i/n)*plotW+PAD.l;
+  const toY=v=>(1-v/maxP)*plotH+PAD.t;
+  // Grid
+  for(let i=0;i<=4;i++){
+    const y=PAD.t+i*plotH/4;
+    ctx.strokeStyle='rgba(71,85,105,0.3)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(PAD.l,y); ctx.lineTo(W-PAD.r,y); ctx.stroke();
+    ctx.fillStyle='#64748b'; ctx.font='10px sans-serif'; ctx.textAlign='right';
+    ctx.fillText(Math.round(maxP*(1-i/4)/1000)+'rb',PAD.l-4,y+3);
+  }
+  ctx.setLineDash([]);
+  // Kurva harga
+  ctx.strokeStyle='#f87171'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  years.forEach((yr,i)=>{ctx.lineTo(toX(yr),toY(prices[i]));});
+  ctx.stroke();
+  // Kurva daya beli
+  ctx.strokeStyle='#4ade80'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  years.forEach((yr,i)=>{ctx.lineTo(toX(yr),toY(dbeli[i]));});
+  ctx.stroke();
+  // Sumbu
+  ctx.strokeStyle='#475569'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(PAD.l,PAD.t); ctx.lineTo(PAD.l,H-PAD.b); ctx.lineTo(W-PAD.r,H-PAD.b); ctx.stroke();
+  // Label
+  ctx.fillStyle='#f87171'; ctx.font='11px sans-serif'; ctx.fillText('Tingkat Harga',PAD.l+6,PAD.t+14);
+  ctx.fillStyle='#4ade80'; ctx.fillText('Daya Beli Riil',PAD.l+6,PAD.t+28);
+  ctx.fillStyle='#94a3b8'; ctx.textAlign='center'; ctx.fillText('Tahun ke-'+n,toX(n),H-PAD.b+14);
+  ctx.textAlign='left';
+}
+
+function cek(el,s){
+  document.querySelectorAll('.opsi-btn').forEach(b=>b.className='opsi-btn');
+  el.classList.add(s);
+  document.getElementById('pem').style.display='block';
+}
+
+window.addEventListener('resize',update);
+update();
+</script>
+</body>
+</html>

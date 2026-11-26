@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator Fisika: Hukum Newton di Lift</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;padding:16px}
+  h2{text-align:center;font-size:1.3rem;color:#0284c7;margin-bottom:4px}
+  .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:16px}
+  .container{max-width:900px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:14px}
+  @media(max-width:640px){.container{grid-template-columns:1fr}}
+  canvas{background:#0f172a;border-radius:10px;display:block;width:100%}
+  .panel{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
+  .panel h3{font-size:0.9rem;color:#0284c7;margin-bottom:10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+  label{display:block;font-size:0.8rem;color:#475569;margin:8px 0 2px}
+  input[type=range]{width:100%;accent-color:#0284c7}
+  .val{font-weight:700;color:#0284c7}
+  .btn-row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:600}
+  .btn-blue{background:#0284c7;color:#fff}
+  .btn-red{background:#dc2626;color:#fff}
+  .btn-green{background:#16a34a;color:#fff}
+  .btn-gray{background:#64748b;color:#fff}
+  .info-box{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;line-height:1.6}
+  .rumus{background:#1e293b;color:#38bdf8;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:0.85rem;margin:6px 0}
+  .soal{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px}
+  .opsi-btn{display:block;width:100%;text-align:left;padding:7px 10px;margin:4px 0;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;background:#fff;font-size:0.82rem}
+  .opsi-btn.benar{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+  .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<h2 style="margin-bottom:4px">🛗 Simulator Fisika: Hukum Newton di Dalam Lift</h2>
+<p class="subtitle">Mengapa badan terasa berat saat lift naik dan ringan saat turun?</p>
+<div class="container">
+  <div>
+    <canvas id="cv" height="380"></canvas>
+  </div>
+  <div>
+    <div class="panel">
+      <h3>⚙️ Kontrol Lift</h3>
+      <div class="btn-row">
+        <button class="btn btn-blue" onclick="setMode('naik')">⬆ Naik</button>
+        <button class="btn btn-red" onclick="setMode('turun')">⬇ Turun</button>
+        <button class="btn btn-green" onclick="setMode('diam')">◼ Diam</button>
+        <button class="btn btn-gray" onclick="setMode('berhenti_naik')">⬆⤵ Berhenti Naik</button>
+      </div>
+      <label>Massa Orang (m): <span class="val" id="vm">60</span> kg</label>
+      <input type="range" id="sm" min="40" max="100" value="60" oninput="update()">
+      <label>Percepatan Lift (a): <span class="val" id="va">3</span> m/s²</label>
+      <input type="range" id="sa" min="0" max="10" value="3" oninput="update()">
+      <div class="info-box" id="hasil">—</div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h3>📐 Rumus & Soal HOTS</h3>
+      <div class="rumus">ΣF = m × a<br>W_semu = m(g ± a)</div>
+      <p style="font-size:0.79rem;color:#64748b;margin:4px 0">g = 10 m/s², Berat sejati W = m × g</p>
+      <div class="soal">Orang bermassa 70 kg berada di lift yang bergerak turun dengan perlambatan 4 m/s². Berapakah berat semu orang tersebut?</div>
+      <button class="opsi-btn" onclick="cek(this,'salah')">A. 420 N</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">B. 700 N</button>
+      <button class="opsi-btn" onclick="cek(this,'benar')">C. 980 N</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">D. 1050 N</button>
+      <div class="pembahasan" id="pem">✅ Lift turun dengan perlambatan berarti percepatannya ke atas (a = +4 m/s²). W_semu = m(g+a) = 70×(10+4) = 70×14 = 980 N (lebih berat dari berat sejati 700 N).</div>
+    </div>
+  </div>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let mode = 'naik', liftY = 180, vel = 0, animId;
+const g = 10;
+
+function setMode(m){mode=m;update();}
+
+function update(){
+  const m = +document.getElementById('sm').value;
+  const a = +document.getElementById('sa').value;
+  document.getElementById('vm').textContent = m;
+  document.getElementById('va').textContent = a;
+  const W = m*g;
+  let Ws, dir, aDir;
+  switch(mode){
+    case 'naik': Ws=m*(g+a); dir='Naik (percepatan ↑)'; aDir=1; break;
+    case 'turun': Ws=m*(g-a); dir='Turun (percepatan ↓)'; aDir=-1; break;
+    case 'diam': Ws=W; dir='Diam / GLB'; aDir=0; break;
+    case 'berhenti_naik': Ws=m*(g-a); dir='Berhenti saat naik (perlambatan)'; aDir=-1; break;
+  }
+  document.getElementById('hasil').innerHTML =
+    `Kondisi: <b>${dir}</b><br>Berat sejati W = <b>${W} N</b><br>Berat semu W_semu = <b>${Ws.toFixed(0)} N</b><br>${Ws>W?'🔴 Terasa lebih BERAT':'Ws<W?'🔵 Terasa lebih RINGAN':'⚪ Terasa normal'}`;
+  draw(m, a, Ws);
+}
+
+function draw(m, a, Ws){
+  cv.width = cv.offsetWidth; cv.height = 380;
+  const W = cv.width, H = cv.height;
+  // Rel lift
+  ctx.strokeStyle='#475569'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(W/2-80,0); ctx.lineTo(W/2-80,H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2+80,0); ctx.lineTo(W/2+80,H); ctx.stroke();
+  // Lift box
+  const ly = 80, lh = 180;
+  ctx.fillStyle='#1e3a5f'; ctx.fillRect(W/2-75,ly,150,lh);
+  ctx.strokeStyle='#38bdf8'; ctx.lineWidth=2; ctx.strokeRect(W/2-75,ly,150,lh);
+  // Orang
+  const px = W/2, py = ly+10;
+  ctx.fillStyle='#fbbf24'; // kepala
+  ctx.beginPath(); ctx.arc(px,py+28,18,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#f97316'; // badan
+  ctx.fillRect(px-14,py+46,28,55);
+  ctx.fillStyle='#f97316'; // kaki
+  ctx.fillRect(px-14,py+100,12,30); ctx.fillRect(px+2,py+100,12,30);
+  // Panah gaya
+  const arrowY = py+80;
+  // W ke bawah
+  drawArrow(px+30,arrowY,px+30,arrowY+Math.min(m*g*0.4,70),'#ef4444');
+  ctx.fillStyle='#fca5a5'; ctx.font='11px sans-serif'; ctx.fillText('W='+m*g+'N',px+35,arrowY+40);
+  // N ke atas
+  const Nlen = Math.min(Ws*0.4,100);
+  drawArrow(px-30,arrowY,px-30,arrowY-Nlen,'#4ade80');
+  ctx.fillStyle='#86efac'; ctx.font='11px sans-serif'; ctx.fillText('N='+Ws.toFixed(0)+'N',px-70,arrowY-Nlen/2);
+  // Info kondisi
+  ctx.fillStyle='#38bdf8'; ctx.font='bold 13px sans-serif';
+  const label = mode==='naik'?'▲ NAIK':mode==='turun'?'▼ TURUN':mode==='diam'?'■ DIAM':'▲⤵ BERHENTI';
+  ctx.fillText(label,W/2-30,ly-10);
+  // Lantai timbangan
+  ctx.fillStyle='#64748b'; ctx.fillRect(W/2-30,ly+lh-15,60,10);
+  ctx.fillStyle='#38bdf8'; ctx.font='bold 12px sans-serif'; ctx.fillText(Ws.toFixed(0)+' N',W/2-20,ly+lh-18);
+}
+
+function drawArrow(x1,y1,x2,y2,color){
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.fillStyle=color;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const angle=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-10*Math.cos(angle-0.4),y2-10*Math.sin(angle-0.4));
+  ctx.lineTo(x2-10*Math.cos(angle+0.4),y2-10*Math.sin(angle+0.4));
+  ctx.closePath(); ctx.fill();
+}
+
+function cek(el,s){
+  document.querySelectorAll('.opsi-btn').forEach(b=>b.className='opsi-btn');
+  el.classList.add(s);
+  document.getElementById('pem').style.display='block';
+}
+
+window.addEventListener('resize',update);
+update();
+</script>
+</body>
+</html>

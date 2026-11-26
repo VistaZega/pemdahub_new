@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator PTN: 20 Soal Cepat SNBT/UTBK Lanjutan</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
+  h2{text-align:center;font-size:1.3rem;color:#2563eb;margin-bottom:4px}
+  .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
+  .wrap{max-width:900px;margin:0 auto}
+  .header-bar{background:#1e3a8a;color:#fff;border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+  .timer{font-size:1.4rem;font-weight:800;font-family:monospace;color:#fbbf24}
+  .score-box{background:#1d4ed8;border-radius:8px;padding:6px 14px;font-size:0.9rem;font-weight:700}
+  .progress{background:#1e40af;border-radius:8px;overflow:hidden;height:8px;margin-bottom:14px}
+  .progress-bar{height:100%;background:linear-gradient(90deg,#60a5fa,#2563eb);transition:width 0.3s}
+  .question-card{background:#fff;border:2px solid #bfdbfe;border-radius:14px;padding:18px;margin-bottom:12px}
+  .q-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .q-num{background:#2563eb;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0}
+  .q-topic{background:#dbeafe;color:#1d4ed8;border-radius:12px;padding:3px 10px;font-size:0.75rem;font-weight:600}
+  .q-text{font-size:0.9rem;line-height:1.6;margin-bottom:12px;color:#1e293b}
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(max-width:500px){.options{grid-template-columns:1fr}}
+  .opt-btn{padding:10px 14px;border:2px solid #cbd5e1;border-radius:8px;cursor:pointer;background:#fff;font-size:0.84rem;text-align:left;transition:all 0.15s;line-height:1.4}
+  .opt-btn:hover{border-color:#2563eb;background:#eff6ff}
+  .opt-btn.selected{border-color:#2563eb;background:#dbeafe;color:#1d4ed8}
+  .opt-btn.correct{border-color:#16a34a;background:#dcfce7;color:#166534}
+  .opt-btn.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
+  .explanation{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none;line-height:1.5}
+  .trick-box{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
+  .nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+  .nav-btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700}
+  .btn-blue{background:#2563eb;color:#fff}
+  .btn-green{background:#16a34a;color:#fff}
+  .btn-gray{background:#64748b;color:#fff}
+  .final-card{background:#1e3a8a;color:#fff;border-radius:14px;padding:24px;text-align:center;display:none}
+  .final-score{font-size:3rem;font-weight:900;color:#fbbf24}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>⚡ Simulator 20 Soal Cepat SNBT/UTBK Lanjutan</h2>
+  <p class="subtitle">Kimia · Biologi · Bahasa Indonesia · Bahasa Inggris · Sosiologi · Geografi · Penalaran Matematis</p>
+  <div class="header-bar">
+    <div>
+      <div style="font-size:0.8rem;opacity:0.8">Waktu per soal</div>
+      <div class="timer" id="timer">00:45</div>
+    </div>
+    <div class="score-box">Skor: <span id="scoreDisp">0</span>/20</div>
+    <div style="font-size:0.85rem">Soal <span id="qNum">1</span> dari 20</div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="progBar" style="width:5%"></div></div>
+  <div id="questionArea"></div>
+  <div class="nav">
+    <button class="nav-btn btn-gray" onclick="prevQ()">◀ Prev</button>
+    <button class="nav-btn btn-blue" onclick="showTrick()">💡 Lihat Trik</button>
+    <button class="nav-btn btn-green" onclick="nextQ()">Next ▶</button>
+  </div>
+  <div class="final-card" id="finalCard">
+    <div style="font-size:1.1rem;margin-bottom:8px">🎓 Hasil Latihan SNBT/UTBK</div>
+    <div class="final-score" id="finalScore">0</div>
+    <div style="font-size:1rem;margin:8px 0">/20 Soal Benar</div>
+    <div id="finalMsg" style="font-size:0.9rem;opacity:0.9;margin-top:8px"></div>
+    <button class="nav-btn btn-blue" onclick="restart()" style="margin-top:16px">🔄 Ulangi Latihan</button>
+  </div>
+</div>
+<script>
+const QUESTIONS = [
+  {topic:'Kimia',q:'Konfigurasi elektron unsur X (Z=20) adalah...',opts:['[Ne] 3s² 3p⁶','[Ar] 4s²','[Kr] 5s²','[Ar] 3d² 4s²'],ans:1,exp:'Z=20 → K:2, L:8, M:8, N:2. Konfigurasi: 1s² 2s² 2p⁶ 3s² 3p⁶ 4s² = [Ar] 4s²',trick:'Untuk Z≤36: isi sesuai kulit K(2),L(8),M(8/18),N. Z=20 → K2L8M8N2 → [Ar]4s²'},
+  {topic:'Kimia',q:'Larutan HCl 0,01 M memiliki pH sebesar...',opts:['1','2','3','12'],ans:1,exp:'HCl asam kuat terionisasi sempurna: [H⁺]=0,01=10⁻². pH = -log(10⁻²) = 2',trick:'pH = -log[H⁺]. HCl 10⁻² M → pH=2 (cukup hapus tanda negatif dari eksponen)'},
+  {topic:'Kimia',q:'Pada reaksi 2SO₂ + O₂ → 2SO₃, jika 4 mol SO₂ direaksikan dengan 1 mol O₂, pereaksi pembatas adalah...',opts:['SO₂','O₂','SO₃','Tidak ada pembatas'],ans:1,exp:'Butuh SO₂/O₂ = 2/1. Tersedia: SO₂=4, O₂=1 → butuh O₂ = 4/2=2 mol, tapi hanya 1 → O₂ habis lebih dulu (pembatas)',trick:'Bagi mol dengan koefisien: SO₂=4/2=2, O₂=1/1=1 → terkecil=O₂ → pembatas!'},
+  {topic:'Biologi',q:'Organel sel yang berfungsi sebagai "pembangkit energi" sel adalah...',opts:['Ribosom','Mitokondria','Lisosom','Aparatus Golgi'],ans:1,exp:'Mitokondria adalah tempat respirasi seluler (siklus Krebs & rantai transpor elektron) menghasilkan ATP (energi sel)',trick:'Mitokondria = "powerhouse of the cell". Ingat: M = Mitokondria = Motor energi'},
+  {topic:'Biologi',q:'Fotosintesis terjadi di organel sel bernama...',opts:['Mitokondria','Nukleus','Kloroplas','Vakuola'],ans:2,exp:'Kloroplas mengandung klorofil dan merupakan tempat reaksi terang (tilakoid) dan reaksi gelap (stroma) fotosintesis',trick:'Foto→cahaya→warna→klorofil→Kloroplas. Reaksi terang di tilakoid, gelap di stroma'},
+  {topic:'Biologi',q:'Hormon yang mengatur kadar gula darah dan diproduksi pankreas adalah...',opts:['Adrenalin','Tiroksin','Insulin','Kortisol'],ans:2,exp:'Insulin diproduksi sel beta pankreas, menurunkan kadar glukosa darah dengan membantu sel mengambil glukosa',trick:'INsulin → INdeks gula turun. Lawan: Glukagon (naikkan gula). Keduanya dari pankreas'},
+  {topic:'B.Indonesia',q:'Kalimat yang menggunakan kata penghubung pertentangan adalah...',opts:['Dia rajin belajar sehingga lulus','Meskipun hujan, ia tetap pergi','Ia belajar kemudian tidur','Dia dan adiknya pergi ke sekolah'],ans:1,exp:'"Meskipun" adalah konjungsi pertentangan/konsesif. "Sehingga"=akibat, "kemudian"=urutan, "dan"=penambahan',trick:'Konjungsi pertentangan: meskipun, walaupun, biarpun, kendatipun, sekalipun'},
+  {topic:'B.Indonesia',q:'Gagasan utama paragraf deduktif terdapat pada...',opts:['Kalimat terakhir','Kalimat pertama','Kalimat tengah','Semua kalimat'],ans:1,exp:'Paragraf deduktif: gagasan utama di kalimat PERTAMA (umum→khusus). Induktif: gagasan utama di kalimat terakhir',trick:'Deduktif = Depan (kalimat pertama). Induktif = Induktif dari bawah (kalimat terakhir)'},
+  {topic:'B.Indonesia',q:'Kata baku yang tepat untuk "aktifitas" adalah...',opts:['aktifitas','aktivity','aktivitas','activity'],ans:2,exp:'Kata baku KBBI: "aktivitas" (bukan aktifitas). Aktif (adjektiva) → aktivitas (nomina)',trick:'Kata serapan Latin/Inggris -tivity → -tivitas: activity→aktivitas, creativity→kreativitas'},
+  {topic:'B.Inggris',q:'Which sentence uses the PAST PERFECT tense correctly?',opts:['She has finished her homework','She had finished before he arrived','She finished her homework','She will have finished'],ans:1,exp:'Past Perfect: had + V3. "She had finished before he arrived" = tindakan selesai SEBELUM kejadian lampau lain',trick:'Past Perfect = had + V3. Kata kunci: before, after, by the time, when (di kalimat lampau)'},
+  {topic:'B.Inggris',q:'The synonym of "benevolent" is...',opts:['cruel','hostile','kind','indifferent'],ans:2,exp:'"Benevolent" berarti baik hati/dermawan (from Latin: bene=good, volent=wishing). Sinonimnya: kind, generous, charitable',trick:'Bene- = good (Latin). Benefit, benevolent, benefactor → semuanya bermakna positif/baik'},
+  {topic:'B.Inggris',q:'Choose the correct passive voice: "The teacher explained the lesson yesterday."',opts:['The lesson is explained by the teacher','The lesson was explained by the teacher yesterday','The lesson will be explained','The lesson had explained'],ans:1,exp:'Kalimat aktif Simple Past → Passive: S + was/were + V3 + by + Agent. "was explained by the teacher yesterday"',trick:'Active→Passive: ganti S↔O, tambah was/were, ubah V→V3. Yesterday = Simple Past = was/were'},
+  {topic:'Sosiologi',q:'Proses di mana seseorang mempelajari norma dan nilai masyarakat baru disebut...',opts:['Enkulturasi','Akulturasi','Sosialisasi','Asimilasi'],ans:2,exp:'Sosialisasi: proses individu belajar norma, nilai, dan peran dalam masyarakat. Enkulturasi: penyerapan budaya sendiri',trick:'Sosial-isasi = proses menjadi bagian dari masyarakat (social). Bukan enkulturasi (enc. = budaya asal)'},
+  {topic:'Sosiologi',q:'Mobilitas sosial vertikal ke atas (social climbing) contohnya adalah...',opts:['Pindah kota ke daerah','Petani jadi Gubernur','Guru pindah ke sekolah lain','Pedagang pindah lapak'],ans:1,exp:'Mobilitas vertikal naik: perubahan status/kedudukan ke tingkat lebih tinggi. Petani→Gubernur = kenaikan drastis status',trick:'Vertikal atas = naik jabatan/status. Horisontal = status sama, beda tempat. Pindah kota = horisontal'},
+  {topic:'Geografi',q:'Lapisan atmosfer yang berfungsi melindungi Bumi dari radiasi ultraviolet adalah...',opts:['Troposfer','Stratosfer','Mesosfer','Termosfer'],ans:1,exp:'Stratosfer (15-50 km): mengandung lapisan ozon (O₃) yang menyerap 97% radiasi UV berbahaya dari Matahari',trick:'Strat-osfer = Ozon ada di sini. Tropo-sfer = tempat cuaca. Stratosfer = lapisan STATIS (relatif tenang)'},
+  {topic:'Geografi',q:'Fenomena El Niño menyebabkan...',opts:['Musim hujan lebih panjang di Indonesia','Kekeringan dan kebakaran hutan di Indonesia','Suhu laut Pasifik Timur turun','Angin monsun lebih kuat'],ans:1,exp:'El Niño: anomali penghangatan suhu Laut Pasifik Timur → angin Trade winds melemah → Indonesia kering/kekeringan',trick:'El Niño = angin ke timur melemah → uap air pindah ke sana → Indonesia jadi kering (Efek La Niña = sebaliknya, Indonesia basah)'},
+  {topic:'Penalaran',q:'Jika semua A adalah B, dan semua B adalah C, maka...',opts:['Semua C adalah A','Semua A adalah C','Semua C adalah B','Sebagian A bukan C'],ans:1,exp:'Silogisme: A⊆B dan B⊆C → A⊆C (semua A pasti termasuk dalam C). Ini hukum transitif himpunan',trick:'A→B, B→C → pasti A→C (seperti rantai implikasi). Gambarkan diagram Venn: lingkaran A dalam B, B dalam C'},
+  {topic:'Penalaran',q:'Barisan: 2, 6, 18, 54, ... Suku ke-6 adalah...',opts:['108','162','486','243'],ans:2,exp:'Rasio umum r = 6/2 = 3 (geometri). Suku ke-5 = 54×3=162, suku ke-6 = 162×3=486',trick:'Cek rasio: 6/2=3, 18/6=3, 54/18=3 → r=3. Suku ke-n = 2×3^(n-1). n=6 → 2×3⁵ = 2×243 = 486'},
+  {topic:'Penalaran',q:'Rata-rata 5 bilangan adalah 20. Jika satu bilangan 30 ditambahkan, rata-rata baru adalah...',opts:['20','21,67','25','22'],ans:1,exp:'Total lama = 5×20=100. Total baru = 100+30=130. Rata-rata baru = 130/6 ≈ 21,67',trick:'Total = rata² × n. Tambah 30: total=130, n=6. 130÷6=21,666... ≈ 21,67'},
+  {topic:'Penalaran',q:'Jika P > Q dan Q > R, manakah pernyataan yang PASTI benar?',opts:['R > P','P > R','Q = R','P = Q'],ans:1,exp:'Transitif: P>Q dan Q>R → pasti P>R. Ini hukum transitif ketidaksamaan',trick:'Gunakan angka konkrit: P=10, Q=7, R=3 → 10>3 (P>R) ✓. Selalu substitusi angka untuk soal logika sederhana!'},
+];
+
+let curQ = 0, score = 0, answered = new Array(20).fill(null);
+let timeLeft = 45, timerId;
+
+function startTimer(){
+  clearInterval(timerId);
+  timeLeft = 45;
+  timerId = setInterval(()=>{
+    timeLeft--;
+    const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
+    const s = String(timeLeft%60).padStart(2,'0');
+    document.getElementById('timer').textContent = m+':'+s;
+    if(timeLeft<=10) document.getElementById('timer').style.color='#ef4444';
+    else document.getElementById('timer').style.color='#fbbf24';
+    if(timeLeft<=0){ clearInterval(timerId); nextQ(); }
+  },1000);
+}
+
+function renderQ(){
+  document.getElementById('finalCard').style.display='none';
+  document.getElementById('questionArea').style.display='';
+  document.querySelector('.nav').style.display='';
+  document.querySelector('.progress').style.display='';
+  document.querySelector('.header-bar').style.display='';
+  const q = QUESTIONS[curQ];
+  document.getElementById('qNum').textContent = curQ+1;
+  document.getElementById('progBar').style.width = ((curQ+1)/20*100)+'%';
+  document.getElementById('scoreDisp').textContent = score;
+  const sel = answered[curQ];
+  document.getElementById('questionArea').innerHTML = `
+    <div class="question-card">
+      <div class="q-header">
+        <div class="q-num">${curQ+1}</div>
+        <div class="q-topic">${q.topic}</div>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((o,i)=>`<button class="opt-btn${sel!==null?(i===q.ans?' correct':i===sel&&sel!==q.ans?' wrong':''):''}" onclick="selectOpt(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+      </div>
+      ${sel!==null?`<div class="explanation" style="display:block">📝 ${q.exp}</div>`:''}
+      <div class="trick-box" id="trickBox">⚡ Trik Super Cepat: ${q.trick}</div>
+    </div>`;
+  startTimer();
+}
+
+function selectOpt(idx){
+  if(answered[curQ]!==null) return;
+  answered[curQ]=idx;
+  if(idx===QUESTIONS[curQ].ans) score++;
+  clearInterval(timerId);
+  renderQ();
+}
+
+function showTrick(){
+  const tb = document.getElementById('trickBox');
+  if(tb) tb.style.display=tb.style.display==='block'?'none':'block';
+}
+
+function nextQ(){
+  if(curQ<19){curQ++;renderQ();}else showFinal();
+}
+
+function prevQ(){
+  if(curQ>0){curQ--;renderQ();}
+}
+
+function showFinal(){
+  document.getElementById('questionArea').style.display='none';
+  document.querySelector('.nav').style.display='none';
+  clearInterval(timerId);
+  const fc = document.getElementById('finalCard');
+  fc.style.display='block';
+  document.getElementById('finalScore').textContent=score;
+  const pct=score/20*100;
+  document.getElementById('finalMsg').innerHTML = pct>=90?'🏆 SEMPURNA! Siap SNBT Favorit!':pct>=75?'✅ Bagus! Latihan intensif 1 bulan lagi = PTN Favorit!':pct>=60?'📈 Baik! Pelajari kembali topik yang salah':pct>=40?'⚠️ Perlu latihan lebih! Fokus pada topik lemah':'💪 Jangan menyerah! Ulangi dari awal dengan fokus';
+}
+
+function restart(){
+  curQ=0;score=0;answered=new Array(20).fill(null);
+  document.getElementById('finalCard').style.display='none';
+  document.getElementById('questionArea').style.display='';
+  document.querySelector('.nav').style.display='';
+  document.querySelector('.progress').style.display='';
+  document.querySelector('.header-bar').style.display='';
+  renderQ();
+}
+
+renderQ();
+</script>
+</body>
+</html>

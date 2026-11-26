@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator Biologi: Osmosis & Difusi Sel</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;padding:16px}
+  h2{text-align:center;font-size:1.3rem;color:#059669;margin-bottom:4px}
+  .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
+  .wrap{max-width:900px;margin:0 auto}
+  canvas{background:#0f172a;border-radius:10px;width:100%;display:block}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:600px){.panels{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
+  h3{font-size:0.9rem;color:#059669;margin-bottom:8px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+  label{font-size:0.8rem;color:#475569;display:block;margin:8px 0 2px}
+  input[type=range]{width:100%;accent-color:#059669}
+  .val{font-weight:700;color:#059669}
+  .info-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;line-height:1.6}
+  .rumus{background:#1e293b;color:#34d399;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:0.84rem;margin:6px 0}
+  .soal{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:0.82rem;margin:8px 0}
+  .opsi-btn{display:block;width:100%;text-align:left;padding:7px 10px;margin:3px 0;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;background:#fff;font-size:0.82rem}
+  .opsi-btn.benar{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+  .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
+  .btn{padding:7px 16px;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:600;margin:4px}
+  .btn-green{background:#059669;color:#fff}
+  .btn-blue{background:#0284c7;color:#fff}
+  .btn-red{background:#dc2626;color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>🧫 Simulator Biologi: Osmosis, Difusi & Tekanan Osmotik Sel</h2>
+  <p class="subtitle">Mengapa sel wortel yang direndam garam bisa mengkerut, sedangkan yang direndam air tawar mengembang?</p>
+  <canvas id="cv" height="260"></canvas>
+  <div class="panels">
+    <div class="panel">
+      <h3>⚙️ Kontrol Eksperimen</h3>
+      <div>
+        <button class="btn btn-green" onclick="setMode('hipotonik')">🌊 Hipotonik (air tawar)</button>
+        <button class="btn btn-blue" onclick="setMode('isotonik')">⚖️ Isotonik</button>
+        <button class="btn btn-red" onclick="setMode('hipertonik')">🧂 Hipertonik (garam)</button>
+      </div>
+      <label>Konsentrasi Larutan Luar (%): <span class="val" id="vkonsen">0.5</span>%</label>
+      <input type="range" id="skonsen" min="0" max="20" step="0.5" value="0.5" oninput="update()">
+      <label>Konsentrasi Sel (%): <span class="val" id="vcell">9</span>% (cairan sel darah)</label>
+      <input type="range" id="scell" min="1" max="20" value="9" oninput="update()">
+      <div class="info-box" id="hasil">—</div>
+    </div>
+    <div class="panel">
+      <h3>📐 Konsep & Soal HOTS</h3>
+      <div class="rumus">Osmosis: air bergerak dari [rendah] → [tinggi] konsentrasi zat terlarut melalui membran semipermeabel</div>
+      <p style="font-size:0.79rem;color:#64748b;margin:4px 0">Hipotonik → Sel Turgid (menggembung) | Isotonik → Normal | Hipertonik → Plasmolisis (mengkerut)</p>
+      <div class="soal">Sel darah merah dimasukkan ke larutan NaCl 20%. Apa yang terjadi pada sel tersebut?</div>
+      <button class="opsi-btn" onclick="cek(this,'salah')">A. Sel mengembang karena krenasi</button>
+      <button class="opsi-btn" onclick="cek(this,'benar')">B. Sel mengkerut (krenasi) karena air keluar sel</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">C. Sel tidak berubah karena isotonik</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">D. Sel membelah diri karena turgid</button>
+      <div class="pembahasan" id="pem">✅ NaCl 20% jauh lebih pekat dari cairan sel darah merah (~0,9% salin). Larutan hipertonik menyebabkan air keluar dari sel secara osmosis → sel mengkerut (krenasi/plasmolisis pada sel tumbuhan).</div>
+    </div>
+  </div>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let mode='hipotonik', particles=[], t=0;
+const CELL_X=450, CELL_Y=130;
+
+function setMode(m){
+  mode=m;
+  if(m==='hipotonik') document.getElementById('skonsen').value=0.5;
+  else if(m==='isotonik') document.getElementById('skonsen').value=9;
+  else document.getElementById('skonsen').value=18;
+  update();
+}
+
+function update(){
+  const kl = +document.getElementById('skonsen').value;
+  const kc = +document.getElementById('scell').value;
+  document.getElementById('vkonsen').textContent = kl;
+  document.getElementById('vcell').textContent = kc;
+  let status, warna, selSize;
+  if(kl < kc-0.5){status='HIPOTONIK — Air masuk sel → Turgid/Hemolisis'; warna='#4ade80'; selSize=1.3; mode='hipotonik';}
+  else if(kl > kc+0.5){status='HIPERTONIK — Air keluar sel → Plasmolisis/Krenasi'; warna='#f87171'; selSize=0.65; mode='hipertonik';}
+  else{status='ISOTONIK — Keseimbangan osmotik → Sel Normal'; warna='#60a5fa'; selSize=1.0; mode='isotonik';}
+  document.getElementById('hasil').innerHTML=`<b>${status}</b><br>Konsentrasi luar: ${kl}% | Sel: ${kc}%<br>Perbedaan osmotik: ${Math.abs(kl-kc).toFixed(1)}%`;
+  draw(selSize, warna, kl, kc);
+}
+
+function draw(selSize, warna, kl, kc){
+  cv.width = cv.offsetWidth; cv.height = 260;
+  const W = cv.width, CX = W/2;
+  const r = 85 * selSize;
+  // Larutan luar
+  ctx.fillStyle='rgba(14,165,233,0.12)';
+  ctx.fillRect(0,0,W,260);
+  // Partikel larutan luar (garam = lebih banyak jika hipertonik)
+  const nOut = Math.round(kl * 1.5);
+  ctx.fillStyle='rgba(251,191,36,0.7)';
+  for(let i=0;i<nOut && i<60;i++){
+    const px=(i*137+t*0.3)%W, py=20+((i*79+t*0.2)%220);
+    const dist = Math.sqrt((px-CX)**2+(py-130)**2);
+    if(dist > r+10){ctx.beginPath(); ctx.arc(px,py,3,0,Math.PI*2); ctx.fill();}
+  }
+  // Sel
+  ctx.beginPath(); ctx.ellipse(CX,130,r,r*0.85,0,0,Math.PI*2);
+  ctx.fillStyle='rgba(5,150,105,0.25)'; ctx.fill();
+  ctx.strokeStyle=warna; ctx.lineWidth=2.5; ctx.stroke();
+  // Sitoplasma
+  ctx.fillStyle='rgba(167,243,208,0.4)'; ctx.beginPath(); ctx.ellipse(CX,130,r*0.85,r*0.72,0,0,Math.PI*2); ctx.fill();
+  // Nukleus
+  ctx.fillStyle='rgba(5,150,105,0.7)'; ctx.beginPath(); ctx.arc(CX,130,r*0.28,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='10px sans-serif'; ctx.textAlign='center'; ctx.fillText('Nukleus',CX,133);
+  // Partikel dalam sel
+  const nIn = Math.round(kc*1.2);
+  ctx.fillStyle='rgba(251,191,36,0.9)';
+  for(let i=0;i<nIn && i<50;i++){
+    const ang = (i/nIn)*Math.PI*2 + t*0.01;
+    const rp = (r-25)*Math.random()*0.8;
+    const px = CX + rp*Math.cos(ang)*0.8, py = 130 + rp*Math.sin(ang)*0.7;
+    ctx.beginPath(); ctx.arc(px,py,2.5,0,Math.PI*2); ctx.fill();
+  }
+  // Panah osmosis
+  const nArr = Math.abs(kl-kc);
+  if(kl < kc-0.5){
+    for(let i=0;i<4;i++) drawArrow(CX+(i%2===0?-1:1)*(r+30+i*5),130,CX+(i%2===0?-1:1)*(r-10),130,'#4ade80');
+    ctx.fillStyle='#4ade80'; ctx.font='bold 11px sans-serif'; ctx.fillText('← Air masuk sel →',CX,220);
+  } else if(kl > kc+0.5){
+    for(let i=0;i<4;i++) drawArrow(CX+(i%2===0?-1:1)*(r-10),130,CX+(i%2===0?-1:1)*(r+40),130,'#f87171');
+    ctx.fillStyle='#f87171'; ctx.font='bold 11px sans-serif'; ctx.fillText('→ Air keluar sel ←',CX,220);
+  } else {
+    ctx.fillStyle='#60a5fa'; ctx.font='bold 11px sans-serif'; ctx.fillText('⇆ Osmosis Seimbang',CX,220);
+  }
+  t++;
+}
+
+function drawArrow(x1,y1,x2,y2,color){
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.fillStyle=color;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const angle=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-9*Math.cos(angle-0.4),y2-9*Math.sin(angle-0.4));
+  ctx.lineTo(x2-9*Math.cos(angle+0.4),y2-9*Math.sin(angle+0.4));
+  ctx.closePath(); ctx.fill();
+}
+
+function cek(el,s){
+  document.querySelectorAll('.opsi-btn').forEach(b=>b.className='opsi-btn');
+  el.classList.add(s);
+  document.getElementById('pem').style.display='block';
+}
+
+function loop(){ requestAnimationFrame(loop); update(); }
+window.addEventListener('resize',update);
+update();
+setInterval(update, 50);
+</script>
+</body>
+</html>

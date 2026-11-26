@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator Fisika: Optika Lensa Cembung & Cekung</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;padding:16px}
+  h2{text-align:center;font-size:1.3rem;color:#0284c7;margin-bottom:4px}
+  .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:16px}
+  .container{max-width:900px;margin:0 auto}
+  canvas{background:#0f172a;border-radius:10px;width:100%;display:block}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .panel{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
+  .panel h3{font-size:0.9rem;color:#0284c7;margin-bottom:10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+  label{display:block;font-size:0.8rem;color:#475569;margin-bottom:3px;margin-top:8px}
+  input[type=range]{width:100%;accent-color:#0284c7}
+  .val{font-weight:700;color:#0284c7;font-size:0.85rem}
+  .btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:600;margin:4px}
+  .btn-blue{background:#0284c7;color:#fff}
+  .btn-red{background:#dc2626;color:#fff}
+  .info-box{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px}
+  .rumus{background:#1e293b;color:#38bdf8;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:0.85rem;margin:6px 0}
+  .soal{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px}
+  .opsi-btn{display:block;width:100%;text-align:left;padding:7px 10px;margin:4px 0;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;background:#fff;font-size:0.82rem}
+  .opsi-btn:hover{background:#eff6ff}
+  .opsi-btn.benar{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+  .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
+  @media(max-width:600px){.panels{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🔭 Simulator Fisika: Optika Lensa Cembung & Cekung</h2>
+  <p class="subtitle">Bayangan maya atau nyata? Diperbesar atau diperkecil? Buktikan dengan Rumus Lensa!</p>
+  <canvas id="cv" height="300"></canvas>
+  <div class="panels">
+    <div class="panel">
+      <h3>⚙️ Kontrol Lensa</h3>
+      <div>
+        <button class="btn btn-blue" onclick="setLens('cembung')">Lensa Cembung (+)</button>
+        <button class="btn btn-red" onclick="setLens('cekung')">Lensa Cekung (-)</button>
+      </div>
+      <label>Jarak Fokus (f): <span class="val" id="vf">15</span> cm</label>
+      <input type="range" id="sf" min="5" max="25" value="15" oninput="update()">
+      <label>Jarak Benda dari Lensa (s): <span class="val" id="vs">30</span> cm</label>
+      <input type="range" id="ss" min="5" max="60" value="30" oninput="update()">
+      <label>Tinggi Benda: <span class="val" id="vh">40</span> px</label>
+      <input type="range" id="sh" min="10" max="60" value="40" oninput="update()">
+      <div class="info-box" id="hasil">—</div>
+    </div>
+    <div class="panel">
+      <h3>📐 Rumus & Tantangan Soal</h3>
+      <div class="rumus">1/f = 1/s + 1/s'<br>M = s'/s = h'/h</div>
+      <p style="font-size:0.8rem;color:#475569;margin:4px 0">f = fokus, s = jarak benda, s' = jarak bayangan, M = perbesaran</p>
+      <div class="soal">
+        <strong>Soal HOTS:</strong> Sebuah benda diletakkan 20 cm di depan lensa cembung berfokal 15 cm. Tentukan jarak bayangan, sifat bayangan, dan perbesarannya!
+      </div>
+      <button class="opsi-btn" onclick="cekJawab(this,'salah')">A. s' = 30 cm, nyata, M = 1,5×</button>
+      <button class="opsi-btn" onclick="cekJawab(this,'salah')">B. s' = 20 cm, maya, M = 1×</button>
+      <button class="opsi-btn" onclick="cekJawab(this,'benar')">C. s' = 60 cm, nyata, M = 3×</button>
+      <button class="opsi-btn" onclick="cekJawab(this,'salah')">D. s' = 10 cm, maya, M = 2×</button>
+      <div class="pembahasan" id="pem">
+        ✅ 1/s' = 1/f - 1/s = 1/15 - 1/20 = (4-3)/60 = 1/60 → s' = 60 cm (positif = nyata, berlawanan sisi benda). M = s'/s = 60/20 = 3× (diperbesar).
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let lensType = 'cembung';
+let f=15, s=30, h=40;
+const CX = 450, CY = 150, SCALE = 5;
+
+function setLens(t){lensType=t;update();}
+
+function update(){
+  f = +document.getElementById('sf').value;
+  s = +document.getElementById('ss').value;
+  h = +document.getElementById('sh').value;
+  document.getElementById('vf').textContent = f;
+  document.getElementById('vs').textContent = s;
+  document.getElementById('vh').textContent = h;
+  draw();
+  calcResult();
+}
+
+function calcResult(){
+  let fEff = lensType === 'cembung' ? f : -f;
+  let sPr, M, sifat;
+  if(1/fEff - 1/s === 0){ document.getElementById('hasil').innerHTML='Bayangan di tak hingga'; return; }
+  sPr = 1/(1/fEff - 1/s);
+  M = Math.abs(sPr/s);
+  let nyata = sPr > 0;
+  let tegak = sPr < 0;
+  sifat = `${nyata?'Nyata':'Maya'}, ${tegak?'Tegak':'Terbalik'}, ${M>1?'Diperbesar':'Diperkecil (M<1)'} (M = ${M.toFixed(2)}×)`;
+  document.getElementById('hasil').innerHTML =
+    `<strong>Jarak Bayangan s' = ${sPr.toFixed(1)} cm</strong><br>Sifat: ${sifat}<br>Lensa: ${lensType==='cembung'?'Cembung (+)':'Cekung (-)'}`;
+}
+
+function draw(){
+  cv.width = cv.offsetWidth; cv.height = 300;
+  const W = cv.width;
+  ctx.clearRect(0,0,W,300);
+  // Optik axis
+  ctx.strokeStyle='#334155'; ctx.setLineDash([6,4]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,CY); ctx.lineTo(W,CY); ctx.stroke();
+  ctx.setLineDash([]);
+  // Lensa
+  let fEff = lensType==='cembung'?f:-f;
+  let lx = W/2;
+  ctx.strokeStyle='#38bdf8'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(lx,30); ctx.lineTo(lx,270); ctx.stroke();
+  // Titik fokus
+  let fx1 = lx + fEff*SCALE, fx2 = lx - fEff*SCALE;
+  [fx1,fx2].forEach(fx=>{
+    ctx.fillStyle='#f59e0b'; ctx.beginPath(); ctx.arc(fx,CY,4,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fbbf24'; ctx.font='11px sans-serif';
+    ctx.fillText('F',fx+6,CY-6);
+  });
+  // Benda
+  let bx = lx - s*SCALE;
+  ctx.strokeStyle='#4ade80'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(bx,CY); ctx.lineTo(bx,CY-h); ctx.stroke();
+  ctx.fillStyle='#4ade80'; ctx.beginPath(); ctx.moveTo(bx,CY-h); ctx.lineTo(bx-6,CY-h+10); ctx.lineTo(bx+6,CY-h+10); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#86efac'; ctx.font='11px sans-serif'; ctx.fillText('Benda',bx-18,CY-h-6);
+  // Bayangan
+  let sPr = 1/(1/fEff - 1/s);
+  let hPr = -sPr/s*h;
+  let ix = lx + sPr*SCALE;
+  if(isFinite(sPr)){
+    ctx.strokeStyle = sPr>0?'#f87171':'#c084fc'; ctx.lineWidth=2; ctx.setLineDash(sPr>0?[]:[4,3]);
+    ctx.beginPath(); ctx.moveTo(ix,CY); ctx.lineTo(ix,CY-hPr); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = sPr>0?'#f87171':'#c084fc';
+    if(hPr<0){ctx.beginPath(); ctx.moveTo(ix,CY-hPr); ctx.lineTo(ix-5,CY-hPr-10); ctx.lineTo(ix+5,CY-hPr-10); ctx.closePath(); ctx.fill();}
+    else{ctx.beginPath(); ctx.moveTo(ix,CY-hPr); ctx.lineTo(ix-5,CY-hPr+10); ctx.lineTo(ix+5,CY-hPr+10); ctx.closePath(); ctx.fill();}
+    ctx.fillStyle=sPr>0?'#fca5a5':'#d8b4fe'; ctx.font='11px sans-serif'; ctx.fillText(sPr>0?'Bayangan Nyata':'Bayangan Maya',ix+5,CY-hPr-8);
+    // Sinar utama
+    ctx.strokeStyle='rgba(251,191,36,0.4)'; ctx.lineWidth=1.2; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(bx,CY-h); ctx.lineTo(lx,CY-h); ctx.lineTo(ix,CY-hPr); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,CY-h); ctx.lineTo(lx,CY); ctx.lineTo(ix,CY-hPr); ctx.stroke();
+  }
+  // Lensa tanda
+  if(lensType==='cembung'){
+    ctx.fillStyle='#38bdf8'; ctx.font='bold 20px sans-serif'; ctx.fillText('⬧',lx-10,30);
+  } else {
+    ctx.fillStyle='#38bdf8'; ctx.font='bold 20px sans-serif'; ctx.fillText('⬦',lx-10,30);
+  }
+}
+
+function cekJawab(el, status){
+  document.querySelectorAll('.opsi-btn').forEach(b=>b.className='opsi-btn');
+  el.classList.add(status);
+  document.getElementById('pem').style.display='block';
+}
+
+window.addEventListener('resize', draw);
+update();
+</script>
+</body>
+</html>

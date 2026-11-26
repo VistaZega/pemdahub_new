@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator Matematika: Fungsi Trigonometri Interaktif</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
+  h2{text-align:center;font-size:1.3rem;color:#4f46e5;margin-bottom:4px}
+  .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
+  .wrap{max-width:900px;margin:0 auto}
+  canvas{background:#0f172a;border-radius:10px;width:100%;display:block;cursor:crosshair}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:600px){.panels{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
+  h3{font-size:0.9rem;color:#4f46e5;margin-bottom:8px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+  label{font-size:0.8rem;color:#475569;display:block;margin:8px 0 2px}
+  input[type=range]{width:100%;accent-color:#4f46e5}
+  .val{font-weight:700;color:#4f46e5}
+  .btn-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:600}
+  .btn-indigo{background:#4f46e5;color:#fff}
+  .btn-sel{background:#3730a3;color:#fff;box-shadow:0 0 0 2px #fff,0 0 0 4px #4f46e5}
+  .info-box{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;line-height:1.6}
+  .rumus{background:#1e293b;color:#a5b4fc;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:0.84rem;margin:6px 0}
+  .soal{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:0.82rem;margin:8px 0}
+  .opsi-btn{display:block;width:100%;text-align:left;padding:7px 10px;margin:3px 0;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;background:#fff;font-size:0.82rem}
+  .opsi-btn.benar{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+  .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
+  .table-trig{width:100%;border-collapse:collapse;font-size:0.76rem;margin-top:6px}
+  .table-trig th{background:#4f46e5;color:#fff;padding:4px 6px;text-align:center}
+  .table-trig td{padding:4px 6px;text-align:center;border-bottom:1px solid #e2e8f0}
+  .table-trig tr:nth-child(even) td{background:#f5f3ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>📐 Simulator Matematika: Fungsi Trigonometri sin, cos, tan</h2>
+  <p class="subtitle">Geser titik pada lingkaran satuan dan saksikan gelombang sin/cos terbentuk secara real-time!</p>
+  <canvas id="cv" height="300"></canvas>
+  <div class="panels">
+    <div class="panel">
+      <h3>⚙️ Kontrol Fungsi</h3>
+      <div class="btn-row" id="fnBtns">
+        <button class="btn btn-sel" onclick="setFn('sin')">sin(x)</button>
+        <button class="btn btn-indigo" onclick="setFn('cos')">cos(x)</button>
+        <button class="btn btn-indigo" onclick="setFn('tan')">tan(x)</button>
+        <button class="btn btn-indigo" onclick="setFn('all')">Semua</button>
+      </div>
+      <label>Sudut θ: <span class="val" id="vtheta">45</span>° (<span id="vrad">π/4</span>)</label>
+      <input type="range" id="stheta" min="0" max="360" value="45" oninput="update()">
+      <label>Amplitudo (A): <span class="val" id="va">1.0</span></label>
+      <input type="range" id="sa" min="0.5" max="3" step="0.1" value="1" oninput="update()">
+      <label>Frekuensi (f): <span class="val" id="vf">1.0</span></label>
+      <input type="range" id="sf" min="0.5" max="4" step="0.5" value="1" oninput="update()">
+      <div class="info-box" id="hasil">—</div>
+    </div>
+    <div class="panel">
+      <h3>📊 Tabel Sudut Istimewa & Soal HOTS</h3>
+      <table class="table-trig">
+        <tr><th>θ</th><th>sin θ</th><th>cos θ</th><th>tan θ</th></tr>
+        <tr><td>0°</td><td>0</td><td>1</td><td>0</td></tr>
+        <tr><td>30°</td><td>½</td><td>½√3</td><td>⅓√3</td></tr>
+        <tr><td>45°</td><td>½√2</td><td>½√2</td><td>1</td></tr>
+        <tr><td>60°</td><td>½√3</td><td>½</td><td>√3</td></tr>
+        <tr><td>90°</td><td>1</td><td>0</td><td>∞</td></tr>
+      </table>
+      <div class="rumus" style="margin-top:8px">sin²θ + cos²θ = 1<br>tan θ = sin θ / cos θ</div>
+      <div class="soal">Nilai dari sin 30° × cos 60° + cos 30° × sin 60° adalah...</div>
+      <button class="opsi-btn" onclick="cek(this,'salah')">A. ½</button>
+      <button class="opsi-btn" onclick="cek(this,'benar')">B. 1</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">C. √3/2</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">D. √2/2</button>
+      <div class="pembahasan" id="pem">✅ Ini adalah rumus sin(A+B) = sin A cos B + cos A sin B. Maka sin 30°·cos 60° + cos 30°·sin 60° = sin(30°+60°) = sin 90° = <strong>1</strong>.</div>
+    </div>
+  </div>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let fn = 'sin', theta = 45, A = 1, freq = 1;
+let animT = 0, animId;
+
+function setFn(f){
+  fn = f;
+  document.querySelectorAll('#fnBtns .btn').forEach(b => b.className = 'btn btn-indigo');
+  event.target.className = 'btn btn-sel';
+  update();
+}
+
+function update(){
+  theta = +document.getElementById('stheta').value;
+  A = +document.getElementById('sa').value;
+  freq = +document.getElementById('sf').value;
+  document.getElementById('vtheta').textContent = theta;
+  document.getElementById('vrad').textContent = (theta/180).toFixed(2)+'π';
+  document.getElementById('va').textContent = A.toFixed(1);
+  document.getElementById('vf').textContent = freq.toFixed(1);
+  const th = theta * Math.PI / 180;
+  const sinV = (A * Math.sin(freq * th)).toFixed(4);
+  const cosV = (A * Math.cos(freq * th)).toFixed(4);
+  const tanV = Math.abs(Math.cos(freq*th)) < 0.01 ? '∞' : (A * Math.tan(freq * th)).toFixed(4);
+  document.getElementById('hasil').innerHTML =
+    `θ = ${theta}° | <b>sin θ = ${sinV}</b> | <b>cos θ = ${cosV}</b> | <b>tan θ = ${tanV}</b><br>Amplitudo A = ${A} | Frekuensi f = ${freq}`;
+  draw();
+}
+
+function draw(){
+  cv.width = cv.offsetWidth; cv.height = 300;
+  const W = cv.width, H = 300;
+  const circleR = 85, circleX = 110, circleY = 150;
+  const graphX = circleX + circleR + 30, graphW = W - graphX - 20;
+
+  // === Lingkaran Satuan ===
+  // Grid tipis
+  ctx.strokeStyle = 'rgba(71,85,105,0.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(circleX - circleR - 15, circleY); ctx.lineTo(circleX + circleR + 15, circleY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(circleX, circleY - circleR - 15); ctx.lineTo(circleX, circleY + circleR + 15); ctx.stroke();
+  // Lingkaran
+  ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(circleX, circleY, circleR, 0, Math.PI*2); ctx.stroke();
+
+  const th = theta * Math.PI / 180;
+  const px = circleX + circleR * Math.cos(-th);
+  const py = circleY + circleR * Math.sin(-th);
+
+  // Jari-jari
+  ctx.strokeStyle = '#a5b4fc'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(circleX, circleY); ctx.lineTo(px, py); ctx.stroke();
+
+  // sin (garis vertikal)
+  ctx.strokeStyle = '#f87171'; ctx.lineWidth = 2; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(px, circleY); ctx.lineTo(px, py); ctx.stroke();
+  ctx.setLineDash([]);
+  // cos (garis horizontal)
+  ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(circleX, py); ctx.lineTo(px, py); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Titik pada lingkaran
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2); ctx.fill();
+
+  // Label sudut arc
+  ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(circleX, circleY, 25, -th, 0); ctx.stroke();
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('θ='+theta+'°', circleX+8, circleY-8);
+
+  // Label sin/cos
+  ctx.fillStyle = '#f87171'; ctx.font = '10px sans-serif';
+  ctx.fillText('sin='+(Math.sin(th)).toFixed(2), circleX - circleR - 5, circleY - circleR - 5);
+  ctx.fillStyle = '#4ade80';
+  ctx.fillText('cos='+(Math.cos(th)).toFixed(2), circleX + 4, circleY + circleR + 14);
+
+  // === Grafik Gelombang ===
+  const toGX = t => graphX + (t/(2*Math.PI))*graphW;
+  const midY = circleY;
+  const scale = circleR * A;
+
+  // Sumbu x grafik
+  ctx.strokeStyle = '#475569'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(graphX, midY); ctx.lineTo(graphX + graphW, midY); ctx.stroke();
+
+  const drawWave = (color, valFn) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for(let i=0; i<=200; i++){
+      const t = i/200 * 2*Math.PI;
+      const x = toGX(t);
+      const y = midY - scale * valFn(freq * t);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  };
+
+  if(fn==='sin'||fn==='all') drawWave('#f87171', t=>Math.sin(t));
+  if(fn==='cos'||fn==='all') drawWave('#4ade80', t=>Math.cos(t));
+  if(fn==='tan'||fn==='all'){
+    ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2;
+    ctx.beginPath(); let first=true;
+    for(let i=0;i<=500;i++){
+      const t=i/500*2*Math.PI;
+      const v=Math.tan(freq*t);
+      if(Math.abs(v)>5){first=true;continue;}
+      const x=toGX(t), y=midY-scale*0.4*v;
+      first?(ctx.moveTo(x,y),first=false):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+
+  // Garis θ saat ini di grafik
+  const curX = toGX(th % (2*Math.PI));
+  ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(curX, midY-scale-10); ctx.lineTo(curX, midY+scale+10); ctx.stroke();
+  ctx.setLineDash([]);
+  // Titik di grafik
+  if(fn==='sin'||fn==='all'){ctx.fillStyle='#f87171';ctx.beginPath();ctx.arc(curX,midY-scale*Math.sin(freq*th),5,0,Math.PI*2);ctx.fill();}
+  if(fn==='cos'||fn==='all'){ctx.fillStyle='#4ade80';ctx.beginPath();ctx.arc(curX,midY-scale*Math.cos(freq*th),5,0,Math.PI*2);ctx.fill();}
+
+  // Label
+  if(fn==='sin'||fn==='all'){ctx.fillStyle='#f87171';ctx.font='10px sans-serif';ctx.fillText('sin',graphX+4,midY-scale-6);}
+  if(fn==='cos'||fn==='all'){ctx.fillStyle='#4ade80';ctx.fillText('cos',graphX+24,midY-scale-6);}
+  if(fn==='tan'||fn==='all'){ctx.fillStyle='#fbbf24';ctx.fillText('tan',graphX+44,midY-scale-6);}
+  ctx.fillStyle='#64748b';ctx.fillText('0',graphX,midY+14);ctx.fillText('2π',graphX+graphW-10,midY+14);
+}
+
+function cek(el,s){
+  document.querySelectorAll('.opsi-btn').forEach(b=>b.className='opsi-btn');
+  el.classList.add(s); document.getElementById('pem').style.display='block';
+}
+
+window.addEventListener('resize', update);
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulator Matematika: Integral Riemann Visual</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b;padding:16px}
+  h2{text-align:center;font-size:1.3rem;color:#4f46e5;margin-bottom:4px}
+  .subtitle{text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:14px}
+  .wrap{max-width:900px;margin:0 auto}
+  canvas{background:#0f172a;border-radius:10px;width:100%;display:block}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:600px){.panels{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
+  h3{font-size:0.9rem;color:#4f46e5;margin-bottom:8px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+  label{font-size:0.8rem;color:#475569;display:block;margin:8px 0 2px}
+  input[type=range]{width:100%;accent-color:#4f46e5}
+  select{width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:6px;font-size:0.82rem}
+  .val{font-weight:700;color:#4f46e5}
+  .info-box{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;line-height:1.6}
+  .rumus{background:#1e293b;color:#a5b4fc;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:0.84rem;margin:6px 0}
+  .soal{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:0.82rem;margin:8px 0}
+  .opsi-btn{display:block;width:100%;text-align:left;padding:7px 10px;margin:3px 0;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;background:#fff;font-size:0.82rem}
+  .opsi-btn.benar{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .opsi-btn.salah{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+  .pembahasan{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:0.82rem;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>∫ Simulator Matematika: Integral Riemann Visual</h2>
+  <p class="subtitle">Bagaimana menghitung luas area di bawah kurva menggunakan jumlah persegi panjang tak terbatas?</p>
+  <canvas id="cv" height="300"></canvas>
+  <div class="panels">
+    <div class="panel">
+      <h3>⚙️ Kontrol Integral</h3>
+      <label>Fungsi f(x):</label>
+      <select id="func" onchange="update()">
+        <option value="x2">f(x) = x²</option>
+        <option value="x3">f(x) = x³</option>
+        <option value="sin">f(x) = sin(x)</option>
+        <option value="x2plus">f(x) = x² + 2x + 1</option>
+        <option value="sqrt">f(x) = √x</option>
+      </select>
+      <label>Batas Bawah (a): <span class="val" id="va">0</span></label>
+      <input type="range" id="sa" min="-2" max="4" value="0" step="0.5" oninput="update()">
+      <label>Batas Atas (b): <span class="val" id="vb">3</span></label>
+      <input type="range" id="sb" min="-1" max="5" value="3" step="0.5" oninput="update()">
+      <label>Jumlah Partisi (n): <span class="val" id="vn">10</span> persegi</label>
+      <input type="range" id="sn" min="2" max="200" value="10" oninput="update()">
+      <div class="info-box" id="hasil">—</div>
+    </div>
+    <div class="panel">
+      <h3>📐 Konsep & Soal HOTS</h3>
+      <div class="rumus">∫[a→b] f(x)dx ≈ Σ f(xᵢ)·Δx<br>Δx = (b-a)/n</div>
+      <p style="font-size:0.79rem;color:#64748b;margin:4px 0">Semakin besar n (lebih banyak partisi), aproksimasi semakin mendekati luas eksak.</p>
+      <div class="soal">Hitung ∫[0→3] x² dx menggunakan rumus anti-turunan. Berapa nilai eksak integralnya?</div>
+      <button class="opsi-btn" onclick="cek(this,'salah')">A. 6</button>
+      <button class="opsi-btn" onclick="cek(this,'benar')">B. 9</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">C. 12</button>
+      <button class="opsi-btn" onclick="cek(this,'salah')">D. 27/4</button>
+      <div class="pembahasan" id="pem">✅ Anti-turunan x² adalah x³/3. Maka ∫[0→3] x² dx = [x³/3] dari 0 ke 3 = (27/3) - (0/3) = 9 - 0 = <strong>9</strong>.</div>
+    </div>
+  </div>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const PAD = {l:50,r:20,t:20,b:40};
+
+const fns = {
+  x2: x => x*x,
+  x3: x => x*x*x,
+  sin: x => Math.sin(x),
+  x2plus: x => x*x+2*x+1,
+  sqrt: x => x>=0?Math.sqrt(x):0
+};
+const fnLabels = {x2:'x²',x3:'x³',sin:'sin(x)',x2plus:'x²+2x+1',sqrt:'√x'};
+
+function update(){
+  let a=+document.getElementById('sa').value;
+  let b=+document.getElementById('sb').value;
+  if(b<=a) b=a+0.5;
+  const n=+document.getElementById('sn').value;
+  const fnKey=document.getElementById('func').value;
+  document.getElementById('va').textContent=a;
+  document.getElementById('vb').textContent=b;
+  document.getElementById('vn').textContent=n;
+  const f=fns[fnKey];
+  // Riemann sum
+  const dx=(b-a)/n;
+  let sum=0;
+  for(let i=0;i<n;i++) sum+=f(a+i*dx)*dx;
+  // Exact (approximate with 1000 steps)
+  let exact=0, ex_dx=(b-a)/1000;
+  for(let i=0;i<1000;i++) exact+=f(a+i*ex_dx)*ex_dx;
+  const err=Math.abs((sum-exact)/(exact||1)*100);
+  document.getElementById('hasil').innerHTML=
+    `Aproksimasi Riemann (n=${n}): <b>${sum.toFixed(4)}</b><br>Nilai Eksak (≈): <b>${exact.toFixed(4)}</b><br>Error: <b>${err.toFixed(2)}%</b><br>${n>=100?'🎯 Sangat akurat!':n>=30?'✅ Cukup akurat':'⚠️ Tambah partisi untuk lebih akurat'}`;
+  draw(a,b,n,fnKey);
+}
+
+function draw(a,b,n,fnKey){
+  cv.width=cv.offsetWidth; cv.height=300;
+  const W=cv.width, H=300;
+  const f=fns[fnKey];
+  // Rentang y
+  let yMin=Infinity, yMax=-Infinity;
+  const steps=200;
+  for(let i=0;i<=steps;i++){
+    const x=a-0.5+(b-a+1)*i/steps;
+    const y=f(x);
+    if(isFinite(y)){yMin=Math.min(yMin,y); yMax=Math.max(yMax,y);}
+  }
+  if(yMin>0) yMin=0;
+  if(yMax<0) yMax=0;
+  const margin=0.15*(yMax-yMin)||1;
+  yMin-=margin; yMax+=margin;
+  const plotW=W-PAD.l-PAD.r, plotH=H-PAD.t-PAD.b;
+  const toCanX=x=>(x-a+0.5)*plotW/(b-a+1)+PAD.l;
+  const toCanY=y=>(1-(y-yMin)/(yMax-yMin))*plotH+PAD.t;
+  // Persegi Riemann
+  const dx=(b-a)/n;
+  for(let i=0;i<n;i++){
+    const x0=a+i*dx, x1=x0+dx;
+    const y=f(x0);
+    const cx0=toCanX(x0), cx1=toCanX(x1);
+    const cy0=toCanY(y), cy_zero=toCanY(0);
+    ctx.fillStyle=y>=0?'rgba(99,102,241,0.5)':'rgba(239,68,68,0.4)';
+    ctx.fillRect(cx0,Math.min(cy0,cy_zero),cx1-cx0,Math.abs(cy0-cy_zero));
+    ctx.strokeStyle='rgba(165,180,252,0.6)'; ctx.lineWidth=0.5;
+    ctx.strokeRect(cx0,Math.min(cy0,cy_zero),cx1-cx0,Math.abs(cy0-cy_zero));
+  }
+  // Sumbu
+  ctx.strokeStyle='#475569'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.l,PAD.t); ctx.lineTo(PAD.l,H-PAD.b); ctx.lineTo(W-PAD.r,H-PAD.b); ctx.stroke();
+  // Sumbu nol
+  const zy=toCanY(0);
+  ctx.strokeStyle='#64748b'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(PAD.l,zy); ctx.lineTo(W-PAD.r,zy); ctx.stroke();
+  ctx.setLineDash([]);
+  // Kurva f(x)
+  ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  let first=true;
+  for(let i=0;i<=200;i++){
+    const x=a-0.5+(b-a+1)*i/200;
+    const y=f(x);
+    const cx=toCanX(x), cy=toCanY(y);
+    if(isFinite(cy)){first?(ctx.moveTo(cx,cy),first=false):ctx.lineTo(cx,cy);}
+  }
+  ctx.stroke();
+  // Label
+  ctx.fillStyle='#94a3b8'; ctx.font='11px sans-serif';
+  ctx.fillText('f(x)='+fnLabels[fnKey],PAD.l+6,PAD.t+14);
+  ctx.fillStyle='#a5b4fc'; ctx.font='bold 11px sans-serif';
+  ctx.fillText('a='+a,toCanX(a)-15,H-PAD.b+14);
+  ctx.fillText('b='+b,toCanX(b)-10,H-PAD.b+14);
+}
+
+function cek(el,s){
+  document.querySelectorAll('.opsi-btn').forEach(b=>b.className='opsi-btn');
+  el.classList.add(s);
+  document.getElementById('pem').style.display='block';
+}
+
+window.addEventListener('resize',update);
+update();
+</script>
+</body>
+</html>
