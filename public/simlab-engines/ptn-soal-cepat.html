@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulator Penyelesaian Soal Cepat Masuk PTN Favorit (SNBT / UTBK)</title>
+  <title>Simulator Penyelesaian Soal Cepat Masuk PTN Favorit (15 Soal SNBT / UTBK)</title>
   <style>
     :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
     * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
@@ -12,15 +12,15 @@
     header h1 { font-size:1.12rem; font-weight:800; color:#1d4ed8; }
     header p { font-size:0.82rem; color:var(--muted); }
     .timer-pill { padding:8px 14px; border-radius:999px; font-family:monospace; font-size:0.95rem; font-weight:800; background:#0f172a; color:#34d399; display:flex; align-items:center; gap:8px; }
-    .tabs { display:flex; flex-wrap:wrap; gap:6px; padding:12px 20px; background:#fff; border-bottom:1px solid var(--border); }
-    .tab-btn { border:1px solid #cbd5e1; background:#f8fafc; color:#334155; padding:7px 12px; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer; }
+    .tabs { display:flex; flex-wrap:wrap; gap:6px; padding:12px 20px; background:#fff; border-bottom:1px solid var(--border); max-height:125px; overflow-y:auto; }
+    .tab-btn { border:1px solid #cbd5e1; background:#f8fafc; color:#334155; padding:6px 10px; border-radius:8px; font-weight:700; font-size:0.74rem; cursor:pointer; }
     .tab-btn.active { background:#2563eb; color:#fff; border-color:#1d4ed8; }
     main { flex:1; display:grid; grid-template-columns:minmax(320px,1.15fr) minmax(320px,1fr); gap:16px; padding:16px; }
     @media(max-width:900px){ main { grid-template-columns:1fr; } }
     .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
     canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
     .opts { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .opt-btn { border:1.5px solid #cbd5e1; background:#f8fafc; padding:10px 12px; border-radius:10px; text-align:left; font-weight:700; font-size:0.84rem; cursor:pointer; transition:0.15s; color:#0f172a; }
+    .opt-btn { border:1.5px solid #cbd5e1; background:#f8fafc; padding:10px 12px; border-radius:10px; text-align:left; font-weight:700; font-size:0.83rem; cursor:pointer; transition:0.15s; color:#0f172a; }
     .opt-btn:hover { border-color:#2563eb; background:#eff6ff; }
     .opt-btn.ok { background:#d1fae5; border-color:#10b981; color:#065f46; }
     .opt-btn.no { background:#ffe4e6; border-color:#f43f5e; color:#9f1239; }
@@ -33,12 +33,12 @@
 <body>
   <header>
     <div>
-      <h1>⚡ Simulator Penyelesaian Soal Cepat PTN Favorit (SNBT / UTBK)</h1>
-      <p>Latih kecepatan &lt; 45 detik/soal dengan visualisasi pola &amp; perbandingan Cara Biasa vs Trik Super Cepat!</p>
+      <h1>⚡ Simulator Penyelesaian Soal Cepat PTN Favorit (15 Soal Wajib SNBT / UTBK)</h1>
+      <p>Latih refleks &lt; 45 detik/soal lintas subtes: Kuantitatif, Aljabar, Geometri, Fisika, Kimia, Biologi, Ekonomi &amp; Penalaran Umum</p>
     </div>
     <div class="timer-pill">
       <span>⏱️ <span id="timerTxt">0.0</span> dtk</span>
-      <span style="color:#fbbf24;">| Skor: <span id="scoreTxt">0</span>/6</span>
+      <span style="color:#fbbf24;">| Skor: <span id="scoreTxt">0</span>/15</span>
     </div>
   </header>
 
@@ -66,118 +66,147 @@
 
   <script>
     const c = document.getElementById('ptnCanvas'), ctx = c.getContext('2d');
-    let cur = 0, sec = 0, timerOn = true, score = 0, solved = Array(6).fill(false), showTrick = false;
+    let cur = 0, sec = 0, timerOn = true, score = 0, solved = Array(15).fill(false);
+
+    function drawBox(title, lines, highlight) {
+      ctx.clearRect(0, 0, 600, 360);
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 17px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(title, 300, 58);
+      lines.forEach((ln, i) => {
+        ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 15px monospace';
+        ctx.fillText(ln, 300, 118 + i * 42);
+      });
+      ctx.fillStyle = 'rgba(16,185,129,0.2)'; ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(70, 255, 460, 58, 12); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#6ee7b7'; ctx.font = 'bold 16px sans-serif';
+      ctx.fillText(highlight, 300, 290);
+    }
 
     const bank = [
       {
-        tab: '1. Kuantitatif: Harga Diskon',
-        cat: 'SNBT Penalaran Kuantitatif • Pasti Keluar',
+        tab: '1. Diskon Ganda', cat: 'SNBT Kuantitatif • Pasti Keluar',
         q: 'Sebuah jaket didiskon 20%, lalu didiskon lagi 25% dari harga setelah diskon pertama. Berapa total diskon sebenarnya?',
         opts: ['45%', '40%', '35%', '50%'], ans: 1,
-        slow: 'Misal harga X, diskon 1 = 0,8X, diskon 2 = 0,75(0,8X) = 0,60X. Lalu kurangi X - 0,60X = 0,40X...',
-        fast: 'Pakai rumus cepat: D_total = d₁ + d₂ - (d₁×d₂)/100 = 20 + 25 - (20×25)/100 = 45 - 5 = 40%!',
-        draw: () => {
-          ctx.clearRect(0,0,600,360);
-          ctx.fillStyle='#1e293b'; ctx.fillRect(60,90,480,55);
-          ctx.fillStyle='#38bdf8'; ctx.fillRect(60,90,480*0.8,55);
-          ctx.fillStyle='#34d399'; ctx.fillRect(60,90,480*0.6,55);
-          ctx.fillStyle='#fff'; ctx.font='bold 16px sans-serif'; ctx.textAlign='center';
-          ctx.fillText('Harga Awal = 100 (Rp 100.000)', 300, 70);
-          ctx.fillText('Sisa Bayar = 60% ➔ Total Diskon = 40%!', 300, 195);
-          ctx.fillStyle='#fbbf24'; ctx.fillText('Trik: 20 + 25 - (20×25)/100 = 40%', 300, 250);
-        }
+        slow: 'Misal harga X, diskon 1 = 0,8X, diskon 2 = 0,75(0,8X) = 0,60X, lalu kurangi X - 0,60X.',
+        fast: 'Rumus cepat: D = d₁ + d₂ - (d₁×d₂)/100 = 20 + 25 - (20×25)/100 = 45 - 5 = 40%!',
+        draw: () => drawBox('POLA DISKON BERTINGKAT', ['Harga Awal = 100%', 'Diskon 1 (20%) ➔ Sisa 80%', 'Diskon 2 (25% dari 80%) = -20%'], 'Sisa Bayar = 60% ➔ Total Diskon = 40%!')
       },
       {
-        tab: '2. Aljabar: Selisih Kuadrat',
-        cat: 'SNBT Pengetahuan Kuantitatif • Jebakan Hitung',
+        tab: '2. Selisih Kuadrat', cat: 'SNBT Aljabar • Jebakan Hitung',
         q: 'Hitung cepat nilai dari: (2026² − 2024²) / (2026 + 2024) = ...',
         opts: ['2', '4', '2025', '4050'], ans: 0,
-        slow: 'Menghitung 2026² = 4.104.676 lalu dikurangi 2024² = 4.096.576 lalu dibagi 4050 (habis waktu!).',
-        fast: 'Ingat identitas a² - b² = (a-b)(a+b)! Coret (a+b) atas & bawah → tersisa (a - b) = 2026 - 2024 = 2!',
-        draw: () => {
-          ctx.clearRect(0,0,600,360);
-          ctx.fillStyle='#38bdf8'; ctx.font='bold 24px monospace'; ctx.textAlign='center';
-          ctx.fillText('(2026 - 2024)(2026 + 2024)', 300, 130);
-          ctx.fillStyle='#64748b'; ctx.fillRect(110, 150, 380, 3);
-          ctx.fillStyle='#38bdf8'; ctx.fillText('(2026 + 2024)', 300, 185);
-          ctx.strokeStyle='#f43f5e'; ctx.lineWidth=4;
-          ctx.beginPath(); ctx.moveTo(310,105); ctx.lineTo(485,140); ctx.moveTo(210,165); ctx.lineTo(390,195); ctx.stroke();
-          ctx.fillStyle='#34d399'; ctx.font='bold 26px sans-serif';
-          ctx.fillText('Hasil Instan = 2026 - 2024 = 2!', 300, 270);
-        }
+        slow: 'Menghitung 2026² = 4.104.676 lalu dikurangi 2024² lalu dibagi 4050 (habis waktu!).',
+        fast: 'Identitas a² - b² = (a-b)(a+b). Coret (a+b) atas & bawah ➔ tersisa 2026 - 2024 = 2!',
+        draw: () => drawBox('IDENTITAS ALJABAR a² - b²', ['(2026 - 2024)(2026 + 2024)', '─────────────────────────', '       (2026 + 2024)'], 'Coret faktor sama ➔ 2026 - 2024 = 2!')
       },
       {
-        tab: '3. Fisika: Jatuh Bebas',
-        cat: 'Fisika UTBK • Perbandingan Cepat',
-        q: 'Bola A jatuh dari ketinggian h dan menyentuh tanah dengan kecepatan v. Jika dijatuhkan dari ketinggian 4h, kecepatannya menjadi...',
+        tab: '3. Jatuh Bebas', cat: 'Fisika UTBK • Perbandingan Cepat',
+        q: 'Bola jatuh dari ketinggian h dan menyentuh tanah dengan kecepatan v. Jika dijatuhkan dari ketinggian 4h, kecepatannya menjadi...',
         opts: ['v', '2v', '4v', '8v'], ans: 1,
-        slow: 'Menghitung satu per satu t₁ = √(2h/g), v₁ = gt₁, lalu ulang untuk h₂ = 4h...',
-        fast: 'Gunakan proporsi langsung v = √(2gh) ➔ v sebanding dengan √h! Karena h naik 4×, maka v naik √4 = 2× menjadi 2v!',
-        draw: () => {
-          ctx.clearRect(0,0,600,360);
-          ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(180,220,16,0,Math.PI*2); ctx.fill();
-          ctx.fillStyle='#34d399'; ctx.beginPath(); ctx.arc(420,80,16,0,Math.PI*2); ctx.fill();
-          ctx.fillStyle='#fff'; ctx.font='bold 16px sans-serif'; ctx.textAlign='center';
-          ctx.fillText('h₁ = 1h ➔ v = 1v', 180, 280);
-          ctx.fillText('h₂ = 4h ➔ v = √4 = 2v', 420, 280);
-        }
+        slow: 'Menghitung satu per satu t₁ = √(2h/g), v₁ = gt₁, lalu mengulang untuk 4h.',
+        fast: 'v = √(2gh) ➔ v sebanding dengan √h! Karena h naik 4×, maka v naik √4 = 2× menjadi 2v!',
+        draw: () => drawBox('PROPORSI KECEPATAN v ∝ √h', ['h₁ = 1h  ➔  v₁ = 1v', 'h₂ = 4h  ➔  v₂ = √4 × v'], 'Kecepatan menjadi 2v dalam 3 detik!')
       },
       {
-        tab: '4. Kimia: Pengenceran',
-        cat: 'Kimia UTBK • Konsentrasi Cepat',
+        tab: '4. Pengenceran', cat: 'Kimia UTBK • Konsentrasi Cepat',
         q: '100 ml larutan HCl 0,5 M diencerkan dengan air hingga volumenya menjadi 500 ml. Berapa molaritas akhirnya?',
         opts: ['0,05 M', '0,10 M', '0,25 M', '2,50 M'], ans: 1,
-        slow: 'Mencari mol = M×V = 0,5×0,1 = 0,05 mol, lalu M₂ = 0,05 / 0,5 = 0,1 M.',
-        fast: 'Volume naik 5× lipat (100 → 500 ml). Karena M berbanding terbalik dengan V, maka konsentrasi turun dibagi 5: 0,5 / 5 = 0,10 M!',
-        draw: () => {
-          ctx.clearRect(0,0,600,360);
-          ctx.fillStyle='rgba(56,189,248,0.6)'; ctx.fillRect(110,200,110,90);
-          ctx.fillStyle='rgba(56,189,248,0.25)'; ctx.fillRect(360,110,140,180);
-          ctx.fillStyle='#fff'; ctx.font='bold 15px sans-serif'; ctx.textAlign='center';
-          ctx.fillText('100 ml (0,5 M)', 165, 320);
-          ctx.fillText('➔ Volume ×5', 290, 210);
-          ctx.fillText('500 ml (0,5 ÷ 5 = 0,1 M)', 430, 320);
-        }
+        slow: 'Mencari mol = 0,5 × 0,1 = 0,05 mol, lalu membagi 0,05 / 0,5 = 0,1 M.',
+        fast: 'Volume naik 5× lipat (100 → 500 ml), maka Molaritas turun dibagi 5: 0,5 ÷ 5 = 0,10 M!',
+        draw: () => drawBox('PENGENCERAN M₁V₁ = M₂V₂', ['V₁ = 100 ml  ➔  V₂ = 500 ml (×5)', 'M berbanding terbalik dengan Volume'], 'M₂ = 0,5 M ÷ 5 = 0,10 M!')
       },
       {
-        tab: '5. Logika: Silogisme',
-        cat: 'SNBT Penalaran Umum • Logika Pasti',
-        q: 'Semua siswa kelas XII mengikuti Try Out PTN. Sebagian peserta Try Out PTN lulus SNBT. Kesimpulan yang PASTI benar adalah...',
-        opts: ['Semua siswa kelas XII lulus SNBT', 'Sebagian siswa kelas XII mengikuti Try Out PTN', 'Semua yang lulus SNBT adalah kelas XII', 'Tidak ada kesimpulan pasti tentang kelulusan kelas XII'], ans: 3,
-        slow: 'Membaca berulang-ulang kalimat dan bingung membayangkan apakah kelas XII termasuk yang lulus.',
-        fast: 'Diagram Euler: Kelas XII ada di dalam lingkaran Try Out, dan irisan "Lulus" bisa saja hanya mengenai bagian luar Kelas XII! Jadi tidak ada kepastian kelas XII lulus.',
-        draw: () => {
-          ctx.clearRect(0,0,600,360);
-          ctx.strokeStyle='#38bdf8'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(280,180,120,0,Math.PI*2); ctx.stroke();
-          ctx.strokeStyle='#34d399'; ctx.beginPath(); ctx.arc(220,180,55,0,Math.PI*2); ctx.stroke();
-          ctx.strokeStyle='#fbbf24'; ctx.beginPath(); ctx.arc(365,180,55,0,Math.PI*2); ctx.stroke();
-          ctx.fillStyle='#fff'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
-          ctx.fillText('Try Out PTN', 280, 48);
-          ctx.fillText('Kls XII', 220, 185);
-          ctx.fillText('Lulus SNBT', 365, 185);
-        }
+        tab: '5. Silogisme', cat: 'SNBT Penalaran Umum • Logika Pasti',
+        q: 'Semua siswa kelas XII ikut Try Out. Sebagian peserta Try Out lulus SNBT. Kesimpulan yang PASTI benar adalah...',
+        opts: ['Semua siswa kelas XII lulus SNBT', 'Sebagian siswa kelas XII lulus SNBT', 'Semua yang lulus SNBT kelas XII', 'Tidak ada kesimpulan pasti tentang kelulusan kelas XII'], ans: 3,
+        slow: 'Membaca berulang kali sambil menebak-nebak apakah kelas XII pasti termasuk yang lulus.',
+        fast: 'Diagram Euler: Kelas XII di dalam Try Out, irisan Lulus bisa hanya di luar Kelas XII ➔ tidak ada kepastian!',
+        draw: () => drawBox('DIAGRAM EULER SILOGISME', ['[ Try Out [ Kelas XII ] ]', 'Irisan "Lulus" bisa di luar Kelas XII'], 'Tidak ada kepastian kelas XII lulus!')
       },
       {
-        tab: '6. Ekonomi: Keuntungan',
-        cat: 'Ekonomi / Kuantitatif • Untung Rugi',
-        q: 'Pedagang menjual barang Rp 120.000 dan memperoleh untung 20% dari harga beli. Berapakah harga belinya?',
+        tab: '6. Untung-Rugi', cat: 'Ekonomi / Kuantitatif • Persentase',
+        q: 'Pedagang menjual barang Rp 120.000 dan untung 20% dari harga beli. Berapakah harga belinya?',
         opts: ['Rp 96.000', 'Rp 100.000', 'Rp 104.000', 'Rp 144.000'], ans: 1,
-        slow: 'Jebakan umum: langsung menghitung 120.000 - 20%(120.000) = 96.000 (SALAH!). Harus buat persamaan X + 0,2X = 120.000.',
-        fast: 'Harga Jual = 120% dari Harga Beli! Jadi Harga Beli = (100 / 120) × 120.000 = Rp 100.000 dalam 5 detik!',
-        draw: () => {
-          ctx.clearRect(0,0,600,360);
-          ctx.fillStyle='#34d399'; ctx.fillRect(100,140,300,50);
-          ctx.fillStyle='#fbbf24'; ctx.fillRect(400,140,60,50);
-          ctx.fillStyle='#0f172a'; ctx.font='bold 14px sans-serif'; ctx.textAlign='center';
-          ctx.fillText('100% Beli (Rp100rb)', 250, 170);
-          ctx.fillText('+20%', 430, 170);
-          ctx.fillStyle='#fff'; ctx.fillText('Total 120% = Rp 120.000 ➔ 1% = Rp 1.000!', 300, 240);
-        }
+        slow: 'Jebakan umum: langsung menghitung 120.000 - 20%(120.000) = 96.000 (SALAH!).',
+        fast: 'Harga Jual = 120% Harga Beli ➔ Harga Beli = (100 / 120) × 120.000 = Rp 100.000!',
+        draw: () => drawBox('PERSENTASE HARGA BELI = 100%', ['Harga Beli = 100%', 'Untung = +20%', 'Harga Jual = 120% = Rp 120.000'], '100% = (100/120) × 120.000 = Rp 100.000!')
+      },
+      {
+        tab: '7. Pekerja & Hari', cat: 'SNBT Kuantitatif • Perbandingan Berbalik',
+        q: 'Proyek selesai oleh 12 pekerja dalam 20 hari. Jika ingin selesai dalam 15 hari, berapa pekerja tambahan yang dibutuhkan?',
+        opts: ['4 orang', '16 orang', '3 orang', '8 orang'], ans: 0,
+        slow: 'Membuat tabel perbandingan lalu lupa bahwa yang ditanya adalah PEKERJA TAMBAHAN (bukan total).',
+        fast: 'Total beban = 12 × 20 = 240 orang-hari. Untuk 15 hari butuh 240 ÷ 15 = 16 orang. Tambahan = 16 - 12 = 4 orang!',
+        draw: () => drawBox('BEBAN KERJA TETAP (O × H)', ['Beban = 12 × 20 = 240', 'Target 15 hari ➔ 240 ÷ 15 = 16 pekerja'], 'Tambahan = 16 - 12 = 4 orang!')
+      },
+      {
+        tab: '8. Deret Angka', cat: 'SNBT Penalaran Kuantitatif • Pola Barisan',
+        q: 'Diketahui barisan aritmetika dengan U₃ = 14 dan U₇ = 30. Berapakah nilai suku ke-10 (U₁₀)?',
+        opts: ['38', '42', '46', '50'], ans: 1,
+        slow: 'Membuat 2 persamaan a+2b=14 dan a+6b=30 lalu eliminasi mencari a baru mencari U₁₀.',
+        fast: 'Selisih 4 langkah (7-3) naik 16 (30-14) ➔ beda b = 16/4 = 4. Dari U₇ ke U₁₀ (+3 langkah): 30 + 3(4) = 42!',
+        draw: () => drawBox('TRIK LOMPAT SUKU ARITMETIKA', ['U₃ = 14  ────(+4b = +16)────▶  U₇ = 30', 'b = 16 ÷ 4 = 4'], 'U₁₀ = U₇ + 3b = 30 + 12 = 42!')
+      },
+      {
+        tab: '9. Sudut Segitiga', cat: 'SNBT Geometri • Sudut Luar Segitiga',
+        q: 'Pada segitiga ABC, sudut A = 45° dan sudut B = 65°. Berapakah besar sudut pelurus (sudut luar) di titik C?',
+        opts: ['70°', '110°', '120°', '135°'], ans: 1,
+        slow: 'Cari dulu sudut C = 180 - (45+65) = 70°, lalu hitung pelurus 180 - 70 = 110°.',
+        fast: 'Teorema Sudut Luar: Sudut luar di C = jumlah 2 sudut dalam lainnya = A + B = 45° + 65° = 110° langsung!',
+        draw: () => drawBox('TEOREMA SUDUT LUAR SEGITIGA', ['∠A = 45°, ∠B = 65°', 'Sudut Luar C = ∠A + ∠B'], '45° + 65° = 110° dalam 2 detik!')
+      },
+      {
+        tab: '10. Energi Kinetik', cat: 'Fisika UTBK • Usaha & Energi',
+        q: 'Mobil bermassa m melaju dengan kecepatan v memiliki energi kinetik 200 J. Jika kecepatannya diperbesar menjadi 3v, energi kinetiknya menjadi...',
+        opts: ['600 J', '900 J', '1.800 J', '2.400 J'], ans: 2,
+        slow: 'Mencari nilai m atau v dulu dari ½mv² = 200 (tidak mungkin karena 2 variabel!).',
+        fast: 'Ek = ½mv² ➔ Ek sebanding dengan v²! Jika v naik 3×, maka Ek naik 3² = 9× ➔ 9 × 200 J = 1.800 J!',
+        draw: () => drawBox('PROPORSI ENERGI KINETIK Ek ∝ v²', ['v₁ = 1v  ➔  Ek₁ = 200 J', 'v₂ = 3v  ➔  Ek₂ = 3² × 200 J'], 'Ek₂ = 9 × 200 = 1.800 Joule!')
+      },
+      {
+        tab: '11. pH Campuran', cat: 'Kimia UTBK • Asam Kuat Cepat',
+        q: '100 ml HCl 0,02 M dicampur dengan 100 ml air murni. Jika log 1 = 0, berapakah pH campuran tersebut?',
+        opts: ['1', '2', '3', '4'], ans: 1,
+        slow: 'Hitung mol = 0,1×0,02 = 0,002 mol, volume = 0,2 L, M = 0,01 M, pH = -log(10⁻²).',
+        fast: 'Volume jadi 2× lipat (100+100 ml), maka [H⁺] terbagi 2: 0,02 M ÷ 2 = 0,01 M = 10⁻² M ➔ pH = 2!',
+        draw: () => drawBox('PENGENCERAN ASAM KUAT', ['[H⁺] awal = 0,02 M, V = 100 ml', 'Ditambah 100 ml air ➔ Volume ×2', '[H⁺] akhir = 0,02 ÷ 2 = 0,01 M = 10⁻²'], 'pH = -log(10⁻²) = 2!')
+      },
+      {
+        tab: '12. Genetika Mendel', cat: 'Biologi UTBK • Dihibrid Cepat',
+        q: 'Persilangan dua tanaman heterozigot sempurna AaBb × AaBb menghasilkan 320 keturunan. Berapa banyak tanaman yang berfenotipe dominan keduanya (A_B_)?',
+        opts: ['60', '120', '180', '240'], ans: 2,
+        slow: 'Menggambar papan catur Punnett 4×4 (16 kotak) satu per satu hingga memakan 4 menit.',
+        fast: 'Ingat rasio baku Dihibrid 9 : 3 : 3 : 1 (total 16). Dominan keduanya = 9/16 × 320 = 9 × 20 = 180!',
+        draw: () => drawBox('RASIO BAKU DIHIBRID 9 : 3 : 3 : 1', ['AaBb × AaBb ➔ Total 16 bagian', 'Dominan A_B_ = 9/16 bagian'], '(9/16) × 320 = 180 tanaman!')
+      },
+      {
+        tab: '13. Elastisitas', cat: 'Ekonomi UTBK • Koefisien Elastisitas',
+        q: 'Saat harga barang turun 10%, jumlah barang yang diminta naik 25%. Jenis elastisitas permintaannya adalah...',
+        opts: ['Inelastis (E < 1)', 'Elastis (E > 1)', 'Uniter (E = 1)', 'Elastis Sempurna'], ans: 1,
+        slow: 'Mencari rumus ΔQ/ΔP × P/Q padahal persentase perubahan sudah diberikan langsung di soal!',
+        fast: 'E = |%ΔQ / %ΔP| = 25% / 10% = 2,5. Karena 2,5 > 1 maka bersifat ELASTIS!',
+        draw: () => drawBox('ELASTISITAS DARI PERSENTASE', ['%ΔQ = +25%  |  %ΔP = -10%', 'Ed = 25% ÷ 10% = 2,5'], 'Ed = 2,5 > 1 ➔ Permintaan ELASTIS!')
+      },
+      {
+        tab: '14. Jabat Tangan', cat: 'SNBT Kombinatorika • Pasti Keluar',
+        q: 'Dalam suatu rapat ada 10 orang yang saling berjabat tangan satu sama lain tepat satu kali. Berapa total jabat tangan yang terjadi?',
+        opts: ['45', '90', '55', '100'], ans: 0,
+        slow: 'Menghitung manual 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1.',
+        fast: 'Rumus cepat kombinasi 2 orang: n(n-1)/2 = (10 × 9) / 2 = 45 jabat tangan!',
+        draw: () => drawBox('KOMBINASI PASANGAN n(n-1)/2', ['Jumlah peserta n = 10 orang', 'Banyak pasangan = 10 × 9 ÷ 2'], 'Total jabat tangan = 45 kali!')
+      },
+      {
+        tab: '15. Rata-rata Gabungan', cat: 'SNBT Statistika • Trik Jungkat-Jungkit',
+        q: 'Rata-rata nilai 15 siswa adalah 80. Jika nilai Andi digabungkan, rata-ratanya naik menjadi 81. Berapakah nilai Andi?',
+        opts: ['81', '90', '95', '96'], ans: 3,
+        slow: 'Hitung (16 × 81) - (15 × 80) = 1.296 - 1.200 = 96.',
+        fast: 'Trik selisih: Untuk menaikkan 15 siswa lama masing-masing +1 (+15) plus dirinya 81 ➔ 81 + 15 = 96 dalam 3 detik!',
+        draw: () => drawBox('TRIK RATA-RATA GABUNGAN', ['Rata-rata baru = 81', 'Harus memberi +1 ke 15 siswa lama (+15)'], 'Nilai Andi = 81 + 15 = 96!')
       }
     ];
 
     function loadQ(idx) {
-      cur = idx; sec = 0; timerOn = true; showTrick = false;
+      cur = idx; sec = 0; timerOn = true;
       document.getElementById('compareBox').style.display = 'none';
       const q = bank[idx];
       document.getElementById('tabBar').innerHTML = bank.map((b, i) =>
@@ -193,7 +222,7 @@
       q.draw();
     }
 
-    function pick(i, btn) {
+    function pick(i) {
       timerOn = false;
       const q = bank[cur];
       document.querySelectorAll('.opt-btn').forEach((b, idx) => {
@@ -209,7 +238,6 @@
     }
 
     function revealTrick() {
-      showTrick = true;
       document.getElementById('compareBox').style.display = 'grid';
     }
 

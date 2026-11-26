@@ -60,6 +60,11 @@
         'chem_stoichiometry' => asset('simlab-engines/kimia-stoikiometri-pembatas.html'),
         'math_probability'   => asset('simlab-engines/matematika-peluang-kombinasi.html'),
         'ptn_speed'          => asset('simlab-engines/ptn-soal-cepat.html'),
+        'ipa_renewable'      => asset('simlab-engines/ipa-energi-terbarukan.html'),
+        'bio_genetics'       => asset('simlab-engines/biologi-genetika-mendel.html'),
+        'math_transform'     => asset('simlab-engines/matematika-transformasi-geometri.html'),
+        'vokasi_plc'         => asset('simlab-engines/vokasi-otomasi-relay.html'),
+        'econ_compound'      => asset('simlab-engines/ekonomi-bunga-majemuk.html'),
     ];
 
     $rooms = [

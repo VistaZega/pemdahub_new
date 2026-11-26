@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Vokasi SMK: Kontrol Kontaktor Relay &amp; Motor Industri</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#ea580c; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    button { border:none; border-radius:10px; padding:12px; font-weight:800; font-size:0.86rem; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚙️ Simulator Vokasi SMK: Panel Kontrol Relay Self-Holding &amp; Motor Industri</h1>
+    <p style="font-size:0.82rem;color:#475569;">Latihan kerja teknisi industri: uji rangkaian pengunci (Self-Holding), tombol START, STOP, dan Emergency Stop!</p>
+  </header>
+  <main>
+    <div class="card"><canvas id="plcCanvas" width="760" height="390"></canvas></div>
+    <div class="card">
+      <div style="padding:12px;border-radius:12px;background:#f1f5f9;font-weight:800;font-size:0.95rem;" id="stMotor">STATUS: MOTOR STANDBY (MATI)</div>
+      <button onclick="startMotor()" style="background:#10b981;color:#fff;">🟢 Tekan Push Button START (NO)</button>
+      <button onclick="stopMotor()" style="background:#f59e0b;color:#451a03;">🟡 Tekan Push Button STOP (NC)</button>
+      <button onclick="emgStop()" style="background:#e11d48;color:#fff;">🛑 EMERGENCY STOP (Kunci Pengaman)</button>
+      <button onclick="resetEmg()" style="background:#475569;color:#fff;">↺ Reset Emergency Stop</button>
+    </div>
+  </main>
+  <script>
+    const c = document.getElementById('plcCanvas'), ctx = c.getContext('2d');
+    let running = false, emergency = false, ang = 0;
+
+    function startMotor() { if(!emergency) running = true; updateText(); }
+    function stopMotor() { running = false; updateText(); }
+    function emgStop() { emergency = true; running = false; updateText(); }
+    function resetEmg() { emergency = false; updateText(); }
+    function updateText() {
+      const el = document.getElementById('stMotor');
+      el.textContent = emergency ? 'STATUS: EMERGENCY STOP AKTIF!' : (running ? 'STATUS: MOTOR BERPUTAR (SELF-HOLDING AKTIF)' : 'STATUS: MOTOR STANDBY (MATI)');
+      el.style.color = emergency ? '#e11d48' : (running ? '#059669' : '#475569');
+    }
+
+    function loop() {
+      if (running) ang += 0.12;
+      ctx.clearRect(0,0,760,390);
+      // Sumber 24V/220V
+      ctx.strokeStyle = running ? '#34d399' : '#475569'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(80,100); ctx.lineTo(540,100); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(80,290); ctx.lineTo(540,290); ctx.stroke();
+
+      // Kontaktor Relay
+      ctx.fillStyle = running ? '#059669' : '#1e293b'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+      ctx.fillRect(220,140,120,100); ctx.strokeRect(220,140,120,100);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('KONTAKTOR K1', 280, 195);
+
+      // Motor 3 Fasa
+      ctx.save(); ctx.translate(580,195);
+      ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(0,0,65,0,Math.PI*2); ctx.fill();
+      ctx.rotate(ang);
+      ctx.strokeStyle = running ? '#38bdf8' : '#64748b'; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(-45,0); ctx.lineTo(45,0); ctx.moveTo(0,-45); ctx.lineTo(0,45); ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#fff'; ctx.fillText(running ? '1450 RPM' : '0 RPM', 580, 290);
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

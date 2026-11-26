@@ -55,19 +55,19 @@ class VirtualLab extends Model
         if (in_array($eng, ['olympiad_5', 'ptn_speed']) || str_contains($subj, 'olimpiade') || str_contains($subj, 'ptn')) {
             return 'olimpiade';
         }
-        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate']) || $this->category === 'vokasi') {
+        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc']) || $this->category === 'vokasi') {
             return 'vokasi';
         }
-        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'ipa_greenhouse', 'ohm_law']) || str_contains($subj, 'fisika')) {
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law']) || str_contains($subj, 'fisika')) {
             return 'fisika';
         }
-        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'biology_cell', 'bio_photosynthesis', 'bio_blood']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
             return 'kimia_biologi';
         }
-        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability']) || str_contains($subj, 'matematika')) {
+        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform']) || str_contains($subj, 'matematika')) {
             return 'matematika';
         }
-        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa')) {
+        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa')) {
             return 'ips_bahasa';
         }
 
@@ -633,17 +633,92 @@ class VirtualLab extends Model
             ],
             [
                 'slug'         => 'ptn-soal-cepat-snbt',
-                'title'        => '⚡ Simulator Penyelesaian Soal Cepat PTN Favorit (SNBT / UTBK)',
+                'title'        => '⚡ Simulator Penyelesaian Soal Cepat PTN Favorit (15 Soal SNBT / UTBK)',
                 'category'     => 'sma',
                 'subject_name' => 'Persiapan PTN / SNBT / UTBK (Lintas Ilmu)',
                 'engine_type'  => 'ptn_speed',
                 'icon'         => 'fas fa-bolt',
                 'accent_color' => '#2563eb',
-                'description'  => 'Mengapa siswa sering kehabisan waktu saat UTBK? Latih trik penyelesaian < 15 detik dengan visualisasi pola untuk soal Kuantitatif, Aljabar, Fisika, Kimia, Logika & Ekonomi yang pasti keluar di tes PTN Favorit!',
+                'description'  => 'Mengapa siswa sering kehabisan waktu saat UTBK? Latih trik penyelesaian < 15 detik untuk 15 soal wajib SNBT/UTBK (Kuantitatif, Aljabar, Geometri, Fisika, Kimia, Biologi, Ekonomi & Logika)!',
                 'sop_steps'    => [
-                    'Pilih topik soal (Diskon Ganda, Selisih Kuadrat, Jatuh Bebas, Pengenceran, Silogisme, atau Untung-Rugi).',
+                    'Pilih 15 topik soal yang paling sering keluar di tes PTN Favorit.',
                     'Perhatikan stopwatch di kanan atas dan coba jawab secepat mungkin (< 45 detik).',
                     'Klik Bongkar Visualisasi Pola & Trik Super Cepat untuk membandingkan cara panjang vs trik 15 detik.',
+                ],
+            ],
+            [
+                'slug'         => 'ipa-energi-terbarukan',
+                'title'        => 'Simulator IPA & Teknologi: Panel Surya & Turbin Angin',
+                'category'     => 'sma',
+                'subject_name' => 'IPA / Fisika / Teknologi Hijau',
+                'engine_type'  => 'ipa_renewable',
+                'icon'         => 'fas fa-solar-panel',
+                'accent_color' => '#0284c7',
+                'description'  => 'Bagaimana sinar matahari dan angin diubah menjadi energi listrik (Watt) untuk menyalakan rumah modern masa depan?',
+                'sop_steps'    => [
+                    'Atur intensitas cahaya matahari dan sudut kemiringan panel surya untuk mencari daya maksimum.',
+                    'Naikkan kecepatan angin dan amati peningkatan daya turbin angin secara kubik (v³).',
+                    'Amati nyala lampu rumah seiring bertambahnya total daya listrik terbarukan.',
+                ],
+            ],
+            [
+                'slug'         => 'biologi-genetika-mendel',
+                'title'        => 'Simulator Biologi: Genetika Mendel & Papan Punnett',
+                'category'     => 'sma',
+                'subject_name' => 'Biologi (SMP & SMA)',
+                'engine_type'  => 'bio_genetics',
+                'icon'         => 'fas fa-seedling',
+                'accent_color' => '#059669',
+                'description'  => 'Mengapa dua induk tanaman tinggi (Aa × Aa) tetap bisa melahirkan keturunan bertubuh pendek (aa)? Uji persilangannya di Papan Punnett!',
+                'sop_steps'    => [
+                    'Pilih genotipe Induk 1 dan Induk 2 (AA, Aa, atau aa).',
+                    'Amati kombinasi gamet pada 4 kotak Papan Punnett.',
+                    'Catat rasio genotipe dan rasio fenotipe dominan vs resesif yang terbentuk.',
+                ],
+            ],
+            [
+                'slug'         => 'matematika-transformasi-geometri',
+                'title'        => 'Simulator Matematika: Transformasi Geometri 2D (Grafika & Robotika)',
+                'category'     => 'sma',
+                'subject_name' => 'Matematika / Informatika (SMP & SMA)',
+                'engine_type'  => 'math_transform',
+                'icon'         => 'fas fa-vector-square',
+                'accent_color' => '#4f46e5',
+                'description'  => 'Bagaimana komputer menggeser, memutar, dan memperbesar objek dalam game atau robotika menggunakan Translasi, Rotasi & Dilatasi?',
+                'sop_steps'    => [
+                    'Geser slider Translasi X dan Y untuk memindahkan posisi segitiga bayangan.',
+                    'Putar slider Rotasi Sudut (0°–360°) dan amati koordinat bayangan P1\', P2\', P3\'.',
+                    'Ubah Skala Dilatasi (k) untuk memperbesar atau memperkecil bangun.',
+                ],
+            ],
+            [
+                'slug'         => 'vokasi-otomasi-relay',
+                'title'        => 'Simulator Vokasi SMK: Kontrol Relay Self-Holding & Motor Industri',
+                'category'     => 'vokasi',
+                'subject_name' => 'Teknik Listrik / Otomasi / Industri (SMK)',
+                'engine_type'  => 'vokasi_plc',
+                'icon'         => 'fas fa-industry',
+                'accent_color' => '#ea580c',
+                'description'  => 'Bagaimana tombol START sesaat bisa membuat motor pabrik terus berputar hingga tombol STOP atau Emergency Stop ditekan?',
+                'sop_steps'    => [
+                    'Tekan Push Button START (NO) untuk mengaktifkan Kontaktor K1 dan memutar motor 3-fasa.',
+                    'Uji tombol STOP (NC) untuk memutus rangkaian pengunci (self-holding).',
+                    'Uji EMERGENCY STOP dan amati penguncian pengaman hingga di-reset.',
+                ],
+            ],
+            [
+                'slug'         => 'ekonomi-bunga-majemuk',
+                'title'        => 'Simulator Literasi Keuangan: Bunga Majemuk & Investasi Karier',
+                'category'     => 'umum',
+                'subject_name' => 'Ekonomi / Matematika Keuangan',
+                'engine_type'  => 'econ_compound',
+                'icon'         => 'fas fa-piggy-bank',
+                'accent_color' => '#7c3aed',
+                'description'  => 'Mengapa menabung/berinvestasi sejak muda menghasilkan selisih kekayaan berlipat ganda dibanding menunggu tua? Bandingkan Bunga Majemuk vs Bunga Tunggal!',
+                'sop_steps'    => [
+                    'Atur modal awal, tingkat imbal hasil tahunan (%), dan lama waktu investasi (tahun).',
+                    'Bandingkan kurva biru (Bunga Tunggal lurus) dengan kurva hijau (Bunga Majemuk eksponensial).',
+                    'Amati lonjakan nilai investasi setelah melewati tahun ke-15.',
                 ],
             ],
         ];

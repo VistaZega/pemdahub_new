@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Biologi: Genetika Mendel &amp; Papan Punnett</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; padding:16px; gap:16px; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; }
+    h1 { font-size:1.15rem; font-weight:800; color:#059669; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:800px){ .grid { grid-template-columns:1fr; } }
+    select { width:100%; padding:10px; border-radius:10px; border:1px solid #cbd5e1; font-weight:700; margin-top:6px; }
+    table { width:100%; border-collapse:collapse; text-align:center; font-size:1.1rem; font-weight:800; }
+    td, th { border:2px solid #cbd5e1; padding:16px; }
+    th { background:#0f172a; color:#34d399; }
+    .dom { background:#d1fae5; color:#065f46; }
+    .het { background:#fef3c7; color:#92400e; }
+    .res { background:#ffe4e6; color:#9f1239; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌱 Simulator Biologi: Hukum Pewarisan Sifat Mendel &amp; Papan Punnett</h1>
+    <p style="font-size:0.84rem;color:#475569;margin-top:4px;">Pilih genotipe Induk Jantan dan Betina untuk melihat probabilitas keturunan (AA, Aa, aa) secara instan.</p>
+  </div>
+  <div class="grid">
+    <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-weight:700;font-size:0.85rem;">Genotipe Induk 1 (A = Dominan Tinggi, a = Resesif Pendek)</label>
+        <select id="p1" onchange="calc()"><option value="AA">AA (Homozigot Dominan)</option><option value="Aa" selected>Aa (Heterozigot)</option><option value="aa">aa (Homozigot Resesif)</option></select>
+      </div>
+      <div>
+        <label style="font-weight:700;font-size:0.85rem;">Genotipe Induk 2</label>
+        <select id="p2" onchange="calc()"><option value="AA">AA (Homozigot Dominan)</option><option value="Aa" selected>Aa (Heterozigot)</option><option value="aa">aa (Homozigot Resesif)</option></select>
+      </div>
+      <div id="summary" style="background:#f1f5f9;padding:14px;border-radius:12px;font-size:0.9rem;line-height:1.6;"></div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Gamet</th><th id="g2a">A</th><th id="g2b">a</th></tr></thead>
+        <tbody>
+          <tr><th id="g1a">A</th><td id="c00"></td><td id="c01"></td></tr>
+          <tr><th id="g1b">a</th><td id="c10"></td><td id="c11"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    function norm(x, y) { return [x, y].sort().join(''); }
+    function cls(g) { return g === 'AA' ? 'dom' : (g === 'Aa' ? 'het' : 'res'); }
+    function calc() {
+      const a = document.getElementById('p1').value, b = document.getElementById('p2').value;
+      document.getElementById('g1a').textContent = a[0]; document.getElementById('g1b').textContent = a[1];
+      document.getElementById('g2a').textContent = b[0]; document.getElementById('g2b').textContent = b[1];
+      const cells = [[norm(a[0],b[0]), 'c00'], [norm(a[0],b[1]), 'c01'], [norm(a[1],b[0]), 'c10'], [norm(a[1],b[1]), 'c11']];
+      let cAA=0, cAa=0, caa=0;
+      cells.forEach(([g, id]) => {
+        const el = document.getElementById(id);
+        el.textContent = g; el.className = cls(g);
+        if (g==='AA') cAA++; else if (g==='Aa') cAa++; else caa++;
+      });
+      document.getElementById('summary').innerHTML =
+        `<strong>Rasio Genotipe:</strong> AA (${cAA*25}%) : Aa (${cAa*25}%) : aa (${caa*25}%)<br>` +
+        `<strong>Rasio Fenotipe:</strong> Dominan Tinggi = <strong>${(cAA+cAa)*25}%</strong> | Resesif Pendek = <strong>${caa*25}%</strong>`;
+    }
+    calc();
+  </script>
+</body>
+</html>
