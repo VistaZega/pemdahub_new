@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SimProject;
+use App\Models\VirtualLab;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -30,7 +31,137 @@ class SimLabController extends Controller
             ->orderBy('title', 'asc')
             ->get();
 
-        return view('simlab.index', compact('myProjects', 'templates'));
+        $virtualLabs = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('virtual_labs')) {
+                VirtualLab::ensureDefaultLabs();
+                $virtualLabs = VirtualLab::with('course')
+                    ->where('is_active', true)
+                    ->orderBy('id', 'asc')
+                    ->get();
+            }
+        } catch (\Throwable $e) {
+            // fallback jika migrasi belum dijalankan
+        }
+
+        $teacherCourses = collect();
+        if ($user && $user->teacher) {
+            $teacherCourses = \App\Models\LmsCourse::where('teacher_id', $user->teacher->id)
+                ->orderByDesc('id')
+                ->get(['id', 'name', 'course_name']);
+        }
+
+        return view('simlab.index', compact('myProjects', 'templates', 'virtualLabs', 'teacherCourses'));
+    }
+
+    /**
+     * Display Interactive Virtual Lab Room (Animated Multi-Subject Lab + SOP)
+     */
+    public function lab($slug)
+    {
+        if (\Illuminate\Support\Facades\Schema::hasTable('virtual_labs')) {
+            VirtualLab::ensureDefaultLabs();
+        }
+        $lab = VirtualLab::with('course')->where('slug', $slug)->where('is_active', true)->firstOrFail();
+        return view('simlab.lab', compact('lab'));
+    }
+
+    /**
+     * Generate a brand new interactive HTML5/Canvas Simulator Lab using AI (for Teachers/Admins).
+     */
+    public function generateAiLab(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->teacher && !$user->isAdmin())) {
+            return response()->json(['success' => false, 'message' => 'Hanya Guru atau Admin yang dapat membuat Simulator Lab baru.'], 403);
+        }
+
+        $validated = $request->validate([
+            'title'        => 'required|string|max:150',
+            'category'     => 'required|in:umum,smp,sma,vokasi',
+            'subject_name' => 'required|string|max:120',
+            'course_id'    => 'nullable|exists:lms_courses,id',
+            'description'  => 'nullable|string|max:1000',
+        ]);
+
+        $prompt = "Anda adalah Ahli Desain Laboratorium Virtual Pendidikan (HTML5 Canvas + JavaScript).\n"
+            . "Buatkan 1 halaman HTML5 lengkap mandiri (single-file HTML dengan inline <style> dan <script>, TANPA library eksternal) untuk Simulator Laboratorium Interaktif:\n"
+            . "- Judul Lab: {$validated['title']}\n"
+            . "- Mata Pelajaran / Kejuruan: {$validated['subject_name']}\n"
+            . "- Tingkat/Kategori: {$validated['category']}\n"
+            . "- Deskripsi Eksperimen: " . ($validated['description'] ?: 'Eksperimen interaktif dengan tuning variabel dan animasi visual.') . "\n\n"
+            . "SYARAT WAJIB:\n"
+            . "1. Harus memiliki <canvas> animasi berwarna yang bergerak halus (requestAnimationFrame) dan berubah secara real-time saat slider/tombol diubah.\n"
+            . "2. Harus memiliki minimal 2-3 kontrol tuning variabel (slider <input type='range'> atau tombol toggle) beserta pembacaan nilai hasil/efek perubahan secara langsung.\n"
+            . "3. Gunakan tema gelap modern (#0f172a background, teks putih/terang, aksen warna cerah #34d399, #fbbf24, #38bdf8) agar menyatu dengan Simulator Lab PembdaHUB.\n"
+            . "4. Jangan gunakan markdown code fence (```html). Kembalikan HANYA kode HTML valid mulai dari <!DOCTYPE html> hingga </html>.";
+
+        try {
+            $gemini = app(\App\Services\GeminiService::class);
+            $html = trim($gemini->generateText($prompt));
+            foreach (['```html', '```'] as $fence) {
+                if (str_starts_with($html, $fence)) {
+                    $html = substr($html, strlen($fence));
+                }
+            }
+            if (str_ends_with($html, '```')) {
+                $html = substr($html, 0, -3);
+            }
+            $html = trim($html);
+
+            if (!str_contains(strtolower($html), '<canvas') && !str_contains(strtolower($html), '<svg')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI belum menghasilkan kanvas simulasi yang valid. Silakan coba lagi dengan deskripsi eksperimen yang lebih spesifik.',
+                ], 422);
+            }
+
+            $slug = Str::slug($validated['title']) . '-' . Str::lower(Str::random(5));
+            $lab = VirtualLab::create([
+                'title'        => $validated['title'],
+                'slug'         => $slug,
+                'category'     => $validated['category'],
+                'subject_name' => $validated['subject_name'],
+                'engine_type'  => 'ai_custom_html',
+                'description'  => $validated['description'] ?: "Simulator interaktif {$validated['subject_name']} yang dibangkitkan untuk membantu pemahaman visual siswa.",
+                'sop_steps'    => [
+                    'Baca tujuan eksperimen dan perhatikan variabel yang dapat diatur pada panel kontrol.',
+                    'Atur nilai awal variabel menggunakan slider/tombol yang tersedia.',
+                    'Amati perubahan animasi dan angka pembacaan secara real-time untuk menyimpulkan konsep.',
+                ],
+                'custom_html'  => $html,
+                'course_id'    => $validated['course_id'] ?? null,
+                'created_by'   => $user->id,
+                'icon'         => 'fas fa-atom',
+                'accent_color' => '#38bdf8',
+                'is_active'    => true,
+            ]);
+
+            return response()->json([
+                'success'      => true,
+                'message'      => 'Simulator Lab baru berhasil dibuat!',
+                'redirect_url' => route('simlab.lab', $lab->slug),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membangkitkan simulator AI: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a custom VirtualLab created by Teacher/Admin.
+     */
+    public function destroyLab($id)
+    {
+        $user = Auth::user();
+        $lab = VirtualLab::findOrFail($id);
+        if (!$user || ($lab->created_by !== $user->id && !$user->isAdmin())) {
+            abort(403, 'Anda tidak berhak menghapus simulator ini.');
+        }
+        $lab->delete();
+        return redirect()->route('simlab.index')->with('success', 'Simulator Lab berhasil dihapus.');
     }
 
     /**

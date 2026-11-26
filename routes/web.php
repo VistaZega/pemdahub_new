@@ -134,6 +134,9 @@ Route::get('/yayasan/progress-input/shared/export-pdf', [App\Http\Controllers\Ya
 // ============================================================
 Route::prefix('simlab')->name('simlab.')->group(function () {
     Route::get('/', [SimLabController::class, 'index'])->name('index');
+    Route::get('/lab/{slug}', [SimLabController::class, 'lab'])->name('lab');
+    Route::post('/ai-generate-lab', [SimLabController::class, 'generateAiLab'])->middleware('auth')->name('ai-generate');
+    Route::delete('/lab/{id}', [SimLabController::class, 'destroyLab'])->middleware('auth')->name('lab.destroy');
     Route::get('/editor/{id?}', [SimLabController::class, 'editor'])->name('editor');
     Route::post('/save', [SimLabController::class, 'store'])->name('save');
     Route::get('/my-projects', [SimLabController::class, 'myProjects'])->name('my-projects');
