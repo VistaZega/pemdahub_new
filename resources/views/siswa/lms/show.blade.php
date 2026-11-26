@@ -259,25 +259,25 @@ if (!function_exists('balanceHtmlTags')) {
     @endif
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- TAB NAVIGATION --}}
+    {{-- TAB NAVIGATION (MODERN CLEAN) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-2xl shadow-md border-2 border-black p-1.5 flex flex-wrap gap-1.5 sticky top-0 z-20">
-        <button @click="tab = 'modules'" :class="tab === 'modules' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
-            <i class="fas fa-book-open text-sm"></i> <span class="hidden sm:inline">Modul</span>
+    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1rem; padding: 0.45rem; display: flex; flex-wrap: wrap; gap: 0.4rem; position: sticky; top: 0.5rem; z-index: 20; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);">
+        <button @click="tab = 'modules'" :style="tab === 'modules' ? 'background:#0f172a;color:#ffffff;' : 'background:#f8fafc;color:#475569;'" style="flex: 1; min-width: 90px; padding: 0.7rem 1rem; border-radius: 0.75rem; font-size: 0.88rem; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.45rem; transition: all 0.15s ease;">
+            <i class="fas fa-book-open"></i> <span>Modul</span>
         </button>
-        <button @click="tab = 'assignments'" :class="tab === 'assignments' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
-            <i class="fas fa-tasks text-sm"></i> <span class="hidden sm:inline">Tugas</span>
-            @if($pendingAssignments > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $pendingAssignments }}</span>@endif
+        <button @click="tab = 'assignments'" :style="tab === 'assignments' ? 'background:#0f172a;color:#ffffff;' : 'background:#f8fafc;color:#475569;'" style="flex: 1; min-width: 90px; padding: 0.7rem 1rem; border-radius: 0.75rem; font-size: 0.88rem; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.45rem; transition: all 0.15s ease;">
+            <i class="fas fa-tasks"></i> <span>Tugas</span>
+            @if($pendingAssignments > 0)<span style="border-radius: 9999px; padding: 0.1rem 0.5rem; font-size: 0.74rem; font-weight: 800; background: #fbbf24; color: #0f172a;">{{ $pendingAssignments }}</span>@endif
         </button>
-        <button @click="tab = 'quizzes'" :class="tab === 'quizzes' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
-            <i class="fas fa-question-circle text-sm"></i> <span class="hidden sm:inline">Quiz</span>
-            @if($availableQuizzes > 0)<span class="rounded-full px-2 py-0.5 text-[10px] font-black border border-black" style="background-color: #c084fc !important; color: #000000 !important;">{{ $availableQuizzes }}</span>@endif
+        <button @click="tab = 'quizzes'" :style="tab === 'quizzes' ? 'background:#0f172a;color:#ffffff;' : 'background:#f8fafc;color:#475569;'" style="flex: 1; min-width: 90px; padding: 0.7rem 1rem; border-radius: 0.75rem; font-size: 0.88rem; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.45rem; transition: all 0.15s ease;">
+            <i class="fas fa-question-circle"></i> <span>Quiz</span>
+            @if($availableQuizzes > 0)<span style="border-radius: 9999px; padding: 0.1rem 0.5rem; font-size: 0.74rem; font-weight: 800; background: #c084fc; color: #0f172a;">{{ $availableQuizzes }}</span>@endif
         </button>
-        <button @click="tab = 'announcements'" :class="tab === 'announcements' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
-            <i class="fas fa-bullhorn text-sm"></i> <span class="hidden sm:inline">Info</span>
+        <button @click="tab = 'announcements'" :style="tab === 'announcements' ? 'background:#0f172a;color:#ffffff;' : 'background:#f8fafc;color:#475569;'" style="flex: 1; min-width: 90px; padding: 0.7rem 1rem; border-radius: 0.75rem; font-size: 0.88rem; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.45rem; transition: all 0.15s ease;">
+            <i class="fas fa-bullhorn"></i> <span>Info</span>
         </button>
-        <button @click="tab = 'discussions'" :class="tab === 'discussions' ? 'bg-black text-white border-2 border-black shadow-md' : 'bg-slate-100 text-black hover:bg-amber-300 font-black'" class="flex-1 min-w-[70px] px-3 py-3 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
-            <i class="fas fa-comments text-sm"></i> <span class="hidden sm:inline">Diskusi</span>
+        <button @click="tab = 'discussions'" :style="tab === 'discussions' ? 'background:#0f172a;color:#ffffff;' : 'background:#f8fafc;color:#475569;'" style="flex: 1; min-width: 90px; padding: 0.7rem 1rem; border-radius: 0.75rem; font-size: 0.88rem; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.45rem; transition: all 0.15s ease;">
+            <i class="fas fa-comments"></i> <span>Diskusi</span>
         </button>
     </div>
 
@@ -285,46 +285,44 @@ if (!function_exists('balanceHtmlTags')) {
     {{-- TAB: MODULES / MATERIALS --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div x-show="tab === 'modules'" class="space-y-6 tab-content">
-        {{-- Panduan Penyelesaian Modul untuk Siswa --}}
-        <div class="bg-white rounded-3xl p-6 border-2 border-black text-black shadow-lg relative overflow-hidden">
-            <div class="relative z-10 space-y-3">
-                <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-base font-black border-2 border-black shrink-0" style="background-color: #1e3a8a !important; color: #ffffff !important;">
-                        <i class="fas fa-info-circle text-white"></i>
-                    </span>
-                    <h4 class="font-black text-base uppercase tracking-wider text-black">Panduan Penyelesaian Modul Pembelajaran</h4>
+        {{-- Panduan Penyelesaian Modul (Compact Collapsible / Clean Strip) --}}
+        <div style="background: linear-gradient(135deg, #eff6ff 0%, #ffffff 70%); border: 1px solid #bfdbfe; border-left: 4px solid #2563eb; border-radius: 1.15rem; padding: 1.15rem 1.35rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
+                <span style="width: 2.25rem; height: 2.25rem; border-radius: 0.65rem; background: #2563eb; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+                <div>
+                    <h4 style="font-weight: 800; font-size: 0.98rem; color: #0f172a; margin: 0;">Panduan Penyelesaian Modul Pembelajaran</h4>
+                    <p style="font-size: 0.84rem; color: #475569; margin: 0.1rem 0 0;">Ikuti 4 langkah berikut pada setiap modul untuk mencapai progress 100%:</p>
                 </div>
-                <p class="text-xs font-bold text-black leading-relaxed">
-                    Untuk menyukseskan pembelajaran Anda dan memperoleh progress 100%, ikuti 4 langkah mudah berikut pada setiap modul:
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #fbbf24 !important; color: #000000 !important;">1</span>
-                        <div>
-                            <p class="text-xs font-black text-black uppercase">Pelajari Materi</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Simak PDF, Video, atau Link sesuai waktu belajar minimal yang ditentukan.</p>
-                        </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem;">
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.85rem; padding: 0.85rem; display: flex; align-items: flex-start; gap: 0.65rem;">
+                    <span style="width: 1.85rem; height: 1.85rem; border-radius: 0.55rem; background: #fef3c7; color: #92400e; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; flex-shrink: 0;">1</span>
+                    <div>
+                        <div style="font-size: 0.86rem; font-weight: 800; color: #0f172a;">Pelajari Materi</div>
+                        <div style="font-size: 0.8rem; color: #475569; margin-top: 0.15rem;">Simak PDF, Video, atau Tautan hingga waktu minimal.</div>
                     </div>
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #93c5fd !important; color: #000000 !important;">2</span>
-                        <div>
-                            <p class="text-xs font-black text-black uppercase">Verifikasi Selesai</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Centang kotak pernyataan verifikasi aktif, lalu klik tombol <b>Tandai Selesai</b>.</p>
-                        </div>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.85rem; padding: 0.85rem; display: flex; align-items: flex-start; gap: 0.65rem;">
+                    <span style="width: 1.85rem; height: 1.85rem; border-radius: 0.55rem; background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; flex-shrink: 0;">2</span>
+                    <div>
+                        <div style="font-size: 0.86rem; font-weight: 800; color: #0f172a;">Verifikasi Selesai</div>
+                        <div style="font-size: 0.8rem; color: #475569; margin-top: 0.15rem;">Centang verifikasi lalu klik <b>Tandai Selesai</b>.</div>
                     </div>
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #fcd34d !important; color: #000000 !important;">3</span>
-                        <div>
-                            <p class="text-xs font-black text-black uppercase">Mainkan Game</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Uji daya ingat dan kumpulkan EXP / skor dengan memainkan mini game interaktif.</p>
-                        </div>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.85rem; padding: 0.85rem; display: flex; align-items: flex-start; gap: 0.65rem;">
+                    <span style="width: 1.85rem; height: 1.85rem; border-radius: 0.55rem; background: #d1fae5; color: #065f46; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; flex-shrink: 0;">3</span>
+                    <div>
+                        <div style="font-size: 0.86rem; font-weight: 800; color: #0f172a;">Mainkan Game</div>
+                        <div style="font-size: 0.8rem; color: #475569; margin-top: 0.15rem;">Uji pemahaman &amp; kumpulkan EXP di mini game.</div>
                     </div>
-                    <div class="bg-slate-100 rounded-2xl p-4 border-2 border-black shadow-sm flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 border-2 border-black" style="background-color: #e9d5ff !important; color: #000000 !important;">4</span>
-                        <div>
-                            <p class="text-xs font-black text-black uppercase">Kuis & Tugas</p>
-                            <p class="text-[11px] text-black leading-snug mt-1 font-bold">Selesaikan Kuis Evaluasi dan kirim Tugas pada tab menu di atas tepat waktu.</p>
-                        </div>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.85rem; padding: 0.85rem; display: flex; align-items: flex-start; gap: 0.65rem;">
+                    <span style="width: 1.85rem; height: 1.85rem; border-radius: 0.55rem; background: #f3e8ff; color: #6b21a8; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; flex-shrink: 0;">4</span>
+                    <div>
+                        <div style="font-size: 0.86rem; font-weight: 800; color: #0f172a;">Kuis &amp; Tugas</div>
+                        <div style="font-size: 0.8rem; color: #475569; margin-top: 0.15rem;">Selesaikan kuis evaluasi dan kirim tugas tepat waktu.</div>
                     </div>
                 </div>
             </div>

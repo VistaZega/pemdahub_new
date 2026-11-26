@@ -64,6 +64,13 @@
         font-size: 0.875em !important;
         border: 1px solid #e2e8f0 !important;
     }
+    #player-wrapper .border-2.border-black {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05) !important;
+    }
+    #player-wrapper .text-xs {
+        font-size: 0.875rem !important;
+    }
 </style>
 @endpush
 

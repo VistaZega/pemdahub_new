@@ -128,6 +128,22 @@
     .progress-animate {
         animation: progressFill 0.8s ease-out;
     }
+    /* Modern Editorial Refresh for Guru Course Shell */
+    #guru-course-shell .border-2.border-black {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05) !important;
+    }
+    #guru-course-shell .border-black {
+        border-color: #cbd5e1 !important;
+    }
+    #guru-course-shell .text-xs {
+        font-size: 0.875rem !important;
+        line-height: 1.45 !important;
+    }
+    #guru-course-shell .text-\[10px\],
+    #guru-course-shell .text-\[11px\] {
+        font-size: 0.78rem !important;
+    }
 </style>
 @endpush
 
@@ -185,7 +201,7 @@ if (!function_exists('balanceHtmlTags')) {
         }
     }
 @endphp
-<div class="space-y-6">
+<div id="guru-course-shell" class="space-y-6" style="max-width: 1320px; margin: 0 auto;">
     {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     {{-- COURSE HERO BANNER (100% SOLID UI UX PRO MAX) --}}
     {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
@@ -1964,7 +1980,7 @@ if (!function_exists('balanceHtmlTags')) {
             </div>
 
             {{-- Access Config Sidebar --}}
-            <div class="space-y-6">
+            <div id="guru-course-shell" class="space-y-6" style="max-width: 1320px; margin: 0 auto;">
                 <div class="rounded-3xl p-6 text-white shadow-xl border-2 border-black relative overflow-hidden" style="background-color: #090d16 !important;">
                     <h4 class="font-black text-xs uppercase tracking-wider mb-6 border-b-2 border-slate-800 pb-3 flex items-center gap-2 text-amber-400">
                         <i class="fas fa-cog"></i> Konfigurasi Ruang Ajar

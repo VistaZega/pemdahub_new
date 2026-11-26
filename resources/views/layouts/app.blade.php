@@ -6,11 +6,22 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', $portalTitle ?? 'PembdaHUB')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style id="anti-fouc">
+        html.tw-loading body { opacity: 0; }
+        html body { transition: opacity 0.12s ease-out; }
+    </style>
     <!-- Tailwind CSS Fallback Detector (ensures styles render even if Vite CSS fails or is blocked on mobile) -->
     <script>
         (function() {
+            document.documentElement.classList.add('tw-loading');
+            var revealPage = function() {
+                document.documentElement.classList.remove('tw-loading');
+            };
+            // Failsafe max 450ms so page never stays hidden on slow networks
+            setTimeout(revealPage, 450);
+
             function checkTailwind() {
-                if (window.__tw_ready) return;
+                if (window.__tw_ready) { revealPage(); return; }
                 var test = document.createElement('div');
                 test.className = 'hidden';
                 test.style.position = 'absolute';
@@ -23,9 +34,11 @@
                     var s = document.createElement('script');
                     s.id = 'tailwind-cdn-fallback';
                     s.src = 'https://cdn.tailwindcss.com';
+                    s.onload = function() { setTimeout(revealPage, 60); };
                     document.head.appendChild(s);
                 } else if (isStyled) {
                     window.__tw_ready = true;
+                    revealPage();
                 }
             }
             if (document.readyState === 'loading') {
