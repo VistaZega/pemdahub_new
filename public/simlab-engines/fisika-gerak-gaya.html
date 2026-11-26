@@ -195,25 +195,37 @@
         sCtx.fillRect(mx, 6, 26, 4);
       }
 
-      // Benda (Kotak bermassa)
-      const boxSize = 44 + (p.m * 0.6);
-      const bx = 180 + Math.min(340, (pos * 12) % 340);
-      const by = -boxSize;
-      const grad = sCtx.createLinearGradient(bx, by, bx, 0);
+      // Objek Nyata: Mobil Sedan + Roda Berputar
+      const boxW = 96 + (p.m * 0.6), boxH = 38;
+      const bx = 160 + Math.min(340, (pos * 12) % 340);
+      const by = -boxH - 12;
+      // Bodi mobil
+      const grad = sCtx.createLinearGradient(bx, by, bx, by + boxH);
       grad.addColorStop(0, '#38bdf8'); grad.addColorStop(1, '#0284c7');
       sCtx.fillStyle = grad;
-      sCtx.strokeStyle = '#bae6fd'; sCtx.lineWidth = 2;
-      sCtx.beginPath(); sCtx.roundRect(bx, by, boxSize, boxSize, 8); sCtx.fill(); sCtx.stroke();
+      sCtx.beginPath(); sCtx.roundRect(bx, by + 12, boxW, boxH - 12, 8); sCtx.fill();
+      // Kabin kaca
+      sCtx.fillStyle = '#0ea5e9';
+      sCtx.beginPath(); sCtx.roundRect(bx + 18, by - 8, boxW * 0.55, 22, [8,8,0,0]); sCtx.fill();
+      sCtx.fillStyle = '#e0f2fe';
+      sCtx.fillRect(bx + 24, by - 3, boxW * 0.22, 13);
+      sCtx.fillRect(bx + 24 + boxW * 0.25, by - 3, boxW * 0.22, 13);
+      // Roda berputar
+      [bx + 22, bx + boxW - 22].forEach(wx => {
+        sCtx.fillStyle = '#0f172a'; sCtx.beginPath(); sCtx.arc(wx, -12, 12, 0, Math.PI*2); sCtx.fill();
+        sCtx.strokeStyle = '#94a3b8'; sCtx.lineWidth = 2.5; sCtx.stroke();
+        sCtx.beginPath(); sCtx.moveTo(wx, -12); sCtx.lineTo(wx + Math.cos(pos*2)*8, -12 + Math.sin(pos*2)*8); sCtx.stroke();
+      });
 
-      sCtx.fillStyle = '#0f172a'; sCtx.font = 'bold 13px sans-serif'; sCtx.textAlign = 'center';
-      sCtx.fillText(p.m + ' kg', bx + boxSize/2, by + boxSize/2 + 5);
+      sCtx.fillStyle = '#fff'; sCtx.font = 'bold 12px sans-serif'; sCtx.textAlign = 'center';
+      sCtx.fillText(p.m + ' kg', bx + boxW/2, by + 30);
 
       // Vektor Gaya Dorong (Biru)
-      if (p.F > 0) drawArrow(sCtx, bx + boxSize, by + boxSize/2, bx + boxSize + Math.min(130, p.F * 0.55), by + boxSize/2, '#38bdf8', `F=${p.F}N`);
+      if (p.F > 0) drawArrow(sCtx, bx + boxW, by + 24, bx + boxW + Math.min(130, p.F * 0.55), by + 24, '#38bdf8', `F=${p.F}N`);
       // Vektor Gaya Gesek (Merah)
-      if (Math.abs(p.fricApplied) > 0.5) drawArrow(sCtx, bx, by + boxSize - 10, bx - Math.min(110, Math.abs(p.fricApplied) * 0.55), by + boxSize - 10, '#f43f5e', `f=${Math.abs(p.fricApplied).toFixed(0)}N`);
+      if (Math.abs(p.fricApplied) > 0.5) drawArrow(sCtx, bx, -8, bx - Math.min(110, Math.abs(p.fricApplied) * 0.55), -8, '#f43f5e', `f=${Math.abs(p.fricApplied).toFixed(0)}N`);
       // Vektor Gaya Normal (Hijau)
-      drawArrow(sCtx, bx + boxSize/2, by, bx + boxSize/2, by - 45, '#34d399', 'N');
+      drawArrow(sCtx, bx + boxW/2, by - 8, bx + boxW/2, by - 50, '#34d399', 'N');
 
       sCtx.restore();
 

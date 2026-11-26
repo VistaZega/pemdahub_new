@@ -93,7 +93,7 @@
                         Eksperimen Visual, Animasi Real-Time & <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400">SOP Lab Standar</span>
                     </h1>
                     <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
-                        Masuk ke ruang lab virtual lintas mata pelajaran — mulai dari <strong>Mesin Bensin 4-Tak (SMK)</strong>, <strong>Persamaan Reaksi Kimia (SMA)</strong>, <strong>Grafik Kuadrat (SMP)</strong>, hingga <strong>Studio IoT Arduino/ESP32</strong>. Ubah variabel, amati efeknya secara langsung, dan ikuti SOP praktikum langkah demi langkah.
+                        Masuk ke ruang lab virtual lintas mata pelajaran — mulai dari <strong>Mesin Bensin 4-Tak/2-Tak (SMK)</strong>, <strong>Fisika Gerak &amp; Gaya</strong>, <strong>Biologi Sel &amp; Fotosintesis</strong>, <strong>Kimia Reaksi &amp; pH</strong>, <strong>Matematika Statistika &amp; Trigonometri</strong>, hingga <strong>Sosiologi &amp; Bahasa</strong>. Ubah variabel, amati objek nyata beranimasi, dan pelajari contoh soal langsung!
                     </p>
                 </div>
 
@@ -104,8 +104,8 @@
                         <div class="text-[11px] text-slate-400 font-medium">Ruang Lab Virtual</div>
                     </div>
                     <div class="glass-card rounded-2xl p-3.5 text-center">
-                        <div class="text-2xl font-extrabold text-purple-400">{{ $templates->count() }}</div>
-                        <div class="text-[11px] text-slate-400 font-medium">Starter Kit IoT</div>
+                        <div class="text-2xl font-extrabold text-purple-400">{{ $virtualLabs->pluck('subject_name')->unique()->count() }}</div>
+                        <div class="text-[11px] text-slate-400 font-medium">Bidang Ilmu / Mapel</div>
                     </div>
                     <div class="glass-card rounded-2xl p-3.5 text-center">
                         <div class="text-2xl font-extrabold text-emerald-400">4</div>
@@ -265,70 +265,6 @@
                 </div>
                 @endforeach
             </div>
-        </section>
-
-        <!-- Section 2: Studio Mikrokontroler & IoT (Arduino / ESP32) -->
-        <section class="pt-4 border-t border-slate-800/80">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <div>
-                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
-                        <i class="fas fa-microchip text-amber-400"></i>
-                        <span>Studio Rangkaian Mikrokontroler & IoT</span>
-                    </h2>
-                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Rakit rangkaian Arduino Uno, Nano, dan ESP32 lengkap dengan kode C++/Sketch secara interaktif.</p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('simlab.editor', 'new-arduino_uno') }}" class="px-3 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 text-xs font-semibold transition">
-                        + Kanvas Arduino Uno
-                    </a>
-                    <a href="{{ route('simlab.editor', 'new-esp32') }}" class="px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold transition">
-                        + Kanvas ESP32 WiFi
-                    </a>
-                    <a href="{{ route('simlab.editor', 'new-arduino_nano') }}" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition">
-                        + Kanvas Arduino Nano
-                    </a>
-                </div>
-            </div>
-
-            @if($myProjects->count() > 0)
-            <div class="mb-8">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Proyek IoT Tersimpan Saya</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    @foreach($myProjects as $proj)
-                    <a href="{{ route('simlab.editor', $proj->id) }}" class="glass-card rounded-xl p-4 block transition">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">{{ $proj->board_type }}</span>
-                            <span class="text-[11px] text-slate-500">{{ $proj->updated_at->diffForHumans() }}</span>
-                        </div>
-                        <div class="font-bold text-white text-sm truncate">{{ $proj->title }}</div>
-                        <div class="text-xs text-slate-400 mt-1 truncate">{{ $proj->description ?? 'Proyek rangkaian mikrokontroler' }}</div>
-                    </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            @if($templates->count() > 0)
-            <div>
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Starter Kit Praktikum IoT</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @foreach($templates as $tpl)
-                    <a href="{{ route('simlab.editor', $tpl->slug ?? $tpl->id) }}" class="glass-card rounded-xl p-4 flex items-start gap-3.5 transition group">
-                        <div class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 shrink-0 group-hover:bg-amber-500 group-hover:text-slate-950 transition">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300">{{ $tpl->board_type }}</span>
-                            </div>
-                            <h4 class="font-bold text-white text-sm truncate group-hover:text-cyan-300 transition">{{ $tpl->title }}</h4>
-                            <p class="text-xs text-slate-400 line-clamp-2 mt-1">{{ $tpl->description }}</p>
-                        </div>
-                    </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
         </section>
 
     </main>

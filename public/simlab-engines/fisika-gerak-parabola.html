@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Gerak Parabola (Meriam &amp; Lemparan Bola)</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.1rem; font-weight:800; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.05rem; font-weight:800; font-family:monospace; margin-top:2px; }
+    .soal-box { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🎯 Simulator Fisika: Gerak Parabola (Peluru &amp; Bola)</h1>
+      <p>Ubah Kecepatan Awal ($v_0$) dan Sudut Elevasi ($\alpha$) untuk melihat lintasan parabola, Tinggi Maksimum ($H_{max}$), dan Jarak Terjauh ($X_{max}$)</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="paraCanvas" width="760" height="400"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Tinggi Maks (Hmax)</div><div class="s-val" id="vHmax" style="color:#38bdf8">0 m</div></div>
+        <div class="s-box"><div class="s-lbl">Jarak Terjauh (Xmax)</div><div class="s-val" id="vXmax" style="color:#34d399">0 m</div></div>
+        <div class="s-box"><div class="s-lbl">Waktu Terbang</div><div class="s-val" id="vTmax" style="color:#fbbf24">0 s</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Kecepatan Awal ($v_0$)</span><span id="lblV0" style="color:#38bdf8">30 m/s</span>
+        </div>
+        <input type="range" id="inV0" min="10" max="50" step="1" value="30" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Sudut Elevasi ($\alpha$)</span><span id="lblAng" style="color:#fbbf24">45°</span>
+        </div>
+        <input type="range" id="inAng" min="15" max="80" step="5" value="45" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
+      </div>
+
+      <button onclick="fire()" style="background:#10b981;color:#022c22;">🚀 Tembakkan Bola / Peluru!</button>
+
+      <div class="soal-box">
+        <strong style="color:#38bdf8;">📝 Contoh Kasus Soal &amp; Pembuktian:</strong>
+        <p id="soalPara" style="margin-top:4px;">
+          <em>Soal:</em> Sebuah bola ditendang dengan kecepatan awal <strong>30 m/s</strong> dan sudut <strong>45°</strong> ($g = 10\text{ m/s}^2$). Berapakah jarak terjauh ($X_{max}$) yang dicapai bola?
+        </p>
+        <button onclick="ujiSoalPara()" style="margin-top:8px;background:#0284c7;color:#fff;">▶ Uji Soal di Simulasi (v₀=30, α=45°)</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('paraCanvas'), ctx = c.getContext('2d');
+    const inV0 = document.getElementById('inV0'), inAng = document.getElementById('inAng');
+    const g = 10;
+    let flying = false, t = 0, trail = [];
+
+    function calc() {
+      const v0 = +inV0.value, ang = +inAng.value * Math.PI / 180;
+      const vx = v0 * Math.cos(ang), vy = v0 * Math.sin(ang);
+      const tMax = (2 * vy) / g;
+      const hMax = (vy * vy) / (2 * g);
+      const xMax = vx * tMax;
+      return { v0, ang, vx, vy, tMax, hMax, xMax };
+    }
+
+    function updateUI() {
+      const p = calc();
+      document.getElementById('lblV0').textContent = p.v0 + ' m/s';
+      document.getElementById('lblAng').textContent = inAng.value + '°';
+      document.getElementById('vHmax').textContent = p.hMax.toFixed(1) + ' m';
+      document.getElementById('vXmax').textContent = p.xMax.toFixed(1) + ' m';
+      document.getElementById('vTmax').textContent = p.tMax.toFixed(1) + ' s';
+    }
+
+    function fire() { flying = true; t = 0; trail = []; }
+    function ujiSoalPara() {
+      inV0.value = 30; inAng.value = 45; updateUI(); fire();
+      document.getElementById('soalPara').innerHTML = '<strong>Pembahasan:</strong> $X_{max} = \\frac{v_0^2 \\sin(2\\alpha)}{g} = \\frac{30^2 \\sin(90°)}{10} = \\frac{900 \\times 1}{10} = \\mathbf{90\\text{ meter}}$. Sudut 45° selalu menghasilkan jarak terjauh!';
+    }
+    [inV0, inAng].forEach(el => el.oninput = () => { updateUI(); if(!flying) draw(); });
+
+    function draw() {
+      const p = calc();
+      ctx.clearRect(0, 0, c.width, c.height);
+      const baseX = 50, baseY = 345, scale = 2.6;
+
+      // Tanah
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(0, baseY, c.width, 55);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '11px monospace';
+      for (let m = 0; m <= 250; m += 50) {
+        const mx = baseX + m * scale;
+        if (mx < c.width - 20) ctx.fillText(m + 'm', mx, baseY + 20);
+      }
+
+      // Laras Meriam
+      ctx.save(); ctx.translate(baseX, baseY); ctx.rotate(-p.ang);
+      ctx.fillStyle = '#64748b'; ctx.fillRect(0, -8, 38, 16);
+      ctx.restore();
+      ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(baseX, baseY, 12, 0, Math.PI*2); ctx.fill();
+
+      // Lintasan putus-putus teori
+      ctx.strokeStyle = 'rgba(56,189,248,0.25)'; ctx.setLineDash([5,5]); ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let ts = 0; ts <= p.tMax; ts += 0.1) {
+        const px = baseX + p.vx * ts * scale;
+        const py = baseY - (p.vy * ts - 0.5 * g * ts * ts) * scale;
+        if (ts === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+
+      // Jejak & Bola bergerak
+      if (trail.length > 0) {
+        ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3;
+        ctx.beginPath();
+        trail.forEach((pt, i) => i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y));
+        ctx.stroke();
+        const cur = trail[trail.length - 1];
+        ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(cur.x, cur.y, 9, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+    function loop() {
+      if (flying) {
+        const p = calc();
+        t += 0.06;
+        if (t >= p.tMax) { t = p.tMax; flying = false; }
+        const px = 50 + p.vx * t * 2.6;
+        const py = 345 - Math.max(0, p.vy * t - 0.5 * g * t * t) * 2.6;
+        trail.push({ x: px, y: py });
+      }
+      draw();
+      requestAnimationFrame(loop);
+    }
+    updateUI(); loop();
+  </script>
+</body>
+</html>

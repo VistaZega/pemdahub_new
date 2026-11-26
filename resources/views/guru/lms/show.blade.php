@@ -2948,9 +2948,6 @@ if (!function_exists('balanceHtmlTags')) {
                                 <button type="button" @click="file_url = 'https://bellard.org/jslinux/'; if(!material_title) material_title = 'Simulasi Terminal Linux Server'" class="p-2 bg-white border border-slate-300 rounded-xl text-left hover:bg-amber-50 text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                     <i class="fas fa-terminal text-slate-800"></i> JS-Linux
                                 </button>
-                                <button type="button" @click="file_url = '{{ route('simlab.index') }}'; if(!material_title) material_title = 'Simulasi Mikrokontroler PembdaHUB SimLab'" class="p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-left hover:bg-emerald-100 text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                                    <i class="fas fa-microchip text-emerald-700"></i> Studio IoT Arduino
-                                </button>
                                 <button type="button" @click="file_url = 'https://quizizz.com'; if(!material_title) material_title = 'Game Edukasi Quizizz'" class="p-2 bg-white border border-slate-300 rounded-xl text-left hover:bg-amber-50 text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                     <i class="fas fa-puzzle-piece text-purple-600"></i> Quizizz
                                 </button>

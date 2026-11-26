@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Ekonomi: Keseimbangan Pasar (Demand &amp; Supply)</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; }
+    header h1 { font-size:1.1rem; font-weight:800; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.1rem; font-weight:800; font-family:monospace; margin-top:2px; }
+    .soal-box { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.35); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#f59e0b; color:#451a03; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚖️ Simulator Ekonomi: Hukum Permintaan, Penawaran &amp; Titik Keseimbangan Pasar</h1>
+    <p>Geser kekuatan Permintaan Pembeli (Demand) dan Penawaran Produsen (Supply) untuk melihat perubahan Harga Keseimbangan ($P_e$)</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="econCanvas" width="760" height="400"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Harga Keseimbangan (Pe)</div><div class="s-val" id="vPe" style="color:#fbbf24">Rp 0</div></div>
+        <div class="s-box"><div class="s-lbl">Jumlah Keseimbangan (Qe)</div><div class="s-val" id="vQe" style="color:#34d399">0 Unit</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Tingkat Permintaan Konsumen (Demand)</span><span id="lblD" style="color:#38bdf8">Normal (100)</span>
+        </div>
+        <input type="range" id="inD" min="60" max="150" step="5" value="100" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Kapasitas Penawaran Produsen (Supply)</span><span id="lblS" style="color:#f43f5e">Normal (20)</span>
+        </div>
+        <input type="range" id="inS" min="-10" max="50" step="5" value="20" style="width:100%;accent-color:#f43f5e;cursor:pointer;">
+      </div>
+
+      <div class="soal-box">
+        <strong style="color:#fcd34d;">📝 Contoh Kasus Nyata &amp; Soal:</strong>
+        <p id="soalEcon" style="margin-top:4px;">
+          <em>Kasus:</em> Menjelang Hari Raya, permintaan beras melonjak tajam (Kurva Demand bergeser ke kanan), sementara pasokan tetap. Apa yang terjadi pada Harga Keseimbangan ($P_e$)?
+        </p>
+        <button onclick="ujiEcon()" style="margin-top:8px;">▶ Simulasikan Lonjakan Permintaan</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('econCanvas'), ctx = c.getContext('2d');
+    const inD = document.getElementById('inD'), inS = document.getElementById('inS');
+
+    function ujiEcon() {
+      inD.value = 140; inS.value = 20; draw();
+      document.getElementById('soalEcon').innerHTML = '<strong>Pembuktian:</strong> Ketika Permintaan (garis biru) bergeser ke kanan atas, titik potong keseimbangan naik dari Rp 40.000 menjadi <strong>Rp 60.000</strong> dan jumlah terjual bertambah!';
+    }
+    [inD, inS].forEach(el => el.oninput = draw);
+
+    function draw() {
+      const aD = +inD.value, aS = +inS.value;
+      // Qd = aD - P, Qs = aS + P => Pe = (aD - aS) / 2, Qe = (aD + aS) / 2
+      const Pe = (aD - aS) / 2, Qe = (aD + aS) / 2;
+      document.getElementById('lblD').textContent = aD;
+      document.getElementById('lblS').textContent = aS;
+      document.getElementById('vPe').textContent = 'Rp ' + (Pe * 1000).toLocaleString('id-ID');
+      document.getElementById('vQe').textContent = Qe.toFixed(0) + ' Unit';
+
+      ctx.clearRect(0, 0, c.width, c.height);
+      const padL = 65, padB = 45, w = 640, h = 310, topY = 35;
+      const toX = q => padL + (q / 150) * w;
+      const toY = p => topY + h - (p / 120) * h;
+
+      // Sumbu
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(padL, topY); ctx.lineTo(padL, topY + h); ctx.lineTo(padL + w, topY + h); ctx.stroke();
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('Harga (P)', 15, topY + 10);
+      ctx.fillText('Jumlah Barang (Q)', padL + w - 110, topY + h + 30);
+
+      // Kurva Demand (Biru)
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.moveTo(toX(0), toY(aD)); ctx.lineTo(toX(aD), toY(0)); ctx.stroke();
+      ctx.fillStyle = '#38bdf8'; ctx.fillText('Demand (D)', toX(aD) - 30, toY(0) - 10);
+
+      // Kurva Supply (Merah)
+      ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.moveTo(toX(Math.max(0, aS)), toY(Math.max(0, -aS))); ctx.lineTo(toX(aS + 110), toY(110)); ctx.stroke();
+      ctx.fillStyle = '#f43f5e'; ctx.fillText('Supply (S)', toX(aS + 105), toY(110) + 16);
+
+      // Titik Keseimbangan (E)
+      const ex = toX(Qe), ey = toY(Pe);
+      ctx.setLineDash([5,5]); ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(padL, ey); ctx.lineTo(ex, ey); ctx.lineTo(ex, topY + h); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillText(`E (${Qe.toFixed(0)}, Rp${(Pe*1000).toLocaleString('id-ID')})`, ex + 14, ey - 8);
+    }
+    draw();
+  </script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Biologi: Percobaan Fotosintesis Ingenhousz (Oksigen)</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.1rem; font-weight:800; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(320px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.1rem; font-weight:800; font-family:monospace; margin-top:2px; }
+    .soal-box { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.35); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+    button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#10b981; color:#022c22; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🌿 Simulator Biologi: Percobaan Fotosintesis Ingenhousz (6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂)</h1>
+      <p>Amati gelembung gas Oksigen (O₂) dari tumbuhan air Hydrilla saat intensitas cahaya, kadar CO₂, dan suhu diubah</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="bioCanvas" width="760" height="420"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Laju Gelembung O₂</div><div class="s-val" id="vRate" style="color:#34d399">0 /menit</div></div>
+        <div class="s-box"><div class="s-lbl">Volume O₂ Terkumpul</div><div class="s-val" id="vVol" style="color:#38bdf8">0.0 ml</div></div>
+        <div class="s-box"><div class="s-lbl">Faktor Pembatas</div><div class="s-val" id="vLim" style="color:#fbbf24;font-size:0.85rem;">Optimal</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Intensitas Cahaya Lampu</span><span id="lblLight" style="color:#fbbf24">70%</span>
+        </div>
+        <input type="range" id="inLight" min="0" max="100" step="5" value="70" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Kadar NaHCO₃ (Sumber CO₂)</span><span id="lblCo2" style="color:#38bdf8">50%</span>
+        </div>
+        <input type="range" id="inCo2" min="0" max="100" step="5" value="50" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Suhu Air</span><span id="lblTemp" style="color:#f43f5e">28°C</span>
+        </div>
+        <input type="range" id="inTemp" min="10" max="50" step="1" value="28" style="width:100%;accent-color:#f43f5e;cursor:pointer;">
+      </div>
+
+      <div class="soal-box">
+        <strong style="color:#6ee7b7;">📝 Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
+        <p id="soalBio" style="margin-top:4px;">
+          <em>Soal:</em> Mengapa penambahan NaHCO₃ (soda kue) ke dalam air percobaan Ingenhousz dapat mempercepat munculnya gelembung O₂, namun pada suhu 48°C gelembung justru berhenti?
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button onclick="ujiNaHco3()">1. Uji Tambah NaHCO₃</button>
+          <button onclick="ujiSuhuTinggi()" style="background:#f43f5e;color:#fff;">2. Uji Suhu 48°C (Enzim Rusak)</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('bioCanvas'), ctx = c.getContext('2d');
+    const inLight = document.getElementById('inLight'), inCo2 = document.getElementById('inCo2'), inTemp = document.getElementById('inTemp');
+    let bubbles = [], totalVol = 0, spawnTimer = 0;
+
+    function calcRate() {
+      const L = +inLight.value, C = +inCo2.value, T = +inTemp.value;
+      const tempFactor = T > 42 ? Math.max(0, 1 - (T - 42) / 6) : Math.max(0.1, 1 - Math.abs(T - 30) / 35);
+      const rate = Math.round(Math.min(L, C + 15) * tempFactor * 0.9);
+      let lim = 'Optimal';
+      if (T > 42) lim = 'Suhu Terlalu Panas (Denaturasi)';
+      else if (L < 20) lim = 'Kurang Cahaya';
+      else if (C < 20) lim = 'Kurang CO₂';
+      return { L, C, T, rate, lim };
+    }
+
+    function ujiNaHco3() {
+      inLight.value = 85; inCo2.value = 95; inTemp.value = 28;
+      document.getElementById('soalBio').innerHTML = '<strong>Pembuktian:</strong> NaHCO₃ terurai melepaskan <strong>CO₂</strong> sebagai bahan baku reaksi gelap fotosintesis, sehingga produksi gelembung O₂ melonjak!';
+    }
+    function ujiSuhuTinggi() {
+      inLight.value = 85; inCo2.value = 80; inTemp.value = 48;
+      document.getElementById('soalBio').innerHTML = '<strong>Pembuktian:</strong> Pada suhu 48°C, enzim fotosintesis (seperti RuBisCO) mengalami <strong>denaturasi (rusak)</strong> sehingga gelembung O₂ berhenti total!';
+    }
+
+    function loop() {
+      const r = calcRate();
+      document.getElementById('lblLight').textContent = r.L + '%';
+      document.getElementById('lblCo2').textContent = r.C + '%';
+      document.getElementById('lblTemp').textContent = r.T + '°C';
+      document.getElementById('vRate').textContent = r.rate + ' /mnt';
+      document.getElementById('vLim').textContent = r.lim;
+
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      // Lampu & Sinar Cahaya
+      ctx.fillStyle = '#334155'; ctx.fillRect(60, 160, 45, 70);
+      ctx.fillStyle = `rgba(253,224,71,${r.L/100})`;
+      ctx.beginPath(); ctx.arc(110, 195, 22, 0, Math.PI*2); ctx.fill();
+      if (r.L > 5) {
+        const rayGrad = ctx.createLinearGradient(110, 195, 390, 260);
+        rayGrad.addColorStop(0, `rgba(253,224,71,${r.L/250})`);
+        rayGrad.addColorStop(1, 'rgba(253,224,71,0)');
+        ctx.fillStyle = rayGrad;
+        ctx.beginPath(); ctx.moveTo(110, 175); ctx.lineTo(390, 110); ctx.lineTo(390, 340); ctx.lineTo(110, 215); ctx.closePath(); ctx.fill();
+      }
+
+      // Gelas Kimia berisi Air
+      ctx.fillStyle = 'rgba(14,165,233,0.18)'; ctx.fillRect(250, 140, 260, 220);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(250, 110); ctx.lineTo(250, 360); ctx.lineTo(510, 360); ctx.lineTo(510, 110); ctx.stroke();
+
+      // Corong Kaca & Tabung Reaksi Terbalik
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(310, 330); ctx.lineTo(368, 220); ctx.lineTo(392, 220); ctx.lineTo(450, 330); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(365, 90, 30, 130, [15,15,0,0]); ctx.stroke();
+
+      // Ruang Gas O2 di puncak tabung reaksi
+      const gasH = Math.min(80, totalVol * 3);
+      ctx.fillStyle = 'rgba(52,211,153,0.35)';
+      ctx.fillRect(367, 92, 26, gasH);
+
+      // Tumbuhan Air Hydrilla
+      ctx.strokeStyle = r.T > 42 ? '#78716c' : '#22c55e'; ctx.lineWidth = 4;
+      for (let b = -2; b <= 2; b++) {
+        ctx.beginPath(); ctx.moveTo(380 + b*12, 330); ctx.quadraticCurveTo(380 + b*18, 285, 380 + b*6, 250); ctx.stroke();
+      }
+
+      // Spawn Gelembung O2
+      spawnTimer += r.rate;
+      if (spawnTimer > 120) {
+        spawnTimer = 0;
+        bubbles.push({ x: 375 + (Math.random()-0.5)*14, y: 245 });
+        totalVol = Math.min(25, totalVol + 0.15);
+        document.getElementById('vVol').textContent = totalVol.toFixed(1) + ' ml';
+      }
+
+      ctx.fillStyle = '#a7f3d0';
+      bubbles.forEach(b => {
+        b.y -= 2.2;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 3.5, 0, Math.PI*2); ctx.fill();
+      });
+      bubbles = bubbles.filter(b => b.y > 95 + gasH);
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

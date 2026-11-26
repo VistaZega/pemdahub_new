@@ -27,6 +27,12 @@
         'math_statistics'    => asset('simlab-engines/matematika-statistika.html'),
         'sociology_dynamics' => asset('simlab-engines/sosiologi-dinamika-sosial.html'),
         'language_syntax'    => asset('simlab-engines/bahasa-struktur-kalimat.html'),
+        'chem_ph'            => asset('simlab-engines/kimia-asam-basa-ph.html'),
+        'bio_photosynthesis' => asset('simlab-engines/biologi-fotosintesis.html'),
+        'physics_parabola'   => asset('simlab-engines/fisika-gerak-parabola.html'),
+        'math_trigonometry'  => asset('simlab-engines/matematika-trigonometri.html'),
+        'econ_market'        => asset('simlab-engines/ekonomi-pasar-keseimbangan.html'),
+        'physics_wave'       => asset('simlab-engines/ipa-gelombang-bunyi.html'),
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
 @endphp

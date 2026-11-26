@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Kimia: Skala pH, Larutan Asam-Basa &amp; Titrasi</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.1rem; font-weight:800; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(320px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    .ph-bar { height:16px; border-radius:999px; background:linear-gradient(90deg,#ef4444 0%,#f97316 20%,#eab308 38%,#22c55e 50%,#06b6d4 65%,#3b82f6 82%,#7e22ce 100%); position:relative; }
+    .ph-pin { position:absolute; top:-5px; width:10px; height:26px; background:#fff; border:2px solid #000; border-radius:4px; transform:translateX(-50%); transition:left 0.15s; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.05rem; font-weight:800; font-family:monospace; margin-top:2px; }
+    .btn-row { display:flex; gap:6px; flex-wrap:wrap; }
+    button { border:1px solid #334155; border-radius:10px; padding:8px 11px; font-weight:700; font-size:0.78rem; cursor:pointer; background:#1e293b; color:#e2e8f0; }
+    button:hover { border-color:#38bdf8; color:#fff; }
+    .soal-box { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.35); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🧪 Simulator Kimia: Gelas Reaksi pH, Asam-Basa &amp; Kertas Lakmus</h1>
+      <p>Uji larutan nyata (Asam Lambung, Cuka, Air Murni, Sabun, Pemutih), amati ion H⁺/OH⁻ dan perubahan warna indikator</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="chemBeaker" width="760" height="390"></canvas>
+      <div class="ph-bar"><div class="ph-pin" id="phPin" style="left:50%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#94a3b8;font-weight:700;">
+        <span>pH 0 (Asam Kuat)</span><span>pH 7 (Netral)</span><span>pH 14 (Basa Kuat)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Nilai pH</div><div class="s-val" id="vPh" style="color:#22c55e">7.0</div></div>
+        <div class="s-box"><div class="s-lbl">Sifat Larutan</div><div class="s-val" id="vSifat" style="color:#38bdf8">Netral</div></div>
+        <div class="s-box"><div class="s-lbl">Kertas Lakmus</div><div class="s-val" id="vLakmus" style="color:#fbbf24">Tetap</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Atur pH Larutan / Titrasi</span><span id="lblPh" style="color:#38bdf8">pH 7.0</span>
+        </div>
+        <input type="range" id="inPh" min="0" max="14" step="0.2" value="7" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
+      </div>
+
+      <div class="btn-row">
+        <button onclick="setSample(1.2, 'Asam Lambung (HCl)')">🍋 Asam Lambung (1.2)</button>
+        <button onclick="setSample(3.0, 'Cuka Dapur (CH₃COOH)')">🍶 Cuka (3.0)</button>
+        <button onclick="setSample(7.0, 'Air Murni (H₂O)')">💧 Air Murni (7.0)</button>
+        <button onclick="setSample(9.5, 'Air Sabun')">🧼 Sabun (9.5)</button>
+        <button onclick="setSample(13.0, 'Natrium Hidroksida (NaOH)')">⚗️ NaOH 0.1M (13.0)</button>
+      </div>
+
+      <div class="soal-box">
+        <strong style="color:#c4b5fd;">📝 Contoh Kasus Soal Sulit &amp; Pembuktian:</strong>
+        <p style="margin-top:4px;" id="soalText">
+          <em>Soal:</em> Suatu larutan HCl memiliki konsentrasi <strong>[H⁺] = 0,01 M = 10⁻² M</strong>. Berapakah nilai pH dan warna kertas lakmus biru saat dicelupkan?
+        </p>
+        <button onclick="ujiSoal()" style="margin-top:8px;background:#7c3aed;border-color:#8b5cf6;color:#fff;">▶ Uji Kasus Soal di Gelas Kimia (pH = -log[10⁻²] = 2)</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('chemBeaker'), ctx = c.getContext('2d');
+    const inPh = document.getElementById('inPh');
+    let sampleName = 'Air Murni (H₂O)';
+    const ions = Array.from({length:36}, () => ({ x:240+Math.random()*280, y:140+Math.random()*190, vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2 }));
+
+    function phColor(ph) {
+      if (ph < 3) return 'rgba(239,68,68,0.65)';
+      if (ph < 5.5) return 'rgba(249,115,22,0.6)';
+      if (ph < 6.8) return 'rgba(234,179,8,0.55)';
+      if (ph <= 7.2) return 'rgba(34,197,94,0.5)';
+      if (ph < 10) return 'rgba(6,182,212,0.58)';
+      if (ph < 12) return 'rgba(59,130,246,0.65)';
+      return 'rgba(147,51,234,0.7)';
+    }
+
+    function setSample(val, name) { inPh.value = val; sampleName = name; updateUI(); }
+    function ujiSoal() {
+      setSample(2.0, 'HCl 0,01 M (10⁻² M)');
+      document.getElementById('soalText').innerHTML = '<strong>Pembahasan:</strong> pH = -log[H⁺] = -log(10⁻²) = <strong>2</strong> (Asam Kuat). Lakmus biru langsung berubah menjadi <strong>Merah</strong> dan ion H⁺ mendominasi gelas reaksi!';
+    }
+
+    inPh.oninput = () => { sampleName = 'Larutan Kustom'; updateUI(); };
+
+    function updateUI() {
+      const ph = +inPh.value;
+      document.getElementById('lblPh').textContent = 'pH ' + ph.toFixed(1);
+      document.getElementById('vPh').textContent = ph.toFixed(1);
+      document.getElementById('phPin').style.left = (ph / 14 * 100) + '%';
+      document.getElementById('vSifat').textContent = ph < 6.8 ? 'Asam' : (ph > 7.2 ? 'Basa' : 'Netral');
+      document.getElementById('vLakmus').textContent = ph < 6.8 ? 'Merah' : (ph > 7.2 ? 'Biru' : 'Tetap');
+    }
+
+    function loop() {
+      const ph = +inPh.value;
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      // Gelas Beaker Realistis
+      ctx.fillStyle = phColor(ph);
+      ctx.beginPath(); ctx.roundRect(225, 130, 310, 215, [0,0,20,20]); ctx.fill();
+
+      // Permukaan air
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(225, 130); ctx.lineTo(535, 130); ctx.stroke();
+
+      // Dinding Gelas Beaker
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(215, 70); ctx.lineTo(225, 345); ctx.lineTo(535, 345); ctx.lineTo(545, 70); ctx.stroke();
+
+      // Skala volume ml
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '11px monospace';
+      [100, 200, 300, 400].forEach((ml, i) => {
+        const y = 310 - i*52;
+        ctx.fillRect(230, y, 14, 2);
+        ctx.fillText(ml + ' ml', 250, y + 4);
+      });
+
+      // Kertas Lakmus dicelupkan
+      const stripCol = ph < 6.8 ? '#ef4444' : (ph > 7.2 ? '#3b82f6' : '#a855f7');
+      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(460, 40, 22, 90);
+      ctx.fillStyle = stripCol; ctx.fillRect(460, 130, 22, 75);
+      ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('Lakmus', 446, 30);
+
+      // Ion H+ vs OH-
+      const hRatio = Math.max(0.05, Math.min(0.95, (14 - ph) / 14));
+      ions.forEach((p, idx) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 240 || p.x > 520) p.vx *= -1;
+        if (p.y < 145 || p.y > 330) p.vy *= -1;
+        const isH = (idx / ions.length) < hRatio;
+        ctx.fillStyle = isH ? '#fecaca' : '#bfdbfe';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(isH ? 'H⁺' : 'OH⁻', p.x, p.y + 3);
+      });
+
+      ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(sampleName, 380, 375);
+      requestAnimationFrame(loop);
+    }
+    updateUI(); loop();
+  </script>
+</body>
+</html>
