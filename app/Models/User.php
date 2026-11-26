@@ -366,6 +366,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is SuperAdmin or Admin Sekolah
+     */
+    public function isAdmin(): bool
+    {
+        return $this->isSuperAdmin() || $this->isAdminSekolah();
+    }
+
+    /**
      * Check if user has secondary role/duty as Admin Sekolah
      */
     public function isSecondaryAdminSekolah(): bool
