@@ -27,7 +27,7 @@
   <header>
     <div>
       <h1>🎯 Simulator Fisika: Gerak Parabola (Peluru &amp; Bola)</h1>
-      <p>Ubah Kecepatan Awal ($v_0$) dan Sudut Elevasi ($\alpha$) untuk melihat lintasan parabola, Tinggi Maksimum ($H_{max}$), dan Jarak Terjauh ($X_{max}$)</p>
+      <p>Ubah Kecepatan Awal (v<sub>0</sub>) dan Sudut Elevasi (α) untuk melihat lintasan parabola, Tinggi Maksimum (H<sub>max</sub>), dan Jarak Terjauh (X<sub>max</sub>)</p>
     </div>
   </header>
 
@@ -45,13 +45,13 @@
 
       <div>
         <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Kecepatan Awal ($v_0$)</span><span id="lblV0" style="color:#38bdf8">30 m/s</span>
+          <span>Kecepatan Awal (v<sub>0</sub>)</span><span id="lblV0" style="color:#38bdf8">30 m/s</span>
         </div>
         <input type="range" id="inV0" min="10" max="50" step="1" value="30" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
-          <span>Sudut Elevasi ($\alpha$)</span><span id="lblAng" style="color:#fbbf24">45°</span>
+          <span>Sudut Elevasi (α)</span><span id="lblAng" style="color:#fbbf24">45°</span>
         </div>
         <input type="range" id="inAng" min="15" max="80" step="5" value="45" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
       </div>
@@ -61,7 +61,7 @@
       <div class="soal-box">
         <strong style="color:#38bdf8;">📝 Contoh Kasus Soal &amp; Pembuktian:</strong>
         <p id="soalPara" style="margin-top:4px;">
-          <em>Soal:</em> Sebuah bola ditendang dengan kecepatan awal <strong>30 m/s</strong> dan sudut <strong>45°</strong> ($g = 10\text{ m/s}^2$). Berapakah jarak terjauh ($X_{max}$) yang dicapai bola?
+          <em>Soal:</em> Sebuah bola ditendang dengan kecepatan awal <strong>30 m/s</strong> dan sudut <strong>45°</strong> (g = 10 m/s²). Berapakah jarak terjauh (X<sub>max</sub>) yang dicapai bola?
         </p>
         <button onclick="ujiSoalPara()" style="margin-top:8px;background:#0284c7;color:#fff;">▶ Uji Soal di Simulasi (v₀=30, α=45°)</button>
       </div>
@@ -95,7 +95,7 @@
     function fire() { flying = true; t = 0; trail = []; }
     function ujiSoalPara() {
       inV0.value = 30; inAng.value = 45; updateUI(); fire();
-      document.getElementById('soalPara').innerHTML = '<strong>Pembahasan:</strong> $X_{max} = \\frac{v_0^2 \\sin(2\\alpha)}{g} = \\frac{30^2 \\sin(90°)}{10} = \\frac{900 \\times 1}{10} = \\mathbf{90\\text{ meter}}$. Sudut 45° selalu menghasilkan jarak terjauh!';
+      document.getElementById('soalPara').innerHTML = '<strong>Pembahasan:</strong> X<sub>max</sub> = (v₀² · sin(2α)) / g = (30² · sin 90°) / 10 = (900 × 1) / 10 = <strong>90 meter</strong>. Sudut 45° selalu menghasilkan jarak terjauh!';
     }
     [inV0, inAng].forEach(el => el.oninput = () => { updateUI(); if(!flying) draw(); });
 
