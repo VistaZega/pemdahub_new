@@ -523,12 +523,20 @@
     <script>
         function labFloorplanApp() {
             const labs = @json($labsPayload);
+            const params = new URLSearchParams(window.location.search);
+            const initRoom = params.get('room') || 'fisika';
+            const initSlug = params.get('lab');
+            const initLab = (initSlug && labs.find(l => l.slug === initSlug))
+                || labs.find(l => l.discipline_key === initRoom)
+                || labs[0]
+                || null;
+
             return {
                 labs,
-                activeRoom: 'fisika',
+                activeRoom: initRoom,
                 searchQuery: '',
                 showFloorplan: true,
-                selectedLab: labs.find(l => l.discipline_key === 'fisika') || labs[0] || null,
+                selectedLab: initLab,
                 workTab: 'sim',
                 chosenOpt: null,
                 checkedAns: false,
