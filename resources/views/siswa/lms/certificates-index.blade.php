@@ -23,25 +23,25 @@
             <div class="bg-gradient-to-r from-amber-500 to-purple-600 h-3"></div>
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sertifikat</span>
-                    <span class="text-[10px] font-bold text-slate-400">{{ $cert->issued_at ? $cert->issued_at->format('d M Y') : '-' }}</span>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sertifikat</span>
+                    <span class="text-xs font-bold text-slate-500">{{ $cert->issued_at ? $cert->issued_at->format('d M Y') : '-' }}</span>
                 </div>
-                <h3 class="font-black text-lg text-slate-800 mb-1">{{ $cert->course->course_name ?? $cert->course->name }}</h3>
-                <p class="text-xs font-bold text-slate-500 mb-3">{{ $cert->course->subject->subject_name ?? '-' }}</p>
+                <h3 class="font-black text-xl text-slate-800 mb-1">{{ $cert->course->course_name ?? $cert->course->name }}</h3>
+                <p class="text-sm font-bold text-slate-600 mb-3">{{ $cert->course->subject->subject_name ?? '-' }}</p>
                 <div class="flex items-center gap-2 mb-4">
-                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold">Progress {{ $cert->final_progress }}%</span>
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">Progress {{ $cert->final_progress }}%</span>
                     @if($cert->final_score)
-                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-bold">Skor: {{ $cert->final_score }}</span>
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold">Skor: {{ $cert->final_score }}</span>
                     @endif
                 </div>
-                <div class="text-[10px] font-mono text-slate-400 mb-4 bg-slate-50 rounded-xl p-2 border border-slate-100 text-center">
+                <div class="text-xs font-mono text-slate-500 mb-4 bg-slate-50 rounded-xl p-2.5 border border-slate-200 text-center">
                     {{ $cert->certificate_code }}
                 </div>
                 <div class="flex gap-2">
-                    <a href="{{ route('siswa.lms.certificates.show', $cert->id) }}" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl text-center transition">
+                    <a href="{{ route('siswa.lms.certificates.show', $cert->id) }}" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 rounded-xl text-center transition">
                         👁️ Lihat
                     </a>
-                    <a href="{{ route('siswa.lms.certificates.download', $cert->id) }}" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl text-center transition">
+                    <a href="{{ route('siswa.lms.certificates.download', $cert->id) }}" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 rounded-xl text-center transition">
                         📥 Download PDF
                     </a>
                 </div>

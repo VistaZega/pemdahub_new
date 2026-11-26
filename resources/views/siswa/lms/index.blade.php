@@ -85,7 +85,7 @@
     .lms-filter-btn {
         padding: 0.45rem 0.85rem;
         border-radius: 9999px;
-        font-size: 0.74rem;
+        font-size: 1.08rem;
         font-weight: 700;
         border: 1px solid transparent;
         cursor: pointer;
@@ -124,24 +124,24 @@
     <div class="lms-hero">
         <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem; position: relative; z-index: 1;">
             <div style="min-width: 240px; flex: 1;">
-                <div style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.25rem 0.7rem; border-radius: 9999px; background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem;">
+                <div style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.25rem 0.7rem; border-radius: 9999px; background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; font-size: 0.80rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem;">
                     <i class="fas fa-microchip"></i> Smart Learning Ecosystem &bull; PembdaHUB
                 </div>
-                <h1 style="font-size: 1.5rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">
+                <h1 style="font-size: 1.70rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">
                     Ruang Belajar Digital, {{ explode(' ', $student->user->name ?? 'Siswa')[0] }}
                 </h1>
-                <p style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.35rem; max-width: 560px; line-height: 1.5;">
+                <p style="font-size: 0.90rem; color: #cbd5e1; margin-top: 0.35rem; max-width: 560px; line-height: 1.5;">
                     Pelajari modul interaktif, kerjakan tugas &amp; kuis evaluasi, praktik di Simulator Lab, dan berdiskusi bersama Pembda AI Tutor.
                 </p>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.9rem;">
-                    <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant']) }}" style="padding: 0.5rem 0.95rem; border-radius: 0.75rem; background: #fbbf24; color: #0f172a; font-size: 0.74rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant']) }}" style="padding: 0.5rem 0.95rem; border-radius: 0.75rem; background: #fbbf24; color: #0f172a; font-size: 1.08rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
                         <i class="fas fa-robot"></i> Pembda AI Tutor
                     </a>
-                    <a href="{{ route('simlab.index') }}" style="padding: 0.5rem 0.95rem; border-radius: 0.75rem; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(52, 211, 153, 0.4); color: #6ee7b7; font-size: 0.74rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <a href="{{ route('simlab.index') }}" style="padding: 0.5rem 0.95rem; border-radius: 0.75rem; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(52, 211, 153, 0.4); color: #6ee7b7; font-size: 1.08rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
                         <i class="fas fa-flask"></i> Simulator Lab
                     </a>
-                    <a href="{{ route('siswa.lms.certificates.index') }}" style="padding: 0.5rem 0.95rem; border-radius: 0.75rem; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 0.74rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <a href="{{ route('siswa.lms.certificates.index') }}" style="padding: 0.5rem 0.95rem; border-radius: 0.75rem; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 1.08rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
                         <i class="fas fa-trophy" style="color: #fbbf24;"></i> Sertifikat Saya
                     </a>
                 </div>
@@ -151,16 +151,16 @@
             <div style="display: flex; flex-wrap: wrap; gap: 0.65rem; flex-shrink: 0;">
                 <div class="lms-stat-pill">
                     <div style="font-size: 1.45rem; font-weight: 900; color: #ffffff; line-height: 1.1;">{{ $totalCourses }}</div>
-                    <div style="font-size: 0.66rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-top: 0.2rem;">Kursus</div>
+                    <div style="font-size: 0.98rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-top: 0.2rem;">Kursus</div>
                 </div>
                 <div class="lms-stat-pill" style="background: rgba(56, 189, 248, 0.16); border-color: rgba(56, 189, 248, 0.35);">
                     <div style="font-size: 1.45rem; font-weight: 900; color: #7dd3fc; line-height: 1.1;">{{ $avgProgress }}%</div>
-                    <div style="font-size: 0.66rem; font-weight: 700; color: #bae6fd; text-transform: uppercase; margin-top: 0.2rem;">Rata Progress</div>
+                    <div style="font-size: 0.98rem; font-weight: 700; color: #bae6fd; text-transform: uppercase; margin-top: 0.2rem;">Rata Progress</div>
                 </div>
                 @if($reputation)
                 <div class="lms-stat-pill" style="background: rgba(251, 191, 36, 0.18); border-color: rgba(251, 191, 36, 0.4);">
                     <div style="font-size: 1.45rem; font-weight: 900; color: #fde047; line-height: 1.1;">{{ number_format($reputation->total_points) }}</div>
-                    <div style="font-size: 0.66rem; font-weight: 700; color: #fef08a; text-transform: uppercase; margin-top: 0.2rem;">{{ $reputation->level_name }}</div>
+                    <div style="font-size: 0.98rem; font-weight: 700; color: #fef08a; text-transform: uppercase; margin-top: 0.2rem;">{{ $reputation->level_name }}</div>
                 </div>
                 @endif
             </div>
@@ -176,11 +176,11 @@
                     <i class="fas fa-bell"></i>
                 </div>
                 <div>
-                    <h3 style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin: 0;">Tenggat Waktu Minggu Ini</h3>
-                    <p style="font-size: 0.74rem; color: #64748b; margin: 0;">Tugas &amp; kuis yang perlu segera diselesaikan</p>
+                    <h3 style="font-size: 1.04rem; font-weight: 800; color: #0f172a; margin: 0;">Tenggat Waktu Minggu Ini</h3>
+                    <p style="font-size: 1.08rem; color: #64748b; margin: 0;">Tugas &amp; kuis yang perlu segera diselesaikan</p>
                 </div>
             </div>
-            <span style="padding: 0.25rem 0.7rem; border-radius: 9999px; background: #fef3c7; color: #92400e; font-size: 0.72rem; font-weight: 800;">
+            <span style="padding: 0.25rem 0.7rem; border-radius: 9999px; background: #fef3c7; color: #92400e; font-size: 0.84rem; font-weight: 800;">
                 {{ ($upcomingAssignments->count() ?? 0) + ($upcomingQuizzes->count() ?? 0) }} Item
             </span>
         </div>
@@ -193,10 +193,10 @@
             @endphp
             <a href="{{ route('siswa.lms.show', $asgn->course_id) }}" style="padding: 0.75rem 0.95rem; border-radius: 0.85rem; background: #ffffff; border: 1px solid {{ $isOverdue ? '#fecdd3' : '#e2e8f0' }}; text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
                 <div style="min-width: 0;">
-                    <div style="font-size: 0.8rem; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $asgn->title }}</div>
-                    <div style="font-size: 0.7rem; color: #64748b;">{{ $asgn->course->subject->subject_name ?? ($asgn->course->course_name ?? 'LMS') }} &bull; {{ $deadlineDate->format('d M H:i') }}</div>
+                    <div style="font-size: 0.90rem; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $asgn->title }}</div>
+                    <div style="font-size: 1.04rem; color: #64748b;">{{ $asgn->course->subject->subject_name ?? ($asgn->course->course_name ?? 'LMS') }} &bull; {{ $deadlineDate->format('d M H:i') }}</div>
                 </div>
-                <span style="padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.66rem; font-weight: 800; background: {{ $isOverdue ? '#fee2e2' : '#fef3c7' }}; color: {{ $isOverdue ? '#b91c1c' : '#92400e' }}; white-space: nowrap;">
+                <span style="padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.98rem; font-weight: 800; background: {{ $isOverdue ? '#fee2e2' : '#fef3c7' }}; color: {{ $isOverdue ? '#b91c1c' : '#92400e' }}; white-space: nowrap;">
                     {{ $isOverdue ? 'Terlewat' : 'Kerjakan' }}
                 </span>
             </a>
@@ -216,11 +216,11 @@
         </div>
 
         <div style="position: relative; min-width: 230px; flex: 1; max-width: 320px;">
-            <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.78rem;"></i>
+            <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.98rem;"></i>
             <input type="text"
                    x-model="search"
                    placeholder="Cari mata pelajaran atau guru..."
-                   style="width: 100%; padding: 0.5rem 0.85rem 0.5rem 2.2rem; border-radius: 0.75rem; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 0.78rem; color: #0f172a; outline: none;">
+                   style="width: 100%; padding: 0.5rem 0.85rem 0.5rem 2.2rem; border-radius: 0.75rem; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 0.98rem; color: #0f172a; outline: none;">
         </div>
     </div>
 
@@ -246,11 +246,11 @@
             {{-- Card Header --}}
             <div style="position: relative; padding: 1.15rem 1.25rem; background: linear-gradient(135deg, {{ $themeColor }} 0%, #0f172a 135%); color: #ffffff;">
                 @if($course->meeting_active)
-                <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" style="position: absolute; top: 0.85rem; right: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem; background: #e11d48; color: #ffffff; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 800; text-decoration: none; box-shadow: 0 2px 8px rgba(225, 29, 72, 0.45);">
+                <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" style="position: absolute; top: 0.85rem; right: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem; background: #e11d48; color: #ffffff; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.98rem; font-weight: 800; text-decoration: none; box-shadow: 0 2px 8px rgba(225, 29, 72, 0.45);">
                     <span class="w-1.5 h-1.5 bg-white rounded-full inline-block animate-ping"></span> LIVE
                 </a>
                 @else
-                <a href="#" id="live-badge-{{ $course->id }}" class="hidden" style="position: absolute; top: 0.85rem; right: 0.85rem; align-items: center; gap: 0.35rem; background: #e11d48; color: #ffffff; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 800; text-decoration: none;">
+                <a href="#" id="live-badge-{{ $course->id }}" class="hidden" style="position: absolute; top: 0.85rem; right: 0.85rem; align-items: center; gap: 0.35rem; background: #e11d48; color: #ffffff; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.98rem; font-weight: 800; text-decoration: none;">
                     <span class="w-1.5 h-1.5 bg-white rounded-full inline-block animate-ping"></span> LIVE
                 </a>
                 @endif
@@ -260,9 +260,9 @@
                         <img src="{{ $course->getTeacherPhotoUrl() }}" alt="{{ $teacherName }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($teacherName) }}&background=0f172a&color=ffffff&bold=true'">
                     </div>
                     <div style="min-width: 0; flex: 1;">
-                        <span style="display: inline-block; background: rgba(15, 23, 42, 0.55); color: #fde047; padding: 0.15rem 0.5rem; border-radius: 0.45rem; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em;">{{ $course->getShortCode() }}</span>
-                        <h3 style="font-size: 0.95rem; font-weight: 800; color: #ffffff; margin: 0.25rem 0 0; line-height: 1.3;">{{ $courseTitle }}</h3>
-                        <div style="font-size: 0.72rem; color: rgba(255,255,255,0.85); margin-top: 0.15rem;">{{ $teacherName }}</div>
+                        <span style="display: inline-block; background: rgba(15, 23, 42, 0.55); color: #fde047; padding: 0.15rem 0.5rem; border-radius: 0.45rem; font-size: 1.08rem; font-weight: 800; letter-spacing: 0.05em;">{{ $course->getShortCode() }}</span>
+                        <h3 style="font-size: 1.06rem; font-weight: 800; color: #ffffff; margin: 0.25rem 0 0; line-height: 1.3;">{{ $courseTitle }}</h3>
+                        <div style="font-size: 0.84rem; color: rgba(255,255,255,0.85); margin-top: 0.15rem;">{{ $teacherName }}</div>
                     </div>
                 </div>
             </div>
@@ -272,36 +272,36 @@
                 @if($consolidatedSchedules->isNotEmpty())
                 <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
                     @foreach($consolidatedSchedules as $schLabel)
-                    <span style="padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.66rem; font-weight: 700; background: #f1f5f9; color: #334155;">
+                    <span style="padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.98rem; font-weight: 700; background: #f1f5f9; color: #334155;">
                         <i class="far fa-clock" style="margin-right: 0.2rem;"></i> {{ $schLabel }}
                     </span>
                     @endforeach
                 </div>
                 @endif
 
-                <p style="font-size: 0.76rem; color: #475569; line-height: 1.5; margin: 0;">
+                <p style="font-size: 0.98rem; color: #475569; line-height: 1.5; margin: 0;">
                     {{ \Illuminate\Support\Str::limit($course->description ?: 'Pelajari materi dan aktivitas ' . ($course->subject->subject_name ?? '') . ' secara interaktif.', 90) }}
                 </p>
 
                 {{-- Mini Stats --}}
                 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; background: #f8fafc; padding: 0.6rem; border-radius: 0.85rem; border: 1px solid #e2e8f0; text-align: center;">
                     <div>
-                        <div style="font-size: 0.9rem; font-weight: 800; color: #0f172a;">{{ $course->modules_count ?? 0 }}</div>
-                        <div style="font-size: 0.62rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Modul</div>
+                        <div style="font-size: 1.00rem; font-weight: 800; color: #0f172a;">{{ $course->modules_count ?? 0 }}</div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Modul</div>
                     </div>
                     <div style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.9rem; font-weight: 800; color: #0f172a;">{{ $course->materials_count ?? 0 }}</div>
-                        <div style="font-size: 0.62rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Materi</div>
+                        <div style="font-size: 1.00rem; font-weight: 800; color: #0f172a;">{{ $course->materials_count ?? 0 }}</div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Materi</div>
                     </div>
                     <div>
-                        <div style="font-size: 0.9rem; font-weight: 800; color: #0f172a;">{{ $course->assignments_count ?? 0 }}</div>
-                        <div style="font-size: 0.62rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Tugas</div>
+                        <div style="font-size: 1.00rem; font-weight: 800; color: #0f172a;">{{ $course->assignments_count ?? 0 }}</div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Tugas</div>
                     </div>
                 </div>
 
                 {{-- Progress --}}
                 <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 800; color: #334155; margin-bottom: 0.35rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 1.04rem; font-weight: 800; color: #334155; margin-bottom: 0.35rem;">
                         <span>{{ $progress >= 80 ? '🔥 Hampir Tuntas' : ($progress >= 40 ? '📖 Sedang Belajar' : ($progress > 0 ? '🚀 Baru Mulai' : '📚 Belum Dimulai')) }}</span>
                         <span style="color: #059669;">{{ number_format($progress) }}%</span>
                     </div>
@@ -309,7 +309,7 @@
                         <div style="width: {{ min(100, $progress) }}%; height: 100%; background: #059669; border-radius: 9999px;"></div>
                     </div>
                     @if($cDetail)
-                    <div style="display: flex; justify-content: space-between; font-size: 0.66rem; color: #64748b; font-weight: 600; margin-top: 0.35rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.98rem; color: #64748b; font-weight: 600; margin-top: 0.35rem;">
                         <span>Materi {{ $cDetail['materials']['completed'] }}/{{ $cDetail['materials']['total'] }}</span>
                         <span>Tugas {{ $cDetail['assignments']['completed'] }}/{{ $cDetail['assignments']['total'] }}</span>
                         <span>Kuis {{ $cDetail['quizzes']['completed'] }}/{{ $cDetail['quizzes']['total'] }}</span>
@@ -320,18 +320,18 @@
                 {{-- Action Buttons --}}
                 <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.45rem;">
                     @if($course->meeting_active)
-                    <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; padding: 0.6rem; border-radius: 0.8rem; background: #e11d48; color: #ffffff; font-size: 0.74rem; font-weight: 800; text-decoration: none;">
+                    <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; padding: 0.6rem; border-radius: 0.8rem; background: #e11d48; color: #ffffff; font-size: 1.08rem; font-weight: 800; text-decoration: none;">
                         <i class="fas fa-video"></i> Masuk PembdaTEMU Live
                     </a>
                     @endif
 
                     <div style="display: flex; gap: 0.45rem;">
-                        <a href="{{ route('siswa.lms.show', $course->id) }}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.65rem 0.9rem; border-radius: 0.8rem; background: {{ $themeColor }}; color: #ffffff; font-size: 0.75rem; font-weight: 800; text-decoration: none;">
+                        <a href="{{ route('siswa.lms.show', $course->id) }}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.65rem 0.9rem; border-radius: 0.8rem; background: {{ $themeColor }}; color: #ffffff; font-size: 1.08rem; font-weight: 800; text-decoration: none;">
                             <i class="fas fa-door-open"></i> Ruang Belajar
                         </a>
                         <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant', 'prompt' => 'Bantu saya memahami materi dan cek tugas pada mata pelajaran "' . $courseTitle . '".']) }}"
                            title="Tanya Pembda AI tentang mata pelajaran ini"
-                           style="padding: 0.65rem 0.85rem; border-radius: 0.8rem; background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; font-size: 0.75rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;">
+                           style="padding: 0.65rem 0.85rem; border-radius: 0.8rem; background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; font-size: 1.08rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;">
                             <i class="fas fa-robot"></i> AI
                         </a>
                     </div>
@@ -344,7 +344,7 @@
     <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1.25rem; padding: 3.5rem 1.5rem; text-align: center;">
         <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📚</div>
         <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;">Belum Ada Course Terdaftar</h3>
-        <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.3rem;">Anda belum terdaftar di course manapun. Hubungi guru Anda untuk didaftarkan ke kelas.</p>
+        <p style="font-size: 0.90rem; color: #64748b; margin-top: 0.3rem;">Anda belum terdaftar di course manapun. Hubungi guru Anda untuk didaftarkan ke kelas.</p>
     </div>
     @endif
 </div>

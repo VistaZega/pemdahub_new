@@ -93,17 +93,36 @@ if (!function_exists('balanceHtmlTags')) {
     .module-progress-ring circle.progress-arc {
         transition: stroke-dashoffset 0.8s ease-in-out;
     }
+    /* Modern Editorial Refresh for LMS Course Shell (menghilangkan border hitam kaku & memperbesar huruf) */
+    #lms-course-shell .border-2.border-black {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05) !important;
+    }
+    #lms-course-shell .border-black {
+        border-color: #cbd5e1 !important;
+    }
+    #lms-course-shell .text-xs {
+        font-size: 0.875rem !important;
+        line-height: 1.45 !important;
+    }
+    #lms-course-shell .text-\[10px\],
+    #lms-course-shell .text-\[11px\] {
+        font-size: 0.78rem !important;
+    }
 </style>
 @endpush
 
 @section('content')
 @php
     $colorConfig = \App\Models\LmsCourse::getColorClasses($course->color);
+    $themeHex = $course->getActiveThemeHexColor() ?: '#1e3a8a';
     $scientist = $course->getScientistConfig();
     $pendingAssignments = $course->assignments->filter(fn($a) => !isset($submissionMap[$a->id]) || $submissionMap[$a->id]->status === 'draft')->count();
     $availableQuizzes = $course->quizzes->filter(fn($q) => $q->isAvailable())->count();
+    $courseTitle = $course->course_name ?? $course->name;
+    $teacherName = $course->teacher->user->name ?? '-';
 @endphp
-<div class="space-y-6" x-data="{ tab: '{{ request('tab', 'modules') }}' }">
+<div id="lms-course-shell" class="space-y-6" style="max-width: 1320px; margin: 0 auto;" x-data="{ tab: '{{ request('tab', 'modules') }}' }">
     @if(session('success'))
     <div class="bg-emerald-50 border-2 border-emerald-500 text-emerald-800 p-4 rounded-2xl flex items-center gap-3 shadow-md">
         <i class="fas fa-check-circle text-emerald-600 text-xl flex-shrink-0"></i>
@@ -145,111 +164,79 @@ if (!function_exists('balanceHtmlTags')) {
     @endif
 
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- COURSE HERO BANNER (100% SOLID UI UX PRO MAX) --}}
+    {{-- COURSE HERO BANNER (MODERN EDITORIAL) --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <div class="relative bg-white rounded-3xl p-6 md:p-8 overflow-hidden shadow-xl border-2 border-black">
-        <div class="relative z-10">
-            {{-- Back --}}
-            <a href="{{ route('siswa.lms.index') }}" class="inline-flex items-center gap-2 bg-black text-white border-2 border-black px-4 py-2 rounded-xl text-xs font-black hover:bg-amber-400 hover:text-black transition-all shadow-md mb-5">
-                <i class="fas fa-arrow-left text-xs"></i> Kembali ke Daftar Ruang Belajar
+    <div style="background: linear-gradient(135deg, {{ $themeHex }} 0%, #0f172a 120%); border: 1px solid #1e293b; border-radius: 1.35rem; padding: 1.5rem 1.75rem; color: #ffffff; box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.25);">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <a href="{{ route('siswa.lms.index') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); color: #ffffff; padding: 0.5rem 0.95rem; border-radius: 0.75rem; font-size: 0.84rem; font-weight: 700; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Kembali ke Ruang Belajar
             </a>
 
-            {{-- Course Info --}}
-            <div class="flex items-start mb-5" style="display: flex; align-items: flex-start; gap: 1.25rem;">
-                <div class="w-16 h-16 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border-2 border-black bg-white" style="margin-right: 1.25rem; flex-shrink: 0;">
-                    <img src="{{ $course->getTeacherPhotoUrl() }}" alt="{{ $course->teacher->user->name ?? 'Guru Pengajar' }}" class="w-full h-full object-cover object-center" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($course->teacher->user->name ?? 'Guru') }}&background=0f172a&color=ffffff&bold=true'">
-                </div>
-                <div style="min-width: 0; flex: 1;">
-                    <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight leading-tight">{{ $course->course_name ?? $course->name }}</h1>
-                    <div class="flex flex-wrap items-center gap-3 mt-2">
-                        <span class="border-2 border-black px-3 py-1 rounded-xl text-xs font-black" style="background-color: #fbbf24 !important; color: #000000 !important;">{{ $course->subject->subject_name ?? '' }}</span>
-                        <span class="text-black text-xs font-black flex items-center gap-1.5"><i class="fas fa-user-tie text-black text-sm"></i> Pengajar: {{ $course->teacher->user->name ?? '-' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Progress + Quick Stats --}}
-            <div class="flex flex-wrap items-center gap-4">
-                {{-- Progress Ring --}}
-                <div class="bg-blue-100 border-2 border-black rounded-2xl px-5 py-3 flex items-center gap-3 shadow-md" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div class="relative w-12 h-12" style="position: relative; width: 48px; height: 48px; min-width: 48px; max-width: 48px;">
-                        <svg class="w-12 h-12 progress-ring" viewBox="0 0 36 36" width="48" height="48" style="width: 48px; height: 48px; max-width: 48px; max-height: 48px;">
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#000000" stroke-width="4"/>
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#2563eb" stroke-width="4" stroke-dasharray="{{ $courseProgress }}, 100" stroke-linecap="round"/>
-                        </svg>
-                        <span class="absolute inset-0 flex items-center justify-center text-xs font-black text-black" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900;">{{ number_format($courseProgress) }}%</span>
-                    </div>
-                    <div>
-                        <div class="text-[10px] font-black uppercase tracking-widest text-black">Progress Belajar</div>
-                        <div class="text-sm font-black text-black">{{ $courseProgress >= 80 ? 'Hampir Selesai!' : ($courseProgress >= 40 ? 'Lanjutkan Belajar!' : ($courseProgress > 0 ? 'Baru Mulai' : 'Mulai Belajar')) }}</div>
-                        <div class="text-[9px] font-bold text-blue-900 mt-0.5">Materi · Tugas · Kuis</div>
-                    </div>
-                </div>
-
-                @if(isset($progressBreakdown))
-                <div class="bg-white border-2 border-black rounded-2xl px-4 py-2.5 flex items-center gap-3 shadow-md">
-                    <div class="flex items-center gap-2" title="Materi Dibaca">
-                        <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-black border border-black shrink-0">
-                            <i class="fas fa-file-alt"></i>
-                        </span>
-                        <div>
-                            <div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Materi</div>
-                            <div class="text-xs font-black text-black">{{ $progressBreakdown['materials']['completed'] }}/{{ $progressBreakdown['materials']['total'] }}</div>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">|</span>
-                    <div class="flex items-center gap-2" title="Tugas Dikumpulkan">
-                        <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-black border border-black shrink-0">
-                            <i class="fas fa-tasks"></i>
-                        </span>
-                        <div>
-                            <div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Tugas</div>
-                            <div class="text-xs font-black text-black">{{ $progressBreakdown['assignments']['completed'] }}/{{ $progressBreakdown['assignments']['total'] }}</div>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">|</span>
-                    <div class="flex items-center gap-2" title="Kuis Diselesaikan">
-                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center text-xs font-black border border-black shrink-0">
-                            <i class="fas fa-question-circle"></i>
-                        </span>
-                        <div>
-                            <div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Kuis</div>
-                            <div class="text-xs font-black text-black">{{ $progressBreakdown['quizzes']['completed'] }}/{{ $progressBreakdown['quizzes']['total'] }}</div>
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                <div class="bg-white border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md">
-                    <div class="text-xl font-black leading-none text-black">{{ $course->modules->count() }}</div>
-                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Modul Ajar</div>
-                </div>
-
-                {{-- Certificate claim when 100% --}}
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
+                <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant', 'prompt' => 'Bantu saya memahami materi, tugas, dan kuis pada mata pelajaran "' . $courseTitle . '".']) }}"
+                   style="display: inline-flex; align-items: center; gap: 0.45rem; background: #fbbf24; color: #0f172a; padding: 0.5rem 0.95rem; border-radius: 0.75rem; font-size: 0.84rem; font-weight: 800; text-decoration: none;">
+                    <i class="fas fa-robot"></i> Tanya Pembda AI
+                </a>
                 @if($courseProgress >= 100)
-                <form action="{{ route('siswa.lms.certificates.claim', $course->id) }}" method="POST" class="inline">
+                <form action="{{ route('siswa.lms.certificates.claim', $course->id) }}" method="POST" style="display: inline;">
                     @csrf
-                    <button type="submit" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md hover:shadow-lg transition transform hover:scale-105">
-                        <div class="text-xl font-black leading-none">🏆</div>
-                        <div class="text-[8px] font-black uppercase tracking-widest mt-0.5">Ambil Sertifikat</div>
+                    <button type="submit" style="display: inline-flex; align-items: center; gap: 0.45rem; background: #10b981; color: #ffffff; border: none; padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.84rem; font-weight: 800; cursor: pointer;">
+                        <i class="fas fa-trophy"></i> Ambil Sertifikat
                     </button>
                 </form>
                 @endif
-
-                @if($pendingAssignments > 0)
-                <div class="border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md" style="background-color: #fef08a !important;">
-                    <div class="text-xl font-black leading-none text-black">{{ $pendingAssignments }}</div>
-                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Tugas Pending</div>
-                </div>
-                @endif
-
-                @if($availableQuizzes > 0)
-                <div class="border-2 border-black rounded-2xl px-5 py-2.5 text-center min-w-[90px] shadow-md" style="background-color: #e9d5ff !important;">
-                    <div class="text-xl font-black leading-none text-black">{{ $availableQuizzes }}</div>
-                    <div class="text-[10px] font-black uppercase tracking-widest text-black mt-1">Quiz Tersedia</div>
-                </div>
-                @endif
             </div>
+        </div>
+
+        {{-- Course Info --}}
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.15rem; margin-bottom: 1.25rem;">
+            <div style="width: 64px; height: 64px; border-radius: 1rem; overflow: hidden; border: 2px solid rgba(255,255,255,0.5); background: #ffffff; flex-shrink: 0;">
+                <img src="{{ $course->getTeacherPhotoUrl() }}" width="64" height="64" style="width: 64px; height: 64px; object-fit: cover;" alt="{{ $teacherName }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($teacherName) }}&background=0f172a&color=ffffff&bold=true'">
+            </div>
+            <div style="min-width: 0; flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                    <span style="background: rgba(15,23,42,0.55); color: #fde047; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 800;">{{ $course->subject->subject_name ?? $course->getShortCode() }}</span>
+                    <span style="font-size: 0.86rem; color: rgba(255,255,255,0.9); font-weight: 600;">
+                        <i class="fas fa-user-tie" style="margin-right: 0.3rem;"></i> {{ $teacherName }}
+                    </span>
+                </div>
+                <h1 style="font-size: 1.65rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">{{ $courseTitle }}</h1>
+            </div>
+        </div>
+
+        {{-- Progress & Quick Stats --}}
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;">
+            <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem; padding: 0.75rem 1.1rem; display: flex; align-items: center; gap: 0.85rem;">
+                <div style="font-size: 1.45rem; font-weight: 900; color: #fde047;">{{ number_format($courseProgress) }}%</div>
+                <div>
+                    <div style="font-size: 0.78rem; font-weight: 800; color: #ffffff;">Progress Belajar</div>
+                    <div style="font-size: 0.76rem; color: #cbd5e1;">{{ $courseProgress >= 80 ? 'Hampir Selesai' : ($courseProgress >= 40 ? 'Sedang Berjalan' : 'Baru Mulai') }}</div>
+                </div>
+            </div>
+
+            @if(isset($progressBreakdown))
+            <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem; padding: 0.75rem 1.1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; font-size: 0.84rem; font-weight: 700;">
+                <span><i class="fas fa-file-alt" style="color: #93c5fd; margin-right: 0.3rem;"></i> Materi {{ $progressBreakdown['materials']['completed'] }}/{{ $progressBreakdown['materials']['total'] }}</span>
+                <span><i class="fas fa-tasks" style="color: #fcd34d; margin-right: 0.3rem;"></i> Tugas {{ $progressBreakdown['assignments']['completed'] }}/{{ $progressBreakdown['assignments']['total'] }}</span>
+                <span><i class="fas fa-question-circle" style="color: #d8b4fe; margin-right: 0.3rem;"></i> Kuis {{ $progressBreakdown['quizzes']['completed'] }}/{{ $progressBreakdown['quizzes']['total'] }}</span>
+            </div>
+            @endif
+
+            <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem; padding: 0.75rem 1.1rem; font-size: 0.84rem; font-weight: 700;">
+                <strong style="font-size: 1.05rem;">{{ $course->modules->count() }}</strong> Modul Ajar
+            </div>
+
+            @if($pendingAssignments > 0)
+            <div style="background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(251, 191, 36, 0.45); border-radius: 1rem; padding: 0.75rem 1.1rem; font-size: 0.84rem; font-weight: 800; color: #fde68a;">
+                {{ $pendingAssignments }} Tugas Pending
+            </div>
+            @endif
+
+            @if($availableQuizzes > 0)
+            <div style="background: rgba(168, 85, 247, 0.24); border: 1px solid rgba(216, 180, 254, 0.45); border-radius: 1rem; padding: 0.75rem 1.1rem; font-size: 0.84rem; font-weight: 800; color: #f3e8ff;">
+                {{ $availableQuizzes }} Quiz Tersedia
+            </div>
+            @endif
         </div>
     </div>
 

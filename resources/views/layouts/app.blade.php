@@ -484,7 +484,7 @@
                     @endif
 
                     <div class="hidden md:flex items-center gap-2 bg-black/25 px-3 py-1.5 rounded-xl text-sm border border-white/10 shadow-xs">
-                        <img src="{{ auth()->user()->photo_url }}" class="w-7 h-7 rounded-full object-cover border-2 border-amber-400 flex-shrink-0" alt="Avatar">
+                        <img src="{{ auth()->user()->photo_url }}" width="28" height="28" style="width: 28px; height: 28px; border-radius: 9999px; object-fit: cover;" class="w-7 h-7 rounded-full object-cover border-2 border-amber-400 flex-shrink-0" alt="Avatar">
                         <span class="font-black text-amber-300 text-xs tracking-tight">{{ auth()->user()->name ?? 'User' }}</span>
                         @if(auth()->user()->school)
                             <span class="text-white/50">·</span>
