@@ -2851,30 +2851,73 @@ if (!function_exists('balanceHtmlTags')) {
                         <p class="text-[11px] text-slate-500 font-bold">Masukkan URL Canva, Google Docs, YouTube, Audio link, atau Kode Embed Iframe HTML.</p>
                     </div>
 
-                    <!-- Simulator Quick Selector -->
-                    <div x-show="type === 'interactive'" class="bg-purple-100 border-2 border-black rounded-2xl p-4 text-xs text-black space-y-2.5" style="display: none">
-                        <p class="font-black uppercase tracking-wider flex items-center gap-1.5 text-xs">
-                            <i class="fas fa-gamepad text-purple-700 text-sm"></i> Pilih Simulator Interaktif 1-Klik:
-                        </p>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            <button type="button" @click="file_url = '{{ route('simlab.index') }}'; if(!material_title) material_title = 'Simulasi Mikrokontroler PembdaHUB SimLab'" class="p-2 bg-emerald-300 border border-black rounded-xl text-left hover:bg-emerald-400 text-xs font-black text-black flex items-center gap-1.5">
-                                <i class="fas fa-microchip text-emerald-900"></i> PembdaHUB SimLab
-                            </button>
-                            <button type="button" @click="file_url = 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html'; if(!material_title) material_title = 'Simulasi Rangkaian Listrik PhET'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
-                                <i class="fas fa-bolt text-sky-600"></i> PhET (IPA/TE)
-                            </button>
-                            <button type="button" @click="file_url = 'https://www.geogebra.org/classic'; if(!material_title) material_title = 'Simulasi Geometri GeoGebra'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
-                                <i class="fas fa-shapes text-indigo-600"></i> GeoGebra
-                            </button>
-                            <button type="button" @click="file_url = 'https://molview.org'; if(!material_title) material_title = 'Simulasi Molekul Kimia 3D'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
-                                <i class="fas fa-atom text-rose-600"></i> MolView 3D
-                            </button>
-                            <button type="button" @click="file_url = 'https://bellard.org/jslinux/'; if(!material_title) material_title = 'Simulasi Terminal Linux Server'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
-                                <i class="fas fa-terminal text-slate-800"></i> JS-Linux
-                            </button>
-                            <button type="button" @click="file_url = 'https://quizizz.com'; if(!material_title) material_title = 'Game Edukasi Quizizz'" class="p-2 bg-white border border-black rounded-xl text-left hover:bg-amber-300 text-xs font-black text-black flex items-center gap-1.5">
-                                <i class="fas fa-puzzle-piece text-purple-600"></i> Quizizz
-                            </button>
+                    <!-- Simulator Quick Selector dengan Preview Isi -->
+                    <div x-show="type === 'interactive'" class="bg-slate-50 border border-slate-300 rounded-2xl p-4 text-xs text-slate-900 space-y-3" style="display: none">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <p class="font-bold uppercase tracking-wider flex items-center gap-1.5 text-xs text-slate-800">
+                                <i class="fas fa-flask-vial text-emerald-600 text-sm"></i> Pilih &amp; Pratinjau Simulator PembdaHUB:
+                            </p>
+                            <a href="{{ route('simlab.index') }}" target="_blank" class="text-[11px] font-bold text-indigo-600 hover:underline">
+                                Buka Katalog Penuh / Buat Simulator AI <i class="fas fa-external-link-alt ml-0.5"></i>
+                            </a>
+                        </div>
+
+                        @php
+                            $__vLabsForLms = \Illuminate\Support\Facades\Schema::hasTable('virtual_labs')
+                                ? \App\Models\VirtualLab::where('is_active', true)->orderBy('id')->get()
+                                : collect();
+                        @endphp
+
+                        @if($__vLabsForLms->count() > 0)
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
+                            @foreach($__vLabsForLms as $__vLab)
+                            <div class="p-3 bg-white border border-slate-200 hover:border-emerald-400 rounded-xl flex flex-col justify-between gap-2 transition shadow-xs">
+                                <div>
+                                    <div class="flex items-center justify-between gap-1 mb-1">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800">{{ $__vLab->category }}</span>
+                                        <span class="text-[10px] font-semibold text-slate-500 truncate">{{ $__vLab->subject_name }}</span>
+                                    </div>
+                                    <div class="font-bold text-slate-900 text-xs leading-snug">{{ $__vLab->title }}</div>
+                                    <p class="text-[11px] text-slate-600 mt-1 line-clamp-2 leading-relaxed">{{ $__vLab->description }}</p>
+                                </div>
+                                <div class="flex items-center gap-1.5 pt-2 border-t border-slate-100">
+                                    <a href="{{ route('simlab.lab', $__vLab->slug) }}" target="_blank"
+                                       class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition inline-flex items-center gap-1">
+                                        <i class="fas fa-eye"></i> Pratinjau
+                                    </a>
+                                    <button type="button"
+                                            @click="file_url = '{{ route('simlab.lab', $__vLab->slug) }}'; material_title = '{{ addslashes($__vLab->title) }}'"
+                                            class="flex-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition">
+                                        <i class="fas fa-check mr-1"></i> Pilih Simulator
+                                    </button>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        <div class="pt-2 border-t border-slate-200">
+                            <p class="font-bold text-[11px] text-slate-500 mb-2">Atau pilih simulator eksternal 1-klik:</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <button type="button" @click="file_url = 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html'; if(!material_title) material_title = 'Simulasi Rangkaian Listrik PhET'" class="p-2 bg-white border border-slate-300 rounded-xl text-left hover:bg-amber-50 text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-bolt text-sky-600"></i> PhET (IPA/TE)
+                                </button>
+                                <button type="button" @click="file_url = 'https://www.geogebra.org/classic'; if(!material_title) material_title = 'Simulasi Geometri GeoGebra'" class="p-2 bg-white border border-slate-300 rounded-xl text-left hover:bg-amber-50 text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-shapes text-indigo-600"></i> GeoGebra
+                                </button>
+                                <button type="button" @click="file_url = 'https://molview.org'; if(!material_title) material_title = 'Simulasi Molekul Kimia 3D'" class="p-2 bg-white border border-slate-300 rounded-xl text-left hover:bg-amber-50 text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-atom text-rose-600"></i> MolView 3D
+                                </button>
+                                <button type="button" @click="file_url = 'https://bellard.org/jslinux/'; if(!material_title) material_title = 'Simulasi Terminal Linux Server'" class="p-2 bg-white border border-slate-300 rounded-xl text-left hover:bg-amber-50 text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-terminal text-slate-800"></i> JS-Linux
+                                </button>
+                                <button type="button" @click="file_url = '{{ route('simlab.index') }}'; if(!material_title) material_title = 'Simulasi Mikrokontroler PembdaHUB SimLab'" class="p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-left hover:bg-emerald-100 text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                                    <i class="fas fa-microchip text-emerald-700"></i> Studio IoT Arduino
+                                </button>
+                                <button type="button" @click="file_url = 'https://quizizz.com'; if(!material_title) material_title = 'Game Edukasi Quizizz'" class="p-2 bg-white border border-slate-300 rounded-xl text-left hover:bg-amber-50 text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-puzzle-piece text-purple-600"></i> Quizizz
+                                </button>
+                            </div>
                         </div>
                     </div>
 

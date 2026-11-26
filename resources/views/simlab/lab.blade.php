@@ -16,11 +16,20 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
+@php
+    $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
+    $proEngineMap = [
+        'gasoline_engine' => asset('simlab-engines/mesin-4tak-2tak.html'),
+        'beam_load'       => asset('simlab-engines/teknik-gambar-bangunan.html'),
+        'subnetting'      => asset('simlab-engines/tkj-jaringan.html'),
+    ];
+    $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
+@endphp
 <body class="min-h-screen flex flex-col" x-data="virtualLabRunner()">
 
     <!-- Top Toolbar -->
     <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
                 <a href="{{ route('simlab.index') }}" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold transition shrink-0">
                     <i class="fas fa-arrow-left mr-1"></i> Katalog Lab
@@ -28,13 +37,30 @@
                 <div class="min-w-0">
                     <div class="flex items-center gap-2">
                         <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold uppercase">{{ $lab->category }}</span>
-                        <span class="text-xs text-slate-400 font-semibold truncate">{{ $lab->subject_name }}</span>
+                        @if($isInstructor)
+                        <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold">Mode Instruktur</span>
+                        @else
+                        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">Mode Praktikan</span>
+                        @endif
+                        <span class="text-xs text-slate-400 font-semibold truncate hidden sm:inline">{{ $lab->subject_name }}</span>
                     </div>
                     <h1 class="text-base sm:text-lg font-extrabold text-white truncate">{{ $lab->title }}</h1>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
+                <button type="button" @click="showSop = !showSop"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition">
+                    <i class="fas" :class="showSop ? 'fa-compress-alt' : 'fa-clipboard-list text-amber-400'"></i>
+                    <span class="hidden md:inline" x-text="showSop ? 'Luaskan Kanvas' : 'Tampilkan SOP Lab'"></span>
+                </button>
+                @if($isInstructor)
+                <button type="button" @click="copyLabUrl()"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition">
+                    <i class="fas fa-link"></i>
+                    <span class="hidden sm:inline" x-text="copied ? 'Tersalin!' : 'Salin Link LMS'"></span>
+                </button>
+                @endif
                 @if($lab->course && auth()->check() && auth()->user()->student)
                 <a href="{{ route('siswa.lms.show', $lab->course->id) }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition">
                     <i class="fas fa-book-open"></i> Course LMS
@@ -51,24 +77,24 @@
     </header>
 
     <!-- Main Lab Workspace -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
         <!-- LEFT: SOP PRAKTIKUM & CATATAN LAB -->
-        <aside class="lg:col-span-4 space-y-5">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <aside x-show="showSop" x-transition class="lg:col-span-3 space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-2">
                         <i class="fas fa-clipboard-list"></i> SOP &amp; Petunjuk Lab
                     </h2>
                     <span class="text-xs font-mono-lab font-bold text-emerald-400" x-text="checkedSteps.length + '/' + totalSteps + ' Selesai'"></span>
                 </div>
-                <p class="text-sm text-slate-300 leading-relaxed">{{ $lab->description }}</p>
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">{{ $lab->description }}</p>
 
-                <div class="space-y-2.5 pt-2 border-t border-slate-800">
+                <div class="space-y-2 pt-2 border-t border-slate-800">
                     @foreach(($lab->sop_steps ?? []) as $idx => $step)
-                    <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition">
+                    <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition">
                         <input type="checkbox" value="{{ $idx }}" x-model="checkedSteps" class="mt-1 rounded text-emerald-500 focus:ring-emerald-500">
-                        <span class="text-xs sm:text-sm text-slate-200 leading-snug">
+                        <span class="text-xs text-slate-200 leading-snug">
                             <strong class="text-emerald-400">Langkah {{ $idx + 1 }}:</strong> {{ $step }}
                         </span>
                     </label>
@@ -76,19 +102,32 @@
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2.5">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2">
                 <label class="text-xs font-extrabold uppercase tracking-wider text-cyan-400 block">
-                    <i class="fas fa-pen-to-square mr-1"></i> Catatan Pengamatan Siswa
+                    <i class="fas fa-pen-to-square mr-1"></i> {{ $isInstructor ? 'Catatan Instruktur / Bahan Ajar' : 'Catatan Pengamatan Siswa' }}
                 </label>
-                <textarea rows="4" x-model="labNotes" placeholder="Catat hasil pengamatan variabel & kesimpulan eksperimen Anda di sini..."
-                          class="w-full rounded-xl bg-slate-950 border border-slate-700 p-3 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-cyan-400"></textarea>
+                <textarea rows="4" x-model="labNotes" placeholder="Catat hasil pengamatan variabel & kesimpulan eksperimen di sini..."
+                          class="w-full rounded-xl bg-slate-950 border border-slate-700 p-3 text-xs sm:text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-cyan-400"></textarea>
             </div>
         </aside>
 
         <!-- RIGHT: INTERACTIVE ANIMATED SIMULATOR -->
-        <section class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-5">
+        <section :class="showSop ? 'lg:col-span-9' : 'lg:col-span-12'" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
 
-            @if($lab->engine_type === 'gasoline_engine')
+            @if($proEngineUrl)
+                <!-- PRO INTERACTIVE ENGINE (FROM D:\AI Implementasi) -->
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-sm font-bold text-white">Simulasi Interaktif Penuh &amp; Telemetri Real-Time</span>
+                    </div>
+                    <a href="{{ $proEngineUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold transition">
+                        <i class="fas fa-up-right-from-square"></i> Buka Layar Penuh
+                    </a>
+                </div>
+                <iframe src="{{ $proEngineUrl }}" class="w-full rounded-xl border border-slate-800 bg-slate-950" style="height: 780px;"></iframe>
+
+            @elseif($lab->engine_type === 'gasoline_engine')
                 <!-- 1. SIMULATOR MESIN BENSIN 4-TAK -->
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
                     <div>
@@ -376,6 +415,13 @@
     <script>
         function virtualLabRunner() {
             return {
+                showSop: true,
+                copied: false,
+                copyLabUrl() {
+                    navigator.clipboard?.writeText('{{ route("simlab.lab", $lab->slug) }}');
+                    this.copied = true;
+                    setTimeout(() => this.copied = false, 2000);
+                },
                 checkedSteps: [],
                 totalSteps: {{ count($lab->sop_steps ?? []) }},
                 labNotes: '',

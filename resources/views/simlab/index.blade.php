@@ -26,6 +26,9 @@
         }
     </style>
 </head>
+@php
+    $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
+@endphp
 <body class="antialiased selection:bg-indigo-500 selection:text-white" x-data="simLabCatalog()">
 
     <!-- Top Navbar -->
@@ -71,9 +74,20 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
                 <div class="max-w-3xl">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 text-xs font-semibold mb-4">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>Laboratorium Praktikum Virtual • SMP, SMA, SMK Vokasi & LMS</span>
+                    <div class="flex flex-wrap items-center gap-2 mb-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 text-xs font-semibold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Laboratorium Praktikum Virtual • SMP, SMA, SMK Vokasi & LMS</span>
+                        </div>
+                        @if($isInstructor)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-bold">
+                            <i class="fas fa-chalkboard-teacher"></i> Mode Instruktur (Guru)
+                        </span>
+                        @else
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-bold">
+                            <i class="fas fa-user-graduate"></i> Mode Praktikan (Siswa)
+                        </span>
+                        @endif
                     </div>
                     <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
                         Eksperimen Visual, Animasi Real-Time & <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400">SOP Lab Standar</span>
@@ -232,11 +246,21 @@
                             <span>{{ is_array($lab->sop_steps) ? count($lab->sop_steps) : 0 }} Langkah SOP</span>
                         </span>
 
-                        <a href="{{ route('simlab.lab', $lab->slug) }}"
-                           class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-indigo-600 text-white text-xs font-semibold transition">
-                            <span>Masuk Ruang Lab</span>
-                            <i class="fas fa-arrow-right text-[11px]"></i>
-                        </a>
+                        <div class="flex items-center gap-1.5">
+                            @if($isInstructor)
+                            <button type="button"
+                                    @click="navigator.clipboard?.writeText('{{ route('simlab.lab', $lab->slug) }}'); $el.innerHTML='<i class=\'fas fa-check text-emerald-400\'></i>'; setTimeout(() => $el.innerHTML='<i class=\'fas fa-link\'></i>', 1500)"
+                                    title="Salin Link untuk Materi/Tugas LMS"
+                                    class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white text-xs transition">
+                                <i class="fas fa-link"></i>
+                            </button>
+                            @endif
+                            <a href="{{ route('simlab.lab', $lab->slug) }}"
+                               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-indigo-600 text-white text-xs font-semibold transition">
+                                <span>{{ $isInstructor ? 'Pratinjau Lab' : 'Masuk Ruang Lab' }}</span>
+                                <i class="fas fa-arrow-right text-[11px]"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 @endforeach

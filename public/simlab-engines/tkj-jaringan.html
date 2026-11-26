@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulasi Aliran Paket Jaringan &amp; Subnetting | SMK TKJ</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #0b1120;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    header p {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .mode-switch {
+      display: flex;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(340px, 1.35fr) minmax(320px, 1fr);
+      gap: 18px;
+      padding: 18px 24px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      background: #0b1220;
+      border: 1px solid #263349;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 560px;
+    }
+
+    .status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      transition: all 0.2s ease;
+    }
+
+    .banner-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .banner-badge {
+      font-family: 'Consolas', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: rgba(15, 23, 42, 0.75);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .desc-text {
+      font-size: 0.87rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .controls-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .box {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .box-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 8px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button.ctrl {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button.ctrl:hover {
+      background: #273549;
+      border-color: var(--accent);
+    }
+
+    button.ctrl.primary {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    button.ctrl.primary:hover {
+      background: #7dd3fc;
+    }
+
+    .fault-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .val-badge {
+      font-family: 'Consolas', monospace;
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .presets-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-item {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: 'Consolas', monospace;
+    }
+
+    .log-box {
+      background: #020617;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'Consolas', monospace;
+      font-size: 0.78rem;
+      color: #a5f3fc;
+      max-height: 110px;
+      overflow-y: auto;
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding-top: 4px;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Simulasi Sistem Kerja Jaringan &amp; Subnetting IPv4</h1>
+      <p>Media Pembelajaran Interaktif SMK Teknik Komputer dan Jaringan (TKJ)</p>
+    </div>
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btnRouting">1. Aliran Paket, Routing &amp; Firewall</button>
+      <button class="mode-btn" id="btnSubnet">2. Simulasi Subnetting IPv4 (CIDR)</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Panel Kiri: Canvas Simulasi -->
+    <section class="card">
+      <div class="canvas-wrap">
+        <canvas id="netCanvas" width="640" height="560"></canvas>
+      </div>
+      <div class="legend" id="legendBox">
+        <span><i class="dot" style="background:#38bdf8"></i> Paket Request (ARP/ICMP/HTTP)</span>
+        <span><i class="dot" style="background:#22c55e"></i> Paket Balasan (Reply / OK)</span>
+        <span><i class="dot" style="background:#f59e0b"></i> Proses NAT / Routing</span>
+        <span><i class="dot" style="background:#ef4444"></i> Paket Gagal / Diblokir</span>
+      </div>
+    </section>
+
+    <!-- Panel Kanan: Kontrol & Status -->
+    <section class="card">
+      <div class="status-banner" id="statusBanner">
+        <div>
+          <div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;" id="bannerSub">Status Simulasi Jaringan</div>
+          <div class="banner-title" id="bannerTitle">SIAP MENGIRIM PAKET</div>
+        </div>
+        <div class="banner-badge" id="bannerBadge">IDLE</div>
+      </div>
+
+      <p class="desc-text" id="descText">
+        Pilih tujuan pengiriman paket dari <strong>PC 1 (192.168.10.2)</strong> untuk melihat cara kerja Switch (MAC Address), Router (Routing Table &amp; NAT), dan Firewall. Aktifkan simulasi gangguan untuk berlatih troubleshooting.
+      </p>
+
+      <!-- Kontrol Mode 1: Routing & Paket -->
+      <div class="controls-grid" id="routingControls">
+        <div class="box">
+          <div class="box-title">Kirim Paket dari PC 1 (192.168.10.2/24) ke:</div>
+          <div class="btn-row">
+            <button class="ctrl primary" id="sendSameBtn">PC 2 (192.168.10.3) [1 Subnet]</button>
+            <button class="ctrl primary" id="sendDiffBtn">Server Lokal (192.168.20.10) [Beda Subnet]</button>
+            <button class="ctrl primary" id="sendInetBtn">Web Internet (8.8.8.8) [NAT + Firewall]</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box-title">Simulasi Gangguan (Troubleshooting):</div>
+          <div class="fault-list">
+            <label class="toggle-row">
+              <input type="checkbox" id="faultGateway" />
+              Salah Default Gateway pada PC 1 (diisi 192.168.10.99)
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" id="faultCable" />
+              Kabel Router ↔ Switch 2 Putus (Link Down)
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" id="faultFirewall" />
+              Firewall Router Blokir Trafik ke Internet (Drop)
+            </label>
+          </div>
+        </div>
+
+        <div class="log-box" id="netLog">
+          > Menunggu perintah pengiriman paket dari PC 1...
+        </div>
+      </div>
+
+      <!-- Kontrol Mode 2: Subnetting -->
+      <div class="controls-grid" id="subnetControls" style="display:none;">
+        <div class="box">
+          <div class="slider-header">
+            <span>Prefix CIDR</span>
+            <span class="val-badge" id="cidrVal">/24 (255.255.255.0)</span>
+          </div>
+          <input type="range" id="cidrSlider" min="24" max="30" step="1" value="24" />
+          <div class="presets-row">
+            <span>/24 (254 Host)</span>
+            <span>/26 (62 Host)</span>
+            <span>/28 (14 Host)</span>
+            <span>/30 (2 Host)</span>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box-title">Blok IP Dasar (Class C):</div>
+          <div class="btn-row">
+            <button class="ctrl primary" id="baseIp1Btn">192.168.1.0</button>
+            <button class="ctrl" id="baseIp2Btn">192.168.10.0</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-grid">
+        <div class="stat-item">
+          <div class="stat-label" id="stat1Label">Source IP / MAC</div>
+          <div class="stat-value" id="stat1Val">192.168.10.2</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" id="stat2Label">Destination IP</div>
+          <div class="stat-value" id="stat2Val">-</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" id="stat3Label">Perangkat Dilewati</div>
+          <div class="stat-value" id="stat3Val">-</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" id="stat4Label">Status Koneksi</div>
+          <div class="stat-value" id="stat4Val">Siap</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('netCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const btnRouting = document.getElementById('btnRouting');
+    const btnSubnet = document.getElementById('btnSubnet');
+    const routingControls = document.getElementById('routingControls');
+    const subnetControls = document.getElementById('subnetControls');
+    const legendBox = document.getElementById('legendBox');
+
+    const statusBanner = document.getElementById('statusBanner');
+    const bannerSub = document.getElementById('bannerSub');
+    const bannerTitle = document.getElementById('bannerTitle');
+    const bannerBadge = document.getElementById('bannerBadge');
+    const descText = document.getElementById('descText');
+    const netLog = document.getElementById('netLog');
+
+    const sendSameBtn = document.getElementById('sendSameBtn');
+    const sendDiffBtn = document.getElementById('sendDiffBtn');
+    const sendInetBtn = document.getElementById('sendInetBtn');
+    const faultGateway = document.getElementById('faultGateway');
+    const faultCable = document.getElementById('faultCable');
+    const faultFirewall = document.getElementById('faultFirewall');
+
+    const cidrSlider = document.getElementById('cidrSlider');
+    const cidrVal = document.getElementById('cidrVal');
+    const baseIp1Btn = document.getElementById('baseIp1Btn');
+    const baseIp2Btn = document.getElementById('baseIp2Btn');
+
+    const statLabels = [
+      document.getElementById('stat1Label'),
+      document.getElementById('stat2Label'),
+      document.getElementById('stat3Label'),
+      document.getElementById('stat4Label')
+    ];
+    const statVals = [
+      document.getElementById('stat1Val'),
+      document.getElementById('stat2Val'),
+      document.getElementById('stat3Val'),
+      document.getElementById('stat4Val')
+    ];
+
+    let mode = 'routing'; // 'routing' | 'subnet'
+    let cidr = 24;
+    let baseNet = '192.168.1.';
+
+    // Posisi node topologi
+    const nodes = {
+      pc1:     { x: 95,  y: 440, label: 'PC 1', ip: '192.168.10.2', mac: 'AA:11', type: 'pc' },
+      pc2:     { x: 255, y: 440, label: 'PC 2', ip: '192.168.10.3', mac: 'BB:22', type: 'pc' },
+      sw1:     { x: 175, y: 300, label: 'Switch 1 (LAN A)', ip: 'Layer 2', mac: 'MAC Table', type: 'switch' },
+      router:  { x: 320, y: 175, label: 'Router + NAT + FW', ip: 'GW .10.1 / .20.1', mac: 'Pub: 202.10.1.5', type: 'router' },
+      sw2:     { x: 465, y: 300, label: 'Switch 2 (LAN B)', ip: 'Layer 2', mac: 'MAC Table', type: 'switch' },
+      srv:     { x: 465, y: 440, label: 'Server Lokal', ip: '192.168.20.10', mac: 'CC:33', type: 'server' },
+      inet:    { x: 520, y: 80,  label: 'Web Internet', ip: '8.8.8.8', mac: 'Cloud', type: 'cloud' }
+    };
+
+    // State animasi paket
+    let packetAnim = null;
+    let lastTime = performance.now();
+
+    function addLog(msg) {
+      const line = document.createElement('div');
+      line.textContent = `> ${msg}`;
+      netLog.appendChild(line);
+      netLog.scrollTop = netLog.scrollHeight;
+    }
+
+    function setMode(m) {
+      mode = m;
+      btnRouting.classList.toggle('active', m === 'routing');
+      btnSubnet.classList.toggle('active', m === 'subnet');
+      routingControls.style.display = m === 'routing' ? 'flex' : 'none';
+      subnetControls.style.display = m === 'subnet' ? 'flex' : 'none';
+
+      if (m === 'routing') {
+        legendBox.innerHTML = `
+          <span><i class="dot" style="background:#38bdf8"></i> Paket Request</span>
+          <span><i class="dot" style="background:#22c55e"></i> Paket Balasan (Reply)</span>
+          <span><i class="dot" style="background:#f59e0b"></i> NAT / Routing</span>
+          <span><i class="dot" style="background:#ef4444"></i> Gagal / Diblokir</span>
+        `;
+        statLabels[0].textContent = 'Source IP';
+        statLabels[1].textContent = 'Destination IP';
+        statLabels[2].textContent = 'Jalur Perangkat';
+        statLabels[3].textContent = 'Status Koneksi';
+        bannerSub.textContent = 'Status Simulasi Jaringan';
+        bannerTitle.textContent = 'SIAP MENGIRIM PAKET';
+        bannerBadge.textContent = 'IDLE';
+        statusBanner.style.background = 'rgba(56, 189, 248, 0.14)';
+        statusBanner.style.borderColor = '#38bdf8';
+        descText.textContent = 'Pilih tujuan pengiriman paket dari PC 1 (192.168.10.2) untuk melihat cara kerja Switch (MAC Address), Router (Routing Table & NAT), dan Firewall.';
+      } else {
+        legendBox.innerHTML = `
+          <span><i class="dot" style="background:#38bdf8"></i> Bit Network (Tetap)</span>
+          <span><i class="dot" style="background:#22c55e"></i> Bit Host (Alokasi Perangkat)</span>
+          <span><i class="dot" style="background:#f59e0b"></i> Network ID &amp; Broadcast</span>
+        `;
+        statLabels[0].textContent = 'Subnet Mask';
+        statLabels[1].textContent = 'Jumlah Subnet';
+        statLabels[2].textContent = 'Host Valid / Subnet';
+        statLabels[3].textContent = 'Total IP / Blok';
+        updateSubnetUI();
+      }
+    }
+
+    btnRouting.onclick = () => setMode('routing');
+    btnSubnet.onclick = () => setMode('subnet');
+
+    function startPacket(targetType) {
+      netLog.innerHTML = '';
+      let path = [];
+      let failAtIndex = -1;
+      let failReason = '';
+      let destIp = '';
+      let routeLabel = '';
+
+      if (targetType === 'same') {
+        destIp = '192.168.10.3';
+        routeLabel = 'PC 1 → Switch 1 → PC 2';
+        path = ['pc1', 'sw1', 'pc2', 'sw1', 'pc1'];
+        addLog('PC 1 cek subnet: 192.168.10.3 berada di subnet yang SAMA (/24).');
+        addLog('Paket dikirim ke Switch 1, diteruskan langsung berdasar MAC Address (BB:22).');
+      } else if (targetType === 'diff') {
+        destIp = '192.168.20.10';
+        routeLabel = 'PC 1 → SW1 → Router → SW2 → Server';
+        if (faultGateway.checked) {
+          path = ['pc1', 'sw1'];
+          failAtIndex = 1;
+          failReason = 'GAGAL: Default Gateway PC 1 salah (.10.99 tidak ditemukan)!';
+          addLog('PC 1 cek subnet: 192.168.20.10 BEDA subnet. Mencari Gateway 192.168.10.99...');
+          addLog('ERROR: Gateway tidak merespons (Destination Host Unreachable).');
+        } else if (faultCable.checked) {
+          path = ['pc1', 'sw1', 'router'];
+          failAtIndex = 2;
+          failReason = 'GAGAL: Kabel Router ke Switch 2 putus (Link Down)!';
+          addLog('Paket sampai di Router (.10.1), cek Routing Table ke 192.168.20.0/24...');
+          addLog('ERROR: Interface menuju Switch 2 mati / kabel terputus!');
+        } else {
+          path = ['pc1', 'sw1', 'router', 'sw2', 'srv', 'sw2', 'router', 'sw1', 'pc1'];
+          addLog('Beda subnet: PC 1 mengirim paket ke Default Gateway (Router 192.168.10.1).');
+          addLog('Router meneruskan ke jaringan 192.168.20.0/24 melalui Switch 2.');
+        }
+      } else if (targetType === 'inet') {
+        destIp = '8.8.8.8 (Web)';
+        routeLabel = 'PC 1 → SW1 → Router (NAT/FW) → Internet';
+        if (faultGateway.checked) {
+          path = ['pc1', 'sw1'];
+          failAtIndex = 1;
+          failReason = 'GAGAL: Default Gateway PC 1 salah (.10.99)!';
+          addLog('ERROR: Tidak bisa mencapai Router karena konfigurasi Gateway salah.');
+        } else if (faultFirewall.checked) {
+          path = ['pc1', 'sw1', 'router'];
+          failAtIndex = 2;
+          failReason = 'DIBLOKIR: Firewall Router menolak trafik keluar!';
+          addLog('Paket tiba di Router. Mengecek aturan Firewall...');
+          addLog('DROP: Rule Firewall memblokir akses ke 8.8.8.8 (Request Timed Out).');
+        } else {
+          path = ['pc1', 'sw1', 'router', 'inet', 'router', 'sw1', 'pc1'];
+          addLog('PC 1 kirim ke Router. Router melakukan NAT: 192.168.10.2 → 202.10.1.5.');
+          addLog('Firewall mengizinkan trafik. Paket menuju 8.8.8.8 dan kembali ke PC 1.');
+        }
+      }
+
+      statVals[0].textContent = '192.168.10.2';
+      statVals[1].textContent = destIp;
+      statVals[2].textContent = routeLabel;
+      statVals[3].textContent = 'Mengirim...';
+      statVals[3].style.color = '#38bdf8';
+
+      bannerTitle.textContent = 'MENGIRIM PAKET DATA...';
+      bannerBadge.textContent = 'TRANSMITTING';
+      statusBanner.style.background = 'rgba(56, 189, 248, 0.14)';
+      statusBanner.style.borderColor = '#38bdf8';
+
+      packetAnim = {
+        path,
+        seg: 0,
+        t: 0,
+        failAtIndex,
+        failReason,
+        done: false,
+        failed: false
+      };
+    }
+
+    sendSameBtn.onclick = () => startPacket('same');
+    sendDiffBtn.onclick = () => startPacket('diff');
+    sendInetBtn.onclick = () => startPacket('inet');
+
+    // Mode 2: Subnetting Logic
+    function getSubnetData() {
+      const hostBits = 32 - cidr;
+      const subnetBits = cidr - 24;
+      const numSubnets = Math.pow(2, subnetBits);
+      const blockSize = Math.pow(2, hostBits);
+      const validHosts = blockSize - 2;
+
+      const lastOctetMask = 256 - blockSize;
+      const mask = `255.255.255.${lastOctetMask}`;
+      return { hostBits, subnetBits, numSubnets, blockSize, validHosts, mask };
+    }
+
+    function updateSubnetUI() {
+      const s = getSubnetData();
+      cidrVal.textContent = `/${cidr} (${s.mask})`;
+      bannerSub.textContent = 'Analisis Pembagian Subnet IPv4';
+      bannerTitle.textContent = `${baseNet}0/${cidr} → ${s.numSubnets} Subnet`;
+      bannerBadge.textContent = `${s.validHosts} Host/Subnet`;
+      statusBanner.style.background = 'rgba(34, 197, 94, 0.14)';
+      statusBanner.style.borderColor = '#22c55e';
+      descText.textContent = `Dengan prefix /${cidr}, sebanyak ${s.subnetBits} bit dipinjam untuk membagi jaringan menjadi ${s.numSubnets} subnet, masing-masing memiliki ${s.validHosts} alamat IP valid untuk perangkat.`;
+
+      statVals[0].textContent = s.mask;
+      statVals[0].style.color = '#38bdf8';
+      statVals[1].textContent = `${s.numSubnets} Subnet`;
+      statVals[1].style.color = '#f1f5f9';
+      statVals[2].textContent = `${s.validHosts} IP Valid`;
+      statVals[2].style.color = '#4ade80';
+      statVals[3].textContent = `${s.blockSize} IP / Blok`;
+      statVals[3].style.color = '#fbbf24';
+    }
+
+    cidrSlider.oninput = (e) => {
+      cidr = Number(e.target.value);
+      if (mode === 'subnet') updateSubnetUI();
+    };
+
+    baseIp1Btn.onclick = () => {
+      baseNet = '192.168.1.';
+      baseIp1Btn.classList.add('primary');
+      baseIp2Btn.classList.remove('primary');
+      if (mode === 'subnet') updateSubnetUI();
+    };
+
+    baseIp2Btn.onclick = () => {
+      baseNet = '192.168.10.';
+      baseIp2Btn.classList.add('primary');
+      baseIp1Btn.classList.remove('primary');
+      if (mode === 'subnet') updateSubnetUI();
+    };
+
+    function drawLink(n1, n2, broken = false) {
+      ctx.save();
+      ctx.strokeStyle = broken ? '#ef4444' : '#475569';
+      ctx.lineWidth = broken ? 2.5 : 3;
+      if (broken) ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(n1.x, n1.y);
+      ctx.lineTo(n2.x, n2.y);
+      ctx.stroke();
+
+      if (broken) {
+        const mx = (n1.x + n2.x) / 2;
+        const my = (n1.y + n2.y) / 2;
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '700 14px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✖ PUTUS', mx, my - 8);
+      }
+      ctx.restore();
+    }
+
+    function drawNode(n) {
+      ctx.save();
+      let fill = '#1e293b';
+      let stroke = '#38bdf8';
+      if (n.type === 'switch') stroke = '#22c55e';
+      if (n.type === 'router') stroke = '#f59e0b';
+      if (n.type === 'cloud') stroke = '#a855f7';
+
+      ctx.fillStyle = fill;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(n.x - 54, n.y - 26, 108, 52, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '700 11.5px Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(n.label, n.x, n.y - 6);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '600 10px Consolas, monospace';
+      ctx.fillText(n.ip, n.x, n.y + 12);
+      ctx.restore();
+    }
+
+    function drawRoutingCanvas() {
+      // Label area subnet
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.06)';
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(24, 255, 290, 240, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '700 11px Segoe UI, sans-serif';
+      ctx.fillText('LAN A (Subnet: 192.168.10.0/24)', 36, 274);
+
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.06)';
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.25)';
+      ctx.beginPath();
+      ctx.roundRect(380, 255, 236, 240, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText('LAN B (Subnet: 192.168.20.0/24)', 392, 274);
+
+      // Koneksi kabel
+      drawLink(nodes.pc1, nodes.sw1);
+      drawLink(nodes.pc2, nodes.sw1);
+      drawLink(nodes.sw1, nodes.router);
+      drawLink(nodes.router, nodes.sw2, faultCable.checked);
+      drawLink(nodes.sw2, nodes.srv);
+      drawLink(nodes.router, nodes.inet, faultFirewall.checked);
+
+      // Gambar semua perangkat
+      Object.values(nodes).forEach(drawNode);
+
+      // Indikator gangguan aktif
+      if (faultGateway.checked) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '700 11px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚠ GW Salah: .10.99', nodes.pc1.x, nodes.pc1.y + 42);
+      }
+      if (faultFirewall.checked) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '700 11px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🛡 FW: BLOCK ALL', nodes.router.x, nodes.router.y - 36);
+      }
+
+      // Gambar paket bergerak
+      if (packetAnim) {
+        const { path, seg, t, failed } = packetAnim;
+        const fromNode = nodes[path[seg]];
+        const toNode = nodes[path[Math.min(seg + 1, path.length - 1)]];
+        const px = fromNode.x + (toNode.x - fromNode.x) * t;
+        const py = fromNode.y + (toNode.y - fromNode.y) * t;
+
+        const isReturn = seg >= Math.floor(path.length / 2) && packetAnim.failAtIndex === -1;
+        ctx.save();
+        ctx.fillStyle = failed ? '#ef4444' : (isReturn ? '#22c55e' : '#38bdf8');
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(px, py, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '700 9px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(failed ? '!' : (isReturn ? 'OK' : 'PKT'), px, py);
+        ctx.restore();
+      }
+    }
+
+    function drawSubnetCanvas() {
+      const s = getSubnetData();
+
+      // Judul visual biner oktet ke-4 (8 bit terakhir)
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '700 14px Segoe UI, sans-serif';
+      ctx.fillText(`Visualisasi Pembagian Bit Oktet Terakhir (/${cidr})`, 28, 38);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '600 12px Segoe UI, sans-serif';
+      ctx.fillText(`24 bit pertama (${baseNet.slice(0, -1)}) tetap sebagai Network. 8 bit terakhir dibagi:`, 28, 60);
+
+      // Gambar 8 kotak bit
+      const startX = 28;
+      const bitW = 68;
+      const bitWeights = [128, 64, 32, 16, 8, 4, 2, 1];
+      for (let i = 0; i < 8; i++) {
+        const isNetBit = i < s.subnetBits;
+        const bx = startX + i * (bitW + 5);
+        ctx.fillStyle = isNetBit ? 'rgba(56, 189, 248, 0.22)' : 'rgba(34, 197, 94, 0.22)';
+        ctx.strokeStyle = isNetBit ? '#38bdf8' : '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(bx, 78, bitW, 56, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '700 15px Consolas, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(isNetBit ? 'N' : 'H', bx + bitW / 2, 102);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '600 11px Consolas, monospace';
+        ctx.fillText(`(${bitWeights[i]})`, bx + bitW / 2, 122);
+      }
+
+      // Daftar blok subnet (maksimal tampilkan 8 blok pertama agar rapi)
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '700 13px Segoe UI, sans-serif';
+      ctx.fillText(`Tabel Blok Subnet (${s.numSubnets} Subnet terbentuk, masing-masing ${s.blockSize} IP):`, 28, 172);
+
+      const showCount = Math.min(8, s.numSubnets);
+      const rowH = 40;
+      for (let i = 0; i < showCount; i++) {
+        const netId = i * s.blockSize;
+        const firstHost = netId + 1;
+        const lastHost = netId + s.blockSize - 2;
+        const bcast = netId + s.blockSize - 1;
+        const ry = 190 + i * (rowH + 6);
+
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(28, ry, 584, rowH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '700 12px Consolas, monospace';
+        ctx.fillText(`Subnet #${i + 1}`, 42, ry + 24);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Net: ${baseNet}${netId}`, 130, ry + 24);
+
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`Host: .${firstHost} - .${lastHost}`, 295, ry + 24);
+
+        ctx.fillStyle = '#f87171';
+        ctx.fillText(`Bcast: .${bcast}`, 475, ry + 24);
+      }
+
+      if (s.numSubnets > 8) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '600 12px Segoe UI, sans-serif';
+        ctx.fillText(`... dan ${s.numSubnets - 8} subnet berikutnya dengan pola kelipatan +${s.blockSize}.`, 28, 542);
+      }
+    }
+
+    function loop(now) {
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+
+      if (mode === 'routing' && packetAnim && !packetAnim.done && !packetAnim.failed) {
+        packetAnim.t += dt * 1.35;
+        if (packetAnim.t >= 1) {
+          packetAnim.t = 0;
+          packetAnim.seg++;
+
+          if (packetAnim.failAtIndex !== -1 && packetAnim.seg >= packetAnim.failAtIndex) {
+            packetAnim.failed = true;
+            packetAnim.t = 0;
+            bannerTitle.textContent = packetAnim.failReason;
+            bannerBadge.textContent = 'FAILED';
+            statusBanner.style.background = 'rgba(239, 68, 68, 0.18)';
+            statusBanner.style.borderColor = '#ef4444';
+            statVals[3].textContent = 'Gagal / Diblokir';
+            statVals[3].style.color = '#f87171';
+          } else if (packetAnim.seg >= packetAnim.path.length - 1) {
+            packetAnim.done = true;
+            packetAnim.seg = packetAnim.path.length - 1;
+            packetAnim.t = 0;
+            bannerTitle.textContent = 'KONEKSI BERHASIL (REPLY DITERIMA)';
+            bannerBadge.textContent = '200 OK / TTL=64';
+            statusBanner.style.background = 'rgba(34, 197, 94, 0.16)';
+            statusBanner.style.borderColor = '#22c55e';
+            statVals[3].textContent = 'Berhasil (Reply)';
+            statVals[3].style.color = '#4ade80';
+            addLog('SUKSES: Paket balasan kembali diterima oleh PC 1.');
+          }
+        }
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (mode === 'routing') {
+        drawRoutingCanvas();
+      } else {
+        drawSubnetCanvas();
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    setMode('routing');
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

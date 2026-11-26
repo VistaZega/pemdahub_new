@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulasi Sistem Struktur &amp; Gambar Kerja | SMK Teknik Gambar Bangunan (DPIB)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --compression: #ef4444;
+      --tension: #3b82f6;
+      --safe: #22c55e;
+      --warn: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #0b1120;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    header p {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .mode-switch {
+      display: flex;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(340px, 1.35fr) minmax(320px, 1fr);
+      gap: 18px;
+      padding: 18px 24px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      background: #0b1220;
+      border: 1px solid #263349;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 560px;
+    }
+
+    .status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(34, 197, 94, 0.14);
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      transition: all 0.2s ease;
+    }
+
+    .banner-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .banner-badge {
+      font-family: 'Consolas', monospace;
+      font-size: 0.88rem;
+      font-weight: 700;
+      background: rgba(15, 23, 42, 0.75);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .desc-text {
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .controls-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .slider-box {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 11px 14px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .val-badge {
+      font-family: 'Consolas', monospace;
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .presets-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button.ctrl {
+      background: #0f172a;
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button.ctrl:hover {
+      background: #273549;
+      border-color: #475569;
+    }
+
+    button.ctrl.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-item {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      font-size: 0.73rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding-top: 4px;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Simulasi Sistem Struktur &amp; Gambar Kerja Bangunan</h1>
+      <p>Media Pembelajaran Interaktif SMK Teknik Gambar Bangunan (DPIB)</p>
+    </div>
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btnStruktur">1. Penyaluran Beban &amp; Gaya Kuda-Kuda</button>
+      <button class="mode-btn" id="btnGambar">2. Tahapan Konstruksi &amp; Gambar Kerja</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Panel Kiri: Canvas Simulasi -->
+    <section class="card">
+      <div class="canvas-wrap">
+        <canvas id="buildCanvas" width="640" height="560"></canvas>
+      </div>
+      <div class="legend" id="legendBox">
+        <span><i class="dot" style="background:#ef4444"></i> Gaya Tekan (Compression)</span>
+        <span><i class="dot" style="background:#3b82f6"></i> Gaya Tarik (Tension)</span>
+        <span><i class="dot" style="background:#facc15"></i> Aliran Penyaluran Beban</span>
+        <span><i class="dot" style="background:#22c55e"></i> Reaksi Tumpuan Pondasi</span>
+      </div>
+    </section>
+
+    <!-- Panel Kanan: Kontrol & Analisis -->
+    <section class="card">
+      <div class="status-banner" id="statusBanner">
+        <div>
+          <div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.6px;" id="bannerSub">Status Struktur Bangunan</div>
+          <div class="banner-title" id="bannerTitle">STRUKTUR AMAN</div>
+        </div>
+        <div class="banner-badge" id="bannerBadge">Rasio: 42%</div>
+      </div>
+
+      <p class="desc-text" id="descText">
+        Beban dari penutup atap disalurkan melalui kuda-kuda ke ring balk, kolom, sloof, lalu ke pondasi dan tanah keras. Ubah bentang, sudut atap, atau beban untuk melihat perubahan gaya tekan, tarik, dan lendutan.
+      </p>
+
+      <!-- Kontrol Mode 1: Struktur & Pembebanan -->
+      <div class="controls-grid" id="strukturControls">
+        <div class="slider-box">
+          <div class="slider-header">
+            <span>Bentang Bangunan (L)</span>
+            <span class="val-badge" id="spanVal">6.0 m</span>
+          </div>
+          <input type="range" id="spanSlider" min="4" max="10" step="0.5" value="6" />
+          <div class="presets-row"><span>4 m (Kecil)</span><span>7 m (Standar)</span><span>10 m (Lebar)</span></div>
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-header">
+            <span>Sudut Kemiringan Atap (&alpha;)</span>
+            <span class="val-badge" id="angleVal">30&deg;</span>
+          </div>
+          <input type="range" id="angleSlider" min="15" max="45" step="1" value="30" />
+          <div class="presets-row"><span>15&deg; (Landai)</span><span>30&deg; (Ideal)</span><span>45&deg; (Curam)</span></div>
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-header">
+            <span>Beban Atap Total (q)</span>
+            <span class="val-badge" id="loadVal">120 kg/m&sup2;</span>
+          </div>
+          <input type="range" id="loadSlider" min="50" max="300" step="10" value="120" />
+          <div class="presets-row"><span>50 (Spandek/Ringan)</span><span>150 (Genteng)</span><span>300 (Beton + Angin)</span></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="ctrl active" id="toggleAnimBtn">⏸ Animasi Aliran Beban</button>
+          <button class="ctrl" id="resetStrukturBtn">↺ Reset Standar (6m, 30&deg;)</button>
+        </div>
+      </div>
+
+      <!-- Kontrol Mode 2: Gambar Kerja & Tahapan Konstruksi -->
+      <div class="controls-grid" id="gambarControls" style="display:none;">
+        <div class="btn-row">
+          <button class="ctrl active" id="viewPotonganBtn">Potongan A-A (Struktur)</button>
+          <button class="ctrl" id="viewTampakBtn">Tampak Depan</button>
+          <button class="ctrl" id="viewDenahBtn">Denah Lantai</button>
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-header">
+            <span>Tahap Pelaksanaan Konstruksi</span>
+            <span class="val-badge" id="stageVal">100% (Selesai)</span>
+          </div>
+          <input type="range" id="stageSlider" min="1" max="5" step="1" value="5" />
+          <div class="presets-row">
+            <span>1. Pondasi</span>
+            <span>2. Sloof</span>
+            <span>3. Dinding/Kolom</span>
+            <span>4. Ring Balk</span>
+            <span>5. Atap</span>
+          </div>
+        </div>
+      </div>
+
+      <label class="toggle-row">
+        <input type="checkbox" id="showLabels" checked />
+        Tampilkan label komponen struktur &amp; elevasi gambar kerja
+      </label>
+
+      <div class="status-grid">
+        <div class="stat-item">
+          <div class="stat-label" id="stat1Label">Reaksi Tumpuan (RA = RB)</div>
+          <div class="stat-value" id="stat1Val">360 kg</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" id="stat2Label">Gaya Tekan Kaki Kuda-Kuda</div>
+          <div class="stat-value" style="color:#f87171" id="stat2Val">720 kg (Tekan)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" id="stat3Label">Gaya Tarik Balok Dasar</div>
+          <div class="stat-value" style="color:#60a5fa" id="stat3Val">624 kg (Tarik)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" id="stat4Label">Lendutan Tengah (Simulasi)</div>
+          <div class="stat-value" id="stat4Val">2.4 mm (Aman)</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('buildCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Mode & UI Elements
+    const btnStruktur = document.getElementById('btnStruktur');
+    const btnGambar = document.getElementById('btnGambar');
+    const strukturControls = document.getElementById('strukturControls');
+    const gambarControls = document.getElementById('gambarControls');
+    const legendBox = document.getElementById('legendBox');
+
+    const statusBanner = document.getElementById('statusBanner');
+    const bannerSub = document.getElementById('bannerSub');
+    const bannerTitle = document.getElementById('bannerTitle');
+    const bannerBadge = document.getElementById('bannerBadge');
+    const descText = document.getElementById('descText');
+
+    const spanSlider = document.getElementById('spanSlider');
+    const angleSlider = document.getElementById('angleSlider');
+    const loadSlider = document.getElementById('loadSlider');
+    const spanVal = document.getElementById('spanVal');
+    const angleVal = document.getElementById('angleVal');
+    const loadVal = document.getElementById('loadVal');
+    const toggleAnimBtn = document.getElementById('toggleAnimBtn');
+    const resetStrukturBtn = document.getElementById('resetStrukturBtn');
+
+    const viewPotonganBtn = document.getElementById('viewPotonganBtn');
+    const viewTampakBtn = document.getElementById('viewTampakBtn');
+    const viewDenahBtn = document.getElementById('viewDenahBtn');
+    const stageSlider = document.getElementById('stageSlider');
+    const stageVal = document.getElementById('stageVal');
+    const showLabelsChk = document.getElementById('showLabels');
+
+    const statLabels = [
+      document.getElementById('stat1Label'),
+      document.getElementById('stat2Label'),
+      document.getElementById('stat3Label'),
+      document.getElementById('stat4Label')
+    ];
+    const statVals = [
+      document.getElementById('stat1Val'),
+      document.getElementById('stat2Val'),
+      document.getElementById('stat3Val'),
+      document.getElementById('stat4Val')
+    ];
+
+    // State
+    let mode = 'struktur'; // 'struktur' | 'gambar'
+    let viewType = 'potongan'; // 'potongan' | 'tampak' | 'denah'
+    let stage = 5;
+    let span = 6.0; // meter
+    let roofAngle = 30; // derajat
+    let loadQ = 120; // kg/m2
+    let animOn = true;
+    let flowPhase = 0;
+    let lastTime = performance.now();
+
+    function setMode(m) {
+      mode = m;
+      btnStruktur.classList.toggle('active', m === 'struktur');
+      btnGambar.classList.toggle('active', m === 'gambar');
+      strukturControls.style.display = m === 'struktur' ? 'flex' : 'none';
+      gambarControls.style.display = m === 'gambar' ? 'flex' : 'none';
+
+      if (m === 'struktur') {
+        legendBox.innerHTML = `
+          <span><i class="dot" style="background:#ef4444"></i> Gaya Tekan (Compression)</span>
+          <span><i class="dot" style="background:#3b82f6"></i> Gaya Tarik (Tension)</span>
+          <span><i class="dot" style="background:#facc15"></i> Aliran Penyaluran Beban</span>
+          <span><i class="dot" style="background:#22c55e"></i> Reaksi Tumpuan Pondasi</span>
+        `;
+        statLabels[0].textContent = 'Reaksi Tumpuan (RA = RB)';
+        statLabels[1].textContent = 'Gaya Tekan Kaki Kuda-Kuda';
+        statLabels[2].textContent = 'Gaya Tarik Balok Dasar';
+        statLabels[3].textContent = 'Lendutan Tengah (Simulasi)';
+      } else {
+        legendBox.innerHTML = `
+          <span><i class="dot" style="background:#94a3b8"></i> Pondasi Batu Kali &amp; Pasangan</span>
+          <span><i class="dot" style="background:#38bdf8"></i> Beton Bertulang (Sloof, Kolom, Ring Balk)</span>
+          <span><i class="dot" style="background:#f59e0b"></i> Dinding Bata &amp; Kusen</span>
+          <span><i class="dot" style="background:#ef4444"></i> Rangka Atap &amp; Penutup</span>
+        `;
+        statLabels[0].textContent = 'Jenis Gambar Kerja';
+        statLabels[1].textContent = 'Elevasi Lantai (Peil)';
+        statLabels[2].textContent = 'Tinggi Dinding Bersih';
+        statLabels[3].textContent = 'Tahap Konstruksi Aktif';
+      }
+      updateUI();
+    }
+
+    btnStruktur.onclick = () => setMode('struktur');
+    btnGambar.onclick = () => setMode('gambar');
+
+    spanSlider.oninput = (e) => { span = Number(e.target.value); spanVal.textContent = `${span.toFixed(1)} m`; updateUI(); };
+    angleSlider.oninput = (e) => { roofAngle = Number(e.target.value); angleVal.textContent = `${roofAngle}°`; updateUI(); };
+    loadSlider.oninput = (e) => { loadQ = Number(e.target.value); loadVal.textContent = `${loadQ} kg/m²`; updateUI(); };
+
+    toggleAnimBtn.onclick = () => {
+      animOn = !animOn;
+      toggleAnimBtn.classList.toggle('active', animOn);
+      toggleAnimBtn.textContent = animOn ? '⏸ Animasi Aliran Beban' : '▶ Putar Aliran Beban';
+    };
+
+    resetStrukturBtn.onclick = () => {
+      span = 6.0; roofAngle = 30; loadQ = 120;
+      spanSlider.value = 6; angleSlider.value = 30; loadSlider.value = 120;
+      spanVal.textContent = '6.0 m'; angleVal.textContent = '30°'; loadVal.textContent = '120 kg/m²';
+      updateUI();
+    };
+
+    function setViewType(vt) {
+      viewType = vt;
+      viewPotonganBtn.classList.toggle('active', vt === 'potongan');
+      viewTampakBtn.classList.toggle('active', vt === 'tampak');
+      viewDenahBtn.classList.toggle('active', vt === 'denah');
+      updateUI();
+    }
+
+    viewPotonganBtn.onclick = () => setViewType('potongan');
+    viewTampakBtn.onclick = () => setViewType('tampak');
+    viewDenahBtn.onclick = () => setViewType('denah');
+
+    stageSlider.oninput = (e) => {
+      stage = Number(e.target.value);
+      updateUI();
+    };
+
+    function calcMechanics() {
+      // Beban total pada satu kuda-kuda (asumsi jarak antar kuda-kuda 3 m)
+      const totalLoad = loadQ * span * 3; // kg
+      const reaction = totalLoad / 2;     // RA = RB
+      const rad = (roofAngle * Math.PI) / 180;
+      // Gaya aksial sederhana pada kaki kuda-kuda (Tekan) & balok tarik (Tarik)
+      const compForce = reaction / Math.sin(rad);
+      const tensForce = reaction / Math.tan(rad);
+      // Estimasi indeks lendutan & kapasitas (batas aman ~ 2200 kg tekan / sudut terlalu landai)
+      const deflectionMm = (totalLoad * Math.pow(span, 2)) / (28000 * Math.max(0.25, Math.sin(rad)));
+      const ratio = Math.min(140, Math.round((compForce / 2400) * 100));
+      return { totalLoad, reaction, compForce, tensForce, deflectionMm, ratio };
+    }
+
+    function updateUI() {
+      if (mode === 'struktur') {
+        const m = calcMechanics();
+        bannerSub.textContent = 'Status Struktur Bangunan';
+        bannerBadge.textContent = `Beban Struktur: ${m.ratio}%`;
+
+        if (m.ratio <= 70) {
+          bannerTitle.textContent = 'STRUKTUR AMAN';
+          statusBanner.style.background = 'rgba(34, 197, 94, 0.14)';
+          statusBanner.style.borderColor = '#22c55e';
+        } else if (m.ratio <= 98) {
+          bannerTitle.textContent = 'WASPADA (PENDEKATAN BATAS)';
+          statusBanner.style.background = 'rgba(245, 158, 11, 0.16)';
+          statusBanner.style.borderColor = '#f59e0b';
+        } else {
+          bannerTitle.textContent = 'OVERLOAD / BERISIKO LENDUT!';
+          statusBanner.style.background = 'rgba(239, 68, 68, 0.18)';
+          statusBanner.style.borderColor = '#ef4444';
+        }
+
+        descText.textContent = 'Beban atap disalurkan melalui kaki kuda-kuda (gaya tekan) dan ditahan oleh balok tarik bawah (gaya tarik), lalu diteruskan ke kolom dan pondasi. Sudut terlalu landai memperbesar gaya tekan dan tarik secara drastis.';
+
+        statVals[0].textContent = `${Math.round(m.reaction)} kg`;
+        statVals[0].style.color = '#4ade80';
+        statVals[1].textContent = `${Math.round(m.compForce)} kg (Tekan)`;
+        statVals[1].style.color = '#f87171';
+        statVals[2].textContent = `${Math.round(m.tensForce)} kg (Tarik)`;
+        statVals[2].style.color = '#60a5fa';
+        statVals[3].textContent = `${m.deflectionMm.toFixed(1)} mm (${m.ratio > 98 ? 'Berlebih' : 'Normal'})`;
+        statVals[3].style.color = m.ratio > 98 ? '#f87171' : '#f1f5f9';
+      } else {
+        const stageNames = [
+          '1. Galian & Pondasi Batu Kali',
+          '2. Balok Sloof Beton Bertulang',
+          '3. Dinding Bata, Kolom & Kusen',
+          '4. Ring Balk Pengikat Atas',
+          '5. Rangka Kuda-Kuda & Penutup Atap'
+        ];
+        stageVal.textContent = `${stage * 20}%`;
+        bannerSub.textContent = 'Proyeksi Gambar Kerja DPIB';
+        bannerTitle.textContent = stageNames[stage - 1];
+        bannerBadge.textContent = viewType.toUpperCase();
+        statusBanner.style.background = 'rgba(56, 189, 248, 0.14)';
+        statusBanner.style.borderColor = '#38bdf8';
+
+        if (viewType === 'potongan') {
+          descText.textContent = 'Gambar Potongan A-A memperlihatkan struktur dalam bangunan yang terpotong secara vertikal—mulai dari pondasi di bawah muka tanah hingga rangka atap.';
+        } else if (viewType === 'tampak') {
+          descText.textContent = 'Gambar Tampak Depan memperlihatkan proporsi fasad luar bangunan (pintu, jendela, dinding, teritisan, dan kemiringan atap) tanpa memperlihatkan pondasi di dalam tanah.';
+        } else {
+          descText.textContent = 'Gambar Denah adalah potongan horizontal setinggi +1.00 m dari lantai, memperlihatkan tata letak ruangan, ketebalan dinding, serta bukaan pintu dan jendela.';
+        }
+
+        statVals[0].textContent = viewType === 'potongan' ? 'Potongan A-A (Skala 1:50)' : viewType === 'tampak' ? 'Tampak Depan (Skala 1:100)' : 'Denah Lantai (Skala 1:100)';
+        statVals[0].style.color = '#38bdf8';
+        statVals[1].textContent = '±0.00 m (Muka Tanah -0.45 m)';
+        statVals[1].style.color = '#f1f5f9';
+        statVals[2].textContent = '3.20 m (Lantai ke Plafon)';
+        statVals[2].style.color = '#f1f5f9';
+        statVals[3].textContent = `Tahap ${stage} dari 5`;
+        statVals[3].style.color = '#4ade80';
+      }
+    }
+
+    function drawLabel(text, x, y, tx, ty, color = '#cbd5e1') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+
+      ctx.font = '600 11px Segoe UI, sans-serif';
+      const w = ctx.measureText(text).width + 10;
+      const boxX = tx < x ? tx - w : tx;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      ctx.fillRect(boxX, ty - 10, w, 18);
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.75)';
+      ctx.strokeRect(boxX, ty - 10, w, 18);
+
+      ctx.fillStyle = color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, boxX + 5, ty - 1);
+      ctx.restore();
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, width = 2) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 8 * Math.cos(angle - 0.4), y2 - 8 * Math.sin(angle - 0.4));
+      ctx.lineTo(x2 - 8 * Math.cos(angle + 0.4), y2 - 8 * Math.sin(angle + 0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawStrukturMode() {
+      const m = calcMechanics();
+      const cx = 320;
+      const groundY = 465;
+      const colTopY = 260;
+      const halfSpanPx = 90 + ((span - 4) / 6) * 140; // 90px..230px
+      const leftX = cx - halfSpanPx;
+      const rightX = cx + halfSpanPx;
+
+      const rad = (roofAngle * Math.PI) / 180;
+      const peakY = Math.max(55, colTopY - Math.tan(rad) * halfSpanPx);
+
+      // Lendutan visual di tengah bentang (eksagerasi agar terlihat jelas)
+      const sagPx = Math.min(26, (m.deflectionMm / 18) * 10);
+
+      // 1. Tanah & Pondasi Batu Kali
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(20, groundY, 600, 75);
+      ctx.strokeStyle = '#78716c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(20, groundY);
+      ctx.lineTo(620, groundY);
+      ctx.stroke();
+
+      // Pondasi Trapesium Kiri & Kanan
+      [leftX, rightX].forEach(px => {
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.moveTo(px - 16, groundY - 5);
+        ctx.lineTo(px + 16, groundY - 5);
+        ctx.lineTo(px + 30, groundY + 42);
+        ctx.lineTo(px - 30, groundY + 42);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      // 2. Sloof & Kolom Beton Bertulang
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(leftX - 10, groundY - 18, halfSpanPx * 2 + 20, 14); // Sloof
+      ctx.fillRect(leftX - 9, colTopY, 18, groundY - colTopY - 18);   // Kolom Kiri
+      ctx.fillRect(rightX - 9, colTopY, 18, groundY - colTopY - 18);  // Kolom Kanan
+      ctx.fillRect(leftX - 12, colTopY - 12, halfSpanPx * 2 + 24, 12); // Ring Balk
+
+      // 3. Kuda-Kuda Atap (Batang Tekan = Merah, Batang Tarik = Biru)
+      const thickComp = Math.min(9, 3 + (m.compForce / 2400) * 5);
+      const thickTens = Math.min(9, 3 + (m.tensForce / 2400) * 5);
+
+      const midBaseY = colTopY - 12 + sagPx;
+      const midPeakY = peakY + sagPx * 0.6;
+
+      // Balok Tarik Bawah (Tarik - Biru)
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = thickTens;
+      ctx.beginPath();
+      ctx.moveTo(leftX, colTopY - 12);
+      ctx.quadraticCurveTo(cx, midBaseY + sagPx * 0.5, rightX, colTopY - 12);
+      ctx.stroke();
+
+      // Tiang Gantung / Makelar (Tarik - Biru)
+      ctx.lineWidth = Math.max(3, thickTens * 0.75);
+      ctx.beginPath();
+      ctx.moveTo(cx, midPeakY);
+      ctx.lineTo(cx, midBaseY);
+      ctx.stroke();
+
+      // Kaki Kuda-Kuda Kiri & Kanan (Tekan - Merah)
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = thickComp;
+      ctx.beginPath();
+      ctx.moveTo(leftX, colTopY - 12);
+      ctx.lineTo(cx, midPeakY);
+      ctx.lineTo(rightX, colTopY - 12);
+      ctx.stroke();
+
+      // Batang Sokong Diagonal (Tekan - Merah)
+      const midLeftX = (leftX + cx) / 2;
+      const midLeftY = (colTopY - 12 + midPeakY) / 2;
+      const midRightX = (rightX + cx) / 2;
+      const midRightY = (colTopY - 12 + midPeakY) / 2;
+      ctx.lineWidth = Math.max(3, thickComp * 0.75);
+      ctx.beginPath();
+      ctx.moveTo(cx, midBaseY);
+      ctx.lineTo(midLeftX, midLeftY);
+      ctx.moveTo(cx, midBaseY);
+      ctx.lineTo(midRightX, midRightY);
+      ctx.stroke();
+
+      // Penutup Atap di atas Kuda-kuda
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(leftX - 24, colTopY - 12 + Math.tan(rad) * 24);
+      ctx.lineTo(cx, midPeakY - 6);
+      ctx.lineTo(rightX + 24, colTopY - 12 + Math.tan(rad) * 24);
+      ctx.stroke();
+
+      // 4. Panah Beban Atap dari Atas
+      const numArrows = 5;
+      for (let i = 1; i < numArrows; i++) {
+        const t = i / numArrows;
+        const ax = leftX + t * (halfSpanPx * 2);
+        const ay = ax <= cx
+          ? colTopY - 12 - ((ax - leftX) / halfSpanPx) * (colTopY - 12 - midPeakY)
+          : midPeakY + ((ax - cx) / halfSpanPx) * (colTopY - 12 - midPeakY);
+        const arrowLen = 18 + (loadQ / 300) * 26;
+        drawArrow(ax, ay - arrowLen - 10, ax, ay - 8, '#facc15', 2.5);
+      }
+
+      // 5. Animasi Titik Aliran Penyaluran Beban (Atap -> Kuda-kuda -> Kolom -> Pondasi)
+      if (animOn) {
+        const p = flowPhase; // 0..1
+        ctx.fillStyle = '#facc15';
+        [-1, 1].forEach(side => {
+          const endX = side === -1 ? leftX : rightX;
+          let fx, fy;
+          if (p < 0.45) {
+            // Turun sepanjang kaki kuda-kuda
+            const k = p / 0.45;
+            fx = cx + (endX - cx) * k;
+            fy = midPeakY + (colTopY - 12 - midPeakY) * k;
+          } else if (p < 0.85) {
+            // Turun sepanjang kolom
+            const k = (p - 0.45) / 0.4;
+            fx = endX;
+            fy = colTopY + (groundY - 18 - colTopY) * k;
+          } else {
+            // Masuk ke pondasi
+            const k = (p - 0.85) / 0.15;
+            fx = endX;
+            fy = groundY - 18 + 45 * k;
+          }
+          ctx.beginPath();
+          ctx.arc(fx, fy, 5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // 6. Panah Reaksi Tumpuan dari Tanah ke Pondasi (Hijau)
+      drawArrow(leftX, groundY + 66, leftX, groundY + 44, '#22c55e', 3);
+      drawArrow(rightX, groundY + 66, rightX, groundY + 44, '#22c55e', 3);
+
+      // 7. Label Edukatif
+      if (showLabelsChk.checked) {
+        drawLabel('Beban Atap (q)', cx + 10, midPeakY - 35, cx + 90, 32, '#facc15');
+        drawLabel('Kaki Kuda-Kuda (TEKAN)', midLeftX - 10, midLeftY, 120, midLeftY - 35, '#f87171');
+        drawLabel('Balok Tarik (TARIK)', cx - 40, midBaseY + 4, 150, midBaseY + 42, '#60a5fa');
+        drawLabel('Ring Balk', rightX + 10, colTopY - 6, rightX + 55, colTopY - 22, '#38bdf8');
+        drawLabel('Kolom Beton', rightX + 9, (colTopY + groundY) / 2, rightX + 55, (colTopY + groundY) / 2, '#38bdf8');
+        drawLabel('Pondasi Batu Kali', rightX + 26, groundY + 20, rightX + 55, groundY + 20, '#cbd5e1');
+        drawLabel(`RA = ${Math.round(m.reaction)} kg`, leftX, groundY + 60, leftX - 40, groundY + 62, '#4ade80');
+      }
+    }
+
+    function drawGambarMode() {
+      if (viewType === 'denah') {
+        drawDenahView();
+        return;
+      }
+
+      const isSection = viewType === 'potongan';
+      const cx = 320;
+      const groundY = 440;
+      const floorY = 415; // Peil ±0.00
+      const wallTopY = 235;
+      const leftX = 140;
+      const rightX = 500;
+      const peakY = 115;
+
+      // Tanah (hanya terlihat jelas di Potongan, atau garis tanah di Tampak)
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(40, groundY, 560, 95);
+      ctx.strokeStyle = '#78716c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(40, groundY);
+      ctx.lineTo(600, groundY);
+      ctx.stroke();
+
+      // TAHAP 1: Pondasi Batu Kali (hanya digambar di Potongan)
+      if (stage >= 1 && isSection) {
+        [leftX, 320, rightX].forEach(px => {
+          ctx.fillStyle = '#64748b';
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(px - 14, groundY - 2);
+          ctx.lineTo(px + 14, groundY - 2);
+          ctx.lineTo(px + 28, groundY + 52);
+          ctx.lineTo(px - 28, groundY + 52);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        });
+      }
+
+      // TAHAP 2: Sloof & Lantai Kerja
+      if (stage >= 2) {
+        if (isSection) {
+          ctx.fillStyle = '#0284c7';
+          ctx.fillRect(leftX - 10, groundY - 14, rightX - leftX + 20, 12); // Sloof
+          ctx.fillStyle = '#334155';
+          ctx.fillRect(leftX, floorY, rightX - leftX, groundY - floorY - 14); // Urugan & Lantai
+        } else {
+          // Tampak: teras/lantai depan
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(leftX - 10, floorY, rightX - leftX + 20, groundY - floorY);
+        }
+      }
+
+      // TAHAP 3: Dinding, Kolom & Kusen Pintu/Jendela
+      if (stage >= 3) {
+        if (isSection) {
+          // Dinding terpotong kiri, tengah, kanan
+          ctx.fillStyle = '#d97706';
+          ctx.fillRect(leftX - 7, wallTopY, 14, floorY - wallTopY);
+          ctx.fillRect(320 - 7, wallTopY, 14, floorY - wallTopY);
+          ctx.fillRect(rightX - 7, wallTopY, 14, floorY - wallTopY);
+          // Pintu dalam ruang
+          ctx.fillStyle = '#78350f';
+          ctx.fillRect(210, floorY - 125, 48, 125);
+          ctx.strokeStyle = '#fbbf24';
+          ctx.strokeRect(210, floorY - 125, 48, 125);
+        } else {
+          // Tampak Depan Fasad
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(leftX, wallTopY, rightX - leftX, floorY - wallTopY);
+          ctx.strokeStyle = '#94a3b8';
+          ctx.strokeRect(leftX, wallTopY, rightX - leftX, floorY - wallTopY);
+
+          // Pintu Utama
+          ctx.fillStyle = '#92400e';
+          ctx.fillRect(210, floorY - 130, 56, 130);
+          ctx.strokeStyle = '#fde68a';
+          ctx.strokeRect(210, floorY - 130, 56, 130);
+
+          // Jendela Kanan
+          ctx.fillStyle = '#0ea5e9';
+          ctx.fillRect(340, floorY - 125, 95, 70);
+          ctx.strokeStyle = '#fde68a';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(340, floorY - 125, 95, 70);
+          ctx.beginPath();
+          ctx.moveTo(387, floorY - 125);
+          ctx.lineTo(387, floorY - 55);
+          ctx.stroke();
+          ctx.lineWidth = 1.5;
+        }
+      }
+
+      // TAHAP 4: Ring Balk & Plafon
+      if (stage >= 4) {
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(leftX - 10, wallTopY - 12, rightX - leftX + 20, 12);
+        if (isSection) {
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(leftX, wallTopY + 4);
+          ctx.lineTo(rightX, wallTopY + 4);
+          ctx.stroke();
+        }
+      }
+
+      // TAHAP 5: Rangka Kuda-Kuda & Penutup Atap
+      if (stage >= 5) {
+        if (isSection) {
+          // Kuda-kuda terlihat jelas di Potongan
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(leftX, wallTopY - 12);
+          ctx.lineTo(cx, peakY);
+          ctx.lineTo(rightX, wallTopY - 12);
+          ctx.closePath();
+          ctx.stroke();
+          // Tiang gantung & sokong
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(cx, peakY);
+          ctx.lineTo(cx, wallTopY - 12);
+          ctx.moveTo(cx, wallTopY - 12);
+          ctx.lineTo((leftX + cx) / 2, (wallTopY - 12 + peakY) / 2);
+          ctx.moveTo(cx, wallTopY - 12);
+          ctx.lineTo((rightX + cx) / 2, (wallTopY - 12 + peakY) / 2);
+          ctx.stroke();
+        } else {
+          // Penutup atap penuh pada Tampak
+          ctx.fillStyle = '#991b1b';
+          ctx.strokeStyle = '#f87171';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(leftX - 30, wallTopY);
+          ctx.lineTo(cx, peakY - 8);
+          ctx.lineTo(rightX + 30, wallTopY);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      if (showLabelsChk.checked) {
+        if (isSection) {
+          if (stage >= 1) drawLabel('Pondasi Batu Kali', rightX + 18, groundY + 25, rightX + 42, groundY + 25);
+          if (stage >= 2) drawLabel('Sloof Beton', leftX - 10, groundY - 8, 52, groundY - 8, '#38bdf8');
+          if (stage >= 3) drawLabel('Dinding Terpotong', leftX - 7, 320, 52, 320, '#fbbf24');
+          if (stage >= 4) drawLabel('Ring Balk (+3.20)', rightX + 10, wallTopY - 6, rightX + 36, wallTopY - 12, '#38bdf8');
+          if (stage >= 5) drawLabel('Kuda-Kuda Atap', cx + 20, peakY + 25, cx + 115, peakY + 5, '#f87171');
+        } else {
+          if (stage >= 3) drawLabel('Pintu & Jendela (Fasad)', 387, 315, 470, 290, '#38bdf8');
+          if (stage >= 5) drawLabel('Penutup Atap (Genteng)', cx + 30, peakY + 45, cx + 125, peakY + 15, '#f87171');
+        }
+      }
+    }
+
+    function drawDenahView() {
+      // Gambar Denah Lantai (Potongan Horizontal +1.00m)
+      const x0 = 130, y0 = 110, w = 380, h = 320;
+
+      // Garis grid as dinding
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+      ctx.setLineDash([6, 4]);
+      ctx.strokeRect(x0, y0, w, h);
+      ctx.setLineDash([]);
+
+      if (stage >= 1) {
+        // Garis pondasi putus-putus di bawah lantai
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+        ctx.setLineDash([3, 3]);
+        ctx.strokeRect(x0 - 12, y0 - 12, w + 24, h + 24);
+        ctx.setLineDash([]);
+      }
+
+      if (stage >= 3) {
+        // Dinding luar & sekat ruang
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(x0, y0, w, h);
+
+        // Sekat kamar tidur & ruang tamu
+        ctx.beginPath();
+        ctx.moveTo(x0 + 190, y0);
+        ctx.lineTo(x0 + 190, y0 + h);
+        ctx.moveTo(x0 + 190, y0 + 160);
+        ctx.lineTo(x0 + w, y0 + 160);
+        ctx.stroke();
+
+        // Kolom praktis (kotak biru di tiap sudut)
+        ctx.fillStyle = '#38bdf8';
+        [
+          [x0, y0], [x0 + 190, y0], [x0 + w, y0],
+          [x0, y0 + h], [x0 + 190, y0 + h], [x0 + w, y0 + h],
+          [x0 + 190, y0 + 160], [x0 + w, y0 + 160]
+        ].forEach(([kx, ky]) => {
+          ctx.fillRect(kx - 7, ky - 7, 14, 14);
+        });
+
+        // Bukaan Pintu Utama (bawah kiri)
+        ctx.fillStyle = '#0b1220';
+        ctx.fillRect(x0 + 60, y0 + h - 8, 50, 16);
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x0 + 60, y0 + h, 50, -Math.PI / 2, 0);
+        ctx.stroke();
+
+        // Bukaan Jendela
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(x0 + 230, y0 + h - 4, 80, 8);
+      }
+
+      if (stage >= 5) {
+        // Garis teritisan atap (putus-putus di luar denah)
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.65)';
+        ctx.setLineDash([8, 5]);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x0 - 30, y0 - 30, w + 60, h + 60);
+        ctx.setLineDash([]);
+      }
+
+      // Nama Ruangan & Elevasi
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '700 13px Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('RUANG TAMU / KELUARGA', x0 + 95, y0 + 150);
+      ctx.fillText('KAMAR TIDUR 1', x0 + 285, y0 + 80);
+      ctx.fillText('KAMAR TIDUR 2', x0 + 285, y0 + 240);
+      ctx.font = '600 11px Consolas, monospace';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('±0.00', x0 + 95, y0 + 170);
+      ctx.fillText('±0.00', x0 + 285, y0 + 100);
+      ctx.fillText('±0.00', x0 + 285, y0 + 260);
+      ctx.textAlign = 'left';
+
+      if (showLabelsChk.checked && stage >= 3) {
+        drawLabel('Kolom Praktis', x0, y0, 40, y0 - 15, '#38bdf8');
+        drawLabel('Simbol Pintu', x0 + 85, y0 + h - 25, 40, y0 + h + 25, '#fde047');
+        if (stage >= 5) drawLabel('Garis Atap (Teritisan)', x0 + w + 30, y0 + 60, x0 + w + 42, y0 + 25, '#f87171');
+      }
+    }
+
+    function loop(now) {
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+
+      if (animOn && mode === 'struktur') {
+        flowPhase = (flowPhase + dt * 0.45) % 1;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (mode === 'struktur') {
+        drawStrukturMode();
+      } else {
+        drawGambarMode();
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    updateUI();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
