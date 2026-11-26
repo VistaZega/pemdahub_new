@@ -89,7 +89,7 @@ function update(){
     case 'berhenti_naik': Ws=m*(g-a); dir='Berhenti saat naik (perlambatan)'; aDir=-1; break;
   }
   document.getElementById('hasil').innerHTML =
-    `Kondisi: <b>${dir}</b><br>Berat sejati W = <b>${W} N</b><br>Berat semu W_semu = <b>${Ws.toFixed(0)} N</b><br>${Ws>W?'🔴 Terasa lebih BERAT':'Ws<W?'🔵 Terasa lebih RINGAN':'⚪ Terasa normal'}`;
+    `Kondisi: <b>${dir}</b><br>Berat sejati W = <b>${W} N</b><br>Berat semu W_semu = <b>${Ws.toFixed(0)} N</b><br>${Ws>W?'🔴 Terasa lebih BERAT':Ws<W?'🔵 Terasa lebih RINGAN':'⚪ Terasa normal'}`;
   draw(m, a, Ws);
 }
 
