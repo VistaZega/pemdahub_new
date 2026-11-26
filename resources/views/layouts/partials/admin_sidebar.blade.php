@@ -794,6 +794,10 @@
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white"><i class="fas fa-bell text-[11px]"></i></div>
             <span>Notifikasi Error Sistem</span>
         </a>
+        <a href="{{ route('admin.settings.ai') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-xl text-sm {{ request()->routeIs('admin.settings.ai*') ? $ac : $nc }}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white"><i class="fas fa-robot text-[11px]"></i></div>
+            <span>Pengaturan AI (ClassAI)</span>
+        </a>
     </div>
 </div>
 @endif
