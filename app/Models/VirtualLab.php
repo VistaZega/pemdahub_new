@@ -40,6 +40,45 @@ class VirtualLab extends Model
     }
 
     /**
+     * Pengelompokan standar berdasarkan Rumpun Ilmu / Jenis Laboratorium.
+     */
+    public function getDisciplineKeyAttribute(): string
+    {
+        $eng = strtolower((string) $this->engine_type);
+        $subj = strtolower((string) $this->subject_name);
+
+        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate']) || $this->category === 'vokasi') {
+            return 'vokasi';
+        }
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'ohm_law']) || str_contains($subj, 'fisika')) {
+            return 'fisika';
+        }
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'biology_cell', 'bio_photosynthesis']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+            return 'kimia_biologi';
+        }
+        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry']) || str_contains($subj, 'matematika')) {
+            return 'matematika';
+        }
+        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa')) {
+            return 'ips_bahasa';
+        }
+
+        return 'fisika';
+    }
+
+    public function getDisciplineLabelAttribute(): string
+    {
+        return match ($this->discipline_key) {
+            'fisika'        => 'Lab IPA & Fisika',
+            'kimia_biologi' => 'Lab Kimia & Biologi',
+            'matematika'    => 'Lab Matematika',
+            'vokasi'        => 'Lab Kejuruan & Vokasi',
+            'ips_bahasa'    => 'Lab IPS, Ekonomi & Bahasa',
+            default         => 'Lab Riset Umum',
+        };
+    }
+
+    /**
      * Ensure built-in multi-subject virtual labs exist (safe idempotent seeding).
      */
     public static function ensureDefaultLabs(): void

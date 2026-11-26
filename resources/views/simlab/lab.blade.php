@@ -11,7 +11,15 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; color: #f1f5f9; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #050a14;
+            background-image:
+                linear-gradient(to right, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.035) 1px, transparent 1px);
+            background-size: 36px 36px;
+            color: #f1f5f9;
+        }
         .font-mono-lab { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
     </style>
