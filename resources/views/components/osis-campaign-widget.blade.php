@@ -62,95 +62,84 @@
 {{-- KONDISI 2: VARIAN DASHBOARD SISWA (Bento Story & Paslon Mini-Cards)      --}}
 {{-- ========================================================================= --}}
 @elseif($variant === 'student')
-    <div class="bg-white rounded-3xl border-2 border-slate-900 shadow-xl p-5 md:p-6 mb-6 relative overflow-hidden">
-        {{-- Rainbow Accent Bar --}}
-        <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-500 via-amber-500 via-emerald-500 to-blue-600"></div>
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 55%); border: 1px solid #a7f3d0; border-top: 3px solid #059669; border-radius: 1.25rem; padding: 1.25rem; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);">
 
         @if($campaign->is_simulation)
-            <div class="mb-4 px-3.5 py-2 rounded-2xl bg-amber-400 text-slate-950 font-black text-xs border-2 border-black flex items-center justify-between gap-3 shadow-sm">
-                <div class="flex items-center gap-2">
-                    <span class="text-base animate-bounce">🧪</span>
-                    <div>
-                        <span class="uppercase tracking-wider font-black">Mode Uji Coba / Simulasi E-Voting</span>
-                        <p class="text-[11px] font-semibold text-slate-900 leading-tight">Ini adalah tahap uji coba sistem. Seluruh hak suara saat ini bersifat simulasi dan akan di-reset saat Pemilihan Resmi dimulai.</p>
-                    </div>
-                </div>
-                <span class="hidden sm:inline-block px-2.5 py-1 rounded-xl bg-black text-amber-300 font-mono text-[10px] uppercase font-black shrink-0">SIMULASI</span>
+            <div style="margin-bottom: 0.9rem; padding: 0.65rem 0.9rem; border-radius: 0.85rem; background: #fef3c7; border: 1px solid #fcd34d; color: #78350f; font-size: 0.74rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🧪</span>
+                <span><strong>Mode Simulasi:</strong> Hak suara saat ini bersifat uji coba.</span>
             </div>
         @endif
 
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 border-2 border-emerald-300 flex items-center justify-center text-lg flex-shrink-0">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.9rem;">
+            <div style="display: flex; align-items: center; gap: 0.7rem; min-width: 0;">
+                <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: #059669; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);">
                     <i class="fas fa-vote-yea"></i>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            E-Voting Kesiswaan
+                <div style="min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                        <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #047857; background: #d1fae5; padding: 0.15rem 0.5rem; border-radius: 9999px;">
+                            E-Voting OSIS
                         </span>
-                        <span class="text-[11px] font-mono font-bold text-slate-500">Periode {{ $campaign->period }}</span>
+                        <span style="font-size: 0.7rem; font-weight: 600; color: #64748b;">Periode {{ $campaign->period }}</span>
                     </div>
-                    <h3 class="text-base font-black text-slate-900 mt-0.5">{{ $campaign->title }}</h3>
+                    <h3 style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin-top: 0.15rem; line-height: 1.25;">{{ $campaign->title }}</h3>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 @if($campaign->status === 'voting_closed')
-                    <span class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 font-black text-xs border border-amber-300 flex items-center gap-1.5">
-                        <i class="fas fa-lock text-amber-600"></i> TPS Ditutup
-                    </span>
-                    <a href="{{ route('osis.real-count', $campaign->slug) }}" class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition flex items-center gap-1">
-                        <i class="fas fa-chart-pie text-emerald-400"></i>
+                    <a href="{{ route('osis.real-count', $campaign->slug) }}" style="padding: 0.5rem 0.9rem; border-radius: 0.75rem; background: #0f172a; color: #ffffff; font-size: 0.74rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <i class="fas fa-chart-pie" style="color: #34d399;"></i>
                         <span>Hasil Real Count</span>
                     </a>
                 @elseif($hasVoted)
-                    <span class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 font-black text-xs border border-emerald-300 flex items-center gap-1.5">
-                        <i class="fas fa-check-double text-emerald-600"></i> Suara Anda Sah Tercatat
+                    <span style="padding: 0.45rem 0.8rem; border-radius: 0.75rem; background: #d1fae5; color: #065f46; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <i class="fas fa-check-circle"></i> Sudah Memilih
                     </span>
-                    <a href="{{ route('osis.booth') }}" class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
+                    <a href="{{ route('osis.booth') }}" style="padding: 0.45rem 0.8rem; border-radius: 0.75rem; background: #0f172a; color: #ffffff; font-size: 0.72rem; font-weight: 700; text-decoration: none;">
                         Bilik Suara
                     </a>
                 @else
-                    <a href="{{ route('osis.booth') }}" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow border-2 border-slate-900 transition flex items-center gap-1.5 animate-pulse">
-                        <i class="fas fa-check-to-slot"></i> Salurkan Hak Suara Sekarang
+                    <a href="{{ route('osis.booth') }}" style="padding: 0.55rem 1rem; border-radius: 0.8rem; background: #059669; color: #ffffff; font-size: 0.75rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.45rem; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);">
+                        <i class="fas fa-check-to-slot"></i>
+                        <span>Salurkan Hak Suara</span>
                     </a>
                 @endif
             </div>
         </div>
 
-        {{-- Mini Candidate Strip (Scrollable/Flex) --}}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+        {{-- Candidate Grid (2 Kolom Rapi dengan Avatar Fallback) --}}
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem;">
             @foreach($campaign->candidates as $c)
                 @php
-                    $colors = [
-                        1 => 'bg-rose-50 border-rose-300 text-rose-700',
-                        2 => 'bg-blue-50 border-blue-300 text-blue-700',
-                        3 => 'bg-amber-50 border-amber-300 text-amber-700',
-                        4 => 'bg-emerald-50 border-emerald-300 text-emerald-700',
-                    ];
-                    $badgeBg = [
-                        1 => 'bg-rose-600',
-                        2 => 'bg-blue-600',
-                        3 => 'bg-amber-500',
-                        4 => 'bg-emerald-600',
-                    ][$c->candidate_number] ?? 'bg-slate-900';
+                    $badgeHex = [
+                        1 => '#e11d48',
+                        2 => '#2563eb',
+                        3 => '#d97706',
+                        4 => '#059669',
+                    ][$c->candidate_number] ?? '#0f172a';
+                    $avatarFallback = 'https://ui-avatars.com/api/?name=' . urlencode($c->leader_name) . '&background=' . ltrim($badgeHex, '#') . '&color=ffffff&bold=true&size=128';
+                    $photoSrc = !empty($c->photo_url) ? $c->photo_url : $avatarFallback;
                 @endphp
-                <a href="{{ route('osis.booth') }}" class="group block rounded-2xl p-2.5 border-2 border-slate-900 bg-slate-50/50 hover:bg-white transition hover:-translate-y-1 hover:shadow-md">
-                    <div class="relative rounded-xl overflow-hidden mb-2 bg-slate-200" style="aspect-ratio: 4/3;">
-                        <img src="{{ $c->photo_url }}" alt="{{ $c->leader_name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                        <span class="absolute top-1 left-1 w-6 h-6 rounded-lg {{ $badgeBg }} text-white font-black text-[10px] flex items-center justify-center shadow">
+                <a href="{{ route('osis.booth') }}" style="display: flex; align-items: center; gap: 0.65rem; padding: 0.6rem; border-radius: 0.9rem; background: #ffffff; border: 1px solid #e2e8f0; text-decoration: none; transition: border-color 0.15s ease;">
+                    <div style="position: relative; width: 2.85rem; height: 2.85rem; border-radius: 0.7rem; overflow: hidden; flex-shrink: 0; background: #f1f5f9;">
+                        <img src="{{ $photoSrc }}"
+                             alt="{{ $c->leader_name }}"
+                             onerror="this.onerror=null; this.src='{{ $avatarFallback }}';"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                        <span style="position: absolute; top: 2px; left: 2px; width: 1.15rem; height: 1.15rem; border-radius: 0.35rem; background: {{ $badgeHex }}; color: #ffffff; font-size: 0.62rem; font-weight: 900; display: flex; align-items: center; justify-content: center;">
                             {{ $c->candidate_number }}
                         </span>
                     </div>
-                    <div class="space-y-0.5">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block leading-none">Paslon 0{{ $c->candidate_number }}</span>
-                        <h4 class="text-xs font-black text-slate-900 truncate leading-tight group-hover:text-emerald-700 transition" title="{{ $c->leader_name }}">
+                    <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 0.62rem; font-weight: 800; color: {{ $badgeHex }}; text-transform: uppercase;">Paslon 0{{ $c->candidate_number }}</div>
+                        <div style="font-size: 0.76rem; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $c->leader_name }}">
                             {{ $c->leader_name }}
-                        </h4>
-                        <p class="text-[10px] text-slate-500 truncate">
+                        </div>
+                        <div style="font-size: 0.66rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             Sek: {{ $c->secretary_name ?? '-' }}
-                        </p>
+                        </div>
                     </div>
                 </a>
             @endforeach
