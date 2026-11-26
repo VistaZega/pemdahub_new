@@ -243,13 +243,22 @@
                         $consolidatedSchedules = $course->getConsolidatedSchedule();
                         $progress = $courseProgress[$course->id] ?? 0;
                         $themeColor = $course->getActiveThemeHexColor() ?: '#1e3a8a';
+                        $hexClean = ltrim($themeColor, '#');
+                        if (strlen($hexClean) === 3) {
+                            $hexClean = $hexClean[0].$hexClean[0].$hexClean[1].$hexClean[1].$hexClean[2].$hexClean[2];
+                        }
+                        $r = hexdec(substr($hexClean, 0, 2));
+                        $g = hexdec(substr($hexClean, 2, 2));
+                        $b = hexdec(substr($hexClean, 4, 2));
+                        $rowBg = "rgba({$r}, {$g}, {$b}, 0.08)";
+                        $rowHoverBg = "rgba({$r}, {$g}, {$b}, 0.15)";
                         $courseTitle = $course->course_name ?? $course->name;
                         $teacherName = $course->teacher->user->name ?? '-';
                         $cDetail = $courseProgressDetails[$course->id] ?? null;
                         $searchKey = strtolower($courseTitle . ' ' . $teacherName . ' ' . $course->getShortCode());
                     @endphp
-                    <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.15s ease;"
-                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'"
+                    <tr style="border-bottom: 1px solid #e2e8f0; background: {{ $rowBg }}; transition: background 0.15s ease;"
+                        onmouseover="this.style.background='{{ $rowHoverBg }}'" onmouseout="this.style.background='{{ $rowBg }}'"
                         x-show="(!search.trim() || @js($searchKey).includes(search.toLowerCase().trim()))
                                 && (filter === 'all'
                                     || (filter === 'completed' && {{ $progress >= 100 ? 'true' : 'false' }})

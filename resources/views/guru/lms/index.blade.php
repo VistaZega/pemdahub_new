@@ -156,14 +156,23 @@
                     @foreach($courses as $course)
                     @php
                         $headerBg = $course->getActiveThemeHexColor() ?: '#0f172a';
+                        $hexClean = ltrim($headerBg, '#');
+                        if (strlen($hexClean) === 3) {
+                            $hexClean = $hexClean[0].$hexClean[0].$hexClean[1].$hexClean[1].$hexClean[2].$hexClean[2];
+                        }
+                        $r = hexdec(substr($hexClean, 0, 2));
+                        $g = hexdec(substr($hexClean, 2, 2));
+                        $b = hexdec(substr($hexClean, 4, 2));
+                        $rowBg = "rgba({$r}, {$g}, {$b}, 0.08)";
+                        $rowHoverBg = "rgba({$r}, {$g}, {$b}, 0.15)";
                         $subjectLabel = $course->isExtracurricular()
                             ? ($course->extracurricular?->name ?? 'Ekstrakurikuler')
                             : ($course->subject->subject_name ?? '-');
                         $classNames = $course->classes->pluck('classroom.class_name')->filter()->implode(', ');
                         $searchKey = strtolower($course->name . ' ' . $subjectLabel . ' ' . $classNames);
                     @endphp
-                    <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.15s ease;"
-                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'"
+                    <tr style="border-bottom: 1px solid #e2e8f0; background: {{ $rowBg }}; transition: background 0.15s ease;"
+                        onmouseover="this.style.background='{{ $rowHoverBg }}'" onmouseout="this.style.background='{{ $rowBg }}'"
                         x-show="!search.trim() || @js($searchKey).includes(search.toLowerCase().trim())">
 
                         {{-- Kolom 1: Course --}}
