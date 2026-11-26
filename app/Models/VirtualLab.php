@@ -47,7 +47,7 @@ class VirtualLab extends Model
         $eng = strtolower((string) $this->engine_type);
         $subj = strtolower((string) $this->subject_name);
 
-        if ($eng === 'olympiad_5' || str_contains($subj, 'olimpiade')) {
+        if (in_array($eng, ['olympiad_5', 'ptn_speed']) || str_contains($subj, 'olimpiade') || str_contains($subj, 'ptn')) {
             return 'olimpiade';
         }
         if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate']) || $this->category === 'vokasi') {
@@ -72,7 +72,7 @@ class VirtualLab extends Model
     public function getDisciplineLabelAttribute(): string
     {
         return match ($this->discipline_key) {
-            'olimpiade'     => '🏆 Lab Olimpiade',
+            'olimpiade'     => '🏆 Lab Olimpiade & PTN',
             'fisika'        => 'Lab IPA & Fisika',
             'kimia_biologi' => 'Lab Kimia & Biologi',
             'matematika'    => 'Lab Matematika',
@@ -624,6 +624,21 @@ class VirtualLab extends Model
                     'Lempar 2 dadu sekali dan catat jumlah mata dadunya.',
                     'Klik Lempar 500× Sekaligus untuk membuktikan grafik distribusi peluang berbentuk segitiga simetris memuncak di angka 7.',
                     'Selesaikan Soal Peluang Dua Dadu di panel Tantangan Soal.',
+                ],
+            ],
+            [
+                'slug'         => 'ptn-soal-cepat-snbt',
+                'title'        => '⚡ Simulator Penyelesaian Soal Cepat PTN Favorit (SNBT / UTBK)',
+                'category'     => 'sma',
+                'subject_name' => 'Persiapan PTN / SNBT / UTBK (Lintas Ilmu)',
+                'engine_type'  => 'ptn_speed',
+                'icon'         => 'fas fa-bolt',
+                'accent_color' => '#2563eb',
+                'description'  => 'Mengapa siswa sering kehabisan waktu saat UTBK? Latih trik penyelesaian < 15 detik dengan visualisasi pola untuk soal Kuantitatif, Aljabar, Fisika, Kimia, Logika & Ekonomi yang pasti keluar di tes PTN Favorit!',
+                'sop_steps'    => [
+                    'Pilih topik soal (Diskon Ganda, Selisih Kuadrat, Jatuh Bebas, Pengenceran, Silogisme, atau Untung-Rugi).',
+                    'Perhatikan stopwatch di kanan atas dan coba jawab secepat mungkin (< 45 detik).',
+                    'Klik Bongkar Visualisasi Pola & Trik Super Cepat untuk membandingkan cara panjang vs trik 15 detik.',
                 ],
             ],
         ];

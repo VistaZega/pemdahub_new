@@ -54,6 +54,7 @@
         'physics_pulley'     => asset('simlab-engines/fisika-katrol-usaha.html'),
         'chem_stoichiometry' => asset('simlab-engines/kimia-stoikiometri-pembatas.html'),
         'math_probability'   => asset('simlab-engines/matematika-peluang-kombinasi.html'),
+        'ptn_speed'          => asset('simlab-engines/ptn-soal-cepat.html'),
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
     $tc = $lab->theory_and_challenge;

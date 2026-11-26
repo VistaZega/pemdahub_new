@@ -37,7 +37,7 @@
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
     $disciplineTabs = [
-        'olimpiade'     => ['label' => '🏆 Lab Olimpiade', 'icon' => 'fa-trophy', 'active' => 'bg-amber-500 text-slate-950 border-amber-600 shadow-md'],
+        'olimpiade'     => ['label' => '🏆 Lab Olimpiade & PTN', 'icon' => 'fa-trophy', 'active' => 'bg-amber-500 text-slate-950 border-amber-600 shadow-md'],
         'fisika'        => ['label' => 'Lab IPA & Fisika', 'icon' => 'fa-atom', 'active' => 'bg-sky-600 text-white border-sky-700 shadow-md'],
         'kimia_biologi' => ['label' => 'Lab Kimia & Biologi', 'icon' => 'fa-flask', 'active' => 'bg-emerald-600 text-white border-emerald-700 shadow-md'],
         'matematika'    => ['label' => 'Lab Matematika', 'icon' => 'fa-square-root-variable', 'active' => 'bg-indigo-600 text-white border-indigo-700 shadow-md'],

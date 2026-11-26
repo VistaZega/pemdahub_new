@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Penyelesaian Soal Cepat Masuk PTN Favorit (SNBT / UTBK)</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:linear-gradient(90deg,#eff6ff,#ffffff); display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.12rem; font-weight:800; color:#1d4ed8; }
+    header p { font-size:0.82rem; color:var(--muted); }
+    .timer-pill { padding:8px 14px; border-radius:999px; font-family:monospace; font-size:0.95rem; font-weight:800; background:#0f172a; color:#34d399; display:flex; align-items:center; gap:8px; }
+    .tabs { display:flex; flex-wrap:wrap; gap:6px; padding:12px 20px; background:#fff; border-bottom:1px solid var(--border); }
+    .tab-btn { border:1px solid #cbd5e1; background:#f8fafc; color:#334155; padding:7px 12px; border-radius:10px; font-weight:700; font-size:0.78rem; cursor:pointer; }
+    .tab-btn.active { background:#2563eb; color:#fff; border-color:#1d4ed8; }
+    main { flex:1; display:grid; grid-template-columns:minmax(320px,1.15fr) minmax(320px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .opts { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .opt-btn { border:1.5px solid #cbd5e1; background:#f8fafc; padding:10px 12px; border-radius:10px; text-align:left; font-weight:700; font-size:0.84rem; cursor:pointer; transition:0.15s; color:#0f172a; }
+    .opt-btn:hover { border-color:#2563eb; background:#eff6ff; }
+    .opt-btn.ok { background:#d1fae5; border-color:#10b981; color:#065f46; }
+    .opt-btn.no { background:#ffe4e6; border-color:#f43f5e; color:#9f1239; }
+    .compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(max-width:600px){ .compare, .opts { grid-template-columns:1fr; } }
+    .box-slow { background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:12px; font-size:0.8rem; line-height:1.5; color:#7f1d1d; }
+    .box-fast { background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:12px; font-size:0.8rem; line-height:1.5; color:#065f46; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>⚡ Simulator Penyelesaian Soal Cepat PTN Favorit (SNBT / UTBK)</h1>
+      <p>Latih kecepatan &lt; 45 detik/soal dengan visualisasi pola &amp; perbandingan Cara Biasa vs Trik Super Cepat!</p>
+    </div>
+    <div class="timer-pill">
+      <span>⏱️ <span id="timerTxt">0.0</span> dtk</span>
+      <span style="color:#fbbf24;">| Skor: <span id="scoreTxt">0</span>/6</span>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabBar"></div>
+
+  <main>
+    <div class="card">
+      <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:#2563eb;" id="qCat"></div>
+      <h2 id="qText" style="font-size:1rem;font-weight:800;line-height:1.5;"></h2>
+      <div class="opts" id="optBox"></div>
+      <button onclick="revealTrick()" style="border:none;border-radius:10px;padding:10px;font-weight:700;font-size:0.82rem;cursor:pointer;background:#0f172a;color:#fff;">
+        ⚡ Bongkar Visualisasi Pola &amp; Trik Super Cepat (15 Detik)
+      </button>
+      <div class="compare" id="compareBox" style="display:none;">
+        <div class="box-slow"><strong>🐢 Cara Biasa (~2–3 Menit):</strong><br><span id="slowTxt"></span></div>
+        <div class="box-fast"><strong>⚡ Trik Cepat PTN (~15 Detik):</strong><br><span id="fastTxt"></span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:0.78rem;font-weight:800;color:#475569;text-transform:uppercase;">Visualisasi Pola Cepat Soal</div>
+      <canvas id="ptnCanvas" width="600" height="360"></canvas>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('ptnCanvas'), ctx = c.getContext('2d');
+    let cur = 0, sec = 0, timerOn = true, score = 0, solved = Array(6).fill(false), showTrick = false;
+
+    const bank = [
+      {
+        tab: '1. Kuantitatif: Harga Diskon',
+        cat: 'SNBT Penalaran Kuantitatif • Pasti Keluar',
+        q: 'Sebuah jaket didiskon 20%, lalu didiskon lagi 25% dari harga setelah diskon pertama. Berapa total diskon sebenarnya?',
+        opts: ['45%', '40%', '35%', '50%'], ans: 1,
+        slow: 'Misal harga X, diskon 1 = 0,8X, diskon 2 = 0,75(0,8X) = 0,60X. Lalu kurangi X - 0,60X = 0,40X...',
+        fast: 'Pakai rumus cepat: D_total = d₁ + d₂ - (d₁×d₂)/100 = 20 + 25 - (20×25)/100 = 45 - 5 = 40%!',
+        draw: () => {
+          ctx.clearRect(0,0,600,360);
+          ctx.fillStyle='#1e293b'; ctx.fillRect(60,90,480,55);
+          ctx.fillStyle='#38bdf8'; ctx.fillRect(60,90,480*0.8,55);
+          ctx.fillStyle='#34d399'; ctx.fillRect(60,90,480*0.6,55);
+          ctx.fillStyle='#fff'; ctx.font='bold 16px sans-serif'; ctx.textAlign='center';
+          ctx.fillText('Harga Awal = 100 (Rp 100.000)', 300, 70);
+          ctx.fillText('Sisa Bayar = 60% ➔ Total Diskon = 40%!', 300, 195);
+          ctx.fillStyle='#fbbf24'; ctx.fillText('Trik: 20 + 25 - (20×25)/100 = 40%', 300, 250);
+        }
+      },
+      {
+        tab: '2. Aljabar: Selisih Kuadrat',
+        cat: 'SNBT Pengetahuan Kuantitatif • Jebakan Hitung',
+        q: 'Hitung cepat nilai dari: (2026² − 2024²) / (2026 + 2024) = ...',
+        opts: ['2', '4', '2025', '4050'], ans: 0,
+        slow: 'Menghitung 2026² = 4.104.676 lalu dikurangi 2024² = 4.096.576 lalu dibagi 4050 (habis waktu!).',
+        fast: 'Ingat identitas a² - b² = (a-b)(a+b)! Coret (a+b) atas & bawah → tersisa (a - b) = 2026 - 2024 = 2!',
+        draw: () => {
+          ctx.clearRect(0,0,600,360);
+          ctx.fillStyle='#38bdf8'; ctx.font='bold 24px monospace'; ctx.textAlign='center';
+          ctx.fillText('(2026 - 2024)(2026 + 2024)', 300, 130);
+          ctx.fillStyle='#64748b'; ctx.fillRect(110, 150, 380, 3);
+          ctx.fillStyle='#38bdf8'; ctx.fillText('(2026 + 2024)', 300, 185);
+          ctx.strokeStyle='#f43f5e'; ctx.lineWidth=4;
+          ctx.beginPath(); ctx.moveTo(310,105); ctx.lineTo(485,140); ctx.moveTo(210,165); ctx.lineTo(390,195); ctx.stroke();
+          ctx.fillStyle='#34d399'; ctx.font='bold 26px sans-serif';
+          ctx.fillText('Hasil Instan = 2026 - 2024 = 2!', 300, 270);
+        }
+      },
+      {
+        tab: '3. Fisika: Jatuh Bebas',
+        cat: 'Fisika UTBK • Perbandingan Cepat',
+        q: 'Bola A jatuh dari ketinggian h dan menyentuh tanah dengan kecepatan v. Jika dijatuhkan dari ketinggian 4h, kecepatannya menjadi...',
+        opts: ['v', '2v', '4v', '8v'], ans: 1,
+        slow: 'Menghitung satu per satu t₁ = √(2h/g), v₁ = gt₁, lalu ulang untuk h₂ = 4h...',
+        fast: 'Gunakan proporsi langsung v = √(2gh) ➔ v sebanding dengan √h! Karena h naik 4×, maka v naik √4 = 2× menjadi 2v!',
+        draw: () => {
+          ctx.clearRect(0,0,600,360);
+          ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(180,220,16,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle='#34d399'; ctx.beginPath(); ctx.arc(420,80,16,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle='#fff'; ctx.font='bold 16px sans-serif'; ctx.textAlign='center';
+          ctx.fillText('h₁ = 1h ➔ v = 1v', 180, 280);
+          ctx.fillText('h₂ = 4h ➔ v = √4 = 2v', 420, 280);
+        }
+      },
+      {
+        tab: '4. Kimia: Pengenceran',
+        cat: 'Kimia UTBK • Konsentrasi Cepat',
+        q: '100 ml larutan HCl 0,5 M diencerkan dengan air hingga volumenya menjadi 500 ml. Berapa molaritas akhirnya?',
+        opts: ['0,05 M', '0,10 M', '0,25 M', '2,50 M'], ans: 1,
+        slow: 'Mencari mol = M×V = 0,5×0,1 = 0,05 mol, lalu M₂ = 0,05 / 0,5 = 0,1 M.',
+        fast: 'Volume naik 5× lipat (100 → 500 ml). Karena M berbanding terbalik dengan V, maka konsentrasi turun dibagi 5: 0,5 / 5 = 0,10 M!',
+        draw: () => {
+          ctx.clearRect(0,0,600,360);
+          ctx.fillStyle='rgba(56,189,248,0.6)'; ctx.fillRect(110,200,110,90);
+          ctx.fillStyle='rgba(56,189,248,0.25)'; ctx.fillRect(360,110,140,180);
+          ctx.fillStyle='#fff'; ctx.font='bold 15px sans-serif'; ctx.textAlign='center';
+          ctx.fillText('100 ml (0,5 M)', 165, 320);
+          ctx.fillText('➔ Volume ×5', 290, 210);
+          ctx.fillText('500 ml (0,5 ÷ 5 = 0,1 M)', 430, 320);
+        }
+      },
+      {
+        tab: '5. Logika: Silogisme',
+        cat: 'SNBT Penalaran Umum • Logika Pasti',
+        q: 'Semua siswa kelas XII mengikuti Try Out PTN. Sebagian peserta Try Out PTN lulus SNBT. Kesimpulan yang PASTI benar adalah...',
+        opts: ['Semua siswa kelas XII lulus SNBT', 'Sebagian siswa kelas XII mengikuti Try Out PTN', 'Semua yang lulus SNBT adalah kelas XII', 'Tidak ada kesimpulan pasti tentang kelulusan kelas XII'], ans: 3,
+        slow: 'Membaca berulang-ulang kalimat dan bingung membayangkan apakah kelas XII termasuk yang lulus.',
+        fast: 'Diagram Euler: Kelas XII ada di dalam lingkaran Try Out, dan irisan "Lulus" bisa saja hanya mengenai bagian luar Kelas XII! Jadi tidak ada kepastian kelas XII lulus.',
+        draw: () => {
+          ctx.clearRect(0,0,600,360);
+          ctx.strokeStyle='#38bdf8'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(280,180,120,0,Math.PI*2); ctx.stroke();
+          ctx.strokeStyle='#34d399'; ctx.beginPath(); ctx.arc(220,180,55,0,Math.PI*2); ctx.stroke();
+          ctx.strokeStyle='#fbbf24'; ctx.beginPath(); ctx.arc(365,180,55,0,Math.PI*2); ctx.stroke();
+          ctx.fillStyle='#fff'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+          ctx.fillText('Try Out PTN', 280, 48);
+          ctx.fillText('Kls XII', 220, 185);
+          ctx.fillText('Lulus SNBT', 365, 185);
+        }
+      },
+      {
+        tab: '6. Ekonomi: Keuntungan',
+        cat: 'Ekonomi / Kuantitatif • Untung Rugi',
+        q: 'Pedagang menjual barang Rp 120.000 dan memperoleh untung 20% dari harga beli. Berapakah harga belinya?',
+        opts: ['Rp 96.000', 'Rp 100.000', 'Rp 104.000', 'Rp 144.000'], ans: 1,
+        slow: 'Jebakan umum: langsung menghitung 120.000 - 20%(120.000) = 96.000 (SALAH!). Harus buat persamaan X + 0,2X = 120.000.',
+        fast: 'Harga Jual = 120% dari Harga Beli! Jadi Harga Beli = (100 / 120) × 120.000 = Rp 100.000 dalam 5 detik!',
+        draw: () => {
+          ctx.clearRect(0,0,600,360);
+          ctx.fillStyle='#34d399'; ctx.fillRect(100,140,300,50);
+          ctx.fillStyle='#fbbf24'; ctx.fillRect(400,140,60,50);
+          ctx.fillStyle='#0f172a'; ctx.font='bold 14px sans-serif'; ctx.textAlign='center';
+          ctx.fillText('100% Beli (Rp100rb)', 250, 170);
+          ctx.fillText('+20%', 430, 170);
+          ctx.fillStyle='#fff'; ctx.fillText('Total 120% = Rp 120.000 ➔ 1% = Rp 1.000!', 300, 240);
+        }
+      }
+    ];
+
+    function loadQ(idx) {
+      cur = idx; sec = 0; timerOn = true; showTrick = false;
+      document.getElementById('compareBox').style.display = 'none';
+      const q = bank[idx];
+      document.getElementById('tabBar').innerHTML = bank.map((b, i) =>
+        `<button class="tab-btn ${i===idx?'active':''}" onclick="loadQ(${i})">${b.tab} ${solved[i]?'✅':''}</button>`
+      ).join('');
+      document.getElementById('qCat').textContent = q.cat;
+      document.getElementById('qText').textContent = q.q;
+      document.getElementById('slowTxt').textContent = q.slow;
+      document.getElementById('fastTxt').textContent = q.fast;
+      document.getElementById('optBox').innerHTML = q.opts.map((o, i) =>
+        `<button class="opt-btn" onclick="pick(${i}, this)">${String.fromCharCode(65+i)}. ${o}</button>`
+      ).join('');
+      q.draw();
+    }
+
+    function pick(i, btn) {
+      timerOn = false;
+      const q = bank[cur];
+      document.querySelectorAll('.opt-btn').forEach((b, idx) => {
+        if (idx === q.ans) b.classList.add('ok');
+        else if (idx === i) b.classList.add('no');
+      });
+      if (i === q.ans && !solved[cur]) {
+        solved[cur] = true;
+        score++;
+        document.getElementById('scoreTxt').textContent = score;
+      }
+      revealTrick();
+    }
+
+    function revealTrick() {
+      showTrick = true;
+      document.getElementById('compareBox').style.display = 'grid';
+    }
+
+    setInterval(() => {
+      if (timerOn) {
+        sec += 0.1;
+        document.getElementById('timerTxt').textContent = sec.toFixed(1);
+      }
+    }, 100);
+
+    loadQ(0);
+  </script>
+</body>
+</html>
