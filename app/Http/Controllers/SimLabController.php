@@ -37,7 +37,8 @@ class SimLabController extends Controller
                 VirtualLab::ensureDefaultLabs();
                 $virtualLabs = VirtualLab::with('course')
                     ->where('is_active', true)
-                    ->orderBy('id', 'asc')
+                    ->orderByRaw("CASE WHEN engine_type = 'ai_custom_html' THEN 0 ELSE 1 END")
+                    ->orderByDesc('id')
                     ->get();
             }
         } catch (\Throwable $e) {
@@ -143,11 +144,10 @@ class SimLabController extends Controller
             }
 
             $slug = Str::slug($validated['title']) . '-' . Str::lower(Str::random(5));
-            $lab = VirtualLab::create([
+            $payload = [
                 'title'        => $validated['title'],
                 'slug'         => $slug,
                 'category'     => $roomMeta['cat'],
-                'room_key'     => $validated['room_key'],
                 'subject_name' => $subjectName,
                 'engine_type'  => 'ai_custom_html',
                 'description'  => $validated['description'],
@@ -162,12 +162,16 @@ class SimLabController extends Controller
                 'icon'         => $roomMeta['icon'],
                 'accent_color' => $roomMeta['color'],
                 'is_active'    => true,
-            ]);
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('virtual_labs', 'room_key')) {
+                $payload['room_key'] = $validated['room_key'];
+            }
+            $lab = VirtualLab::create($payload);
 
             return response()->json([
                 'success'      => true,
                 'message'      => 'Simulator Lab baru berhasil dibuat dan ditempatkan di ruangan pilihan Anda!',
-                'redirect_url' => route('simlab.lab', $lab->slug),
+                'redirect_url' => route('simlab.index', ['room' => $validated['room_key'], 'lab' => $lab->slug]),
             ]);
         } catch (\Throwable $e) {
             return response()->json([
