@@ -12,6 +12,7 @@ class VirtualLab extends Model
         'title',
         'slug',
         'category',
+        'room_key',
         'subject_name',
         'engine_type',
         'description',
@@ -44,6 +45,10 @@ class VirtualLab extends Model
      */
     public function getDisciplineKeyAttribute(): string
     {
+        if (!empty($this->room_key)) {
+            return $this->room_key;
+        }
+
         $eng = strtolower((string) $this->engine_type);
         $subj = strtolower((string) $this->subject_name);
 

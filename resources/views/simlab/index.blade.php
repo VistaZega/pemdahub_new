@@ -265,9 +265,17 @@
                             <i class="fas fa-link"></i>
                             <span x-text="copied ? 'Link LMS Tersalin!' : 'Salin Link LMS'"></span>
                         </button>
+                        <button type="button" x-show="selectedLab?.can_delete" @click="openEditModal(selectedLab)"
+                                title="Edit Simulator Buatan Saya"
+                                class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition inline-flex items-center gap-1">
+                            <i class="fas fa-pen-to-square"></i>
+                            <span class="hidden sm:inline">Edit</span>
+                        </button>
                         <button type="button" x-show="selectedLab?.can_delete" @click="deleteLab(selectedLab.id, selectedLab.title)"
-                                class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition">
+                                title="Hapus Simulator Buatan Saya"
+                                class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition inline-flex items-center gap-1">
                             <i class="fas fa-trash-can"></i>
+                            <span class="hidden sm:inline">Hapus</span>
                         </button>
                         @endif
                         <a :href="selectedLab?.full_url" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-bold transition inline-flex items-center gap-1.5">
@@ -393,31 +401,39 @@
                 </button>
             </div>
 
-            <form @submit.prevent="submitAiLab" class="p-6 space-y-4">
-                <div x-show="aiError" class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium" x-text="aiError"></div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Judul Fenomena / Simulator Lab *</label>
-                    <input type="text" x-model="form.title" required placeholder="Contoh: Simulator Mesin Pendingin AC / Hukum Archimedes / Siklus Air"
-                           class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
-                </div>
+            <form @submit.prevent="submitAiLab" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                <div x-show="aiError" class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold" x-text="aiError"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Rumpun / Kategori *</label>
-                        <select x-model="form.category" required
-                                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
-                            <option value="umum">IPA / IPS / Bahasa / Umum</option>
-                            <option value="smp">Matematika &amp; Sains Dasar</option>
-                            <option value="sma">Sains Lanjut (Fisika/Kimia/Biologi)</option>
-                            <option value="vokasi">Kejuruan &amp; Vokasi (SMK)</option>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">1. Pilih Ruangan Lab Penempatan *</label>
+                        <select x-model="form.room_key" required
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 font-semibold focus:outline-none focus:border-indigo-500">
+                            <option value="fisika">LAB-01: Sayap IPA &amp; Fisika</option>
+                            <option value="kimia_biologi">LAB-02: Sayap Kimia &amp; Biologi</option>
+                            <option value="matematika">LAB-03: Sayap Matematika</option>
+                            <option value="vokasi">LAB-04: Bengkel Vokasi (SMK)</option>
+                            <option value="ips_bahasa">LAB-05: Sayap IPS &amp; Bahasa</option>
+                            <option value="olimpiade">LAB-06: Arena Olimpiade &amp; PTN</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Mata Pelajaran / Kejuruan *</label>
-                        <input type="text" x-model="form.subject_name" required placeholder="Contoh: Fisika / TKR / Kimia / Biologi"
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Mata Pelajaran / Kejuruan</label>
+                        <input type="text" x-model="form.subject_name" placeholder="Contoh: Fisika / TKR / Kimia / Biologi"
                                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">2. Nama Simulator *</label>
+                    <input type="text" x-model="form.title" required placeholder="Contoh: Simulator Tekanan Hidrostatis &amp; Bendungan Air"
+                           class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Narasi Penjelasan Simulator (Dibaca Siswa di Rak Lab) *</label>
+                    <textarea x-model="form.description" rows="2" required placeholder="Tuliskan pertanyaan pemantik / fenomena nyata (misal: Mengapa dinding bendungan bagian bawah selalu dibuat jauh lebih tebal daripada bagian atas?)"
+                              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"></textarea>
                 </div>
 
                 @if($teacherCourses->count() > 0)
@@ -434,9 +450,10 @@
                 @endif
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Objek Nyata, Variabel &amp; Contoh Soal yang Diinginkan</label>
-                    <textarea x-model="form.description" rows="3" placeholder="Jelaskan objek nyata yang ditampilkan, variabel slider yang bisa diubah siswa, serta contoh soal yang dibuktikan..."
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">3. Instruksi Pembangkit Simulator untuk AI *</label>
+                    <textarea x-model="form.prompt_spec" rows="4" required placeholder="Jelaskan secara jelas: objek nyata apa yang digambar, slider variabel apa saja yang bisa diubah siswa (misal kedalaman air &amp; massa jenis), efek animasi apa yang terjadi, dan angka apa yang ditampilkan..."
                               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"></textarea>
+                    <p class="text-[11px] text-slate-500 mt-1">Jika instruksi belum dapat dipahami AI sebagai simulasi ilmiah, sistem akan meminta Anda memperjelas instruksi terlebih dahulu.</p>
                 </div>
 
                 <div class="pt-2 flex items-center justify-end gap-3">
@@ -447,7 +464,50 @@
                     <button type="submit" :disabled="isGenerating"
                             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-60 text-white text-xs font-semibold shadow-md transition">
                         <i class="fas" :class="isGenerating ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
-                        <span x-text="isGenerating ? 'Merakit Simulator & SOP...' : 'Generate Simulator'"></span>
+                        <span x-text="isGenerating ? 'AI Memvalidasi &amp; Merakit...' : 'Generate Simulator'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Simulator (Khusus Guru Pembuat / Admin) -->
+    <div x-show="showEditModal" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div @click.away="if(!isSavingEdit) showEditModal = false"
+             class="w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden text-slate-900">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-slate-900 text-base"><i class="fas fa-pen-to-square text-amber-600 mr-1.5"></i> Edit Simulator Saya</h3>
+                <button @click="if(!isSavingEdit) showEditModal = false" class="text-slate-400 hover:text-slate-700 p-1"><i class="fas fa-times"></i></button>
+            </div>
+            <form @submit.prevent="submitEditLab" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Ruangan Lab Penempatan</label>
+                    <select x-model="editForm.room_key" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900">
+                        <option value="fisika">LAB-01: Sayap IPA &amp; Fisika</option>
+                        <option value="kimia_biologi">LAB-02: Sayap Kimia &amp; Biologi</option>
+                        <option value="matematika">LAB-03: Sayap Matematika</option>
+                        <option value="vokasi">LAB-04: Bengkel Vokasi (SMK)</option>
+                        <option value="ips_bahasa">LAB-05: Sayap IPS &amp; Bahasa</option>
+                        <option value="olimpiade">LAB-06: Arena Olimpiade &amp; PTN</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Simulator</label>
+                    <input type="text" x-model="editForm.title" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Mata Pelajaran</label>
+                    <input type="text" x-model="editForm.subject_name" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Narasi Penjelasan Simulator</label>
+                    <textarea x-model="editForm.description" rows="3" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">Batal</button>
+                    <button type="submit" :disabled="isSavingEdit" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold">
+                        <span x-text="isSavingEdit ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
                     </button>
                 </div>
             </form>
@@ -472,11 +532,51 @@
                 isGenerating: false,
                 aiError: '',
                 form: {
+                    room_key: 'fisika',
                     title: '',
-                    category: 'sma',
                     subject_name: '',
                     course_id: '',
+                    description: '',
+                    prompt_spec: ''
+                },
+                showEditModal: false,
+                isSavingEdit: false,
+                editForm: {
+                    id: null,
+                    room_key: 'fisika',
+                    title: '',
+                    subject_name: '',
                     description: ''
+                },
+                openEditModal(lab) {
+                    this.editForm = {
+                        id: lab.id,
+                        room_key: lab.discipline_key,
+                        title: lab.title,
+                        subject_name: lab.subject_name,
+                        description: lab.description
+                    };
+                    this.showEditModal = true;
+                },
+                async submitEditLab() {
+                    this.isSavingEdit = true;
+                    try {
+                        const res = await fetch(`{{ url('/simlab/lab') }}/${this.editForm.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify(this.editForm)
+                        });
+                        if (res.ok) window.location.reload();
+                        else alert('Gagal memperbarui simulator.');
+                    } catch (e) {
+                        alert('Terjadi gangguan koneksi.');
+                    } finally {
+                        this.isSavingEdit = false;
+                    }
                 },
                 get filteredLabs() {
                     const q = this.searchQuery.toLowerCase().trim();

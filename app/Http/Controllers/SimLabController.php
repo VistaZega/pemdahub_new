@@ -77,28 +77,54 @@ class SimLabController extends Controller
         }
 
         $validated = $request->validate([
+            'room_key'     => 'required|in:fisika,kimia_biologi,matematika,vokasi,ips_bahasa,olimpiade',
             'title'        => 'required|string|max:150',
-            'category'     => 'required|in:umum,smp,sma,vokasi',
-            'subject_name' => 'required|string|max:120',
+            'subject_name' => 'nullable|string|max:120',
             'course_id'    => 'nullable|exists:lms_courses,id',
-            'description'  => 'nullable|string|max:1000',
+            'description'  => 'required|string|max:1000',
+            'prompt_spec'  => 'required|string|min:12|max:2500',
         ]);
 
+        $roomCategoryMap = [
+            'fisika'        => ['cat' => 'sma', 'subj' => 'IPA / Fisika', 'icon' => 'fas fa-atom', 'color' => '#0284c7'],
+            'kimia_biologi' => ['cat' => 'sma', 'subj' => 'Kimia / Biologi', 'icon' => 'fas fa-flask', 'color' => '#059669'],
+            'matematika'    => ['cat' => 'smp', 'subj' => 'Matematika', 'icon' => 'fas fa-square-root-variable', 'color' => '#4f46e5'],
+            'vokasi'        => ['cat' => 'vokasi', 'subj' => 'Kejuruan & Vokasi SMK', 'icon' => 'fas fa-gears', 'color' => '#ea580c'],
+            'ips_bahasa'    => ['cat' => 'umum', 'subj' => 'IPS / Ekonomi / Bahasa', 'icon' => 'fas fa-earth-asia', 'color' => '#7c3aed'],
+            'olimpiade'     => ['cat' => 'sma', 'subj' => 'Olimpiade & PTN', 'icon' => 'fas fa-trophy', 'color' => '#d97706'],
+        ];
+        $roomMeta = $roomCategoryMap[$validated['room_key']];
+        $subjectName = $validated['subject_name'] ?: $roomMeta['subj'];
+
         $prompt = "Anda adalah Ahli Desain Laboratorium Virtual Pendidikan (HTML5 Canvas + JavaScript).\n"
-            . "Buatkan 1 halaman HTML5 lengkap mandiri (single-file HTML dengan inline <style> dan <script>, TANPA library eksternal) untuk Simulator Laboratorium Interaktif:\n"
+            . "Tugas Anda:\n"
+            . "1. Evaluasi terlebih dahulu apakah instruksi pembangkit di bawah ini JELAS, MASUK AKAL, dan DAPAT dimodelkan menjadi simulasi ilmu pengetahuan/kejuruan yang bermanfaat.\n"
+            . "   Jika instruksi tidak masuk akal, terlalu samar/acak, atau tidak dapat dipahami sebagai simulasi pembelajaran, JANGAN buat HTML—cukup balas SATU baris persis:\n"
+            . "   INVALID_PROMPT: <jelaskan singkat apa yang perlu diperjelas oleh guru>\n"
+            . "2. Jika instruksi dapat dipahami, buatkan 1 halaman HTML5 lengkap mandiri (single-file HTML dengan inline <style> dan <script>, TANPA library eksternal):\n"
             . "- Judul Lab: {$validated['title']}\n"
-            . "- Mata Pelajaran / Kejuruan: {$validated['subject_name']}\n"
-            . "- Tingkat/Kategori: {$validated['category']}\n"
-            . "- Deskripsi Eksperimen: " . ($validated['description'] ?: 'Eksperimen interaktif dengan tuning variabel dan animasi visual.') . "\n\n"
-            . "SYARAT WAJIB:\n"
-            . "1. Harus memiliki <canvas> animasi berwarna yang bergerak halus (requestAnimationFrame) dan berubah secara real-time saat slider/tombol diubah.\n"
-            . "2. Harus memiliki minimal 2-3 kontrol tuning variabel (slider <input type='range'> atau tombol toggle) beserta pembacaan nilai hasil/efek perubahan secara langsung.\n"
-            . "3. Gunakan tema gelap modern (#0f172a background, teks putih/terang, aksen warna cerah #34d399, #fbbf24, #38bdf8) agar menyatu dengan Simulator Lab PembdaHUB.\n"
-            . "4. Jangan gunakan markdown code fence (```html). Kembalikan HANYA kode HTML valid mulai dari <!DOCTYPE html> hingga </html>.";
+            . "- Mata Pelajaran / Kejuruan: {$subjectName}\n"
+            . "- Narasi Pengantar Siswa: {$validated['description']}\n"
+            . "- Instruksi Pembangkit dari Guru: {$validated['prompt_spec']}\n\n"
+            . "SYARAT WAJIB HTML:\n"
+            . "1. Gunakan tema Lab Terang Bersih (#f8fafc background, panel putih #ffffff dengan border #cbd5e1, dan kanvas <canvas> berlatar #0f172a agar objek animasi terlihat tajam & penuh warna).\n"
+            . "2. Harus memiliki <canvas> animasi objek nyata yang bergerak halus (requestAnimationFrame) dan berubah real-time saat slider/tombol diubah.\n"
+            . "3. Harus memiliki minimal 2 kontrol tuning variabel (<input type='range'> atau tombol) beserta pembacaan nilai hasil secara langsung.\n"
+            . "4. JANGAN gunakan tanda dolar LaTeX ($...$). Gunakan HTML <sub>/<sup> atau Unicode (v₀, θ, λ, α, μ, ρ).\n"
+            . "5. Jangan gunakan markdown code fence (```html). Kembalikan HANYA kode HTML valid mulai dari <!DOCTYPE html> hingga </html>.";
 
         try {
             $gemini = app(\App\Services\GeminiService::class);
             $html = trim($gemini->generateText($prompt));
+
+            if (str_starts_with(strtoupper($html), 'INVALID_PROMPT:')) {
+                $reason = trim(substr($html, strlen('INVALID_PROMPT:')));
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Instruksi pembangkit belum dapat dipahami AI: ' . ($reason ?: 'Mohon jelaskan objek, variabel, dan fenomena yang ingin disimulasikan dengan lebih spesifik.'),
+                ], 422);
+            }
+
             foreach (['```html', '```'] as $fence) {
                 if (str_starts_with($html, $fence)) {
                     $html = substr($html, strlen($fence));
@@ -112,7 +138,7 @@ class SimLabController extends Controller
             if (!str_contains(strtolower($html), '<canvas') && !str_contains(strtolower($html), '<svg')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'AI belum menghasilkan kanvas simulasi yang valid. Silakan coba lagi dengan deskripsi eksperimen yang lebih spesifik.',
+                    'message' => 'AI belum menghasilkan kanvas simulasi yang valid. Silakan perjelas instruksi pembangkit Anda dan coba lagi.',
                 ], 422);
             }
 
@@ -120,26 +146,27 @@ class SimLabController extends Controller
             $lab = VirtualLab::create([
                 'title'        => $validated['title'],
                 'slug'         => $slug,
-                'category'     => $validated['category'],
-                'subject_name' => $validated['subject_name'],
+                'category'     => $roomMeta['cat'],
+                'room_key'     => $validated['room_key'],
+                'subject_name' => $subjectName,
                 'engine_type'  => 'ai_custom_html',
-                'description'  => $validated['description'] ?: "Simulator interaktif {$validated['subject_name']} yang dibangkitkan untuk membantu pemahaman visual siswa.",
+                'description'  => $validated['description'],
                 'sop_steps'    => [
-                    'Baca tujuan eksperimen dan perhatikan variabel yang dapat diatur pada panel kontrol.',
+                    'Baca narasi fenomena dan perhatikan variabel yang dapat diatur pada panel kontrol.',
                     'Atur nilai awal variabel menggunakan slider/tombol yang tersedia.',
                     'Amati perubahan animasi dan angka pembacaan secara real-time untuk menyimpulkan konsep.',
                 ],
                 'custom_html'  => $html,
                 'course_id'    => $validated['course_id'] ?? null,
                 'created_by'   => $user->id,
-                'icon'         => 'fas fa-atom',
-                'accent_color' => '#38bdf8',
+                'icon'         => $roomMeta['icon'],
+                'accent_color' => $roomMeta['color'],
                 'is_active'    => true,
             ]);
 
             return response()->json([
                 'success'      => true,
-                'message'      => 'Simulator Lab baru berhasil dibuat!',
+                'message'      => 'Simulator Lab baru berhasil dibuat dan ditempatkan di ruangan pilihan Anda!',
                 'redirect_url' => route('simlab.lab', $lab->slug),
             ]);
         } catch (\Throwable $e) {
@@ -151,16 +178,53 @@ class SimLabController extends Controller
     }
 
     /**
-     * Delete a custom VirtualLab created by Teacher/Admin.
+     * Update a custom VirtualLab (only creator or Admin).
      */
-    public function destroyLab($id)
+    public function updateLab(Request $request, $id)
     {
         $user = Auth::user();
         $lab = VirtualLab::findOrFail($id);
         if (!$user || ($lab->created_by !== $user->id && !$user->isAdmin())) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak berhak mengedit simulator ini.'], 403);
+        }
+
+        $validated = $request->validate([
+            'room_key'     => 'required|in:fisika,kimia_biologi,matematika,vokasi,ips_bahasa,olimpiade',
+            'title'        => 'required|string|max:150',
+            'subject_name' => 'nullable|string|max:120',
+            'description'  => 'required|string|max:1000',
+        ]);
+
+        $lab->update([
+            'room_key'     => $validated['room_key'],
+            'title'        => $validated['title'],
+            'subject_name' => $validated['subject_name'] ?: $lab->subject_name,
+            'description'  => $validated['description'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Simulator berhasil diperbarui.',
+        ]);
+    }
+
+    /**
+     * Delete a custom VirtualLab created by Teacher/Admin.
+     */
+    public function destroyLab(Request $request, $id)
+    {
+        $user = Auth::user();
+        $lab = VirtualLab::findOrFail($id);
+        if (!$user || ($lab->created_by !== $user->id && !$user->isAdmin())) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak berhak menghapus simulator ini.'], 403);
+            }
             abort(403, 'Anda tidak berhak menghapus simulator ini.');
         }
         $lab->delete();
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Simulator Lab berhasil dihapus.']);
+        }
         return redirect()->route('simlab.index')->with('success', 'Simulator Lab berhasil dihapus.');
     }
 
