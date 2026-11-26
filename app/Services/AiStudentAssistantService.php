@@ -303,13 +303,22 @@ KNOWLEDGE;
             $contextText .= "\nJurusan SMK: {$majorName}";
         }
 
-        // Ambil daftar Course LMS yang sedang diikuti siswa
+        // Ambil daftar Course LMS, Tugas LMS, dan Kuis LMS secara real-time
         try {
-            $courseNames = \App\Models\LmsEnrollment::where('student_id', $student->id)
+            $enrollments = \App\Models\LmsEnrollment::where('student_id', $student->id)
                 ->with('lmsClass.course')
                 ->latest('id')
-                ->take(8)
-                ->get()
+                ->take(12)
+                ->get();
+
+            $courseIds = $enrollments
+                ->map(fn($en) => $en->lmsClass?->course_id)
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $courseNames = $enrollments
                 ->map(fn($en) => $en->lmsClass?->course?->course_name ?? $en->lmsClass?->course?->name)
                 ->filter()
                 ->unique()
@@ -318,6 +327,99 @@ KNOWLEDGE;
 
             if (!empty($courseNames)) {
                 $contextText .= "\nMata Pelajaran / Course LMS Aktif: " . implode(', ', $courseNames);
+            }
+
+            if (!empty($courseIds)) {
+                // Tugas LMS (Assignments)
+                $assignments = \App\Models\LmsAssignment::whereIn('course_id', $courseIds)
+                    ->where('is_published', true)
+                    ->with('course')
+                    ->orderBy('deadline', 'asc')
+                    ->take(20)
+                    ->get();
+
+                if ($assignments->isNotEmpty()) {
+                    $submittedIds = \App\Models\LmsSubmission::where('student_id', $student->id)
+                        ->whereIn('assignment_id', $assignments->pluck('id'))
+                        ->pluck('assignment_id')
+                        ->all();
+
+                    $pendingTasks = [];
+                    $doneTasks = [];
+                    foreach ($assignments as $a) {
+                        $cName = $a->course?->course_name ?? $a->course?->name ?? 'LMS';
+                        $dl = $a->deadline ? \Carbon\Carbon::parse($a->deadline)->format('d M Y H:i') : 'Tanpa batas waktu';
+                        $label = "{$a->title} ({$cName}, Deadline: {$dl})";
+                        if (in_array($a->id, $submittedIds)) {
+                            $doneTasks[] = $label;
+                        } else {
+                            $pendingTasks[] = $label;
+                        }
+                    }
+
+                    if (!empty($pendingTasks)) {
+                        $contextText .= "\nTUGAS LMS YANG BELUM DIKERJAKAN (" . count($pendingTasks) . "):\n- " . implode("\n- ", array_slice($pendingTasks, 0, 10));
+                    } else {
+                        $contextText .= "\nTUGAS LMS YANG BELUM DIKERJAKAN: Tidak ada (Semua tugas LMS sudah dikumpulkan).";
+                    }
+
+                    if (!empty($doneTasks)) {
+                        $contextText .= "\nTUGAS LMS YANG SUDAH DIKUMPULKAN (" . count($doneTasks) . "): " . implode('; ', array_slice($doneTasks, 0, 5));
+                    }
+                } else {
+                    $contextText .= "\nTUGAS LMS: Belum ada tugas yang dipublikasikan di course aktif siswa.";
+                }
+
+                // Kuis LMS
+                $quizzes = \App\Models\LmsQuiz::whereIn('course_id', $courseIds)
+                    ->where('is_published', true)
+                    ->with('course')
+                    ->latest('id')
+                    ->take(15)
+                    ->get();
+
+                if ($quizzes->isNotEmpty()) {
+                    $attemptedQuizIds = \App\Models\LmsQuizAttempt::where('student_id', $student->id)
+                        ->whereIn('quiz_id', $quizzes->pluck('id'))
+                        ->pluck('quiz_id')
+                        ->all();
+
+                    $pendingQuizzes = [];
+                    foreach ($quizzes as $q) {
+                        if (!in_array($q->id, $attemptedQuizIds)) {
+                            $cName = $q->course?->course_name ?? $q->course?->name ?? 'LMS';
+                            $pendingQuizzes[] = "{$q->title} ({$cName})";
+                        }
+                    }
+                    if (!empty($pendingQuizzes)) {
+                        $contextText .= "\nKUIS LMS YANG BELUM DIKERJAKAN (" . count($pendingQuizzes) . "):\n- " . implode("\n- ", array_slice($pendingQuizzes, 0, 8));
+                    } else {
+                        $contextText .= "\nKUIS LMS YANG BELUM DIKERJAKAN: Tidak ada.";
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // abaikan jika tabel belum tersedia
+        }
+
+        // Ambil Ujian CBT Terjadwal / Aktif milik siswa
+        try {
+            $cbtExams = \App\Models\CbtExamParticipant::where('student_id', $student->id)
+                ->with('exam.subject')
+                ->latest('id')
+                ->take(8)
+                ->get()
+                ->map(fn($p) => $p->exam)
+                ->filter(fn($ex) => $ex && ($ex->end_time === null || \Carbon\Carbon::parse($ex->end_time)->isFuture()))
+                ->values();
+
+            if ($cbtExams->isNotEmpty()) {
+                $examLines = $cbtExams->map(function ($ex) {
+                    $subj = $ex->subject?->subject_name ?? $ex->subject?->name ?? '';
+                    $start = $ex->start_time ? \Carbon\Carbon::parse($ex->start_time)->format('d M Y H:i') : '-';
+                    return "{$ex->exam_title} ({$subj}, Mulai: {$start})";
+                })->all();
+                $contextText .= "\nUJIAN CBT AKTIF / MENDATANG:\n- " . implode("\n- ", $examLines);
             }
         } catch (\Throwable $e) {
             // abaikan
@@ -332,6 +434,8 @@ KNOWLEDGE;
         } catch (\Throwable $e) {
             // abaikan
         }
+
+        $contextText .= "\n\nCATATAN PENTING UNTUK AI: Data tugas LMS, kuis LMS, dan ujian CBT di atas adalah DATA REAL-TIME AKUN SISWA dari database PembdaHUB saat ini (" . now()->format('d M Y H:i') . " WIB). Jika siswa bertanya tentang tugas yang belum dikerjakan, kuis, atau ujiannya, jawablah LANGSUNG menggunakan data di atas. JANGAN mengatakan tidak punya akses ke akun siswa.";
 
         $knowledgeBase = $this->getPembdaHubKnowledgeBase();
 

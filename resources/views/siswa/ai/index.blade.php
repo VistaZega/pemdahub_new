@@ -1,585 +1,419 @@
 @extends('layouts.siswa')
 
-@section('title', 'Pembda AI — Studio Asisten Belajar & Konsultasi')
+@section('title', 'Pembda AI — Asisten Belajar & Konsultasi Siswa')
 
 @section('content')
-<!-- Google Fonts: JetBrains Mono & Plus Jakarta Sans -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
-<!-- Marked.js & KaTeX for Markdown & Math -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
 <style>
-    .font-mono-code {
+    .ai-studio-font {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .ai-prose p { margin-bottom: 0.6rem; line-height: 1.65; }
+    .ai-prose p:last-child { margin-bottom: 0; }
+    .ai-prose ul { list-style-type: disc; padding-left: 1.35rem; margin: 0.5rem 0; }
+    .ai-prose ol { list-style-type: decimal; padding-left: 1.35rem; margin: 0.5rem 0; }
+    .ai-prose li { margin-bottom: 0.25rem; }
+    .ai-prose h1, .ai-prose h2, .ai-prose h3 { font-weight: 800; color: #0f172a; margin-top: 0.85rem; margin-bottom: 0.4rem; }
+    .ai-prose h2 { font-size: 1.05rem; }
+    .ai-prose h3 { font-size: 0.95rem; }
+    .ai-prose code {
         font-family: 'JetBrains Mono', monospace;
+        background: #e2e8f0;
+        color: #0f172a;
+        padding: 0.12rem 0.35rem;
+        border-radius: 0.375rem;
+        font-size: 0.82em;
     }
-
-    @keyframes bubbleSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(8px) scale(0.98);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
+    .ai-prose pre {
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 0.85rem 1rem;
+        border-radius: 0.75rem;
+        overflow-x: auto;
+        margin: 0.65rem 0;
+        font-size: 0.8rem;
     }
-    
-    /* Tactile Solid Drop-Shadow Buttons */
-    .btn-tactile-red {
-        background-color: #ff3823 !important;
-        color: #ffffff !important;
-        border: 2px solid #121316 !important;
-        box-shadow: 3.5px 3.5px 0px #121316 !important;
-        transition: all 0.15s ease;
+    .ai-prose pre code {
+        background: transparent;
+        color: #fde047;
+        padding: 0;
     }
-    .btn-tactile-red:hover {
-        transform: translate(1.5px, 1.5px);
-        box-shadow: 2px 2px 0px #121316 !important;
+    .ai-prose blockquote {
+        border-left: 3px solid #6366f1;
+        padding-left: 0.85rem;
+        color: #475569;
+        margin: 0.5rem 0;
     }
-
-    .btn-tactile-yellow {
-        background-color: #fde047 !important;
-        color: #121316 !important;
-        border: 2px solid #121316 !important;
-        box-shadow: 3.5px 3.5px 0px #121316 !important;
-        transition: all 0.15s ease;
+    .ai-prose table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.65rem 0;
+        font-size: 0.82rem;
     }
-    .btn-tactile-yellow:hover {
-        transform: translate(1.5px, 1.5px);
-        box-shadow: 2px 2px 0px #121316 !important;
+    .ai-prose th, .ai-prose td {
+        border: 1px solid #cbd5e1;
+        padding: 0.45rem 0.65rem;
+        text-align: left;
     }
-
-    .btn-tactile-green {
-        background-color: #10b981 !important;
-        color: #ffffff !important;
-        border: 2px solid #121316 !important;
-        box-shadow: 3.5px 3.5px 0px #121316 !important;
-        transition: all 0.15s ease;
+    .ai-prose th {
+        background: #f1f5f9;
+        font-weight: 700;
     }
-    .btn-tactile-green:hover {
-        transform: translate(1.5px, 1.5px);
-        box-shadow: 2px 2px 0px #121316 !important;
-    }
-
-    .btn-tactile-white {
-        background-color: #ffffff !important;
-        color: #121316 !important;
-        border: 2px solid #121316 !important;
-        box-shadow: 3.5px 3.5px 0px #121316 !important;
-        transition: all 0.15s ease;
-    }
-    .btn-tactile-white:hover {
-        transform: translate(1.5px, 1.5px);
-        box-shadow: 2px 2px 0px #121316 !important;
-    }
-
-    /* Dedicated Mode Icon Box - High Contrast Yellow Icon on Dark Charcoal Box */
-    .mode-icon-box {
-        background-color: #121316 !important;
-        border: 2px solid #121316 !important;
-        width: 38px !important;
-        height: 38px !important;
-        border-radius: 12px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex-shrink: 0 !important;
-        box-shadow: 2px 2px 0px rgba(0,0,0,0.15) !important;
-    }
-    .mode-icon-box i {
-        color: #fde047 !important;
-        font-size: 16px !important;
-    }
-
-    /* AI Avatar Box for Chat Stream */
-    .ai-avatar-box {
-        background-color: #121316 !important;
-        border: 2px solid #121316 !important;
-        width: 40px !important;
-        height: 40px !important;
-        border-radius: 12px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex-shrink: 0 !important;
-        box-shadow: 2px 2px 0px #121316 !important;
-    }
-    .ai-avatar-box i {
-        color: #fde047 !important;
-        font-size: 16px !important;
-    }
-
-    /* Dotted Graph Paper Texture Background */
-    .graph-paper-box {
-        background-color: #f6f4ee;
-        background-image: radial-gradient(#d1cebe 1.2px, transparent 1.2px);
-        background-size: 14px 14px;
-    }
-
-    /* Tactile Card Frame */
-    .tactile-card {
-        background: #ffffff;
-        border: 2px solid #121316;
-        border-radius: 20px;
-        box-shadow: 4px 4px 0px #121316;
-    }
-
-    /* Student Question Message Bubble - Sleek Vibrant Indigo/Purple Gradient (NO plain black background or black text) */
-    .chat-student-bubble {
-        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #7c3aed 100%) !important;
-        color: #ffffff !important;
-        border: 2px solid #121316 !important;
-        box-shadow: 3.5px 3.5px 0px #121316 !important;
-        animation: bubbleSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    .chat-student-bubble * {
-        color: #ffffff !important;
-    }
-    .chat-student-bubble code {
-        background-color: #121316 !important;
-        color: #fde047 !important;
-        border: 1px solid #121316 !important;
-    }
-
-    /* Force High Contrast Readability for AI Message Bubble */
-    .chat-ai-bubble {
-        background-color: #ffffff !important;
-        color: #121316 !important;
-        border: 2px solid #121316 !important;
-        box-shadow: 4px 4px 0px #121316 !important;
-        min-width: 120px !important;
-        animation: bubbleSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    .chat-ai-bubble * {
-        color: #121316 !important;
-    }
-    .chat-ai-bubble code {
-        background-color: #ede9df !important;
-        color: #121316 !important;
-        font-weight: 700 !important;
-    }
-    .chat-ai-bubble pre {
-        background-color: #121316 !important;
-        color: #fde047 !important;
-        padding: 12px !important;
-        border-radius: 12px !important;
-        border: 1.5px solid #121316 !important;
-    }
-    .chat-ai-bubble pre * {
-        color: #fde047 !important;
-    }
-
-    .prose p { margin-bottom: 0.5rem; }
-    .prose p:last-child { margin-bottom: 0; }
 </style>
 
-<div class="space-y-6 pb-12" x-data="aiChatApp()">
-    
-    <!-- Top Hero Header (DesainPake AI Tactile Card dengan Corner Framing ⌜ ⌟) -->
-    <div class="relative bg-white border-2 border-[#121316] rounded-3xl p-6 shadow-[6px_6px_0px_#121316] overflow-hidden">
-        <!-- Corner Crosshairs (Larger & Crisp Black) -->
-        <span class="absolute top-2 left-3 text-[#121316] font-mono-code text-base font-black select-none">⌜</span>
-        <span class="absolute top-2 right-3 text-[#121316] font-mono-code text-base font-black select-none">⌝</span>
-        <span class="absolute bottom-2 left-3 text-[#121316] font-mono-code text-base font-black select-none">⌞</span>
-        <span class="absolute bottom-2 right-3 text-[#121316] font-mono-code text-base font-black select-none">⌟</span>
+<div class="ai-studio-font h-[calc(100vh-9rem)] min-h-[540px] max-h-[860px] flex bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden relative"
+     x-data="aiChatApp()">
 
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            
-            <!-- Left Info (Rapat Kiri Murni) -->
-            <div class="flex-1">
-                <div class="text-[11px] font-mono-code font-extrabold text-[#ff3823] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                    <span class="text-base">✱</span>
-                    <span>NGODING & ASISTEN BELAJAR AI SISWA</span>
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight leading-tight flex items-center gap-2 flex-wrap">
-                    <span>Pembda</span>
-                    <span class="bg-[#fde047] text-[#121316] px-2.5 py-0.5 rounded-lg border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">AI Studio</span>
-                </h1>
-                <p class="text-xs sm:text-sm text-[#4b5563] font-semibold mt-1">Tutor Pelajaran, Konsultasi BK/Karir, dan Pendamping LMS Terpadu</p>
-            </div>
+    <!-- Mobile Sidebar Backdrop -->
+    <div x-show="sidebarOpen"
+         @click="sidebarOpen = false"
+         style="display: none;"
+         class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 lg:hidden"></div>
 
-            <!-- Right Student Profile Photo Badge & Daily Quota -->
-            <div class="flex items-center gap-3 bg-[#faf3e0] border-2 border-[#121316] p-3.5 rounded-2xl shadow-[3.5px_3.5px_0px_#121316] shrink-0">
-                <!-- Foto Profil Siswa -->
-                <div class="w-12 h-12 rounded-xl bg-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] p-0.5 shrink-0 overflow-hidden">
-                    <img src="{{ $student->photo_url }}" 
-                         alt="{{ $student->full_name }}" 
-                         class="w-full h-full object-cover rounded-lg"
-                         onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($student->full_name) }}&background=121316&color=ffffff&bold=true';">
-                </div>
+    <!-- SIDEBAR KIRI: Mode, Riwayat & Kuota -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+           class="fixed lg:static inset-y-0 left-0 z-40 w-72 xl:w-80 bg-slate-50/95 border-r border-slate-200 flex flex-col transition-transform duration-200 ease-out shrink-0">
 
-                <div class="text-left font-mono-code">
-                    <p class="text-xs font-black text-[#121316] truncate max-w-[150px]">{{ $student->full_name }}</p>
-                    <p class="text-[10px] font-extrabold text-[#ff3823] uppercase truncate max-w-[150px]">
-                        {{ $student->school->name ?? 'PEMBDA HUB' }}
-                    </p>
-                    <div class="mt-0.5 inline-block text-[10px] font-extrabold bg-[#121316] text-[#fde047] px-2 py-0.5 rounded-md border border-[#121316]">
-                        ⚡ <span x-text="usageInfo.remaining">{{ $usageInfo['remaining'] }}</span>/{{ $usageInfo['limit'] }} Pesan Harian
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Terminal Prompt Line Bar -->
-        <div class="mt-5 bg-[#121316] text-[#fde047] font-mono-code text-xs p-3.5 rounded-xl border-2 border-[#121316] flex items-center justify-between gap-2 shadow-inner">
-            <div class="flex items-center gap-2 truncate">
-                <span class="text-[#ff3823] font-bold">&rsaquo;</span>
-                <span class="truncate text-[#fde047]">pembda_ai_core --mode=<span x-text="activeMode">tutor</span> --student="{{ strtolower(explode(' ', $student->full_name)[0]) }}" --status=ONLINE</span>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0 text-[10px]">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="font-bold text-white uppercase">Ready</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Workspace Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- Sidebar Kiri: Tactile Mode Selector & Riwayat Sesi (4 cols) -->
-        <div class="lg:col-span-4 space-y-4">
-            
-            <!-- Mode Selector Cards -->
-            <div class="tactile-card p-5 space-y-3">
-                <div class="flex items-center justify-between font-mono-code">
-                    <h3 class="text-xs font-black uppercase text-[#121316] tracking-wider">&bull; MODE INTERAKSI &bull;</h3>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#fde047] text-[#121316] border border-[#121316]">3 Pilihan</span>
-                </div>
-
-                <div class="grid grid-cols-1 gap-2.5">
-                    <!-- Mode 1: Tutor Akademik Q&A -->
-                    <button type="button" @click="startNewConversation('tutor')"
-                            class="flex items-center gap-3.5 p-3.5 rounded-2xl transition-all duration-150 text-left cursor-pointer"
-                            :class="activeMode === 'tutor' 
-                                ? 'btn-tactile-red font-black' 
-                                : 'btn-tactile-white'">
-                        <div class="mode-icon-box">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#121316]'">TUTOR AKADEMIK Q&A</p>
-                            <p class="text-[11px] truncate font-medium" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#4b5563]'">Bimbingan Matematika, IPA & Kejuruan</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-xs" :class="activeMode === 'tutor' ? 'text-white' : 'text-[#121316]'"></i>
-                    </button>
-
-                    <!-- Mode 2: Konsultasi BK & Karir -->
-                    <button type="button" @click="startNewConversation('bk_consultation')"
-                            class="flex items-center gap-3.5 p-3.5 rounded-2xl transition-all duration-150 text-left cursor-pointer"
-                            :class="activeMode === 'bk_consultation' 
-                                ? 'btn-tactile-yellow font-black' 
-                                : 'btn-tactile-white'">
-                        <div class="mode-icon-box">
-                            <i class="fas fa-user-nurse"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black uppercase tracking-tight text-[#121316]">KONSULTASI BK & KARIR</p>
-                            <p class="text-[11px] truncate font-medium text-[#121316]">Curhat belajar, Kuliah & Kerja DUDI</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-xs text-[#121316]"></i>
-                    </button>
-
-                    <!-- Mode 3: Asisten Belajar LMS -->
-                    <button type="button" @click="startNewConversation('lms_assistant')"
-                            class="flex items-center gap-3.5 p-3.5 rounded-2xl transition-all duration-150 text-left cursor-pointer"
-                            :class="activeMode === 'lms_assistant' 
-                                ? 'btn-tactile-green font-black' 
-                                : 'btn-tactile-white'">
-                        <div class="mode-icon-box">
-                            <i class="fas fa-book-open"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black uppercase tracking-tight" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#121316]'">ASISTEN BELAJAR LMS</p>
-                            <p class="text-[11px] truncate font-medium" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#4b5563]'">Rangkuman modul & kuis mandiri</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-xs" :class="activeMode === 'lms_assistant' ? 'text-white' : 'text-[#121316]'"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- List Riwayat Percakapan (Tactile List) -->
-            <div class="tactile-card p-5 space-y-3">
-                <div class="flex items-center justify-between font-mono-code">
-                    <h3 class="text-xs font-black uppercase text-[#121316] tracking-wider">&bull; RIWAYAT SESI &bull;</h3>
-                    <button type="button" @click="startNewConversation(activeMode)" class="text-xs font-bold text-[#ff3823] hover:underline flex items-center gap-1 cursor-pointer">
-                        <i class="fas fa-plus text-[10px]"></i>
-                        <span>Sesi Baru</span>
-                    </button>
-                </div>
-
-                <div class="space-y-2 max-h-[350px] overflow-y-auto pr-1 no-scrollbar font-mono-code">
-                    @forelse($conversations as $conv)
-                        <div class="group flex items-center justify-between p-3 rounded-xl text-xs transition border-2 border-[#121316] cursor-pointer {{ $activeConversation && $activeConversation->id == $conv->id ? 'bg-[#faf3e0] shadow-[2px_2px_0px_#121316] font-black' : 'bg-white hover:bg-[#f6f4ee]' }}">
-                            <a href="{{ route('siswa.ai.index', ['conversation_id' => $conv->id]) }}" class="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                                <span class="text-[#ff3823] font-bold">&rsaquo;</span>
-                                <span class="truncate text-[#121316]">{{ $conv->title }}</span>
-                            </a>
-                            <form action="{{ route('siswa.ai.destroy', $conv->id) }}" method="POST" onsubmit="return confirm('Hapus sesi percakapan ini?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="opacity-0 group-hover:opacity-100 p-1 text-rose-600 hover:text-rose-800 transition cursor-pointer" title="Hapus Sesi">
-                                    <i class="fas fa-times text-xs"></i>
-                                </button>
-                            </form>
-                        </div>
-                    @empty
-                        <div class="py-8 text-center text-[#71717a] font-mono-code">
-                            <i class="fas fa-terminal text-2xl mb-2 text-[#121316]"></i>
-                            <p class="text-xs font-bold text-[#121316]">Belum ada riwayat percakapan.</p>
-                            <p class="text-[10px] mt-0.5 text-[#555]">Pilih mode di atas untuk memulai!</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Chat Console Utama (8 cols) -->
-        <div class="lg:col-span-8 tactile-card flex flex-col h-[700px] overflow-hidden relative">
-            
-            <!-- Console Top Header -->
-            <div class="px-6 py-4 border-b-2 border-[#121316] bg-[#faf3e0] flex items-center justify-between shrink-0 font-mono-code">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-[#121316] text-[#fde047] border-2 border-[#121316] flex items-center justify-center text-base font-bold shadow-xs">
-                        <i class="fas fa-terminal" style="color: #fde047 !important;"></i>
+        <!-- Brand & New Chat -->
+        <div class="p-4 border-b border-slate-200/80 space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-xs">
+                        <i class="fas fa-robot text-sm"></i>
                     </div>
                     <div>
-                        <h2 class="text-xs sm:text-sm font-black text-[#121316] uppercase tracking-tight" x-text="conversationTitle">
-                            {{ $activeConversation ? $activeConversation->title : 'SESI BARU PEMBDA AI' }}
-                        </h2>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-[10px] font-extrabold text-[#121316] uppercase" x-text="getModeLabel()">
-                                {{ $activeConversation ? ($activeConversation->mode == 'bk_consultation' ? 'BK & KARIR' : ($activeConversation->mode == 'lms_assistant' ? 'ASISTEN LMS' : 'TUTOR Q&A')) : 'TUTOR Q&A' }}
-                            </span>
+                        <div class="text-sm font-extrabold text-slate-900 leading-tight">Pembda AI</div>
+                        <div class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Siap Membantu</span>
                         </div>
                     </div>
                 </div>
+                <button type="button" @click="sidebarOpen = false" class="lg:hidden p-1.5 text-slate-500 hover:text-slate-800 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-                <!-- Console Action Tools -->
-                <div class="flex items-center gap-2">
-                    <button type="button" @click="clearScreen()" class="px-3 py-1.5 rounded-full btn-tactile-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer" title="Bersihkan Layar">
-                        <i class="fas fa-broom text-[10px] text-[#121316]"></i>
-                        <span class="hidden sm:inline">Bersihkan</span>
-                    </button>
+            <button type="button"
+                    @click="startNewConversation(activeMode); sidebarOpen = false"
+                    class="w-full py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-bold shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fas fa-plus"></i>
+                <span>Percakapan Baru</span>
+            </button>
+        </div>
 
-                    <button type="button" @click="toggleSpeechVoice()" 
-                            class="px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1.5 cursor-pointer border-2 border-[#121316] transition"
-                            :class="autoSpeech ? 'bg-[#fde047] text-[#121316] shadow-[2px_2px_0px_#121316]' : 'bg-white text-[#121316] hover:bg-[#f6f4ee]'">
-                        <i class="fas" :class="autoSpeech ? 'fa-volume-high text-[#ff3823]' : 'fa-volume-xmark'"></i>
-                        <span class="hidden sm:inline" x-text="autoSpeech ? 'Suara ON' : 'Suara OFF'"></span>
-                    </button>
+        <!-- Mode Selector -->
+        <div class="p-3 border-b border-slate-200/80 space-y-1.5">
+            <div class="px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Mode Asisten</div>
+
+            <button type="button"
+                    @click="startNewConversation('tutor'); sidebarOpen = false"
+                    :class="activeMode === 'tutor' ? 'bg-white border-indigo-200 text-indigo-700 shadow-xs ring-1 ring-indigo-500/20' : 'border-transparent text-slate-600 hover:bg-white/70'"
+                    class="w-full p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                     :class="activeMode === 'tutor' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200/70 text-slate-500'">
+                    <i class="fas fa-graduation-cap text-xs"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-xs font-bold truncate">Tutor Akademik</div>
+                    <div class="text-[11px] text-slate-500 truncate">Soal, tugas &amp; konsep mapel</div>
+                </div>
+            </button>
+
+            <button type="button"
+                    @click="startNewConversation('bk_consultation'); sidebarOpen = false"
+                    :class="activeMode === 'bk_consultation' ? 'bg-white border-emerald-200 text-emerald-700 shadow-xs ring-1 ring-emerald-500/20' : 'border-transparent text-slate-600 hover:bg-white/70'"
+                    class="w-full p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                     :class="activeMode === 'bk_consultation' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200/70 text-slate-500'">
+                    <i class="fas fa-heart-pulse text-xs"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-xs font-bold truncate">Konsultasi BK &amp; Karir</div>
+                    <div class="text-[11px] text-slate-500 truncate">Motivasi, kuliah &amp; DUDI</div>
+                </div>
+            </button>
+
+            <button type="button"
+                    @click="startNewConversation('lms_assistant'); sidebarOpen = false"
+                    :class="activeMode === 'lms_assistant' ? 'bg-white border-amber-200 text-amber-700 shadow-xs ring-1 ring-amber-500/20' : 'border-transparent text-slate-600 hover:bg-white/70'"
+                    class="w-full p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                     :class="activeMode === 'lms_assistant' ? 'bg-amber-100 text-amber-600' : 'bg-slate-200/70 text-slate-500'">
+                    <i class="fas fa-book-open text-xs"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-xs font-bold truncate">Asisten Belajar LMS</div>
+                    <div class="text-[11px] text-slate-500 truncate">Rangkuman, kuis &amp; tugas</div>
+                </div>
+            </button>
+        </div>
+
+        <!-- Riwayat Sesi -->
+        <div class="flex-1 overflow-y-auto p-3 space-y-1">
+            <div class="px-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Riwayat Percakapan</div>
+
+            @forelse($conversations as $conv)
+                <div class="group flex items-center gap-1 rounded-xl transition {{ $activeConversation && $activeConversation->id == $conv->id && empty($prefillPrompt) ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-200/60 text-slate-700' }}">
+                    <a href="{{ route('siswa.ai.index', ['conversation_id' => $conv->id]) }}"
+                       class="flex-1 min-w-0 px-2.5 py-2 text-xs font-semibold truncate flex items-center gap-2">
+                        <i class="far fa-comment-dots text-[11px] opacity-60 shrink-0"></i>
+                        <span class="truncate">{{ $conv->title }}</span>
+                    </a>
+                    <form action="{{ route('siswa.ai.destroy', $conv->id) }}" method="POST" onsubmit="return confirm('Hapus percakapan ini?')" class="pr-1.5 opacity-0 group-hover:opacity-100 transition">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="p-1 text-slate-400 hover:text-rose-600 rounded cursor-pointer" title="Hapus">
+                            <i class="fas fa-trash-alt text-[10px]"></i>
+                        </button>
+                    </form>
+                </div>
+            @empty
+                <div class="px-2 py-6 text-center text-xs text-slate-400">
+                    Belum ada riwayat percakapan.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Footer Profil & Kuota Harian -->
+        <div class="p-3.5 border-t border-slate-200/80 bg-white/80">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1.5">
+                <span class="truncate">{{ explode(' ', $student->full_name)[0] }} &bull; Kuota Harian</span>
+                <span class="text-indigo-600 font-mono">
+                    <span x-text="usageInfo.remaining">{{ $usageInfo['remaining'] }}</span>/<span x-text="usageInfo.limit">{{ $usageInfo['limit'] }}</span>
+                </span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-300"
+                     :style="'width: ' + Math.min(100, Math.round((usageInfo.remaining / Math.max(1, usageInfo.limit)) * 100)) + '%'"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- AREA CHAT UTAMA (KANAN) -->
+    <main class="flex-1 flex flex-col min-w-0 bg-white">
+
+        <!-- Top Bar Chat -->
+        <header class="px-4 sm:px-6 py-3 border-b border-slate-200/80 flex items-center justify-between gap-3 bg-white shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <button type="button" @click="sidebarOpen = true" class="lg:hidden p-2 -ml-1 text-slate-600 hover:bg-slate-100 rounded-xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-sm sm:text-base font-extrabold text-slate-900 truncate" x-text="conversationTitle"></h2>
+                        <span class="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-200" x-text="getModeLabel()"></span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 truncate">Terhubung dengan data akademik, tugas LMS &amp; jadwal CBT Anda</p>
                 </div>
             </div>
 
-            <!-- Messages Stream (Graph Paper Background) -->
-            <div class="flex-1 p-6 overflow-y-auto space-y-6 graph-paper-box" id="chat-messages-container" x-ref="messagesContainer">
-                
-                @if(empty($messages) && !$activeConversation)
-                    <!-- Welcoming Starter Screen -->
-                    <div class="max-w-lg mx-auto my-6 text-center space-y-5">
-                        
-                        <!-- Poster Greeting Frame -->
-                        <div class="bg-white border-2 border-[#121316] rounded-2xl p-6 shadow-[4px_4px_0px_#121316] relative overflow-hidden">
-                            <div class="text-[10px] font-mono-code font-extrabold uppercase tracking-widest text-[#ff3823] mb-1">
-                                &bull; YAYASAN PERGURUAN PEMBDA NIAS &bull;
-                            </div>
-                            <h3 class="text-2xl font-black text-[#121316] uppercase tracking-tight flex items-center justify-center gap-2 flex-wrap">
-                                <span>HALO,</span>
-                                <span class="bg-[#fde047] text-[#121316] px-2 py-0.5 rounded-md border-2 border-[#121316] shadow-[2px_2px_0px_#121316]">{{ explode(' ', $student->full_name)[0] }}!</span>
-                                <span>👋</span>
-                            </h3>
-                            <p class="text-xs text-[#4b5563] font-bold mt-2">Saya Asisten Pintar Pembda AI Studio. Ketik perintah atau pilih kartu pertanyaan di bawah ini:</p>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button"
+                        @click="toggleSpeechVoice()"
+                        :class="autoSpeech ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                        class="px-2.5 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                        title="Bacakan Jawaban AI Otomatis">
+                    <i class="fas" :class="autoSpeech ? 'fa-volume-up' : 'fa-volume-mute'"></i>
+                    <span class="hidden sm:inline" x-text="autoSpeech ? 'Suara Aktif' : 'Suara'"></span>
+                </button>
+                <button type="button"
+                        @click="clearScreen()"
+                        class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                        title="Bersihkan Layar">
+                    <i class="fas fa-eraser"></i>
+                    <span class="hidden sm:inline">Bersihkan</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Messages Stream -->
+        <div x-ref="messagesContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-5 bg-slate-50/40">
+
+            <!-- Empty State + Smart Prompt Cards -->
+            <template x-if="messageList.length === 0">
+                <div class="max-w-2xl mx-auto py-6 sm:py-10 space-y-6">
+                    <div class="text-center space-y-2">
+                        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center text-2xl shadow-md">
+                            <i class="fas fa-sparkles"></i>
                         </div>
-
-                        <!-- Tactile Categorized Chips -->
-                        <div class="space-y-3 pt-2 text-left font-mono-code">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-[#121316] text-center">&bull; REKOMENDASI TOPIK POPULER &bull;</p>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                                <button @click="useQuickPrompt('Bagaimana cara menghitung Luas Permukaan Tabung? Jelaskan langkahnya.')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
-                                    <span class="text-base">🧮</span>
-                                    <div>
-                                        <p class="font-black text-[#121316] uppercase text-[11px]">Matematika & Sains</p>
-                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Rumus Luas Permukaan Tabung</p>
-                                    </div>
-                                </button>
-
-                                <button @click="useQuickPrompt('Apa saja 5 jurusan SMK di PembdaHUB dan apa keunggulannya?')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
-                                    <span class="text-base">🏫</span>
-                                    <div>
-                                        <p class="font-black text-[#121316] uppercase text-[11px]">Info PembdaHUB</p>
-                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Daftar Jurusan SMK & Fitur Sekolah</p>
-                                    </div>
-                                </button>
-
-                                <button @click="useQuickPrompt('Saya bingung memilih antara lanjut Kuliah atau kerja di DUDI industri, mohon saran.')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
-                                    <span class="text-base">🎓</span>
-                                    <div>
-                                        <p class="font-black text-[#121316] uppercase text-[11px]">Karir & BK</p>
-                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Saran Kuliah vs Kerja DUDI</p>
-                                    </div>
-                                </button>
-
-                                <button @click="useQuickPrompt('Bagaimana cara melihat nilai rapor dan mengikuti ujian CBT online?')" class="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] hover:translate-x-0.5 hover:translate-y-0.5 transition text-left flex items-start gap-2.5 cursor-pointer">
-                                    <span class="text-base">📜</span>
-                                    <div>
-                                        <p class="font-black text-[#121316] uppercase text-[11px]">Panduan Fitur</p>
-                                        <p class="text-[11px] text-[#4b5563] font-medium mt-0.5">Cara Akses Rapor & Ujian CBT</p>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
+                        <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900">
+                            Halo, {{ explode(' ', $student->full_name)[0] }}!
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+                            Tanyakan materi pelajaran, cek tugas LMS yang belum dikerjakan, upload foto soal, atau konsultasi karir bersama Pembda AI.
+                        </p>
                     </div>
-                @endif
 
-                <!-- Render Messages Stream -->
-                <template x-for="(msg, index) in messageList" :key="index">
-                    <div :class="msg.sender === 'student' ? 'flex justify-end' : 'flex justify-start'">
-                        <div class="flex gap-3 max-w-[92%] sm:max-w-[85%]" :class="msg.sender === 'student' ? 'flex-row-reverse' : 'flex-row'">
-                            
-                            <!-- Avatar Frame (Siswa vs AI) -->
-                            <template x-if="msg.sender === 'student'">
-                                <div class="w-10 h-10 rounded-xl bg-white border-2 border-[#121316] shadow-[2px_2px_0px_#121316] p-0.5 shrink-0 overflow-hidden">
-                                    <img src="{{ $student->photo_url }}" 
-                                         alt="{{ $student->full_name }}" 
-                                         class="w-full h-full object-cover rounded-lg"
-                                         onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($student->full_name) }}&background=121316&color=ffffff&bold=true';">
-                                </div>
-                            </template>
-
-                            <template x-if="msg.sender === 'ai'">
-                                <div class="ai-avatar-box">
-                                    <i class="fas fa-robot"></i>
-                                </div>
-                            </template>
-
-                            <!-- Message Body Frame with Explicit High-Contrast Classes -->
-                            <div class="space-y-1.5 flex-1 min-w-0">
-                                <div class="p-4 rounded-2xl text-xs sm:text-sm leading-relaxed"
-                                     :class="msg.sender === 'student' 
-                                        ? 'chat-student-bubble text-white rounded-tr-none font-mono-code font-bold' 
-                                        : 'chat-ai-bubble text-[#121316] rounded-tl-none prose prose-xs max-w-none font-medium'">
-                                    <template x-if="msg.image_url">
-                                        <div class="mb-2.5">
-                                            <img :src="msg.image_url" alt="Lampiran Soal" class="max-h-56 rounded-xl border-2 border-[#121316] bg-white object-contain">
-                                        </div>
-                                    </template>
-                                    <div class="message-body" x-html="renderMarkdown(msg.message)"></div>
-                                </div>
-
-                                <!-- Action Toolbar for AI Messages -->
-                                <template x-if="msg.sender === 'ai'">
-                                    <div class="flex flex-wrap items-center gap-3 px-1 text-[10px] font-mono-code font-bold text-[#121316]">
-                                        <button type="button" @click="copyToClipboard(msg.message)" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Salin Jawaban">
-                                            <i class="fas fa-copy text-[10px]"></i>
-                                            <span>Salin</span>
-                                        </button>
-
-                                        <button type="button" @click="speakText(msg.message)" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Dengarkan Suara AI">
-                                            <i class="fas fa-volume-high text-[10px]"></i>
-                                            <span>Dengarkan</span>
-                                        </button>
-
-                                        <button type="button" @click="useQuickPrompt('Buatkan 3 soal latihan serupa beserta kunci pembahasan bertahap untuk topik ini.')" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Buat Soal Latihan Serupa">
-                                            <i class="fas fa-dumbbell text-[10px]"></i>
-                                            <span>Latihan Serupa</span>
-                                        </button>
-
-                                        <div class="flex items-center gap-2 border-l-2 border-[#121316] pl-3">
-                                            <button type="button" @click="msg.liked = !msg.liked" :class="msg.liked ? 'text-emerald-600' : 'hover:text-[#ff3823]'" class="transition cursor-pointer">
-                                                <i class="fas fa-thumbs-up text-[10px]"></i>
-                                            </button>
-                                            <button type="button" @click="msg.disliked = !msg.disliked" :class="msg.disliked ? 'text-rose-600' : 'hover:text-[#ff3823]'" class="transition cursor-pointer">
-                                                <i class="fas fa-thumbs-down text-[10px]"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </template>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button type="button"
+                                @click="useQuickPrompt('Tugas LMS atau kuis apa saja yang belum saya kerjakan saat ini?')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-sm text-left transition group cursor-pointer">
+                            <div class="flex items-center gap-2 text-xs font-bold text-indigo-700 mb-1">
+                                <i class="fas fa-tasks"></i> Cek Tugas &amp; Kuis LMS
                             </div>
+                            <p class="text-xs text-slate-600 group-hover:text-slate-900">Lihat daftar tugas &amp; deadline yang belum dikumpulkan.</p>
+                        </button>
 
-                        </div>
-                    </div>
-                </template>
+                        <button type="button"
+                                @click="useQuickPrompt('Ada jadwal ujian CBT apa saja yang aktif atau akan datang untuk saya?')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 hover:shadow-sm text-left transition group cursor-pointer">
+                            <div class="flex items-center gap-2 text-xs font-bold text-amber-700 mb-1">
+                                <i class="fas fa-laptop-code"></i> Cek Jadwal Ujian CBT
+                            </div>
+                            <p class="text-xs text-slate-600 group-hover:text-slate-900">Pantau jadwal ujian online yang perlu dipersiapkan.</p>
+                        </button>
 
-                <!-- Loading Spinner Box -->
-                <div x-show="isSending" class="flex justify-start">
-                    <div class="flex items-center gap-3 max-w-[85%]">
-                        <div class="ai-avatar-box">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div class="p-3.5 bg-white border-2 border-[#121316] rounded-2xl rounded-tl-none text-xs text-[#121316] font-mono-code font-bold shadow-[4px_4px_0px_#121316] flex items-center gap-2.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#ff3823] animate-ping"></span>
-                            <span>Pembda AI sedang menganalisis jawaban...</span>
-                        </div>
+                        <button type="button"
+                                @click="useQuickPrompt('Bantu saya memahami langkah-langkah menyelesaikan soal Matematika atau Kejuruan secara bertahap.')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-violet-300 hover:shadow-sm text-left transition group cursor-pointer">
+                            <div class="flex items-center gap-2 text-xs font-bold text-violet-700 mb-1">
+                                <i class="fas fa-calculator"></i> Bimbingan Soal Langkah demi Langkah
+                            </div>
+                            <p class="text-xs text-slate-600 group-hover:text-slate-900">Ketik soal atau upload foto soal dari buku/LKS.</p>
+                        </button>
+
+                        <button type="button"
+                                @click="activeMode = 'bk_consultation'; useQuickPrompt('Berikan saran jurusan kuliah atau prospek karir DUDI yang cocok dengan jurusan dan minat saya.')"
+                                class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-sm text-left transition group cursor-pointer">
+                            <div class="flex items-center gap-2 text-xs font-bold text-emerald-700 mb-1">
+                                <i class="fas fa-compass"></i> Konsultasi Karir &amp; DNA Akademik
+                            </div>
+                            <p class="text-xs text-slate-600 group-hover:text-slate-900">Rekomendasi belajar dan karir sesuai profil Anda.</p>
+                        </button>
                     </div>
                 </div>
-            </div>
+            </template>
 
-            <!-- Command Input Form (Tactile Console Input) -->
-            <div class="p-4 bg-[#faf3e0] border-t-2 border-[#121316] shrink-0 font-mono-code space-y-2.5">
+            <!-- Chat Messages -->
+            <template x-for="(msg, index) in messageList" :key="index">
+                <div class="max-w-3xl mx-auto flex gap-3" :class="msg.sender === 'student' ? 'justify-end' : 'justify-start'">
+
+                    <!-- AI Avatar -->
+                    <template x-if="msg.sender === 'ai'">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                            <i class="fas fa-robot text-xs"></i>
+                        </div>
+                    </template>
+
+                    <!-- Bubble -->
+                    <div class="space-y-1.5 max-w-[88%] sm:max-w-[82%] min-w-0">
+                        <div class="px-4 py-3 rounded-2xl text-xs sm:text-sm"
+                             :class="msg.sender === 'student'
+                                ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-sm shadow-xs'
+                                : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-sm shadow-xs ai-prose'">
+                            <template x-if="msg.image_url">
+                                <div class="mb-2">
+                                    <img :src="msg.image_url" alt="Lampiran Soal" class="max-h-56 rounded-xl border border-white/20 bg-white object-contain">
+                                </div>
+                            </template>
+                            <div x-html="msg.sender === 'ai' ? renderMarkdown(msg.message) : escapeHtml(msg.message)"></div>
+                        </div>
+
+                        <!-- AI Action Toolbar -->
+                        <template x-if="msg.sender === 'ai' && msg.message">
+                            <div class="flex flex-wrap items-center gap-3 px-1 text-[11px] font-semibold text-slate-500">
+                                <button type="button" @click="copyToClipboard(msg.message)" class="hover:text-indigo-600 transition flex items-center gap-1 cursor-pointer">
+                                    <i class="far fa-copy"></i> <span>Salin</span>
+                                </button>
+                                <button type="button" @click="speakText(msg.message)" class="hover:text-indigo-600 transition flex items-center gap-1 cursor-pointer">
+                                    <i class="fas fa-volume-up"></i> <span>Dengarkan</span>
+                                </button>
+                                <button type="button" @click="useQuickPrompt('Buatkan 3 soal latihan serupa beserta kunci pembahasan bertahap untuk topik ini.')" class="hover:text-indigo-600 transition flex items-center gap-1 cursor-pointer">
+                                    <i class="fas fa-dumbbell"></i> <span>Latihan Serupa</span>
+                                </button>
+                                <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
+                                    <button type="button" @click="msg.liked = !msg.liked; msg.disliked = false" :class="msg.liked ? 'text-emerald-600' : 'hover:text-slate-800'" class="cursor-pointer">
+                                        <i class="far fa-thumbs-up"></i>
+                                    </button>
+                                    <button type="button" @click="msg.disliked = !msg.disliked; msg.liked = false" :class="msg.disliked ? 'text-rose-600' : 'hover:text-slate-800'" class="cursor-pointer">
+                                        <i class="far fa-thumbs-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Typing Indicator (Hanya saat menunggu chunk pertama) -->
+            <div x-show="isSending && (!messageList.length || messageList[messageList.length - 1].sender !== 'ai' || !messageList[messageList.length - 1].message)"
+                 style="display: none;"
+                 class="max-w-3xl mx-auto flex justify-start gap-3">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <i class="fas fa-robot text-xs"></i>
+                </div>
+                <div class="px-4 py-3 bg-white border border-slate-200/90 rounded-2xl rounded-tl-sm shadow-xs text-xs text-slate-600 font-semibold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
+                    <span>Pembda AI sedang berpikir...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Composer Input Bar -->
+        <footer class="p-3 sm:p-4 bg-white border-t border-slate-200/80 shrink-0">
+            <div class="max-w-3xl mx-auto space-y-2">
                 <!-- Preview Foto Soal -->
-                <div x-show="imagePreviewUrl" style="display: none;" class="flex items-center gap-3 bg-white p-2.5 rounded-xl border-2 border-[#121316] w-fit shadow-[2px_2px_0px_#121316]">
-                    <img :src="imagePreviewUrl" alt="Preview Soal" class="h-14 w-14 object-cover rounded-lg border border-slate-300">
-                    <div class="text-[11px] font-bold text-[#121316]">
-                        <div>Foto soal siap dikirim</div>
-                        <button type="button" @click="clearImage()" class="text-[#ff3823] hover:underline mt-0.5 cursor-pointer">
+                <div x-show="imagePreviewUrl" style="display: none;" class="flex items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200 w-fit">
+                    <img :src="imagePreviewUrl" alt="Preview Soal" class="h-12 w-12 object-cover rounded-lg border border-slate-200">
+                    <div class="text-xs">
+                        <div class="font-bold text-slate-800">Foto soal siap dikirim</div>
+                        <button type="button" @click="clearImage()" class="text-rose-600 hover:underline font-semibold cursor-pointer">
                             <i class="fas fa-times-circle"></i> Hapus foto
                         </button>
                     </div>
                 </div>
 
-                <form @submit.prevent="submitMessage()" class="flex items-end gap-2.5">
+                <form @submit.prevent="submitMessage()" class="flex items-end gap-2 bg-slate-50 border border-slate-300 rounded-2xl p-2 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
                     <input type="file" x-ref="imageInput" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleImageSelect($event)">
 
-                    <div class="flex-1 relative bg-white rounded-2xl border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] focus-within:ring-2 focus-within:ring-[#ff3823] transition">
-                        <textarea x-ref="promptInput" x-model="userInput" 
-                                  @keydown.enter.prevent="if(!$event.shiftKey) submitMessage()"
-                                  placeholder="› Ketik pertanyaan atau upload foto soal... (Enter untuk Kirim)"
-                                  rows="2"
-                                  class="w-full p-3.5 pr-20 rounded-2xl bg-transparent text-xs sm:text-sm outline-none resize-none text-[#121316] font-mono-code font-bold placeholder-[#71717a]"
-                                  :disabled="isSending || usageInfo.remaining <= 0"></textarea>
+                    <button type="button"
+                            @click="$refs.imageInput.click()"
+                            class="p-2.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer shrink-0"
+                            title="Upload Foto Soal (JPG/PNG/WEBP, maks 4MB)">
+                        <i class="fas fa-camera text-sm"></i>
+                    </button>
 
-                        <!-- Upload Image & Mic Buttons -->
-                        <div class="absolute right-2.5 bottom-2.5 flex items-center gap-1">
-                            <button type="button" @click="$refs.imageInput.click()"
-                                    class="p-1.5 rounded-lg text-[#121316] hover:text-[#ff3823] transition cursor-pointer"
-                                    title="Upload Foto Soal (JPG/PNG/WEBP, maks 4MB)">
-                                <i class="fas fa-camera"></i>
-                            </button>
-                            <button type="button" @click="toggleVoiceInput()" 
-                                    class="p-1.5 rounded-lg transition cursor-pointer"
-                                    :class="isListening ? 'bg-[#ff3823] text-white animate-pulse' : 'text-[#121316] hover:text-[#ff3823]'"
-                                    title="Bicara via Suara (Speech-to-Text)">
-                                <i class="fas" :class="isListening ? 'fa-microphone-slash' : 'fa-microphone'"></i>
-                            </button>
-                        </div>
-                    </div>
+                    <button type="button"
+                            @click="toggleVoiceInput()"
+                            class="p-2.5 rounded-xl transition cursor-pointer shrink-0"
+                            :class="isListening ? 'bg-rose-500 text-white animate-pulse' : 'text-slate-500 hover:text-indigo-600 hover:bg-indigo-50'"
+                            title="Bicara via Suara">
+                        <i class="fas text-sm" :class="isListening ? 'fa-microphone-slash' : 'fa-microphone'"></i>
+                    </button>
 
-                    <!-- Submit Button -->
-                    <button type="submit" 
+                    <textarea x-ref="promptInput"
+                              x-model="userInput"
+                              @keydown.enter.prevent="if(!$event.shiftKey) submitMessage()"
+                              placeholder="Tanya materi, cek tugas LMS, atau upload foto soal..."
+                              rows="1"
+                              class="flex-1 py-2 px-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none resize-none max-h-32"
+                              :disabled="isSending || usageInfo.remaining <= 0"></textarea>
+
+                    <button type="submit"
                             :disabled="isSending || (!userInput.trim() && !selectedImageFile) || usageInfo.remaining <= 0"
-                            class="px-6 py-3.5 rounded-2xl btn-tactile-red text-xs font-black uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-2 shrink-0 cursor-pointer">
+                            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer disabled:cursor-not-allowed">
                         <span class="hidden sm:inline">Kirim</span>
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
             </div>
-        </div>
-
-    </div>
+        </footer>
+    </main>
 </div>
 
 <script>
 function aiChatApp() {
     return {
+        sidebarOpen: false,
         activeConversationId: {{ $activeConversation ? $activeConversation->id : 'null' }},
         activeMode: '{{ $activeConversation ? $activeConversation->mode : "tutor" }}',
-        conversationTitle: '{{ $activeConversation ? addslashes($activeConversation->title) : "SESI BARU PEMBDA AI" }}',
+        conversationTitle: @json($activeConversation ? $activeConversation->title : 'Percakapan Baru'),
         userInput: @json($prefillPrompt ?? ''),
         selectedImageFile: null,
         imagePreviewUrl: null,
@@ -595,7 +429,7 @@ function aiChatApp() {
             @if(!empty($messages) && empty($prefillPrompt))
                 @foreach($messages as $m)
                     @php $meta = !empty($m->metadata) ? json_decode($m->metadata, true) : []; @endphp
-                    { sender: '{{ $m->sender }}', message: `{!! addslashes($m->message) !!}`, image_url: @json($meta['image_url'] ?? null), liked: false, disliked: false },
+                    { sender: '{{ $m->sender }}', message: @json($m->message), image_url: @json($meta['image_url'] ?? null), liked: false, disliked: false },
                 @endforeach
             @endif
         ],
@@ -604,7 +438,7 @@ function aiChatApp() {
             @if(!empty($prefillMode))
                 this.activeMode = '{{ $prefillMode }}';
                 this.activeConversationId = null;
-                this.conversationTitle = (this.activeMode === 'bk_consultation') ? 'KONSULTASI BK & KARIR' : (this.activeMode === 'lms_assistant' ? 'ASISTEN BELAJAR LMS' : 'TUTOR AKADEMIK Q&A');
+                this.conversationTitle = (this.activeMode === 'bk_consultation') ? 'Konsultasi BK & Karir' : (this.activeMode === 'lms_assistant' ? 'Asisten Belajar LMS' : 'Tutor Akademik AI');
             @endif
             this.scrollToBottom();
             this.renderMathFormulas();
@@ -614,6 +448,33 @@ function aiChatApp() {
                     if (this.$refs.promptInput) this.$refs.promptInput.focus();
                 });
             @endif
+        },
+
+        getModeLabel() {
+            if (this.activeMode === 'bk_consultation') return 'BK & Karir';
+            if (this.activeMode === 'lms_assistant') return 'Asisten LMS';
+            return 'Tutor AI';
+        },
+
+        startNewConversation(mode) {
+            this.activeMode = mode;
+            this.activeConversationId = null;
+            this.messageList = [];
+            this.conversationTitle = (mode === 'bk_consultation') ? 'Konsultasi BK & Karir' : (mode === 'lms_assistant' ? 'Asisten Belajar LMS' : 'Tutor Akademik AI');
+            this.$nextTick(() => {
+                if (this.$refs.promptInput) this.$refs.promptInput.focus();
+            });
+        },
+
+        useQuickPrompt(text) {
+            this.userInput = text;
+            this.submitMessage();
+        },
+
+        clearScreen() {
+            if (confirm('Bersihkan percakapan di layar saat ini?')) {
+                this.messageList = [];
+            }
         },
 
         handleImageSelect(event) {
@@ -638,33 +499,6 @@ function aiChatApp() {
             if (this.$refs.imageInput) this.$refs.imageInput.value = '';
         },
 
-        getModeLabel() {
-            if (this.activeMode === 'bk_consultation') return 'BK & KARIR';
-            if (this.activeMode === 'lms_assistant') return 'ASISTEN LMS';
-            return 'TUTOR Q&A';
-        },
-
-        startNewConversation(mode) {
-            this.activeMode = mode;
-            this.activeConversationId = null;
-            this.messageList = [];
-            this.conversationTitle = (mode === 'bk_consultation') ? 'KONSULTASI BK & KARIR' : (mode === 'lms_assistant' ? 'ASISTEN BELAJAR LMS' : 'TUTOR AKADEMIK Q&A');
-            this.$nextTick(() => {
-                if (this.$refs.promptInput) this.$refs.promptInput.focus();
-            });
-        },
-
-        useQuickPrompt(text) {
-            this.userInput = text;
-            this.submitMessage();
-        },
-
-        clearScreen() {
-            if (confirm('Bersihkan percakapan di layar saat ini?')) {
-                this.messageList = [];
-            }
-        },
-
         toggleSpeechVoice() {
             this.autoSpeech = !this.autoSpeech;
         },
@@ -672,7 +506,7 @@ function aiChatApp() {
         speakText(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
-                const cleanText = text.replace(/[#*`_$~-]/g, '');
+                const cleanText = (text || '').replace(/[#*`_$~-]/g, '');
                 const utterance = new SpeechSynthesisUtterance(cleanText);
                 utterance.lang = 'id-ID';
                 utterance.rate = 1.0;
@@ -694,14 +528,8 @@ function aiChatApp() {
                     this.userInput += (this.userInput ? ' ' : '') + transcript;
                     this.isListening = false;
                 };
-
-                this.recognition.onerror = () => {
-                    this.isListening = false;
-                };
-
-                this.recognition.onend = () => {
-                    this.isListening = false;
-                };
+                this.recognition.onerror = () => { this.isListening = false; };
+                this.recognition.onend = () => { this.isListening = false; };
             }
         },
 
@@ -710,7 +538,6 @@ function aiChatApp() {
                 alert('Browser Anda belum mendukung pengenalan suara (Speech-to-Text).');
                 return;
             }
-
             if (this.isListening) {
                 this.recognition.stop();
                 this.isListening = false;
@@ -722,17 +549,21 @@ function aiChatApp() {
 
         copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('Jawaban Pembda AI berhasil disalin ke clipboard!');
-            }).catch(err => {
-                console.error('Gagal menyalin:', err);
-            });
+                alert('Jawaban Pembda AI berhasil disalin!');
+            }).catch(err => console.error('Gagal menyalin:', err));
+        },
+
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML.replace(/\n/g, '<br>');
         },
 
         renderMarkdown(content) {
             if (typeof marked !== 'undefined') {
                 return marked.parse(content || '');
             }
-            return (content || '').replace(/\n/g, '<br>');
+            return this.escapeHtml(content);
         },
 
         renderMathFormulas() {
@@ -758,9 +589,7 @@ function aiChatApp() {
         scrollToBottom() {
             this.$nextTick(() => {
                 const el = this.$refs.messagesContainer;
-                if (el) {
-                    el.scrollTop = el.scrollHeight;
-                }
+                if (el) el.scrollTop = el.scrollHeight;
             });
         },
 
@@ -821,7 +650,6 @@ function aiChatApp() {
                     return;
                 }
 
-                // Streaming SSE Reader
                 const aiMsgIndex = this.messageList.push({
                     sender: 'ai',
                     message: '',
@@ -863,9 +691,7 @@ function aiChatApp() {
                                 } else if (currentEvent === 'error') {
                                     alert(payload.message || 'Terjadi kesalahan saat memproses jawaban AI.');
                                 }
-                            } catch (e) {
-                                // abaikan chunk parsial
-                            }
+                            } catch (e) {}
                         }
                     }
                 }

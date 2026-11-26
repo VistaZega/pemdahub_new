@@ -12,6 +12,7 @@ class GeminiService
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     protected $classAiBaseUrl;
     protected $classAiModel;
+    protected $classAiVisionModel;
     protected $timeout;
 
     public function __construct()
@@ -35,6 +36,11 @@ class GeminiService
             \App\Models\Setting::getValue('classai_model')
             ?: config('services.ai.classai.model')
             ?: env('CLASSAI_MODEL', 'deepseek-v4-flash-0731')
+        );
+        $this->classAiVisionModel = (string) (
+            \App\Models\Setting::getValue('classai_vision_model')
+            ?: config('services.ai.classai.vision_model')
+            ?: env('CLASSAI_VISION_MODEL', 'gemini-2.5-flash')
         );
         $this->timeout = (int) (config('services.ai.classai.timeout') ?: 60);
 
@@ -107,8 +113,9 @@ class GeminiService
         }
 
         $formatted = $this->formatOpenAiMessages($messages);
+        $modelToUse = $this->resolveClassAiModel($messages);
         $payload = json_encode([
-            'model'    => $this->classAiModel,
+            'model'    => $modelToUse,
             'messages' => $formatted,
             'stream'   => true,
         ]);
@@ -201,6 +208,19 @@ class GeminiService
     }
 
     /**
+     * Use vision-capable model automatically when any message contains an image attachment.
+     */
+    protected function resolveClassAiModel(array $messages): string
+    {
+        foreach ($messages as $msg) {
+            if (!empty($msg['image_data_uri'])) {
+                return $this->classAiVisionModel ?: $this->classAiModel;
+            }
+        }
+        return $this->classAiModel;
+    }
+
+    /**
      * Multi-turn chat via ClassAI Router.
      */
     protected function generateChatViaClassAi(array $messages, string $fallbackPrompt): string
@@ -210,7 +230,7 @@ class GeminiService
                 ->withToken($this->apiKey)
                 ->acceptJson()
                 ->post($this->classAiBaseUrl . '/chat/completions', [
-                    'model'    => $this->classAiModel,
+                    'model'    => $this->resolveClassAiModel($messages),
                     'messages' => $this->formatOpenAiMessages($messages),
                 ]);
 
