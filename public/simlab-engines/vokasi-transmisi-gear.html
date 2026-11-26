@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Otomotif SMK: Rasio Roda Gigi Transmisi, Torsi &amp; RPM</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Sistem Transmisi Roda Gigi Mekanis (Drive Gear Z₁ vs Driven Gear Z₂)</div>
+          <div class="sl-bar-sub">Amati hubungan terbalik antara peningkatan torsi dan kecepatan putar output pada transmisi kendaraan bermotor</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" onclick="setPreset(14, 42)">Gigi 1 (Tanjakan 3.00:1)</button>
+          <button type="button" class="sl-btn" onclick="setPreset(22, 30)">Gigi 3 (1.36:1)</button>
+          <button type="button" class="sl-btn" onclick="setPreset(34, 24)">Gigi 5 Overdrive (0.71:1)</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="gearCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Konfigurasi Jumlah Gigi &amp; Input Mesin</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Gigi Penggerak (Input / Z₁)</span><span class="sl-ctrl-val" id="lZ1">16 Gigi</span></div>
+          <input type="range" id="inZ1" min="12" max="40" step="2" value="16" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Gigi Digerakkan (Output / Z₂)</span><span class="sl-ctrl-val" id="lZ2">32 Gigi</span></div>
+          <input type="range" id="inZ2" min="12" max="48" step="2" value="32" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Putaran Mesin Input (RPM_in)</span><span class="sl-ctrl-val" id="lRpm">2000 RPM</span></div>
+          <input type="range" id="inRpm" min="500" max="4000" step="250" value="2000" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Torsi Mesin Input (T_in)</span><span class="sl-ctrl-val" id="lTq">120 Nm</span></div>
+          <input type="range" id="inTq" min="60" max="240" step="10" value="120" oninput="onParam()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Output Poros Roda</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Gear Ratio (GR)</div><div class="sl-readout-val" id="vGr" style="color:#0284c7;">2.00 : 1</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Putaran Output</div><div class="sl-readout-val" id="vRpmOut">1000 RPM</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Torsi Output</div><div class="sl-readout-val" id="vTqOut" style="color:#059669;">240 Nm</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Rumus Rasio Transmisi</div>
+        <div class="sl-formula">GR = Z₂ / Z₁   |   RPM_out = RPM_in / GR   |   T_out = T_in × GR</div>
+        <div class="sl-note" id="gearNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('gearCanvas');
+    const ctx = cv.getContext('2d');
+    let ang1 = 0, ang2 = 0;
+
+    function setPreset(z1, z2) {
+      document.getElementById('inZ1').value = z1;
+      document.getElementById('inZ2').value = z2;
+      onParam();
+    }
+
+    function onParam() {
+      const z1 = +document.getElementById('inZ1').value;
+      const z2 = +document.getElementById('inZ2').value;
+      const rpm = +document.getElementById('inRpm').value;
+      const tq = +document.getElementById('inTq').value;
+      const gr = z2 / z1;
+
+      document.getElementById('lZ1').textContent = z1 + ' Gigi';
+      document.getElementById('lZ2').textContent = z2 + ' Gigi';
+      document.getElementById('lRpm').textContent = rpm + ' RPM';
+      document.getElementById('lTq').textContent = tq + ' Nm';
+
+      document.getElementById('vGr').textContent = gr.toFixed(2) + ' : 1';
+      document.getElementById('vRpmOut').textContent = Math.round(rpm / gr) + ' RPM';
+      document.getElementById('vTqOut').textContent = Math.round(tq * gr) + ' Nm';
+      document.getElementById('gearNote').innerHTML = gr > 1.15
+        ? '<strong>Reduksi Kecepatan (Gigi Rendah):</strong> Torsi roda berlipat ganda untuk menanjak/akselerasi awal, kecepatan poros lebih lambat.'
+        : (gr < 0.9 ? '<strong>Overdrive (Gigi Tinggi):</strong> Kecepatan putar output lebih cepat dari mesin untuk efisiensi bahan bakar di jalan tol.' : '<strong>Rasio 1:1 (Direct Drive):</strong> Kecepatan dan torsi input diteruskan sebanding.');
+    }
+
+    function drawGear(cx, cy, r, teeth, rot, fill, stroke, lbl) {
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
+      ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < teeth; i++) {
+        const a1 = (i / teeth) * Math.PI * 2;
+        const a2 = ((i + 0.35) / teeth) * Math.PI * 2;
+        const a3 = ((i + 0.5) / teeth) * Math.PI * 2;
+        const a4 = ((i + 0.85) / teeth) * Math.PI * 2;
+        const rIn = r - 7, rOut = r + 7;
+        i === 0 ? ctx.moveTo(Math.cos(a1) * rIn, Math.sin(a1) * rIn) : ctx.lineTo(Math.cos(a1) * rIn, Math.sin(a1) * rIn);
+        ctx.lineTo(Math.cos(a2) * rOut, Math.sin(a2) * rOut);
+        ctx.lineTo(Math.cos(a3) * rOut, Math.sin(a3) * rOut);
+        ctx.lineTo(Math.cos(a4) * rIn, Math.sin(a4) * rIn);
+      }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, 0, Math.max(12, r * 0.32), 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#94a3b8'; ctx.beginPath(); ctx.moveTo(-r * 0.55, 0); ctx.lineTo(r * 0.55, 0); ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(lbl, cx, cy + r + 30);
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      const z1 = +document.getElementById('inZ1').value;
+      const z2 = +document.getElementById('inZ2').value;
+      const rpm = +document.getElementById('inRpm').value;
+      const gr = z2 / z1;
+
+      const dAng1 = (rpm / 1500) * 0.035;
+      ang1 += dAng1;
+      ang2 -= dAng1 / gr; // Berlawanan arah putar!
+
+      ctx.clearRect(0, 0, W, H);
+      const r1 = 22 + z1 * 1.9, r2 = 22 + z2 * 1.9;
+      const midX = W / 2;
+      const x1 = midX - r1, x2 = midX + r2;
+
+      drawGear(x1, 195, r1, z1, ang1, '#1e3a8a', '#38bdf8', `INPUT Z₁=${z1} (${rpm} RPM)`);
+      drawGear(x2, 195, r2, z2, ang2, '#064e3b', '#34d399', `OUTPUT Z₂=${z2} (${Math.round(rpm / gr)} RPM)`);
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('Arah Putar Input (Searah Jarum Jam)  ⇄  Output (Berlawanan Arah)', W / 2, 34);
+
+      requestAnimationFrame(loop);
+    }
+
+    onParam();
+    loop();
+  </script>
+</body>
+</html>

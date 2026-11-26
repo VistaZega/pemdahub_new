@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Induksi Elektromagnetik Faraday &amp; Generator AC</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Induksi Elektromagnetik Faraday, Hukum Lenz &amp; Generator AC</div>
+          <div class="sl-bar-sub">Ubah fluks magnet yang menembus kumparan solenoida dan amati jarum galvanometer, nyala lampu, serta gelombang GGL</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnAuto" onclick="setMode('auto')">Generator Otomatis</button>
+          <button type="button" class="sl-btn" id="btnMan" onclick="setMode('manual')">Geser Magnet Manual</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="farCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Variabel Kumparan &amp; Medan Magnet</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Jumlah Lilitan Kumparan (N)</span><span class="sl-ctrl-val" id="lN">250 Lilitan</span></div>
+          <input type="range" id="inN" min="50" max="500" step="50" value="250" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kuat Medan Magnet (B)</span><span class="sl-ctrl-val" id="lB">0.80 T</span></div>
+          <input type="range" id="inB" min="0.2" max="1.5" step="0.1" value="0.8" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl" id="ctrlFreq">
+          <div class="sl-ctrl-head"><span>Kecepatan Gerak / Putar (ω)</span><span class="sl-ctrl-val" id="lW">2.0 Hz</span></div>
+          <input type="range" id="inW" min="0.5" max="4.0" step="0.5" value="2.0" oninput="onParam()" />
+        </div>
+        <div class="sl-ctrl" id="ctrlPos" style="display:none;">
+          <div class="sl-ctrl-head"><span>Posisi Magnet Terhadap Kumparan</span><span class="sl-ctrl-val" id="lPos">0%</span></div>
+          <input type="range" id="inPos" min="-100" max="100" step="2" value="-40" oninput="onManual()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Galvanometer &amp; Fluks</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">GGL Induksi (ε)</div><div class="sl-readout-val" id="vEmf" style="color:#0284c7;">0.00 V</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Fluks Magnet (Φ)</div><div class="sl-readout-val" id="vFlux">0.00 mWb</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Arah Arus Induksi</div><div class="sl-readout-val" id="vDir">Diam</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hukum Faraday &amp; Hukum Lenz</div>
+        <div class="sl-formula">ε = −N · (ΔΦ / Δt)   |   ε_max = N · B · A · ω</div>
+        <div class="sl-note" id="farNote" style="margin-top:8px;">
+          GGL induksi hanya timbul jika terjadi <strong>perubahan fluks magnet terhadap waktu</strong>. Jika magnet berhenti diam di dalam kumparan, jarum galvanometer kembali ke nol!
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('farCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'auto', phase = 0, lastPos = -40, emf = 0;
+    const hist = [];
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnAuto').classList.toggle('is-active', m === 'auto');
+      document.getElementById('btnMan').classList.toggle('is-active', m === 'manual');
+      document.getElementById('ctrlFreq').style.display = m === 'auto' ? 'flex' : 'none';
+      document.getElementById('ctrlPos').style.display = m === 'manual' ? 'flex' : 'none';
+      onParam();
+    }
+
+    function onParam() {
+      document.getElementById('lN').textContent = document.getElementById('inN').value + ' Lilitan';
+      document.getElementById('lB').textContent = (+document.getElementById('inB').value).toFixed(2) + ' T';
+      document.getElementById('lW').textContent = (+document.getElementById('inW').value).toFixed(1) + ' Hz';
+    }
+
+    function onManual() {
+      const p = +document.getElementById('inPos').value;
+      document.getElementById('lPos').textContent = p + '%';
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const N = +document.getElementById('inN').value;
+      const B = +document.getElementById('inB').value;
+      const freq = +document.getElementById('inW').value;
+
+      let posNorm = 0;
+      if (mode === 'auto') {
+        phase += 0.045 * freq;
+        posNorm = Math.sin(phase);
+        const dPhiDt = -Math.cos(phase) * freq;
+        emf = (N / 100) * B * 3.8 * dPhiDt;
+      } else {
+        const curPos = +document.getElementById('inPos').value;
+        const vel = (curPos - lastPos);
+        lastPos = curPos;
+        posNorm = curPos / 100;
+        emf = emf * 0.8 + (-vel * (N / 120) * B * 0.9) * 0.2;
+      }
+
+      const fluxMWb = B * 4.5 * Math.exp(-Math.pow((posNorm - 0.15) * 2.1, 2));
+      document.getElementById('vEmf').textContent = (emf >= 0 ? '+' : '') + emf.toFixed(2) + ' V';
+      document.getElementById('vFlux').textContent = fluxMWb.toFixed(2) + ' mWb';
+      document.getElementById('vDir').textContent = Math.abs(emf) < 0.15 ? 'Nol (Diam)' : (emf > 0 ? 'Positif (+)' : 'Negatif (−)');
+
+      hist.push(emf);
+      if (hist.length > 180) hist.shift();
+
+      ctx.clearRect(0, 0, W, H);
+      // Grid
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)'; ctx.lineWidth = 1;
+      for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+
+      // Magnet Batang (Kiri-Tengah bergerak masuk kumparan)
+      const coilX = W * 0.45, coilY = 135;
+      const magX = W * 0.16 + posNorm * 95;
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(magX - 50, coilY - 18, 50, 36);
+      ctx.fillStyle = '#0284c7'; ctx.fillRect(magX, coilY - 18, 50, 36);
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5; ctx.strokeRect(magX - 50, coilY - 18, 100, 36);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('S', magX - 25, coilY + 5);
+      ctx.fillText('U', magX + 25, coilY + 5);
+
+      // Kumparan Solenoida (jumlah cincin proporsional N)
+      const turns = Math.min(18, Math.max(4, Math.round(N / 28)));
+      ctx.strokeStyle = '#d97706'; ctx.lineWidth = 3.5;
+      for (let i = 0; i < turns; i++) {
+        const tx = coilX - 55 + (i / Math.max(1, turns - 1)) * 120;
+        ctx.beginPath(); ctx.ellipse(tx, coilY, 10, 42, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // Kawat ke Lampu & Galvanometer (Kanan Atas)
+      const galX = W * 0.80, galY = 115;
+      ctx.strokeStyle = Math.abs(emf) > 0.3 ? '#34d399' : '#475569'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(coilX - 55, coilY + 42); ctx.lineTo(coilX - 55, 220); ctx.lineTo(galX - 30, 220); ctx.lineTo(galX - 30, galY + 38);
+      ctx.moveTo(coilX + 65, coilY - 42); ctx.lineTo(coilX + 65, 58); ctx.lineTo(galX + 30, 58); ctx.lineTo(galX + 30, galY + 38);
+      ctx.stroke();
+
+      // Lampu indikator
+      const glow = Math.min(1, Math.abs(emf) / 14);
+      ctx.fillStyle = `rgba(250,204,21,${0.15 + glow * 0.85})`;
+      ctx.beginPath(); ctx.arc(W * 0.65, 58, 15, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // Galvanometer Jarum Tengah
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(galX, galY, 44, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px monospace'; ctx.fillText('GALVANOMETER', galX, galY + 26);
+      const needleAng = -Math.PI / 2 + Math.max(-1.1, Math.min(1.1, emf / 14));
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(galX, galY); ctx.lineTo(galX + Math.cos(needleAng) * 34, galY + Math.sin(needleAng) * 34); ctx.stroke();
+
+      // Osiloskop Bawah: GGL Induksi epsilon(t)
+      const oy = 258, oh = 132;
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+      ctx.fillRect(20, oy, W - 40, oh); ctx.strokeRect(20, oy, W - 40, oh);
+      ctx.strokeStyle = '#334155'; ctx.beginPath(); ctx.moveTo(20, oy + oh / 2); ctx.lineTo(W - 20, oy + oh / 2); ctx.stroke();
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('SINYAL OSILOSKOP GGL INDUKSI ε(t)', 30, oy + 16);
+
+      if (hist.length > 1) {
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.beginPath();
+        hist.forEach((v, idx) => {
+          const px = 28 + (idx / 180) * (W - 56);
+          const py = oy + oh / 2 - Math.max(-1, Math.min(1, v / 25)) * (oh * 0.36);
+          idx === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    onParam();
+    loop();
+  </script>
+</body>
+</html>

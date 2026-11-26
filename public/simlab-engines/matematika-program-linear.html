@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Matematika: Program Linear, Daerah Penyelesaian &amp; Garis Selidik</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Program Linear Dua Variabel (Pertidaksamaan Kendala &amp; Titik Optimum)</div>
+          <div class="sl-bar-sub">Amati arsiran Daerah Himpunan Penyelesaian (DHP), koordinat titik pojok, dan garis selidik fungsi objektif Z</div>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="lpCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Fungsi Tujuan (Maksimalkan Z = p·x + q·y)</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Koefisien Laba Barang X (p)</span><span class="sl-ctrl-val" id="lP">40</span></div>
+          <input type="range" id="inP" min="10" max="100" step="10" value="40" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Koefisien Laba Barang Y (q)</span><span class="sl-ctrl-val" id="lQ">30</span></div>
+          <input type="range" id="inQ" min="10" max="100" step="10" value="30" oninput="draw()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Batas Kendala Sumber Daya (x ≥ 0, y ≥ 0)</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kendala 1: 2x + y ≤ C₁</span><span class="sl-ctrl-val" id="lC1">16</span></div>
+          <input type="range" id="inC1" min="8" max="24" step="2" value="16" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kendala 2: x + 2y ≤ C₂</span><span class="sl-ctrl-val" id="lC2">14</span></div>
+          <input type="range" id="inC2" min="8" max="24" step="2" value="14" oninput="draw()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Uji Titik Pojok DHP</div>
+        <table class="sl-table" id="cornerTbl"></table>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('lpCanvas');
+    const ctx = cv.getContext('2d');
+
+    function draw() {
+      const p = +document.getElementById('inP').value;
+      const q = +document.getElementById('inQ').value;
+      const c1 = +document.getElementById('inC1').value; // 2x + y <= c1
+      const c2 = +document.getElementById('inC2').value; // x + 2y <= c2
+
+      document.getElementById('lP').textContent = p;
+      document.getElementById('lQ').textContent = q;
+      document.getElementById('lC1').textContent = c1;
+      document.getElementById('lC2').textContent = c2;
+
+      // Cari semua titik pojok layak (2x+y<=c1, x+2y<=c2, x>=0, y>=0)
+      const candidates = [
+        { name: 'O', x: 0, y: 0 },
+        { name: 'A (Sumbu X)', x: Math.min(c1 / 2, c2), y: 0 },
+        { name: 'B (Sumbu Y)', x: 0, y: Math.min(c1, c2 / 2) }
+      ];
+      // Titik potong 2x + y = c1 dan x + 2y = c2 => x = (2c1 - c2)/3, y = (2c2 - c1)/3
+      const ix = (2 * c1 - c2) / 3;
+      const iy = (2 * c2 - c1) / 3;
+      if (ix >= -1e-6 && iy >= -1e-6) {
+        candidates.push({ name: 'C (Perpotongan)', x: ix, y: iy });
+      }
+      // Filter layak & urutkan searah sudut agar membentuk poligon konveks DHP
+      const feasible = candidates.filter(pt =>
+        pt.x >= -1e-6 && pt.y >= -1e-6 &&
+        2 * pt.x + pt.y <= c1 + 1e-5 &&
+        pt.x + 2 * pt.y <= c2 + 1e-5
+      );
+      feasible.sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x));
+
+      let best = feasible[0], maxZ = -1;
+      feasible.forEach(pt => {
+        pt.z = p * pt.x + q * pt.y;
+        if (pt.z > maxZ) { maxZ = pt.z; best = pt; }
+      });
+
+      let tbl = '<thead><tr><th>Titik</th><th>(x, y)</th><th>Nilai Z = ' + p + 'x+' + q + 'y</th></tr></thead><tbody>';
+      feasible.forEach(pt => {
+        const isOpt = pt === best;
+        tbl += `<tr style="${isOpt ? 'background:#ecfdf5;font-weight:700;color:#065f46;' : ''}"><td>${pt.name}</td><td>(${pt.x.toFixed(2)}, ${pt.y.toFixed(2)})</td><td>${pt.z.toFixed(1)}${isOpt ? ' [OPT]' : ''}</td></tr>`;
+      });
+      tbl += '</tbody>';
+      document.getElementById('cornerTbl').innerHTML = tbl;
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      const PAD = { l: 48, r: 24, t: 28, b: 42 };
+      const maxAxis = 22;
+      const toX = x => PAD.l + (x / maxAxis) * (W - PAD.l - PAD.r);
+      const toY = y => H - PAD.b - (y / maxAxis) * (H - PAD.t - PAD.b);
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Grid
+      ctx.font = '10px monospace';
+      for (let g = 0; g <= maxAxis; g += 4) {
+        ctx.strokeStyle = g === 0 ? '#64748b' : 'rgba(148,163,184,0.14)';
+        ctx.lineWidth = g === 0 ? 1.5 : 1;
+        ctx.beginPath(); ctx.moveTo(toX(g), PAD.t); ctx.lineTo(toX(g), toY(0)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(PAD.l, toY(g)); ctx.lineTo(toX(maxAxis), toY(g)); ctx.stroke();
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.fillText(g, toX(g), toY(0) + 16);
+        ctx.textAlign = 'right'; ctx.fillText(g, PAD.l - 6, toY(g) + 3);
+      }
+
+      // Arsiran DHP
+      if (feasible.length >= 3) {
+        ctx.fillStyle = 'rgba(56,189,248,0.25)';
+        ctx.beginPath();
+        feasible.forEach((pt, i) => i === 0 ? ctx.moveTo(toX(pt.x), toY(pt.y)) : ctx.lineTo(toX(pt.x), toY(pt.y)));
+        ctx.closePath(); ctx.fill();
+      }
+
+      // Garis Kendala 1 (2x + y = c1)
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5; ctx.beginPath();
+      ctx.moveTo(toX(0), toY(c1)); ctx.lineTo(toX(c1 / 2), toY(0)); ctx.stroke();
+
+      // Garis Kendala 2 (x + 2y = c2)
+      ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2.5; ctx.beginPath();
+      ctx.moveTo(toX(0), toY(c2 / 2)); ctx.lineTo(toX(c2), toY(0)); ctx.stroke();
+
+      // Garis Selidik Optimum (px + qy = maxZ)
+      if (best) {
+        ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.beginPath();
+        ctx.moveTo(toX(0), toY(maxZ / q)); ctx.lineTo(toX(maxZ / p), toY(0)); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Titik Pojok
+      feasible.forEach(pt => {
+        const isOpt = pt === best;
+        ctx.fillStyle = isOpt ? '#fbbf24' : '#f8fafc';
+        ctx.beginPath(); ctx.arc(toX(pt.x), toY(pt.y), isOpt ? 6.5 : 4.5, 0, Math.PI * 2); ctx.fill();
+        if (isOpt) {
+          ctx.fillStyle = '#fef3c7'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+          ctx.fillText(`OPT (${pt.x.toFixed(1)}, ${pt.y.toFixed(1)})`, toX(pt.x) + 8, toY(pt.y) - 8);
+        }
+      });
+    }
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
+    draw();
+  </script>
+</body>
+</html>

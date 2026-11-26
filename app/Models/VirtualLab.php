@@ -52,23 +52,41 @@ class VirtualLab extends Model
         $eng = strtolower((string) $this->engine_type);
         $subj = strtolower((string) $this->subject_name . ' ' . (string) $this->title);
 
-        if (in_array($eng, ['olympiad_5', 'ptn_speed', 'ptn_speed_advanced']) || str_contains($subj, 'olimpiade') || str_contains($subj, 'ptn') || str_contains($subj, 'snbt') || str_contains($subj, 'utbk')) {
+        // 1. Cek engine bawaan terlebih dahulu secara ketat agar label UTBK/SMK di judul tidak menggeser mapel inti ke ruangan lain
+        if (in_array($eng, ['olympiad_5', 'ptn_speed', 'ptn_speed_advanced', 'ptn_reasoning'])) {
             return 'olimpiade';
         }
-        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc', 'vokasi_lan_topo', 'vokasi_cad_dpib', 'vokasi_caliper']) || $this->category === 'vokasi' || str_contains($subj, 'smk') || str_contains($subj, 'tkj') || str_contains($subj, 'tkr') || str_contains($subj, 'dpib')) {
+        if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc', 'vokasi_lan_topo', 'vokasi_cad_dpib', 'vokasi_caliper', 'vokasi_electronics', 'vokasi_gears'])) {
             return 'vokasi';
         }
-        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform', 'math_integral', 'math_trig_circle', 'math_derivative', 'math_sequences']) || str_contains($subj, 'matematika') || str_contains($subj, 'gradien') || str_contains($subj, 'aljabar') || str_contains($subj, 'geometri') || str_contains($subj, 'kalkulus')) {
+        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform', 'math_integral', 'math_trig_circle', 'math_derivative', 'math_sequences', 'math_linear_prog', 'math_vectors'])) {
             return 'matematika';
         }
-        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'chem_titration', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics', 'bio_osmosis', 'bio_nervous', 'bio_enzyme']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'chem_titration', 'chem_voltaic', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics', 'bio_osmosis', 'bio_nervous', 'bio_enzyme', 'bio_respiration'])) {
             return 'kimia_biologi';
         }
-        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound', 'econ_inflation', 'geo_tectonics']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa') || str_contains($subj, 'geografi')) {
+        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound', 'econ_inflation', 'econ_accounting', 'geo_tectonics'])) {
             return 'ips_bahasa';
         }
-        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'physics_optics', 'physics_elevator', 'physics_electric_field', 'physics_pendulum', 'physics_calorimetry', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law']) || str_contains($subj, 'fisika')) {
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'physics_optics', 'physics_elevator', 'physics_electric_field', 'physics_pendulum', 'physics_calorimetry', 'physics_faraday', 'physics_pascal', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law'])) {
             return 'fisika';
+        }
+
+        // 2. Fallback berbasis kata kunci untuk simulator kustom AI (ai_custom_html)
+        if (str_contains($subj, 'olimpiade') || str_contains($subj, 'ptn') || str_contains($subj, 'snbt') || str_contains($subj, 'utbk')) {
+            return 'olimpiade';
+        }
+        if ($this->category === 'vokasi' || str_contains($subj, 'smk') || str_contains($subj, 'tkj') || str_contains($subj, 'tkr') || str_contains($subj, 'dpib')) {
+            return 'vokasi';
+        }
+        if (str_contains($subj, 'matematika') || str_contains($subj, 'gradien') || str_contains($subj, 'aljabar') || str_contains($subj, 'geometri') || str_contains($subj, 'kalkulus')) {
+            return 'matematika';
+        }
+        if (str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+            return 'kimia_biologi';
+        }
+        if (str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa') || str_contains($subj, 'geografi') || str_contains($subj, 'akuntansi')) {
+            return 'ips_bahasa';
         }
 
         return 'fisika';
@@ -378,10 +396,110 @@ class VirtualLab extends Model
                 'theory'      => 'Gelombang primer (P) merambat lebih cepat daripada gelombang sekunder (S). Selisih waktu tiba keduanya di stasiun seismograf (S − P) dipakai menghitung jarak pusat gempa (episentrum).',
                 'formula'     => 'Δ = ((S − P) − 1 menit) × 1.000 km',
                 'variables'   => 'Δ = jarak episentrum (km), S = waktu tiba gelombang S, P = waktu tiba gelombang P',
-                'challenge_q' => 'Gelombang P tiba di stasiun seismograf pukul 08.12\'30\" dan gelombang S tiba pukul 08.15\'00\". Berapakah jarak episentrum gempa?',
+                'challenge_q' => 'Gelombang P tiba di stasiun seismograf pukul 08.12\'30" dan gelombang S tiba pukul 08.15\'00". Berapakah jarak episentrum gempa?',
                 'options'     => ['1.000 km', '1.500 km', '2.000 km', '2.500 km'],
                 'answer_idx'  => 1,
                 'solution'    => 'S − P = 2 menit 30 detik = 2,5 menit. Δ = (2,5 − 1) × 1.000 km = 1,5 × 1.000 = 1.500 km.',
+            ],
+            'physics_faraday' => [
+                'law'         => 'Hukum Induksi Faraday & Hukum Lenz',
+                'theory'      => 'Gaya gerak listrik (GGL) induksi timbul pada ujung-ujung kumparan sebanding dengan laju perubahan fluks magnetik dan jumlah lilitan (N), dengan arah arus induksi yang selalu melawan penyebab perubahannya (tanda minus Lenz).',
+                'formula'     => 'ε = −N · (ΔΦ / Δt)',
+                'variables'   => 'ε = GGL induksi (Volt), N = jumlah lilitan kumparan, ΔΦ/Δt = laju perubahan fluks magnetik (Wb/s)',
+                'challenge_q' => 'Sebuah kumparan 500 lilitan mengalami perubahan fluks magnetik sebesar 0,04 Weber dalam waktu 0,2 detik. Berapakah besar GGL induksi yang dihasilkan?',
+                'options'     => ['10 V', '50 V', '100 V', '200 V'],
+                'answer_idx'  => 2,
+                'solution'    => '|ε| = N × (ΔΦ / Δt) = 500 × (0,04 / 0,2) = 500 × 0,2 = 100 Volt.',
+            ],
+            'physics_pascal' => [
+                'law'         => 'Hukum Pascal & Keuntungan Mekanis Dongkrak Hidrolik',
+                'theory'      => 'Tekanan yang diberikan pada zat cair di ruang tertutup diteruskan sama besar ke segala arah. Perbandingan luas penampang piston besar terhadap piston kecil melipatgandakan gaya dorong.',
+                'formula'     => 'F1 / A1 = F2 / A2   ➔   F2 = F1 · (d2 / d1)²',
+                'variables'   => 'F1, F2 = gaya pada piston kecil & besar (N), A1, A2 = luas penampang (m²), d = diameter piston',
+                'challenge_q' => 'Dongkrak hidrolik memiliki piston kecil berdiameter 4 cm dan piston besar berdiameter 20 cm. Jika gaya tekan F1 = 100 N diberikan pada piston kecil, beban maksimum F2 yang terangkat adalah ...',
+                'options'     => ['500 N', '1.000 N', '2.500 N', '5.000 N'],
+                'answer_idx'  => 2,
+                'solution'    => 'F2 = F1 × (d2 / d1)² = 100 × (20 / 4)² = 100 × 25 = 2.500 N.',
+            ],
+            'chem_voltaic' => [
+                'law'         => 'Sel Volta / Galvani & Deret Potensial Reduksi Standar',
+                'theory'      => 'Sel Volta mengubah energi kimia reaksi redoks spontan menjadi energi listrik. Anoda mengalami oksidasi (E° lebih kecil/negatif) sedangkan Katoda mengalami reduksi (E° lebih besar/positif), dihubungkan jembatan garam untuk menyeimbangkan ion.',
+                'formula'     => 'E°sel = E°katoda (reduksi) − E°anoda (oksidasi)',
+                'variables'   => 'E°sel = potensial sel standar (Volt, > 0 agar reaksi spontan)',
+                'challenge_q' => 'Diketahui E° Zn²⁺|Zn = −0,76 V dan E° Cu²⁺|Cu = +0,34 V. Berapakah potensial standar sel Volta Zn|Zn²⁺ || Cu²⁺|Cu?',
+                'options'     => ['+0,42 V', '+1,10 V', '−1,10 V', '+0,76 V'],
+                'answer_idx'  => 1,
+                'solution'    => 'Cu memiliki E° lebih positif sehingga menjadi Katoda, Zn menjadi Anoda. E°sel = (+0,34) − (−0,76) = +1,10 V.',
+            ],
+            'bio_respiration' => [
+                'law'         => 'Mekanisme Pernapasan (Hukum Boyle) & Kapasitas Vital Paru',
+                'theory'      => 'Saat inspirasi, diafragma berkontraksi (mendatar), volume rongga dada membesar sehingga tekanan intrapulmonari turun di bawah tekanan atmosfer (760 mmHg) dan udara masuk hingga alveolus untuk pertukaran O2−CO2.',
+                'formula'     => 'Kapasitas Vital (KV) = VT + KRI + KRE',
+                'variables'   => 'VT = Volume Tidal (~500 mL), KRI = Cadangan Inspirasi, KRE = Cadangan Ekspirasi',
+                'challenge_q' => 'Ketika otot diafragma berkontraksi dan mendatar saat menarik napas dalam, kondisi tekanan udara di dalam rongga paru-paru menjadi ...',
+                'options'     => ['Lebih tinggi dari tekanan atmosfer sehingga udara keluar', 'Lebih rendah dari tekanan atmosfer sehingga udara mengalir masuk', 'Sama persis dengan tekanan atmosfer sehingga udara berhenti', 'Menjadi nol akibat kontraksi bronkus'],
+                'answer_idx'  => 1,
+                'solution'    => 'Sesuai Hukum Boyle (P × V = konstan), membesarnya volume rongga dada menurunkan tekanan paru di bawah 760 mmHg sehingga udara dari luar mengalir masuk.',
+            ],
+            'math_linear_prog' => [
+                'law'         => 'Program Linear Dua Variabel & Uji Titik Pojok',
+                'theory'      => 'Masalah optimasi sumber daya dimodelkan dengan sistem pertidaksamaan linear yang membentuk Daerah Himpunan Penyelesaian (DHP) poligonal. Nilai maksimum atau minimum fungsi objektif selalu dicapai di salah satu titik pojok DHP.',
+                'formula'     => 'Maks/Min Z = a·x + b·y   pada titik pojok (x_i, y_i) ∈ DHP',
+                'variables'   => 'Z = fungsi objektif/laba, x & y = jumlah unit produksi ≥ 0',
+                'challenge_q' => 'Sebuah toko memproduksi x kue A dan y kue B dengan kendala x + y ≤ 8, 2x + y ≤ 12, x ≥ 0, y ≥ 0. Laba Z = 30x + 20y (ribu rupiah). Titik pojok potong kedua garis kendala dan laba maksimumnya adalah ...',
+                'options'     => ['(4, 4) dengan laba Rp 200 ribu', '(6, 0) dengan laba Rp 180 ribu', '(0, 8) dengan laba Rp 160 ribu', '(5, 3) dengan laba Rp 210 ribu'],
+                'answer_idx'  => 0,
+                'solution'    => 'Eliminasi: (2x + y) − (x + y) = 12 − 8 ➔ x = 4, y = 4. Di titik pojok (4, 4), Z = 30(4) + 20(4) = 120 + 80 = 200 (terbesar dibanding (6,0)=180 dan (0,8)=160).',
+            ],
+            'math_vectors' => [
+                'law'         => 'Operasi Vektor 2D, Resultan & Produk Titik (Dot Product)',
+                'theory'      => 'Vektor memiliki besar dan arah. Resultan dua vektor R = A + B dijumlahkan per komponen (Rx, Ry). Produk titik (dot product) mengukur proyeksi searah serta sudut θ di antara kedua vektor.',
+                'formula'     => 'A · B = Ax·Bx + Ay·By = |A|·|B|·cos(θ)',
+                'variables'   => '|A| = √(Ax² + Ay²), θ = sudut apit antara vektor A dan B',
+                'challenge_q' => 'Diketahui vektor A = (3, 4) dan vektor B = (−4, 3). Berapakah nilai hasil kali titik A · B dan sudut θ antara keduanya?',
+                'options'     => ['A · B = 24, sudut lancip', 'A · B = 0, kedua vektor saling tegak lurus (90°)', 'A · B = −25, berlawanan arah (180°)', 'A · B = 12, sudut 60°'],
+                'answer_idx'  => 1,
+                'solution'    => 'A · B = (3)(−4) + (4)(3) = −12 + 12 = 0. Karena cos(θ) = 0, sudut antara kedua vektor adalah 90° (ortogonal).',
+            ],
+            'vokasi_electronics' => [
+                'law'         => 'Kode Warna Resistor 4-Gelang & Hukum Kirchhoff Rangkaian',
+                'theory'      => 'Nilai hambatan resistor dibaca dari 2 gelang angka signifikan, 1 gelang faktor pengali (10^n), dan 1 gelang toleransi. Pada rangkaian pembagi tegangan dengan LED, resistor seri membatasi arus agar komponen tidak terbakar.',
+                'formula'     => 'R = (AB × 10^C) Ω ± D%   |   I_LED = (Vcc − Vf) / R',
+                'variables'   => 'A, B = digit 1 & 2, C = pengali, Vf = tegangan maju LED (~2V), Vcc = sumber tegangan',
+                'challenge_q' => 'Sebuah resistor memiliki urutan warna: Merah - Ungu - Cokelat - Emas. Berapakah nilai resistansi dan toleransinya?',
+                'options'     => ['27 Ω ± 5%', '270 Ω ± 5%', '2.700 Ω ± 5%', '370 Ω ± 10%'],
+                'answer_idx'  => 1,
+                'solution'    => 'Merah = 2, Ungu = 7, Cokelat = ×10¹ = ×10, Emas = ±5%. Jadi R = 27 × 10 = 270 Ω ± 5%.',
+            ],
+            'vokasi_gears' => [
+                'law'         => 'Rasio Transmisi Roda Gigi (Gear Ratio) & Konversi Torsi-RPM',
+                'theory'      => 'Ketika roda gigi penggerak (driver) bertautan dengan roda gigi yang digerakkan (driven), daya konstan mengakibatkan kecepatan putar (RPM) berbanding terbalik dengan jumlah gigi, sedangkan torsi berbanding lurus.',
+                'formula'     => 'i = Z_driven / Z_driver = RPM_in / RPM_out = T_out / T_in',
+                'variables'   => 'i = rasio gigi, Z = jumlah mata gigi, RPM = putaran per menit, T = torsi (Nm)',
+                'challenge_q' => 'Sebuah gear penggerak (driver) memiliki 15 gigi berputar pada 1.200 RPM menggerakkan gear belakang (driven) dengan 45 gigi. Berapakah rasio transmisi dan RPM keluaran?',
+                'options'     => ['i = 3 : 1 dan 400 RPM (torsi naik 3×)', 'i = 1 : 3 dan 3.600 RPM', 'i = 3 : 1 dan 600 RPM', 'i = 2 : 1 dan 600 RPM'],
+                'answer_idx'  => 0,
+                'solution'    => 'i = Z_driven / Z_driver = 45 / 15 = 3 : 1. RPM_out = 1.200 / 3 = 400 RPM, sedangkan torsi keluaran meningkat 3 kali lipat.',
+            ],
+            'econ_accounting' => [
+                'law'         => 'Persamaan Dasar Akuntansi & Mekanisme Debit-Kredit',
+                'theory'      => 'Setiap transaksi keuangan selalu menjaga keseimbangan neraca antara kekayaan perusahaan (Aset) dan sumber pendanaannya (Liabilitas + Ekuitas). Pendapatan menambah Ekuitas sedangkan Beban menguranginya.',
+                'formula'     => 'Aset = Liabilitas + Ekuitas + (Pendapatan − Beban)',
+                'variables'   => 'Aset (Kas, Piutang, Peralatan) = Kewajiban/Utang + Modal Pemilik',
+                'challenge_q' => 'Sebuah usaha jasa membeli peralatan kantor senilai Rp 12.000.000 dengan membayar tunai Rp 4.000.000 dan sisanya dibayar bulan depan (kredit). Pengaruh transaksi ini terhadap Persamaan Dasar Akuntansi adalah ...',
+                'options'     => ['Aset bertambah Rp 12 juta, Utang bertambah Rp 8 juta', 'Peralatan +Rp 12 juta, Kas −Rp 4 juta (Aset neto +Rp 8 juta), Utang +Rp 8 juta', 'Kas berkurang Rp 12 juta, Modal bertambah Rp 8 juta', 'Utang bertambah Rp 12 juta, Modal berkurang Rp 4 juta'],
+                'answer_idx'  => 1,
+                'solution'    => 'Peralatan (+12 jt) dan Kas (−4 jt) menyebabkan total Aset naik neto +Rp 8 jt. Di sisi kanan, Liabilitas (Utang Usaha) bertambah +Rp 8 jt. Persamaan tetap seimbang!',
+            ],
+            'ptn_reasoning' => [
+                'law'         => 'Logika Proposisi SNBT: Implikasi, Negasi & Silogisme',
+                'theory'      => 'Dalam Penalaran Umum UTBK-SNBT, pernyataan majemuk "Jika P maka Q" (P ⇒ Q) hanya bernilai salah jika P benar tetapi Q salah. Kesimpulan sah ditarik via Modus Ponens (P benar ➔ Q benar), Modus Tollens (~Q benar ➔ ~P benar), atau Silogisme (P ⇒ Q, Q ⇒ R ➔ P ⇒ R).',
+                'formula'     => '(P ⇒ Q) ≡ (~Q ⇒ ~P) ≡ (~P ∨ Q)   |   ~(P ⇒ Q) ≡ (P ∧ ~Q)',
+                'variables'   => 'P = anteseden (syarat cukup), Q = konsekuen (syarat perlu), ~ = negasi',
+                'challenge_q' => 'Premis 1: "Jika siswa rutin melakukan eksperimen lab, maka pemahaman konsepnya meningkat." Premis 2: "Pemahaman konsep Budi tidak meningkat." Kesimpulan yang paling sah adalah ...',
+                'options'     => ['Budi tidak rutin melakukan eksperimen lab', 'Budi terkadang masuk ke lab', 'Jika pemahaman Budi meningkat, maka ia rutin ke lab', 'Budi siswa yang kurang fokus belajar'],
+                'answer_idx'  => 0,
+                'solution'    => 'Berdasarkan Modus Tollens: dari P ⇒ Q dan fakta ~Q ("pemahaman konsep Budi tidak meningkat"), kesimpulan mutlak yang sah adalah ~P ("Budi tidak rutin melakukan eksperimen lab").',
             ],
         ];
 
@@ -403,6 +521,57 @@ class VirtualLab extends Model
             ],
             'answer_idx'  => 1,
             'solution'    => 'Dalam metode ilmiah (variabel kontrol), hanya satu variabel bebas yang diubah pada satu waktu agar pengaruhnya terhadap hasil dapat diukur secara akurat.',
+        ];
+    }
+
+    /**
+     * Skenario belajar terstruktur 4 tahap agar siswa masuk dan keluar lab dengan pemahaman yang jelas:
+     * 1. Tujuan Belajar, 2. Apa & Bagaimana Dilakukan, 3. Fokus Pengamatan, 4. Intisari Pengetahuan Baru.
+     */
+    public function getLearningScenarioAttribute(): array
+    {
+        $tc = $this->theory_and_challenge;
+        $steps = is_array($this->sop_steps) && count($this->sop_steps) > 0
+            ? array_values($this->sop_steps)
+            : [
+                'Atur parameter atau variabel utama pada panel kontrol di kanan simulator.',
+                'Jalankan atau gerakkan eksperimen dan perhatikan grafik atau perubahan visual di kanvas.',
+                'Bandingkan minimal dua kondisi ekstrem (nilai kecil vs nilai besar) lalu selesaikan verifikasi keluar.',
+            ];
+
+        $customObservations = [
+            'physics_elevator' => 'Bandingkan angka timbangan (N) saat lift diam, mulai bergerak naik, bergerak konstan, dan mengerem sebelum berhenti.',
+            'physics_motion' => 'Perhatikan kemiringan kurva jarak-waktu (s-t) dan luas di bawah kurva kecepatan-waktu (v-t) antara GLB dan GLBB.',
+            'physics_parabola' => 'Amati sudut tembak mana yang menghasilkan jangkauan terjauh (45°) dan bagaimana pasangan sudut berjumlah 90° jatuh di titik yang sama.',
+            'physics_faraday' => 'Bandingkan simpangan jarum galvanometer saat magnet digerakkan lambat vs cepat dan saat jumlah lilitan kumparan dinaikkan.',
+            'physics_pascal' => 'Lihat perbandingan jarak tekan piston kecil dan gerak naik piston besar; gaya berlipat ganda tetapi usaha (F × s) tetap kekal.',
+            'chem_voltaic' => 'Amati arah aliran elektron pada kawat luar, perubahan massa elektroda Anoda/Katoda, serta pembacaan voltmeter E°sel.',
+            'bio_respiration' => 'Perhatikan gerak diafragma saat inspirasi vs ekspirasi, nilai tekanan paru-paru terhadap 760 mmHg, dan kurva spirogram.',
+            'math_linear_prog' => 'Cari titik-titik sudut (pojok) pada area arsiran DHP yang valid dan periksa titik mana yang memberi nilai fungsi objektif Z terbesar.',
+            'math_vectors' => 'Geser ujung vektor A dan B, lalu amati kapan dot product A·B menjadi 0 (saling tegak lurus) dan bagaimana panjang resultan R berubah.',
+            'vokasi_electronics' => 'Perhatikan hubungan kode warna gelang ke-1 hingga ke-4 terhadap nilai Ohm serta batas aman arus LED agar tidak kelebihan beban.',
+            'vokasi_gears' => 'Bandingkan arah putar, RPM keluaran, dan torsi saat gear penggerak lebih kecil daripada gear belakang vs sebaliknya.',
+            'econ_accounting' => 'Pastikan setiap transaksi jurnal selalu mempertahankan kesamaan total sisi Aset dengan sisi Liabilitas + Ekuitas di neraca saldo.',
+            'ptn_reasoning' => 'Periksa baris tabel kebenaran di mana P benar dan Q salah — itu satu-satunya kondisi yang membatalkan implikasi P ⇒ Q.',
+        ];
+
+        $goal = trim((string) $this->description);
+        if ($goal === '') {
+            $goal = 'Memahami secara langsung hubungan antar variabel pada konsep ' . ($tc['law'] ?? $this->title) . '.';
+        }
+
+        $observation = $customObservations[$this->engine_type]
+            ?? ('Amati secara cermat bagaimana perubahan variabel pada panel kontrol memengaruhi besaran keluaran sesuai prinsip: ' . ($tc['formula'] ?? 'hubungan sebab-akibat') . '.');
+
+        return [
+            'goal'              => $goal,
+            'law_focus'         => $tc['law'] ?? $this->title,
+            'formula'           => $tc['formula'] ?? '',
+            'variables'         => $tc['variables'] ?? '',
+            'actions'           => $steps,
+            'observation_focus' => $observation,
+            'key_takeaway'      => $tc['solution'] ?? ($tc['theory'] ?? $goal),
+            'expected_outcome'  => 'Setelah menyelesaikan simulasi dan verifikasi ini, siswa mampu menjelaskan hukum ' . ($tc['law'] ?? $this->subject_name) . ' serta memprediksi hasilnya menggunakan ' . ($tc['formula'] ?? 'model ilmiah terkait') . '.',
         ];
     }
 
@@ -1194,6 +1363,157 @@ class VirtualLab extends Model
                     'Pilih jenis batas lempeng (Subduksi Konvergen, Divergen, atau Sesar Transform).',
                     'Klik "Lepaskan Energi Gempa" untuk mengamati gelombang P yang cepat disusul gelombang S ke stasiun.',
                     'Ubah jarak stasiun dan magnitudo untuk menghitung jarak episentrum via Rumus Laska & status tsunami.',
+                ],
+            ],
+            // --- 10 SIMULATOR ESENSIAL BARU (TOTAL 62 SIMULATOR) ---
+            [
+                'slug'         => 'fisika-induksi-faraday',
+                'title'        => 'Simulator Fisika: Induksi Elektromagnetik & Hukum Faraday-Lenz',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika (SMA / UTBK)',
+                'engine_type'  => 'physics_faraday',
+                'icon'         => 'fas fa-magnet',
+                'accent_color' => '#0369a1',
+                'description'  => 'Mengapa pembangkit listrik bisa menghasilkan tegangan tanpa baterai? Gerakkan magnet menembus kumparan dan amati pembangkitan GGL induksi Faraday dan arah lawan Lenz.',
+                'sop_steps'    => [
+                    'Aktifkan mode Gerak Otomatis atau geser posisi magnet batang menembus kumparan secara manual.',
+                    'Ubah jumlah lilitan (N) serta kecepatan gerak magnet untuk melihat lonjakan tegangan pada galvanometer.',
+                    'Balik kutub magnet (U-S) dan amati perubahan tanda GGL induksi yang membuktikan Hukum Lenz.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-tekanan-hidrolik',
+                'title'        => 'Simulator Fisika: Hukum Pascal & Dongkrak Hidrolik Otomotif',
+                'category'     => 'smp_sma',
+                'subject_name' => 'Fisika / IPA (SMP & SMA)',
+                'engine_type'  => 'physics_pascal',
+                'icon'         => 'fas fa-compress-arrows-alt',
+                'accent_color' => '#0369a1',
+                'description'  => 'Bagaimana gaya tangan puluhan Newton sanggup mengangkat mobil 1,5 ton di bengkel? Uji rasio diameter piston kecil-besar pada dongkrak hidrolik berbasis Hukum Pascal.',
+                'sop_steps'    => [
+                    'Atur diameter piston input (d1) dan diameter piston output pengangkat beban (d2).',
+                    'Berikan gaya tekan F1 dan amati besar gaya angkat F2 serta tekanan fluida (Pa) yang seragam.',
+                    'Periksa mengapa perpindahan piston besar lebih pendek meski gayanya berlipat ganda (kekekalan usaha).',
+                ],
+            ],
+            [
+                'slug'         => 'kimia-sel-volta',
+                'title'        => 'Simulator Kimia: Sel Volta (Galvani), Elektroda & Potensial Sel',
+                'category'     => 'sma',
+                'subject_name' => 'Kimia (SMA / UTBK)',
+                'engine_type'  => 'chem_voltaic',
+                'icon'         => 'fas fa-car-battery',
+                'accent_color' => '#047857',
+                'description'  => 'Bagaimana baterai menghasilkan arus listrik dari reaksi redoks? Pasangkan pasangan logam Zn, Cu, Mg, Fe, dan Ag untuk mengamati arah aliran elektron serta nilai E°sel.',
+                'sop_steps'    => [
+                    'Pilih pasangan logam untuk Anoda (kiri) dan Katoda (kanan) dari deret Volta.',
+                    'Amati arah aliran elektron pada rangkaian luar, penipisan Anoda, dan penebalan Katoda.',
+                    'Uji pasangan logam yang menghasilkan E°sel positif (spontan) vs negatif (tidak spontan).',
+                ],
+            ],
+            [
+                'slug'         => 'biologi-pernapasan-paru',
+                'title'        => 'Simulator Biologi: Mekanisme Pernapasan, Hukum Boyle & Volume Paru',
+                'category'     => 'smp_sma',
+                'subject_name' => 'Biologi / IPA (SMP & SMA)',
+                'engine_type'  => 'bio_respiration',
+                'icon'         => 'fas fa-lungs',
+                'accent_color' => '#047857',
+                'description'  => 'Bagaimana kontraksi diafragma menciptakan perbedaan tekanan udara hingga O2 masuk ke alveolus? Amati simulasi inspirasi-ekspirasi serta grafik spirogram kapasitas vital paru.',
+                'sop_steps'    => [
+                    'Pilih mode pernapasan normal (tidals) atau napas dalam maksimal (kapasitas vital).',
+                    'Amati penurunan tekanan intrapulmonari di bawah 760 mmHg saat diafragma turun berkontraksi.',
+                    'Catat perbedaan volume Tidal, Cadangan Inspirasi, dan Cadangan Ekspirasi pada spirogram.',
+                ],
+            ],
+            [
+                'slug'         => 'matematika-program-linear',
+                'title'        => 'Simulator Matematika: Program Linear, Daerah Layak & Nilai Optimum',
+                'category'     => 'sma',
+                'subject_name' => 'Matematika (SMA / UTBK)',
+                'engine_type'  => 'math_linear_prog',
+                'icon'         => 'fas fa-chart-area',
+                'accent_color' => '#3730a3',
+                'description'  => 'Bagaimana pabrik menentukan kombinasi produk x dan y untuk meraih laba maksimum dengan bahan baku terbatas? Visualisasikan arsiran DHP dan uji setiap titik pojok.',
+                'sop_steps'    => [
+                    'Atur koefisien fungsi kendala 1 dan 2 serta bobot laba (a·x + b·y) pada fungsi objektif Z.',
+                    'Identifikasi Daerah Himpunan Penyelesaian (DHP) yang memenuhi semua pertidaksamaan sekaligus.',
+                    'Bandingkan nilai Z di seluruh titik pojok dan geser garis selidik ke titik optimum.',
+                ],
+            ],
+            [
+                'slug'         => 'matematika-vektor-2d',
+                'title'        => 'Simulator Matematika: Vektor 2D, Resultan Poligon & Dot Product',
+                'category'     => 'sma',
+                'subject_name' => 'Matematika & Fisika Dasar',
+                'engine_type'  => 'math_vectors',
+                'icon'         => 'fas fa-location-arrow',
+                'accent_color' => '#3730a3',
+                'description'  => 'Visualisasikan penjumlahan vektor metode jajar genjang dan segitiga, proyeksi skalar, besar resultan R, serta sudut θ melalui hasil kali titik (Dot Product) secara interaktif.',
+                'sop_steps'    => [
+                    'Ubah komponen (Ax, Ay) dan (Bx, By) atau seret langsung ujung panah vektor di bidang Kartesius.',
+                    'Amati pembentukan vektor resultan R = A + B dan penguraian komponen Rx, Ry.',
+                    'Uji sudut tepat 90° untuk melihat kapan hasil kali titik (A · B) bernilai tepat nol.',
+                ],
+            ],
+            [
+                'slug'         => 'vokasi-elektronika-komponen',
+                'title'        => 'Simulator SMK Elektronika: Kode Warna Resistor & Proteksi LED',
+                'category'     => 'vokasi',
+                'subject_name' => 'Teknik Elektronika / TAV / Listrik (SMK)',
+                'engine_type'  => 'vokasi_electronics',
+                'icon'         => 'fas fa-microchip',
+                'accent_color' => '#c2410c',
+                'description'  => 'Latih keterampilan teknisi membaca nilai hambatan resistor 4-gelang warna dan menghitung resistor pembatas arus agar LED pada rangkaian DC menyala terang tanpa putus terbakar.',
+                'sop_steps'    => [
+                    'Pilih warna Gelang 1, Gelang 2, Pengali, dan Toleransi pada badan resistor virtual.',
+                    'Atur tegangan sumber baterai (Vcc) dan amati arus (mA) yang mengalir melalui LED.',
+                    'Temukan nilai hambatan aman agar LED menyala optimal dan tidak mengalami kondisi Overcurrent!',
+                ],
+            ],
+            [
+                'slug'         => 'vokasi-transmisi-gear',
+                'title'        => 'Simulator SMK Otomotif/Mesin: Rasio Transmisi Gear, Torsi & RPM',
+                'category'     => 'vokasi',
+                'subject_name' => 'Teknik Otomotif / TKR / Mesin (SMK)',
+                'engine_type'  => 'vokasi_gears',
+                'icon'         => 'fas fa-gears',
+                'accent_color' => '#c2410c',
+                'description'  => 'Mengapa gigi 1 sanggup menanjak curam sementara gigi 5 melaju kencang di jalan datar? Ubah jumlah mata gigi driver dan driven untuk melihat pertukaran langsung antara RPM dan Torsi.',
+                'sop_steps'    => [
+                    'Atur jumlah mata gigi penggerak (Z_driver) dan gigi keluaran (Z_driven) serta RPM mesin.',
+                    'Amati pertautan gigi yang berputar berlawanan arah beserta grafik perbandingan RPM vs Torsi.',
+                    'Bandingkan mode Underdrive (torsi besar untuk tanjakan) vs Overdrive (kecepatan tinggi).',
+                ],
+            ],
+            [
+                'slug'         => 'ips-persamaan-akuntansi',
+                'title'        => 'Simulator Ekonomi & Akuntansi: Persamaan Dasar Aset = Utang + Modal',
+                'category'     => 'sma',
+                'subject_name' => 'Ekonomi / Akuntansi (SMA & SMK)',
+                'engine_type'  => 'econ_accounting',
+                'icon'         => 'fas fa-scale-balanced',
+                'accent_color' => '#9f1239',
+                'description'  => 'Pahami mengapa neraca akuntansi harus selalu seimbang setelah setiap transaksi bisnis: setoran modal, beli peralatan kredit, pendapatan jasa, hingga pembayaran beban operasional.',
+                'sop_steps'    => [
+                    'Pilih atau jalankan transaksi bisnis nyata (Setor Modal, Beli Aset Tunai/Kredit, Terima Pendapatan, Bayar Beban).',
+                    'Amati pergerakan saldo di kolom Aset (Kas, Piutang, Peralatan) vs Liabilitas dan Ekuitas.',
+                    'Pastikan indikator Neraca selalu berstatus SEIMBANG (Aset = Utang + Modal) di akhir siklus.',
+                ],
+            ],
+            [
+                'slug'         => 'ptn-penalaran-umum-hots',
+                'title'        => 'Lab SNBT-UTBK: Penalaran Logis, Tabel Kebenaran & Silogisme',
+                'category'     => 'olimpiade',
+                'subject_name' => 'Penalaran Umum (SNBT / UTBK / PTN)',
+                'engine_type'  => 'ptn_reasoning',
+                'icon'         => 'fas fa-brain',
+                'accent_color' => '#b45309',
+                'description'  => 'Kuasai soal langganan Penalaran Umum UTBK-SNBT: menguji kebenaran implikasi, membuktikan ekuivalensi kontraposisi, serta menarik kesimpulan sah via Modus Ponens, Tollens, dan Silogisme.',
+                'sop_steps'    => [
+                    'Pilih skenario kaidah logika (Implikasi P⇒Q, Ekuivalen Kontraposisi, Modus Tollens, atau Silogisme).',
+                    'Ubah nilai kebenaran premis P, Q, dan R secara langsung pada simulator tabel kebenaran.',
+                    'Identifikasi kasus unik yang membuat pernyataan implikasi bernilai SALAH dan uji latihan soal UTBK.',
                 ],
             ],
         ];

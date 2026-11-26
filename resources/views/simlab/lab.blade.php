@@ -23,7 +23,7 @@
 </head>
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
-    $vTag = '?v=20261127c';
+    $vTag = '?v=20261127d';
     $proEngineMap = [
         'gasoline_engine'        => asset('simlab-engines/mesin-4tak-2tak.html') . $vTag,
         'beam_load'              => asset('simlab-engines/teknik-gambar-bangunan.html') . $vTag,
@@ -77,9 +77,20 @@
         'math_sequences'         => asset('simlab-engines/matematika-barisan-deret.html') . $vTag,
         'vokasi_caliper'         => asset('simlab-engines/vokasi-jangka-sorong-mikrometer.html') . $vTag,
         'geo_tectonics'          => asset('simlab-engines/ips-tektonik-gempa.html') . $vTag,
+        'physics_faraday'        => asset('simlab-engines/fisika-induksi-faraday.html') . $vTag,
+        'physics_pascal'         => asset('simlab-engines/fisika-tekanan-hidrolik.html') . $vTag,
+        'chem_voltaic'           => asset('simlab-engines/kimia-sel-volta.html') . $vTag,
+        'bio_respiration'        => asset('simlab-engines/biologi-pernapasan-paru.html') . $vTag,
+        'math_linear_prog'       => asset('simlab-engines/matematika-program-linear.html') . $vTag,
+        'math_vectors'           => asset('simlab-engines/matematika-vektor-2d.html') . $vTag,
+        'vokasi_electronics'     => asset('simlab-engines/vokasi-elektronika-komponen.html') . $vTag,
+        'vokasi_gears'           => asset('simlab-engines/vokasi-transmisi-gear.html') . $vTag,
+        'econ_accounting'        => asset('simlab-engines/ips-persamaan-akuntansi.html') . $vTag,
+        'ptn_reasoning'          => asset('simlab-engines/ptn-penalaran-umum-hots.html') . $vTag,
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
     $tc = $lab->theory_and_challenge;
+    $sc = $lab->learning_scenario;
     $roomOrdered = \App\Models\VirtualLab::where('is_active', true)
         ->orderByRaw("CASE WHEN engine_type = 'ai_custom_html' THEN 0 ELSE 1 END")
         ->orderByDesc('id')
@@ -101,6 +112,7 @@
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
                         <span class="px-1.5 py-0.5 rounded bg-sky-600 text-white font-mono-lab font-bold">NO. {{ $labNo }}</span>
+                        <span x-show="isMastered" x-cloak class="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-mono-lab font-bold">LULUS PRAKTIKUM ✓</span>
                         <span class="font-mono-lab font-bold text-sky-400">{{ $lab->discipline_label }}</span>
                         <span>·</span>
                         <span class="truncate hidden sm:inline">{{ $lab->subject_name }}</span>
@@ -144,38 +156,51 @@
       <div class="bg-white border border-slate-300 rounded-lg overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
 
         <!-- LEFT: SOP PRAKTIKUM, TEORI/RUMUS, & TANTANGAN SOAL HOTS -->
-        <aside x-show="showSop" x-transition class="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-slate-300 bg-slate-50/70 flex flex-col justify-between" x-data="{ sideTab: 'sop', chosenOpt: null, checkedAns: false }">
+        <aside x-show="showSop" x-transition class="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-slate-300 bg-slate-50/70 flex flex-col justify-between">
             <div>
                 <div class="grid grid-cols-3 border-b border-slate-200 bg-white">
                     <button type="button" @click="sideTab = 'sop'" :class="sideTab === 'sop' ? 'border-b-2 border-slate-900 text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-2.5 px-2 text-xs font-bold transition">
-                        SOP
+                        Skenario
                     </button>
                     <button type="button" @click="sideTab = 'teori'" :class="sideTab === 'teori' ? 'border-b-2 border-slate-900 text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-2.5 px-2 text-xs font-bold transition">
                         Teori
                     </button>
                     <button type="button" @click="sideTab = 'soal'" :class="sideTab === 'soal' ? 'border-b-2 border-slate-900 text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-2.5 px-2 text-xs font-bold transition">
-                        Soal
+                        Verifikasi
                     </button>
                 </div>
 
-                <!-- TAB 1: SOP PRAKTIKUM -->
+                <!-- TAB 1: SKENARIO & SOP PRAKTIKUM (TAHAP 1-3) -->
                 <div x-show="sideTab === 'sop'" class="p-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">SOP Praktikum</h2>
+                    <div class="p-2.5 rounded-md bg-white border border-slate-200 space-y-1">
+                        <div class="text-[10px] font-mono-lab font-extrabold uppercase tracking-wider text-sky-800">1. Tujuan Belajar (Masuk Lab)</div>
+                        <p class="text-xs text-slate-800 leading-relaxed">{{ $sc['goal'] }}</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <h2 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">2. Apa &amp; Bagaimana Dilakukan</h2>
                         <span class="text-xs font-mono-lab font-bold text-slate-700" x-text="checkedSteps.length + '/' + totalSteps + ' Selesai'"></span>
                     </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">{{ $lab->description }}</p>
 
                     <div class="divide-y divide-slate-200 border border-slate-200 rounded-md bg-white">
-                        @foreach(($lab->sop_steps ?? []) as $idx => $step)
+                        @foreach($sc['actions'] as $idx => $step)
                         <label class="flex items-start gap-2.5 p-2.5 hover:bg-slate-50 cursor-pointer transition">
-                            <input type="checkbox" value="{{ $idx }}" x-model="checkedSteps" class="mt-0.5 rounded text-slate-900">
-                            <span class="text-xs text-slate-700 leading-snug">
+                            <input type="checkbox" :checked="checkedSteps.includes({{ $idx }})" @change="toggleStep({{ $idx }})" class="mt-0.5 rounded text-slate-900">
+                            <span class="text-xs text-slate-700 leading-snug" :class="checkedSteps.includes({{ $idx }}) ? 'line-through text-slate-400' : ''">
                                 <strong class="font-mono-lab text-slate-900">0{{ $idx + 1 }}.</strong> {{ $step }}
                             </span>
                         </label>
                         @endforeach
                     </div>
+
+                    <div class="p-2.5 rounded-md bg-white border border-slate-200 space-y-1">
+                        <div class="text-[10px] font-mono-lab font-extrabold uppercase tracking-wider text-amber-800">3. Fokus Pengamatan</div>
+                        <p class="text-xs text-slate-700 leading-relaxed">{{ $sc['observation_focus'] }}</p>
+                    </div>
+
+                    <button type="button" @click="sideTab = 'soal'" class="w-full py-2 px-3 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition">
+                        Selesai Mengamati? Verifikasi Keluar Lab <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
                 </div>
 
                 <!-- TAB 2: TEORI, HUKUM ALAM & RUMUS KUNCI -->
@@ -193,14 +218,14 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: TANTANGAN SOAL RUMIT (HOTS) -->
+                <!-- TAB 3: TAHAP 4 - VERIFIKASI KELUAR LAB & PENGETAHUAN BARU -->
                 <div x-show="sideTab === 'soal'" x-cloak class="p-4 space-y-3">
-                    <div class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Uji Pemahaman HOTS</div>
+                    <div class="text-[11px] font-mono-lab font-extrabold uppercase tracking-wider text-slate-700">4. Verifikasi Keluar Lab (Exit Ticket)</div>
                     <p class="text-xs font-semibold text-slate-900 leading-relaxed">{{ $tc['challenge_q'] }}</p>
                     <div class="space-y-1.5">
                         @foreach($tc['options'] as $oIdx => $optText)
                         <button type="button"
-                                @click="chosenOpt = {{ $oIdx }}; checkedAns = true"
+                                @click="answerChallenge({{ $oIdx }})"
                                 :class="checkedAns
                                     ? ({{ $oIdx }} === {{ $tc['answer_idx'] }}
                                         ? 'bg-emerald-50 border-emerald-600 text-emerald-950 font-bold'
@@ -214,18 +239,25 @@
                         </button>
                         @endforeach
                     </div>
-                    <div x-show="checkedAns" x-transition class="p-3 rounded-md bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 leading-relaxed">
-                        <strong>Pembahasan:</strong><br>
-                        {{ $tc['solution'] }}
+                    <div x-show="checkedAns && !isCorrectAns" x-transition class="p-3 rounded-md bg-rose-50 border border-rose-300 text-xs text-rose-950 space-y-2">
+                        <div><strong>Belum tepat:</strong> {{ $tc['solution'] }}</div>
+                        <button type="button" @click="retryChallenge()" class="px-2.5 py-1 rounded bg-rose-700 text-white text-[11px] font-bold">Ulangi Pertanyaan</button>
+                    </div>
+                    <div x-show="(checkedAns && isCorrectAns) || isMastered" x-transition class="p-3 rounded-md bg-emerald-50 border border-emerald-400 text-xs text-emerald-950 leading-relaxed space-y-1.5">
+                        <div class="font-extrabold uppercase tracking-wider text-emerald-800 text-[10px]">Intisari Pengetahuan Baru ✓</div>
+                        <p class="font-semibold">{{ $sc['expected_outcome'] }}</p>
+                        <div class="pt-1 border-t border-emerald-200">
+                            <strong>Kesimpulan:</strong> {{ $sc['key_takeaway'] }}
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="p-4 border-t border-slate-200 bg-white space-y-2">
                 <label class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 block">
-                    {{ $isInstructor ? 'Catatan Instruktur' : 'Catatan Pengamatan' }}
+                    {{ $isInstructor ? 'Catatan Instruktur' : 'Catatan Pengamatan (Auto-Save)' }}
                 </label>
-                <textarea rows="3" x-model="labNotes" placeholder="Catat hasil pengamatan variabel &amp; kesimpulan eksperimen di sini..."
+                <textarea rows="3" x-model="labNotes" @input="saveNote()" placeholder="Catat hasil pengamatan variabel &amp; kesimpulan eksperimen di sini..."
                           class="w-full rounded-md bg-slate-50 border border-slate-300 p-2.5 text-xs text-slate-800 placeholder-slate-400 outline-none focus:border-slate-900"></textarea>
             </div>
         </aside>
@@ -236,10 +268,29 @@
             @if($proEngineUrl)
                 <!-- PRO INTERACTIVE ENGINE -->
                 <div class="px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50/50">
-                    <span class="text-xs font-bold text-slate-700">Meja Praktikum Interaktif</span>
-                    <a href="{{ $proEngineUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition">
-                        <i class="fas fa-up-right-from-square text-[10px]"></i> Tab Baru
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-700">Meja Praktikum Interaktif</span>
+                        <span class="text-slate-300">|</span>
+                        <span class="font-mono-lab text-[11px] text-slate-600">{{ $tc['formula'] }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="showBrief = !showBrief" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold transition">
+                            <span x-text="showBrief ? 'Tutup Ringkasan' : 'Ringkasan Pengamatan'"></span>
+                        </button>
+                        <a href="{{ $proEngineUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition">
+                            <i class="fas fa-up-right-from-square text-[10px]"></i> Tab Baru
+                        </a>
+                    </div>
+                </div>
+                <div x-show="showBrief" class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200 border-b border-slate-300 bg-slate-50/70 text-xs">
+                    <div class="px-4 py-2.5">
+                        <span class="font-mono-lab font-bold text-sky-800 uppercase text-[10px] mr-1.5">Tujuan:</span>
+                        <span class="text-slate-800">{{ $sc['goal'] }}</span>
+                    </div>
+                    <div class="px-4 py-2.5">
+                        <span class="font-mono-lab font-bold text-amber-800 uppercase text-[10px] mr-1.5">Fokus Pengamatan:</span>
+                        <span class="text-slate-800">{{ $sc['observation_focus'] }}</span>
+                    </div>
                 </div>
                 <iframe src="{{ $proEngineUrl }}" class="w-full border-0 block bg-white" style="height: 780px;"></iframe>
 
@@ -531,17 +582,65 @@
 
     <script>
         function virtualLabRunner() {
+            const loadJsonStore = (k, fallback) => {
+                try { return JSON.parse(localStorage.getItem(k) || 'null') || fallback; } catch (e) { return fallback; }
+            };
+            const labSlug = @json($lab->slug);
+            const masteredList = loadJsonStore('pembda_simlab_mastered_v1', []);
+            const notesMap = loadJsonStore('pembda_simlab_notes_v1', {});
+            const stepsMap = loadJsonStore('pembda_simlab_steps_v1', {});
+
             return {
+                labSlug,
+                answerIdx: {{ (int) ($tc['answer_idx'] ?? 0) }},
                 showSop: true,
+                showBrief: true,
+                sideTab: 'sop',
+                chosenOpt: null,
+                checkedAns: false,
+                isCorrectAns: false,
+                isMastered: masteredList.includes(labSlug),
                 copied: false,
                 copyLabUrl() {
                     navigator.clipboard?.writeText('{{ route("simlab.lab", $lab->slug) }}');
                     this.copied = true;
                     setTimeout(() => this.copied = false, 2000);
                 },
-                checkedSteps: [],
-                totalSteps: {{ count($lab->sop_steps ?? []) }},
-                labNotes: '',
+                checkedSteps: stepsMap[labSlug] || [],
+                totalSteps: {{ count($sc['actions']) }},
+                labNotes: notesMap[labSlug] || '',
+                toggleStep(idx) {
+                    const next = this.checkedSteps.includes(idx)
+                        ? this.checkedSteps.filter(i => i !== idx)
+                        : [...this.checkedSteps, idx];
+                    this.checkedSteps = next;
+                    const store = loadJsonStore('pembda_simlab_steps_v1', {});
+                    store[this.labSlug] = next;
+                    try { localStorage.setItem('pembda_simlab_steps_v1', JSON.stringify(store)); } catch (e) {}
+                },
+                saveNote() {
+                    const store = loadJsonStore('pembda_simlab_notes_v1', {});
+                    store[this.labSlug] = this.labNotes;
+                    try { localStorage.setItem('pembda_simlab_notes_v1', JSON.stringify(store)); } catch (e) {}
+                },
+                answerChallenge(oIdx) {
+                    this.chosenOpt = oIdx;
+                    this.checkedAns = true;
+                    this.isCorrectAns = (oIdx === this.answerIdx);
+                    if (this.isCorrectAns) {
+                        this.isMastered = true;
+                        const list = loadJsonStore('pembda_simlab_mastered_v1', []);
+                        if (!list.includes(this.labSlug)) {
+                            list.push(this.labSlug);
+                            try { localStorage.setItem('pembda_simlab_mastered_v1', JSON.stringify(list)); } catch (e) {}
+                        }
+                    }
+                },
+                retryChallenge() {
+                    this.chosenOpt = null;
+                    this.checkedAns = false;
+                    this.isCorrectAns = false;
+                },
                 engineType: '{{ $lab->engine_type }}',
 
                 // 1. Gasoline Engine 4-Tak

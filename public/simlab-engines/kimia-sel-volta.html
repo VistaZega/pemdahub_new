@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Kimia: Sel Volta (Galvani) &amp; Potensial Elektroda Standar</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Sel Volta (Galvani), Jembatan Garam &amp; Aliran Elektron Spontan</div>
+          <div class="sl-bar-sub">Pilih dua elektroda logam berbeda; sistem menentukan Anoda (oksidasi), Katoda (reduksi), notasi sel, dan tegangan E°_sel</div>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="volCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Pemilihan Pasangan Elektroda Logam</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Elektroda Kiri</span><span class="sl-ctrl-val" id="lE1">Zn | Zn²⁺</span></div>
+          <select id="sel1" onchange="calc()">
+            <option value="Mg">Mg | Mg²⁺ (E° = −2.37 V)</option>
+            <option value="Zn" selected>Zn | Zn²⁺ (E° = −0.76 V)</option>
+            <option value="Fe">Fe | Fe²⁺ (E° = −0.44 V)</option>
+            <option value="Cu">Cu | Cu²⁺ (E° = +0.34 V)</option>
+            <option value="Ag">Ag | Ag⁺ (E° = +0.80 V)</option>
+          </select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Elektroda Kanan</span><span class="sl-ctrl-val" id="lE2">Cu | Cu²⁺</span></div>
+          <select id="sel2" onchange="calc()">
+            <option value="Mg">Mg | Mg²⁺ (E° = −2.37 V)</option>
+            <option value="Zn">Zn | Zn²⁺ (E° = −0.76 V)</option>
+            <option value="Fe">Fe | Fe²⁺ (E° = −0.44 V)</option>
+            <option value="Cu" selected>Cu | Cu²⁺ (E° = +0.34 V)</option>
+            <option value="Ag">Ag | Ag⁺ (E° = +0.80 V)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan Voltmeter &amp; Kutub Sel</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Potensial E°_sel</div><div class="sl-readout-val" id="vCell" style="color:#059669;">+1.10 V</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Anoda (−) Oksidasi</div><div class="sl-readout-val" id="vAn">Zn</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Katoda (+) Reduksi</div><div class="sl-readout-val" id="vKat">Cu</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Notasi Sel &amp; Reaksi Spontan</div>
+        <div class="sl-formula" id="notBox">Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s)</div>
+        <div class="sl-note" id="volNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('volCanvas');
+    const ctx = cv.getContext('2d');
+    const METALS = {
+      Mg: { E: -2.37, ion: 'Mg²⁺', col: '#cbd5e1', liq: 'rgba(148,163,184,0.22)' },
+      Zn: { E: -0.76, ion: 'Zn²⁺', col: '#94a3b8', liq: 'rgba(148,163,184,0.28)' },
+      Fe: { E: -0.44, ion: 'Fe²⁺', col: '#64748b', liq: 'rgba(52,211,153,0.24)' },
+      Cu: { E: +0.34, ion: 'Cu²⁺', col: '#ea580c', liq: 'rgba(14,165,233,0.34)' },
+      Ag: { E: +0.80, ion: 'Ag⁺',  col: '#e2e8f0', liq: 'rgba(203,213,225,0.22)' }
+    };
+    let ePhase = 0;
+
+    function calc() {
+      const m1 = document.getElementById('sel1').value;
+      const m2 = document.getElementById('sel2').value;
+      const M1 = METALS[m1], M2 = METALS[m2];
+      document.getElementById('lE1').textContent = `${m1} | ${M1.ion}`;
+      document.getElementById('lE2').textContent = `${m2} | ${M2.ion}`;
+
+      const diff = Math.abs(M1.E - M2.E);
+      const isLeftAnode = M1.E <= M2.E;
+      const an = isLeftAnode ? m1 : m2;
+      const kat = isLeftAnode ? m2 : m1;
+
+      document.getElementById('vCell').textContent = `+${diff.toFixed(2)} V`;
+      document.getElementById('vAn').textContent = an + ` (${METALS[an].E.toFixed(2)}V)`;
+      document.getElementById('vKat').textContent = kat + ` (${METALS[kat].E.toFixed(2)}V)`;
+      document.getElementById('notBox').textContent = m1 === m2
+        ? 'Pilih dua logam berbeda untuk membentuk beda potensial!'
+        : `${an}(s) | ${METALS[an].ion}(aq) || ${METALS[kat].ion}(aq) | ${kat}(s)`;
+      document.getElementById('volNote').innerHTML = m1 === m2
+        ? 'Kedua elektroda identik → E°_sel = 0.00 V, tidak ada aliran elektron bersih.'
+        : `Elektron mengalir dari <strong>Anoda ${an}</strong> (mengalami oksidasi, massa berkurang) menuju <strong>Katoda ${kat}</strong> (ion tereduksi menjadi endapan logam).`;
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      const m1 = document.getElementById('sel1').value;
+      const m2 = document.getElementById('sel2').value;
+      const M1 = METALS[m1], M2 = METALS[m2];
+      const isLeftAnode = M1.E < M2.E;
+      const Ecell = Math.abs(M1.E - M2.E);
+
+      if (Ecell > 0.01) ePhase = (ePhase + (isLeftAnode ? 2 : -2)) % 40;
+      ctx.clearRect(0, 0, W, H);
+
+      const xL = W * 0.28, xR = W * 0.72, yBot = 340, bW = 140, bH = 145;
+      // 2 Gelas Kimia Setengah Sel
+      const drawHalf = (cx, m, meta, role) => {
+        ctx.fillStyle = meta.liq;
+        ctx.fillRect(cx - bW / 2, yBot - bH + 34, bW, bH - 34);
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2.5;
+        ctx.strokeRect(cx - bW / 2, yBot - bH, bW, bH);
+        // Batang Elektroda
+        ctx.fillStyle = meta.col;
+        ctx.fillRect(cx - 14, yBot - bH - 22, 28, bH - 12);
+        ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 1;
+        ctx.strokeRect(cx - 14, yBot - bH - 22, 28, bH - 12);
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(m, cx, yBot - bH + 14);
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '11px monospace';
+        ctx.fillText(meta.ion, cx, yBot - 16);
+        ctx.fillStyle = role.includes('ANODA') ? '#fbbf24' : '#34d399';
+        ctx.fillText(role, cx, yBot + 24);
+      };
+
+      const roleL = Ecell < 0.01 ? 'NETRAL' : (isLeftAnode ? 'ANODA (−) OKSIDASI' : 'KATODA (+) REDUKSI');
+      const roleR = Ecell < 0.01 ? 'NETRAL' : (!isLeftAnode ? 'ANODA (−) OKSIDASI' : 'KATODA (+) REDUKSI');
+      drawHalf(xL, m1, M1, roleL);
+      drawHalf(xR, m2, M2, roleR);
+
+      // Jembatan Garam (Pipa U)
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 16; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(xL + 36, yBot - 55); ctx.lineTo(xL + 36, 150);
+      ctx.lineTo(xR - 36, 150); ctx.lineTo(xR - 36, yBot - 55);
+      ctx.stroke();
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 10; ctx.stroke();
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('JEMBATAN GARAM (NaNO₃)', W / 2, 134);
+
+      // Kawat Penghantar & Voltmeter Atas
+      ctx.strokeStyle = Ecell > 0.01 ? '#38bdf8' : '#475569'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(xL, yBot - bH - 22); ctx.lineTo(xL, 62);
+      ctx.lineTo(xR, 62); ctx.lineTo(xR, yBot - bH - 22);
+      ctx.stroke();
+
+      // Titik Elektron e- mengalir
+      if (Ecell > 0.01) {
+        for (let ex = xL + ((ePhase + 40) % 40); ex < xR; ex += 40) {
+          ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(ex, 62, 4.5, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      // Kotak Voltmeter Digital
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+      ctx.fillRect(W / 2 - 64, 34, 128, 52); ctx.strokeRect(W / 2 - 64, 34, 128, 52);
+      ctx.fillStyle = '#34d399'; ctx.font = 'bold 16px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`+${Ecell.toFixed(2)} V`, W / 2, 62);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '9px monospace';
+      ctx.fillText('VOLTMETER', W / 2, 78);
+
+      requestAnimationFrame(loop);
+    }
+
+    calc();
+    loop();
+  </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Hukum Pascal &amp; Dongkrak Hidrolik</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Dongkrak Hidrolik Hukum Pascal (P₁ = P₂) &amp; Penggandaan Gaya</div>
+          <div class="sl-bar-sub">Buktikan bagaimana gaya tekan kecil di piston sempit (A₁) sanggup mengangkat beban ribuan kilogram di piston lebar (A₂)</div>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="pasCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Dimensi Piston &amp; Beban Kerja</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Luas Penampang Kecil (A₁)</span><span class="sl-ctrl-val" id="lA1">10 cm²</span></div>
+          <input type="range" id="inA1" min="5" max="40" step="5" value="10" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Luas Penampang Besar (A₂)</span><span class="sl-ctrl-val" id="lA2">200 cm²</span></div>
+          <input type="range" id="inA2" min="80" max="500" step="20" value="200" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Massa Beban Mobil (m₂)</span><span class="sl-ctrl-val" id="lM2">1.200 kg</span></div>
+          <input type="range" id="inM2" min="400" max="2400" step="100" value="1200" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Jarak Angkat Beban Target (s₂)</span><span class="sl-ctrl-val" id="lS2">0.15 m</span></div>
+          <input type="range" id="inS2" min="0.05" max="0.40" step="0.05" value="0.15" oninput="draw()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan Gaya &amp; Tekanan Fluida</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Berat Beban (F₂)</div><div class="sl-readout-val" id="vF2">12.000 N</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Gaya Tekan (F₁)</div><div class="sl-readout-val" id="vF1" style="color:#059669;">600 N</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Tekanan Fluida (P)</div><div class="sl-readout-val" id="vP" style="color:#0284c7;">600 kPa</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Langkah Piston 1 (s₁)</div><div class="sl-readout-val" id="vS1">3.00 m</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hukum Pascal</div>
+        <div class="sl-formula">F₁ / A₁ = F₂ / A₂   |   F₁ · s₁ = F₂ · s₂</div>
+        <div class="sl-note" id="pasNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('pasCanvas');
+    const ctx = cv.getContext('2d');
+
+    function draw() {
+      const A1 = +document.getElementById('inA1').value;
+      const A2 = +document.getElementById('inA2').value;
+      const m2 = +document.getElementById('inM2').value;
+      const s2 = +document.getElementById('inS2').value;
+
+      const F2 = m2 * 10;
+      const F1 = F2 * (A1 / A2);
+      const P_kpa = F2 / (A2 * 1e-4) / 1000;
+      const s1 = s2 * (A2 / A1);
+      const km = A2 / A1;
+
+      document.getElementById('lA1').textContent = A1 + ' cm²';
+      document.getElementById('lA2').textContent = A2 + ' cm²';
+      document.getElementById('lM2').textContent = m2.toLocaleString('id-ID') + ' kg';
+      document.getElementById('lS2').textContent = s2.toFixed(2) + ' m';
+
+      document.getElementById('vF2').textContent = F2.toLocaleString('id-ID') + ' N';
+      document.getElementById('vF1').textContent = F1.toFixed(0) + ' N';
+      document.getElementById('vP').textContent = P_kpa.toFixed(0) + ' kPa';
+      document.getElementById('vS1').textContent = s1.toFixed(2) + ' m';
+
+      document.getElementById('pasNote').innerHTML =
+        `Rasio luas <strong>A₂ / A₁ = ${km.toFixed(1)}×</strong>. Anda cukup menekan sebesar <strong>${F1.toFixed(0)} N</strong> untuk mengangkat ${F2.toLocaleString('id-ID')} N, tetapi piston kecil harus didorong sejauh <strong>${s1.toFixed(2)} m</strong>.`;
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const baseY = 335;
+      const w1 = 26 + A1 * 0.9;
+      const w2 = 75 + A2 * 0.25;
+      const x1 = W * 0.25, x2 = W * 0.70;
+      const liftPx = s2 * 170;
+      const pushPx = Math.min(110, s2 * 220);
+
+      // Pipa U berisi oli hidrolik biru
+      const y1Top = 140 + pushPx;
+      const y2Top = 215 - liftPx;
+      ctx.fillStyle = 'rgba(14,165,233,0.55)';
+      ctx.fillRect(x1 - w1 / 2, y1Top, w1, baseY - y1Top);
+      ctx.fillRect(x2 - w2 / 2, y2Top, w2, baseY - y2Top);
+      ctx.fillRect(x1 - w1 / 2, baseY - 38, (x2 + w2 / 2) - (x1 - w1 / 2), 38);
+
+      // Dinding Silinder
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1 - w1 / 2, 90); ctx.lineTo(x1 - w1 / 2, baseY); ctx.lineTo(x2 + w2 / 2, baseY); ctx.lineTo(x2 + w2 / 2, 90);
+      ctx.moveTo(x1 + w1 / 2, 90); ctx.lineTo(x1 + w1 / 2, baseY - 38); ctx.lineTo(x2 - w2 / 2, baseY - 38); ctx.lineTo(x2 - w2 / 2, 90);
+      ctx.stroke();
+
+      // Piston 1 (Kiri) + Panah F1
+      ctx.fillStyle = '#475569'; ctx.fillRect(x1 - w1 / 2 + 2, y1Top - 14, w1 - 4, 14);
+      ctx.fillRect(x1 - 4, y1Top - 52, 8, 38);
+      ctx.fillStyle = '#34d399'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`F₁ = ${F1.toFixed(0)} N`, x1, y1Top - 62);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '10px monospace';
+      ctx.fillText(`A₁ = ${A1} cm²`, x1, baseY + 22);
+
+      // Piston 2 (Kanan) + Beban Mobil
+      ctx.fillStyle = '#475569'; ctx.fillRect(x2 - w2 / 2 + 2, y2Top - 16, w2 - 4, 16);
+      ctx.fillRect(x2 - 8, y2Top - 38, 16, 22);
+      // Blok Beban Kendaraan
+      ctx.fillStyle = '#0284c7'; ctx.fillRect(x2 - w2 * 0.45, y2Top - 88, w2 * 0.9, 50);
+      ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 1.5; ctx.strokeRect(x2 - w2 * 0.45, y2Top - 88, w2 * 0.9, 50);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px monospace';
+      ctx.fillText(`${m2} kg (${F2} N)`, x2, y2Top - 58);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '10px monospace';
+      ctx.fillText(`A₂ = ${A2} cm²`, x2, baseY + 22);
+
+      // Tekanan merata di pipa bawah
+      ctx.fillStyle = '#e0f2fe'; ctx.font = 'bold 11px monospace';
+      ctx.fillText(`TEKANAN MERATA P = ${P_kpa.toFixed(0)} kPa`, (x1 + x2) / 2, baseY - 14);
+    }
+
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
+    draw();
+  </script>
+</body>
+</html>

@@ -32,7 +32,7 @@
 </head>
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
-    $vTag = '?v=20261127c';
+    $vTag = '?v=20261127d';
 
     $engineUrls = [
         'gasoline_engine'        => asset('simlab-engines/mesin-4tak-2tak.html') . $vTag,
@@ -87,6 +87,16 @@
         'math_sequences'         => asset('simlab-engines/matematika-barisan-deret.html') . $vTag,
         'vokasi_caliper'         => asset('simlab-engines/vokasi-jangka-sorong-mikrometer.html') . $vTag,
         'geo_tectonics'          => asset('simlab-engines/ips-tektonik-gempa.html') . $vTag,
+        'physics_faraday'        => asset('simlab-engines/fisika-induksi-faraday.html') . $vTag,
+        'physics_pascal'         => asset('simlab-engines/fisika-tekanan-hidrolik.html') . $vTag,
+        'chem_voltaic'           => asset('simlab-engines/kimia-sel-volta.html') . $vTag,
+        'bio_respiration'        => asset('simlab-engines/biologi-pernapasan-paru.html') . $vTag,
+        'math_linear_prog'       => asset('simlab-engines/matematika-program-linear.html') . $vTag,
+        'math_vectors'           => asset('simlab-engines/matematika-vektor-2d.html') . $vTag,
+        'vokasi_electronics'     => asset('simlab-engines/vokasi-elektronika-komponen.html') . $vTag,
+        'vokasi_gears'           => asset('simlab-engines/vokasi-transmisi-gear.html') . $vTag,
+        'econ_accounting'        => asset('simlab-engines/ips-persamaan-akuntansi.html') . $vTag,
+        'ptn_reasoning'          => asset('simlab-engines/ptn-penalaran-umum-hots.html') . $vTag,
     ];
 
     $rooms = [
@@ -188,6 +198,7 @@
             'course_name'      => $lab->course?->course_name,
             'can_delete'       => auth()->check() && ($lab->created_by === auth()->id() || auth()->user()->isAdmin()),
             'tc'               => $lab->theory_and_challenge,
+            'scenario'         => $lab->learning_scenario,
         ];
     })->values();
 @endphp
@@ -276,6 +287,8 @@
                         <div><span class="font-bold text-slate-900 text-sm">6</span> Ruangan Lab</div>
                         <div class="h-4 w-px bg-slate-300"></div>
                         <div><span class="font-bold text-slate-900 text-sm">{{ $virtualLabs->count() }}</span> Instrumen Aktif</div>
+                        <div class="h-4 w-px bg-slate-300"></div>
+                        <div><span class="font-bold text-emerald-700 text-sm" x-text="totalMasteredCount"></span> Tuntas</div>
                     </div>
                     <button type="button" @click="activeRoom = 'all'; viewMode = 'inside'"
                             class="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition inline-flex items-center gap-2">
@@ -299,7 +312,11 @@
                                 <span class="px-2 py-0.5 rounded text-[11px] font-mono-lab font-bold text-white" style="background: {{ $r['color'] }};">{{ $r['code'] }}</span>
                                 <span class="text-xs text-slate-600 font-semibold">{{ $r['floor'] }}</span>
                             </div>
-                            <span class="font-mono-lab text-xs font-bold text-slate-700">{{ $rCount }} Alat</span>
+                            <div class="flex items-center gap-2 font-mono-lab text-xs font-bold">
+                                <span class="text-slate-700">{{ $rCount }} Alat</span>
+                                <span class="text-slate-300">|</span>
+                                <span class="text-emerald-700" x-text="roomMasteredCount('{{ $rKey }}') + '/{{ $rCount }} Tuntas'"></span>
+                            </div>
                         </div>
 
                         <!-- Potret Realistis Profesor Kepala Lab + Identitas Ruangan -->
@@ -390,7 +407,11 @@
                         <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">
                             Daftar Instrumen
                         </h2>
-                        <span class="font-mono-lab text-xs font-bold text-slate-600" x-text="filteredLabs.length + ' Unit'"></span>
+                        <div class="flex items-center gap-2 font-mono-lab text-[11px] font-bold">
+                            <span class="text-emerald-700" x-text="roomMasteredCount(activeRoom) + ' Tuntas'"></span>
+                            <span class="text-slate-300">/</span>
+                            <span class="text-slate-600" x-text="filteredLabs.length + ' Unit'"></span>
+                        </div>
                     </div>
 
                     <!-- Search Mobile -->
@@ -410,7 +431,10 @@
                                 <div class="min-w-0 flex-1 flex flex-col gap-1">
                                     <div class="flex items-center justify-between gap-2">
                                         <span class="text-[11px] font-semibold text-slate-500 truncate" x-text="lab.subject_name"></span>
-                                        <span x-show="selectedLab && selectedLab.id === lab.id" class="font-mono-lab text-[10px] font-bold text-emerald-700 shrink-0">● AKTIF</span>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <span x-show="isMastered(lab.slug)" class="font-mono-lab text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">✓ TUNTAS</span>
+                                            <span x-show="selectedLab && selectedLab.id === lab.id" class="font-mono-lab text-[10px] font-bold text-sky-700">● AKTIF</span>
+                                        </div>
                                     </div>
                                     <div class="text-xs sm:text-sm font-bold text-slate-900 leading-snug" x-text="lab.title"></div>
                                     <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed" x-text="lab.description"></p>
@@ -430,6 +454,7 @@
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-semibold">
                                 <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono-lab text-[11px] font-bold" x-text="'NO. ' + selectedLabNumber"></span>
+                                <span x-show="selectedLab && isMastered(selectedLab.slug)" class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 font-mono-lab text-[11px] font-bold">LULUS PRAKTIKUM ✓</span>
                                 <span class="font-mono-lab font-bold text-slate-800" x-text="selectedLab?.discipline_label"></span>
                                 <span>·</span>
                                 <span x-text="selectedLab?.subject_name"></span>
@@ -465,31 +490,91 @@
                     </div>
 
                     <!-- Tab Bar Datar Presisi -->
-                    <div class="px-5 border-b border-slate-200 bg-slate-50/50 flex flex-wrap items-center gap-6">
-                        <button type="button" @click="workTab = 'sim'"
-                                :class="workTab === 'sim' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
-                                class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
-                            <i class="fas fa-sliders"></i> Meja Praktikum
-                        </button>
-                        <button type="button" @click="workTab = 'sop'"
-                                :class="workTab === 'sop' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
-                                class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
-                            <i class="fas fa-list-check"></i> Prosedur SOP (<span x-text="selectedLab?.sop_steps?.length || 0"></span>)
-                        </button>
-                        <button type="button" @click="workTab = 'teori'"
-                                :class="workTab === 'teori' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
-                                class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
-                            <i class="fas fa-book-open"></i> Teori &amp; Rumus
-                        </button>
-                        <button type="button" @click="workTab = 'soal'"
-                                :class="workTab === 'soal' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
-                                class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
-                            <i class="fas fa-bullseye"></i> Uji Pemahaman HOTS
+                    <div class="px-5 border-b border-slate-200 bg-slate-50/50 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center gap-6">
+                            <button type="button" @click="workTab = 'sim'"
+                                    :class="workTab === 'sim' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
+                                    class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
+                                <i class="fas fa-sliders"></i> Meja Praktikum
+                            </button>
+                            <button type="button" @click="workTab = 'sop'"
+                                    :class="workTab === 'sop' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
+                                    class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
+                                <i class="fas fa-list-check"></i> Skenario &amp; SOP (<span x-text="checkedStepsCount + '/' + (selectedLab?.sop_steps?.length || 0)"></span>)
+                            </button>
+                            <button type="button" @click="workTab = 'teori'"
+                                    :class="workTab === 'teori' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
+                                    class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
+                                <i class="fas fa-book-open"></i> Teori &amp; Rumus
+                            </button>
+                            <button type="button" @click="workTab = 'soal'"
+                                    :class="workTab === 'soal' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
+                                    class="py-3 border-b-2 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
+                                <i class="fas fa-clipboard-check"></i> Verifikasi Keluar Lab
+                            </button>
+                        </div>
+
+                        <button x-show="workTab === 'sim'" type="button" @click="showScenario = !showScenario"
+                                class="py-1.5 px-2.5 rounded border border-slate-300 bg-white hover:bg-slate-100 text-[11px] font-bold text-slate-700 transition inline-flex items-center gap-1.5">
+                            <i class="fas" :class="showScenario ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            <span x-text="showScenario ? 'Sembunyikan Panduan' : 'Tampilkan Skenario 4 Tahap'"></span>
                         </button>
                     </div>
 
-                    <!-- TAB 1: MEJA PRAKTIKUM LIVE -->
+                    <!-- TAB 1: MEJA PRAKTIKUM LIVE + LEMBAR PANDUAN MASUK LAB -->
                     <div x-show="workTab === 'sim'" class="flex-1 bg-white">
+                        <!-- Lembar Kerja 4 Tahap (Jelas Tujuan, Aktivitas & Fokus Pengamatan sebelum eksperimen) -->
+                        <div x-show="showScenario && selectedLab?.scenario" class="border-b border-slate-300 bg-slate-50">
+                            <div class="px-5 py-2.5 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 text-xs font-extrabold text-slate-800">
+                                    <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono-lab text-[10px]">ALUR BELAJAR TERPANDU</span>
+                                    <span>Ikuti Tahap 1–3 di meja alat, lalu selesaikan Tahap 4 sebelum keluar lab</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-[11px] font-mono-lab font-bold">
+                                    <span class="text-slate-600" x-text="checkedStepsCount + '/' + (selectedLab?.scenario?.actions?.length || 0) + ' Langkah Diceklis'"></span>
+                                    <button type="button" @click="workTab = 'soal'" class="px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-sans font-bold transition">
+                                        Uji Pemahaman &amp; Keluar Lab <i class="fas fa-arrow-right ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+                                <!-- Tahap 1: Tujuan Belajar -->
+                                <div class="p-4 space-y-1.5 bg-white/80">
+                                    <div class="text-[11px] font-mono-lab font-extrabold uppercase tracking-wider text-sky-800">1. Tujuan Belajar (Masuk Lab)</div>
+                                    <p class="text-xs text-slate-800 leading-relaxed" x-text="selectedLab?.scenario?.goal"></p>
+                                    <div x-show="selectedLab?.scenario?.formula" class="pt-1 font-mono-lab text-[11px] font-bold text-slate-900 bg-slate-100 border border-slate-200 rounded px-2 py-1" x-text="selectedLab?.scenario?.formula"></div>
+                                </div>
+
+                                <!-- Tahap 2: Apa & Bagaimana Dilakukan -->
+                                <div class="p-4 space-y-1.5 bg-white/80">
+                                    <div class="text-[11px] font-mono-lab font-extrabold uppercase tracking-wider text-slate-800">2. Apa &amp; Bagaimana Dilakukan</div>
+                                    <div class="space-y-1.5">
+                                        <template x-for="(step, idx) in (selectedLab?.scenario?.actions || [])" :key="idx">
+                                            <label class="flex items-start gap-2 cursor-pointer text-xs text-slate-700 leading-snug hover:text-slate-950">
+                                                <input type="checkbox" :checked="isStepChecked(idx)" @change="toggleStep(idx)" class="mt-0.5 rounded border-slate-300 text-slate-900">
+                                                <span :class="isStepChecked(idx) ? 'line-through text-slate-400' : ''">
+                                                    <strong class="font-mono-lab text-slate-900" x-text="'0' + (idx + 1) + '.'"></strong>
+                                                    <span x-text="step"></span>
+                                                </span>
+                                            </label>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Tahap 3: Fokus Pengamatan -->
+                                <div class="p-4 space-y-1.5 bg-white/80 flex flex-col justify-between">
+                                    <div class="space-y-1.5">
+                                        <div class="text-[11px] font-mono-lab font-extrabold uppercase tracking-wider text-amber-800">3. Apa yang Diamati &amp; Dicatat</div>
+                                        <p class="text-xs text-slate-800 leading-relaxed" x-text="selectedLab?.scenario?.observation_focus"></p>
+                                    </div>
+                                    <div class="pt-2 text-[11px] text-slate-500">
+                                        <span class="font-bold text-slate-700">Target Keluar:</span> Selesaikan catatan &amp; pertanyaan di tab <strong>Verifikasi Keluar Lab</strong>.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <template x-if="selectedLab?.engine_url">
                             <iframe :src="selectedLab.engine_url" class="w-full border-0 block bg-white" style="height: 740px;"></iframe>
                         </template>
@@ -498,19 +583,29 @@
                         </template>
                     </div>
 
-                    <!-- TAB 2: PROSEDUR SOP -->
+                    <!-- TAB 2: PROSEDUR SOP LENGKAP -->
                     <div x-show="workTab === 'sop'" x-cloak class="p-6 space-y-4">
-                        <h3 class="text-sm font-extrabold text-slate-900">Prosedur Operasional Standar Praktikum</h3>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900">Skenario Kerja &amp; Prosedur Operasional Standar</h3>
+                                <p class="text-xs text-slate-600 mt-0.5" x-text="selectedLab?.scenario?.goal"></p>
+                            </div>
+                            <span class="font-mono-lab text-xs font-bold text-slate-700" x-text="checkedStepsCount + '/' + (selectedLab?.sop_steps?.length || 0) + ' Selesai'"></span>
+                        </div>
                         <div class="divide-y divide-slate-200 border border-slate-200 rounded-md">
                             <template x-for="(step, idx) in (selectedLab?.sop_steps || [])" :key="idx">
                                 <label class="flex items-start gap-3 p-4 bg-white hover:bg-slate-50 cursor-pointer transition">
-                                    <input type="checkbox" class="mt-0.5 rounded border-slate-300 text-slate-900">
+                                    <input type="checkbox" :checked="isStepChecked(idx)" @change="toggleStep(idx)" class="mt-0.5 rounded border-slate-300 text-slate-900">
                                     <span class="text-xs sm:text-sm text-slate-800 leading-relaxed">
                                         <strong class="font-mono-lab text-slate-900 mr-1" x-text="'0' + (idx + 1) + '.'"></strong>
                                         <span x-text="step"></span>
                                     </span>
                                 </label>
                             </template>
+                        </div>
+                        <div class="p-4 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-800 leading-relaxed">
+                            <strong class="text-slate-900">Fokus Pengamatan Utama:</strong><br>
+                            <span x-text="selectedLab?.scenario?.observation_focus"></span>
                         </div>
                     </div>
 
@@ -528,16 +623,26 @@
                         </div>
                     </div>
 
-                    <!-- TAB 4: UJI PEMAHAMAN HOTS -->
-                    <div x-show="workTab === 'soal'" x-cloak class="p-6 space-y-4">
+                    <!-- TAB 4: VERIFIKASI PEMAHAMAN KELUAR LAB (EXIT TICKET & PENGETAHUAN BARU) -->
+                    <div x-show="workTab === 'soal'" x-cloak class="p-6 space-y-5">
+                        <div class="p-4 rounded-md bg-slate-50 border border-slate-200 space-y-2">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <label class="text-xs font-extrabold uppercase tracking-wider text-slate-700">1. Catatan Hasil Pengamatan di Lab</label>
+                                <span class="text-[11px] font-mono-lab text-slate-500">Tersimpan otomatis di perangkat ini</span>
+                            </div>
+                            <textarea rows="2" x-model="studentNote" @input="saveNote()"
+                                      placeholder="Tuliskan pola atau perubahan besaran yang kamu amati saat mengubah slider/variabel..."
+                                      class="w-full rounded-md bg-white border border-slate-300 p-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-slate-900"></textarea>
+                        </div>
+
                         <div class="p-4 rounded-md bg-slate-50 border border-slate-200">
-                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pertanyaan Analisis HOTS</div>
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">2. Pembuktian Pemahaman Konsep (Syarat Keluar Lab)</div>
                             <p class="text-sm sm:text-base font-bold text-slate-900 leading-relaxed mt-1.5" x-text="selectedLab?.tc?.challenge_q"></p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                             <template x-for="(opt, oIdx) in (selectedLab?.tc?.options || [])" :key="oIdx">
                                 <button type="button"
-                                        @click="chosenOpt = oIdx; checkedAns = true"
+                                        @click="answerChallenge(oIdx)"
                                         :class="checkedAns
                                             ? (oIdx === selectedLab.tc.answer_idx
                                                 ? 'bg-emerald-50 border-emerald-600 text-emerald-950 font-bold'
@@ -549,9 +654,28 @@
                                 </button>
                             </template>
                         </div>
-                        <div x-show="checkedAns" x-transition class="p-4 rounded-md bg-emerald-50 border border-emerald-300 text-xs sm:text-sm text-emerald-950 leading-relaxed">
-                            <strong>Pembahasan:</strong><br>
-                            <span x-text="selectedLab?.tc?.solution"></span>
+
+                        <div x-show="checkedAns && !isCorrectAns" x-transition class="p-4 rounded-md bg-rose-50 border border-rose-300 text-xs sm:text-sm text-rose-950 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <strong>Belum Tepat — Uji Kembali di Meja Praktikum:</strong>
+                                <span x-text="selectedLab?.tc?.solution"></span>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" @click="workTab = 'sim'" class="px-3 py-1.5 rounded bg-white border border-rose-300 text-rose-800 text-xs font-bold">Kembali ke Meja Alat</button>
+                                <button type="button" @click="retryChallenge()" class="px-3 py-1.5 rounded bg-rose-700 text-white text-xs font-bold">Ulangi Pertanyaan</button>
+                            </div>
+                        </div>
+
+                        <div x-show="(checkedAns && isCorrectAns) || (selectedLab && isMastered(selectedLab.slug))" x-transition class="p-5 rounded-md bg-emerald-50 border border-emerald-400 space-y-2.5 text-emerald-950">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">4. Intisari Pengetahuan Baru (Lulus Praktikum ✓)</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-700 text-white font-mono-lab text-[10px] font-bold">KOMPETENSI TERVERIFIKASI</span>
+                            </div>
+                            <p class="text-xs sm:text-sm font-semibold leading-relaxed" x-text="selectedLab?.scenario?.expected_outcome"></p>
+                            <div class="pt-2 border-t border-emerald-200 text-xs sm:text-sm leading-relaxed">
+                                <strong>Kesimpulan Ilmiah &amp; Pembahasan:</strong><br>
+                                <span x-text="selectedLab?.scenario?.key_takeaway"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -702,6 +826,13 @@
                 || labs[0]
                 || null;
 
+            const loadJsonStore = (k, fallback) => {
+                try { return JSON.parse(localStorage.getItem(k) || 'null') || fallback; } catch (e) { return fallback; }
+            };
+            const masteredSlugs = loadJsonStore('pembda_simlab_mastered_v1', []);
+            const notesMap = loadJsonStore('pembda_simlab_notes_v1', {});
+            const stepChecksMap = loadJsonStore('pembda_simlab_steps_v1', {});
+
             return {
                 labs,
                 roomsMeta,
@@ -710,8 +841,14 @@
                 searchQuery: '',
                 selectedLab: initLab,
                 workTab: 'sim',
+                showScenario: true,
                 chosenOpt: null,
                 checkedAns: false,
+                isCorrectAns: false,
+                masteredSlugs,
+                notesMap,
+                stepChecksMap,
+                studentNote: initLab ? (notesMap[initLab.slug] || '') : '',
                 copied: false,
                 openAiModal: false,
                 isGenerating: false,
@@ -781,6 +918,54 @@
                     const allIdx = this.labs.findIndex(l => l.id === this.selectedLab.id);
                     return String((allIdx >= 0 ? allIdx : 0) + 1).padStart(2, '0');
                 },
+                get totalMasteredCount() {
+                    const set = new Set(this.masteredSlugs);
+                    return this.labs.filter(l => set.has(l.slug)).length;
+                },
+                isMastered(slug) {
+                    return !!slug && this.masteredSlugs.includes(slug);
+                },
+                roomMasteredCount(roomKey) {
+                    const set = new Set(this.masteredSlugs);
+                    return this.labs.filter(l => (roomKey === 'all' || l.discipline_key === roomKey) && set.has(l.slug)).length;
+                },
+                isStepChecked(idx) {
+                    if (!this.selectedLab) return false;
+                    const arr = this.stepChecksMap[this.selectedLab.slug] || [];
+                    return arr.includes(idx);
+                },
+                get checkedStepsCount() {
+                    if (!this.selectedLab) return 0;
+                    return (this.stepChecksMap[this.selectedLab.slug] || []).length;
+                },
+                toggleStep(idx) {
+                    if (!this.selectedLab) return;
+                    const slug = this.selectedLab.slug;
+                    const prev = this.stepChecksMap[slug] || [];
+                    const next = prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx];
+                    this.stepChecksMap = { ...this.stepChecksMap, [slug]: next };
+                    try { localStorage.setItem('pembda_simlab_steps_v1', JSON.stringify(this.stepChecksMap)); } catch (e) {}
+                },
+                saveNote() {
+                    if (!this.selectedLab) return;
+                    this.notesMap = { ...this.notesMap, [this.selectedLab.slug]: this.studentNote };
+                    try { localStorage.setItem('pembda_simlab_notes_v1', JSON.stringify(this.notesMap)); } catch (e) {}
+                },
+                answerChallenge(oIdx) {
+                    if (!this.selectedLab || !this.selectedLab.tc) return;
+                    this.chosenOpt = oIdx;
+                    this.checkedAns = true;
+                    this.isCorrectAns = (oIdx === this.selectedLab.tc.answer_idx);
+                    if (this.isCorrectAns && !this.masteredSlugs.includes(this.selectedLab.slug)) {
+                        this.masteredSlugs = [...this.masteredSlugs, this.selectedLab.slug];
+                        try { localStorage.setItem('pembda_simlab_mastered_v1', JSON.stringify(this.masteredSlugs)); } catch (e) {}
+                    }
+                },
+                retryChallenge() {
+                    this.chosenOpt = null;
+                    this.checkedAns = false;
+                    this.isCorrectAns = false;
+                },
                 enterRoom(roomKey) {
                     this.selectRoom(roomKey);
                     this.viewMode = 'inside';
@@ -801,6 +986,8 @@
                     this.workTab = 'sim';
                     this.chosenOpt = null;
                     this.checkedAns = false;
+                    this.isCorrectAns = false;
+                    this.studentNote = this.notesMap[lab.slug] || '';
                 },
                 copySelectedUrl() {
                     if (!this.selectedLab) return;

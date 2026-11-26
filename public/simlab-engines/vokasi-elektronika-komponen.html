@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Elektronika: Gelang Warna Resistor &amp; Rangkaian RC</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title" id="elTitle">Dekoder Resistor 4 Pita Warna &amp; Konstanta Waktu Kapasitor RC</div>
+          <div class="sl-bar-sub" id="elSub">Tentukan nilai resistansi dari kode gelang warna standar IEC 60062 dan uji kurva pengisian kapasitor</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnRes" onclick="setMode('res')">Gelang Warna Resistor</button>
+          <button type="button" class="sl-btn" id="btnRc" onclick="setMode('rc')">Kurva Rangkaian RC (τ)</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="elCanvas" height="390"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div id="panelRes">
+        <div class="sl-group">
+          <div class="sl-group-label">Pilih Warna Pita Resistor 4 Gelang</div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Pita 1 (Puluhan)</span></div>
+            <select id="b1" onchange="draw()"></select>
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Pita 2 (Satuan)</span></div>
+            <select id="b2" onchange="draw()"></select>
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Pita 3 (Pengali ×10ⁿ)</span></div>
+            <select id="b3" onchange="draw()"></select>
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Pita 4 (Toleransi)</span></div>
+            <select id="b4" onchange="draw()">
+              <option value="5|#d97706" selected>Emas (±5%)</option>
+              <option value="10|#94a3b8">Perak (±10%)</option>
+              <option value="1|#78350f">Cokelat (±1%)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="panelRc" style="display:none;">
+        <div class="sl-group">
+          <div class="sl-group-label">Parameter Rangkaian Pengisian RC</div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Hambatan R</span><span class="sl-ctrl-val" id="lR">10 kΩ</span></div>
+            <input type="range" id="inR" min="2" max="50" step="2" value="10" oninput="draw()" />
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Kapasitansi C</span><span class="sl-ctrl-val" id="lC">100 µF</span></div>
+            <input type="range" id="inC" min="20" max="300" step="20" value="100" oninput="draw()" />
+          </div>
+          <div class="sl-ctrl">
+            <div class="sl-ctrl-head"><span>Tegangan Sumber (V_s)</span><span class="sl-ctrl-val" id="lVs">12 V</span></div>
+            <input type="range" id="inVs" min="5" max="24" step="1" value="12" oninput="draw()" />
+          </div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan Instrumen</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblE1">Nilai Resistansi</div><div class="sl-readout-val" id="vE1" style="color:#0284c7;">4.7 kΩ</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblE2">Batas Toleransi</div><div class="sl-readout-val" id="vE2" style="color:#059669;">±5%</div></div>
+        </div>
+        <div class="sl-formula" id="elForm" style="margin-top:8px;">R = (Pita1 × 10 + Pita2) × 10^(Pita3)</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('elCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'res';
+
+    const COLORS = [
+      { n: 'Hitam', v: 0, h: '#0f172a' },
+      { n: 'Cokelat', v: 1, h: '#78350f' },
+      { n: 'Merah', v: 2, h: '#dc2626' },
+      { n: 'Oranye', v: 3, h: '#ea580c' },
+      { n: 'Kuning', v: 4, h: '#eab308' },
+      { n: 'Hijau', v: 5, h: '#16a34a' },
+      { n: 'Biru', v: 6, h: '#2563eb' },
+      { n: 'Ungu', v: 7, h: '#7e22ce' },
+      { n: 'Abu-abu', v: 8, h: '#64748b' },
+      { n: 'Putih', v: 9, h: '#f8fafc' }
+    ];
+
+    function initSelects() {
+      const s1 = document.getElementById('b1'), s2 = document.getElementById('b2'), s3 = document.getElementById('b3');
+      s1.innerHTML = COLORS.slice(1).map(c => `<option value="${c.v}" ${c.v === 4 ? 'selected' : ''}>${c.n} (${c.v})</option>`).join('');
+      s2.innerHTML = COLORS.map(c => `<option value="${c.v}" ${c.v === 7 ? 'selected' : ''}>${c.n} (${c.v})</option>`).join('');
+      s3.innerHTML = COLORS.slice(0, 7).map(c => `<option value="${c.v}" ${c.v === 2 ? 'selected' : ''}>${c.n} (×10^${c.v})</option>`).join('');
+    }
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnRes').classList.toggle('is-active', m === 'res');
+      document.getElementById('btnRc').classList.toggle('is-active', m === 'rc');
+      document.getElementById('panelRes').style.display = m === 'res' ? 'block' : 'none';
+      document.getElementById('panelRc').style.display = m === 'rc' ? 'block' : 'none';
+      draw();
+    }
+
+    function fmtOhm(ohms) {
+      if (ohms >= 1e6) return (ohms / 1e6).toFixed(2) + ' MΩ';
+      if (ohms >= 1e3) return (ohms / 1e3).toFixed(2) + ' kΩ';
+      return ohms + ' Ω';
+    }
+
+    function draw() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 390;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      if (mode === 'res') {
+        const d1 = +document.getElementById('b1').value;
+        const d2 = +document.getElementById('b2').value;
+        const mul = +document.getElementById('b3').value;
+        const [tol, tolHex] = document.getElementById('b4').value.split('|');
+
+        const ohms = (d1 * 10 + d2) * Math.pow(10, mul);
+        document.getElementById('lblE1').textContent = 'Nilai Resistansi';
+        document.getElementById('vE1').textContent = fmtOhm(ohms);
+        document.getElementById('lblE2').textContent = 'Batas Toleransi';
+        document.getElementById('vE2').textContent = `±${tol}%`;
+        document.getElementById('elForm').textContent = `R = (${d1}${d2}) × 10^${mul} = ${ohms.toLocaleString('id-ID')} Ω (±${tol}%)`;
+
+        // Gambar Fisik Resistor Axial Besar
+        const cy = 195, rx = W * 0.22, rw = W * 0.56, rh = 94;
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(W * 0.08, cy); ctx.lineTo(W * 0.92, cy); ctx.stroke();
+
+        ctx.fillStyle = '#e7d3b0'; ctx.strokeStyle = '#b49a73'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.roundRect(rx, cy - rh / 2, rw, rh, 20); ctx.fill(); ctx.stroke();
+
+        const bands = [
+          { x: rx + rw * 0.16, col: COLORS[d1].h, lbl: `Pita 1 (${d1})` },
+          { x: rx + rw * 0.34, col: COLORS[d2].h, lbl: `Pita 2 (${d2})` },
+          { x: rx + rw * 0.52, col: COLORS[mul].h, lbl: `×10^${mul}` },
+          { x: rx + rw * 0.78, col: tolHex, lbl: `±${tol}%` }
+        ];
+        bands.forEach(b => {
+          ctx.fillStyle = b.col;
+          ctx.fillRect(b.x, cy - rh / 2 + 1, 22, rh - 2);
+          ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(b.lbl, b.x + 11, cy - rh / 2 - 14);
+        });
+
+        ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 18px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`${fmtOhm(ohms)} ±${tol}%`, W / 2, cy + rh / 2 + 44);
+      } else {
+        const Rk = +document.getElementById('inR').value;
+        const Cu = +document.getElementById('inC').value;
+        const Vs = +document.getElementById('inVs').value;
+        const tau = (Rk * 1000) * (Cu * 1e-6);
+
+        document.getElementById('lR').textContent = Rk + ' kΩ';
+        document.getElementById('lC').textContent = Cu + ' µF';
+        document.getElementById('lVs').textContent = Vs + ' V';
+        document.getElementById('lblE1').textContent = 'Konstanta Waktu (τ)';
+        document.getElementById('vE1').textContent = tau.toFixed(2) + ' s';
+        document.getElementById('lblE2').textContent = 'Tegangan di t = τ (63.2%)';
+        document.getElementById('vE2').textContent = (Vs * 0.632).toFixed(2) + ' V';
+        document.getElementById('elForm').textContent = `τ = R·C = ${tau.toFixed(2)} s | Penuh (~99%) pada 5τ = ${(5 * tau).toFixed(2)} s`;
+
+        const PAD = { l: 52, r: 24, t: 36, b: 42 };
+        const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+        const maxT = Math.max(2, 5.5 * tau);
+
+        for (let i = 0; i <= 4; i++) {
+          const y = PAD.t + (i / 4) * ph;
+          ctx.strokeStyle = 'rgba(148,163,184,0.16)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke();
+          ctx.fillStyle = '#94a3b8'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+          ctx.fillText((Vs * (1 - i / 4)).toFixed(1) + 'V', PAD.l - 6, y + 3);
+        }
+
+        // Kurva Pengisian Vc(t) = Vs(1 - e^-t/tau)
+        ctx.strokeStyle = '#34d399'; ctx.lineWidth = 3; ctx.beginPath();
+        for (let i = 0; i <= 150; i++) {
+          const t = (i / 150) * maxT;
+          const v = Vs * (1 - Math.exp(-t / tau));
+          const px = PAD.l + (t / maxT) * pw, py = PAD.t + (1 - v / Vs) * ph;
+          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Titik t = tau
+        const tx = PAD.l + (tau / maxT) * pw, ty = PAD.t + (1 - 0.632) * ph;
+        ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(tx, ty, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fef3c7'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+        ctx.fillText(`t = 1τ (${tau.toFixed(2)}s): ${(Vs * 0.632).toFixed(1)}V`, tx + 10, ty + 4);
+      }
+    }
+
+    initSelects();
+    window.addEventListener('resize', draw);
+    window.addEventListener('load', draw);
+    draw();
+  </script>
+</body>
+</html>

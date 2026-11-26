@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Biologi: Mekanisme Pernapasan &amp; Spirogram Volume Paru</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Mekanisme Pernapasan Diafragma &amp; Grafik Spirogram Paru</div>
+          <div class="sl-bar-sub">Amati hubungan kontraksi otot diafragma, perubahan tekanan paru (Hukum Boyle), dan volume udara pernapasan</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnNormal" onclick="setMode('normal')">Napas Biasa (Tidal)</button>
+          <button type="button" class="sl-btn" id="btnDeep" onclick="setMode('deep')">Tarik Dalam (Kapasitas Vital)</button>
+          <button type="button" class="sl-btn" id="btnSport" onclick="setMode('sport')">Lari / Olahraga</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="respCanvas" height="400"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Status Siklus Respirasi</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Fase Aktif</div><div class="sl-readout-val" id="vPhase" style="color:#0284c7;">Inspirasi</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Tekanan Paru</div><div class="sl-readout-val" id="vPress">759 mmHg</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Volume Paru</div><div class="sl-readout-val" id="vVol" style="color:#059669;">2500 mL</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Frekuensi Napas</div><div class="sl-readout-val" id="vFreq">16 /mnt</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Komponen Kapasitas Paru Manusia</div>
+        <table class="sl-table">
+          <thead><tr><th>Jenis Volume Udara</th><th>Nilai Normal</th></tr></thead>
+          <tbody>
+            <tr><td>Volume Tidal (VT — napas biasa)</td><td>500 mL</td></tr>
+            <tr><td>Udara Komplementer (Cadangan Inspirasi)</td><td>1.500 mL</td></tr>
+            <tr><td>Udara Suplementer (Cadangan Ekspirasi)</td><td>1.500 mL</td></tr>
+            <tr><td>Udara Residu (Sisa di paru)</td><td>1.000 mL</td></tr>
+            <tr><td><strong>Kapasitas Vital Paru (KV)</strong></td><td><strong>3.500 mL</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Mekanisme Hukum Boyle pada Paru</div>
+        <div class="sl-note" id="respNote">
+          <strong>Inspirasi:</strong> Otot diafragma berkontraksi (mendatar), volume rongga dada membesar → tekanan paru turun (&lt; 760 mmHg) → udara luar mengalir masuk.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('respCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'normal', phase = 0;
+    const spiro = [];
+
+    function setMode(m) {
+      mode = m;
+      ['btnNormal', 'btnDeep', 'btnSport'].forEach(id => document.getElementById(id).classList.remove('is-active'));
+      const id = m === 'normal' ? 'btnNormal' : (m === 'deep' ? 'btnDeep' : 'btnSport');
+      document.getElementById(id).classList.add('is-active');
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 400;
+      const W = cv.width, H = cv.height;
+
+      const speed = mode === 'sport' ? 0.095 : (mode === 'deep' ? 0.035 : 0.05);
+      const amp = mode === 'deep' ? 1400 : (mode === 'sport' ? 950 : 250);
+      const bpm = mode === 'sport' ? 32 : (mode === 'deep' ? 12 : 16);
+
+      phase += speed;
+      const s = Math.sin(phase);      // -1..1 (ekspirasi .. inspirasi)
+      const ds = Math.cos(phase);     // kecepatan aliran
+      const vol = 2500 + s * amp;
+      const press = 760 - ds * (mode === 'deep' ? 4.5 : 1.5);
+
+      document.getElementById('vPhase').textContent = ds >= 0 ? 'INSPIRASI (Masuk)' : 'EKSPIRASI (Keluar)';
+      document.getElementById('vPress').textContent = press.toFixed(1) + ' mmHg';
+      document.getElementById('vVol').textContent = Math.round(vol) + ' mL';
+      document.getElementById('vFreq').textContent = bpm + ' /mnt';
+      document.getElementById('respNote').innerHTML = ds >= 0
+        ? '<strong>Inspirasi Aktif:</strong> Diafragma berkontraksi (turun mendatar), rongga dada mengembang, tekanan paru turun di bawah 760 mmHg sehingga oksigen masuk.'
+        : '<strong>Ekspirasi:</strong> Diafragma berelaksasi (melengkung ke atas), volume rongga dada mengecil, tekanan paru naik &gt; 760 mmHg mendorong CO₂ keluar.';
+
+      spiro.push(vol);
+      if (spiro.length > 180) spiro.shift();
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Kiri: Anatomi Rongga Dada, Paru-paru & Diafragma
+      const cx = W * 0.26;
+      // Trakea
+      ctx.fillStyle = '#475569'; ctx.fillRect(cx - 10, 38, 20, 74);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.strokeRect(cx - 10, 38, 20, 74);
+      // Panah aliran udara di trakea
+      ctx.fillStyle = ds >= 0 ? '#38bdf8' : '#fbbf24';
+      ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(ds >= 0 ? '↓ O₂' : '↑ CO₂', cx, 26);
+
+      // Paru Kiri & Kanan mengembang sesuai vol
+      const expScale = 0.78 + ((vol - 1000) / 3500) * 0.36;
+      const lw = 54 * expScale, lh = 135 * expScale;
+      ctx.fillStyle = 'rgba(244,114,182,0.55)'; ctx.strokeStyle = '#f472b6'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.ellipse(cx - 42, 185, lw * 0.55, lh * 0.5, 0.1, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(cx + 42, 185, lw * 0.55, lh * 0.5, -0.1, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+      // Diafragma di bawah paru (melengkung ke atas saat ekspirasi, datar saat inspirasi)
+      const diaY = 278 + s * 16;
+      const arch = 24 - s * 18;
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(cx - 95, 295);
+      ctx.quadraticCurveTo(cx, diaY - arch, cx + 95, 295);
+      ctx.stroke();
+      ctx.fillStyle = '#fca5a5'; ctx.font = 'bold 10px monospace';
+      ctx.fillText('OTOT DIAFRAGMA', cx, 325);
+
+      // Kanan: Grafik Spirogram Volume Paru (1000..4500 mL)
+      const gx = W * 0.52, gw = W * 0.44, gy = 48, gh = 290;
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+      ctx.fillRect(gx, gy, gw, gh); ctx.strokeRect(gx, gy, gw, gh);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('SPIROGRAM VOLUME PARU (mL)', gx + 10, gy - 12);
+
+      [1000, 2000, 3000, 4000].forEach(mv => {
+        const y = gy + (1 - (mv - 500) / 4200) * gh;
+        ctx.strokeStyle = 'rgba(148,163,184,0.16)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke();
+        ctx.fillStyle = '#94a3b8'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+        ctx.fillText(mv, gx - 4, y + 3);
+      });
+
+      if (spiro.length > 1) {
+        ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2.5; ctx.beginPath();
+        spiro.forEach((v, i) => {
+          const px = gx + 8 + (i / 180) * (gw - 16);
+          const py = gy + (1 - (v - 500) / 4200) * gh;
+          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

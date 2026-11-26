@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator SNBT: 20 Soal Penalaran Umum, Silogisme &amp; Kecukupan Data</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+  <style>
+    .exam-wrap { padding: 18px; width: 100%; background: #ffffff; }
+    .exam-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: #0f172a; color: #ffffff; border-radius: 6px; margin-bottom: 14px; }
+    .exam-prog { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
+    .exam-prog-bar { height: 100%; background: #0284c7; transition: width 0.25s ease; }
+    .q-card { border: 1px solid var(--sl-line); border-radius: 6px; padding: 18px; background: #ffffff; }
+    .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    @media (max-width: 640px) { .opt-grid { grid-template-columns: 1fr; } }
+    .opt-item { padding: 10px 12px; border: 1px solid var(--sl-line); border-radius: 6px; background: #ffffff; color: #0f172a; font-size: 0.84rem; font-weight: 600; text-align: left; cursor: pointer; }
+    .opt-item:hover { background: #f1f5f9; }
+    .opt-item.correct { background: #ecfdf5; border-color: #059669; color: #065f46; }
+    .opt-item.wrong { background: #fef2f2; border-color: #dc2626; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <div class="exam-wrap">
+    <div class="exam-top">
+      <div>
+        <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;font-weight:700;">Penalaran Umum &amp; Kuantitatif HOTS</div>
+        <div style="font-size:0.95rem;font-weight:800;">Paket 20 Soal Logika Deduktif, Induktif &amp; Kecukupan Data SNBT</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;font-family:var(--sl-font-mono);font-variant-numeric:tabular-nums;">
+        <div>Waktu: <strong id="timer" style="color:#fbbf24;">00:45</strong></div>
+        <div>Skor: <strong id="scoreDisp" style="color:#34d399;">0</strong>/20</div>
+        <div>Soal <strong id="qNum">1</strong>/20</div>
+      </div>
+    </div>
+
+    <div class="exam-prog"><div class="exam-prog-bar" id="progBar" style="width:5%;"></div></div>
+    <div id="questionArea"></div>
+
+    <div class="sl-btn-row" style="margin-top:14px;justify-content:space-between;">
+      <div class="sl-btn-row">
+        <button type="button" class="sl-btn" onclick="prevQ()">Sebelumnya</button>
+        <button type="button" class="sl-btn" onclick="toggleTrick()">Tampilkan Trik Eliminasi</button>
+      </div>
+      <button type="button" class="sl-btn sl-btn-primary" onclick="nextQ()">Soal Berikutnya</button>
+    </div>
+
+    <div id="finalCard" style="display:none;margin-top:16px;padding:24px;border:1px solid var(--sl-line);border-radius:6px;background:#f8fafc;text-align:center;">
+      <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;color:#475569;">Rekapitulasi Latihan Penalaran SNBT</div>
+      <div id="finalScore" style="font-family:var(--sl-font-mono);font-size:2.6rem;font-weight:800;color:#0f172a;margin:8px 0;">0 / 20</div>
+      <div id="finalMsg" style="font-size:0.9rem;color:#334155;margin-bottom:14px;"></div>
+      <button type="button" class="sl-btn sl-btn-primary" onclick="restart()">Ulangi Paket Soal</button>
+    </div>
+  </div>
+
+  <script>
+    const Q = [
+      { t: 'Modus Ponens', q: 'Jika siswa lulus ujian praktikum, ia mendapat sertifikat kompetensi. Budi lulus ujian praktikum. Simpulan yang sah adalah...', o: ['Budi tidak mendapat sertifikat', 'Budi mendapat sertifikat kompetensi', 'Sebagian siswa tidak lulus', 'Jika dapat sertifikat pasti Budi'], a: 1, e: 'Modus Ponens: (P → Q) dan P benar → maka Q pasti benar.', tr: 'Cari pola P → Q diikuti fakta P, hasilnya langsung Q.' },
+      { t: 'Modus Tollens', q: 'Jika hujan turun lebat, jalanan di sekitar pelabuhan tergenang. Hari ini jalanan di sekitar pelabuhan TIDAK tergenang. Simpulannya...', o: ['Hari ini hujan gerimis', 'Hari ini hujan tidak turun lebat', 'Jalanan sudah diperbaiki', 'Tidak dapat disimpulkan'], a: 1, e: 'Modus Tollens: (P → Q) dan ¬Q → maka ¬P (tidak hujan lebat).', tr: 'Kontraposisi: ¬Q → ¬P. Langsung negasikan pernyataan pertama.' },
+      { t: 'Silogisme', q: 'Semua mahasiswa kedokteran wajib lulus biologi. Sebagian peserta bimbingan belajar adalah mahasiswa kedokteran. Simpulannya...', o: ['Semua peserta bimbel wajib lulus biologi', 'Sebagian peserta bimbel wajib lulus biologi', 'Semua yang lulus biologi mahasiswa kedokteran', 'Tidak ada peserta bimbel yang lulus biologi'], a: 1, e: 'Irisan "Semua A adalah B" dan "Sebagian C adalah A" menghasilkan "Sebagian C adalah B".', tr: 'Semua + Sebagian selalu menghasilkan kesimpulan berkuantor SEBAGIAN.' },
+      { t: 'Negasi Kuantor', q: 'Ingkaran (negasi) dari pernyataan "Semua peserta OSN menguasai kalkulus" adalah...', o: ['Tidak ada peserta OSN menguasai kalkulus', 'Semua peserta OSN tidak menguasai kalkulus', 'Ada peserta OSN yang tidak menguasai kalkulus', 'Sebagian peserta bukan OSN'], a: 2, e: 'Negasi dari ∀x P(x) ("Semua...") adalah ∃x ¬P(x) ("Ada/Beberapa yang tidak...").', tr: 'Negasi "Semua" bukan "Tidak ada", cukup ada minimal 1 pengecualian ("Ada ... yang tidak ...").' },
+      { t: 'Ekuivalensi Implikasi', q: 'Pernyataan "Jika lampu hijau menyala, maka kendaraan boleh melaju" ekuivalen (setara) dengan...', o: ['Jika kendaraan boleh melaju maka lampu hijau menyala', 'Jika kendaraan tidak boleh melaju, maka lampu hijau tidak menyala', 'Lampu hijau menyala dan kendaraan berhenti', 'Jika lampu hijau mati maka kendaraan melaju'], a: 1, e: 'Implikasi P → Q selalu ekuivalen dengan kontraposisinya: ¬Q → ¬P.', tr: 'Tukar posisi dan negasikan kedua ruas: P → Q ≡ ¬Q → ¬P.' },
+      { t: 'Pola Bilangan', q: 'Diketahui barisan: 3, 5, 9, 17, 33, ... Suku berikutnya adalah...', o: ['49', '57', '65', '66'], a: 2, e: 'Selisih bertingkat +2, +4, +8, +16, berikutnya +32 → 33 + 32 = 65.', tr: 'Cek beda berurutan: 2, 4, 8, 16 (dikali 2 terus) → tambah 32.' },
+      { t: 'Pola Huruf', q: 'Huruf berikutnya dari urutan: B, D, G, K, P, ... adalah...', o: ['U', 'V', 'W', 'T'], a: 1, e: 'Indeks huruf: B(2), D(4), G(7), K(11), P(16) → beda +2, +3, +4, +5, berikutnya +6 → 16+6=22 = V.', tr: 'Ubah huruf ke angka abjad lalu cek selisih +2, +3, +4, +5, +6.' },
+      { t: 'Analitik Urutan', q: 'Nilai Dina lebih tinggi dari Ani, namun lebih rendah dari Rina. Nilai Budi lebih tinggi dari Rina. Urutan nilai tertinggi ke terendah adalah...', o: ['Budi, Rina, Dina, Ani', 'Rina, Budi, Dina, Ani', 'Budi, Dina, Rina, Ani', 'Dina, Budi, Rina, Ani'], a: 0, e: 'Budi > Rina > Dina > Ani.', tr: 'Tulis tanda > berantai dari kiri ke kanan: B > R > D > A.' },
+      { t: 'Perbandingan Berbalik', q: 'Proyek jembatan selesai dalam 24 hari oleh 15 pekerja. Agar selesai dalam 18 hari, tambahan pekerja yang dibutuhkan adalah...', o: ['3 orang', '4 orang', '5 orang', '20 orang'], a: 2, e: 'Perbandingan berbalik nilai: 24×15 = 18×P → P = 360/18 = 20 orang. Tambahan = 20 − 15 = 5 orang.', tr: 'Perhatikan kata "tambahan pekerja": cari total (20) lalu kurangi pekerja awal (15).' },
+      { t: 'Kecukupan Data', q: 'Berapa luas persegi panjang ABCD? (1) Kelilingnya 28 cm. (2) Panjangnya 2 cm lebih dari lebarnya.', o: ['Pernyataan (1) SAJA cukup', 'Pernyataan (2) SAJA cukup', 'DUA pernyataan BERSAMA-SAMA cukup', 'Pernyataan (1) dan (2) TIDAK cukup'], a: 2, e: 'Dari (1): p+l=14. Dari (2): p=l+2. Substitusi: 2l+2=14 → l=6, p=8 → Luas=48 cm². Keduanya diperlukan.', tr: 'Ada 2 variabel (p dan l) sehingga butuh 2 persamaan bebas untuk menyelesaikannya.' },
+      { t: 'Kuantitatif Persentase', q: 'Harga jaket setelah didiskon 20% adalah Rp 240.000. Berapakah harga awal jaket sebelum diskon?', o: ['Rp 288.000', 'Rp 290.000', 'Rp 300.000', 'Rp 320.000'], a: 2, e: '80% × Harga Awal = 240.000 → Harga Awal = 240.000 / 0,8 = Rp 300.000.', tr: 'Diskon 20% berarti bayar 80% (4/5). Maka harga awal = 5/4 × 240.000 = 300.000.' },
+      { t: 'Himpunan', q: 'Dari 40 siswa, 25 suka Fisika, 20 suka Kimia, dan 5 tidak suka keduanya. Banyak siswa yang suka keduanya adalah...', o: ['5 orang', '10 orang', '15 orang', '20 orang'], a: 1, e: '40 = 25 + 20 − x + 5 → 40 = 50 − x → x = 10.', tr: 'Irisan = (Suka A + Suka B + Tidak suka) − Total = (25+20+5) − 40 = 10.' },
+      { t: 'Penalaran Induktif', q: 'Produksi panen jagung naik 10% di tahun 2024 karena penggunaan pupuk hayati dan irigasi tetes. Manakah kesimpulan yang PALING DIDUKUNG?', o: ['Semua petani beralih menanam jagung', 'Pupuk hayati dan irigasi tetes berkontribusi pada kenaikan hasil panen 2024', 'Harga jagung pasti turun di pasar', 'Tahun 2025 tidak butuh pupuk lagi'], a: 1, e: 'Kesimpulan induktif yang tepat harus tetap berpegang pada ruang lingkup bukti tanpa over-generalisasi.', tr: 'Hindari opsi yang memakai kata ekstrem "pasti semua" atau klaim di luar teks.' },
+      { t: 'Kecepatan Rata-rata', q: 'Mobil pergi dari kota A ke B berjarak 120 km dengan kecepatan 60 km/jam, lalu kembali lewat rute yang sama dengan 40 km/jam. Kecepatan rata-rata pulang-pergi adalah...', o: ['50 km/jam', '48 km/jam', '45 km/jam', '52 km/jam'], a: 1, e: 'Total jarak = 240 km. Total waktu = 120/60 + 120/40 = 2 + 3 = 5 jam. v_rata = 240/5 = 48 km/jam.', tr: 'Gunakan rata-rata harmonik untuk jarak sama: 2·v₁·v₂ / (v₁+v₂) = 2×60×40 / 100 = 48.' },
+      { t: 'Peluang Kombinasi', q: 'Dari 6 calon pengurus OSIS akan dipilih 1 Ketua dan 1 Sekretaris. Banyak susunan berbeda yang mungkin adalah...', o: ['15', '30', '36', '12'], a: 1, e: 'Urutan jabatan penting → Permutasi P(6,2) = 6 × 5 = 30 cara.', tr: 'Jika jabatan berbeda (Ketua ≠ Sekretaris), pakai perkalian langsung 6 × 5 = 30.' },
+      { t: 'Pernyataan Memperlemah', q: 'Klaim: "Belajar malam hari membuat nilai ujian selalu lebih tinggi." Manakah fakta yang PALING MEMPERLEMAH klaim tersebut?', o: ['Banyak siswa belajar kelompok di perpustakaan', 'Data menunjukkan siswa yang cukup tidur malam meraih rata-rata nilai 15 poin lebih tinggi daripada yang begadang belajar malam', 'Kopi mengandung kafein', 'Sekolah membuka kelas pagi'], a: 1, e: 'Fakta empiris yang menunjukkan hubungan berlawanan secara langsung melemahkan klaim sebab-akibat.', tr: 'Cari bukti data pembanding yang hasilnya bertolak belakang dengan klaim.' },
+      { t: 'Bilangan Bulat HOTS', q: 'Jika x dan y bilangan bulat dengan 2 < x < 6 dan 3 < y < 8, nilai maksimum dari (x − y) adalah...', o: ['1', '2', '−1', '3'], a: 0, e: 'Agar x − y maksimum: pilih x terbesar (5) dan y terkecil (4) → 5 − 4 = 1.', tr: 'Maksimalkan selisih (x−y): x ambil batas atas bulat (5), y ambil batas bawah bulat (4).' },
+      { t: 'Hubungan P dan Q', q: 'Diketahui P = (2025² − 2024²) dan Q = 4049. Hubungan antara P dan Q adalah...', o: ['P > Q', 'P < Q', 'P = Q', 'Tidak dapat ditentukan'], a: 2, e: 'a² − b² = (a+b)(a−b) = (2025+2024)(1) = 4049 = Q.', tr: 'Ingat selisih dua bilangan berurutan kuadrat: n² − (n−1)² = n + (n−1).' },
+      { t: 'Logika Posisi Meja', q: 'Lima orang duduk melingkar: A di sebelah B; C berhadapan dengan A; D di sebelah C dan bukan di sebelah B. Di sebelah kanan C duduk...', o: ['D atau E tergantung arah', 'A', 'B', 'Hanya E'], a: 0, e: 'Karena arah kanan/kiri pada meja bundar bergantung pada orientasi gambar yang belum dikunci antara dua tempat tersisa, posisinya bisa D atau E.', tr: 'Pada posisi melingkar tanpa arah hadap baku, dua kursi mengapit simetris dapat tertukar kiri-kanannya.' },
+      { t: 'Analisis Tabel Data', q: 'Rata-rata nilai 4 siswa adalah 80. Ketika nilai Riko masuk, rata-rata 5 siswa menjadi 82. Berapakah nilai Riko?', o: ['84', '88', '90', '92'], a: 2, e: 'Total 5 siswa = 5×82 = 410. Total 4 siswa = 4×80 = 320. Nilai Riko = 410 − 320 = 90.', tr: 'Cara cepat: 80 + (5 × kenaikan 2) = 80 + 10 = 90!' }
+    ];
+
+    let cur = 0, score = 0, ans = Array(20).fill(null), sec = 45, tId = null;
+
+    function tickTimer() {
+      clearInterval(tId);
+      sec = 45;
+      document.getElementById('timer').textContent = '00:45';
+      tId = setInterval(() => {
+        sec--;
+        document.getElementById('timer').textContent = '00:' + String(Math.max(0, sec)).padStart(2, '0');
+        if (sec <= 0) { clearInterval(tId); nextQ(); }
+      }, 1000);
+    }
+
+    function renderQ() {
+      const item = Q[cur];
+      document.getElementById('qNum').textContent = cur + 1;
+      document.getElementById('scoreDisp').textContent = score;
+      document.getElementById('progBar').style.width = ((cur + 1) / 20 * 100) + '%';
+
+      const picked = ans[cur];
+      document.getElementById('questionArea').innerHTML = `
+        <div class="q-card">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#0284c7;margin-bottom:6px;">Subtopik: ${item.t}</div>
+          <div style="font-size:0.94rem;font-weight:700;line-height:1.55;color:#0f172a;">${item.q}</div>
+          <div class="opt-grid">
+            ${item.o.map((opt, idx) => `<button type="button" class="opt-item${picked !== null ? (idx === item.a ? ' correct' : (idx === picked ? ' wrong' : '')) : ''}" onclick="choose(${idx})">${String.fromCharCode(65 + idx)}. ${opt}</button>`).join('')}
+          </div>
+          ${picked !== null ? `<div class="pembahasan" style="display:block;"><strong>Pembahasan:</strong> ${item.e}</div>` : ''}
+          <div id="trickBox" style="display:none;margin-top:8px;padding:10px 12px;border:1px solid #fde047;background:#fefce8;border-radius:6px;font-size:0.8rem;color:#713f12;"><strong>Trik Cepat:</strong> ${item.tr}</div>
+        </div>`;
+      tickTimer();
+    }
+
+    function choose(idx) {
+      if (ans[cur] !== null) return;
+      ans[cur] = idx;
+      if (idx === Q[cur].a) score++;
+      clearInterval(tId);
+      renderQ();
+    }
+
+    function toggleTrick() {
+      const b = document.getElementById('trickBox');
+      if (b) b.style.display = b.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function nextQ() {
+      if (cur < 19) { cur++; renderQ(); }
+      else {
+        clearInterval(tId);
+        document.getElementById('questionArea').style.display = 'none';
+        document.getElementById('finalCard').style.display = 'block';
+        document.getElementById('finalScore').textContent = score + ' / 20';
+        document.getElementById('finalMsg').textContent = score >= 16 ? 'Sangat Siap Tembus PTN Favorit!' : (score >= 12 ? 'Cukup Baik — pelajari kembali pembahasan soal yang keliru.' : 'Perlu latihan tambahan pada materi logika deduktif & kecukupan data.');
+      }
+    }
+
+    function prevQ() { if (cur > 0) { cur--; renderQ(); } }
+
+    function restart() {
+      cur = 0; score = 0; ans.fill(null);
+      document.getElementById('questionArea').style.display = 'block';
+      document.getElementById('finalCard').style.display = 'none';
+      renderQ();
+    }
+
+    renderQ();
+  </script>
+</body>
+</html>

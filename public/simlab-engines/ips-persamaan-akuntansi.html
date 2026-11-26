@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Akuntansi: Persamaan Dasar Akuntansi &amp; Neraca Seimbang</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Simulator Persamaan Dasar Akuntansi (ASET = LIABILITAS + EKUITAS)</div>
+          <div class="sl-bar-sub">Eksekusi transaksi bisnis nyata dan amati bagaimana setiap transaksi selalu menjaga keseimbangan timbangan neraca</div>
+        </div>
+        <button type="button" class="sl-btn" onclick="resetLedger()">Reset Jurnal Awal</button>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="accCanvas" height="300"></canvas>
+      </div>
+
+      <div>
+        <div class="sl-group-label">Riwayat Jurnal Transaksi Aktif</div>
+        <table class="sl-table" id="journalTbl"></table>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Eksekusi Transaksi Bisnis (Dalam Juta Rp)</div>
+        <div class="sl-btn-row" style="flex-direction:column;align-items:stretch;">
+          <button type="button" class="sl-btn sl-btn-primary" onclick="tx('Setor Modal Pemilik', 50, 0, 0, 50)">1. Setor Modal Awal Tunai (+50 Jt Kas, +50 Jt Modal)</button>
+          <button type="button" class="sl-btn" onclick="tx('Beli Peralatan Kredit', 0, 20, 20, 0)">2. Beli Peralatan Secara Kredit (+20 Jt Alat, +20 Jt Utang)</button>
+          <button type="button" class="sl-btn" onclick="tx('Terima Pendapatan Jasa', 15, 0, 0, 15)">3. Terima Pendapatan Jasa Tunai (+15 Jt Kas, +15 Jt Ekuitas)</button>
+          <button type="button" class="sl-btn" onclick="tx('Bayar Beban Operasional', -8, 0, 0, -8)">4. Bayar Beban Gaji &amp; Listrik Tunai (−8 Jt Kas, −8 Jt Ekuitas)</button>
+          <button type="button" class="sl-btn" onclick="tx('Cicil Pelunasan Utang', -10, 0, -10, 0)">5. Bayar Cicilan Utang Usaha (−10 Jt Kas, −10 Jt Utang)</button>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Neraca Saldo Real-Time</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Total ASET</div><div class="sl-readout-val" id="vAset" style="color:#0284c7;">Rp 50 Jt</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Utang (Liabilitas)</div><div class="sl-readout-val" id="vUtang">Rp 0 Jt</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Ekuitas (Modal)</div><div class="sl-readout-val" id="vModal" style="color:#059669;">Rp 50 Jt</div></div>
+        </div>
+        <div class="sl-formula" id="balFormula" style="margin-top:8px;">50 Jt (Aset) = 0 Jt (Utang) + 50 Jt (Ekuitas)</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('accCanvas');
+    const ctx = cv.getContext('2d');
+    let kas = 50, alat = 0, utang = 0, modal = 50;
+    let logs = [];
+
+    function resetLedger() {
+      kas = 50; alat = 0; utang = 0; modal = 50;
+      logs = [{ desc: 'Saldo Awal Setoran Modal Pemilik', dKas: 50, dAlat: 0, dUtang: 0, dMod: 50 }];
+      render();
+    }
+
+    function tx(desc, dKas, dAlat, dUtang, dMod) {
+      if (kas + dKas < 0) { alert('Saldo Kas tidak mencukupi untuk transaksi ini.'); return; }
+      if (utang + dUtang < 0) { alert('Utang usaha sudah lunas (0).'); return; }
+      kas += dKas; alat += dAlat; utang += dUtang; modal += dMod;
+      logs.push({ desc, dKas, dAlat, dUtang, dMod });
+      render();
+    }
+
+    function fmtD(v) { return v === 0 ? '—' : (v > 0 ? `+${v}` : `${v}`); }
+
+    function render() {
+      const aset = kas + alat;
+      const pasiva = utang + modal;
+      document.getElementById('vAset').textContent = `Rp ${aset} Jt`;
+      document.getElementById('vUtang').textContent = `Rp ${utang} Jt`;
+      document.getElementById('vModal').textContent = `Rp ${modal} Jt`;
+      document.getElementById('balFormula').textContent = `${aset} Jt (Aset) = ${utang} Jt (Utang) + ${modal} Jt (Ekuitas)  [SEIMBANG]`;
+
+      let tbl = '<thead><tr><th>Transaksi</th><th>Kas</th><th>Peralatan</th><th>=</th><th>Utang</th><th>Ekuitas</th></tr></thead><tbody>';
+      logs.slice(-6).forEach(l => {
+        tbl += `<tr><td>${l.desc}</td><td>${fmtD(l.dKas)}</td><td>${fmtD(l.dAlat)}</td><td>=</td><td>${fmtD(l.dUtang)}</td><td>${fmtD(l.dMod)}</td></tr>`;
+      });
+      tbl += '</tbody>';
+      document.getElementById('journalTbl').innerHTML = tbl;
+
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 300;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      // Gambar Neraca Batang Seimbang Kiri (ASET) vs Kanan (LIABILITAS + EKUITAS)
+      const cx = W / 2, baseH = 190;
+      const maxVal = Math.max(100, aset);
+
+      // Penyangga Timbangan
+      ctx.fillStyle = '#475569';
+      ctx.beginPath(); ctx.moveTo(cx - 26, 265); ctx.lineTo(cx + 26, 265); ctx.lineTo(cx, 224); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(W * 0.16, 224); ctx.lineTo(W * 0.84, 224); ctx.stroke();
+
+      // Tumpukan ASET di Kiri
+      const lx = W * 0.25, bw = 110;
+      const hKas = (kas / maxVal) * baseH, hAlat = (alat / maxVal) * baseH;
+      ctx.fillStyle = '#0284c7'; ctx.fillRect(lx - bw / 2, 220 - hKas, bw, hKas);
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(lx - bw / 2, 220 - hKas - hAlat, bw, hAlat);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+      if (kas > 0) ctx.fillText(`Kas: ${kas}`, lx, 220 - hKas / 2 + 4);
+      if (alat > 0) ctx.fillText(`Alat: ${alat}`, lx, 220 - hKas - hAlat / 2 + 4);
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText(`TOTAL ASET: Rp ${aset} Jt`, lx, 248);
+
+      // Tumpukan LIABILITAS + EKUITAS di Kanan
+      const rx = W * 0.75;
+      const hMod = (modal / maxVal) * baseH, hUt = (utang / maxVal) * baseH;
+      ctx.fillStyle = '#059669'; ctx.fillRect(rx - bw / 2, 220 - hMod, bw, hMod);
+      ctx.fillStyle = '#d97706'; ctx.fillRect(rx - bw / 2, 220 - hMod - hUt, bw, hUt);
+      ctx.fillStyle = '#ffffff';
+      if (modal > 0) ctx.fillText(`Modal: ${modal}`, rx, 220 - hMod / 2 + 4);
+      if (utang > 0) ctx.fillText(`Utang: ${utang}`, rx, 220 - hMod - hUt / 2 + 4);
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText(`PASIVA: Rp ${pasiva} Jt`, rx, 248);
+    }
+
+    window.addEventListener('resize', render);
+    window.addEventListener('load', resetLedger);
+    resetLedger();
+  </script>
+</body>
+</html>
