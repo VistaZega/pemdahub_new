@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator IPA/Geografi: Efek Rumah Kaca &amp; Pemanasan Global</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#047857; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#020617; border-radius:12px; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.15rem; font-weight:800; margin-top:2px; font-family:monospace; }
+    .soal-box { background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; color:#065f46; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌍 Simulator IPA &amp; Geografi: Efek Rumah Kaca &amp; Pemanasan Global</h1>
+    <p>Mengapa Bumi tetap hangat di malam hari, dan apa yang terjadi jika kadar gas CO₂ di atmosfer terus meningkat?</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="earthCanvas" width="760" height="400"></canvas>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;">
+        <span style="color:#d97706">● Sinar Matahari Masuk</span>
+        <span style="color:#e11d48">● Panas Inframerah Terpantul/Terperangkap CO₂</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Kadar Gas CO₂</div><div class="s-val" id="vCo2" style="color:#0284c7">420 ppm</div></div>
+        <div class="s-box"><div class="s-lbl">Suhu Rata-rata Bumi</div><div class="s-val" id="vTemp" style="color:#e11d48">15.2 °C</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Konsentrasi Gas Rumah Kaca (CO₂)</span><span id="lblCo2" style="color:#0284c7">420 ppm</span>
+        </div>
+        <input type="range" id="inCo2" min="150" max="900" step="20" value="420" style="width:100%;accent-color:#0284c7;cursor:pointer;">
+      </div>
+
+      <div class="soal-box">
+        <strong>📝 Misteri &amp; Pembuktian Iklim:</strong>
+        <p id="earthExplain" style="margin-top:4px;">
+          Sinar tampak Matahari menembus atmosfer dan menghangatkan permukaan Bumi. Bumi memancarkan kembali panas berupa <strong>gelombang inframerah</strong>. Gas CO₂ di atmosfer memantulkan sebagian panas itu kembali ke Bumi agar suhu tetap layak huni (~15°C), namun jika CO₂ berlebih, panas terperangkap dan memicu pemanasan global!
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('earthCanvas'), ctx = c.getContext('2d');
+    const inCo2 = document.getElementById('inCo2');
+    const rays = Array.from({length: 14}, (_, i) => ({ x: 140 + i*42, y: Math.random()*300, dir: 1, isIR: false }));
+
+    function loop() {
+      const co2 = +inCo2.value;
+      const temp = 11 + (co2 / 420) * 4.2;
+      document.getElementById('lblCo2').textContent = co2 + ' ppm';
+      document.getElementById('vCo2').textContent = co2 + ' ppm';
+      document.getElementById('vTemp').textContent = temp.toFixed(1) + ' °C';
+      document.getElementById('vTemp').style.color = temp > 17 ? '#e11d48' : (temp < 13 ? '#0284c7' : '#059669');
+
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      // Matahari
+      ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(70, 65, 36, 0, Math.PI*2); ctx.fill();
+
+      // Permukaan Bumi
+      ctx.fillStyle = temp > 17.5 ? '#78350f' : '#065f46';
+      ctx.fillRect(0, 325, c.width, 75);
+
+      // Lapisan Atmosfer & Gas CO2
+      const alpha = Math.min(0.65, co2 / 1100);
+      ctx.fillStyle = `rgba(148,163,184,${alpha})`;
+      ctx.fillRect(0, 120, c.width, 50);
+      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(`Lapisan Atmosfer & Gas CO₂ (${co2} ppm)`, 20, 150);
+
+      const trapProb = Math.min(0.85, co2 / 950);
+      rays.forEach(r => {
+        r.y += r.dir * 2.5;
+        if (r.dir === 1 && r.y >= 320) { r.dir = -1; r.isIR = true; }
+        if (r.dir === -1 && r.isIR && r.y <= 150 && r.y >= 135) {
+          if (Math.random() < trapProb) r.dir = 1;
+        }
+        if (r.y < 10) { r.dir = 1; r.isIR = false; }
+
+        ctx.fillStyle = r.isIR ? '#f43f5e' : '#fde047';
+        ctx.beginPath(); ctx.arc(r.x, r.y, 5, 0, Math.PI*2); ctx.fill();
+      });
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

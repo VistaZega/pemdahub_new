@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Kimia: Struktur Atom Bohr &amp; Pembentukan Ikatan Ion</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#6d28d9; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+    button { border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
+    button.active { background:#7c3aed; color:#fff; border-color:#6d28d9; }
+    .soal-box { background:#f5f3ff; border:1px solid #ddd6fe; border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; color:#4c1d95; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚛️ Simulator Kimia: Model Atom Bohr, Elektron Valensi &amp; Garam Dapur (NaCl)</h1>
+    <p>Mengapa logam Natrium (Na) yang reaktif dan gas Klorin (Cl) yang beracun bisa bersatu menjadi garam dapur yang aman?</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="atomCanvas" width="760" height="400"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="btn-row">
+        <button class="active" onclick="setAtom('C', this)">Karbon (₆C: 2, 4)</button>
+        <button onclick="setAtom('O', this)">Oksigen (₈O: 2, 6)</button>
+        <button onclick="setAtom('Na', this)">Natrium (₁₁Na: 2, 8, 1)</button>
+        <button onclick="setAtom('Cl', this)">Klorin (₁₇Cl: 2, 8, 7)</button>
+        <button onclick="setAtom('NaCl', this)" style="background:#fef3c7;border-color:#f59e0b;color:#78350f;">🧂 Ikatan Ion Na⁺ + Cl⁻</button>
+      </div>
+
+      <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:12px;padding:12px;" id="atomStats"></div>
+
+      <div class="soal-box">
+        <strong>📝 Misteri &amp; Pembuktian Ikatan Kimia:</strong>
+        <p id="atomExplain" style="margin-top:4px;">
+          Pilih <strong>Ikatan Ion Na⁺ + Cl⁻</strong> untuk melihat Natrium melepaskan 1 elektron valensinya agar stabil (oktet = 8), dan Klorin menangkapnya!
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('atomCanvas'), ctx = c.getContext('2d');
+    let mode = 'C', ang = 0;
+    const atoms = {
+      C:  { name:'Karbon (C)', shells:[2,4], p:6, n:6, desc:'Memiliki 4 elektron valensi sehingga mampu membentuk 4 ikatan kovalen (dasar senyawa organik/kehidupan).' },
+      O:  { name:'Oksigen (O)', shells:[2,6], p:8, n:8, desc:'Memiliki 6 elektron valensi, butuh 2 elektron lagi untuk mencapai kestabilan oktet (8).' },
+      Na: { name:'Natrium (Na)', shells:[2,8,1], p:11, n:12, desc:'Memiliki 1 elektron terluar yang sangat mudah dilepas → membentuk ion positif Na⁺.' },
+      Cl: { name:'Klorin (Cl)', shells:[2,8,7], p:17, n:18, desc:'Memiliki 7 elektron terluar, sangat kuat menarik 1 elektron → membentuk ion negatif Cl⁻.' }
+    };
+
+    function setAtom(k, btn) {
+      mode = k;
+      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      if (k === 'NaCl') {
+        document.getElementById('atomStats').innerHTML = '<strong>Senyawa Ion: Natrium Klorida (NaCl / Garam Dapur)</strong><br>Na (2,8,1) melepas 1 e⁻ → Na⁺ (2,8) &nbsp;|&nbsp; Cl (2,8,7) menerima 1 e⁻ → Cl⁻ (2,8,8)';
+        document.getElementById('atomExplain').innerHTML = '<strong>Terjawab!</strong> Setelah elektron berpindah, kulit terluar keduanya menjadi <strong>penuh 8 elektron (stabil)</strong>. Sifat reaktif/beracunnya hilang dan berubah menjadi kristal garam dapur!';
+      } else {
+        const a = atoms[k];
+        document.getElementById('atomStats').innerHTML = `<strong>${a.name}</strong><br>Proton: ${a.p} | Neutron: ${a.n} | Konfigurasi Kulit: <strong>${a.shells.join(', ')}</strong>`;
+        document.getElementById('atomExplain').innerHTML = a.desc;
+      }
+    }
+
+    function drawBohr(cx, cy, label, shells, color) {
+      ctx.fillStyle = color; ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(label, cx, cy + 5);
+
+      shells.forEach((count, si) => {
+        const r = 48 + si * 36;
+        ctx.strokeStyle = 'rgba(148,163,184,0.35)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+        for (let i = 0; i < count; i++) {
+          const a = ang * (si % 2 === 0 ? 1 : -0.7) + (i * Math.PI * 2 / count);
+          const ex = cx + Math.cos(a) * r, ey = cy + Math.sin(a) * r;
+          ctx.fillStyle = si === shells.length - 1 ? '#fbbf24' : '#38bdf8';
+          ctx.beginPath(); ctx.arc(ex, ey, 5.5, 0, Math.PI*2); ctx.fill();
+        }
+      });
+    }
+
+    function loop() {
+      ang += 0.02;
+      ctx.clearRect(0, 0, c.width, c.height);
+      if (mode === 'NaCl') {
+        drawBohr(220, 200, 'Na⁺', [2, 8], '#f59e0b');
+        drawBohr(540, 200, 'Cl⁻', [2, 8, 8], '#10b981');
+        ctx.fillStyle = '#fde047'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('1 e⁻ berpindah ➔ Stabil Oktet!', 380, 60);
+      } else {
+        drawBohr(380, 200, mode, atoms[mode].shells, '#7c3aed');
+      }
+      requestAnimationFrame(loop);
+    }
+    setAtom('C'); loop();
+  </script>
+</body>
+</html>

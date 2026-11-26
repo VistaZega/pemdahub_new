@@ -47,13 +47,16 @@ class VirtualLab extends Model
         $eng = strtolower((string) $this->engine_type);
         $subj = strtolower((string) $this->subject_name);
 
+        if ($eng === 'olympiad_5' || str_contains($subj, 'olimpiade')) {
+            return 'olimpiade';
+        }
         if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate']) || $this->category === 'vokasi') {
             return 'vokasi';
         }
-        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'ohm_law']) || str_contains($subj, 'fisika')) {
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'ipa_greenhouse', 'ohm_law']) || str_contains($subj, 'fisika')) {
             return 'fisika';
         }
-        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'biology_cell', 'bio_photosynthesis']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'biology_cell', 'bio_photosynthesis', 'bio_blood']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
             return 'kimia_biologi';
         }
         if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry']) || str_contains($subj, 'matematika')) {
@@ -69,6 +72,7 @@ class VirtualLab extends Model
     public function getDisciplineLabelAttribute(): string
     {
         return match ($this->discipline_key) {
+            'olimpiade'     => '🏆 Lab Olimpiade',
             'fisika'        => 'Lab IPA & Fisika',
             'kimia_biologi' => 'Lab Kimia & Biologi',
             'matematika'    => 'Lab Matematika',
@@ -358,10 +362,85 @@ class VirtualLab extends Model
                     'Klik Uji Soal untuk membuktikan perhitungan cepat rambat v = λ × f.',
                 ],
             ],
+            [
+                'slug'         => 'bio-peredaran-darah',
+                'title'        => 'Simulator Biologi: Pompa Jantung & Peredaran Darah Ganda',
+                'category'     => 'smp',
+                'subject_name' => 'Biologi / IPA (SMP & SMA)',
+                'engine_type'  => 'bio_blood',
+                'icon'         => 'fas fa-heart-pulse',
+                'accent_color' => '#e11d48',
+                'description'  => 'Bagaimana jantung memompa darah kotor ke paru-paru dan darah kaya oksigen ke seluruh tubuh tanpa pernah tercampur? Mengapa bilik kiri jauh lebih tebal?',
+                'sop_steps'    => [
+                    'Amati aliran sel darah biru (miskin O₂) menuju paru-paru dan darah merah (kaya O₂) menuju seluruh tubuh.',
+                    'Ubah aktivitas dari Istirahat (72 BPM) ke Lari Sprint (155 BPM) dan catat peningkatan curah jantung.',
+                    'Klik Uji Kasus untuk memahami mengapa dinding otot Bilik Kiri jauh lebih tebal.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-archimedes-apung',
+                'title'        => 'Simulator Fisika: Misteri Kapal Baja & Hukum Archimedes',
+                'category'     => 'smp',
+                'subject_name' => 'Fisika / IPA (SMP & SMA)',
+                'engine_type'  => 'physics_archimedes',
+                'icon'         => 'fas fa-ship',
+                'accent_color' => '#0284c7',
+                'description'  => 'Mengapa paku besi kecil langsung tenggelam di air, sedangkan kapal baja ribuan ton justru bisa mengapung megah di lautan?',
+                'sop_steps'    => [
+                    'Celupkan Besi Pejal ke dalam tangki air dan amati mengapa gaya berat (W) mengalahkan gaya apung (Fa).',
+                    'Ganti objek ke Kapal Baja Berongga dan perhatikan bagaimana rongga udara menurunkan massa jenis rata-rata.',
+                    'Geser massa jenis zat cair (Minyak vs Air Tawar vs Air Laut) dan amati perubahan tinggi bagian yang tercelup.',
+                ],
+            ],
+            [
+                'slug'         => 'kimia-struktur-atom',
+                'title'        => 'Simulator Kimia: Model Atom Bohr & Ikatan Garam (NaCl)',
+                'category'     => 'sma',
+                'subject_name' => 'Kimia (SMA)',
+                'engine_type'  => 'chem_atom',
+                'icon'         => 'fas fa-atom',
+                'accent_color' => '#7c3aed',
+                'description'  => 'Mengapa logam Natrium yang meledak di air dan gas Klorin beracun justru bersatu membentuk kristal garam dapur yang aman dimakan?',
+                'sop_steps'    => [
+                    'Pilih atom Karbon, Oksigen, Natrium, dan Klorin untuk mengamati elektron valensi di kulit terluar.',
+                    'Klik mode Ikatan Ion Na⁺ + Cl⁻ untuk melihat perpindahan 1 elektron valensi dari Natrium ke Klorin.',
+                    'Pastikan kedua ion mencapai konfigurasi stabil oktet (8 elektron di kulit terluar).',
+                ],
+            ],
+            [
+                'slug'         => 'ipa-efek-rumah-kaca',
+                'title'        => 'Simulator IPA & Geografi: Efek Rumah Kaca & Iklim Bumi',
+                'category'     => 'umum',
+                'subject_name' => 'IPA / Geografi (SMP & SMA)',
+                'engine_type'  => 'ipa_greenhouse',
+                'icon'         => 'fas fa-earth-asia',
+                'accent_color' => '#059669',
+                'description'  => 'Mengapa suhu Bumi tetap hangat di malam hari, dan apa bahayanya jika gas karbon dioksida (CO₂) terus menebal di atmosfer?',
+                'sop_steps'    => [
+                    'Amati sinar tampak Matahari (kuning) menembus atmosfer dan memantul kembali sebagai panas inframerah (merah).',
+                    'Naikkan kadar gas CO₂ dari 420 ppm ke 850 ppm dan perhatikan makin banyaknya panas merah yang terperangkap.',
+                    'Catat kenaikan suhu rata-rata Bumi dan hubungkan dengan fenomena pemanasan global.',
+                ],
+            ],
+            [
+                'slug'         => 'lab-5-soal-olimpiade-internasional',
+                'title'        => '🏆 Lab Tantangan 5 Soal Olimpiade Sains Internasional',
+                'category'     => 'sma',
+                'subject_name' => 'Olimpiade Sains (IPhO, IMO, IChO, IBO, IOI)',
+                'engine_type'  => 'olympiad_5',
+                'icon'         => 'fas fa-trophy',
+                'accent_color' => '#d97706',
+                'description'  => 'Mengapa bola tenis di atas bola basket memantul 9× lebih tinggi? Mengapa cukup 23 orang untuk peluang >50% ulang tahun sama? Pecahkan 5 soal Olimpiade Dunia secara visual!',
+                'sop_steps'    => [
+                    'Pilih satu per satu dari 5 tab soal Olimpiade (Fisika IPhO, Matematika IMO, Kimia IChO, Biologi IBO, Informatika IOI).',
+                    'Baca pertanyaan misterinya, ubah slider/jalankan simulasi untuk membuktikan fenomenanya secara langsung.',
+                    'Bandingkan hasil simulasi dengan langkah pembuktian matematis/logika di panel pembahasan.',
+                ],
+            ],
         ];
 
         foreach ($defaults as $item) {
-            static::firstOrCreate(['slug' => $item['slug']], $item);
+            static::updateOrCreate(['slug' => $item['slug']], $item);
         }
     }
 }

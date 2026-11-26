@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Biologi: Sistem Peredaran Darah &amp; Pompa Jantung</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#be123c; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.05rem; font-weight:800; margin-top:2px; }
+    button { border:1px solid #cbd5e1; border-radius:10px; padding:9px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
+    button.active { background:#e11d48; color:#fff; border-color:#be123c; }
+    .soal-box { background:#fff1f2; border:1px solid #fecdd3; border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; color:#881337; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>❤️ Simulator Biologi: Sistem Peredaran Darah Ganda &amp; Pompa Jantung</h1>
+    <p>Bagaimana jantung memompa darah miskin oksigen ke paru-paru dan darah kaya oksigen ke seluruh tubuh tanpa tercampur?</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="heartCanvas" width="760" height="410"></canvas>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;">
+        <span style="color:#ef4444">● Darah Kaya Oksigen (O₂) — Kiri Jantung → Tubuh</span>
+        <span style="color:#3b82f6">● Darah Kaya CO₂ — Kanan Jantung → Paru-paru</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Detak Jantung</div><div class="s-val" id="vBpm" style="color:#e11d48">72 BPM</div></div>
+        <div class="s-box"><div class="s-lbl">Curah Jantung</div><div class="s-val" id="vOut" style="color:#0284c7">5.0 L/mnt</div></div>
+        <div class="s-box"><div class="s-lbl">Fase Jantung</div><div class="s-val" id="vPhase" style="color:#059669">Sistol</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Frekuensi Detak Jantung (BPM)</span><span id="lblBpm" style="color:#e11d48">72 BPM</span>
+        </div>
+        <input type="range" id="inBpm" min="50" max="170" step="5" value="72" style="width:100%;accent-color:#e11d48;cursor:pointer;">
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="active" onclick="setAct(72, this)">🧘 Istirahat (72 BPM)</button>
+        <button onclick="setAct(115, this)">🚶 Jalan Cepat (115 BPM)</button>
+        <button onclick="setAct(155, this)">🏃 Lari Sprint (155 BPM)</button>
+      </div>
+
+      <div class="soal-box">
+        <strong>📝 Contoh Kasus &amp; Pembuktian:</strong>
+        <p id="soalHeart" style="margin-top:4px;">
+          <em>Pertanyaan:</em> Mengapa otot dinding <strong>Bilik Kiri</strong> jantung jauh lebih tebal dibanding Bilik Kanan, dan ke mana arah aliran darahnya?
+        </p>
+        <button onclick="ujiHeart()" style="margin-top:8px;background:#e11d48;color:#fff;border-color:#be123c;">▶ Lihat Penjelasan &amp; Uji Lari Sprint</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('heartCanvas'), ctx = c.getContext('2d');
+    const inBpm = document.getElementById('inBpm');
+    let t = 0;
+
+    function setAct(bpm, btn) {
+      inBpm.value = bpm;
+      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+    function ujiHeart() {
+      inBpm.value = 155;
+      document.getElementById('soalHeart').innerHTML = '<strong>Jawaban:</strong> Bilik Kiri harus memompa darah kaya O₂ <strong>ke seluruh tubuh</strong> (jarak jauh, tekanan tinggi), sedangkan Bilik Kanan hanya memompa ke <strong>paru-paru</strong> yang letaknya tepat di sebelah jantung!';
+    }
+
+    const rbc = Array.from({length: 28}, (_, i) => ({ prog: i / 28 }));
+
+    function loop() {
+      const bpm = +inBpm.value;
+      document.getElementById('lblBpm').textContent = bpm + ' BPM';
+      document.getElementById('vBpm').textContent = bpm + ' BPM';
+      document.getElementById('vOut').textContent = (bpm * 0.07).toFixed(1) + ' L/mnt';
+
+      const speed = (bpm / 60) * 0.008;
+      t += (bpm / 60) * 0.1;
+      const pulse = Math.sin(t);
+      document.getElementById('vPhase').textContent = pulse > 0 ? 'Sistol (Memompa)' : 'Diastol (Mengisi)';
+
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      // Paru-paru (Atas) & Seluruh Tubuh (Bawah)
+      ctx.fillStyle = 'rgba(56,189,248,0.18)'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(275, 22, 210, 62, 16); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#e0f2fe'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('🫁 PARU-PARU (Pertukaran O₂)', 380, 58);
+
+      ctx.fillStyle = 'rgba(245,158,11,0.15)'; ctx.strokeStyle = '#fbbf24';
+      ctx.beginPath(); ctx.roundRect(255, 330, 250, 58, 16); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fef3c7'; ctx.fillText('🧍 SELURUH TUBUH (Jaringan)', 380, 364);
+
+      // Jantung di Tengah (4 Ruang)
+      const scale = 1 + Math.max(0, pulse) * 0.05;
+      ctx.save(); ctx.translate(380, 205); ctx.scale(scale, scale);
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.roundRect(-85, -65, 170, 130, 24); ctx.fill(); ctx.stroke();
+      // Sekat jantung
+      ctx.strokeStyle = '#cbd5e1'; ctx.beginPath(); ctx.moveTo(0, -65); ctx.lineTo(0, 65); ctx.moveTo(-85, 0); ctx.lineTo(85, 0); ctx.stroke();
+      // Warna ruang kanan (biru) & kiri (merah)
+      ctx.fillStyle = 'rgba(59,130,246,0.35)'; ctx.fillRect(-82, -62, 80, 124);
+      ctx.fillStyle = 'rgba(239,68,68,0.4)'; ctx.fillRect(2, -62, 80, 124);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif';
+      ctx.fillText('Serambi Ka', -42, -30); ctx.fillText('Bilik Ka', -42, 35);
+      ctx.fillText('Serambi Ki', 42, -30); ctx.fillText('Bilik Ki', 42, 35);
+      ctx.restore();
+
+      // Lintasan Sirkulasi Ganda
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = 'rgba(59,130,246,0.35)';
+      ctx.beginPath(); ctx.moveTo(295, 225); ctx.lineTo(150, 225); ctx.lineTo(150, 53); ctx.lineTo(275, 53); ctx.stroke();
+      ctx.strokeStyle = 'rgba(239,68,68,0.35)';
+      ctx.beginPath(); ctx.moveTo(485, 53); ctx.lineTo(610, 53); ctx.lineTo(610, 225); ctx.lineTo(465, 225); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(420, 270); ctx.lineTo(420, 330); ctx.stroke();
+      ctx.strokeStyle = 'rgba(59,130,246,0.35)';
+      ctx.beginPath(); ctx.moveTo(340, 330); ctx.lineTo(340, 270); ctx.stroke();
+
+      // Sel darah merah bergerak
+      rbc.forEach(p => {
+        p.prog = (p.prog + speed) % 1;
+        const angle = p.prog * Math.PI * 2;
+        const rx = 380 + Math.cos(angle) * 225;
+        const ry = 205 + Math.sin(angle) * 145;
+        ctx.fillStyle = rx > 380 ? '#ef4444' : '#3b82f6';
+        ctx.beginPath(); ctx.arc(rx, ry, 7, 0, Math.PI*2); ctx.fill();
+      });
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

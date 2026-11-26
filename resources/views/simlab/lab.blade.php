@@ -13,12 +13,12 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #050a14;
+            background-color: #f8fafc;
             background-image:
-                linear-gradient(to right, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(56, 189, 248, 0.035) 1px, transparent 1px);
+                linear-gradient(to right, rgba(14, 165, 233, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
             background-size: 36px 36px;
-            color: #f1f5f9;
+            color: #0f172a;
         }
         .font-mono-lab { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
@@ -41,53 +41,58 @@
         'math_trigonometry'  => asset('simlab-engines/matematika-trigonometri.html'),
         'econ_market'        => asset('simlab-engines/ekonomi-pasar-keseimbangan.html'),
         'physics_wave'       => asset('simlab-engines/ipa-gelombang-bunyi.html'),
+        'bio_blood'          => asset('simlab-engines/bio-peredaran-darah.html'),
+        'physics_archimedes' => asset('simlab-engines/fisika-archimedes-apung.html'),
+        'chem_atom'          => asset('simlab-engines/kimia-struktur-atom.html'),
+        'ipa_greenhouse'     => asset('simlab-engines/ipa-efek-rumah-kaca.html'),
+        'olympiad_5'         => asset('simlab-engines/olimpiade-5-soal.html'),
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
 @endphp
 <body class="min-h-screen flex flex-col" x-data="virtualLabRunner()">
 
-    <!-- Top Toolbar -->
-    <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-40">
+    <!-- Top Toolbar (Clean Bright Lab) -->
+    <header class="border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-                <a href="{{ route('simlab.index') }}" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold transition shrink-0">
+                <a href="{{ route('simlab.index') }}" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-sm font-bold transition shrink-0">
                     <i class="fas fa-arrow-left mr-1"></i> Katalog Lab
                 </a>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold uppercase">{{ $lab->category }}</span>
+                        <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 text-[11px] font-bold uppercase">{{ $lab->discipline_label }}</span>
                         @if($isInstructor)
-                        <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold">Mode Instruktur</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold">Mode Instruktur</span>
                         @else
-                        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">Mode Praktikan</span>
+                        <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold">Mode Praktikan</span>
                         @endif
-                        <span class="text-xs text-slate-400 font-semibold truncate hidden sm:inline">{{ $lab->subject_name }}</span>
+                        <span class="text-xs text-slate-500 font-semibold truncate hidden sm:inline">{{ $lab->subject_name }}</span>
                     </div>
-                    <h1 class="text-base sm:text-lg font-extrabold text-white truncate">{{ $lab->title }}</h1>
+                    <h1 class="text-base sm:text-lg font-extrabold text-slate-900 truncate">{{ $lab->title }}</h1>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
                 <button type="button" @click="showSop = !showSop"
-                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition">
-                    <i class="fas" :class="showSop ? 'fa-compress-alt' : 'fa-clipboard-list text-amber-400'"></i>
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition">
+                    <i class="fas" :class="showSop ? 'fa-compress-alt' : 'fa-clipboard-list text-amber-600'"></i>
                     <span class="hidden md:inline" x-text="showSop ? 'Luaskan Kanvas' : 'Tampilkan SOP Lab'"></span>
                 </button>
                 @if($isInstructor)
                 <button type="button" @click="copyLabUrl()"
-                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition">
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs">
                     <i class="fas fa-link"></i>
                     <span class="hidden sm:inline" x-text="copied ? 'Tersalin!' : 'Salin Link LMS'"></span>
                 </button>
                 @endif
                 @if($lab->course && auth()->check() && auth()->user()->student)
-                <a href="{{ route('siswa.lms.show', $lab->course->id) }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition">
+                <a href="{{ route('siswa.lms.show', $lab->course->id) }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
                     <i class="fas fa-book-open"></i> Course LMS
                 </a>
                 @endif
                 @if(auth()->check() && auth()->user()->student)
                 <a href="{{ route('siswa.ai.index', ['mode' => 'tutor', 'prompt' => 'Saya sedang melakukan praktikum "' . $lab->title . '" (' . $lab->subject_name . '). Tolong jelaskan konsep dan variabel utamanya.']) }}"
-                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-bold transition">
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold transition">
                     <i class="fas fa-robot text-amber-300"></i> <span class="hidden sm:inline">Tanya AI</span>
                 </a>
                 @endif
@@ -100,33 +105,33 @@
 
         <!-- LEFT: SOP PRAKTIKUM & CATATAN LAB -->
         <aside x-show="showSop" x-transition class="lg:col-span-3 space-y-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                        <i class="fas fa-clipboard-list"></i> SOP &amp; Petunjuk Lab
+                    <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-700 flex items-center gap-2">
+                        <i class="fas fa-clipboard-list text-amber-500"></i> SOP &amp; Petunjuk Lab
                     </h2>
-                    <span class="text-xs font-mono-lab font-bold text-emerald-400" x-text="checkedSteps.length + '/' + totalSteps + ' Selesai'"></span>
+                    <span class="text-xs font-mono-lab font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200" x-text="checkedSteps.length + '/' + totalSteps + ' Selesai'"></span>
                 </div>
-                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">{{ $lab->description }}</p>
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">{{ $lab->description }}</p>
 
-                <div class="space-y-2 pt-2 border-t border-slate-800">
+                <div class="space-y-2 pt-2 border-t border-slate-100">
                     @foreach(($lab->sop_steps ?? []) as $idx => $step)
-                    <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition">
-                        <input type="checkbox" value="{{ $idx }}" x-model="checkedSteps" class="mt-1 rounded text-emerald-500 focus:ring-emerald-500">
-                        <span class="text-xs text-slate-200 leading-snug">
-                            <strong class="text-emerald-400">Langkah {{ $idx + 1 }}:</strong> {{ $step }}
+                    <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:border-emerald-400 cursor-pointer transition">
+                        <input type="checkbox" value="{{ $idx }}" x-model="checkedSteps" class="mt-1 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-xs text-slate-700 leading-snug">
+                            <strong class="text-emerald-700">Langkah {{ $idx + 1 }}:</strong> {{ $step }}
                         </span>
                     </label>
                     @endforeach
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2">
-                <label class="text-xs font-extrabold uppercase tracking-wider text-cyan-400 block">
+            <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-2">
+                <label class="text-xs font-extrabold uppercase tracking-wider text-sky-700 block">
                     <i class="fas fa-pen-to-square mr-1"></i> {{ $isInstructor ? 'Catatan Instruktur / Bahan Ajar' : 'Catatan Pengamatan Siswa' }}
                 </label>
                 <textarea rows="4" x-model="labNotes" placeholder="Catat hasil pengamatan variabel & kesimpulan eksperimen di sini..."
-                          class="w-full rounded-xl bg-slate-950 border border-slate-700 p-3 text-xs sm:text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-cyan-400"></textarea>
+                          class="w-full rounded-xl bg-slate-50 border border-slate-300 p-3 text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-sky-500"></textarea>
             </div>
         </aside>
 

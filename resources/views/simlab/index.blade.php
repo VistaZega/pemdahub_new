@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,23 +11,25 @@
     <style>
         [x-cloak] { display: none !important; }
         body {
-            background-color: #050a14;
+            background-color: #f8fafc;
             background-image:
-                linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
-                radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.14) 0%, transparent 45%),
-                radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 40%);
-            background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+                linear-gradient(to right, rgba(14, 165, 233, 0.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(14, 165, 233, 0.06) 1px, transparent 1px),
+                radial-gradient(circle at 85% 5%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 10% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%);
+            background-size: 36px 36px, 36px 36px, 100% 100%, 100% 100%;
             min-height: 100vh;
-            color: #f8fafc;
+            color: #0f172a;
         }
-        .lab-glass {
-            background: rgba(15, 23, 42, 0.78);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.16);
+        .lab-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(8px);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
         }
-        .lab-glass:hover {
-            border-color: rgba(56, 189, 248, 0.45);
+        .lab-card:hover {
+            border-color: #0ea5e9;
+            box-shadow: 0 10px 26px rgba(14, 165, 233, 0.12);
             transform: translateY(-2px);
         }
     </style>
@@ -35,43 +37,44 @@
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
     $disciplineTabs = [
-        'fisika'        => ['label' => 'Lab IPA & Fisika', 'icon' => 'fa-atom', 'active' => 'bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-600/25'],
-        'kimia_biologi' => ['label' => 'Lab Kimia & Biologi', 'icon' => 'fa-flask', 'active' => 'bg-emerald-600 text-white border-emerald-400 shadow-lg shadow-emerald-600/25'],
-        'matematika'    => ['label' => 'Lab Matematika', 'icon' => 'fa-square-root-variable', 'active' => 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/25'],
-        'vokasi'        => ['label' => 'Lab Kejuruan & Vokasi', 'icon' => 'fa-gears', 'active' => 'bg-amber-600 text-white border-amber-400 shadow-lg shadow-amber-600/25'],
-        'ips_bahasa'    => ['label' => 'Lab IPS, Ekonomi & Bahasa', 'icon' => 'fa-earth-asia', 'active' => 'bg-purple-600 text-white border-purple-400 shadow-lg shadow-purple-600/25'],
+        'olimpiade'     => ['label' => '🏆 Lab Olimpiade', 'icon' => 'fa-trophy', 'active' => 'bg-amber-500 text-slate-950 border-amber-600 shadow-md'],
+        'fisika'        => ['label' => 'Lab IPA & Fisika', 'icon' => 'fa-atom', 'active' => 'bg-sky-600 text-white border-sky-700 shadow-md'],
+        'kimia_biologi' => ['label' => 'Lab Kimia & Biologi', 'icon' => 'fa-flask', 'active' => 'bg-emerald-600 text-white border-emerald-700 shadow-md'],
+        'matematika'    => ['label' => 'Lab Matematika', 'icon' => 'fa-square-root-variable', 'active' => 'bg-indigo-600 text-white border-indigo-700 shadow-md'],
+        'vokasi'        => ['label' => 'Lab Kejuruan & Vokasi', 'icon' => 'fa-gears', 'active' => 'bg-orange-600 text-white border-orange-700 shadow-md'],
+        'ips_bahasa'    => ['label' => 'Lab IPS, Ekonomi & Bahasa', 'icon' => 'fa-earth-asia', 'active' => 'bg-purple-600 text-white border-purple-700 shadow-md'],
     ];
 @endphp
-<body class="antialiased selection:bg-cyan-500 selection:text-slate-950" x-data="simLabCatalog()">
+<body class="antialiased selection:bg-sky-200 selection:text-slate-900" x-data="simLabCatalog()">
 
-    <!-- Top Navbar -->
-    <nav class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
+    <!-- Top Navbar (Clean Bright Lab Header) -->
+    <nav class="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <a href="{{ url('/') }}" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-emerald-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 via-teal-500 to-emerald-500 flex items-center justify-center shadow-md shadow-sky-500/20">
                     <i class="fas fa-microscope text-white text-base"></i>
                 </div>
                 <div>
-                    <span class="font-extrabold text-white tracking-tight text-base block leading-none">PembdaHUB <span class="text-cyan-400">Research &amp; SimLab</span></span>
-                    <span class="text-[11px] text-slate-400">Ruang Laboratorium Penelitian &amp; Praktikum Virtual</span>
+                    <span class="font-extrabold text-slate-900 tracking-tight text-base block leading-none">PembdaHUB <span class="text-sky-600">Research &amp; SimLab</span></span>
+                    <span class="text-[11px] text-slate-500 font-medium">Ruang Laboratorium Penelitian &amp; Praktikum Virtual</span>
                 </div>
             </a>
 
             <div class="flex items-center gap-2.5">
                 @if($isInstructor)
-                <button @click="openAiModal = true" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/25 transition">
+                <button @click="openAiModal = true" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs sm:text-sm font-semibold shadow-md transition">
                     <i class="fas fa-wand-magic-sparkles"></i>
                     <span>Buat Simulator AI</span>
                 </button>
                 @endif
 
                 @auth
-                <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-medium border border-slate-700 transition">
+                <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold border border-slate-300 transition">
                     <i class="fas fa-arrow-left"></i>
                     <span class="hidden sm:inline">Kembali ke Portal</span>
                 </a>
                 @else
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-medium border border-slate-700 transition">
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold transition">
                     <i class="fas fa-right-to-bracket"></i>
                     <span>Login</span>
                 </a>
@@ -80,139 +83,132 @@
         </div>
     </nav>
 
-    <!-- Hero Banner: Ruangan Penelitian & Praktikum -->
-    <header class="relative overflow-hidden border-b border-slate-800/80">
+    <!-- Hero Banner: Ruangan Penelitian Terang & Bersih -->
+    <header class="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-white via-sky-50/60 to-emerald-50/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 <div class="lg:col-span-7">
                     <div class="flex flex-wrap items-center gap-2 mb-3.5">
-                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-xs font-semibold">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>Laboratorium Riset &amp; Praktikum Terpadu</span>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 border border-sky-200 text-sky-800 text-xs font-bold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Laboratorium Riset &amp; Praktikum Modern</span>
                         </span>
                         @if($isInstructor)
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-bold">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold">
                             <i class="fas fa-chalkboard-teacher"></i> Mode Instruktur (Guru)
                         </span>
                         @else
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-bold">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold">
                             <i class="fas fa-user-graduate"></i> Mode Praktikan (Siswa)
                         </span>
                         @endif
                     </div>
 
-                    <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-3 leading-tight">
-                        Ruang Eksperimen &amp; Pemodelan <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-400">Fenomena Ilmu Pengetahuan</span>
+                    <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3 leading-tight">
+                        Pecahkan Misteri Sains &amp; Fenomena Nyata di <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600">Laboratorium Virtual</span>
                     </h1>
-                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-5">
-                        PembdaHUB Simulator Lab menghadirkan kemajuan teknologi &amp; AI langsung ke ruang kelas: memodelkan hukum fisika, reaksi kimia, proses biologi, matematika, ekonomi, hingga sistem kejuruan SMK menjadi simulasi objek nyata yang bisa diubah variabelnya dan dibuktikan langsung.
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-5">
+                        Mengapa kapal baja ribuan ton bisa mengapung sementara paku tenggelam? Bagaimana jantung memompa darah bersih dan kotor tanpa tercampur? Masuk ke ruang lab cerah PembdaHUB, ubah variabel eksperimennya, dan temukan jawabannya secara visual!
                     </p>
 
                     <div class="flex flex-wrap items-center gap-3">
-                        <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2.5">
-                            <i class="fas fa-flask-vial text-cyan-400 text-lg"></i>
+                        <div class="px-4 py-2.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5">
+                            <i class="fas fa-flask-vial text-sky-600 text-lg"></i>
                             <div>
-                                <div class="text-lg font-extrabold text-white leading-none">{{ $virtualLabs->count() }}</div>
-                                <div class="text-[11px] text-slate-400">Ruang Praktikum</div>
+                                <div class="text-lg font-extrabold text-slate-900 leading-none">{{ $virtualLabs->count() }}</div>
+                                <div class="text-[11px] text-slate-500 font-medium">Ruang Praktikum</div>
                             </div>
                         </div>
-                        <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2.5">
-                            <i class="fas fa-layer-group text-emerald-400 text-lg"></i>
+                        <div class="px-4 py-2.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5">
+                            <i class="fas fa-trophy text-amber-500 text-lg"></i>
                             <div>
-                                <div class="text-lg font-extrabold text-white leading-none">5</div>
-                                <div class="text-[11px] text-slate-400">Rumpun Ilmu</div>
+                                <div class="text-lg font-extrabold text-slate-900 leading-none">5 Soal</div>
+                                <div class="text-[11px] text-slate-500 font-medium">Lab Olimpiade</div>
                             </div>
                         </div>
-                        <button type="button" @click="showGuide = !showGuide" class="px-4 py-2.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/35 text-indigo-200 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
-                            <i class="fas fa-circle-info text-cyan-400"></i>
+                        <button type="button" @click="showGuide = !showGuide" class="px-4 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 text-xs sm:text-sm font-bold transition inline-flex items-center gap-2">
+                            <i class="fas fa-circle-info text-indigo-600"></i>
                             <span x-text="showGuide ? 'Tutup Panduan Lab' : 'Panduan Guru &amp; Siswa'"></span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Ilustrasi Ruangan Penelitian & Meja Praktikum (SVG Vector Lab Scene) -->
+                <!-- Ilustrasi Ruangan Penelitian Cerah & Bersih (Clean Bright Lab SVG) -->
                 <div class="lg:col-span-5">
-                    <div class="relative rounded-2xl bg-slate-900/80 border border-slate-700/70 p-4 shadow-2xl overflow-hidden">
-                        <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 pb-2 mb-2 border-b border-slate-800">
-                            <span><i class="fas fa-circle text-emerald-400 text-[8px] mr-1.5"></i>PEMBDA-LAB // WORKBENCH 01</span>
-                            <span>STATUS: READY</span>
+                    <div class="relative rounded-2xl bg-white border border-slate-200 p-4 shadow-xl overflow-hidden">
+                        <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 pb-2 mb-2 border-b border-slate-100">
+                            <span><i class="fas fa-circle text-emerald-500 text-[8px] mr-1.5"></i>PEMBDA-LAB // CLEAN WORKBENCH</span>
+                            <span class="text-sky-600 font-bold">SIAP PRAKTIKUM</span>
                         </div>
-                        <svg viewBox="0 0 460 220" class="w-full h-auto rounded-xl bg-slate-950/90 border border-slate-800">
-                            <!-- Grid dinding lab -->
+                        <svg viewBox="0 0 460 220" class="w-full h-auto rounded-xl bg-gradient-to-b from-sky-50 to-slate-50 border border-slate-200">
                             <defs>
-                                <pattern id="labGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(56,189,248,0.08)" stroke-width="1"/>
+                                <pattern id="brightGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(14,165,233,0.1)" stroke-width="1"/>
                                 </pattern>
                             </defs>
-                            <rect width="460" height="220" fill="url(#labGrid)" />
-                            <!-- Rak alat di dinding -->
-                            <rect x="25" y="28" width="110" height="6" rx="3" fill="#334155"/>
-                            <!-- Tabung reaksi di rak -->
-                            <rect x="40" y="10" width="10" height="20" rx="5" fill="rgba(56,189,248,0.6)" stroke="#bae6fd" stroke-width="1.2"/>
-                            <rect x="60" y="8" width="10" height="22" rx="5" fill="rgba(52,211,153,0.6)" stroke="#a7f3d0" stroke-width="1.2"/>
-                            <rect x="80" y="12" width="10" height="18" rx="5" fill="rgba(244,114,182,0.6)" stroke="#fbcfe8" stroke-width="1.2"/>
-                            <rect x="100" y="10" width="10" height="20" rx="5" fill="rgba(251,191,36,0.6)" stroke="#fde68a" stroke-width="1.2"/>
+                            <rect width="460" height="220" fill="url(#brightGrid)" />
+                            <!-- Jendela Lab Cerah -->
+                            <rect x="310" y="16" width="120" height="80" rx="8" fill="#e0f2fe" stroke="#bae6fd" stroke-width="2"/>
+                            <line x1="370" y1="16" x2="370" y2="96" stroke="#bae6fd" stroke-width="2"/>
+                            <circle cx="340" cy="38" r="10" fill="#fde047" opacity="0.8"/>
 
-                            <!-- Monitor Osiloskop / Riset di Meja -->
-                            <rect x="165" y="34" width="150" height="96" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
-                            <rect x="175" y="44" width="130" height="70" rx="6" fill="#020617"/>
-                            <!-- Gelombang sinus bercahaya -->
-                            <path d="M 180 79 Q 198 48 215 79 T 250 79 T 285 79 L 300 79" fill="none" stroke="#34d399" stroke-width="2.5"/>
-                            <path d="M 180 86 Q 205 106 230 86 T 280 86" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="4 3"/>
-                            <rect x="228" y="130" width="24" height="18" fill="#334155"/>
-                            <rect x="210" y="146" width="60" height="6" rx="3" fill="#475569"/>
+                            <!-- Rak Tabung Reaksi -->
+                            <rect x="25" y="34" width="110" height="6" rx="3" fill="#94a3b8"/>
+                            <rect x="40" y="14" width="10" height="22" rx="5" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+                            <rect x="60" y="12" width="10" height="24" rx="5" fill="#34d399" stroke="#059669" stroke-width="1.2"/>
+                            <rect x="80" y="16" width="10" height="20" rx="5" fill="#f472b6" stroke="#db2777" stroke-width="1.2"/>
+                            <rect x="100" y="14" width="10" height="22" rx="5" fill="#fbbf24" stroke="#d97706" stroke-width="1.2"/>
 
-                            <!-- Gelas Beaker Kimia & Erlenmeyer di Kiri Meja -->
-                            <path d="M 45 152 L 52 96 L 82 96 L 89 152 Z" fill="rgba(16,185,129,0.22)" stroke="#94a3b8" stroke-width="2"/>
-                            <path d="M 48 150 L 52 122 L 82 122 L 86 150 Z" fill="rgba(16,185,129,0.55)"/>
-                            <circle cx="62" cy="136" r="3" fill="#a7f3d0"/>
-                            <circle cx="72" cy="129" r="2.5" fill="#a7f3d0"/>
-                            <!-- Labu Erlenmeyer -->
-                            <path d="M 118 96 L 128 96 L 132 116 L 146 152 L 100 152 L 114 116 Z" fill="rgba(168,85,247,0.25)" stroke="#cbd5e1" stroke-width="2"/>
-                            <path d="M 107 150 L 113 134 L 133 134 L 139 150 Z" fill="rgba(168,85,247,0.65)"/>
+                            <!-- Monitor Riset di Meja -->
+                            <rect x="160" y="32" width="140" height="92" rx="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2"/>
+                            <rect x="169" y="41" width="122" height="68" rx="6" fill="#0f172a"/>
+                            <path d="M 174 76 Q 192 46 208 76 T 242 76 T 276 76 L 288 76" fill="none" stroke="#34d399" stroke-width="2.5"/>
+                            <path d="M 174 84 Q 198 102 222 84 T 270 84" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="4 3"/>
+                            <rect x="220" y="124" width="20" height="22" fill="#64748b"/>
+                            <rect x="200" y="144" width="60" height="6" rx="3" fill="#94a3b8"/>
 
-                            <!-- Mikroskop & Model Atom di Kanan Meja -->
-                            <path d="M 355 150 L 405 150 L 398 140 L 362 140 Z" fill="#475569"/>
-                            <path d="M 388 140 Q 405 110 385 88" fill="none" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
-                            <rect x="372" y="72" width="12" height="30" rx="3" transform="rotate(20 378 87)" fill="#38bdf8"/>
-                            <rect x="358" y="124" width="32" height="4" rx="2" fill="#cbd5e1"/>
-                            <!-- Orbit Atom -->
-                            <g transform="translate(405, 52)">
-                                <ellipse rx="24" ry="9" fill="none" stroke="#f59e0b" stroke-width="1.3" transform="rotate(30)"/>
-                                <ellipse rx="24" ry="9" fill="none" stroke="#38bdf8" stroke-width="1.3" transform="rotate(-30)"/>
-                                <circle r="4.5" fill="#fbbf24"/>
-                            </g>
+                            <!-- Gelas Beaker & Erlenmeyer -->
+                            <path d="M 42 150 L 49 96 L 79 96 L 86 150 Z" fill="rgba(16,185,129,0.2)" stroke="#64748b" stroke-width="2"/>
+                            <path d="M 45 148 L 49 122 L 79 122 L 83 148 Z" fill="rgba(16,185,129,0.55)"/>
+                            <path d="M 114 96 L 124 96 L 128 116 L 142 150 L 96 150 L 110 116 Z" fill="rgba(168,85,247,0.2)" stroke="#64748b" stroke-width="2"/>
+                            <path d="M 103 148 L 109 132 L 129 132 L 135 148 Z" fill="rgba(168,85,247,0.6)"/>
 
-                            <!-- Meja Praktikum Utama -->
-                            <rect x="14" y="152" width="432" height="14" rx="4" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
-                            <rect x="30" y="166" width="16" height="46" fill="#0f172a"/>
-                            <rect x="414" y="166" width="16" height="46" fill="#0f172a"/>
-                            <text x="230" y="192" text-anchor="middle" fill="#64748b" font-size="10" font-family="monospace" font-weight="bold">LABORATORIUM VIRTUAL PEMBDAHUV • EKSPERIMEN INTERAKTIF</text>
+                            <!-- Mikroskop -->
+                            <path d="M 345 148 L 395 148 L 388 138 L 352 138 Z" fill="#475569"/>
+                            <path d="M 378 138 Q 395 110 375 88" fill="none" stroke="#334155" stroke-width="6" stroke-linecap="round"/>
+                            <rect x="362" y="72" width="12" height="30" rx="3" transform="rotate(20 368 87)" fill="#0284c7"/>
+                            <rect x="348" y="122" width="32" height="4" rx="2" fill="#64748b"/>
+
+                            <!-- Meja Praktikum Putih Bersih -->
+                            <rect x="14" y="150" width="432" height="14" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+                            <rect x="30" y="164" width="16" height="48" fill="#cbd5e1"/>
+                            <rect x="414" y="164" width="16" height="48" fill="#cbd5e1"/>
+                            <text x="230" y="190" text-anchor="middle" fill="#475569" font-size="10" font-family="monospace" font-weight="bold">LABORATORIUM VIRTUAL PEMBDAHUV • RUANG PRAKTIKUM TERPADU</text>
                         </svg>
                     </div>
                 </div>
             </div>
 
-            <!-- Panel Informasi: Apa Itu Simulator Lab & Cara Membantu Guru/Siswa -->
-            <div x-show="showGuide" x-transition class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-800/80">
-                <div class="lab-glass rounded-2xl p-5 border-l-4 border-l-emerald-400">
-                    <h3 class="text-sm sm:text-base font-bold text-emerald-300 flex items-center gap-2 mb-2">
-                        <i class="fas fa-chalkboard-teacher"></i> Untuk Guru: Alat Peraga &amp; Pembuktian Konsep di Kelas
+            <!-- Panel Informasi: Bagaimana SimLab Membantu Guru & Siswa -->
+            <div x-show="showGuide" x-transition class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-200">
+                <div class="lab-card rounded-2xl p-5 border-l-4 border-l-emerald-500">
+                    <h3 class="text-sm sm:text-base font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                        <i class="fas fa-chalkboard-teacher text-emerald-600"></i> Untuk Guru: Menjelaskan Fenomena &amp; Membuktikan Rumus
                     </h3>
-                    <ul class="text-xs sm:text-sm text-slate-300 space-y-1.5 leading-relaxed">
-                        <li>• <strong>Visualisasi Konsep Abstrak:</strong> Tampilkan gerakan partikel, gaya vektor, pembelahan sel, atau siklus mesin langsung di layar proyektor/LMS.</li>
-                        <li>• <strong>Bahas Contoh Soal Sulit:</strong> Gunakan tombol <em>"Uji Kasus Soal"</em> di ruang lab untuk membuktikan rumus secara visual di hadapan siswa.</li>
-                        <li>• <strong>Bangkitkan Simulator via AI:</strong> Belum ada simulasi untuk topik tertentu? Klik <strong>Buat Simulator AI</strong> atau bangkitkan langsung dari Course LMS Anda.</li>
+                    <ul class="text-xs sm:text-sm text-slate-600 space-y-1.5 leading-relaxed">
+                        <li>• <strong>Visualisasi Konsep Sulit:</strong> Tampilkan objek nyata (mobil, pembuluh darah, kapal laut, atom, mesin 4-tak) yang bergerak langsung di depan kelas.</li>
+                        <li>• <strong>Pembuktian Soal &amp; Olimpiade:</strong> Gunakan tombol <em>"Uji Kasus Soal"</em> agar siswa melihat langsung mengapa sebuah rumus menghasilkan jawaban tersebut.</li>
+                        <li>• <strong>Generator Simulator AI:</strong> Buat simulasi khusus untuk materi LMS Anda hanya dengan beberapa klik.</li>
                     </ul>
                 </div>
-                <div class="lab-glass rounded-2xl p-5 border-l-4 border-l-cyan-400">
-                    <h3 class="text-sm sm:text-base font-bold text-cyan-300 flex items-center gap-2 mb-2">
-                        <i class="fas fa-user-graduate"></i> Untuk Siswa: Ruang Praktikum Aman &amp; Eksperimen Mandiri
+                <div class="lab-card rounded-2xl p-5 border-l-4 border-l-sky-500">
+                    <h3 class="text-sm sm:text-base font-bold text-sky-800 flex items-center gap-2 mb-2">
+                        <i class="fas fa-user-graduate text-sky-600"></i> Untuk Siswa: Eksperimen Mandiri &amp; Pecahkan Rasa Penasaran
                     </h3>
-                    <ul class="text-xs sm:text-sm text-slate-300 space-y-1.5 leading-relaxed">
-                        <li>• <strong>Ikuti SOP Lab Sungguhan:</strong> Setiap ruang lab dilengkapi daftar langkah SOP praktikum dan lembar catatan pengamatan.</li>
-                        <li>• <strong>Belajar dengan Mengubah Variabel:</strong> Geser slider massa, suhu, pH, sudut, atau tegangan untuk melihat akibatnya secara langsung tanpa takut alat rusak.</li>
-                        <li>• <strong>Pahami Cara Menjawab Soal:</strong> Uji soal-soal hitungan sulit langsung di simulasi agar paham logika di balik rumusnya.</li>
+                    <ul class="text-xs sm:text-sm text-slate-600 space-y-1.5 leading-relaxed">
+                        <li>• <strong>Berangkat dari Pertanyaan Nyata:</strong> Setiap ruang lab diawali pertanyaan fenomena sehari-hari untuk memicu rasa ingin tahu.</li>
+                        <li>• <strong>Ikuti SOP Lab &amp; Catat Hasil:</strong> Centang langkah SOP praktikum, ubah variabel (massa, suhu, pH, sudut), dan catat kesimpulannya.</li>
+                        <li>• <strong>Latihan Soal Olimpiade:</strong> Coba <strong>Lab 5 Soal Olimpiade Internasional</strong> untuk memahami logika di balik soal-soal tingkat tinggi.</li>
                     </ul>
                 </div>
             </div>
@@ -223,24 +219,24 @@
         <!-- Toolbar Filter Rumpun Lab & Pencarian -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
-                    <i class="fas fa-door-open text-cyan-400"></i>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2.5">
+                    <i class="fas fa-door-open text-sky-600"></i>
                     <span>Pilih Ruangan Laboratorium Praktikum</span>
                 </h2>
-                <p class="text-xs sm:text-sm text-slate-400 mt-1">Dikelompokkan berdasarkan rumpun bidang ilmu agar mudah ditemukan lintas jenjang SMP, SMA, &amp; SMK.</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Setiap ruangan dilengkapi animasi objek nyata, SOP praktikum, dan pembuktian contoh soal.</p>
             </div>
 
             <div class="relative w-full md:w-72">
                 <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" x-model="searchQuery" placeholder="Cari fenomena atau mapel..."
-                    class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
+                    class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 shadow-xs transition">
             </div>
         </div>
 
         <!-- Tabs Rumpun Ilmu Standar -->
         <div class="flex flex-wrap items-center gap-2">
             <button @click="activeDiscipline = 'all'"
-                :class="activeDiscipline === 'all' ? 'bg-slate-100 text-slate-950 border-white shadow-lg' : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700'"
+                :class="activeDiscipline === 'all' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'"
                 class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition flex items-center gap-2">
                 <i class="fas fa-layer-group"></i>
                 <span>Semua Ruang Lab</span>
@@ -250,11 +246,11 @@
             @foreach($disciplineTabs as $dKey => $dInfo)
             @php $dCount = $virtualLabs->filter(fn($v) => $v->discipline_key === $dKey)->count(); @endphp
             <button @click="activeDiscipline = '{{ $dKey }}'"
-                :class="activeDiscipline === '{{ $dKey }}' ? '{{ $dInfo['active'] }}' : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700'"
+                :class="activeDiscipline === '{{ $dKey }}' ? '{{ $dInfo['active'] }}' : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'"
                 class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition flex items-center gap-2">
                 <i class="fas {{ $dInfo['icon'] }}"></i>
                 <span>{{ $dInfo['label'] }}</span>
-                <span class="px-1.5 py-0.5 rounded-md bg-black/25 text-[11px]">{{ $dCount }}</span>
+                <span class="px-1.5 py-0.5 rounded-md bg-black/10 text-[11px]">{{ $dCount }}</span>
             </button>
             @endforeach
         </div>
@@ -268,64 +264,64 @@
             @endphp
             <div x-show="(activeDiscipline === 'all' || activeDiscipline === '{{ $lab->discipline_key }}') && ('{{ addslashes($searchBlob) }}'.includes(searchQuery.toLowerCase()))"
                  x-transition
-                 class="lab-glass rounded-2xl p-5 flex flex-col justify-between transition duration-200 relative group">
+                 class="lab-card rounded-2xl p-5 flex flex-col justify-between transition duration-200 relative group">
                 <div>
                     <div class="flex items-start justify-between gap-3 mb-3.5">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg shadow-md shrink-0"
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-md shrink-0"
                                  style="background: {{ $lab->accent_color ?? '#0284c7' }};">
                                 <i class="fas {{ $lab->icon ?? 'fa-flask' }}"></i>
                             </div>
                             <div class="min-w-0">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-cyan-300 border border-slate-700">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                                     {{ $lab->discipline_label }}
                                 </span>
-                                <div class="text-xs text-slate-400 font-medium mt-0.5 truncate">{{ $lab->subject_name }}</div>
+                                <div class="text-xs text-slate-500 font-semibold mt-0.5 truncate">{{ $lab->subject_name }}</div>
                             </div>
                         </div>
 
                         @if($canDelete)
                         <button @click="deleteLab({{ $lab->id }}, '{{ addslashes($lab->title) }}')"
                                 title="Hapus Simulator"
-                                class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition shrink-0">
+                                class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0">
                             <i class="fas fa-trash-can text-xs"></i>
                         </button>
                         @endif
                     </div>
 
-                    <h3 class="text-base sm:text-lg font-bold text-white mb-2 leading-snug group-hover:text-cyan-300 transition">
+                    <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mb-2 leading-snug group-hover:text-sky-700 transition">
                         {{ $lab->title }}
                     </h3>
-                    <p class="text-xs sm:text-sm text-slate-400 line-clamp-3 leading-relaxed mb-4">
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
                         {{ $lab->description }}
                     </p>
 
                     @if($lab->course)
-                    <div class="mb-4 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/25 flex items-center gap-2 text-xs text-indigo-300">
-                        <i class="fas fa-book-open shrink-0"></i>
+                    <div class="mb-4 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center gap-2 text-xs text-indigo-800 font-medium">
+                        <i class="fas fa-book-open shrink-0 text-indigo-600"></i>
                         <span class="truncate">LMS: {{ $lab->course->course_name }}</span>
                     </div>
                     @endif
                 </div>
 
-                <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                    <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                        <i class="fas fa-clipboard-check text-emerald-400"></i>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <span class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                        <i class="fas fa-clipboard-check text-emerald-600"></i>
                         <span>{{ is_array($lab->sop_steps) ? count($lab->sop_steps) : 0 }} Langkah SOP</span>
                     </span>
 
                     <div class="flex items-center gap-1.5">
                         @if($isInstructor)
                         <button type="button"
-                                @click="navigator.clipboard?.writeText('{{ route('simlab.lab', $lab->slug) }}'); $el.innerHTML='<i class=\'fas fa-check text-emerald-400\'></i>'; setTimeout(() => $el.innerHTML='<i class=\'fas fa-link\'></i>', 1500)"
+                                @click="navigator.clipboard?.writeText('{{ route('simlab.lab', $lab->slug) }}'); $el.innerHTML='<i class=\'fas fa-check text-emerald-600\'></i>'; setTimeout(() => $el.innerHTML='<i class=\'fas fa-link\'></i>', 1500)"
                                 title="Salin Link untuk Materi/Tugas LMS"
-                                class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white text-xs transition">
+                                class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 text-xs transition">
                             <i class="fas fa-link"></i>
                         </button>
                         @endif
                         <a href="{{ route('simlab.lab', $lab->slug) }}"
-                           class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-white text-xs font-semibold transition">
-                            <span>{{ $isInstructor ? 'Pratinjau Lab' : 'Masuk Ruang Lab' }}</span>
+                           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-bold transition shadow-xs">
+                            <span>{{ $isInstructor ? 'Pratinjau Lab' : 'Masuk &amp; Uji Fenomena' }}</span>
                             <i class="fas fa-arrow-right text-[11px]"></i>
                         </a>
                     </div>
@@ -338,38 +334,38 @@
     <!-- Modal: Buat Simulator Baru dengan AI (Guru/Admin) -->
     @if($isInstructor)
     <div x-show="openAiModal" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
         <div @click.away="if(!isGenerating) openAiModal = false"
-             class="w-full max-w-xl rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+             class="w-full max-w-xl rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden text-slate-900">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
                         <i class="fas fa-wand-magic-sparkles text-sm"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-white text-base">Buat Simulator Lab Baru (AI Generator)</h3>
-                        <p class="text-[11px] text-slate-400">Hasilkan simulasi fenomena beranimasi + SOP praktikum otomatis untuk siswa</p>
+                        <h3 class="font-bold text-slate-900 text-base">Buat Simulator Lab Baru (AI Generator)</h3>
+                        <p class="text-[11px] text-slate-500">Hasilkan simulasi fenomena beranimasi + SOP praktikum otomatis untuk siswa</p>
                     </div>
                 </div>
-                <button @click="if(!isGenerating) openAiModal = false" class="text-slate-400 hover:text-white p-1">
+                <button @click="if(!isGenerating) openAiModal = false" class="text-slate-400 hover:text-slate-700 p-1">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <form @submit.prevent="submitAiLab" class="p-6 space-y-4">
-                <div x-show="aiError" class="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs" x-text="aiError"></div>
+                <div x-show="aiError" class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium" x-text="aiError"></div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Judul Fenomena / Simulator Lab *</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Judul Fenomena / Simulator Lab *</label>
                     <input type="text" x-model="form.title" required placeholder="Contoh: Simulator Mesin Pendingin AC / Hukum Archimedes / Siklus Air"
-                           class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500">
+                           class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Rumpun / Kategori *</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Rumpun / Kategori *</label>
                         <select x-model="form.category" required
-                                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
                             <option value="umum">IPA / IPS / Bahasa / Umum</option>
                             <option value="smp">Matematika &amp; Sains Dasar</option>
                             <option value="sma">Sains Lanjut (Fisika/Kimia/Biologi)</option>
@@ -377,17 +373,17 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Mata Pelajaran / Kejuruan *</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Mata Pelajaran / Kejuruan *</label>
                         <input type="text" x-model="form.subject_name" required placeholder="Contoh: Fisika / TKR / Kimia / Biologi"
-                               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500">
+                               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
                     </div>
                 </div>
 
                 @if($teacherCourses->count() > 0)
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Hubungkan ke Course / Modul LMS (Opsional)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Hubungkan ke Course / Modul LMS (Opsional)</label>
                     <select x-model="form.course_id"
-                            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500">
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
                         <option value="">-- Tidak dihubungkan ke course tertentu --</option>
                         @foreach($teacherCourses as $c)
                         <option value="{{ $c->id }}">{{ $c->course_name }}</option>
@@ -397,18 +393,18 @@
                 @endif
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Objek Nyata, Variabel &amp; Contoh Soal yang Diinginkan</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Objek Nyata, Variabel &amp; Contoh Soal yang Diinginkan</label>
                     <textarea x-model="form.description" rows="3" placeholder="Jelaskan objek nyata yang ditampilkan, variabel slider yang bisa diubah siswa, serta contoh soal yang dibuktikan..."
-                              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+                              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"></textarea>
                 </div>
 
                 <div class="pt-2 flex items-center justify-end gap-3">
                     <button type="button" @click="openAiModal = false" :disabled="isGenerating"
-                            class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
                         Batal
                     </button>
                     <button type="submit" :disabled="isGenerating"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-60 text-white text-xs font-semibold shadow-lg transition">
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-60 text-white text-xs font-semibold shadow-md transition">
                         <i class="fas" :class="isGenerating ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
                         <span x-text="isGenerating ? 'Merakit Simulator & SOP...' : 'Generate Simulator'"></span>
                     </button>
