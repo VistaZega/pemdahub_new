@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Biologi: Pembelahan Sel &amp; Reproduksi (Mitosis &amp; Meiosis)</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; --accent:#ec4899; --emerald:#10b981; --cyan:#22d3ee; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.1rem; font-weight:800; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    .mode-switch { display:flex; gap:6px; background:#1e293b; padding:4px; border-radius:10px; }
+    .mode-btn { border:none; padding:7px 14px; border-radius:7px; font-weight:700; font-size:0.82rem; cursor:pointer; background:transparent; color:#94a3b8; }
+    .mode-btn.active { background:var(--accent); color:#fff; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:radial-gradient(circle at center,#131c31 0%,#060913 100%); border-radius:14px; border:1px solid #1e293b; display:block; }
+    .phases { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+    .phase-btn { border:1px solid #334155; background:#090d16; color:#cbd5e1; padding:8px 4px; border-radius:10px; font-size:0.75rem; font-weight:700; cursor:pointer; text-align:center; }
+    .phase-btn.active { background:rgba(236,72,153,0.2); border-color:var(--accent); color:#fbcfe8; }
+    .ctrl-head { display:flex; justify-content:space-between; font-size:0.84rem; font-weight:700; margin-bottom:6px; }
+    input[type=range] { width:100%; accent-color:var(--accent); cursor:pointer; }
+    .explain { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:14px; font-size:0.84rem; line-height:1.55; }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); text-transform:uppercase; font-weight:700; }
+    .s-val { font-size:1rem; font-weight:800; margin-top:2px; color:var(--cyan); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🧬 Simulator Biologi: Reproduksi Sel (Mitosis &amp; Meiosis)</h1>
+      <p>Visualisasi pergerakan kromosom, sentriol, dan pembelahan inti sel secara animatif</p>
+    </div>
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btnMitosis" onclick="setMode('mitosis')">Mitosis (Sel Tubuh)</button>
+      <button class="mode-btn" id="btnMeiosis" onclick="setMode('meiosis')">Meiosis (Sel Gamet)</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="cellCanvas" width="760" height="440"></canvas>
+      <div class="phases" id="phaseBtns">
+        <button class="phase-btn active" onclick="jumpPhase(0)">1. Profase</button>
+        <button class="phase-btn" onclick="jumpPhase(1)">2. Metafase</button>
+        <button class="phase-btn" onclick="jumpPhase(2)">3. Anafase</button>
+        <button class="phase-btn" onclick="jumpPhase(3)">4. Telofase</button>
+        <button class="phase-btn" onclick="jumpPhase(4)">5. Sitokinesis</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Jenis Pembelahan</div><div class="s-val" id="stMode">Mitosis (2n → 2n)</div></div>
+        <div class="s-box"><div class="s-lbl">Jumlah Sel Anak</div><div class="s-val" id="stDaughter">2 Sel Identik</div></div>
+        <div class="s-box"><div class="s-lbl">Tahap Aktif</div><div class="s-val" id="stPhase" style="color:#f472b6">Profase</div></div>
+        <div class="s-box"><div class="s-lbl">Status Kromosom</div><div class="s-val" id="stChrom" style="color:#34d399">Diploid (2n)</div></div>
+      </div>
+
+      <div>
+        <div class="ctrl-head"><span>Kecepatan Animasi Siklus Sel</span><span id="lblSpeed" style="color:#ec4899">1.0x</span></div>
+        <input type="range" id="inSpeed" min="0" max="2.5" step="0.25" value="1">
+      </div>
+
+      <div>
+        <div class="ctrl-head"><span>Kemajuan Tahap (Manual Scrub)</span><span id="lblProg" style="color:#22d3ee">0%</span></div>
+        <input type="range" id="inProg" min="0" max="4.99" step="0.02" value="0">
+      </div>
+
+      <div class="explain" id="bioExplain"></div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="togglePlay()" id="btnPlay" style="border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#10b981;color:#022c22;">⏸ Jeda Animasi</button>
+        <button onclick="jumpPhase(0)" style="border:1px solid #334155;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#1e293b;color:#f8fafc;">↺ Ulang Siklus</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('cellCanvas'), ctx = c.getContext('2d');
+    let mode = 'mitosis', progress = 0, playing = true, speed = 1;
+    const phaseInfo = [
+      { name:'Profase', desc:'Kromatin memadat menjadi kromosom ganda (kromatid saudara). Membran inti mulai terurai dan sentriol bergerak ke kutub berlawanan membentuk benang spindel.' },
+      { name:'Metafase', desc:'Kromosom berjajar rapi tepat di bidang ekuator (tengah) sel. Benang spindel menempel pada sentromer setiap kromosom.' },
+      { name:'Anafase', desc:'Kromatid saudara ditarik terpisah oleh benang spindel menuju masing-masing kutub sel yang berlawanan.' },
+      { name:'Telofase', desc:'Kromosom tiba di kutub, membran inti baru mulai terbentuk kembali di kedua sisi, dan sel mulai melekuk di bagian tengah.' },
+      { name:'Sitokinesis', desc:'Sitoplasma terbelah sempurna menghasilkan sel anak baru! Pada Mitosis terbentuk 2 sel identik (2n), pada Meiosis berlanjut hingga 4 sel gamet (n).' }
+    ];
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnMitosis').classList.toggle('active', m === 'mitosis');
+      document.getElementById('btnMeiosis').classList.toggle('active', m === 'meiosis');
+      document.getElementById('stMode').textContent = m === 'mitosis' ? 'Mitosis (2n → 2n)' : 'Meiosis (2n → n)';
+      document.getElementById('stDaughter').textContent = m === 'mitosis' ? '2 Sel Identik' : '4 Sel Gamet Unik';
+      document.getElementById('stChrom').textContent = m === 'mitosis' ? 'Diploid (2n)' : 'Haploid (n)';
+    }
+
+    function jumpPhase(idx) { progress = idx + 0.1; updateLabels(); }
+    function togglePlay() {
+      playing = !playing;
+      document.getElementById('btnPlay').textContent = playing ? '⏸ Jeda Animasi' : '▶ Lanjut Animasi';
+    }
+
+    document.getElementById('inSpeed').oninput = e => { speed = +e.target.value; document.getElementById('lblSpeed').textContent = speed.toFixed(1) + 'x'; };
+    document.getElementById('inProg').oninput = e => { progress = +e.target.value; playing = false; document.getElementById('btnPlay').textContent = '▶ Lanjut Animasi'; updateLabels(); };
+
+    function updateLabels() {
+      const idx = Math.min(4, Math.floor(progress));
+      document.getElementById('stPhase').textContent = phaseInfo[idx].name;
+      document.getElementById('bioExplain').innerHTML = `<strong>${phaseInfo[idx].name}:</strong> ${phaseInfo[idx].desc}`;
+      document.getElementById('inProg').value = progress;
+      document.getElementById('lblProg').textContent = Math.round((progress / 5) * 100) + '%';
+      document.querySelectorAll('.phase-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+    }
+
+    function drawChrom(x, y, color, splitFrac) {
+      ctx.save(); ctx.translate(x, y); ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      if (splitFrac < 0.05) {
+        ctx.beginPath(); ctx.moveTo(-7, -14); ctx.lineTo(7, 14); ctx.moveTo(7, -14); ctx.lineTo(-7, 14); ctx.stroke();
+        ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, Math.PI*2); ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.moveTo(-4, -12); ctx.lineTo(4, 12); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      const cx = c.width / 2, cy = c.height / 2;
+      const idx = Math.min(4, Math.floor(progress)), frac = progress - idx;
+
+      let pinch = 0, split = 0;
+      if (idx === 3) pinch = frac * 55;
+      if (idx === 4) { pinch = 55 + frac * 65; split = 1; }
+      if (idx >= 2) split = idx === 2 ? frac : 1;
+
+      // Gambar membran sel (melekuk saat telofase/sitokinesis)
+      ctx.fillStyle = 'rgba(30, 58, 138, 0.25)';
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3;
+      if (idx < 4 || frac < 0.7) {
+        const sep = idx >= 3 ? (idx === 3 ? frac * 80 : 80 + frac * 70) : 0;
+        ctx.beginPath();
+        ctx.ellipse(cx - sep, cy, 180 - pinch*0.4, 145 - pinch*0.2, 0, 0, Math.PI*2);
+        ctx.fill(); ctx.stroke();
+        if (sep > 10) {
+          ctx.beginPath();
+          ctx.ellipse(cx + sep, cy, 180 - pinch*0.4, 145 - pinch*0.2, 0, 0, Math.PI*2);
+          ctx.fill(); ctx.stroke();
+        }
+      } else {
+        [-155, 155].forEach(dx => {
+          ctx.beginPath(); ctx.arc(cx + dx, cy, 115, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+          if (mode === 'meiosis') {
+            ctx.strokeStyle = '#f472b6'; ctx.beginPath(); ctx.arc(cx + dx, cy + 5, 55, 0, Math.PI*2); ctx.stroke(); ctx.strokeStyle = '#38bdf8';
+          }
+        });
+      }
+
+      // Sentriol & Benang Spindel
+      const poleDist = idx === 0 ? 40 + frac * 110 : 150;
+      if (idx < 4) {
+        [-poleDist, poleDist].forEach(px => {
+          ctx.fillStyle = '#fbbf24';
+          ctx.beginPath(); ctx.arc(cx + px, cy, 7, 0, Math.PI*2); ctx.fill();
+        });
+      }
+
+      // Kromosom berwarna
+      const colors = ['#f472b6', '#34d399', '#fbbf24', '#a78bfa'];
+      const ys = [-54, -18, 18, 54];
+      colors.forEach((col, i) => {
+        if (idx === 0) {
+          drawChrom(cx + (i - 1.5)*28, cy + Math.sin(i*2)*24, col, 0);
+        } else if (idx === 1) {
+          const tx = cx, ty = cy + ys[i];
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(cx - poleDist, cy); ctx.lineTo(tx, ty); ctx.lineTo(cx + poleDist, cy); ctx.stroke();
+          drawChrom(tx, ty, col, 0);
+        } else {
+          const pull = idx === 2 ? frac * 110 : (idx === 3 ? 110 + frac * 35 : 150);
+          drawChrom(cx - pull, cy + ys[i]*0.7, col, 1);
+          drawChrom(cx + pull, cy + ys[i]*0.7, mode === 'meiosis' && i % 2 === 0 ? '#22d3ee' : col, 1);
+        }
+      });
+    }
+
+    let last = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      if (playing && speed > 0) {
+        progress = (progress + dt * 0.45 * speed) % 5;
+        updateLabels();
+      }
+      draw();
+      requestAnimationFrame(loop);
+    }
+    setMode('mitosis'); updateLabels(); requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

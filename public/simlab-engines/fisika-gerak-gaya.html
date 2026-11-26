@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Gerak &amp; Gaya (Hukum Newton)</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; --accent:#38bdf8; --emerald:#34d399; --amber:#fbbf24; --rose:#f43f5e; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#fff; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    .badge { padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3); }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    .ctrl { display:flex; flex-direction:column; gap:6px; }
+    .ctrl-head { display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; }
+    input[type=range] { width:100%; accent-color:var(--accent); cursor:pointer; }
+    .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+    button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; transition:0.15s; }
+    .btn-primary { background:var(--emerald); color:#022c22; }
+    .btn-primary:hover { filter:brightness(1.1); }
+    .btn-warn { background:var(--amber); color:#451a03; }
+    .btn-muted { background:#1e293b; color:#e2e8f0; border:1px solid #334155; }
+    .telemetry { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .t-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .t-label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; font-weight:700; }
+    .t-val { font-size:1.1rem; font-weight:800; font-family:monospace; margin-top:2px; }
+    .info-box { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:12px; padding:12px; font-size:0.82rem; line-height:1.5; color:#e2e8f0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🚀 Simulator Fisika: Gerak &amp; Gaya (Hukum II Newton)</h1>
+      <p>Amati hubungan Gaya Dorong ($F$), Massa ($m$), Gaya Gesek ($f_k$), dan Percepatan ($a = \Sigma F / m$)</p>
+    </div>
+    <span class="badge">Fisika / IPA • Animasi Vektor Real-Time</span>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="simCanvas" width="760" height="360"></canvas>
+      <canvas id="graphCanvas" width="760" height="150"></canvas>
+      <div class="info-box" id="physicsExplain">
+        Geser slider <strong>Gaya Dorong</strong> dan <strong>Massa Benda</strong>, lalu tekan <strong>Jalankan</strong>. Panah biru menunjukkan gaya dorong, panah merah menunjukkan gaya gesek yang melawan arah gerak.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="telemetry">
+        <div class="t-box"><div class="t-label">Resultan Gaya (ΣF)</div><div class="t-val" id="valFnet" style="color:#38bdf8">0 N</div></div>
+        <div class="t-box"><div class="t-label">Percepatan (a)</div><div class="t-val" id="valAcc" style="color:#34d399">0.00 m/s²</div></div>
+        <div class="t-box"><div class="t-label">Kecepatan (v)</div><div class="t-val" id="valVel" style="color:#fbbf24">0.00 m/s</div></div>
+        <div class="t-box"><div class="t-label">Gaya Gesek Maks</div><div class="t-val" id="valFric" style="color:#f43f5e">0.0 N</div></div>
+        <div class="t-box"><div class="t-label">Jarak Tempuh (s)</div><div class="t-val" id="valDist" style="color:#c084fc">0.0 m</div></div>
+        <div class="t-box"><div class="t-label">Waktu (t)</div><div class="t-val" id="valTime" style="color:#f8fafc">0.0 s</div></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-head"><span>Gaya Dorong ($F_{dorong}$)</span><span id="lblForce" style="color:#38bdf8">80 N</span></div>
+        <input type="range" id="inForce" min="0" max="250" step="5" value="80">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><span>Massa Benda ($m$)</span><span id="lblMass" style="color:#34d399">10 kg</span></div>
+        <input type="range" id="inMass" min="2" max="50" step="1" value="10">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><span>Koefisien Gesek Lantai ($\mu$)</span><span id="lblMu" style="color:#f43f5e">0.20</span></div>
+        <input type="range" id="inMu" min="0" max="0.8" step="0.05" value="0.20">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><span>Sudut Kemiringan Bidang ($\theta$)</span><span id="lblAngle" style="color:#fbbf24">0°</span></div>
+        <input type="range" id="inAngle" min="0" max="30" step="1" value="0">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="btnToggle">▶ Jalankan Simulasi</button>
+        <button class="btn-warn" id="btnReset">↺ Reset Posisi</button>
+        <button class="btn-muted" onclick="setPreset(0,10,0,0)">Preset: Es Licin (μ=0)</button>
+        <button class="btn-muted" onclick="setPreset(140,15,0.35,10)">Preset: Jalan Menanjak</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const simC = document.getElementById('simCanvas'), sCtx = simC.getContext('2d');
+    const grC = document.getElementById('graphCanvas'), gCtx = grC.getContext('2d');
+    const g = 9.8;
+    let running = false, pos = 0, vel = 0, time = 0, historyV = [];
+
+    const inForce = document.getElementById('inForce'), inMass = document.getElementById('inMass'),
+          inMu = document.getElementById('inMu'), inAngle = document.getElementById('inAngle');
+
+    function setPreset(f, m, mu, ang) {
+      inForce.value = f; inMass.value = m; inMu.value = mu; inAngle.value = ang;
+      resetSim();
+    }
+
+    function resetSim() {
+      pos = 0; vel = 0; time = 0; historyV = [];
+      updateUI();
+      draw();
+    }
+
+    document.getElementById('btnToggle').onclick = () => {
+      running = !running;
+      document.getElementById('btnToggle').textContent = running ? '⏸ Jeda Simulasi' : '▶ Jalankan Simulasi';
+    };
+    document.getElementById('btnReset').onclick = () => { running = false; document.getElementById('btnToggle').textContent = '▶ Jalankan Simulasi'; resetSim(); };
+
+    [inForce, inMass, inMu, inAngle].forEach(el => el.oninput = () => { updateUI(); if(!running) draw(); });
+
+    function calcPhysics() {
+      const F = +inForce.value, m = +inMass.value, mu = +inMu.value, angDeg = +inAngle.value;
+      const rad = angDeg * Math.PI / 180;
+      const N = m * g * Math.cos(rad);
+      const Wx = m * g * Math.sin(rad);
+      const fMax = mu * N;
+      let Fnet = F - Wx;
+      let fricApplied = 0;
+      if (Math.abs(vel) < 0.01 && Math.abs(Fnet) <= fMax) {
+        fricApplied = Fnet;
+        Fnet = 0;
+      } else {
+        const dir = vel !== 0 ? Math.sign(vel) : Math.sign(Fnet);
+        fricApplied = dir * fMax;
+        Fnet = F - Wx - fricApplied;
+      }
+      const acc = Fnet / m;
+      return { F, m, mu, angDeg, rad, N, Wx, fMax, fricApplied, Fnet, acc };
+    }
+
+    function updateUI() {
+      const p = calcPhysics();
+      document.getElementById('lblForce').textContent = p.F + ' N';
+      document.getElementById('lblMass').textContent = p.m + ' kg';
+      document.getElementById('lblMu').textContent = p.mu.toFixed(2);
+      document.getElementById('lblAngle').textContent = p.angDeg + '°';
+      document.getElementById('valFnet').textContent = p.Fnet.toFixed(1) + ' N';
+      document.getElementById('valAcc').textContent = p.acc.toFixed(2) + ' m/s²';
+      document.getElementById('valVel').textContent = vel.toFixed(2) + ' m/s';
+      document.getElementById('valFric').textContent = p.fMax.toFixed(1) + ' N';
+      document.getElementById('valDist').textContent = pos.toFixed(1) + ' m';
+      document.getElementById('valTime').textContent = time.toFixed(1) + ' s';
+
+      const exp = document.getElementById('physicsExplain');
+      if (p.F === 0 && p.angDeg === 0) {
+        exp.innerHTML = '<strong>Hukum I Newton (Kelembaman):</strong> Tidak ada gaya dorong luar, benda mempertahankan keadaannya.';
+      } else if (Math.abs(p.Fnet) < 0.1 && Math.abs(vel) < 0.01) {
+        exp.innerHTML = `<strong>Benda Diam (ΣF = 0):</strong> Gaya dorong (${p.F} N) belum cukup mengatasi gaya gesek & komponen berat (${(p.fMax + p.Wx).toFixed(1)} N).`;
+      } else {
+        exp.innerHTML = `<strong>Hukum II Newton (a = ΣF / m):</strong> Resultan gaya <strong>${p.Fnet.toFixed(1)} N</strong> menghasilkan percepatan <strong>${p.acc.toFixed(2)} m/s²</strong> pada massa ${p.m} kg.`;
+      }
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, label) {
+      if (Math.hypot(x2 - x1, y2 - y1) < 4) return;
+      ctx.save();
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 10 * Math.cos(ang - 0.4), y2 - 10 * Math.sin(ang - 0.4));
+      ctx.lineTo(x2 - 10 * Math.cos(ang + 0.4), y2 - 10 * Math.sin(ang + 0.4));
+      ctx.closePath(); ctx.fill();
+      if (label) { ctx.font = 'bold 12px sans-serif'; ctx.fillText(label, (x1 + x2)/2 - 15, y1 - 10); }
+      ctx.restore();
+    }
+
+    function draw() {
+      const p = calcPhysics();
+      sCtx.clearRect(0, 0, simC.width, simC.height);
+
+      // Grid latar
+      sCtx.strokeStyle = '#111827'; sCtx.lineWidth = 1;
+      for (let x = 0; x < simC.width; x += 40) { sCtx.beginPath(); sCtx.moveTo(x, 0); sCtx.lineTo(x, simC.height); sCtx.stroke(); }
+
+      sCtx.save();
+      const pivotX = 80, pivotY = 290;
+      sCtx.translate(pivotX, pivotY);
+      sCtx.rotate(-p.rad);
+
+      // Permukaan jalan/lantai
+      sCtx.fillStyle = '#1e293b';
+      sCtx.fillRect(-60, 0, 720, 22);
+      // Marka jarak bergerak sesuai pos
+      const offset = (pos * 24) % 60;
+      sCtx.fillStyle = '#475569';
+      for (let mx = -60 - offset; mx < 680; mx += 60) {
+        sCtx.fillRect(mx, 6, 26, 4);
+      }
+
+      // Benda (Kotak bermassa)
+      const boxSize = 44 + (p.m * 0.6);
+      const bx = 180 + Math.min(340, (pos * 12) % 340);
+      const by = -boxSize;
+      const grad = sCtx.createLinearGradient(bx, by, bx, 0);
+      grad.addColorStop(0, '#38bdf8'); grad.addColorStop(1, '#0284c7');
+      sCtx.fillStyle = grad;
+      sCtx.strokeStyle = '#bae6fd'; sCtx.lineWidth = 2;
+      sCtx.beginPath(); sCtx.roundRect(bx, by, boxSize, boxSize, 8); sCtx.fill(); sCtx.stroke();
+
+      sCtx.fillStyle = '#0f172a'; sCtx.font = 'bold 13px sans-serif'; sCtx.textAlign = 'center';
+      sCtx.fillText(p.m + ' kg', bx + boxSize/2, by + boxSize/2 + 5);
+
+      // Vektor Gaya Dorong (Biru)
+      if (p.F > 0) drawArrow(sCtx, bx + boxSize, by + boxSize/2, bx + boxSize + Math.min(130, p.F * 0.55), by + boxSize/2, '#38bdf8', `F=${p.F}N`);
+      // Vektor Gaya Gesek (Merah)
+      if (Math.abs(p.fricApplied) > 0.5) drawArrow(sCtx, bx, by + boxSize - 10, bx - Math.min(110, Math.abs(p.fricApplied) * 0.55), by + boxSize - 10, '#f43f5e', `f=${Math.abs(p.fricApplied).toFixed(0)}N`);
+      // Vektor Gaya Normal (Hijau)
+      drawArrow(sCtx, bx + boxSize/2, by, bx + boxSize/2, by - 45, '#34d399', 'N');
+
+      sCtx.restore();
+
+      // Grafik Kecepatan vs Waktu
+      gCtx.clearRect(0, 0, grC.width, grC.height);
+      gCtx.fillStyle = '#94a3b8'; gCtx.font = 'bold 11px sans-serif';
+      gCtx.fillText('GRAFIK KECEPATAN (v) TERHADAP WAKTU (t)', 14, 18);
+      gCtx.strokeStyle = '#334155'; gCtx.beginPath(); gCtx.moveTo(40, 25); gCtx.lineTo(40, 130); gCtx.lineTo(740, 130); gCtx.stroke();
+
+      if (historyV.length > 1) {
+        const maxV = Math.max(10, ...historyV);
+        gCtx.strokeStyle = '#fbbf24'; gCtx.lineWidth = 2.5;
+        gCtx.beginPath();
+        historyV.forEach((v, idx) => {
+          const gx = 40 + (idx / Math.max(1, historyV.length - 1)) * 690;
+          const gy = 130 - (Math.max(0, v) / maxV) * 95;
+          if (idx === 0) gCtx.moveTo(gx, gy); else gCtx.lineTo(gx, gy);
+        });
+        gCtx.stroke();
+      }
+    }
+
+    let last = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (running) {
+        const p = calcPhysics();
+        vel = Math.max(0, vel + p.acc * dt);
+        pos += vel * dt;
+        time += dt;
+        if (historyV.length === 0 || time * 10 > historyV.length) {
+          historyV.push(vel);
+          if (historyV.length > 120) historyV.shift();
+        }
+        updateUI();
+        draw();
+      }
+      requestAnimationFrame(loop);
+    }
+    updateUI(); draw(); requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

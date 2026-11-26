@@ -19,9 +19,14 @@
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
     $proEngineMap = [
-        'gasoline_engine' => asset('simlab-engines/mesin-4tak-2tak.html'),
-        'beam_load'       => asset('simlab-engines/teknik-gambar-bangunan.html'),
-        'subnetting'      => asset('simlab-engines/tkj-jaringan.html'),
+        'gasoline_engine'    => asset('simlab-engines/mesin-4tak-2tak.html'),
+        'beam_load'          => asset('simlab-engines/teknik-gambar-bangunan.html'),
+        'subnetting'         => asset('simlab-engines/tkj-jaringan.html'),
+        'physics_motion'     => asset('simlab-engines/fisika-gerak-gaya.html'),
+        'biology_cell'       => asset('simlab-engines/biologi-pembelahan-sel.html'),
+        'math_statistics'    => asset('simlab-engines/matematika-statistika.html'),
+        'sociology_dynamics' => asset('simlab-engines/sosiologi-dinamika-sosial.html'),
+        'language_syntax'    => asset('simlab-engines/bahasa-struktur-kalimat.html'),
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
 @endphp

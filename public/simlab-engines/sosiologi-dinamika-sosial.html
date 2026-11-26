@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Sosiologi: Dinamika Interaksi Sosial &amp; Penyebaran Norma</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; --accent:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.1rem; font-weight:800; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    .ctrl-head { display:flex; justify-content:space-between; font-size:0.84rem; font-weight:700; margin-bottom:6px; }
+    input[type=range] { width:100%; accent-color:var(--accent); cursor:pointer; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.1rem; font-weight:800; margin-top:2px; }
+    button { border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🤝 Simulator Sosiologi: Interaksi Sosial &amp; Penyebaran Inovasi/Norma</h1>
+      <p>Model berbasis agen (Agent-Based Model) bagaimana ide baru, norma, atau kerja sama menyebar dalam masyarakat</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="socCanvas" width="760" height="400"></canvas>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;">
+        <span style="color:#94a3b8">● Belum Terpengaruh</span>
+        <span style="color:#34d399">● Mengadopsi Norma/Inovasi</span>
+        <span style="color:#fbbf24">★ Agen Perubahan (Tokoh Masyarakat)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Total Warga</div><div class="s-val" id="vTotal" style="color:#38bdf8">60</div></div>
+        <div class="s-box"><div class="s-lbl">Mengadopsi</div><div class="s-val" id="vAdopt" style="color:#34d399">0%</div></div>
+        <div class="s-box"><div class="s-lbl">Interaksi</div><div class="s-val" id="vHits" style="color:#fbbf24">0</div></div>
+      </div>
+
+      <div>
+        <div class="ctrl-head"><span>Mobilitas &amp; Frekuensi Interaksi</span><span id="lblMob" style="color:#38bdf8">Sedang</span></div>
+        <input type="range" id="inMob" min="0.5" max="4" step="0.5" value="2">
+      </div>
+      <div>
+        <div class="ctrl-head"><span>Daya Persuasif / Keterbukaan Masyarakat</span><span id="lblPers" style="color:#34d399">35%</span></div>
+        <input type="range" id="inPers" min="5" max="95" step="5" value="35">
+      </div>
+      <div>
+        <div class="ctrl-head"><span>Jumlah Agen Perubahan (Tokoh)</span><span id="lblLead" style="color:#fbbf24">3 Orang</span></div>
+        <input type="range" id="inLead" min="1" max="10" step="1" value="3">
+      </div>
+
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px;font-size:0.83rem;line-height:1.5;">
+        <strong>Konsep Sosiologi:</strong> Ketika mobilitas dan keterbukaan sosial tinggi, difusi inovasi/norma berlangsung jauh lebih cepat (<em>Efek Bola Salju</em>) dibandingkan masyarakat tertutup.
+      </div>
+
+      <button onclick="initAgents()" style="background:#f59e0b;color:#451a03;">↺ Mulai Ulang Simulasi Masyarakat</button>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('socCanvas'), ctx = c.getContext('2d');
+    const inMob = document.getElementById('inMob'), inPers = document.getElementById('inPers'), inLead = document.getElementById('inLead');
+    let agents = [], interactions = 0;
+
+    function initAgents() {
+      agents = []; interactions = 0;
+      const leads = +inLead.value;
+      for (let i = 0; i < 60; i++) {
+        const isLeader = i < leads;
+        agents.push({
+          x: 30 + Math.random() * (c.width - 60),
+          y: 30 + Math.random() * (c.height - 60),
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          adopted: isLeader,
+          leader: isLeader,
+          cool: 0
+        });
+      }
+    }
+
+    inMob.oninput = () => { const v = +inMob.value; document.getElementById('lblMob').textContent = v <= 1 ? 'Rendah' : (v <= 2.5 ? 'Sedang' : 'Tinggi'); };
+    inPers.oninput = () => { document.getElementById('lblPers').textContent = inPers.value + '%'; };
+    inLead.oninput = () => { document.getElementById('lblLead').textContent = inLead.value + ' Orang'; initAgents(); };
+
+    function loop() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      const mob = +inMob.value, prob = (+inPers.value) / 100;
+
+      for (let i = 0; i < agents.length; i++) {
+        const a = agents[i];
+        a.x += a.vx * mob; a.y += a.vy * mob;
+        if (a.x < 16 || a.x > c.width - 16) a.vx *= -1;
+        if (a.y < 16 || a.y > c.height - 16) a.vy *= -1;
+        if (a.cool > 0) a.cool--;
+
+        for (let j = i + 1; j < agents.length; j++) {
+          const b = agents[j];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (d < 48) {
+            ctx.strokeStyle = (a.adopted || b.adopted) ? 'rgba(52,211,153,0.22)' : 'rgba(148,163,184,0.1)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          }
+          if (d < 20 && a.cool === 0 && b.cool === 0) {
+            interactions++;
+            a.cool = 25; b.cool = 25;
+            if (a.adopted && !b.adopted && Math.random() < prob) b.adopted = true;
+            else if (b.adopted && !a.adopted && Math.random() < prob) a.adopted = true;
+          }
+        }
+      }
+
+      let adoptedCount = 0;
+      agents.forEach(a => {
+        if (a.adopted) adoptedCount++;
+        ctx.fillStyle = a.leader ? '#fbbf24' : (a.adopted ? '#34d399' : '#64748b');
+        ctx.beginPath(); ctx.arc(a.x, a.y, a.leader ? 9 : 6, 0, Math.PI * 2); ctx.fill();
+      });
+
+      document.getElementById('vAdopt').textContent = Math.round((adoptedCount / agents.length) * 100) + '%';
+      document.getElementById('vHits').textContent = interactions;
+      requestAnimationFrame(loop);
+    }
+    initAgents(); loop();
+  </script>
+</body>
+</html>

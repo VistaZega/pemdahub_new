@@ -2852,15 +2852,52 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
 
                     <!-- Simulator Quick Selector dengan Preview Isi -->
-                    <div x-show="type === 'interactive'" class="bg-slate-50 border border-slate-300 rounded-2xl p-4 text-xs text-slate-900 space-y-3" style="display: none">
+                    <div x-show="type === 'interactive'" x-data="{ generatingAiLab: false, aiLabMsg: '' }" class="bg-slate-50 border border-slate-300 rounded-2xl p-4 text-xs text-slate-900 space-y-3" style="display: none">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <p class="font-bold uppercase tracking-wider flex items-center gap-1.5 text-xs text-slate-800">
                                 <i class="fas fa-flask-vial text-emerald-600 text-sm"></i> Pilih &amp; Pratinjau Simulator PembdaHUB:
                             </p>
-                            <a href="{{ route('simlab.index') }}" target="_blank" class="text-[11px] font-bold text-indigo-600 hover:underline">
-                                Buka Katalog Penuh / Buat Simulator AI <i class="fas fa-external-link-alt ml-0.5"></i>
-                            </a>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button type="button"
+                                        :disabled="generatingAiLab"
+                                        @click="
+                                            generatingAiLab = true;
+                                            aiLabMsg = '';
+                                            fetch('{{ route('simlab.ai-generate') }}', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                                                body: JSON.stringify({
+                                                    title: material_title || 'Simulator {{ addslashes($course->course_name ?? 'Pembelajaran') }}',
+                                                    category: '{{ strtolower($course->school->type ?? '') === 'smk' ? 'vokasi' : (strtolower($course->school->type ?? '') === 'sma' ? 'sma' : (strtolower($course->school->type ?? '') === 'smp' ? 'smp' : 'umum')) }}',
+                                                    subject_name: '{{ addslashes($course->subject->subject_name ?? $course->subject->name ?? $course->course_name ?? 'Umum') }}',
+                                                    course_id: {{ $course->id }},
+                                                    description: 'Buatkan simulator interaktif beranimasi untuk materi: ' + (material_title || '{{ addslashes($course->course_name ?? '') }}')
+                                                })
+                                            })
+                                            .then(r => r.json())
+                                            .then(d => {
+                                                if (d.success && d.redirect_url) {
+                                                    file_url = d.redirect_url;
+                                                    if (!material_title) material_title = 'Simulator {{ addslashes($course->course_name ?? 'Materi') }}';
+                                                    aiLabMsg = 'Simulator AI berhasil dibuat & ditautkan!';
+                                                    window.open(d.redirect_url, '_blank');
+                                                } else {
+                                                    aiLabMsg = d.message || 'Gagal membangkitkan simulator AI.';
+                                                }
+                                            })
+                                            .catch(() => { aiLabMsg = 'Gangguan koneksi saat memanggil AI.'; })
+                                            .finally(() => { generatingAiLab = false; });
+                                        "
+                                        class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-60 text-white font-bold text-[11px] shadow-sm transition inline-flex items-center gap-1.5">
+                                    <i class="fas" :class="generatingAiLab ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
+                                    <span x-text="generatingAiLab ? 'Merakit Simulator AI...' : '✨ Bangkitkan Simulator AI dari Materi Ini'"></span>
+                                </button>
+                                <a href="{{ route('simlab.index') }}" target="_blank" class="text-[11px] font-bold text-indigo-600 hover:underline">
+                                    Katalog Penuh <i class="fas fa-external-link-alt ml-0.5"></i>
+                                </a>
+                            </div>
                         </div>
+                        <div x-show="aiLabMsg" class="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-800 font-semibold text-[11px]" x-text="aiLabMsg"></div>
 
                         @php
                             $__vLabsForLms = \Illuminate\Support\Facades\Schema::hasTable('virtual_labs')

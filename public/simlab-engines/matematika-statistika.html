@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Matematika: Statistika &amp; Distribusi Data</title>
+  <style>
+    :root { --bg:#0b1120; --panel:#111827; --border:#1f2937; --text:#f8fafc; --muted:#94a3b8; --accent:#10b981; --amber:#fbbf24; --sky:#38bdf8; --pink:#f472b6; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#090d16; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+    header h1 { font-size:1.1rem; font-weight:800; }
+    header p { font-size:0.8rem; color:var(--muted); }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.45fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    canvas { width:100%; background:#070b14; border-radius:12px; border:1px solid #1e293b; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .s-box { background:#090d16; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); text-transform:uppercase; font-weight:700; }
+    .s-val { font-size:1.15rem; font-weight:800; font-family:monospace; margin-top:2px; }
+    .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+    button { border:1px solid #334155; border-radius:10px; padding:8px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#1e293b; color:#e2e8f0; }
+    button:hover { border-color:var(--accent); color:#fff; }
+    textarea { width:100%; background:#090d16; border:1px solid #334155; border-radius:10px; padding:10px; color:#f8fafc; font-family:monospace; font-size:0.85rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>📊 Simulator Matematika: Statistika &amp; Distribusi Data</h1>
+      <p>Ubah kumpulan angka atau pilih pola distribusi untuk melihat pergeseran Mean, Median, Modus &amp; Histogram secara langsung</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="histCanvas" width="760" height="400"></canvas>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;font-weight:700;">
+        <span style="color:#fbbf24">━━ Mean (Rata-rata)</span>
+        <span style="color:#38bdf8">━━ Median (Nilai Tengah)</span>
+        <span style="color:#f472b6">● Modus (Frekuensi Tertinggi)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Mean (Rata-rata)</div><div class="s-val" id="vMean" style="color:#fbbf24">0</div></div>
+        <div class="s-box"><div class="s-lbl">Median (Tengah)</div><div class="s-val" id="vMed" style="color:#38bdf8">0</div></div>
+        <div class="s-box"><div class="s-lbl">Modus</div><div class="s-val" id="vMode" style="color:#f472b6">-</div></div>
+        <div class="s-box"><div class="s-lbl">Simpangan Baku (σ)</div><div class="s-val" id="vStd" style="color:#34d399">0</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Jumlah Kelas Interval (Bins)</span><span id="lblBins" style="color:#10b981">6 Kelas</span>
+        </div>
+        <input type="range" id="inBins" min="4" max="12" step="1" value="6" style="width:100%;accent-color:#10b981;cursor:pointer;">
+      </div>
+
+      <div>
+        <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:6px;">Data Nilai Siswa (pisahkan dengan koma):</label>
+        <textarea id="inData" rows="3">65, 70, 72, 75, 75, 78, 80, 80, 80, 82, 85, 88, 90, 95</textarea>
+      </div>
+
+      <div class="btn-row">
+        <button onclick="loadPreset('normal')">Distribusi Normal</button>
+        <button onclick="loadPreset('skewRight')">Miring Kanan (Nilai Ekstrem Tinggi)</button>
+        <button onclick="loadPreset('skewLeft')">Miring Kiri (Banyak Nilai Tinggi)</button>
+        <button onclick="addOutlier()" style="background:rgba(244,63,94,0.18);border-color:#f43f5e;color:#fda4af;">+ Tambah Nilai Ekstrem (100)</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('histCanvas'), ctx = c.getContext('2d');
+    const inData = document.getElementById('inData'), inBins = document.getElementById('inBins');
+
+    function loadPreset(type) {
+      if (type === 'normal') inData.value = '60, 65, 70, 72, 75, 75, 78, 80, 80, 80, 82, 85, 85, 88, 90, 95';
+      if (type === 'skewRight') inData.value = '45, 50, 52, 55, 55, 58, 60, 62, 65, 70, 85, 95, 98';
+      if (type === 'skewLeft') inData.value = '50, 60, 75, 80, 82, 85, 88, 90, 90, 92, 94, 95, 96';
+      render();
+    }
+    function addOutlier() { inData.value += ', 100'; render(); }
+    inData.oninput = render; inBins.oninput = () => { document.getElementById('lblBins').textContent = inBins.value + ' Kelas'; render(); };
+
+    function render() {
+      const nums = inData.value.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n)).sort((a,b) => a - b);
+      if (nums.length === 0) return;
+
+      const mean = nums.reduce((a,b) => a + b, 0) / nums.length;
+      const mid = Math.floor(nums.length / 2);
+      const median = nums.length % 2 ? nums[mid] : (nums[mid-1] + nums[mid]) / 2;
+      const freq = {}; let maxF = 0;
+      nums.forEach(n => { freq[n] = (freq[n] || 0) + 1; if (freq[n] > maxF) maxF = freq[n]; });
+      const modes = Object.keys(freq).filter(k => freq[k] === maxF);
+      const std = Math.sqrt(nums.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / nums.length);
+
+      document.getElementById('vMean').textContent = mean.toFixed(2);
+      document.getElementById('vMed').textContent = median.toFixed(2);
+      document.getElementById('vMode').textContent = maxF > 1 ? modes.join(', ') : 'Tidak ada';
+      document.getElementById('vStd').textContent = std.toFixed(2);
+
+      // Gambar Histogram
+      ctx.clearRect(0, 0, c.width, c.height);
+      const padL = 50, padR = 30, padT = 35, padB = 50;
+      const w = c.width - padL - padR, h = c.height - padT - padB;
+      const minV = Math.min(...nums), maxV = Math.max(...nums) + 0.01;
+      const bins = +inBins.value, step = Math.max(1, (maxV - minV) / bins);
+      const counts = Array(bins).fill(0);
+      nums.forEach(n => { const idx = Math.min(bins - 1, Math.floor((n - minV) / step)); counts[idx]++; });
+      const maxCount = Math.max(1, ...counts);
+
+      // Sumbu
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + h); ctx.lineTo(padL + w, padT + h); ctx.stroke();
+
+      const barW = w / bins;
+      counts.forEach((cnt, i) => {
+        const bh = (cnt / maxCount) * (h - 15);
+        const bx = padL + i * barW + 4, by = padT + h - bh;
+        const grad = ctx.createLinearGradient(bx, by, bx, padT + h);
+        grad.addColorStop(0, '#10b981'); grad.addColorStop(1, '#065f46');
+        ctx.fillStyle = grad;
+        ctx.fillRect(bx, by, barW - 8, bh);
+        ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+        if (cnt > 0) ctx.fillText(cnt, bx + (barW - 8)/2, by - 6);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '11px monospace';
+        ctx.fillText((minV + i*step).toFixed(0), padL + i*barW + barW/2, padT + h + 20);
+      });
+
+      // Garis Mean & Median
+      const xMean = padL + ((mean - minV) / (maxV - minV)) * w;
+      const xMed = padL + ((median - minV) / (maxV - minV)) * w;
+      [[xMean, '#fbbf24', 'Mean'], [xMed, '#38bdf8', 'Median']].forEach(([xPos, col, lbl]) => {
+        ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.setLineDash([6,4]);
+        ctx.beginPath(); ctx.moveTo(xPos, padT); ctx.lineTo(xPos, padT + h); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = col; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(lbl, xPos, padT - 10);
+      });
+    }
+    render();
+  </script>
+</body>
+</html>
