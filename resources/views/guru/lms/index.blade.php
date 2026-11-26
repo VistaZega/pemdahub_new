@@ -139,94 +139,108 @@
     </div>
     @endif
 
-    {{-- 3. COURSE GRID --}}
+    {{-- 3. COURSE TABLE (SPACIOUS & EASY TO SCAN) --}}
     @if($courses->count() > 0)
-    <div class="glms-grid">
-        @foreach($courses as $course)
-        @php
-            $headerBg = $course->getActiveThemeHexColor() ?: '#0f172a';
-            $subjectLabel = $course->isExtracurricular()
-                ? ($course->extracurricular?->name ?? 'Ekstrakurikuler')
-                : ($course->subject->subject_name ?? '-');
-            $classNames = $course->classes->pluck('classroom.class_name')->filter()->implode(', ');
-            $searchKey = strtolower($course->name . ' ' . $subjectLabel . ' ' . $classNames);
-        @endphp
-        <div class="glms-card" x-show="!search.trim() || @js($searchKey).includes(search.toLowerCase().trim())">
-            {{-- Header --}}
-            <div style="padding: 1.15rem 1.25rem; background: linear-gradient(135deg, {{ $headerBg }} 0%, #0f172a 135%); color: #ffffff;">
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem;">
-                    <span style="background: rgba(15, 23, 42, 0.55); color: #fde047; padding: 0.15rem 0.5rem; border-radius: 0.45rem; font-size: 1.08rem; font-weight: 800;">{{ $course->getShortCode() }}</span>
-                    @if($course->is_published)
-                        <span style="background: #059669; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 1.08rem; font-weight: 800;">PUBLISHED</span>
-                    @else
-                        <span style="background: rgba(255,255,255,0.2); color: #e2e8f0; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 1.08rem; font-weight: 800;">DRAFT</span>
-                    @endif
-                </div>
-                <h3 style="font-size: 1.08rem; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.3;">{{ $course->name }}</h3>
-                <div style="font-size: 0.84rem; color: #fde68a; font-weight: 600; margin-top: 0.2rem;">{{ $subjectLabel }}</div>
-            </div>
+    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1.25rem; overflow: hidden; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 820px;">
+                <thead>
+                    <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">Course &amp; Mata Pelajaran</th>
+                        <th style="padding: 1rem 1rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">Rombel / Kelas</th>
+                        <th style="padding: 1rem 1rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">Konten</th>
+                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em; text-align: right;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($courses as $course)
+                    @php
+                        $headerBg = $course->getActiveThemeHexColor() ?: '#0f172a';
+                        $subjectLabel = $course->isExtracurricular()
+                            ? ($course->extracurricular?->name ?? 'Ekstrakurikuler')
+                            : ($course->subject->subject_name ?? '-');
+                        $classNames = $course->classes->pluck('classroom.class_name')->filter()->implode(', ');
+                        $searchKey = strtolower($course->name . ' ' . $subjectLabel . ' ' . $classNames);
+                    @endphp
+                    <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.15s ease;"
+                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'"
+                        x-show="!search.trim() || @js($searchKey).includes(search.toLowerCase().trim())">
 
-            {{-- Body --}}
-            <div style="padding: 1.15rem 1.25rem; flex: 1; display: flex; flex-direction: column; gap: 0.85rem;">
-                <p style="font-size: 0.98rem; color: #475569; line-height: 1.5; margin: 0;">
-                    {{ \Illuminate\Support\Str::limit($course->description ?: 'Kelola materi digital, tugas, dan kuis untuk ' . $subjectLabel . '.', 90) }}
-                </p>
+                        {{-- Kolom 1: Course --}}
+                        <td style="padding: 1.25rem 1.25rem; border-left: 5px solid {{ $headerBg }}; vertical-align: middle;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+                                <span style="background: {{ $headerBg }}; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 0.45rem; font-size: 0.74rem; font-weight: 800;">{{ $course->getShortCode() }}</span>
+                                @if($course->is_published)
+                                    <span style="background: #d1fae5; color: #065f46; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.74rem; font-weight: 800;">PUBLISHED</span>
+                                @else
+                                    <span style="background: #f1f5f9; color: #475569; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.74rem; font-weight: 800;">DRAFT</span>
+                                @endif
+                                @if($course->meeting_active)
+                                    <span style="background: #e11d48; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800;">LIVE</span>
+                                @endif
+                            </div>
+                            <div style="font-size: 1.04rem; font-weight: 800; color: #0f172a; line-height: 1.3;">{{ $course->name }}</div>
+                            <div style="font-size: 0.86rem; color: #475569; font-weight: 600; margin-top: 0.15rem;">{{ $subjectLabel }}</div>
+                        </td>
 
-                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; background: #f8fafc; padding: 0.6rem; border-radius: 0.85rem; border: 1px solid #e2e8f0; text-align: center;">
-                    <div>
-                        <div style="font-size: 1.06rem; font-weight: 800; color: #0f172a;">{{ $course->materials_count }}</div>
-                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Materi</div>
-                    </div>
-                    <div style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">
-                        <div style="font-size: 1.06rem; font-weight: 800; color: #0f172a;">{{ $course->assignments_count }}</div>
-                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Tugas</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 1.06rem; font-weight: 800; color: #0f172a;">{{ $course->quizzes_count }}</div>
-                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Quiz</div>
-                    </div>
-                </div>
+                        {{-- Kolom 2: Rombel --}}
+                        <td style="padding: 1.25rem 1rem; vertical-align: middle;">
+                            @if($classNames)
+                                <span style="display: inline-block; padding: 0.35rem 0.7rem; border-radius: 0.6rem; background: #fffbeb; border: 1px solid #fde68a; font-size: 0.84rem; font-weight: 700; color: #92400e;">
+                                    <i class="fas fa-users" style="margin-right: 0.25rem;"></i> {{ $classNames }}
+                                </span>
+                            @else
+                                <span style="font-size: 0.84rem; color: #94a3b8;">Belum ditautkan</span>
+                            @endif
+                        </td>
 
-                @if($classNames)
-                <div style="padding: 0.5rem 0.75rem; border-radius: 0.75rem; background: #fffbeb; border: 1px solid #fde68a; font-size: 0.84rem; font-weight: 700; color: #92400e;">
-                    <i class="fas fa-users" style="margin-right: 0.3rem;"></i> {{ $classNames }}
-                </div>
-                @endif
+                        {{-- Kolom 3: Konten --}}
+                        <td style="padding: 1.25rem 1rem; vertical-align: middle;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.86rem; font-weight: 700; color: #334155;">
+                                <span><i class="fas fa-file-alt" style="color: #0284c7; width: 16px;"></i> {{ $course->materials_count }} Materi</span>
+                                <span><i class="fas fa-tasks" style="color: #d97706; width: 16px;"></i> {{ $course->assignments_count }} Tugas</span>
+                                <span><i class="fas fa-question-circle" style="color: #7c3aed; width: 16px;"></i> {{ $course->quizzes_count }} Quiz</span>
+                            </div>
+                        </td>
 
-                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.45rem;">
-                    @if($course->meeting_active)
-                        <a href="{{ route('guru.lms.meeting.join', $course->id) }}" style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem; border-radius: 0.75rem; background: #e11d48; color: #ffffff; font-size: 1.08rem; font-weight: 800; text-decoration: none;">
-                            <i class="fas fa-video"></i> Masuk PembdaTEMU (LIVE)
-                        </a>
-                    @else
-                        <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" onsubmit="return confirm('Mulai sesi tatap muka PembdaTEMU untuk kelas \'{{ addslashes($course->name) }}\'?');">
-                            @csrf
-                            <button type="submit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.55rem; border-radius: 0.75rem; background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; font-size: 0.85rem; font-weight: 800; cursor: pointer;">
-                                <i class="fas fa-video"></i> Buka PembdaTEMU
-                            </button>
-                        </form>
-                    @endif
+                        {{-- Kolom 4: Aksi --}}
+                        <td style="padding: 1.25rem 1.25rem; vertical-align: middle; text-align: right;">
+                            <div style="display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end;">
+                                @if($course->meeting_active)
+                                    <a href="{{ route('guru.lms.meeting.join', $course->id) }}" style="padding: 0.55rem 0.85rem; border-radius: 0.75rem; background: #e11d48; color: #ffffff; font-size: 0.84rem; font-weight: 800; text-decoration: none; white-space: nowrap;">
+                                        <i class="fas fa-video"></i> Masuk Live
+                                    </a>
+                                @else
+                                    <form action="{{ route('guru.lms.meeting.start', $course->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Mulai sesi tatap muka PembdaTEMU untuk kelas \'{{ addslashes($course->name) }}\'?');">
+                                        @csrf
+                                        <button type="submit" style="padding: 0.55rem 0.85rem; border-radius: 0.75rem; background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; font-size: 0.84rem; font-weight: 800; cursor: pointer; white-space: nowrap;">
+                                            <i class="fas fa-video"></i> Temu
+                                        </button>
+                                    </form>
+                                @endif
 
-                    <a href="{{ route('guru.lms.show', $course->id) }}{{ $selectedClassroomId ? '?classroom_id='.$selectedClassroomId : '' }}"
-                       style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.65rem; border-radius: 0.75rem; background: #059669; color: #ffffff; font-size: 1.08rem; font-weight: 800; text-decoration: none;">
-                        <i class="fas fa-door-open"></i> Kelola Ruang Ajar
-                    </a>
+                                <a href="{{ route('guru.lms.show', $course->id) }}{{ $selectedClassroomId ? '?classroom_id='.$selectedClassroomId : '' }}"
+                                   style="padding: 0.55rem 0.95rem; border-radius: 0.75rem; background: #059669; color: #ffffff; font-size: 0.85rem; font-weight: 800; text-decoration: none; white-space: nowrap;">
+                                    <i class="fas fa-door-open"></i> Ruang Ajar
+                                </a>
 
-                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem;">
-                        <a href="{{ route('guru.lms.edit', $course->id) }}" style="display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.5rem; border-radius: 0.75rem; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; font-size: 0.84rem; font-weight: 700; text-decoration: none;">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <form action="{{ route('guru.lms.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus course \'{{ addslashes($course->name) }}\'?');">
-                            @csrf @method('DELETE')
-                            <button type="submit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.5rem; border-radius: 0.75rem; background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; font-size: 0.84rem; font-weight: 700; cursor: pointer;">
-                                <i class="fas fa-trash"></i> Hapus
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                                <a href="{{ route('guru.lms.edit', $course->id) }}" style="padding: 0.55rem 0.75rem; border-radius: 0.75rem; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; font-size: 0.84rem; font-weight: 700; text-decoration: none;" title="Edit Course">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <form action="{{ route('guru.lms.destroy', $course->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus course \'{{ addslashes($course->name) }}\'?');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" style="padding: 0.55rem 0.75rem; border-radius: 0.75rem; background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; font-size: 0.84rem; font-weight: 700; cursor: pointer;" title="Hapus Course">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-        @endforeach
     </div>
 
     <div class="mt-4">{{ $courses->links() }}</div>

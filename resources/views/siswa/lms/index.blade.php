@@ -224,121 +224,128 @@
         </div>
     </div>
 
-    {{-- 4. COURSE GRID --}}
-    <div class="lms-course-grid">
-        @foreach($courses as $course)
-        @php
-            $consolidatedSchedules = $course->getConsolidatedSchedule();
-            $progress = $courseProgress[$course->id] ?? 0;
-            $themeColor = $course->getActiveThemeHexColor() ?: '#1e3a8a';
-            $courseTitle = $course->course_name ?? $course->name;
-            $teacherName = $course->teacher->user->name ?? '-';
-            $cDetail = $courseProgressDetails[$course->id] ?? null;
-            $searchKey = strtolower($courseTitle . ' ' . $teacherName . ' ' . $course->getShortCode());
-        @endphp
-        <div class="lms-course-card"
-             x-show="(!search.trim() || @js($searchKey).includes(search.toLowerCase().trim()))
-                     && (filter === 'all'
-                         || (filter === 'completed' && {{ $progress >= 100 ? 'true' : 'false' }})
-                         || (filter === 'in_progress' && {{ $progress < 100 ? 'true' : 'false' }})
-                         || (filter === 'live' && {{ $course->meeting_active ? 'true' : 'false' }}))">
+    {{-- 4. COURSE TABLE (SPACIOUS & EASY TO SCAN) --}}
+    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1.25rem; overflow: hidden; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 780px;">
+                <thead>
+                    <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">Mata Pelajaran &amp; Pengajar</th>
+                        <th style="padding: 1rem 1rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">Jadwal</th>
+                        <th style="padding: 1rem 1rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">Konten</th>
+                        <th style="padding: 1rem 1rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em; width: 220px;">Progress Belajar</th>
+                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.04em; text-align: right;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($courses as $course)
+                    @php
+                        $consolidatedSchedules = $course->getConsolidatedSchedule();
+                        $progress = $courseProgress[$course->id] ?? 0;
+                        $themeColor = $course->getActiveThemeHexColor() ?: '#1e3a8a';
+                        $courseTitle = $course->course_name ?? $course->name;
+                        $teacherName = $course->teacher->user->name ?? '-';
+                        $cDetail = $courseProgressDetails[$course->id] ?? null;
+                        $searchKey = strtolower($courseTitle . ' ' . $teacherName . ' ' . $course->getShortCode());
+                    @endphp
+                    <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.15s ease;"
+                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'"
+                        x-show="(!search.trim() || @js($searchKey).includes(search.toLowerCase().trim()))
+                                && (filter === 'all'
+                                    || (filter === 'completed' && {{ $progress >= 100 ? 'true' : 'false' }})
+                                    || (filter === 'in_progress' && {{ $progress < 100 ? 'true' : 'false' }})
+                                    || (filter === 'live' && {{ $course->meeting_active ? 'true' : 'false' }}))">
 
-            {{-- Card Header --}}
-            <div style="position: relative; padding: 1.15rem 1.25rem; background: linear-gradient(135deg, {{ $themeColor }} 0%, #0f172a 135%); color: #ffffff;">
-                @if($course->meeting_active)
-                <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" style="position: absolute; top: 0.85rem; right: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem; background: #e11d48; color: #ffffff; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.98rem; font-weight: 800; text-decoration: none; box-shadow: 0 2px 8px rgba(225, 29, 72, 0.45);">
-                    <span class="w-1.5 h-1.5 bg-white rounded-full inline-block animate-ping"></span> LIVE
-                </a>
-                @else
-                <a href="#" id="live-badge-{{ $course->id }}" class="hidden" style="position: absolute; top: 0.85rem; right: 0.85rem; align-items: center; gap: 0.35rem; background: #e11d48; color: #ffffff; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.98rem; font-weight: 800; text-decoration: none;">
-                    <span class="w-1.5 h-1.5 bg-white rounded-full inline-block animate-ping"></span> LIVE
-                </a>
-                @endif
+                        {{-- Kolom 1: Mata Pelajaran & Pengajar --}}
+                        <td style="padding: 1.25rem 1.25rem; border-left: 5px solid {{ $themeColor }}; vertical-align: middle;">
+                            <div style="display: flex; align-items: center; gap: 0.9rem;">
+                                <div style="width: 48px; height: 48px; border-radius: 0.85rem; overflow: hidden; border: 2px solid #e2e8f0; flex-shrink: 0; background: #ffffff;">
+                                    <img src="{{ $course->getTeacherPhotoUrl() }}" width="48" height="48" alt="{{ $teacherName }}" style="width: 48px; height: 48px; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($teacherName) }}&background=0f172a&color=ffffff&bold=true'">
+                                </div>
+                                <div style="min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.2rem;">
+                                        <span style="background: {{ $themeColor }}; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 0.45rem; font-size: 0.74rem; font-weight: 800;">{{ $course->getShortCode() }}</span>
+                                        @if($course->meeting_active)
+                                            <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" id="live-badge-{{ $course->id }}" style="display: inline-flex; align-items: center; gap: 0.3rem; background: #e11d48; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-decoration: none;">
+                                                <span class="w-1.5 h-1.5 bg-white rounded-full inline-block animate-ping"></span> LIVE
+                                            </a>
+                                        @else
+                                            <a href="#" id="live-badge-{{ $course->id }}" class="hidden" style="align-items: center; gap: 0.3rem; background: #e11d48; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-decoration: none;">
+                                                <span class="w-1.5 h-1.5 bg-white rounded-full inline-block animate-ping"></span> LIVE
+                                            </a>
+                                        @endif
+                                    </div>
+                                    <div style="font-size: 1.02rem; font-weight: 800; color: #0f172a; line-height: 1.3;">{{ $courseTitle }}</div>
+                                    <div style="font-size: 0.85rem; color: #475569; font-weight: 600; margin-top: 0.15rem;">
+                                        <i class="fas fa-user-tie" style="color: #64748b; margin-right: 0.25rem;"></i> {{ $teacherName }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
 
-                <div style="display: flex; align-items: center; gap: 0.85rem;">
-                    <div style="width: 3rem; height: 3rem; border-radius: 0.85rem; overflow: hidden; border: 2px solid rgba(255,255,255,0.45); flex-shrink: 0; background: #ffffff;">
-                        <img src="{{ $course->getTeacherPhotoUrl() }}" alt="{{ $teacherName }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($teacherName) }}&background=0f172a&color=ffffff&bold=true'">
-                    </div>
-                    <div style="min-width: 0; flex: 1;">
-                        <span style="display: inline-block; background: rgba(15, 23, 42, 0.55); color: #fde047; padding: 0.15rem 0.5rem; border-radius: 0.45rem; font-size: 1.08rem; font-weight: 800; letter-spacing: 0.05em;">{{ $course->getShortCode() }}</span>
-                        <h3 style="font-size: 1.06rem; font-weight: 800; color: #ffffff; margin: 0.25rem 0 0; line-height: 1.3;">{{ $courseTitle }}</h3>
-                        <div style="font-size: 0.84rem; color: rgba(255,255,255,0.85); margin-top: 0.15rem;">{{ $teacherName }}</div>
-                    </div>
-                </div>
-            </div>
+                        {{-- Kolom 2: Jadwal --}}
+                        <td style="padding: 1.25rem 1rem; vertical-align: middle;">
+                            @if($consolidatedSchedules->isNotEmpty())
+                                <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                                    @foreach($consolidatedSchedules as $schLabel)
+                                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.6rem; border-radius: 0.5rem; font-size: 0.82rem; font-weight: 700; background: #f1f5f9; color: #334155; width: fit-content;">
+                                        <i class="far fa-clock" style="color: #4f46e5;"></i> {{ $schLabel }}
+                                    </span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span style="font-size: 0.84rem; color: #94a3b8;">-</span>
+                            @endif
+                        </td>
 
-            {{-- Card Body --}}
-            <div style="padding: 1.15rem 1.25rem; flex: 1; display: flex; flex-direction: column; gap: 0.85rem;">
-                @if($consolidatedSchedules->isNotEmpty())
-                <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
-                    @foreach($consolidatedSchedules as $schLabel)
-                    <span style="padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.98rem; font-weight: 700; background: #f1f5f9; color: #334155;">
-                        <i class="far fa-clock" style="margin-right: 0.2rem;"></i> {{ $schLabel }}
-                    </span>
+                        {{-- Kolom 3: Konten --}}
+                        <td style="padding: 1.25rem 1rem; vertical-align: middle;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.86rem; font-weight: 700; color: #334155;">
+                                <span><i class="fas fa-folder" style="color: #4f46e5; width: 16px;"></i> {{ $course->modules_count ?? 0 }} Modul</span>
+                                <span><i class="fas fa-file-alt" style="color: #0284c7; width: 16px;"></i> {{ $course->materials_count ?? 0 }} Materi</span>
+                                <span><i class="fas fa-tasks" style="color: #d97706; width: 16px;"></i> {{ $course->assignments_count ?? 0 }} Tugas</span>
+                            </div>
+                        </td>
+
+                        {{-- Kolom 4: Progress --}}
+                        <td style="padding: 1.25rem 1rem; vertical-align: middle;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.86rem; font-weight: 800; color: #0f172a; margin-bottom: 0.35rem;">
+                                <span>{{ $progress >= 80 ? '🔥 Hampir Tuntas' : ($progress >= 40 ? '📖 Berjalan' : ($progress > 0 ? '🚀 Mulai' : '📚 Belum')) }}</span>
+                                <span style="color: #059669;">{{ number_format($progress) }}%</span>
+                            </div>
+                            <div style="width: 100%; height: 9px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
+                                <div style="width: {{ min(100, $progress) }}%; height: 100%; background: #059669; border-radius: 9999px;"></div>
+                            </div>
+                            @if($cDetail)
+                            <div style="font-size: 0.78rem; color: #64748b; font-weight: 600; margin-top: 0.35rem;">
+                                M {{ $cDetail['materials']['completed'] }}/{{ $cDetail['materials']['total'] }} &bull; T {{ $cDetail['assignments']['completed'] }}/{{ $cDetail['assignments']['total'] }} &bull; K {{ $cDetail['quizzes']['completed'] }}/{{ $cDetail['quizzes']['total'] }}
+                            </div>
+                            @endif
+                        </td>
+
+                        {{-- Kolom 5: Aksi --}}
+                        <td style="padding: 1.25rem 1.25rem; vertical-align: middle; text-align: right;">
+                            <div style="display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end;">
+                                @if($course->meeting_active)
+                                <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" style="padding: 0.6rem 0.9rem; border-radius: 0.75rem; background: #e11d48; color: #ffffff; font-size: 0.84rem; font-weight: 800; text-decoration: none; white-space: nowrap;">
+                                    <i class="fas fa-video"></i> Live
+                                </a>
+                                @endif
+                                <a href="{{ route('siswa.lms.show', $course->id) }}" style="padding: 0.6rem 1.05rem; border-radius: 0.75rem; background: {{ $themeColor }}; color: #ffffff; font-size: 0.86rem; font-weight: 800; text-decoration: none; white-space: nowrap;">
+                                    <i class="fas fa-door-open"></i> Ruang Belajar
+                                </a>
+                                <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant', 'prompt' => 'Bantu saya memahami materi dan cek tugas pada mata pelajaran "' . $courseTitle . '".']) }}"
+                                   title="Tanya Pembda AI tentang mata pelajaran ini"
+                                   style="padding: 0.6rem 0.85rem; border-radius: 0.75rem; background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; font-size: 0.86rem; font-weight: 800; text-decoration: none; white-space: nowrap;">
+                                    <i class="fas fa-robot"></i> AI
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
                     @endforeach
-                </div>
-                @endif
-
-                <p style="font-size: 0.98rem; color: #475569; line-height: 1.5; margin: 0;">
-                    {{ \Illuminate\Support\Str::limit($course->description ?: 'Pelajari materi dan aktivitas ' . ($course->subject->subject_name ?? '') . ' secara interaktif.', 90) }}
-                </p>
-
-                {{-- Mini Stats --}}
-                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; background: #f8fafc; padding: 0.6rem; border-radius: 0.85rem; border: 1px solid #e2e8f0; text-align: center;">
-                    <div>
-                        <div style="font-size: 1.00rem; font-weight: 800; color: #0f172a;">{{ $course->modules_count ?? 0 }}</div>
-                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Modul</div>
-                    </div>
-                    <div style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">
-                        <div style="font-size: 1.00rem; font-weight: 800; color: #0f172a;">{{ $course->materials_count ?? 0 }}</div>
-                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Materi</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 1.00rem; font-weight: 800; color: #0f172a;">{{ $course->assignments_count ?? 0 }}</div>
-                        <div style="font-size: 1.08rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Tugas</div>
-                    </div>
-                </div>
-
-                {{-- Progress --}}
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 1.04rem; font-weight: 800; color: #334155; margin-bottom: 0.35rem;">
-                        <span>{{ $progress >= 80 ? '🔥 Hampir Tuntas' : ($progress >= 40 ? '📖 Sedang Belajar' : ($progress > 0 ? '🚀 Baru Mulai' : '📚 Belum Dimulai')) }}</span>
-                        <span style="color: #059669;">{{ number_format($progress) }}%</span>
-                    </div>
-                    <div style="width: 100%; height: 7px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
-                        <div style="width: {{ min(100, $progress) }}%; height: 100%; background: #059669; border-radius: 9999px;"></div>
-                    </div>
-                    @if($cDetail)
-                    <div style="display: flex; justify-content: space-between; font-size: 0.98rem; color: #64748b; font-weight: 600; margin-top: 0.35rem;">
-                        <span>Materi {{ $cDetail['materials']['completed'] }}/{{ $cDetail['materials']['total'] }}</span>
-                        <span>Tugas {{ $cDetail['assignments']['completed'] }}/{{ $cDetail['assignments']['total'] }}</span>
-                        <span>Kuis {{ $cDetail['quizzes']['completed'] }}/{{ $cDetail['quizzes']['total'] }}</span>
-                    </div>
-                    @endif
-                </div>
-
-                {{-- Action Buttons --}}
-                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.45rem;">
-                    @if($course->meeting_active)
-                    <a href="{{ route('siswa.lms.meeting.join', $course->id) }}" style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; padding: 0.6rem; border-radius: 0.8rem; background: #e11d48; color: #ffffff; font-size: 1.08rem; font-weight: 800; text-decoration: none;">
-                        <i class="fas fa-video"></i> Masuk PembdaTEMU Live
-                    </a>
-                    @endif
-
-                    <div style="display: flex; gap: 0.45rem;">
-                        <a href="{{ route('siswa.lms.show', $course->id) }}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.65rem 0.9rem; border-radius: 0.8rem; background: {{ $themeColor }}; color: #ffffff; font-size: 1.08rem; font-weight: 800; text-decoration: none;">
-                            <i class="fas fa-door-open"></i> Ruang Belajar
-                        </a>
-                        <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant', 'prompt' => 'Bantu saya memahami materi dan cek tugas pada mata pelajaran "' . $courseTitle . '".']) }}"
-                           title="Tanya Pembda AI tentang mata pelajaran ini"
-                           style="padding: 0.65rem 0.85rem; border-radius: 0.8rem; background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; font-size: 1.08rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;">
-                            <i class="fas fa-robot"></i> AI
-                        </a>
-                    </div>
-                </div>
-            </div>
+                </tbody>
+            </table>
         </div>
-        @endforeach
     </div>
     @else
     <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1.25rem; padding: 3.5rem 1.5rem; text-align: center;">
