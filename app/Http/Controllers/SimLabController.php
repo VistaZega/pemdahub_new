@@ -34,7 +34,11 @@ class SimLabController extends Controller
         $virtualLabs = collect();
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('virtual_labs')) {
-                VirtualLab::ensureDefaultLabs();
+                try {
+                    VirtualLab::ensureDefaultLabs();
+                } catch (\Throwable $seedErr) {
+                    \Illuminate\Support\Facades\Log::warning('SimLab seed warning: ' . $seedErr->getMessage());
+                }
                 $virtualLabs = VirtualLab::with('course')
                     ->where('is_active', true)
                     ->orderByRaw("CASE WHEN engine_type = 'ai_custom_html' THEN 0 ELSE 1 END")
@@ -61,7 +65,11 @@ class SimLabController extends Controller
     public function lab($slug)
     {
         if (\Illuminate\Support\Facades\Schema::hasTable('virtual_labs')) {
-            VirtualLab::ensureDefaultLabs();
+            try {
+                VirtualLab::ensureDefaultLabs();
+            } catch (\Throwable $seedErr) {
+                \Illuminate\Support\Facades\Log::warning('SimLab seed warning: ' . $seedErr->getMessage());
+            }
         }
         $lab = VirtualLab::with('course')->where('slug', $slug)->where('is_active', true)->firstOrFail();
         return view('simlab.lab', compact('lab'));

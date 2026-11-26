@@ -1384,7 +1384,7 @@ class VirtualLab extends Model
             [
                 'slug'         => 'fisika-tekanan-hidrolik',
                 'title'        => 'Simulator Fisika: Hukum Pascal & Dongkrak Hidrolik Otomotif',
-                'category'     => 'smp_sma',
+                'category'     => 'smp',
                 'subject_name' => 'Fisika / IPA (SMP & SMA)',
                 'engine_type'  => 'physics_pascal',
                 'icon'         => 'fas fa-compress-arrows-alt',
@@ -1414,7 +1414,7 @@ class VirtualLab extends Model
             [
                 'slug'         => 'biologi-pernapasan-paru',
                 'title'        => 'Simulator Biologi: Mekanisme Pernapasan, Hukum Boyle & Volume Paru',
-                'category'     => 'smp_sma',
+                'category'     => 'smp',
                 'subject_name' => 'Biologi / IPA (SMP & SMA)',
                 'engine_type'  => 'bio_respiration',
                 'icon'         => 'fas fa-lungs',
@@ -1504,7 +1504,7 @@ class VirtualLab extends Model
             [
                 'slug'         => 'ptn-penalaran-umum-hots',
                 'title'        => 'Lab SNBT-UTBK: Penalaran Logis, Tabel Kebenaran & Silogisme',
-                'category'     => 'olimpiade',
+                'category'     => 'sma',
                 'subject_name' => 'Penalaran Umum (SNBT / UTBK / PTN)',
                 'engine_type'  => 'ptn_reasoning',
                 'icon'         => 'fas fa-brain',
@@ -1518,8 +1518,16 @@ class VirtualLab extends Model
             ],
         ];
 
+        $allowedCategories = ['umum', 'smp', 'sma', 'vokasi'];
         foreach ($defaults as $item) {
-            static::updateOrCreate(['slug' => $item['slug']], $item);
+            if (!in_array($item['category'] ?? '', $allowedCategories, true)) {
+                $item['category'] = 'sma';
+            }
+            try {
+                static::updateOrCreate(['slug' => $item['slug']], $item);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('VirtualLab::ensureDefaultLabs gagal untuk ' . ($item['slug'] ?? '?') . ': ' . $e->getMessage());
+            }
         }
     }
 }
