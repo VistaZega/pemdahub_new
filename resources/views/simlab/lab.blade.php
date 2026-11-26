@@ -13,7 +13,7 @@
     <style>
         body {
             font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
-            background-color: #f6f7f8;
+            background-color: #eef2f6;
             color: #0f172a;
             -webkit-font-smoothing: antialiased;
         }
@@ -75,46 +75,46 @@
 @endphp
 <body class="min-h-screen flex flex-col" x-data="virtualLabRunner()">
 
-    <!-- Top Toolbar (Datar & Tegas) -->
-    <header class="border-b border-slate-300 bg-white sticky top-0 z-40">
+    <!-- Top Toolbar (Fasad Gelap Institusional) -->
+    <header class="border-b border-slate-800 bg-slate-900 text-white sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-                <a href="{{ route('simlab.index') }}" class="px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition shrink-0">
+                <a href="{{ route('simlab.index') }}" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold transition shrink-0">
                     <i class="fas fa-arrow-left mr-1"></i> Katalog Lab
                 </a>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
-                        <span class="font-mono-lab font-bold text-slate-800">{{ $lab->discipline_label }}</span>
+                    <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
+                        <span class="font-mono-lab font-bold text-sky-400">{{ $lab->discipline_label }}</span>
                         <span>·</span>
                         <span class="truncate hidden sm:inline">{{ $lab->subject_name }}</span>
                         <span>·</span>
-                        <span class="text-slate-600">{{ $isInstructor ? 'Instruktur' : 'Praktikan' }}</span>
+                        <span class="text-slate-300">{{ $isInstructor ? 'Instruktur' : 'Praktikan' }}</span>
                     </div>
-                    <h1 class="text-sm sm:text-base font-extrabold text-slate-900 truncate">{{ $lab->title }}</h1>
+                    <h1 class="text-sm sm:text-base font-extrabold text-white truncate">{{ $lab->title }}</h1>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
                 <button type="button" @click="showSop = !showSop"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold border border-slate-300 transition">
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 transition">
                     <i class="fas" :class="showSop ? 'fa-compress-alt' : 'fa-clipboard-list'"></i>
                     <span class="hidden md:inline" x-text="showSop ? 'Luaskan Kanvas' : 'Tampilkan SOP Lab'"></span>
                 </button>
                 @if($isInstructor)
                 <button type="button" @click="copyLabUrl()"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition">
                     <i class="fas fa-link"></i>
                     <span class="hidden sm:inline" x-text="copied ? 'Tersalin' : 'Salin Link LMS'"></span>
                 </button>
                 @endif
                 @if($lab->course && auth()->check() && auth()->user()->student)
-                <a href="{{ route('siswa.lms.show', $lab->course->id) }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition">
+                <a href="{{ route('siswa.lms.show', $lab->course->id) }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold transition">
                     <i class="fas fa-book-open"></i> Course LMS
                 </a>
                 @endif
                 @if(auth()->check() && auth()->user()->student)
                 <a href="{{ route('siswa.ai.index', ['mode' => 'tutor', 'prompt' => 'Saya sedang melakukan praktikum "' . $lab->title . '" (' . $lab->subject_name . '). Tolong jelaskan konsep dan variabel utamanya.']) }}"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition">
                     <i class="fas fa-comment-dots"></i> <span class="hidden sm:inline">Tanya AI</span>
                 </a>
                 @endif

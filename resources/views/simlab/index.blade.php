@@ -14,7 +14,7 @@
     <style>
         body {
             font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
-            background-color: #f6f7f8;
+            background-color: #eef2f6;
             color: #0f172a;
             -webkit-font-smoothing: antialiased;
         }
@@ -88,8 +88,8 @@
             'name'       => 'Lab IPA & Fisika',
             'sub'        => 'Mekanika, Optika, Fluida, Gelombang & Listrik',
             'icon'       => 'fa-atom',
-            'color'      => '#0284c7',
-            'prof_name'  => 'Prof. Dr. Faogöli Zega, M.Si.',
+            'color'      => '#0369a1',
+            'prof_name'  => 'Prof. Dr. Sanohugo Zega, M.Si.',
             'prof_title' => 'Kepala Laboratorium Fisika & Optika',
             'prof_photo' => asset('images/simlab-professors/prof-fisika.webp'),
             'prof_quote' => 'Uji hukum alam melalui pengukuran variabel langsung—dari lintasan proyektil dan lensa optik hingga medan listrik.',
@@ -101,8 +101,8 @@
             'name'       => 'Lab Kimia & Biologi',
             'sub'        => 'Reaksi Molekul, pH, Osmosis Sel & Saraf',
             'icon'       => 'fa-flask',
-            'color'      => '#059669',
-            'prof_name'  => 'Prof. Dr. Nibenia Telaumbanua, Ph.D.',
+            'color'      => '#047857',
+            'prof_name'  => 'Prof. Dr. Tafaeri Telaumbanua, Ph.D.',
             'prof_title' => 'Kepala Laboratorium Biokimia & Sel',
             'prof_photo' => asset('images/simlab-professors/prof-kimia-biologi.webp'),
             'prof_quote' => 'Amati reaksi stoikiometri, derajat keasaman pH, osmosis membran sel, genetika Mendel, dan penjalaran impuls saraf.',
@@ -114,8 +114,8 @@
             'name'       => 'Lab Matematika',
             'sub'        => 'Grafik, Trigonometri, Integral & Peluang',
             'icon'       => 'fa-square-root-variable',
-            'color'      => '#4f46e5',
-            'prof_name'  => 'Prof. Dr. Faozisökhi Zebua, M.Mat.',
+            'color'      => '#3730a3',
+            'prof_name'  => 'Prof. Dr. Talifusi Zebua, M.Mat.',
             'prof_title' => 'Kepala Laboratorium Analisis & Geometri',
             'prof_photo' => asset('images/simlab-professors/prof-matematika.webp'),
             'prof_quote' => 'Pahami hubungan aljabar dan geometri secara visual lewat kurva kuadrat, lingkaran satuan, integral Riemann, dan peluang.',
@@ -128,7 +128,7 @@
             'sub'        => 'Otomotif 4-Tak, CAD DPIB, Jaringan LAN & PLC',
             'icon'       => 'fa-gears',
             'color'      => '#c2410c',
-            'prof_name'  => 'Ir. Tuhoni Harefa, M.T.',
+            'prof_name'  => 'Ir. Samaeri Harefa, M.T.',
             'prof_title' => 'Kepala Bengkel Rekayasa Vokasi',
             'prof_photo' => asset('images/simlab-professors/prof-vokasi.webp'),
             'prof_quote' => 'Latihan standar kerja industri: diagnosis mesin 4-tak, topologi & subnetting jaringan, denah CAD DPIB, dan panel DOL motor 3-fasa.',
@@ -140,8 +140,8 @@
             'name'       => 'Lab IPS & Bahasa',
             'sub'        => 'Ekonomi Pasar, Inflasi, Sosiologi & Bahasa',
             'icon'       => 'fa-earth-asia',
-            'color'      => '#6d28d9',
-            'prof_name'  => 'Prof. Dr. Sinarwati Mendrofa, M.Ec.',
+            'color'      => '#9f1239',
+            'prof_name'  => 'Prof. Dr. Saradodo Mendrofa, M.Ec.',
             'prof_title' => 'Kepala Laboratorium Sosial, Ekonomi & Bahasa',
             'prof_photo' => asset('images/simlab-professors/prof-ips-bahasa.webp'),
             'prof_quote' => 'Analisis keseimbangan pasar, dampak inflasi terhadap daya beli riil, dinamika norma sosial, hingga struktur sintaksis lintas bahasa.',
@@ -154,7 +154,7 @@
             'sub'        => '5 Soal Dunia & 35 Soal Cepat SNBT/UTBK',
             'icon'       => 'fa-trophy',
             'color'      => '#b45309',
-            'prof_name'  => 'Prof. Dr. Talihuku Lase, M.Sc.',
+            'prof_name'  => 'Prof. Dr. Orudua Lase, M.Sc.',
             'prof_title' => 'Kepala Pusat Pembinaan Olimpiade & PTN',
             'prof_photo' => asset('images/simlab-professors/prof-olimpiade.webp'),
             'prof_quote' => 'Uji ketajaman nalar dan kecepatan di bawah batas waktu menggunakan soal Olimpiade Sains Internasional dan bank soal SNBT/UTBK.',
@@ -193,22 +193,22 @@
   FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
 -->
 
-    <!-- Top Command Bar (Datar, 56px, border bawah 1px) -->
-    <header class="sticky top-0 z-40 border-b border-slate-300 bg-white">
+    <!-- Top Command Bar (Fasad Gelap Institusional, 56px, border bawah tegas) -->
+    <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900 text-white">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
-                <a href="{{ url('/') }}" class="flex items-center gap-2.5 shrink-0 text-slate-900 hover:text-sky-700 transition">
-                    <span class="w-8 h-8 rounded-md bg-slate-900 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                <a href="{{ url('/') }}" class="flex items-center gap-2.5 shrink-0 text-white hover:text-sky-300 transition">
+                    <span class="w-8 h-8 rounded-md bg-sky-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
                         <i class="fas fa-microscope"></i>
                     </span>
                     <div class="min-w-0">
                         <span class="font-extrabold tracking-tight text-sm block leading-none">PembdaHUB Kompleks Laboratorium</span>
-                        <span class="text-[11px] text-slate-500 font-medium hidden sm:block mt-0.5">Institut Riset &amp; Praktikum Vokasi Nias</span>
+                        <span class="text-[11px] text-slate-300 font-medium hidden sm:block mt-0.5">Institut Riset &amp; Praktikum Vokasi Nias</span>
                     </div>
                 </a>
 
-                <span class="hidden md:inline-flex items-center gap-1.5 pl-3 border-l border-slate-200 text-xs font-semibold text-slate-600">
-                    <span class="w-2 h-2 rounded-full {{ $isInstructor ? 'bg-emerald-600' : 'bg-sky-600' }}"></span>
+                <span class="hidden md:inline-flex items-center gap-1.5 pl-3 border-l border-slate-700 text-xs font-semibold text-slate-200">
+                    <span class="w-2 h-2 rounded-full {{ $isInstructor ? 'bg-emerald-400' : 'bg-sky-400' }}"></span>
                     {{ $isInstructor ? 'Mode Instruktur' : 'Mode Praktikan' }}
                 </span>
             </div>
@@ -219,19 +219,19 @@
                     <input type="text" x-model="searchQuery"
                            @input="if(searchQuery.trim() !== '') { activeRoom = 'all'; viewMode = 'inside'; }"
                            placeholder="Cari fenomena atau alat..."
-                           class="w-full pl-8 pr-3 py-1.5 rounded-md bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-slate-900 transition">
+                           class="w-full pl-8 pr-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 focus:bg-slate-950 focus:outline-none focus:border-sky-500 transition">
                 </div>
 
                 <button type="button"
                         @click="viewMode === 'lobby' ? enterRoom(activeRoom === 'all' ? 'fisika' : activeRoom) : backToLobby()"
-                        class="px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition inline-flex items-center gap-1.5">
-                    <i class="fas" :class="viewMode === 'lobby' ? 'fa-door-open' : 'fa-building'"></i>
+                        class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold transition inline-flex items-center gap-1.5">
+                    <i class="fas" :class="viewMode === 'lobby' ? 'fa-door-open text-sky-400' : 'fa-building text-sky-400'"></i>
                     <span class="hidden md:inline" x-text="viewMode === 'lobby' ? 'Masuk Meja Riset' : 'Direktori Gedung'"></span>
                 </button>
 
                 @if($isInstructor)
                 <button type="button" @click="openAiModal = true"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition">
                     <i class="fas fa-plus"></i>
                     <span class="hidden sm:inline">Buat Simulator AI</span>
                 </button>
@@ -239,7 +239,7 @@
 
                 @auth
                 <a href="{{ url('/dashboard') }}"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold transition">
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 text-xs font-bold transition">
                     <i class="fas fa-arrow-left"></i>
                     <span class="hidden sm:inline">Portal</span>
                 </a>
@@ -277,22 +277,21 @@
                 </div>
             </div>
 
-            <!-- Grid Arsitektural 6 Pintu Ruangan (Hairline Grid 1px, Tanpa Nested Cards) -->
+            <!-- Grid Arsitektural 6 Pintu Ruangan (Hairline Grid 1px + Pita Warna Wayfinding Solid) -->
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-px bg-slate-300 border border-slate-300 rounded-lg overflow-hidden">
                 @foreach($rooms as $rKey => $r)
                 @php $rCount = $virtualLabs->filter(fn($v) => $v->discipline_key === $rKey)->count(); @endphp
                 <article @click="enterRoom('{{ $rKey }}')"
-                         class="group cursor-pointer bg-white hover:bg-slate-50/90 transition-colors p-5 flex flex-col justify-between gap-4">
-                    <div class="space-y-4">
+                         style="border-top: 4px solid {{ $r['color'] }};"
+                         class="group cursor-pointer bg-white hover:bg-slate-50 transition-colors flex flex-col justify-between">
+                    <div class="p-5 space-y-4">
                         <!-- Baris Kode Ruangan & Kapasitas -->
                         <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-200">
                             <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ $r['color'] }};"></span>
-                                <span class="font-mono-lab text-xs font-bold text-slate-800">{{ $r['code'] }}</span>
-                                <span class="text-xs text-slate-400">·</span>
-                                <span class="text-xs text-slate-500 font-medium">{{ $r['floor'] }}</span>
+                                <span class="px-2 py-0.5 rounded text-[11px] font-mono-lab font-bold text-white" style="background: {{ $r['color'] }};">{{ $r['code'] }}</span>
+                                <span class="text-xs text-slate-600 font-semibold">{{ $r['floor'] }}</span>
                             </div>
-                            <span class="font-mono-lab text-xs font-bold text-slate-600">{{ $rCount }} Alat</span>
+                            <span class="font-mono-lab text-xs font-bold text-slate-700">{{ $rCount }} Alat</span>
                         </div>
 
                         <!-- Potret Realistis Profesor Kepala Lab + Identitas Ruangan -->
@@ -302,24 +301,24 @@
                                  loading="lazy"
                                  class="w-20 h-20 rounded-lg object-cover border border-slate-300 shrink-0 bg-slate-100">
                             <div class="min-w-0 flex-1">
-                                <h2 class="text-base font-extrabold text-slate-900 leading-snug group-hover:text-sky-700 transition-colors">
+                                <h2 class="text-base font-extrabold text-slate-900 leading-snug group-hover:text-sky-800 transition-colors">
                                     {{ $r['name'] }}
                                 </h2>
-                                <div class="text-xs font-bold text-slate-800 mt-1">{{ $r['prof_name'] }}</div>
+                                <div class="text-xs font-bold mt-1" style="color: {{ $r['color'] }};">{{ $r['prof_name'] }}</div>
                                 <div class="text-[11px] font-medium text-slate-500">{{ $r['prof_title'] }}</div>
                                 <p class="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-2">{{ $r['prof_quote'] }}</p>
                             </div>
                         </div>
 
                         <!-- Inventaris Peralatan Ruangan (Tipografi Bersih) -->
-                        <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-600 leading-relaxed">
-                            <span class="font-bold text-slate-800">Instrumen:</span>
+                        <div class="pt-3 border-t border-slate-200 text-[11px] text-slate-600 leading-relaxed">
+                            <span class="font-bold text-slate-900">Instrumen:</span>
                             {{ implode(' · ', $r['equipment']) }}
                         </div>
                     </div>
 
                     <!-- Bar Masuk Ruangan -->
-                    <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-slate-900">
+                    <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-slate-950">
                         <span>Masuki Ruangan Laboratorium</span>
                         <span class="inline-flex items-center gap-1.5 font-mono-lab group-hover:translate-x-0.5 transition-transform" style="color: {{ $r['color'] }};">
                             BUKA PINTU <i class="fas fa-arrow-right text-[10px]"></i>
@@ -334,7 +333,8 @@
         <section x-show="viewMode === 'inside'" x-cloak class="space-y-4">
 
             <!-- Bar Koridor Ruangan & Identitas Kepala Lab -->
-            <div class="bg-white border border-slate-300 rounded-lg px-4 py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+            <div :style="currentRoomMeta ? 'border-top: 4px solid ' + currentRoomMeta.color : 'border-top: 4px solid #0f172a'"
+                 class="bg-white border border-slate-300 rounded-lg px-4 py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <button type="button" @click="backToLobby()"
                             class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition inline-flex items-center gap-1.5">
@@ -345,14 +345,14 @@
                     <div class="flex flex-wrap items-center gap-1">
                         @foreach($rooms as $rKey => $r)
                         <button type="button" @click="selectRoom('{{ $rKey }}')"
-                                :class="activeRoom === '{{ $rKey }}' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'"
+                                :class="activeRoom === '{{ $rKey }}' ? 'text-white' : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'"
+                                :style="activeRoom === '{{ $rKey }}' ? 'background: {{ $r['color'] }}; border-color: {{ $r['color'] }};' : ''"
                                 class="px-2.5 py-1.5 rounded-md border text-xs font-bold transition inline-flex items-center gap-1.5 font-mono-lab">
-                            <span class="w-1.5 h-1.5 rounded-full" style="background: {{ $r['color'] }};"></span>
                             <span>{{ $r['code'] }}</span>
                         </button>
                         @endforeach
                         <button type="button" @click="activeRoom = 'all'"
-                                :class="activeRoom === 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'"
+                                :class="activeRoom === 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'"
                                 class="px-2.5 py-1.5 rounded-md border text-xs font-bold transition">
                             Semua ({{ $virtualLabs->count() }})
                         </button>
