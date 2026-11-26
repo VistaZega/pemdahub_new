@@ -8,6 +8,7 @@ use App\Services\AiStudentAssistantService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AiAssistantController extends Controller
@@ -61,7 +62,20 @@ class AiAssistantController extends Controller
 
         $usageInfo = $this->aiService->getUsageInfo($student->id);
 
-        return view('siswa.ai.index', compact('student', 'conversations', 'activeConversation', 'messages', 'usageInfo'));
+        $prefillMode = in_array($request->query('mode'), ['tutor', 'bk_consultation', 'lms_assistant'], true)
+            ? $request->query('mode')
+            : null;
+        $prefillPrompt = $request->query('prompt');
+
+        return view('siswa.ai.index', compact(
+            'student',
+            'conversations',
+            'activeConversation',
+            'messages',
+            'usageInfo',
+            'prefillMode',
+            'prefillPrompt'
+        ));
     }
 
     /**
@@ -113,7 +127,7 @@ class AiAssistantController extends Controller
     }
 
     /**
-     * Send message to Pembda AI via AJAX/Fetch.
+     * Send message to Pembda AI via AJAX/Fetch (non-streaming fallback).
      */
     public function sendMessage(Request $request)
     {
@@ -124,11 +138,162 @@ class AiAssistantController extends Controller
             return response()->json(['success' => false, 'message' => 'Siswa tidak ditemukan.'], 403);
         }
 
+        $prep = $this->prepareChatSubmission($request, $student);
+
+        $aiResponse = $this->aiService->generateResponse(
+            $student,
+            $prep['message'],
+            $prep['conversation']->mode,
+            $prep['history'],
+            $prep['image_data_uri']
+        );
+
+        if (!$aiResponse['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $aiResponse['message'],
+                'is_quota_error' => $aiResponse['is_quota_error'] ?? false
+            ], 422);
+        }
+
+        $aiMsgId = DB::table('ai_messages')->insertGetId([
+            'conversation_id' => $prep['conversation']->id,
+            'sender' => 'ai',
+            'message' => $aiResponse['message'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('ai_conversations')
+            ->where('id', $prep['conversation']->id)
+            ->update(['updated_at' => now()]);
+
+        $usageInfo = $this->aiService->getUsageInfo($student->id);
+
+        return response()->json([
+            'success' => true,
+            'conversation_id' => $prep['conversation']->id,
+            'image_url' => $prep['image_url'],
+            'ai_message' => [
+                'id' => $aiMsgId,
+                'message' => $aiResponse['message'],
+                'created_at' => now()->format('H:i')
+            ],
+            'usage' => $usageInfo
+        ]);
+    }
+
+    /**
+     * Stream AI response chunk-by-chunk via Server-Sent Events (SSE).
+     */
+    public function streamMessage(Request $request)
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return response()->json(['success' => false, 'message' => 'Siswa tidak ditemukan.'], 403);
+        }
+
+        $prep = $this->prepareChatSubmission($request, $student);
+        $conversation = $prep['conversation'];
+
+        return response()->stream(function () use ($student, $prep, $conversation) {
+            if (ob_get_level() > 0) {
+                @ob_end_flush();
+            }
+
+            $emit = function (string $event, array $payload) {
+                echo "event: {$event}\n";
+                echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
+                if (ob_get_level() > 0) {
+                    @ob_flush();
+                }
+                flush();
+            };
+
+            $emit('meta', [
+                'conversation_id'    => $conversation->id,
+                'conversation_title' => $conversation->title,
+                'image_url'          => $prep['image_url'],
+            ]);
+
+            $aiResponse = $this->aiService->streamResponse(
+                $student,
+                $prep['message'],
+                $conversation->mode,
+                $prep['history'],
+                $prep['image_data_uri'],
+                function (string $delta) use ($emit) {
+                    $emit('chunk', ['delta' => $delta]);
+                }
+            );
+
+            if (!$aiResponse['success']) {
+                $emit('error', [
+                    'message'        => $aiResponse['message'],
+                    'is_quota_error' => $aiResponse['is_quota_error'] ?? false,
+                ]);
+                return;
+            }
+
+            $aiMsgId = DB::table('ai_messages')->insertGetId([
+                'conversation_id' => $conversation->id,
+                'sender'          => 'ai',
+                'message'         => $aiResponse['message'],
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+
+            DB::table('ai_conversations')
+                ->where('id', $conversation->id)
+                ->update(['updated_at' => now()]);
+
+            $emit('done', [
+                'conversation_id' => $conversation->id,
+                'ai_message_id'   => $aiMsgId,
+                'full_message'    => $aiResponse['message'],
+                'usage'           => $this->aiService->getUsageInfo($student->id),
+            ]);
+        }, 200, [
+            'Content-Type'      => 'text/event-stream',
+            'Cache-Control'     => 'no-cache, no-store, must-revalidate',
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
+
+    /**
+     * Validate request, handle optional question image upload, load latest 10 history messages, and store student message.
+     */
+    protected function prepareChatSubmission(Request $request, Student $student): array
+    {
         $validated = $request->validate([
             'conversation_id' => 'nullable|integer',
-            'mode' => 'required|in:tutor,bk_consultation,lms_assistant',
-            'message' => 'required|string|max:3000',
+            'mode'            => 'required|in:tutor,bk_consultation,lms_assistant',
+            'message'         => 'nullable|string|max:3000',
+            'image'           => 'nullable|image|mimes:jpeg,jpg,png,webp|max:4096',
         ]);
+
+        $messageText = trim((string) ($validated['message'] ?? ''));
+        if ($messageText === '' && !$request->hasFile('image')) {
+            abort(422, 'Pesan atau foto soal tidak boleh kosong.');
+        }
+        if ($messageText === '' && $request->hasFile('image')) {
+            $messageText = 'Tolong bantu jelaskan dan selesaikan soal pada gambar ini langkah demi langkah.';
+        }
+
+        $imageUrl = null;
+        $imageDataUri = null;
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $mime = $file->getMimeType() ?: 'image/jpeg';
+            $rawBytes = file_get_contents($file->getRealPath());
+            if ($rawBytes !== false) {
+                $imageDataUri = 'data:' . $mime . ';base64,' . base64_encode($rawBytes);
+            }
+            $storedPath = $file->store('ai-uploads/' . $student->id, 'public');
+            $imageUrl = Storage::url($storedPath);
+        }
 
         $conversationId = $validated['conversation_id'] ?? null;
         $conversation = null;
@@ -140,13 +305,12 @@ class AiAssistantController extends Controller
                 ->first();
         }
 
-        // Create conversation if none exists
         if (!$conversation) {
-            $title = Str::limit(trim($validated['message']), 35, '...');
+            $title = Str::limit($messageText, 35, '...');
             $conversationId = DB::table('ai_conversations')->insertGetId([
                 'student_id' => $student->id,
-                'mode' => $validated['mode'],
-                'title' => $title ?: 'Percakapan Baru',
+                'mode'       => $validated['mode'],
+                'title'      => $title ?: 'Percakapan Baru',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -154,83 +318,51 @@ class AiAssistantController extends Controller
             $conversation = DB::table('ai_conversations')->where('id', $conversationId)->first();
         }
 
-        // Fetch recent message history for context
+        // Ambil 10 pesan TERBARU (perbaikan bug: sebelumnya mengambil 10 pesan pertama)
         $rawHistory = DB::table('ai_messages')
             ->where('conversation_id', $conversation->id)
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->take(10)
-            ->get();
+            ->get()
+            ->reverse()
+            ->values();
 
         $historyArray = [];
         foreach ($rawHistory as $h) {
             $historyArray[] = [
-                'sender' => $h->sender,
-                'message' => $h->message
+                'sender'  => $h->sender,
+                'message' => $h->message,
             ];
         }
 
-        // Save student's prompt
-        $studentMsgId = DB::table('ai_messages')->insertGetId([
+        $metadata = $imageUrl ? json_encode(['image_url' => $imageUrl]) : null;
+        DB::table('ai_messages')->insertGetId([
             'conversation_id' => $conversation->id,
-            'sender' => 'student',
-            'message' => $validated['message'],
-            'created_at' => now(),
-            'updated_at' => now(),
+            'sender'          => 'student',
+            'message'         => $messageText,
+            'metadata'        => $metadata,
+            'created_at'      => now(),
+            'updated_at'      => now(),
         ]);
 
-        // Auto update conversation title if default title
         if ($rawHistory->isEmpty()) {
-            $newTitle = Str::limit(trim($validated['message']), 35, '...');
+            $newTitle = Str::limit($messageText, 35, '...');
             DB::table('ai_conversations')
                 ->where('id', $conversation->id)
                 ->update([
-                    'title' => $newTitle,
-                    'updated_at' => now()
+                    'title'      => $newTitle,
+                    'updated_at' => now(),
                 ]);
+            $conversation->title = $newTitle;
         }
 
-        // Generate AI response
-        $aiResponse = $this->aiService->generateResponse(
-            $student,
-            $validated['message'],
-            $conversation->mode,
-            $historyArray
-        );
-
-        if (!$aiResponse['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $aiResponse['message'],
-                'is_quota_error' => $aiResponse['is_quota_error'] ?? false
-            ], 422);
-        }
-
-        // Save AI response
-        $aiMsgId = DB::table('ai_messages')->insertGetId([
-            'conversation_id' => $conversation->id,
-            'sender' => 'ai',
-            'message' => $aiResponse['message'],
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        // Touch conversation updated_at
-        DB::table('ai_conversations')
-            ->where('id', $conversation->id)
-            ->update(['updated_at' => now()]);
-
-        $usageInfo = $this->aiService->getUsageInfo($student->id);
-
-        return response()->json([
-            'success' => true,
-            'conversation_id' => $conversation->id,
-            'ai_message' => [
-                'id' => $aiMsgId,
-                'message' => $aiResponse['message'],
-                'created_at' => now()->format('H:i')
-            ],
-            'usage' => $usageInfo
-        ]);
+        return [
+            'conversation'   => $conversation,
+            'message'        => $messageText,
+            'history'        => $historyArray,
+            'image_url'      => $imageUrl,
+            'image_data_uri' => $imageDataUri,
+        ];
     }
 
     /**

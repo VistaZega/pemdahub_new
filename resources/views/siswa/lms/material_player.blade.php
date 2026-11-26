@@ -93,6 +93,12 @@
                 <button type="button" onclick="changeFontSize('lg')" class="px-2.5 py-1 text-xs font-black text-slate-300 hover:text-white rounded-lg transition">A+</button>
             </div>
 
+            {{-- Tanya Pembda AI --}}
+            <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant', 'prompt' => 'Tolong bantu jelaskan rangkuman dan poin penting dari materi "' . $material->title . '" pada mata pelajaran "' . ($course->course_name ?? $course->name) . '".']) }}"
+               class="flex items-center gap-1.5 px-3.5 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-black transition border-2 border-black shadow-md">
+                <i class="fas fa-robot text-amber-300 text-xs"></i> <span class="hidden sm:inline">Tanya AI</span>
+            </a>
+
             {{-- Toggle Focus Mode --}}
             <button type="button" onclick="toggleFocusMode()" class="flex items-center gap-1.5 px-4 py-2 bg-black hover:bg-emerald-600 text-white rounded-xl text-xs font-black transition border-2 border-black shadow-md">
                 <i class="fas fa-expand-alt text-amber-400 text-xs"></i> <span class="hidden sm:inline">Focus Mode</span>

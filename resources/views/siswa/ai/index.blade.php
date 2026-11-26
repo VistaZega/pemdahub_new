@@ -464,12 +464,17 @@
                                      :class="msg.sender === 'student' 
                                         ? 'chat-student-bubble text-white rounded-tr-none font-mono-code font-bold' 
                                         : 'chat-ai-bubble text-[#121316] rounded-tl-none prose prose-xs max-w-none font-medium'">
+                                    <template x-if="msg.image_url">
+                                        <div class="mb-2.5">
+                                            <img :src="msg.image_url" alt="Lampiran Soal" class="max-h-56 rounded-xl border-2 border-[#121316] bg-white object-contain">
+                                        </div>
+                                    </template>
                                     <div class="message-body" x-html="renderMarkdown(msg.message)"></div>
                                 </div>
 
                                 <!-- Action Toolbar for AI Messages -->
                                 <template x-if="msg.sender === 'ai'">
-                                    <div class="flex items-center gap-3 px-1 text-[10px] font-mono-code font-bold text-[#121316]">
+                                    <div class="flex flex-wrap items-center gap-3 px-1 text-[10px] font-mono-code font-bold text-[#121316]">
                                         <button type="button" @click="copyToClipboard(msg.message)" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Salin Jawaban">
                                             <i class="fas fa-copy text-[10px]"></i>
                                             <span>Salin</span>
@@ -478,6 +483,11 @@
                                         <button type="button" @click="speakText(msg.message)" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Dengarkan Suara AI">
                                             <i class="fas fa-volume-high text-[10px]"></i>
                                             <span>Dengarkan</span>
+                                        </button>
+
+                                        <button type="button" @click="useQuickPrompt('Buatkan 3 soal latihan serupa beserta kunci pembahasan bertahap untuk topik ini.')" class="hover:text-[#ff3823] transition flex items-center gap-1 cursor-pointer" title="Buat Soal Latihan Serupa">
+                                            <i class="fas fa-dumbbell text-[10px]"></i>
+                                            <span>Latihan Serupa</span>
                                         </button>
 
                                         <div class="flex items-center gap-2 border-l-2 border-[#121316] pl-3">
@@ -511,29 +521,48 @@
             </div>
 
             <!-- Command Input Form (Tactile Console Input) -->
-            <div class="p-4 bg-[#faf3e0] border-t-2 border-[#121316] shrink-0 font-mono-code">
+            <div class="p-4 bg-[#faf3e0] border-t-2 border-[#121316] shrink-0 font-mono-code space-y-2.5">
+                <!-- Preview Foto Soal -->
+                <div x-show="imagePreviewUrl" style="display: none;" class="flex items-center gap-3 bg-white p-2.5 rounded-xl border-2 border-[#121316] w-fit shadow-[2px_2px_0px_#121316]">
+                    <img :src="imagePreviewUrl" alt="Preview Soal" class="h-14 w-14 object-cover rounded-lg border border-slate-300">
+                    <div class="text-[11px] font-bold text-[#121316]">
+                        <div>Foto soal siap dikirim</div>
+                        <button type="button" @click="clearImage()" class="text-[#ff3823] hover:underline mt-0.5 cursor-pointer">
+                            <i class="fas fa-times-circle"></i> Hapus foto
+                        </button>
+                    </div>
+                </div>
+
                 <form @submit.prevent="submitMessage()" class="flex items-end gap-2.5">
-                    
+                    <input type="file" x-ref="imageInput" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleImageSelect($event)">
+
                     <div class="flex-1 relative bg-white rounded-2xl border-2 border-[#121316] shadow-[3.5px_3.5px_0px_#121316] focus-within:ring-2 focus-within:ring-[#ff3823] transition">
                         <textarea x-ref="promptInput" x-model="userInput" 
                                   @keydown.enter.prevent="if(!$event.shiftKey) submitMessage()"
-                                  placeholder="› Ketik perintah atau pertanyaan Anda di sini... (Enter untuk Kirim)"
+                                  placeholder="› Ketik pertanyaan atau upload foto soal... (Enter untuk Kirim)"
                                   rows="2"
-                                  class="w-full p-3.5 pr-10 rounded-2xl bg-transparent text-xs sm:text-sm outline-none resize-none text-[#121316] font-mono-code font-bold placeholder-[#71717a]"
+                                  class="w-full p-3.5 pr-20 rounded-2xl bg-transparent text-xs sm:text-sm outline-none resize-none text-[#121316] font-mono-code font-bold placeholder-[#71717a]"
                                   :disabled="isSending || usageInfo.remaining <= 0"></textarea>
 
-                        <!-- Mic Button -->
-                        <button type="button" @click="toggleVoiceInput()" 
-                                class="absolute right-3 bottom-3 p-1.5 rounded-lg transition cursor-pointer"
-                                :class="isListening ? 'bg-[#ff3823] text-white animate-pulse' : 'text-[#121316] hover:text-[#ff3823]'"
-                                title="Bicara via Suara (Speech-to-Text)">
-                            <i class="fas" :class="isListening ? 'fa-microphone-slash' : 'fa-microphone'"></i>
-                        </button>
+                        <!-- Upload Image & Mic Buttons -->
+                        <div class="absolute right-2.5 bottom-2.5 flex items-center gap-1">
+                            <button type="button" @click="$refs.imageInput.click()"
+                                    class="p-1.5 rounded-lg text-[#121316] hover:text-[#ff3823] transition cursor-pointer"
+                                    title="Upload Foto Soal (JPG/PNG/WEBP, maks 4MB)">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <button type="button" @click="toggleVoiceInput()" 
+                                    class="p-1.5 rounded-lg transition cursor-pointer"
+                                    :class="isListening ? 'bg-[#ff3823] text-white animate-pulse' : 'text-[#121316] hover:text-[#ff3823]'"
+                                    title="Bicara via Suara (Speech-to-Text)">
+                                <i class="fas" :class="isListening ? 'fa-microphone-slash' : 'fa-microphone'"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Submit Button -->
                     <button type="submit" 
-                            :disabled="isSending || !userInput.trim() || usageInfo.remaining <= 0"
+                            :disabled="isSending || (!userInput.trim() && !selectedImageFile) || usageInfo.remaining <= 0"
                             class="px-6 py-3.5 rounded-2xl btn-tactile-red text-xs font-black uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-2 shrink-0 cursor-pointer">
                         <span class="hidden sm:inline">Kirim</span>
                         <i class="fas fa-paper-plane"></i>
@@ -551,7 +580,9 @@ function aiChatApp() {
         activeConversationId: {{ $activeConversation ? $activeConversation->id : 'null' }},
         activeMode: '{{ $activeConversation ? $activeConversation->mode : "tutor" }}',
         conversationTitle: '{{ $activeConversation ? addslashes($activeConversation->title) : "SESI BARU PEMBDA AI" }}',
-        userInput: '',
+        userInput: @json($prefillPrompt ?? ''),
+        selectedImageFile: null,
+        imagePreviewUrl: null,
         isSending: false,
         autoSpeech: false,
         isListening: false,
@@ -561,17 +592,50 @@ function aiChatApp() {
             limit: {{ $usageInfo['limit'] }}
         },
         messageList: [
-            @if(!empty($messages))
+            @if(!empty($messages) && empty($prefillPrompt))
                 @foreach($messages as $m)
-                    { sender: '{{ $m->sender }}', message: `{!! addslashes($m->message) !!}`, liked: false, disliked: false },
+                    @php $meta = !empty($m->metadata) ? json_decode($m->metadata, true) : []; @endphp
+                    { sender: '{{ $m->sender }}', message: `{!! addslashes($m->message) !!}`, image_url: @json($meta['image_url'] ?? null), liked: false, disliked: false },
                 @endforeach
             @endif
         ],
 
         init() {
+            @if(!empty($prefillMode))
+                this.activeMode = '{{ $prefillMode }}';
+                this.activeConversationId = null;
+                this.conversationTitle = (this.activeMode === 'bk_consultation') ? 'KONSULTASI BK & KARIR' : (this.activeMode === 'lms_assistant' ? 'ASISTEN BELAJAR LMS' : 'TUTOR AKADEMIK Q&A');
+            @endif
             this.scrollToBottom();
             this.renderMathFormulas();
             this.initSpeechRecognition();
+            @if(!empty($prefillPrompt))
+                this.$nextTick(() => {
+                    if (this.$refs.promptInput) this.$refs.promptInput.focus();
+                });
+            @endif
+        },
+
+        handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 4 * 1024 * 1024) {
+                alert('Ukuran foto maksimal 4 MB.');
+                event.target.value = '';
+                return;
+            }
+            this.selectedImageFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.imagePreviewUrl = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        clearImage() {
+            this.selectedImageFile = null;
+            this.imagePreviewUrl = null;
+            if (this.$refs.imageInput) this.$refs.imageInput.value = '';
         },
 
         getModeLabel() {
@@ -702,53 +766,113 @@ function aiChatApp() {
 
         async submitMessage() {
             const text = this.userInput.trim();
-            if (!text || this.isSending) return;
+            const imageFile = this.selectedImageFile;
+            const previewUrl = this.imagePreviewUrl;
+            if ((!text && !imageFile) || this.isSending) return;
 
-            this.messageList.push({ sender: 'student', message: text });
+            const displayMsg = text || 'Tolong bantu jelaskan dan selesaikan soal pada gambar ini.';
+            this.messageList.push({ sender: 'student', message: displayMsg, image_url: previewUrl });
             this.userInput = '';
+            this.clearImage();
             this.isSending = true;
             this.scrollToBottom();
 
+            const formData = new FormData();
+            if (this.activeConversationId) {
+                formData.append('conversation_id', this.activeConversationId);
+            }
+            formData.append('mode', this.activeMode);
+            formData.append('message', displayMsg);
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
             try {
-                const response = await fetch('{{ route("siswa.ai.send") }}', {
+                const response = await fetch('{{ route("siswa.ai.stream") }}', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
+                        'Accept': 'text/event-stream'
                     },
-                    body: JSON.stringify({
-                        conversation_id: this.activeConversationId,
-                        mode: this.activeMode,
-                        message: text
-                    })
+                    body: formData
                 });
 
-                const result = await response.json();
-
-                if (result.success) {
-                    this.activeConversationId = result.conversation_id;
-                    const aiText = result.ai_message.message || 'Pembda AI telah memproses instruksi Anda.';
-                    
-                    if (result.usage) {
-                        this.usageInfo.remaining = result.usage.remaining;
-                    }
-
-                    // Instantly push completed AI message with 100% reliability
-                    this.messageList.push({
-                        sender: 'ai',
-                        message: aiText,
-                        liked: false,
-                        disliked: false
+                const contentType = response.headers.get('content-type') || '';
+                if (!response.ok || !contentType.includes('text/event-stream') || !response.body) {
+                    const fallbackRes = await fetch('{{ route("siswa.ai.send") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
                     });
-
-                    this.renderMathFormulas();
-
-                    if (this.autoSpeech) {
-                        this.speakText(aiText);
+                    const result = await fallbackRes.json();
+                    if (result.success) {
+                        this.activeConversationId = result.conversation_id;
+                        const aiText = result.ai_message.message || 'Pembda AI telah memproses instruksi Anda.';
+                        if (result.usage) this.usageInfo.remaining = result.usage.remaining;
+                        this.messageList.push({ sender: 'ai', message: aiText, liked: false, disliked: false });
+                        this.renderMathFormulas();
+                        if (this.autoSpeech) this.speakText(aiText);
+                    } else {
+                        alert(result.message || 'Terjadi kesalahan saat memproses jawaban AI.');
                     }
-                } else {
-                    alert(result.message || 'Terjadi kesalahan saat memproses jawaban AI.');
+                    return;
+                }
+
+                // Streaming SSE Reader
+                const aiMsgIndex = this.messageList.push({
+                    sender: 'ai',
+                    message: '',
+                    liked: false,
+                    disliked: false
+                }) - 1;
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+                let currentEvent = 'message';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const rawLine of lines) {
+                        const line = rawLine.trim();
+                        if (line.startsWith('event:')) {
+                            currentEvent = line.slice(6).trim();
+                        } else if (line.startsWith('data:')) {
+                            const dataStr = line.slice(5).trim();
+                            if (!dataStr) continue;
+                            try {
+                                const payload = JSON.parse(dataStr);
+                                if (currentEvent === 'meta') {
+                                    if (payload.conversation_id) this.activeConversationId = payload.conversation_id;
+                                    if (payload.conversation_title) this.conversationTitle = payload.conversation_title;
+                                } else if (currentEvent === 'chunk' && payload.delta) {
+                                    this.messageList[aiMsgIndex].message += payload.delta;
+                                    this.scrollToBottom();
+                                } else if (currentEvent === 'done') {
+                                    if (payload.full_message) this.messageList[aiMsgIndex].message = payload.full_message;
+                                    if (payload.usage) this.usageInfo.remaining = payload.usage.remaining;
+                                } else if (currentEvent === 'error') {
+                                    alert(payload.message || 'Terjadi kesalahan saat memproses jawaban AI.');
+                                }
+                            } catch (e) {
+                                // abaikan chunk parsial
+                            }
+                        }
+                    }
+                }
+
+                this.renderMathFormulas();
+                if (this.autoSpeech && this.messageList[aiMsgIndex]?.message) {
+                    this.speakText(this.messageList[aiMsgIndex].message);
                 }
             } catch (err) {
                 console.error(err);

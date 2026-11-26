@@ -163,6 +163,14 @@
                 <p class="text-sm text-gray-800">{{ $question->explanation }}</p>
             </div>
             @endif
+
+            {{-- Tanya Pembda AI Tutor --}}
+            <div class="pt-2 flex justify-end">
+                <a href="{{ route('siswa.ai.index', ['mode' => 'tutor', 'prompt' => 'Tolong jelaskan cara menyelesaikan soal ujian ' . ($exam->subject->subject_name ?? $exam->subject->name ?? '') . ' berikut langkah demi langkah: "' . \Illuminate\Support\Str::limit(strip_tags($question->question_text ?? ''), 400) . '"']) }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                    <i class="fas fa-robot"></i> Tanya Pembda AI tentang Soal Ini
+                </a>
+            </div>
         </div>
     </div>
     @endforeach

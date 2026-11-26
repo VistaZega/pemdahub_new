@@ -1073,13 +1073,15 @@ class SettingsController extends Controller
         $classAiApiKey = Setting::getValue('classai_api_key') ?: config('services.ai.classai.api_key', '');
         $classAiModel = Setting::getValue('classai_model') ?: config('services.ai.classai.model', 'deepseek-v4-flash-0731');
         $geminiApiKey = Setting::getValue('gemini_api_key') ?: config('services.gemini.key', '');
+        $studentDailyLimit = (int) (Setting::getValue('ai_student_daily_limit') ?: \App\Services\AiStudentAssistantService::DAILY_LIMIT);
 
         return view('admin.settings.ai', compact(
             'aiProvider',
             'classAiBaseUrl',
             'classAiApiKey',
             'classAiModel',
-            'geminiApiKey'
+            'geminiApiKey',
+            'studentDailyLimit'
         ));
     }
 
@@ -1091,11 +1093,12 @@ class SettingsController extends Controller
         $this->authorizeFeatureAccess();
 
         $validated = $request->validate([
-            'ai_provider'      => 'required|string|in:classai,gemini',
-            'classai_base_url' => 'nullable|url|max:255',
-            'classai_api_key'  => 'nullable|string|max:500',
-            'classai_model'    => 'nullable|string|max:150',
-            'gemini_api_key'   => 'nullable|string|max:500',
+            'ai_provider'             => 'required|string|in:classai,gemini',
+            'classai_base_url'        => 'nullable|url|max:255',
+            'classai_api_key'         => 'nullable|string|max:500',
+            'classai_model'           => 'nullable|string|max:150',
+            'gemini_api_key'          => 'nullable|string|max:500',
+            'ai_student_daily_limit'  => 'required|integer|min:1|max:500',
         ]);
 
         Setting::setValue('ai_provider', $validated['ai_provider'], 'string', 'ai');
@@ -1113,6 +1116,7 @@ class SettingsController extends Controller
         );
         Setting::setValue('classai_api_key', trim((string) ($validated['classai_api_key'] ?? '')), 'string', 'ai');
         Setting::setValue('gemini_api_key', trim((string) ($validated['gemini_api_key'] ?? '')), 'string', 'ai');
+        Setting::setValue('ai_student_daily_limit', (int) $validated['ai_student_daily_limit'], 'integer', 'ai');
 
         return redirect()
             ->route('admin.settings.ai')

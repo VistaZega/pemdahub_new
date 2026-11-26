@@ -124,6 +124,7 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
         Route::get('/', [App\Http\Controllers\Siswa\AiAssistantController::class, 'index'])->name('index');
         Route::post('/new', [App\Http\Controllers\Siswa\AiAssistantController::class, 'newConversation'])->name('new');
         Route::post('/send', [App\Http\Controllers\Siswa\AiAssistantController::class, 'sendMessage'])->name('send');
+        Route::post('/stream', [App\Http\Controllers\Siswa\AiAssistantController::class, 'streamMessage'])->name('stream');
         Route::delete('/{conversation}', [App\Http\Controllers\Siswa\AiAssistantController::class, 'destroyConversation'])->name('destroy');
     });
 });

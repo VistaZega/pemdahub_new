@@ -65,6 +65,232 @@ class GeminiService
     }
 
     /**
+     * Multi-turn chat completion supporting system/user/assistant roles and optional vision image.
+     *
+     * @param array<int, array{role: string, content: string, image_data_uri?: string|null}> $messages
+     */
+    public function generateChat(array $messages): string
+    {
+        $lastUserText = '';
+        foreach (array_reverse($messages) as $msg) {
+            if (($msg['role'] ?? '') === 'user') {
+                $lastUserText = (string) ($msg['content'] ?? '');
+                break;
+            }
+        }
+
+        if (empty($this->apiKey)) {
+            Log::info('AI API Key is not configured. Utilizing Pembda AI Smart Knowledge Engine.');
+            return $this->getMockResponse($lastUserText);
+        }
+
+        if ($this->activeProvider === 'classai') {
+            return $this->generateChatViaClassAi($messages, $lastUserText);
+        }
+
+        return $this->generateChatViaGemini($messages, $lastUserText);
+    }
+
+    /**
+     * Stream multi-turn chat completion via SSE callback; falls back to non-streaming when needed.
+     *
+     * @param array<int, array{role: string, content: string, image_data_uri?: string|null}> $messages
+     */
+    public function streamChat(array $messages, callable $onChunk): string
+    {
+        if (empty($this->apiKey) || $this->activeProvider !== 'classai' || !function_exists('curl_init')) {
+            $full = $this->generateChat($messages);
+            if ($full !== '') {
+                $onChunk($full);
+            }
+            return $full;
+        }
+
+        $formatted = $this->formatOpenAiMessages($messages);
+        $payload = json_encode([
+            'model'    => $this->classAiModel,
+            'messages' => $formatted,
+            'stream'   => true,
+        ]);
+
+        $fullText = '';
+        $buffer = '';
+        $httpCode = 0;
+
+        $ch = curl_init($this->classAiBaseUrl . '/chat/completions');
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_RETURNTRANSFER => false,
+            CURLOPT_TIMEOUT        => $this->timeout,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $this->apiKey,
+                'Content-Type: application/json',
+                'Accept: text/event-stream',
+            ],
+            CURLOPT_WRITEFUNCTION  => function ($ch, $chunk) use (&$buffer, &$fullText, $onChunk) {
+                $buffer .= $chunk;
+                while (($pos = strpos($buffer, "\n")) !== false) {
+                    $line = trim(substr($buffer, 0, $pos));
+                    $buffer = substr($buffer, $pos + 1);
+
+                    if ($line === '' || !str_starts_with($line, 'data:')) {
+                        continue;
+                    }
+
+                    $dataStr = trim(substr($line, 5));
+                    if ($dataStr === '[DONE]') {
+                        continue;
+                    }
+
+                    $json = json_decode($dataStr, true);
+                    $delta = $json['choices'][0]['delta']['content'] ?? null;
+                    if (is_string($delta) && $delta !== '') {
+                        $fullText .= $delta;
+                        $onChunk($delta);
+                    }
+                }
+                return strlen($chunk);
+            },
+        ]);
+
+        curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($fullText !== '' && $httpCode >= 200 && $httpCode < 300) {
+            return $fullText;
+        }
+
+        Log::warning("ClassAI stream fallback (HTTP {$httpCode}, err: {$curlErr})");
+        $fallback = $this->generateChat($messages);
+        if ($fallback !== '') {
+            $onChunk($fallback);
+        }
+        return $fallback;
+    }
+
+    /**
+     * Format messages into OpenAI-compatible payload (with optional vision image_url).
+     */
+    protected function formatOpenAiMessages(array $messages): array
+    {
+        $formatted = [];
+        foreach ($messages as $msg) {
+            $role = $msg['role'] ?? 'user';
+            $text = (string) ($msg['content'] ?? '');
+            $imageUri = $msg['image_data_uri'] ?? null;
+
+            if (!empty($imageUri) && $role === 'user') {
+                $formatted[] = [
+                    'role'    => 'user',
+                    'content' => [
+                        ['type' => 'text', 'text' => $text !== '' ? $text : 'Tolong bantu jelaskan gambar ini.'],
+                        ['type' => 'image_url', 'image_url' => ['url' => $imageUri]],
+                    ],
+                ];
+            } else {
+                $formatted[] = [
+                    'role'    => $role,
+                    'content' => $text,
+                ];
+            }
+        }
+        return $formatted;
+    }
+
+    /**
+     * Multi-turn chat via ClassAI Router.
+     */
+    protected function generateChatViaClassAi(array $messages, string $fallbackPrompt): string
+    {
+        try {
+            $response = Http::timeout($this->timeout)
+                ->withToken($this->apiKey)
+                ->acceptJson()
+                ->post($this->classAiBaseUrl . '/chat/completions', [
+                    'model'    => $this->classAiModel,
+                    'messages' => $this->formatOpenAiMessages($messages),
+                ]);
+
+            if ($response->successful()) {
+                $text = (string) ($response->json('choices.0.message.content') ?? '');
+                if (trim($text) !== '') {
+                    return $text;
+                }
+            }
+
+            Log::error('ClassAI Chat Error: ' . $response->body());
+            return $this->getMockResponse($fallbackPrompt);
+        } catch (\Exception $e) {
+            Log::error('ClassAI Chat Exception: ' . $e->getMessage());
+            return $this->getMockResponse($fallbackPrompt);
+        }
+    }
+
+    /**
+     * Multi-turn chat via Google Gemini native endpoint.
+     */
+    protected function generateChatViaGemini(array $messages, string $fallbackPrompt): string
+    {
+        $systemTexts = [];
+        $contents = [];
+
+        foreach ($messages as $msg) {
+            $role = $msg['role'] ?? 'user';
+            $text = (string) ($msg['content'] ?? '');
+            if ($role === 'system') {
+                if ($text !== '') {
+                    $systemTexts[] = $text;
+                }
+                continue;
+            }
+
+            $parts = [['text' => $text !== '' ? $text : 'Tolong bantu jelaskan gambar ini.']];
+            if (!empty($msg['image_data_uri']) && preg_match('/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.*)$/s', $msg['image_data_uri'], $m)) {
+                $parts[] = [
+                    'inlineData' => [
+                        'mimeType' => $m[1],
+                        'data'     => $m[2],
+                    ],
+                ];
+            }
+
+            $contents[] = [
+                'role'  => $role === 'assistant' ? 'model' : 'user',
+                'parts' => $parts,
+            ];
+        }
+
+        $body = ['contents' => $contents];
+        if (!empty($systemTexts)) {
+            $body['systemInstruction'] = [
+                'parts' => [['text' => implode("\n\n", $systemTexts)]],
+            ];
+        }
+
+        try {
+            $response = Http::timeout($this->timeout)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->baseUrl . '?key=' . $this->apiKey, $body);
+
+            if ($response->successful()) {
+                $text = (string) ($response->json('candidates.0.content.parts.0.text') ?? '');
+                if (trim($text) !== '') {
+                    return $text;
+                }
+            }
+
+            Log::error('Gemini Chat Error: ' . $response->body());
+            return $this->getMockResponse($fallbackPrompt);
+        } catch (\Exception $e) {
+            Log::error('Gemini Chat Exception: ' . $e->getMessage());
+            return $this->getMockResponse($fallbackPrompt);
+        }
+    }
+
+    /**
      * Test live AI connection without falling back to mock responses.
      */
     public function testConnection(): array

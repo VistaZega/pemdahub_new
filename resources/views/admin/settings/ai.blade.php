@@ -196,6 +196,22 @@
             </div>
         </div>
 
+        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-4">
+            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                <i class="fas fa-sliders-h text-violet-600"></i> Kuota Harian Pembda AI Siswa
+            </h3>
+            <div class="max-w-xs">
+                <label for="ai_student_daily_limit" class="block text-xs font-bold text-slate-700 mb-1">Batas Pertanyaan / Hari per Siswa</label>
+                <input type="number"
+                       id="ai_student_daily_limit"
+                       name="ai_student_daily_limit"
+                       min="1"
+                       max="500"
+                       value="{{ old('ai_student_daily_limit', $studentDailyLimit) }}"
+                       class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-mono focus:border-violet-600 focus:ring-violet-600">
+            </div>
+        </div>
+
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
             <p class="text-xs text-slate-500">
                 Setelah menyimpan, klik tombol <strong>Test Koneksi AI</strong> di kanan atas untuk memastikan API merespons dengan benar.
