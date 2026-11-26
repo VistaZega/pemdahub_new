@@ -8,26 +8,99 @@ use Illuminate\Support\Facades\Log;
 class GeminiService
 {
     protected $apiKey;
+    protected $activeProvider;
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    protected $classAiBaseUrl;
+    protected $classAiModel;
+    protected $timeout;
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.key') 
+        $configuredProvider = strtolower(trim((string) (
+            config('services.ai.provider')
+            ?: (\App\Models\Setting::getValue('ai_provider') ?? env('AI_PROVIDER', 'gemini'))
+        )));
+
+        $classAiKey = config('services.ai.classai.api_key')
+            ?: (\App\Models\Setting::getValue('classai_api_key') ?? env('CLASSAI_API_KEY'));
+        $geminiKey = config('services.gemini.key')
             ?: (\App\Models\Setting::getValue('gemini_api_key') ?? env('GEMINI_API_KEY'));
+
+        $this->classAiBaseUrl = rtrim((string) (
+            config('services.ai.classai.base_url')
+            ?: env('CLASSAI_BASE_URL', 'https://router.classai.id/v1')
+        ), '/');
+        $this->classAiModel = (string) (
+            config('services.ai.classai.model')
+            ?: (\App\Models\Setting::getValue('classai_model') ?? env('CLASSAI_MODEL', 'deepseek-v4-flash-0731'))
+        );
+        $this->timeout = (int) (config('services.ai.classai.timeout') ?: 60);
+
+        if ($configuredProvider === 'classai' || (empty($geminiKey) && !empty($classAiKey))) {
+            $this->activeProvider = 'classai';
+            $this->apiKey = $classAiKey;
+        } else {
+            $this->activeProvider = 'gemini';
+            $this->apiKey = $geminiKey;
+        }
     }
 
     /**
-     * Generate content from prompt.
+     * Generate content from prompt using active AI provider (ClassAI Router or Google Gemini).
      */
     public function generateText(string $prompt): string
     {
         if (empty($this->apiKey)) {
-            Log::info('Gemini API Key is not configured. Utilizing Pembda AI Smart Knowledge Engine.');
+            Log::info('AI API Key is not configured. Utilizing Pembda AI Smart Knowledge Engine.');
             return $this->getMockResponse($prompt);
         }
 
+        if ($this->activeProvider === 'classai') {
+            return $this->generateViaClassAi($prompt);
+        }
+
+        return $this->generateViaGemini($prompt);
+    }
+
+    /**
+     * Call ClassAI Router (OpenAI-compatible /chat/completions endpoint).
+     */
+    protected function generateViaClassAi(string $prompt): string
+    {
         try {
-            $response = Http::withHeaders([
+            $response = Http::timeout($this->timeout)
+                ->withToken($this->apiKey)
+                ->acceptJson()
+                ->post($this->classAiBaseUrl . '/chat/completions', [
+                    'model' => $this->classAiModel,
+                    'messages' => [
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['choices'][0]['message']['content'] ?? '';
+                if (!empty(trim((string) $text))) {
+                    return (string) $text;
+                }
+            }
+
+            Log::error('ClassAI API Error or empty text: ' . $response->body());
+            return $this->getMockResponse($prompt);
+        } catch (\Exception $e) {
+            Log::error('ClassAI API Exception: ' . $e->getMessage());
+            return $this->getMockResponse($prompt);
+        }
+    }
+
+    /**
+     * Call Google Gemini native generateContent endpoint.
+     */
+    protected function generateViaGemini(string $prompt): string
+    {
+        try {
+            $response = Http::timeout($this->timeout)->withHeaders([
                 'Content-Type' => 'application/json',
             ])->post($this->baseUrl . '?key=' . $this->apiKey, [
                 'contents' => [

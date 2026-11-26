@@ -120,6 +120,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | AI Provider Configuration (ClassAI Router / OpenAI-Compatible)
+    |--------------------------------------------------------------------------
+    */
+    'ai' => [
+        'provider' => env('AI_PROVIDER', 'gemini'), // 'classai' or 'gemini'
+        'classai' => [
+            'base_url' => env('CLASSAI_BASE_URL', 'https://router.classai.id/v1'),
+            'api_key'  => env('CLASSAI_API_KEY'),
+            'model'    => env('CLASSAI_MODEL', 'deepseek-v4-flash-0731'),
+            'timeout'  => (int) env('CLASSAI_TIMEOUT', 60),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | System Error Alert Notifications (Telegram & WhatsApp)
     |--------------------------------------------------------------------------
     */
