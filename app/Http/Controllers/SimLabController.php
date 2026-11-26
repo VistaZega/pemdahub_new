@@ -48,7 +48,7 @@ class SimLabController extends Controller
         if ($user && $user->teacher) {
             $teacherCourses = \App\Models\LmsCourse::where('teacher_id', $user->teacher->id)
                 ->orderByDesc('id')
-                ->get(['id', 'name', 'course_name']);
+                ->get(['id', 'course_name']);
         }
 
         return view('simlab.index', compact('myProjects', 'templates', 'virtualLabs', 'teacherCourses'));
