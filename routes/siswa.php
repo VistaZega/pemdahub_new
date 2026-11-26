@@ -61,12 +61,19 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
         Route::get('/', [App\Http\Controllers\Siswa\LmsController::class, 'index'])->name('index');
         Route::get('/schedule/{schedule}', [App\Http\Controllers\Siswa\LmsController::class, 'jumpSchedule'])->name('schedule');
         Route::get('/catalog', [App\Http\Controllers\Siswa\LmsController::class, 'catalog'])->name('catalog');
+        Route::get('/live-status', [App\Http\Controllers\Siswa\LmsController::class, 'liveStatus'])->name('live-status'); // AJAX polling
+
+        // Sertifikat LMS (harus sebelum wildcard /{course})
+        Route::get('/certificates', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'index'])->name('certificates.index');
+        Route::get('/certificates/{certificate}', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'show'])->name('certificates.show');
+        Route::get('/certificates/{certificate}/download', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'download'])->name('certificates.download');
+
         Route::post('/{course}/enroll', [App\Http\Controllers\Siswa\LmsController::class, 'enroll'])->name('enroll');
-        Route::get('/{course}', [App\Http\Controllers\Siswa\LmsController::class, 'show'])->name('show');
+        Route::get('/{course}', [App\Http\Controllers\Siswa\LmsController::class, 'show'])->whereNumber('course')->name('show');
         Route::get('/{course}/meeting/join', [App\Http\Controllers\Siswa\LmsController::class, 'joinMeeting'])->name('meeting.join');
         Route::post('/{course}/meeting/leave', [App\Http\Controllers\Siswa\LmsController::class, 'leaveAttendance'])->name('meeting.leave'); // AJAX
         Route::post('/{course}/meeting/sync', [App\Http\Controllers\Siswa\LmsController::class, 'meetingSync'])->name('meeting.sync'); // AJAX sync (hands, mood, chat)
-        Route::get('/live-status', [App\Http\Controllers\Siswa\LmsController::class, 'liveStatus'])->name('live-status'); // AJAX polling
+        Route::post('/{course}/claim-certificate', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'claim'])->name('certificates.claim');
 
         // Assignments & Quizzes
         Route::post('/assignments/{assignment}/submit', [App\Http\Controllers\Siswa\LmsController::class, 'submitAssignment'])->name('assignments.submit');
@@ -80,12 +87,6 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
         Route::get('/materials/{material}/view', [App\Http\Controllers\Siswa\LmsController::class, 'viewMaterial'])->name('materials.view');
         Route::get('/materials/{material}/player', [App\Http\Controllers\Siswa\LmsController::class, 'playerMaterial'])->name('materials.player');
         Route::post('/materials/{material}/notes', [App\Http\Controllers\Siswa\LmsController::class, 'saveNote'])->name('materials.notes');
-
-        // Sertifikat LMS
-        Route::get('/certificates', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'index'])->name('certificates.index');
-        Route::post('/{course}/claim-certificate', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'claim'])->name('certificates.claim');
-        Route::get('/certificates/{certificate}', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'show'])->name('certificates.show');
-        Route::get('/certificates/{certificate}/download', [App\Http\Controllers\Siswa\LmsCertificateController::class, 'download'])->name('certificates.download');
 
         // Discussions
         Route::get('/{course}/discussions', [App\Http\Controllers\Siswa\LmsController::class, 'discussions'])->name('discussions.index');
