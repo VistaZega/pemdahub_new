@@ -55,11 +55,23 @@
         'chem_stoichiometry' => asset('simlab-engines/kimia-stoikiometri-pembatas.html'),
         'math_probability'   => asset('simlab-engines/matematika-peluang-kombinasi.html'),
         'ptn_speed'          => asset('simlab-engines/ptn-soal-cepat.html'),
-        'ipa_renewable'      => asset('simlab-engines/ipa-energi-terbarukan.html'),
-        'bio_genetics'       => asset('simlab-engines/biologi-genetika-mendel.html'),
-        'math_transform'     => asset('simlab-engines/matematika-transformasi-geometri.html'),
-        'vokasi_plc'         => asset('simlab-engines/vokasi-otomasi-relay.html'),
-        'econ_compound'      => asset('simlab-engines/ekonomi-bunga-majemuk.html'),
+        'ipa_renewable'           => asset('simlab-engines/ipa-energi-terbarukan.html'),
+        'bio_genetics'            => asset('simlab-engines/biologi-genetika-mendel.html'),
+        'math_transform'          => asset('simlab-engines/matematika-transformasi-geometri.html'),
+        'vokasi_plc'              => asset('simlab-engines/vokasi-otomasi-relay.html'),
+        'econ_compound'           => asset('simlab-engines/ekonomi-bunga-majemuk.html'),
+        // === Simulator Batch Baru ===
+        'physics_optics'          => asset('simlab-engines/fisika-optika-lensa.html'),
+        'physics_elevator'        => asset('simlab-engines/fisika-newton-lift.html'),
+        'physics_electric_field'  => asset('simlab-engines/fisika-medan-listrik.html'),
+        'bio_osmosis'             => asset('simlab-engines/biologi-osmosis-sel.html'),
+        'bio_nervous'             => asset('simlab-engines/biologi-sistem-saraf.html'),
+        'math_integral'           => asset('simlab-engines/matematika-integral-riemann.html'),
+        'math_trig_circle'        => asset('simlab-engines/matematika-trigonometri-interaktif.html'),
+        'vokasi_lan_topo'         => asset('simlab-engines/vokasi-jaringan-lan.html'),
+        'vokasi_cad_dpib'         => asset('simlab-engines/vokasi-cad-denah.html'),
+        'econ_inflation'          => asset('simlab-engines/ips-inflasi-deflasi.html'),
+        'ptn_speed_advanced'      => asset('simlab-engines/ptn-soal-cepat-lanjutan.html'),
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
     $tc = $lab->theory_and_challenge;
