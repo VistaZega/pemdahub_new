@@ -3,32 +3,32 @@
 
 @section('content')
 
-<div class="space-y-6">
+<div class="gd-wrap">
 
-    {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black print-hide" style="background: linear-gradient(135deg, #090d16 0%, #311b92 50%, #4a148c 100%) !important;">
+    {{-- Header Hero --}}
+    <div class="gd-hero print-hide">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
-                        <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg flex-shrink-0">
-                            <i class="fas fa-clipboard-check text-black"></i>
-                        </div>
-                        <span>Absensi & Rekap Kehadiran Siswa</span>
-                    </h1>
-                    @if(isset($isHomeroom) && $isHomeroom)
-                        <span class="px-3 py-1 rounded-xl bg-amber-400 text-purple-950 font-black text-xs border-2 border-black shadow-sm flex items-center gap-1.5">
-                            <i class="fas fa-crown text-amber-900"></i> Wali Kelas
-                        </span>
-                    @else
-                        <span class="px-3 py-1 rounded-xl bg-purple-800 text-purple-200 font-bold text-xs border border-purple-600 shadow-sm flex items-center gap-1.5">
-                            <i class="fas fa-chalkboard-teacher"></i> Guru Pengampu
-                        </span>
-                    @endif
+            <div class="flex items-start gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-400 text-slate-950 flex items-center justify-center shadow-md text-xl shrink-0">
+                    <i class="fas fa-clipboard-check"></i>
                 </div>
-                <p class="text-xs md:text-sm font-bold text-purple-200 mt-1" style="color: #e9d5ff !important;">
-                    Rekapitulasi dan catatan kehadiran siswa @if($selectedClassroom) · <span class="text-amber-300 font-extrabold">{{ $selectedClassroom->class_name }}</span> @endif @if($activeYear) ({{ $activeYear->year }}) @endif
-                </p>
+                <div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h1 class="text-xl sm:text-2xl font-extrabold text-white leading-tight">Absensi & Rekap Kehadiran Siswa</h1>
+                        @if(isset($isHomeroom) && $isHomeroom)
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-xs inline-flex items-center gap-1">
+                                <i class="fas fa-crown"></i> Wali Kelas
+                            </span>
+                        @else
+                            <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-emerald-200 font-semibold text-xs border border-white/15 inline-flex items-center gap-1">
+                                <i class="fas fa-chalkboard-teacher"></i> Guru Pengampu
+                            </span>
+                        @endif
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                        Rekapitulasi dan catatan kehadiran siswa @if($selectedClassroom) &bull; <span class="text-emerald-300 font-semibold">{{ $selectedClassroom->class_name }}</span> @endif @if($activeYear) ({{ $activeYear->year }}) @endif
+                    </p>
+                </div>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
                 <form method="GET" class="flex items-center gap-2 flex-wrap">

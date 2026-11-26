@@ -2,28 +2,28 @@
 @section('title', 'Rekap Nilai - Portal Guru')
 
 @section('content')
-<div class="space-y-6">
-    {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #312e81 100%) !important; color: #ffffff !important;">
+<div class="gd-wrap">
+    {{-- Header Hero --}}
+    <div class="gd-hero">
         <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
-                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
-                        <i class="fas fa-chart-bar text-black"></i>
-                    </div>
-                    Rekap Nilai Akhir
-                </h1>
-                <p class="text-xs md:text-sm font-bold text-indigo-200 mt-1" style="color: #c7d2fe !important;">Ringkasan dan kalkulasi nilai siswa per semester</p>
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-400 text-slate-950 flex items-center justify-center shadow-md text-xl shrink-0">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-white leading-tight">Rekap Nilai Akhir</h1>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-0.5">Ringkasan dan kalkulasi nilai siswa per semester</p>
+                </div>
             </div>
             <div class="flex gap-2 flex-wrap">
-                <a href="{{ route('guru.nilai') }}" class="text-xs bg-white hover:bg-slate-100 text-black border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md">
-                    <i class="fas fa-list mr-1"></i> Daftar Nilai
+                <a href="{{ route('guru.nilai') }}" class="text-xs sm:text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold px-4 py-2 rounded-xl transition">
+                    <i class="fas fa-list mr-1.5"></i> Daftar Nilai
                 </a>
-                <a href="{{ route('guru.nilai.input') }}" class="text-xs bg-amber-400 hover:bg-amber-300 text-black border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md">
-                    <i class="fas fa-edit mr-1"></i> Input Nilai
+                <a href="{{ route('guru.nilai.input') }}" class="text-xs sm:text-sm bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold px-4 py-2 rounded-xl transition shadow-sm">
+                    <i class="fas fa-edit mr-1.5"></i> Input Nilai
                 </a>
-                <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'subject_id' => $selectedSubjectId, 'semester_id' => $selectedSemesterId, 'mode' => 'rekap']) }}" target="_blank" class="text-xs bg-rose-500 hover:bg-rose-400 text-white border-2 border-black font-black px-4 py-2.5 rounded-2xl transition uppercase tracking-wider shadow-md" style="color: #ffffff !important;">
-                    <i class="fas fa-print mr-1 text-white"></i> Cetak Rekap
+                <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'subject_id' => $selectedSubjectId, 'semester_id' => $selectedSemesterId, 'mode' => 'rekap']) }}" target="_blank" class="text-xs sm:text-sm bg-rose-500/90 hover:bg-rose-500 text-white font-semibold px-4 py-2 rounded-xl transition">
+                    <i class="fas fa-print mr-1.5"></i> Cetak Rekap
                 </a>
             </div>
         </div>

@@ -2,28 +2,28 @@
 @section('title', 'Nilai Siswa - Portal Guru')
 
 @section('content')
-<div class="space-y-6">
-    {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #065f46 50%, #047857 100%) !important;">
+<div class="gd-wrap">
+    {{-- Header Hero --}}
+    <div class="gd-hero">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
-                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
-                        <i class="fas fa-chart-bar text-black"></i>
-                    </div>
-                    Nilai Siswa
-                </h1>
-                <p class="text-xs md:text-sm font-bold text-emerald-200 mt-1" style="color: #a7f3d0 !important;">Kelola dan rekap nilai siswa per mata pelajaran</p>
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-400 text-slate-950 flex items-center justify-center shadow-md text-xl shrink-0">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-white leading-tight">Nilai Siswa</h1>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-0.5">Kelola dan rekap nilai siswa per mata pelajaran</p>
+                </div>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
-                <a href="{{ route('guru.nilai.input', ['classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-black text-xs font-black uppercase tracking-wider rounded-2xl border-2 border-black shadow-md transition-all">
-                    <i class="fas fa-plus-circle text-black"></i> Input Nilai
+                <a href="{{ route('guru.nilai.input', ['classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs sm:text-sm font-bold rounded-xl shadow-sm transition">
+                    <i class="fas fa-plus-circle"></i> Input Nilai
                 </a>
-                <a href="{{ route('guru.nilai.summary', ['classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-sky-400 hover:bg-sky-300 text-black text-xs font-black uppercase tracking-wider rounded-2xl border-2 border-black shadow-md transition-all">
-                    <i class="fas fa-table text-black"></i> Rekap
+                <a href="{{ route('guru.nilai.summary', ['classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs sm:text-sm font-semibold rounded-xl transition">
+                    <i class="fas fa-table"></i> Rekap
                 </a>
-                <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'semester_id' => $selectedSemesterId]) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-400 text-white text-xs font-black uppercase tracking-wider rounded-2xl border-2 border-black shadow-md transition-all" style="color: #ffffff !important;">
-                    <i class="fas fa-print text-white"></i> Cetak
+                <a href="{{ route('guru.nilai.print', ['classroom_id' => $selectedClassroomId, 'semester_id' => $selectedSemesterId]) }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-500/90 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold rounded-xl transition">
+                    <i class="fas fa-print"></i> Cetak
                 </a>
                 <form method="GET" class="flex items-center gap-2">
                     @if($classrooms->count() > 0)

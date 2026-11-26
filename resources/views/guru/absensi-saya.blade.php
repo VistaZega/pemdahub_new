@@ -55,19 +55,17 @@
         </div>
     @endif
 
-    {{-- Header Banner (Neo-Brutalism) --}}
-    <div class="relative overflow-hidden rounded-3xl shadow-xl p-6 border-2 border-black" style="background: linear-gradient(135deg, #090d16 0%, #0f766e 50%, #115e59 100%) !important;">
+    {{-- Header Hero --}}
+    <div class="gd-hero">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <h1 class="text-xl md:text-2xl font-black text-white flex items-center gap-3" style="color: #ffffff !important;">
-                    <div class="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black shadow-sm text-lg">
-                        <i class="fas fa-clipboard-user text-black"></i>
-                    </div>
-                    Absensi Saya
-                </h1>
-                <p class="text-xs md:text-sm font-bold text-teal-200 mt-1" style="color: #99f6e4 !important;">
-                    Rekapitulasi kehadiran mengajar dan tugas khusus
-                </p>
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-400 text-slate-950 flex items-center justify-center shadow-md text-xl shrink-0">
+                    <i class="fas fa-clipboard-user"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-white leading-tight">Absensi Saya</h1>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-0.5">Rekapitulasi kehadiran mengajar dan tugas khusus</p>
+                </div>
             </div>
             
             {{-- Filter Bulan/Tahun --}}
