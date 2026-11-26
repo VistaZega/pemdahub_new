@@ -328,10 +328,14 @@ class LmsController extends Controller
             ->orderBy('order_number')
             ->get();
 
+        $mySimProjects = \App\Models\SimProject::where('user_id', Auth::id())
+            ->orderByDesc('updated_at')
+            ->get(['id', 'title', 'board_type', 'share_token', 'updated_at']);
+
         return view('siswa.lms.show', compact(
             'student', 'course', 'submissionMap', 'studentGroupMap', 'attemptMap', 'gameAttemptMap',
             'materialProgressMap', 'courseProgress', 'progressBreakdown', 'discussionCount',
-            'reactionsMap', 'completedMaterialIds', 'unassignedMaterials'
+            'reactionsMap', 'completedMaterialIds', 'unassignedMaterials', 'mySimProjects'
         ));
     }
 
@@ -706,11 +710,23 @@ class LmsController extends Controller
             }
         }
 
+        $submissionText = trim((string) $request->input('submission_text', ''));
+        if ($request->filled('simlab_project_id')) {
+            $simProj = \App\Models\SimProject::where('id', $request->input('simlab_project_id'))
+                ->where('user_id', Auth::id())
+                ->first();
+            if ($simProj) {
+                $simUrl = route('simlab.editor', $simProj->share_token ?: $simProj->id);
+                $simLine = "🔬 Proyek SimLab: {$simProj->title} ({$simProj->board_type}) — {$simUrl}";
+                $submissionText = $submissionText !== '' ? ($submissionText . "\n\n" . $simLine) : $simLine;
+            }
+        }
+
         // Submission type enforcement
         $hasUploadedFile = count($uploadedPaths) > 0;
         $hasExistingFile = $existing && (!empty($existing->file_path) || !empty($existing->file_paths));
         $hasFile = $hasUploadedFile || $hasExistingFile;
-        $hasText = $request->filled('submission_text');
+        $hasText = $submissionText !== '';
         $aType = $assignment->assignment_type;
 
         if ($aType === 'file' && !$hasFile) {
@@ -757,7 +773,7 @@ class LmsController extends Controller
             [
                 'student_id' => $student->id,
                 'group_id' => ($assignment->isGroupAssignment() && $group) ? $group->id : null,
-                'submission_text' => $request->submission_text,
+                'submission_text' => $submissionText,
                 'file_path' => $primaryPath,
                 'file_paths' => $finalPaths,
                 'file_size' => $primarySize,

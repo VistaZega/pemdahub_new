@@ -1132,6 +1132,20 @@ if (!function_exists('balanceHtmlTags')) {
                     </div>
                     @endif
 
+                    @if(isset($mySimProjects) && $mySimProjects->isNotEmpty())
+                    <div>
+                        <label class="block text-xs font-bold mb-1 {{ $hasModule ? 'text-white' : 'text-gray-700' }}">
+                            🔬 Lampirkan Proyek Simulator Lab (Opsional)
+                        </label>
+                        <select name="simlab_project_id" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-gray-800 bg-white outline-none">
+                            <option value="">-- Tidak melampirkan proyek SimLab --</option>
+                            @foreach($mySimProjects as $sp)
+                                <option value="{{ $sp->id }}">{{ $sp->title }} ({{ strtoupper($sp->board_type) }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+
                     @if(in_array($aType, ['file', 'file_text']))
                     <div>
                         <div class="flex items-center justify-between mb-1.5">

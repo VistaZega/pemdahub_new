@@ -49,7 +49,7 @@ class SimLabController extends Controller
             }
 
             if (!$project) {
-                $templateKey = Str::slug($id);
+                $templateKey = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $id);
             }
         }
 

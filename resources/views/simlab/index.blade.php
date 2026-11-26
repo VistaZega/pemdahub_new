@@ -389,24 +389,46 @@
                 </a>
             </div>
 
-            <!-- Starter Kits -->
-            <div class="lab-card rounded-3xl p-6 space-y-4">
-                <h3 class="text-base font-extrabold text-white flex items-center gap-2">
-                    <i class="fas fa-shapes text-amber-400"></i> Template &amp; Starter Kits Praktikum
-                </h3>
+            <!-- Starter Kits dengan 4 Kategori Jenjang: Umum, Level SMP, Level SMA, Vokasi -->
+            <div class="lab-card rounded-3xl p-6 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                            <i class="fas fa-shapes text-amber-400"></i> Katalog Proyek Praktikum SimLab
+                        </h3>
+                        <p class="text-sm text-slate-400">Pilih proyek berdasarkan jenjang pendidikan dan rumpun kejuruan</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @click="projectCategory = 'all'" :class="projectCategory === 'all' ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer">Semua (10)</button>
+                        <button type="button" @click="projectCategory = 'umum'" :class="projectCategory === 'umum' ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer">Umum</button>
+                        <button type="button" @click="projectCategory = 'smp'" :class="projectCategory === 'smp' ? 'bg-emerald-400 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer">Level SMP</button>
+                        <button type="button" @click="projectCategory = 'sma'" :class="projectCategory === 'sma' ? 'bg-violet-400 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer">Level SMA</button>
+                        <button type="button" @click="projectCategory = 'vokasi'" :class="projectCategory === 'vokasi' ? 'bg-orange-400 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer">Vokasi (SMK)</button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach([
-                        ['slug' => 'blink', 'board' => 'Uno', 'title' => 'LED Blink Basic', 'desc' => 'Kedip LED pada Pin D13 dengan resistor 300Ω.'],
-                        ['slug' => 'ultrasonic-lcd', 'board' => 'Uno', 'title' => 'Sensor HC-SR04 & LCD 16x2', 'desc' => 'Pengukuran jarak ultrasonik tampil di LCD I2C.'],
-                        ['slug' => 'servo-sweep', 'board' => 'Nano', 'title' => 'Motor Servo SG90 Sweep', 'desc' => 'Kontrol sudut motor servo dari 0° hingga 180°.'],
-                        ['slug' => 'dht11-esp32', 'board' => 'ESP32', 'title' => 'DHT11 Suhu & Serial Monitor', 'desc' => 'Membaca suhu & kelembaban lingkungan real-time.'],
-                        ['slug' => 'l298n-motor', 'board' => 'Uno', 'title' => 'Motor DC & Driver L298N', 'desc' => 'Kontrol arah putaran & kecepatan PWM motor DC.'],
-                        ['slug' => 'relay-pir', 'board' => 'ESP32', 'title' => 'Smart Home Relay & PIR', 'desc' => 'Otomatisasi saklar Relay 5V dengan sensor gerak.'],
+                        ['slug' => 'blink', 'cat' => 'umum', 'catLabel' => 'Umum', 'catColor' => 'bg-cyan-950 text-cyan-300 border-cyan-700', 'board' => 'Uno', 'title' => '01. Lampu LED Blink Basic', 'desc' => 'Dasar pemrograman digitalWrite & delay pada Pin D13 dengan resistor 300Ω.'],
+                        ['slug' => 'traffic_light', 'cat' => 'smp', 'catLabel' => 'Level SMP', 'catColor' => 'bg-emerald-950 text-emerald-300 border-emerald-700', 'board' => 'Uno', 'title' => '02. Lampu Lalu Lintas 3 Warna', 'desc' => 'Simulasi pengaturan waktu nyala LED Merah, Kuning, Hijau secara sekuensial.'],
+                        ['slug' => 'pir_alarm', 'cat' => 'smp', 'catLabel' => 'Level SMP', 'catColor' => 'bg-emerald-950 text-emerald-300 border-emerald-700', 'board' => 'Nano', 'title' => '03. Alarm Deteksi Gerakan PIR', 'desc' => 'Deteksi gerakan manusia menggunakan sensor PIR dan membunyikan Buzzer.'],
+                        ['slug' => 'smart_lamp_ldr', 'cat' => 'smp', 'catLabel' => 'Level SMP', 'catColor' => 'bg-emerald-950 text-emerald-300 border-emerald-700', 'board' => 'Uno', 'title' => '04. Lampu Jalan Otomatis LDR', 'desc' => 'Sensor cahaya LDR menyalakan Relay lampu secara otomatis saat kondisi gelap.'],
+                        ['slug' => 'cooling_fan_dht', 'cat' => 'sma', 'catLabel' => 'Level SMA', 'catColor' => 'bg-violet-950 text-violet-300 border-violet-700', 'board' => 'ESP32', 'title' => '05. Pendingin Suhu Ruangan DHT11', 'desc' => 'Pembacaan suhu & kelembaban DHT11 untuk kendali otomatis kipas pendingin.'],
+                        ['slug' => 'ultrasonic_gate', 'cat' => 'sma', 'catLabel' => 'Level SMA', 'catColor' => 'bg-violet-950 text-violet-300 border-violet-700', 'board' => 'Uno', 'title' => '06. Palang Otomatis HC-SR04 & Servo', 'desc' => 'Pengukuran jarak gelombang ultrasonik untuk menggerakkan sudut Motor Servo.'],
+                        ['slug' => 'dc_motor', 'cat' => 'vokasi', 'catLabel' => 'Vokasi (TKR/TSM/TE)', 'catColor' => 'bg-orange-950 text-orange-300 border-orange-700', 'board' => 'Uno', 'title' => '07. Kendali Kecepatan Motor DC', 'desc' => 'Pengaturan arah dan kecepatan putaran motor DC dengan sinyal PWM.'],
+                        ['slug' => 'rfid_door', 'cat' => 'vokasi', 'catLabel' => 'Vokasi (TE/TKJ)', 'catColor' => 'bg-orange-950 text-orange-300 border-orange-700', 'board' => 'Uno', 'title' => '08. Smart Door Access RFID', 'desc' => 'Sistem akses pintu berbasis kartu RFID RC522 dan penggerak aktuator.'],
+                        ['slug' => 'line_follower', 'cat' => 'vokasi', 'catLabel' => 'Vokasi (TE/Robotik)', 'catColor' => 'bg-orange-950 text-orange-300 border-orange-700', 'board' => 'Nano', 'title' => '09. Robot Line Follower TCRT5000', 'desc' => 'Logika navigasi robot pengikut garis menggunakan sensor inframerah TCRT5000.'],
+                        ['slug' => 'smart_home_iot', 'cat' => 'vokasi', 'catLabel' => 'Vokasi (DPIB/TE/TKJ)', 'catColor' => 'bg-orange-950 text-orange-300 border-orange-700', 'board' => 'ESP32', 'title' => '10. Smart Home Automation IoT', 'desc' => 'Integrasi sensor suhu, gerak, dan kontrol relay rumah pintar berbasis ESP32.'],
                     ] as $tpl)
-                    <a href="{{ route('simlab.editor', $tpl['slug']) }}" class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-emerald-500/50 transition flex flex-col justify-between gap-2">
+                    <a href="{{ route('simlab.editor', $tpl['slug']) }}"
+                       x-show="projectCategory === 'all' || projectCategory === '{{ $tpl['cat'] }}'"
+                       class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-emerald-500/50 transition flex flex-col justify-between gap-2.5">
                         <div>
-                            <span class="text-xs font-bold text-cyan-400">{{ $tpl['board'] }}</span>
-                            <div class="text-base font-bold text-white mt-0.5">{{ $tpl['title'] }}</div>
+                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                <span class="px-2 py-0.5 rounded-md border text-[11px] font-bold {{ $tpl['catColor'] }}">{{ $tpl['catLabel'] }}</span>
+                                <span class="text-xs font-bold text-cyan-400">{{ $tpl['board'] }}</span>
+                            </div>
+                            <div class="text-base font-bold text-white">{{ $tpl['title'] }}</div>
                             <p class="text-xs sm:text-sm text-slate-400 mt-1">{{ $tpl['desc'] }}</p>
                         </div>
                         <span class="text-xs font-bold text-emerald-400">Mulai Praktik &rarr;</span>
@@ -458,6 +480,7 @@
         function simLabApp() {
             return {
                 activeTab: 'all',
+                projectCategory: 'all',
 
                 // Hukum Ohm
                 ohmVoltage: 12,
