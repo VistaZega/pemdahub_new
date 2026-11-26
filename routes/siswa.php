@@ -122,6 +122,7 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     // Pembda AI Routes (Tutor, Konsultasi BK/Karir & LMS Assistant)
     Route::prefix('ai')->name('ai.')->group(function () {
         Route::get('/', [App\Http\Controllers\Siswa\AiAssistantController::class, 'index'])->name('index');
+        Route::get('/daily-briefing', [App\Http\Controllers\Siswa\AiAssistantController::class, 'dailyBriefing'])->name('briefing');
         Route::post('/new', [App\Http\Controllers\Siswa\AiAssistantController::class, 'newConversation'])->name('new');
         Route::post('/send', [App\Http\Controllers\Siswa\AiAssistantController::class, 'sendMessage'])->name('send');
         Route::post('/stream', [App\Http\Controllers\Siswa\AiAssistantController::class, 'streamMessage'])->name('stream');

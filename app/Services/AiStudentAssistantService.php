@@ -182,6 +182,41 @@ class AiStudentAssistantService
     }
 
     /**
+     * Generate a short, personalized daily study briefing (cached 30 minutes, does not consume chat quota).
+     */
+    public function getDailyBriefing(Student $student, bool $forceRefresh = false): array
+    {
+        $cacheKey = 'ai_daily_briefing_' . $student->id . '_' . now()->toDateString();
+        if ($forceRefresh) {
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+        }
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function () use ($student) {
+            $systemPrompt = $this->buildSystemPrompt($student, 'tutor');
+            $firstName = explode(' ', trim($student->full_name))[0];
+
+            $messages = [
+                [
+                    'role'    => 'system',
+                    'content' => $systemPrompt,
+                ],
+                [
+                    'role'    => 'user',
+                    'content' => "Buatkan 'Ringkasan Belajar Hari Ini' untuk {$firstName} maksimal 2-3 kalimat saja (singkat, hangat, dan langsung menyebut prioritas tugas LMS/ujian CBT paling mendesak atau mata pelajaran hari ini berdasarkan data akun di atas). Jangan pakai heading markdown besar.",
+                ],
+            ];
+
+            $text = $this->gemini->generateChat($messages);
+
+            return [
+                'success'      => true,
+                'briefing'     => trim($text),
+                'generated_at' => now()->format('H:i'),
+            ];
+        });
+    }
+
+    /**
      * Default helpful message when AI returns empty text.
      */
     protected function getEmptyFallbackMessage(string $prompt): string

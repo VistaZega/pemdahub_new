@@ -139,6 +139,39 @@
                     <p style="font-size: 0.78rem; color: #cbd5e1; font-weight: 500; margin-top: 0.2rem;">
                         {{ $student->school->name ?? 'Perguruan Pembda' }} &bull; NISN {{ $student->nisn ?: '-' }}
                     </p>
+                    @php
+                        $countdownTarget = null;
+                        $countdownLabel = '';
+                        $countdownMode = '';
+                        if ($currentSchedule) {
+                            $endStr = $currentSchedule->timeSlot->end_time ?? $currentSchedule->end_time ?? null;
+                            $subjName = $currentSchedule->teachingAssignment?->subject?->subject_name ?? $currentSchedule->teachingAssignment?->subject?->name ?? 'Pelajaran';
+                            if ($endStr) {
+                                $countdownTarget = \Carbon\Carbon::parse(now()->toDateString() . ' ' . $endStr)->timestamp * 1000;
+                                $countdownLabel = $subjName;
+                                $countdownMode = 'current';
+                            }
+                        } elseif ($nextSchedule) {
+                            $startStr = $nextSchedule->timeSlot->start_time ?? $nextSchedule->start_time ?? null;
+                            $subjName = $nextSchedule->teachingAssignment?->subject?->subject_name ?? $nextSchedule->teachingAssignment?->subject?->name ?? 'Pelajaran';
+                            if ($startStr) {
+                                $countdownTarget = \Carbon\Carbon::parse(now()->toDateString() . ' ' . $startStr)->timestamp * 1000;
+                                $countdownLabel = $subjName;
+                                $countdownMode = 'next';
+                            }
+                        }
+                    @endphp
+                    @if($countdownTarget)
+                    <div id="live-class-countdown"
+                         data-target="{{ $countdownTarget }}"
+                         data-mode="{{ $countdownMode }}"
+                         style="margin-top: 0.45rem; display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.25rem 0.65rem; border-radius: 9999px; background: {{ $countdownMode === 'current' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)' }}; border: 1px solid {{ $countdownMode === 'current' ? 'rgba(52, 211, 153, 0.45)' : 'rgba(251, 191, 36, 0.45)' }}; font-size: 0.72rem; font-weight: 700; color: {{ $countdownMode === 'current' ? '#6ee7b7' : '#fde68a' }};">
+                        <span style="width: 6px; height: 6px; border-radius: 9999px; background: {{ $countdownMode === 'current' ? '#34d399' : '#fbbf24' }};"></span>
+                        <span>{{ $countdownMode === 'current' ? 'Berlangsung:' : 'Berikutnya:' }} <strong>{{ $countdownLabel }}</strong></span>
+                        <span>&bull;</span>
+                        <span id="live-countdown-clock" style="font-family: monospace; font-weight: 800;">--:--</span>
+                    </div>
+                    @endif
                 </div>
             </div>
 
@@ -433,8 +466,25 @@
             {{-- Widget Pemilihan OSIS --}}
             @include('components.osis-campaign-widget', ['variant' => 'student'])
 
-            {{-- Kartu Pembda AI Tutor (Deep Indigo Card — Focal Point Kanan) --}}
-            <div style="border-radius: 1.25rem; padding: 1.35rem; background: linear-gradient(135deg, #312e81 0%, #4338ca 100%); color: #ffffff; box-shadow: 0 8px 20px -4px rgba(49, 46, 129, 0.35);">
+            {{-- Kartu Pembda AI Tutor (Deep Indigo Card — Focal Point Kanan + AI Daily Briefing) --}}
+            <div x-data="{
+                    briefing: '',
+                    loadingBriefing: true,
+                    async loadBriefing(refresh = false) {
+                        this.loadingBriefing = true;
+                        try {
+                            const url = '{{ route('siswa.ai.briefing') }}' + (refresh ? '?refresh=1' : '');
+                            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                            const data = await res.json();
+                            if (data.success && data.briefing) {
+                                this.briefing = data.briefing;
+                            }
+                        } catch (e) {}
+                        this.loadingBriefing = false;
+                    }
+                 }"
+                 x-init="loadBriefing(false)"
+                 style="border-radius: 1.25rem; padding: 1.35rem; background: linear-gradient(135deg, #312e81 0%, #4338ca 100%); color: #ffffff; box-shadow: 0 8px 20px -4px rgba(49, 46, 129, 0.35);">
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.85rem;">
                     <div style="display: flex; align-items: center; gap: 0.7rem;">
                         <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.8rem; background: #fbbf24; color: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
@@ -442,11 +492,33 @@
                         </div>
                         <div>
                             <div style="font-size: 0.92rem; font-weight: 800; color: #ffffff;">Pembda AI Tutor</div>
-                            <div style="font-size: 0.72rem; color: #c7d2fe; font-weight: 600;">Tanya materi, tugas &amp; foto soal</div>
+                            <div style="font-size: 0.72rem; color: #c7d2fe; font-weight: 600;">Ringkasan cerdas &amp; asisten belajar</div>
                         </div>
                     </div>
-                    <a href="{{ route('siswa.ai.index') }}" style="font-size: 0.74rem; font-weight: 800; color: #fde68a; text-decoration: none;">Buka &rarr;</a>
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <button type="button" @click="loadBriefing(true)" :disabled="loadingBriefing" title="Perbarui Ringkasan AI" style="background: rgba(255,255,255,0.14); border: none; color: #fde68a; width: 1.85rem; height: 1.85rem; border-radius: 0.55rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-sync-alt" :class="{ 'fa-spin': loadingBriefing }" style="font-size: 0.7rem;"></i>
+                        </button>
+                        <a href="{{ route('siswa.ai.index') }}" style="font-size: 0.74rem; font-weight: 800; color: #fde68a; text-decoration: none;">Buka &rarr;</a>
+                    </div>
                 </div>
+
+                {{-- AI Daily Study Briefing Box --}}
+                <div style="margin-bottom: 0.9rem; padding: 0.75rem 0.9rem; border-radius: 0.85rem; background: rgba(15, 23, 42, 0.32); border: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.76rem; line-height: 1.5; color: #e0e7ff;">
+                    <template x-if="loadingBriefing">
+                        <span style="color: #c7d2fe;"><i class="fas fa-sparkles" style="color: #fbbf24;"></i> Menyusun ringkasan belajar hari ini...</span>
+                    </template>
+                    <template x-if="!loadingBriefing && briefing">
+                        <div>
+                            <span style="color: #fbbf24; font-weight: 800; font-size: 0.68rem; text-transform: uppercase; display: block; margin-bottom: 0.2rem;">✨ Ringkasan Cerdas Hari Ini</span>
+                            <span x-text="briefing"></span>
+                        </div>
+                    </template>
+                    <template x-if="!loadingBriefing && !briefing">
+                        <span>Siap membantumu memahami materi, mengecek tugas LMS, dan membahas foto soal.</span>
+                    </template>
+                </div>
+
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                     <a href="{{ route('siswa.ai.index', ['mode' => 'lms_assistant', 'prompt' => 'Tugas LMS atau kuis apa saja yang belum saya kerjakan saat ini?']) }}"
                        style="padding: 0.5rem 0.8rem; border-radius: 0.75rem; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); color: #ffffff; font-size: 0.72rem; font-weight: 700; text-decoration: none;">
@@ -533,4 +605,35 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const el = document.getElementById('live-class-countdown');
+    const clock = document.getElementById('live-countdown-clock');
+    if (!el || !clock) return;
+
+    const target = parseInt(el.dataset.target, 10);
+    const mode = el.dataset.mode;
+
+    function updateCountdown() {
+        const diff = Math.floor((target - Date.now()) / 1000);
+        if (diff <= 0) {
+            clock.textContent = mode === 'current' ? 'Selesai' : 'Dimulai';
+            return;
+        }
+        const hrs = Math.floor(diff / 3600);
+        const mins = Math.floor((diff % 3600) / 60);
+        const secs = diff % 60;
+        const prefix = mode === 'current' ? 'Sisa ' : 'Mulai ';
+        if (hrs > 0) {
+            clock.textContent = prefix + String(hrs).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        } else {
+            clock.textContent = prefix + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+});
+</script>
 @endsection

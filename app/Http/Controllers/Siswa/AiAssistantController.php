@@ -79,6 +79,20 @@ class AiAssistantController extends Controller
     }
 
     /**
+     * Return personalized AI Daily Study Briefing for student dashboard widget.
+     */
+    public function dailyBriefing(Request $request)
+    {
+        $student = Auth::user()?->student;
+        if (!$student) {
+            return response()->json(['success' => false, 'message' => 'Siswa tidak ditemukan.'], 403);
+        }
+
+        $result = $this->aiService->getDailyBriefing($student, $request->boolean('refresh'));
+        return response()->json($result);
+    }
+
+    /**
      * Start a new AI conversation session.
      */
     public function newConversation(Request $request)
