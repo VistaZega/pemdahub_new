@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Matematika: Persamaan Kuadrat &amp; Lintasan Parabola</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#047857; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1rem; font-weight:800; margin-top:2px; font-family:monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📈 Simulator Matematika: Grafik Persamaan Kuadrat ($y = ax^2 + bx + c$)</h1>
+    <p>Bagaimana perubahan koefisien $a, b, c$ memengaruhi bukaan parabola, titik puncak, dan jumlah akar persamaan kuadrat?</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="qCanvas" width="760" height="410"></canvas>
+    </div>
+
+    <div class="card">
+      <div style="background:#0f172a;color:#34d399;padding:12px;border-radius:12px;font-family:monospace;font-size:1.15rem;font-weight:800;text-align:center;" id="eqBox">y = 1x² + 0x - 4</div>
+
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Diskriminan (D)</div><div class="s-val" id="vD" style="color:#0284c7">16</div></div>
+        <div class="s-box"><div class="s-lbl">Titik Puncak (Xp, Yp)</div><div class="s-val" id="vPeak" style="color:#d97706">(0, -4)</div></div>
+        <div class="s-box" style="grid-column:span 2;"><div class="s-lbl">Akar-akar Pembuat Nol (x₁, x₂)</div><div class="s-val" id="vRoots" style="color:#059669">x₁ = -2.00, x₂ = 2.00</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Koefisien $a$ (Bukaan Kurva)</span><span id="lblA">1</span></div>
+        <input type="range" id="inA" min="-3" max="3" step="0.5" value="1" style="width:100%;accent-color:#10b981;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Koefisien $b$ (Pergeseran Horizontal)</span><span id="lblB">0</span></div>
+        <input type="range" id="inB" min="-6" max="6" step="1" value="0" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Konstanta $c$ (Titik Potong Sumbu Y)</span><span id="lblC">-4</span></div>
+        <input type="range" id="inC" min="-8" max="8" step="1" value="-4" style="width:100%;accent-color:#fbbf24;cursor:pointer;">
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('qCanvas'), ctx = c.getContext('2d');
+    const inA = document.getElementById('inA'), inB = document.getElementById('inB'), inC = document.getElementById('inC');
+
+    function draw() {
+      let a = +inA.value, b = +inB.value, cv = +inC.value;
+      if (a === 0) a = 0.5;
+      document.getElementById('lblA').textContent = a;
+      document.getElementById('lblB').textContent = b;
+      document.getElementById('lblC').textContent = cv;
+      document.getElementById('eqBox').textContent = `y = ${a}x² ${b>=0?'+':'-'} ${Math.abs(b)}x ${cv>=0?'+':'-'} ${Math.abs(cv)}`;
+
+      const D = b*b - 4*a*cv;
+      const xp = -b / (2*a), yp = a*xp*xp + b*xp + cv;
+      document.getElementById('vD').textContent = D.toFixed(1);
+      document.getElementById('vPeak').textContent = `(${xp.toFixed(1)}, ${yp.toFixed(1)})`;
+
+      let roots = [];
+      if (D > 0) {
+        roots = [(-b - Math.sqrt(D))/(2*a), (-b + Math.sqrt(D))/(2*a)];
+        document.getElementById('vRoots').textContent = `2 Akar Real: x₁=${roots[0].toFixed(2)}, x₂=${roots[1].toFixed(2)}`;
+      } else if (Math.abs(D) < 0.01) {
+        roots = [xp];
+        document.getElementById('vRoots').textContent = `1 Akar Kembar (Menyinggung): x=${xp.toFixed(2)}`;
+      } else {
+        document.getElementById('vRoots').textContent = 'Tidak Memotong Sumbu X (D < 0 / Imajiner)';
+      }
+
+      ctx.clearRect(0, 0, c.width, c.height);
+      const ox = c.width/2, oy = c.height/2, sc = 28;
+
+      // Grid
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+      for (let gx = -13; gx <= 13; gx++) { ctx.beginPath(); ctx.moveTo(ox + gx*sc, 0); ctx.lineTo(ox + gx*sc, c.height); ctx.stroke(); }
+      for (let gy = -7; gy <= 7; gy++) { ctx.beginPath(); ctx.moveTo(0, oy + gy*sc); ctx.lineTo(c.width, oy + gy*sc); ctx.stroke(); }
+
+      // Sumbu X & Y
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(c.width, oy); ctx.moveTo(ox, 0); ctx.lineTo(ox, c.height); ctx.stroke();
+
+      // Kurva Parabola
+      ctx.strokeStyle = '#34d399'; ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      for (let px = -14; px <= 14; px += 0.1) {
+        const py = a*px*px + b*px + cv;
+        const sx = ox + px*sc, sy = oy - py*sc;
+        if (px === -14) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+
+      // Titik Puncak & Akar
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(ox + xp*sc, oy - yp*sc, 7, 0, Math.PI*2); ctx.fill();
+      roots.forEach(r => {
+        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(ox + r*sc, oy, 7, 0, Math.PI*2); ctx.fill();
+      });
+    }
+    [inA, inB, inC].forEach(el => el.oninput = draw);
+    draw();
+  </script>
+</body>
+</html>

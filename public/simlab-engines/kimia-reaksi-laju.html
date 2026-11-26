@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Kimia: Teori Tumbukan, Energi Aktivasi &amp; Laju Reaksi</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#7c3aed; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.05rem; font-weight:800; margin-top:2px; font-family:monospace; }
+    button { border:1px solid #cbd5e1; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
+    button.active { background:#10b981; color:#fff; border-color:#059669; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚗️ Simulator Kimia: Teori Tumbukan Molekul &amp; Energi Aktivasi ($E_a$)</h1>
+    <p>Mengapa suhu tinggi dan katalis membuat reaksi kimia berlangsung jauh lebih cepat? Amati tumbukan partikel &amp; grafik energi aktivasi!</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="chemCanvas" width="760" height="270"></canvas>
+      <canvas id="eaCanvas" width="760" height="150"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Laju Reaksi</div><div class="s-val" id="vRate" style="color:#059669">0x</div></div>
+        <div class="s-box"><div class="s-lbl">Energi Aktivasi</div><div class="s-val" id="vEa" style="color:#7c3aed">75 kJ</div></div>
+        <div class="s-box"><div class="s-lbl">Produk Terbentuk</div><div class="s-val" id="vProd" style="color:#0284c7">0</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Suhu Reaktor ($T$)</span><span id="lblT" style="color:#e11d48">35°C</span>
+        </div>
+        <input type="range" id="inT" min="15" max="120" step="5" value="35" style="width:100%;accent-color:#e11d48;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;margin-bottom:6px;">
+          <span>Konsentrasi Reaktan ($[A]$)</span><span id="lblC" style="color:#0284c7">30 Partikel</span>
+        </div>
+        <input type="range" id="inC" min="10" max="60" step="5" value="30" style="width:100%;accent-color:#0284c7;cursor:pointer;">
+      </div>
+
+      <button id="btnCat" onclick="toggleCat()">⚡ Tambahkan Katalis (Turunkan Bukit Energi Aktivasi)</button>
+      <button onclick="resetMols()" style="background:#0f172a;color:#fff;">↺ Isi Ulang Reaktan Segar</button>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('chemCanvas'), ctx = c.getContext('2d');
+    const eaC = document.getElementById('eaCanvas'), eCtx = eaC.getContext('2d');
+    const inT = document.getElementById('inT'), inC = document.getElementById('inC');
+    let catalyst = false, mols = [], prodCount = 0;
+
+    function resetMols() {
+      mols = []; prodCount = 0;
+      const cnt = +inC.value;
+      for (let i = 0; i < cnt; i++) {
+        mols.push({
+          x: 30 + Math.random()*700, y: 30 + Math.random()*210,
+          vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3,
+          kind: i % 2 === 0 ? 'A' : 'B'
+        });
+      }
+    }
+    function toggleCat() {
+      catalyst = !catalyst;
+      document.getElementById('btnCat').classList.toggle('active', catalyst);
+      document.getElementById('btnCat').textContent = catalyst ? '✅ Katalis Aktif (Ea Turun ke 40 kJ)' : '⚡ Tambahkan Katalis (Turunkan Bukit Energi Aktivasi)';
+    }
+    inC.oninput = resetMols;
+
+    function loop() {
+      const T = +inT.value;
+      document.getElementById('lblT').textContent = T + '°C';
+      document.getElementById('lblC').textContent = inC.value + ' Partikel';
+      const speed = (T / 30) * (catalyst ? 1.4 : 1);
+      const ea = catalyst ? 40 : 75;
+      document.getElementById('vEa').textContent = ea + ' kJ';
+      document.getElementById('vRate').textContent = ((T/25)*(+inC.value/25)*(catalyst?2:1)).toFixed(1) + 'x';
+      document.getElementById('vProd').textContent = prodCount;
+
+      ctx.clearRect(0, 0, c.width, c.height);
+      const effProb = Math.min(0.6, (T / 150) * (catalyst ? 2.2 : 1));
+      for (let i = 0; i < mols.length; i++) {
+        const m = mols[i];
+        m.x += m.vx * speed; m.y += m.vy * speed;
+        if (m.x < 14 || m.x > c.width - 14) m.vx *= -1;
+        if (m.y < 14 || m.y > c.height - 14) m.vy *= -1;
+
+        for (let j = i + 1; j < mols.length; j++) {
+          const n = mols[j];
+          if ((m.kind === 'A' && n.kind === 'B') || (m.kind === 'B' && n.kind === 'A')) {
+            if (Math.hypot(m.x - n.x, m.y - n.y) < 18 && Math.random() < effProb) {
+              m.kind = 'P'; n.kind = 'P'; prodCount += 2;
+            }
+          }
+        }
+        ctx.fillStyle = m.kind === 'A' ? '#38bdf8' : (m.kind === 'B' ? '#f43f5e' : '#34d399');
+        ctx.beginPath(); ctx.arc(m.x, m.y, m.kind === 'P' ? 9 : 7, 0, Math.PI*2); ctx.fill();
+      }
+
+      // Grafik Energi Aktivasi
+      eCtx.clearRect(0, 0, eaC.width, eaC.height);
+      eCtx.fillStyle = '#94a3b8'; eCtx.font = 'bold 11px sans-serif';
+      eCtx.fillText('KURVA ENERGI AKTIVASI (Ea): Tanpa Katalis (Putus-putus) vs Dengan Katalis (Hijau)', 14, 18);
+      eCtx.strokeStyle = '#64748b'; eCtx.setLineDash([5,4]); eCtx.lineWidth = 2;
+      eCtx.beginPath(); eCtx.moveTo(40, 110); eCtx.quadraticCurveTo(380, 10, 700, 125); eCtx.stroke();
+      eCtx.setLineDash([]);
+      if (catalyst) {
+        eCtx.strokeStyle = '#34d399'; eCtx.lineWidth = 3;
+        eCtx.beginPath(); eCtx.moveTo(40, 110); eCtx.quadraticCurveTo(380, 58, 700, 125); eCtx.stroke();
+      }
+      requestAnimationFrame(loop);
+    }
+    resetMols(); loop();
+  </script>
+</body>
+</html>

@@ -53,13 +53,13 @@ class VirtualLab extends Model
         if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate']) || $this->category === 'vokasi') {
             return 'vokasi';
         }
-        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'ipa_greenhouse', 'ohm_law']) || str_contains($subj, 'fisika')) {
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'ipa_greenhouse', 'ohm_law']) || str_contains($subj, 'fisika')) {
             return 'fisika';
         }
-        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'biology_cell', 'bio_photosynthesis', 'bio_blood']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'biology_cell', 'bio_photosynthesis', 'bio_blood']) || str_contains($subj, 'kimia') || str_contains($subj, 'biologi')) {
             return 'kimia_biologi';
         }
-        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry']) || str_contains($subj, 'matematika')) {
+        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability']) || str_contains($subj, 'matematika')) {
             return 'matematika';
         }
         if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market']) || str_contains($subj, 'ekonomi') || str_contains($subj, 'sosiologi') || str_contains($subj, 'bahasa')) {
@@ -80,6 +80,135 @@ class VirtualLab extends Model
             'ips_bahasa'    => 'Lab IPS, Ekonomi & Bahasa',
             default         => 'Lab Riset Umum',
         };
+    }
+
+    /**
+     * Paket Teori, Hukum Alam, Rumus Kunci, dan Soal HOTS untuk belajar mandiri siswa.
+     */
+    public function getTheoryAndChallengeAttribute(): array
+    {
+        $map = [
+            'physics_motion' => [
+                'law'         => 'Hukum I & II Newton tentang Gerak',
+                'theory'      => 'Benda diam akan tetap diam kecuali ada resultan gaya tak nol yang bekerja padanya. Jika gaya dorong lebih besar dari gaya gesek maksimum, benda mengalami percepatan searah gaya.',
+                'formula'     => 'ΣF = m × a   |   f_gesek = μ × N',
+                'variables'   => 'ΣF = resultan gaya (N), m = massa (kg), a = percepatan (m/s²), μ = koefisien gesek, N = gaya normal (N)',
+                'challenge_q' => 'Mobil bermassa 20 kg didorong gaya 100 N di lantai datar dengan gaya gesek 20 N. Berapakah percepatan mobil?',
+                'options'     => ['2 m/s²', '4 m/s²', '5 m/s²', '6 m/s²'],
+                'answer_idx'  => 1,
+                'solution'    => 'ΣF = F_dorong - f_gesek = 100 - 20 = 80 N. Maka a = ΣF / m = 80 / 20 = 4 m/s².',
+            ],
+            'physics_parabola' => [
+                'law'         => 'Superposisi Gerak Lurus Beraturan (GLB) & Gerak Vertikal (GLBB)',
+                'theory'      => 'Gerak parabola adalah perpaduan gerak horizontal dengan kecepatan tetap (v_x = v₀ cos α) dan gerak vertikal yang dipengaruhi gravitasi (v_y = v₀ sin α - g·t).',
+                'formula'     => 'H_max = (v₀² · sin²α) / (2g)   |   X_max = (v₀² · sin 2α) / g',
+                'variables'   => 'v₀ = kecepatan awal (m/s), α = sudut elevasi (°), g = percepatan gravitasi (10 m/s²)',
+                'challenge_q' => 'Peluru ditembakkan dengan v₀ = 40 m/s pada sudut 30° (sin 60° = 0,866, g = 10 m/s²). Berapa jarak terjauh (X_max)?',
+                'options'     => ['80,0 m', '138,6 m', '160,0 m', '69,3 m'],
+                'answer_idx'  => 1,
+                'solution'    => 'X_max = (40² × sin(2×30°)) / 10 = (1600 × 0,866) / 10 = 138,56 ≈ 138,6 m.',
+            ],
+            'physics_archimedes' => [
+                'law'         => 'Hukum Archimedes (Gaya Apung Fluida)',
+                'theory'      => 'Setiap benda yang dicelupkan sebagian atau seluruhnya ke dalam fluida mengalami gaya ke atas sebesar berat fluida yang dipindahkan oleh benda tersebut.',
+                'formula'     => 'F_a = ρ_cair × g × V_celup',
+                'variables'   => 'F_a = gaya apung (N), ρ_cair = massa jenis cairan (kg/m³), V_celup = volume tercelup (m³)',
+                'challenge_q' => 'Sebuah balok bervolume 0,02 m³ tercelup seluruhnya dalam air (ρ = 1000 kg/m³, g = 10 m/s²). Berapakah gaya apungnya?',
+                'options'     => ['20 N', '100 N', '200 N', '2000 N'],
+                'answer_idx'  => 2,
+                'solution'    => 'F_a = ρ × g × V = 1000 × 10 × 0,02 = 200 N.',
+            ],
+            'physics_doppler' => [
+                'law'         => 'Efek Doppler pada Gelombang Bunyi',
+                'theory'      => 'Frekuensi bunyi yang didengar pengamat berubah ketika sumber bunyi atau pengamat bergerak relatif satu sama lain. Mendekat membuat muka gelombang merapat (frekuensi naik).',
+                'formula'     => 'f_p = ((v ± v_p) / (v ∓ v_s)) × f_s',
+                'variables'   => 'v = cepat rambat bunyi (340 m/s), v_p = kecepatan pengamat, v_s = kecepatan sumber, f_s = frekuensi sumber (Hz)',
+                'challenge_q' => 'Sirine ambulans (f_s = 640 Hz) bergerak mendekati pengamat diam (v_p = 0) dengan kecepatan 20 m/s (v = 340 m/s). Berapa frekuensi terdengar?',
+                'options'     => ['600 Hz', '640 Hz', '680 Hz', '720 Hz'],
+                'answer_idx'  => 2,
+                'solution'    => 'Sumber mendekat → tanda penyebut minus: f_p = (340 / (340 - 20)) × 640 = (340 / 320) × 640 = 680 Hz.',
+            ],
+            'physics_pulley' => [
+                'law'         => 'Keuntungan Mekanis Katrol & Hukum Kekekalan Usaha',
+                'theory'      => 'Katrol majemuk membagi beban ke sejumlah tali penopang (n), sehingga gaya kuasa yang dibutuhkan jauh lebih kecil, namun tali harus ditarik n kali lebih panjang.',
+                'formula'     => 'F_kuasa = W / KM   |   KM = jumlah tali penopang (n)',
+                'variables'   => 'W = berat beban (N), F_kuasa = gaya tarik (N), KM = keuntungan mekanis',
+                'challenge_q' => 'Beban bermassa 60 kg (W = 600 N) diangkat menggunakan sistem takal dengan 4 tali penopang (KM = 4). Berapa gaya kuasa minimalnya?',
+                'options'     => ['100 N', '150 N', '240 N', '300 N'],
+                'answer_idx'  => 1,
+                'solution'    => 'F_kuasa = W / KM = 600 / 4 = 150 N.',
+            ],
+            'physics_wave' => [
+                'law'         => 'Persamaan Dasar Gelombang Mekanik',
+                'theory'      => 'Gelombang merambatkan energi tanpa memindahkan materi secara permanen. Cepat rambat bergantung pada perkalian panjang gelombang dan frekuensinya.',
+                'formula'     => 'v = λ × f   |   T = 1 / f',
+                'variables'   => 'v = cepat rambat (m/s), λ = panjang gelombang (m), f = frekuensi (Hz), T = periode (s)',
+                'challenge_q' => 'Dalam 4 detik terbentuk 8 gelombang penuh dengan panjang 1 gelombang = 3 meter. Berapakah cepat rambat gelombangnya?',
+                'options'     => ['1,5 m/s', '3 m/s', '6 m/s', '12 m/s'],
+                'answer_idx'  => 2,
+                'solution'    => 'f = 8 / 4 = 2 Hz. Maka v = λ × f = 3 × 2 = 6 m/s.',
+            ],
+            'ohm_law' => [
+                'law'         => 'Hukum Ohm & Daya Listrik Rangkaian DC',
+                'theory'      => 'Kuat arus listrik berbanding lurus dengan tegangan dan berbanding terbalik dengan hambatan total rangkaian. Pada rangkaian seri R_tot = R₁ + R₂, pada paralel 1/R_tot = 1/R₁ + 1/R₂.',
+                'formula'     => 'V = I × R   |   P = V × I = I² × R',
+                'variables'   => 'V = tegangan (Volt), I = arus (Ampere), R = hambatan (Ohm), P = daya (Watt)',
+                'challenge_q' => 'Dua resistor 6 Ω dan 3 Ω dipasang PARALEL pada baterai 12 V. Berapakah kuat arus total yang keluar dari baterai?',
+                'options'     => ['2 A', '4 A', '6 A', '9 A'],
+                'answer_idx'  => 2,
+                'solution'    => '1/R_p = 1/6 + 1/3 = 3/6 → R_p = 2 Ω. Maka I = V / R_p = 12 / 2 = 6 A.',
+            ],
+            'chem_ph' => [
+                'law'         => 'Derajat Keasaman (Skala pH Sorensen)',
+                'theory'      => 'Keasaman larutan ditentukan oleh konsentrasi ion H⁺. Semakin besar [H⁺], semakin kecil nilai pH (di bawah 7 = Asam; tepat 7 = Netral; di atas 7 = Basa).',
+                'formula'     => 'pH = -log[H⁺]   |   pH + pOH = 14',
+                'variables'   => '[H⁺] = molaritas ion hidrogen (M), pOH = -log[OH⁻]',
+                'challenge_q' => 'Berapakah pH larutan basa kuat NaOH dengan konsentrasi 0,001 M (10⁻³ M)?',
+                'options'     => ['3', '7', '11', '13'],
+                'answer_idx'  => 2,
+                'solution'    => 'pOH = -log(10⁻³) = 3. Maka pH = 14 - 3 = 11 (Basa Kuat).',
+            ],
+            'chem_stoichiometry' => [
+                'law'         => 'Hukum Perbandingan Tetap & Pereaksi Pembatas',
+                'theory'      => 'Dalam reaksi kimia, zat yang habis bereaksi lebih dulu disebut Pereaksi Pembatas, dan dialah yang menentukan jumlah maksimum produk yang terbentuk.',
+                'formula'     => 'mol = massa / Mr   |   mol_produk = (koef_produk / koef_pembatas) × mol_pembatas',
+                'variables'   => 'Mr = massa molekul relatif (g/mol)',
+                'challenge_q' => 'Pada reaksi 2H₂ + O₂ → 2H₂O, direaksikan 6 mol H₂ dan 2 mol O₂. Berapakah mol H₂O yang terbentuk dan zat apa yang bersisa?',
+                'options'     => ['4 mol H₂O, sisa 2 mol H₂', '6 mol H₂O, sisa 1 mol O₂', '2 mol H₂O, sisa 4 mol H₂', '4 mol H₂O, habis semua'],
+                'answer_idx'  => 0,
+                'solution'    => 'Bagi mol dengan koefisien: H₂ = 6/2 = 3, O₂ = 2/1 = 2 (terkecil → O₂ pembatas). Maka H₂O = 2 × 2 = 4 mol, H₂ terpakai = 4 mol → sisa 2 mol H₂.',
+            ],
+            'math_probability' => [
+                'law'         => 'Peluang Klasik & Frekuensi Harapan',
+                'theory'      => 'Peluang suatu kejadian adalah rasio banyaknya hasil yang diinginkan n(A) terhadap seluruh ruang sampel n(S) yang mungkin terjadi.',
+                'formula'     => 'P(A) = n(A) / n(S)   |   F_h = P(A) × N',
+                'variables'   => 'n(A) = titik sampel kejadian, n(S) = total ruang sampel, N = banyak percobaan',
+                'challenge_q' => 'Dua dadu dilempar bersamaan sekali. Berapakah peluang munculnya mata dadu berjumlah 7?',
+                'options'     => ['1/12', '1/6', '5/36', '7/36'],
+                'answer_idx'  => 1,
+                'solution'    => 'n(S) = 6 × 6 = 36. Jumlah 7: (1,6),(2,5),(3,4),(4,3),(5,2),(6,1) → n(A) = 6. Peluang = 6/36 = 1/6.',
+            ],
+        ];
+
+        if (isset($map[$this->engine_type])) {
+            return $map[$this->engine_type];
+        }
+
+        return [
+            'law'         => 'Prinsip & Pemodelan Ilmiah ' . $this->subject_name,
+            'theory'      => $this->description,
+            'formula'     => 'Eksperimen Variabel Bebas ➔ Efek Variabel Terikat',
+            'variables'   => 'Gunakan kontrol/slider pada ruang praktikum untuk menguji hubungan sebab-akibat antar variabel.',
+            'challenge_q' => 'Manakah langkah ilmiah paling tepat ketika menguji pengaruh satu variabel terhadap fenomena di lab ini?',
+            'options'     => [
+                'Mengubah semua variabel sekaligus secara acak',
+                'Mengubah satu variabel bebas sambil menjaga variabel lain tetap konstan',
+                'Mengabaikan SOP lab dan langsung menebak hasil',
+                'Tidak mencatat hasil pengamatan',
+            ],
+            'answer_idx'  => 1,
+            'solution'    => 'Dalam metode ilmiah (variabel kontrol), hanya satu variabel bebas yang diubah pada satu waktu agar pengaruhnya terhadap hasil dapat diukur secara akurat.',
+        ];
     }
 
     /**
@@ -435,6 +564,66 @@ class VirtualLab extends Model
                     'Pilih satu per satu dari 5 tab soal Olimpiade (Fisika IPhO, Matematika IMO, Kimia IChO, Biologi IBO, Informatika IOI).',
                     'Baca pertanyaan misterinya, ubah slider/jalankan simulasi untuk membuktikan fenomenanya secara langsung.',
                     'Bandingkan hasil simulasi dengan langkah pembuktian matematis/logika di panel pembahasan.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-efek-doppler',
+                'title'        => 'Simulator Fisika: Efek Doppler & Sirine Ambulans (Soal HOTS)',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika (SMA / UTBK)',
+                'engine_type'  => 'physics_doppler',
+                'icon'         => 'fas fa-truck-medical',
+                'accent_color' => '#ef4444',
+                'description'  => 'Mengapa suara sirine ambulans terdengar melengking tinggi saat mendekat, lalu tiba-tiba merendah saat menjauh melewati kita?',
+                'sop_steps'    => [
+                    'Jalankan mobil ambulans dan amati lingkaran gelombang suara yang merapat di depan mobil dan meregang di belakang.',
+                    'Ubah kecepatan ambulans dan amati perubahan frekuensi terdengar (f_p) saat mendekat vs menjauh.',
+                    'Pecahkan Soal HOTS Efek Doppler di panel Tantangan Soal untuk memverifikasi pemahaman rumus.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-katrol-usaha',
+                'title'        => 'Simulator Fisika: Katrol Majemuk & Gaya Kuasa (Soal HOTS)',
+                'category'     => 'smp',
+                'subject_name' => 'Fisika / IPA (SMP & SMA)',
+                'engine_type'  => 'physics_pulley',
+                'icon'         => 'fas fa-weight-hanging',
+                'accent_color' => '#0284c7',
+                'description'  => 'Bagaimana seorang pekerja pelabuhan sanggup mengangkat peti kemas seberat ratusan kilogram hanya dengan menarik tali katrol menggunakan satu tangan?',
+                'sop_steps'    => [
+                    'Bandingkan katrol tetap (1 tali, KM = 1) dengan sistem takal majemuk (2, 4, atau 6 tali penopang).',
+                    'Amati hubungan antara berkurangnya Gaya Kuasa (F) dengan bertambahnya panjang tali yang harus ditarik.',
+                    'Uji Soal HOTS Katrol di panel Tantangan Soal.',
+                ],
+            ],
+            [
+                'slug'         => 'kimia-stoikiometri-pembatas',
+                'title'        => 'Simulator Kimia: Stoikiometri & Pereaksi Pembatas (Soal HOTS)',
+                'category'     => 'sma',
+                'subject_name' => 'Kimia (SMA / UTBK)',
+                'engine_type'  => 'chem_stoichiometry',
+                'icon'         => 'fas fa-vials',
+                'accent_color' => '#8b5cf6',
+                'description'  => 'Jika 6 molekul Hidrogen dicampur 2 molekul Oksigen untuk membuat air (2H₂ + O₂ → 2H₂O), mengapa ada zat yang bersisa dan tidak ikut bereaksi?',
+                'sop_steps'    => [
+                    'Atur jumlah awal mol H₂ dan mol O₂ lalu klik Mulai Reaksi.',
+                    'Amati mana molekul yang habis terlebih dahulu (Pereaksi Pembatas) dan berapa molekul yang bersisa.',
+                    'Selesaikan Soal HOTS Pereaksi Pembatas di panel Tantangan Soal.',
+                ],
+            ],
+            [
+                'slug'         => 'matematika-peluang-kombinasi',
+                'title'        => 'Simulator Matematika: Peluang Dadu & Hukum Bilangan Besar',
+                'category'     => 'smp',
+                'subject_name' => 'Matematika (SMP / SMA / UTBK)',
+                'engine_type'  => 'math_probability',
+                'icon'         => 'fas fa-dice',
+                'accent_color' => '#10b981',
+                'description'  => 'Mengapa jumlah mata dadu 7 paling sering muncul saat dua dadu dilempar ratusan kali, sedangkan jumlah 2 atau 12 sangat jarang?',
+                'sop_steps'    => [
+                    'Lempar 2 dadu sekali dan catat jumlah mata dadunya.',
+                    'Klik Lempar 500× Sekaligus untuk membuktikan grafik distribusi peluang berbentuk segitiga simetris memuncak di angka 7.',
+                    'Selesaikan Soal Peluang Dua Dadu di panel Tantangan Soal.',
                 ],
             ],
         ];

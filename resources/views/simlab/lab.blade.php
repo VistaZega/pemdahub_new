@@ -46,8 +46,17 @@
         'chem_atom'          => asset('simlab-engines/kimia-struktur-atom.html'),
         'ipa_greenhouse'     => asset('simlab-engines/ipa-efek-rumah-kaca.html'),
         'olympiad_5'         => asset('simlab-engines/olimpiade-5-soal.html'),
+        'chemical_reaction'  => asset('simlab-engines/kimia-reaksi-laju.html'),
+        'quadratic_graph'    => asset('simlab-engines/matematika-kuadrat-parabola.html'),
+        'ohm_law'            => asset('simlab-engines/fisika-hukum-ohm-rangkaian.html'),
+        'logic_gate'         => asset('simlab-engines/informatika-gerbang-logika.html'),
+        'physics_doppler'    => asset('simlab-engines/fisika-efek-doppler.html'),
+        'physics_pulley'     => asset('simlab-engines/fisika-katrol-usaha.html'),
+        'chem_stoichiometry' => asset('simlab-engines/kimia-stoikiometri-pembatas.html'),
+        'math_probability'   => asset('simlab-engines/matematika-peluang-kombinasi.html'),
     ];
     $proEngineUrl = $proEngineMap[$lab->engine_type] ?? null;
+    $tc = $lab->theory_and_challenge;
 @endphp
 <body class="min-h-screen flex flex-col" x-data="virtualLabRunner()">
 
@@ -103,9 +112,23 @@
     <!-- Main Lab Workspace -->
     <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-        <!-- LEFT: SOP PRAKTIKUM & CATATAN LAB -->
-        <aside x-show="showSop" x-transition class="lg:col-span-3 space-y-4">
-            <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-4">
+        <!-- LEFT: SOP PRAKTIKUM, TEORI/RUMUS, & TANTANGAN SOAL HOTS -->
+        <aside x-show="showSop" x-transition class="lg:col-span-3 space-y-4" x-data="{ sideTab: 'sop', chosenOpt: null, checkedAns: false }">
+            <!-- Tab Switcher Panel Belajar Mandiri -->
+            <div class="grid grid-cols-3 gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-xs">
+                <button type="button" @click="sideTab = 'sop'" :class="sideTab === 'sop' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'" class="py-2 px-2 rounded-xl text-[11px] font-bold transition">
+                    <i class="fas fa-clipboard-list mr-1"></i>SOP
+                </button>
+                <button type="button" @click="sideTab = 'teori'" :class="sideTab === 'teori' ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-100'" class="py-2 px-2 rounded-xl text-[11px] font-bold transition">
+                    <i class="fas fa-book-open mr-1"></i>Teori
+                </button>
+                <button type="button" @click="sideTab = 'soal'" :class="sideTab === 'soal' ? 'bg-amber-500 text-slate-950' : 'text-slate-600 hover:bg-slate-100'" class="py-2 px-2 rounded-xl text-[11px] font-bold transition">
+                    <i class="fas fa-bullseye mr-1"></i>Soal
+                </button>
+            </div>
+
+            <!-- TAB 1: SOP PRAKTIKUM -->
+            <div x-show="sideTab === 'sop'" class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-700 flex items-center gap-2">
                         <i class="fas fa-clipboard-list text-amber-500"></i> SOP &amp; Petunjuk Lab
@@ -126,30 +149,74 @@
                 </div>
             </div>
 
+            <!-- TAB 2: TEORI, HUKUM ALAM & RUMUS KUNCI -->
+            <div x-show="sideTab === 'teori'" x-cloak class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-3.5">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-100 text-sky-800">Hukum &amp; Prinsip Alam</span>
+                    <h3 class="text-sm font-extrabold text-slate-900 mt-1.5">{{ $tc['law'] }}</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mt-1">{{ $tc['theory'] }}</p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono-lab text-xs sm:text-sm font-bold text-center">
+                    {{ $tc['formula'] }}
+                </div>
+                <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-900 leading-relaxed">
+                    <strong>Keterangan Simbol:</strong><br>{{ $tc['variables'] }}
+                </div>
+            </div>
+
+            <!-- TAB 3: TANTANGAN SOAL RUMIT (HOTS) -->
+            <div x-show="sideTab === 'soal'" x-cloak class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-3.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700"><i class="fas fa-brain mr-1"></i> Tantangan Soal HOTS</span>
+                </div>
+                <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">{{ $tc['challenge_q'] }}</p>
+                <div class="space-y-2">
+                    @foreach($tc['options'] as $oIdx => $optText)
+                    <button type="button"
+                            @click="chosenOpt = {{ $oIdx }}; checkedAns = true"
+                            :class="checkedAns
+                                ? ({{ $oIdx }} === {{ $tc['answer_idx'] }}
+                                    ? 'bg-emerald-50 border-emerald-500 text-emerald-900 font-bold'
+                                    : (chosenOpt === {{ $oIdx }} ? 'bg-rose-50 border-rose-400 text-rose-800' : 'bg-slate-50 border-slate-200 text-slate-500'))
+                                : 'bg-slate-50 hover:bg-sky-50 border-slate-200 text-slate-800'"
+                            class="w-full text-left px-3 py-2 rounded-xl border text-xs transition flex items-center justify-between gap-2">
+                        <span>{{ chr(65 + $oIdx) }}. {{ $optText }}</span>
+                        <template x-if="checkedAns && {{ $oIdx }} === {{ $tc['answer_idx'] }}">
+                            <i class="fas fa-check-circle text-emerald-600"></i>
+                        </template>
+                    </button>
+                    @endforeach
+                </div>
+                <div x-show="checkedAns" x-transition class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 leading-relaxed">
+                    <strong><i class="fas fa-lightbulb text-amber-500 mr-1"></i> Pembahasan:</strong><br>
+                    {{ $tc['solution'] }}
+                </div>
+            </div>
+
             <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-2">
                 <label class="text-xs font-extrabold uppercase tracking-wider text-sky-700 block">
                     <i class="fas fa-pen-to-square mr-1"></i> {{ $isInstructor ? 'Catatan Instruktur / Bahan Ajar' : 'Catatan Pengamatan Siswa' }}
                 </label>
-                <textarea rows="4" x-model="labNotes" placeholder="Catat hasil pengamatan variabel & kesimpulan eksperimen di sini..."
+                <textarea rows="3" x-model="labNotes" placeholder="Catat hasil pengamatan variabel & kesimpulan eksperimen di sini..."
                           class="w-full rounded-xl bg-slate-50 border border-slate-300 p-3 text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-sky-500"></textarea>
             </div>
         </aside>
 
         <!-- RIGHT: INTERACTIVE ANIMATED SIMULATOR -->
-        <section :class="showSop ? 'lg:col-span-9' : 'lg:col-span-12'" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <section :class="showSop ? 'lg:col-span-9' : 'lg:col-span-12'" class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sm:p-5 space-y-4">
 
             @if($proEngineUrl)
-                <!-- PRO INTERACTIVE ENGINE (FROM D:\AI Implementasi) -->
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <!-- PRO INTERACTIVE ENGINE -->
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
                     <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="text-sm font-bold text-white">Simulasi Interaktif Penuh &amp; Telemetri Real-Time</span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-sm font-bold text-slate-900">Meja Praktikum Interaktif &amp; Pembuktian Real-Time</span>
                     </div>
-                    <a href="{{ $proEngineUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold transition">
+                    <a href="{{ $proEngineUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-sky-700 border border-slate-300 text-xs font-bold transition">
                         <i class="fas fa-up-right-from-square"></i> Buka Layar Penuh
                     </a>
                 </div>
-                <iframe src="{{ $proEngineUrl }}" class="w-full rounded-xl border border-slate-800 bg-slate-950" style="height: 780px;"></iframe>
+                <iframe src="{{ $proEngineUrl }}" class="w-full rounded-xl border border-slate-200 bg-white" style="height: 780px;"></iframe>
 
             @elseif($lab->engine_type === 'gasoline_engine')
                 <!-- 1. SIMULATOR MESIN BENSIN 4-TAK -->

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Matematika: Peluang Dua Dadu &amp; Hukum Bilangan Besar</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#047857; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .dice-row { display:flex; gap:16px; justify-content:center; align-items:center; padding:12px; background:#f1f5f9; border-radius:12px; }
+    .die { width:56px; height:56px; background:#fff; border:2px solid #0f172a; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:900; }
+    button { border:none; border-radius:10px; padding:10px 14px; font-weight:700; font-size:0.84rem; cursor:pointer; background:#059669; color:#fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎲 Simulator Matematika: Peluang Dua Dadu &amp; Distribusi Frekuensi</h1>
+    <p>Mengapa jumlah 7 selalu paling sering muncul saat 2 dadu dilempar ratusan kali?</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="probCanvas" width="760" height="380"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="dice-row">
+        <div class="die" id="d1">3</div>
+        <span style="font-size:1.4rem;font-weight:800;">+</span>
+        <div class="die" id="d2">4</div>
+        <span style="font-size:1.4rem;font-weight:800;">=</span>
+        <div class="die" id="dSum" style="background:#d1fae5;border-color:#059669;color:#065f46;">7</div>
+      </div>
+      <div style="font-size:0.88rem;font-weight:700;text-align:center;" id="totInfo">Total Lemparan: 0 | Frekuensi Jumlah 7: 0%</div>
+      <button onclick="roll(1)">🎲 Lempar 1× Dadu</button>
+      <button onclick="roll(500)" style="background:#0284c7;">⚡ Lempar 500× Sekaligus (Hukum Bilangan Besar)</button>
+      <button onclick="counts.fill(0);total=0;draw();" style="background:#475569;">↺ Reset Data</button>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('probCanvas'), ctx = c.getContext('2d');
+    const counts = Array(13).fill(0);
+    let total = 0;
+
+    function roll(n) {
+      let a = 1, b = 1;
+      for (let i = 0; i < n; i++) {
+        a = 1 + Math.floor(Math.random()*6);
+        b = 1 + Math.floor(Math.random()*6);
+        counts[a + b]++;
+        total++;
+      }
+      document.getElementById('d1').textContent = a;
+      document.getElementById('d2').textContent = b;
+      document.getElementById('dSum').textContent = a + b;
+      document.getElementById('totInfo').textContent = `Total Lemparan: ${total} | Frekuensi Jumlah 7: ${total ? ((counts[7]/total)*100).toFixed(1) : 0}% (Teori: 16.7%)`;
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      const maxC = Math.max(1, ...counts);
+      for (let s = 2; s <= 12; s++) {
+        const i = s - 2, x = 50 + i * 62, h = (counts[s] / maxC) * 260;
+        ctx.fillStyle = s === 7 ? '#fbbf24' : '#34d399';
+        ctx.fillRect(x, 320 - h, 44, h);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(s, x + 22, 345);
+        if (counts[s] > 0) ctx.fillText(counts[s], x + 22, 312 - h);
+      }
+    }
+    draw();
+  </script>
+</body>
+</html>

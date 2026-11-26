@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Katrol Majemuk &amp; Keuntungan Mekanis</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#0369a1; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.05rem; font-weight:800; margin-top:2px; font-family:monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🏗️ Simulator Fisika: Sistem Katrol Majemuk &amp; Keuntungan Mekanis ($KM$)</h1>
+    <p>Amati bagaimana penambahan jumlah tali penopang membagi gaya tarik beban menjadi jauh lebih ringan!</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="pulCanvas" width="760" height="400"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Berat Beban (W)</div><div class="s-val" id="vW" style="color:#e11d48">600 N</div></div>
+        <div class="s-box"><div class="s-lbl">Gaya Kuasa (F)</div><div class="s-val" id="vF" style="color:#059669">150 N</div></div>
+        <div class="s-box"><div class="s-lbl">Panjang Tarikan Tali</div><div class="s-val" id="vRope" style="color:#0284c7">4 m</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Jumlah Tali Penopang (KM)</span><span id="lblKM">4 Tali</span></div>
+        <input type="range" id="inKM" min="1" max="6" step="1" value="4" style="width:100%;accent-color:#0284c7;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Massa Beban (m)</span><span id="lblM">60 kg</span></div>
+        <input type="range" id="inM" min="10" max="120" step="10" value="60" style="width:100%;accent-color:#e11d48;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Tarik Tali (Angkat Beban)</span><span id="lblLift">1.0 m</span></div>
+        <input type="range" id="inLift" min="0" max="2" step="0.1" value="1" style="width:100%;accent-color:#10b981;cursor:pointer;">
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('pulCanvas'), ctx = c.getContext('2d');
+    const inKM = document.getElementById('inKM'), inM = document.getElementById('inM'), inLift = document.getElementById('inLift');
+
+    function draw() {
+      const km = +inKM.value, m = +inM.value, lift = +inLift.value;
+      const W = m * 10, F = W / km, ropePull = lift * km;
+      document.getElementById('lblKM').textContent = km + ' Tali';
+      document.getElementById('lblM').textContent = m + ' kg';
+      document.getElementById('lblLift').textContent = lift.toFixed(1) + ' m';
+      document.getElementById('vW').textContent = W + ' N';
+      document.getElementById('vF').textContent = F.toFixed(0) + ' N';
+      document.getElementById('vRope').textContent = ropePull.toFixed(1) + ' m';
+
+      ctx.clearRect(0, 0, c.width, c.height);
+      // Palang atas
+      ctx.fillStyle = '#334155'; ctx.fillRect(160, 25, 440, 18);
+
+      const topY = 75, botY = 250 - lift * 45;
+      // Tali penopang sejumlah KM
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3;
+      for (let i = 0; i < km; i++) {
+        const rx = 310 + (i - (km-1)/2) * 18;
+        ctx.beginPath(); ctx.moveTo(rx, topY); ctx.lineTo(rx, botY); ctx.stroke();
+      }
+      // Tali tarik ke kanan
+      ctx.strokeStyle = '#34d399';
+      ctx.beginPath(); ctx.moveTo(350, topY); ctx.lineTo(490, 220 + lift * 30); ctx.stroke();
+      ctx.fillStyle = '#34d399'; ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(`▼ Tarik F = ${F.toFixed(0)} N (${ropePull.toFixed(1)} m)`, 495, 225 + lift * 30);
+
+      // Roda katrol atas & bawah
+      ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.arc(310, topY, 28, 0, Math.PI*2); ctx.fill();
+      if (km > 1) { ctx.beginPath(); ctx.arc(310, botY, 24, 0, Math.PI*2); ctx.fill(); }
+
+      // Peti Beban
+      ctx.fillStyle = '#0284c7'; ctx.strokeStyle = '#bae6fd'; ctx.lineWidth = 2;
+      ctx.fillRect(260, botY + 26, 100, 65); ctx.strokeRect(260, botY + 26, 100, 65);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(`${m} kg (${W}N)`, 310, botY + 64);
+    }
+    [inKM, inM, inLift].forEach(el => el.oninput = draw);
+    draw();
+  </script>
+</body>
+</html>

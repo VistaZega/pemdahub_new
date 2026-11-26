@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Efek Doppler &amp; Sirine Ambulans</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#dc2626; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.1rem; font-weight:800; margin-top:2px; font-family:monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚑 Simulator Fisika: Efek Doppler &amp; Muka Gelombang Sirine</h1>
+    <p>Amati bagaimana muka gelombang bunyi merapat di depan ambulans yang melaju (frekuensi tinggi) dan meregang di belakangnya (frekuensi rendah)!</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="dopCanvas" width="760" height="390"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Frekuensi Saat Mendekat</div><div class="s-val" id="vApp" style="color:#059669">0 Hz</div></div>
+        <div class="s-box"><div class="s-lbl">Frekuensi Saat Menjauh</div><div class="s-val" id="vRec" style="color:#e11d48">0 Hz</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Kecepatan Ambulans ($v_s$)</span><span id="lblVs">30 m/s</span></div>
+        <input type="range" id="inVs" min="0" max="120" step="5" value="30" style="width:100%;accent-color:#dc2626;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Frekuensi Sirine Asli ($f_s$)</span><span id="lblFs">640 Hz</span></div>
+        <input type="range" id="inFs" min="300" max="1000" step="20" value="640" style="width:100%;accent-color:#0284c7;cursor:pointer;">
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('dopCanvas'), ctx = c.getContext('2d');
+    const inVs = document.getElementById('inVs'), inFs = document.getElementById('inFs');
+    let ambX = 120, waves = [], tick = 0;
+
+    function loop() {
+      const vs = +inVs.value, fs = +inFs.value, vSound = 340;
+      const fApp = (vSound / (vSound - vs)) * fs;
+      const fRec = (vSound / (vSound + vs)) * fs;
+      document.getElementById('lblVs').textContent = vs + ' m/s';
+      document.getElementById('lblFs').textContent = fs + ' Hz';
+      document.getElementById('vApp').textContent = fApp.toFixed(1) + ' Hz';
+      document.getElementById('vRec').textContent = fRec.toFixed(1) + ' Hz';
+
+      ambX += vs * 0.04;
+      if (ambX > c.width + 60) { ambX = -60; waves = []; }
+      tick++;
+      if (tick % 10 === 0) waves.push({ x: ambX, y: 200, r: 10 });
+
+      ctx.clearRect(0, 0, c.width, c.height);
+      // Pengamat diam
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(540, 310, 12, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('🧍 Pengamat Diam', 540, 340);
+
+      // Gelombang Suara
+      ctx.lineWidth = 2;
+      waves.forEach(w => {
+        w.r += 3.2;
+        const alpha = Math.max(0, 1 - w.r / 420);
+        ctx.strokeStyle = `rgba(56,189,248,${alpha})`;
+        ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, Math.PI*2); ctx.stroke();
+      });
+      waves = waves.filter(w => w.r < 420);
+
+      // Mobil Ambulans
+      ctx.fillStyle = '#f8fafc'; ctx.beginPath(); ctx.roundRect(ambX - 36, 180, 72, 34, 8); ctx.fill();
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(ambX - 6, 188, 12, 18); ctx.fillRect(ambX - 9, 191, 18, 12);
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(ambX, 176, 5, 0, Math.PI*2); ctx.fill();
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

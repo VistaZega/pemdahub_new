@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Informatika &amp; Elektronika: Gerbang Logika Digital</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#4f46e5; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.35fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .gate-row { display:flex; gap:6px; flex-wrap:wrap; }
+    button { border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
+    button.active { background:#4f46e5; color:#fff; border-color:#4338ca; }
+    table { width:100%; border-collapse:collapse; font-family:monospace; font-size:0.88rem; text-align:center; }
+    th, td { padding:8px; border-bottom:1px solid #e2e8f0; }
+    tr.hi { background:#e0e7ff; font-weight:800; color:#312e81; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔌 Simulator Informatika &amp; Elektronika: Gerbang Logika Digital (0 &amp; 1)</h1>
+    <p>Bagaimana komputer memproses logika biner? Ubah saklar Input A &amp; B, amati aliran sinyal kabel serta Tabel Kebenaran aktif!</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="logicCanvas" width="760" height="360"></canvas>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button onclick="A = A?0:1; render()" id="btnA" style="flex:1;padding:12px;">Saklar Input A: 0</button>
+        <button onclick="B = B?0:1; render()" id="btnB" style="flex:1;padding:12px;">Saklar Input B: 0</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="gate-row" id="gateBtns"></div>
+      <table>
+        <thead><tr><th>Input A</th><th>Input B</th><th>Output (Y)</th></tr></thead>
+        <tbody id="ttBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('logicCanvas'), ctx = c.getContext('2d');
+    const gates = ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'NOT'];
+    let gate = 'AND', A = 0, B = 0;
+
+    function evalGate(g, a, b) {
+      if (g === 'AND') return a & b;
+      if (g === 'OR') return a | b;
+      if (g === 'NAND') return (a & b) ? 0 : 1;
+      if (g === 'NOR') return (a | b) ? 0 : 1;
+      if (g === 'XOR') return a ^ b;
+      return a ? 0 : 1;
+    }
+
+    function render() {
+      document.getElementById('gateBtns').innerHTML = gates.map(g =>
+        `<button class="${g===gate?'active':''}" onclick="gate='${g}';render()">${g}</button>`
+      ).join('');
+      document.getElementById('btnA').textContent = `Saklar Input A: ${A} (${A?'HIGH':'LOW'})`;
+      document.getElementById('btnA').style.background = A ? '#10b981' : '#f1f5f9';
+      document.getElementById('btnA').style.color = A ? '#fff' : '#0f172a';
+      document.getElementById('btnB').style.display = gate === 'NOT' ? 'none' : 'block';
+      document.getElementById('btnB').textContent = `Saklar Input B: ${B} (${B?'HIGH':'LOW'})`;
+      document.getElementById('btnB').style.background = B ? '#10b981' : '#f1f5f9';
+      document.getElementById('btnB').style.color = B ? '#fff' : '#0f172a';
+
+      const rows = gate === 'NOT' ? [[0, '-'], [1, '-']] : [[0,0],[0,1],[1,0],[1,1]];
+      document.getElementById('ttBody').innerHTML = rows.map(([ra, rb]) => {
+        const out = evalGate(gate, ra, rb === '-' ? 0 : rb);
+        const match = ra === A && (gate === 'NOT' || rb === B);
+        return `<tr class="${match?'hi':''}"><td>${ra}</td><td>${rb}</td><td style="color:${out?'#059669':'#e11d48'}">${out}</td></tr>`;
+      }).join('');
+
+      const Y = evalGate(gate, A, B);
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      // Kabel A & B
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = A ? '#34d399' : '#475569';
+      ctx.beginPath(); ctx.moveTo(110, gate==='NOT'?180:130); ctx.lineTo(310, gate==='NOT'?180:130); ctx.stroke();
+      if (gate !== 'NOT') {
+        ctx.strokeStyle = B ? '#34d399' : '#475569';
+        ctx.beginPath(); ctx.moveTo(110, 230); ctx.lineTo(310, 230); ctx.stroke();
+      }
+      // Kabel Output Y
+      ctx.strokeStyle = Y ? '#34d399' : '#475569';
+      ctx.beginPath(); ctx.moveTo(450, 180); ctx.lineTo(620, 180); ctx.stroke();
+
+      // Chip IC Gerbang
+      ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.roundRect(310, 100, 140, 160, 18); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 26px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(gate, 380, 190);
+
+      // LED Output
+      ctx.fillStyle = Y ? '#34d399' : '#334155';
+      ctx.beginPath(); ctx.arc(645, 180, 32, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = Y ? '#a7f3d0' : '#64748b'; ctx.stroke();
+      ctx.fillStyle = Y ? '#022c22' : '#94a3b8'; ctx.font = 'bold 18px monospace';
+      ctx.fillText(Y, 645, 186);
+    }
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Rangkaian Listrik DC, Seri vs Paralel &amp; Hukum Ohm</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#ffffff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { padding:14px 20px; border-bottom:1px solid var(--border); background:#fff; }
+    header h1 { font-size:1.1rem; font-weight:800; color:#b45309; }
+    header p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+    main { flex:1; display:grid; grid-template-columns:minmax(340px,1.4fr) minmax(300px,1fr); gap:16px; padding:16px; }
+    @media(max-width:900px){ main { grid-template-columns:1fr; } }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(15,23,42,0.04); }
+    canvas { width:100%; background:#0f172a; border-radius:12px; display:block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .s-box { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:10px; }
+    .s-lbl { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .s-val { font-size:1.05rem; font-weight:800; margin-top:2px; font-family:monospace; }
+    button { border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#f8fafc; color:#0f172a; }
+    button.active { background:#f59e0b; color:#451a03; border-color:#d97706; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚡ Simulator Fisika &amp; Elektronika: Hukum Ohm &amp; Rangkaian Seri vs Paralel</h1>
+    <p>Mengapa lampu di rumah (paralel) tetap menyala terang meski satu lampu dimatikan, berbeda dengan rangkaian seri?</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <canvas id="ohmCanvas" width="760" height="400"></canvas>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;gap:8px;">
+        <button class="active" id="btnSeri" onclick="setMode('series')">🔗 Rangkaian Seri (R₁ + R₂)</button>
+        <button id="btnPar" onclick="setMode('parallel')">🔀 Rangkaian Paralel (R₁ || R₂)</button>
+      </div>
+
+      <div class="stats">
+        <div class="s-box"><div class="s-lbl">Hambatan Total</div><div class="s-val" id="vRtot" style="color:#0284c7">0 Ω</div></div>
+        <div class="s-box"><div class="s-lbl">Arus Total (I)</div><div class="s-val" id="vI" style="color:#059669">0 A</div></div>
+        <div class="s-box"><div class="s-lbl">Daya Total (P)</div><div class="s-val" id="vP" style="color:#d97706">0 W</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Tegangan Baterai ($V$)</span><span id="lblV">12 V</span></div>
+        <input type="range" id="inV" min="3" max="24" step="1" value="12" style="width:100%;accent-color:#f59e0b;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Lampu 1 ($R_1$)</span><span id="lblR1">6 Ω</span></div>
+        <input type="range" id="inR1" min="2" max="20" step="1" value="6" style="width:100%;accent-color:#38bdf8;cursor:pointer;">
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:700;"><span>Lampu 2 ($R_2$)</span><span id="lblR2">3 Ω</span></div>
+        <input type="range" id="inR2" min="2" max="20" step="1" value="3" style="width:100%;accent-color:#34d399;cursor:pointer;">
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const c = document.getElementById('ohmCanvas'), ctx = c.getContext('2d');
+    const inV = document.getElementById('inV'), inR1 = document.getElementById('inR1'), inR2 = document.getElementById('inR2');
+    let mode = 'series', tick = 0;
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnSeri').classList.toggle('active', m === 'series');
+      document.getElementById('btnPar').classList.toggle('active', m === 'parallel');
+    }
+
+    function drawBulb(x, y, watts, label) {
+      const glow = Math.min(1, watts / 40);
+      ctx.fillStyle = `rgba(253,224,71,${0.15 + glow*0.75})`;
+      ctx.beginPath(); ctx.arc(x, y, 26, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(label, x, y + 4);
+    }
+
+    function loop() {
+      const V = +inV.value, R1 = +inR1.value, R2 = +inR2.value;
+      const Rtot = mode === 'series' ? (R1 + R2) : ((R1 * R2) / (R1 + R2));
+      const I = V / Rtot, P = V * I;
+      document.getElementById('lblV').textContent = V + ' V';
+      document.getElementById('lblR1').textContent = R1 + ' Ω';
+      document.getElementById('lblR2').textContent = R2 + ' Ω';
+      document.getElementById('vRtot').textContent = Rtot.toFixed(2) + ' Ω';
+      document.getElementById('vI').textContent = I.toFixed(2) + ' A';
+      document.getElementById('vP').textContent = P.toFixed(1) + ' W';
+
+      tick += Math.min(8, I * 1.2);
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      // Kabel Utama
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 6;
+      ctx.strokeRect(140, 80, 480, 240);
+      if (mode === 'parallel') {
+        ctx.beginPath(); ctx.moveTo(380, 80); ctx.lineTo(380, 320); ctx.stroke();
+      }
+
+      // Baterai di kiri
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(112, 165, 56, 70);
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(V + 'V', 140, 205);
+
+      // Lampu
+      if (mode === 'series') {
+        drawBulb(300, 80, I*I*R1, `L1 (${R1}Ω)`);
+        drawBulb(480, 80, I*I*R2, `L2 (${R2}Ω)`);
+      } else {
+        drawBulb(380, 200, (V*V)/R1, `L1 (${R1}Ω)`);
+        drawBulb(620, 200, (V*V)/R2, `L2 (${R2}Ω)`);
+      }
+
+      // Aliran elektron kuning
+      ctx.fillStyle = '#38bdf8';
+      for (let k = 0; k < 14; k++) {
+        const pos = (tick * 4 + k * 90) % 1440;
+        let ex = 140, ey = 80;
+        if (pos < 480) { ex = 140 + pos; ey = 80; }
+        else if (pos < 720) { ex = 620; ey = 80 + (pos - 480); }
+        else if (pos < 1200) { ex = 620 - (pos - 720); ey = 320; }
+        else { ex = 140; ey = 320 - (pos - 1200); }
+        ctx.beginPath(); ctx.arc(ex, ey, 4.5, 0, Math.PI*2); ctx.fill();
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
