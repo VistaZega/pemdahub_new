@@ -31,6 +31,7 @@ class LmsSubmission extends Model
         'graded_at',
         'graded_by',
         'attempt_number',
+        'is_showcase',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class LmsSubmission extends Model
         'graded_at' => 'datetime',
         'score' => 'float',
         'file_paths' => 'array',
+        'is_showcase' => 'boolean',
     ];
 
     protected const STATUSES = [

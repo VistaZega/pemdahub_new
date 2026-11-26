@@ -202,6 +202,40 @@ if (!function_exists('balanceHtmlTags')) {
     }
 @endphp
 <div id="guru-course-shell" class="space-y-6" style="max-width: 1320px; margin: 0 auto;">
+    {{-- IoT Classroom Telemetry & Smart Attendance Strip --}}
+    @if(isset($iotTelemetry))
+    <div style="background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%); border-radius: 1rem; padding: 0.9rem 1.25rem; color: #ffffff; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="width: 2.25rem; height: 2.25rem; border-radius: 0.65rem; background: rgba(16, 185, 129, 0.2); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                <i class="fas fa-microchip"></i>
+            </span>
+            <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">IoT Classroom Telemetry &amp; Smart Attendance</div>
+                <div style="font-size: 0.88rem; font-weight: 700; color: #f8fafc;">Pemantauan langsung kehadiran tap RFID &amp; kondisi akustik ruang kelas</div>
+            </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;">
+            <div style="padding: 0.45rem 0.85rem; border-radius: 0.75rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); font-size: 0.82rem; font-weight: 700;">
+                <i class="fas fa-id-card" style="color: #38bdf8; margin-right: 0.35rem;"></i>
+                Hadir RFID Hari Ini: <strong style="color: #7dd3fc;">{{ $iotTelemetry['rfid_present_today'] }}/{{ $iotTelemetry['total_students'] }}</strong>
+            </div>
+            <div style="padding: 0.45rem 0.85rem; border-radius: 0.75rem; background: {{ $iotTelemetry['noise_alert'] ? 'rgba(225, 29, 72, 0.25)' : 'rgba(16, 185, 129, 0.16)' }}; border: 1px solid {{ $iotTelemetry['noise_alert'] ? 'rgba(251, 113, 133, 0.5)' : 'rgba(52, 211, 153, 0.35)' }}; font-size: 0.82rem; font-weight: 700;">
+                <i class="fas fa-volume-up" style="color: {{ $iotTelemetry['noise_alert'] ? '#fda4af' : '#6ee7b7' }}; margin-right: 0.35rem;"></i>
+                Akustik Kelas:
+                <strong>
+                    @if($iotTelemetry['noise_db'] !== null)
+                        {{ $iotTelemetry['noise_db'] }} dB ({{ $iotTelemetry['noise_status'] }})
+                    @else
+                        {{ $iotTelemetry['noise_status'] }}
+                    @endif
+                </strong>
+            </div>
+            <a href="{{ route('guru.lms.analytics', $course->id) }}" style="padding: 0.45rem 0.85rem; border-radius: 0.75rem; background: #fbbf24; color: #0f172a; font-size: 0.8rem; font-weight: 800; text-decoration: none;">
+                <i class="fas fa-chart-line"></i> Analitik &amp; AI Remedial
+            </a>
+        </div>
+    </div>
+    @endif
     {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     {{-- COURSE HERO BANNER (100% SOLID UI UX PRO MAX) --}}
     {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
@@ -1981,6 +2015,40 @@ if (!function_exists('balanceHtmlTags')) {
 
             {{-- Access Config Sidebar --}}
             <div id="guru-course-shell" class="space-y-6" style="max-width: 1320px; margin: 0 auto;">
+    {{-- IoT Classroom Telemetry & Smart Attendance Strip --}}
+    @if(isset($iotTelemetry))
+    <div style="background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%); border-radius: 1rem; padding: 0.9rem 1.25rem; color: #ffffff; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="width: 2.25rem; height: 2.25rem; border-radius: 0.65rem; background: rgba(16, 185, 129, 0.2); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                <i class="fas fa-microchip"></i>
+            </span>
+            <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">IoT Classroom Telemetry &amp; Smart Attendance</div>
+                <div style="font-size: 0.88rem; font-weight: 700; color: #f8fafc;">Pemantauan langsung kehadiran tap RFID &amp; kondisi akustik ruang kelas</div>
+            </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;">
+            <div style="padding: 0.45rem 0.85rem; border-radius: 0.75rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); font-size: 0.82rem; font-weight: 700;">
+                <i class="fas fa-id-card" style="color: #38bdf8; margin-right: 0.35rem;"></i>
+                Hadir RFID Hari Ini: <strong style="color: #7dd3fc;">{{ $iotTelemetry['rfid_present_today'] }}/{{ $iotTelemetry['total_students'] }}</strong>
+            </div>
+            <div style="padding: 0.45rem 0.85rem; border-radius: 0.75rem; background: {{ $iotTelemetry['noise_alert'] ? 'rgba(225, 29, 72, 0.25)' : 'rgba(16, 185, 129, 0.16)' }}; border: 1px solid {{ $iotTelemetry['noise_alert'] ? 'rgba(251, 113, 133, 0.5)' : 'rgba(52, 211, 153, 0.35)' }}; font-size: 0.82rem; font-weight: 700;">
+                <i class="fas fa-volume-up" style="color: {{ $iotTelemetry['noise_alert'] ? '#fda4af' : '#6ee7b7' }}; margin-right: 0.35rem;"></i>
+                Akustik Kelas:
+                <strong>
+                    @if($iotTelemetry['noise_db'] !== null)
+                        {{ $iotTelemetry['noise_db'] }} dB ({{ $iotTelemetry['noise_status'] }})
+                    @else
+                        {{ $iotTelemetry['noise_status'] }}
+                    @endif
+                </strong>
+            </div>
+            <a href="{{ route('guru.lms.analytics', $course->id) }}" style="padding: 0.45rem 0.85rem; border-radius: 0.75rem; background: #fbbf24; color: #0f172a; font-size: 0.8rem; font-weight: 800; text-decoration: none;">
+                <i class="fas fa-chart-line"></i> Analitik &amp; AI Remedial
+            </a>
+        </div>
+    </div>
+    @endif
                 <div class="rounded-3xl p-6 text-white shadow-xl border-2 border-black relative overflow-hidden" style="background-color: #090d16 !important;">
                     <h4 class="font-black text-xs uppercase tracking-wider mb-6 border-b-2 border-slate-800 pb-3 flex items-center gap-2 text-amber-400">
                         <i class="fas fa-cog"></i> Konfigurasi Ruang Ajar

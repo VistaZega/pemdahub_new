@@ -730,6 +730,7 @@ class LmsAssignmentController extends Controller
             'feedback' => $request->feedback,
             'teacher_notes' => $request->feedback,
             'status' => 'graded',
+            'is_showcase' => $request->boolean('is_showcase'),
             'graded_at' => now(),
             'graded_by' => Auth::id(),
         ]);

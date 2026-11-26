@@ -1185,6 +1185,11 @@
                                                                  focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none"></textarea>
                                             </div>
 
+                                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200 cursor-pointer">
+                                                <input type="checkbox" name="is_showcase" value="1" {{ $sub->is_showcase ? 'checked' : '' }} class="rounded text-amber-600 focus:ring-amber-500">
+                                                <span class="text-xs font-bold text-amber-900">🌟 Tandai Karya Terbaik (Layak Etalase Beranda)</span>
+                                            </label>
+
                                             <div class="grid grid-cols-2 gap-2">
                                                 <button type="submit" onclick="document.getElementById('action_type_{{ $sub->id }}').value='grade'"
                                                         class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-2.5 rounded-xl

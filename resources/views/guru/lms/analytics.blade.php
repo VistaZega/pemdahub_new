@@ -100,6 +100,76 @@
     </div>
 
     {{-- ═══════════════════════════════════════════════ --}}
+    {{-- AI REMEDIAL GENERATOR PANEL --}}
+    {{-- ═══════════════════════════════════════════════ --}}
+    <div class="bg-gradient-to-r from-indigo-950 via-indigo-900 to-violet-900 rounded-2xl p-6 text-white shadow-lg border border-indigo-700"
+         x-data="{
+            topic: '',
+            saveAsMaterial: true,
+            loading: false,
+            resultHtml: '',
+            statusMsg: '',
+            async generate() {
+                this.loading = true;
+                this.statusMsg = '';
+                try {
+                    const res = await fetch('{{ route('guru.lms.generate-remedial-ai', $course->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            topic: this.topic,
+                            at_risk_count: {{ count($atRiskStudents) }},
+                            save_as_material: this.saveAsMaterial
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.resultHtml = data.html;
+                        this.statusMsg = data.message;
+                    } else {
+                        alert(data.message || 'Gagal membuat materi remedial.');
+                    }
+                } catch (e) {
+                    alert('Terjadi kesalahan koneksi saat memanggil AI Remedial.');
+                }
+                this.loading = false;
+            }
+         }">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center text-lg shrink-0">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white">AI Remedial &amp; Pengayaan Otomatis</h3>
+                    <p class="text-xs text-indigo-200 mt-0.5">Buat ringkasan konsep + 3 soal latihan remedial otomatis untuk {{ count($atRiskStudents) }} siswa yang perlu pendampingan.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5">
+                <input type="text" x-model="topic" placeholder="Topik fokus (opsional, misal: Persamaan Kuadrat)"
+                       class="px-3.5 py-2 rounded-xl bg-white/10 border border-white/25 text-white placeholder-indigo-200 text-xs font-semibold outline-none w-64">
+                <label class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-100 cursor-pointer">
+                    <input type="checkbox" x-model="saveAsMaterial" class="rounded text-amber-400">
+                    <span>Simpan Draft ke LMS</span>
+                </label>
+                <button type="button" @click="generate()" :disabled="loading"
+                        class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-black transition cursor-pointer disabled:opacity-60">
+                    <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-magic'"></i>
+                    <span x-text="loading ? 'Menyusun...' : 'Buat Materi Remedial AI'"></span>
+                </button>
+            </div>
+        </div>
+
+        <div x-show="statusMsg" style="display: none;" class="mt-3 px-3.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold" x-text="statusMsg"></div>
+        <div x-show="resultHtml" style="display: none;" class="mt-4 bg-white text-slate-800 rounded-xl p-5 prose prose-sm max-w-none max-h-96 overflow-y-auto" x-html="resultHtml"></div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════ --}}
     {{-- CLASS FILTER TABS (PILIHAN ROMBEL KELAS) --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">

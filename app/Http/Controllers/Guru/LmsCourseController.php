@@ -441,7 +441,44 @@ class LmsCourseController extends Controller
             ->orderBy('order_number')
             ->get();
 
-        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents', 'classrooms', 'trashedModules', 'unassignedMaterials'));
+        // IoT Classroom Telemetry & Smart Attendance Sync (RFID + Noise Sensor ESP32)
+        $iotTelemetry = [
+            'rfid_present_today' => 0,
+            'total_students'     => $totalStudents,
+            'noise_db'           => null,
+            'noise_status'       => 'Belum Terpasang',
+            'noise_alert'        => false,
+            'noise_updated_at'   => null,
+        ];
+        try {
+            $enrolledIds = $allEnrolledStudents->pluck('id')->filter()->values()->all();
+            if (!empty($enrolledIds)) {
+                $iotTelemetry['rfid_present_today'] = \App\Models\StudentAttendance::whereIn('student_id', $enrolledIds)
+                    ->whereDate('date', today())
+                    ->whereNotNull('time_in')
+                    ->distinct('student_id')
+                    ->count('student_id');
+            }
+            $classroomIds = $classrooms->pluck('id')->filter()->values()->all();
+            if (!empty($classroomIds)) {
+                $latestNoise = \App\Models\NoiseLog::whereIn('classroom_id', $classroomIds)
+                    ->whereDate('created_at', today())
+                    ->latest('id')
+                    ->first();
+                if ($latestNoise) {
+                    $iotTelemetry['noise_db'] = round((float) $latestNoise->db_level, 1);
+                    $iotTelemetry['noise_alert'] = (bool) $latestNoise->is_alert_triggered;
+                    $iotTelemetry['noise_status'] = $latestNoise->is_alert_triggered ? 'Bising / Perlu Perhatian' : 'Kondusif';
+                    $iotTelemetry['noise_updated_at'] = $latestNoise->created_at?->diffForHumans();
+                } elseif (\App\Models\NoiseDevice::whereIn('classroom_id', $classroomIds)->exists()) {
+                    $iotTelemetry['noise_status'] = 'Sensor Siaga';
+                }
+            }
+        } catch (\Throwable $e) {
+            // abaikan jika tabel IoT belum tersedia
+        }
+
+        return view('guru.lms.show', compact('teacher', 'course', 'totalStudents', 'allEnrolledStudents', 'classrooms', 'trashedModules', 'unassignedMaterials', 'iotTelemetry'));
     }
 
     /**
@@ -2515,6 +2552,81 @@ HTML;
                 'file_url' => $material->file_url,
             ],
         ]);
+    }
+
+    /**
+     * Generate AI Remedial & Enrichment Material from Course Analytics.
+     */
+    public function generateRemedialAi(Request $request, LmsCourse $course)
+    {
+        $teacher = $this->getTeacher();
+        if (!$teacher || !$this->authorizeAccess($course, $teacher)) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'topic'            => 'nullable|string|max:255',
+            'at_risk_count'    => 'nullable|integer|min:0',
+            'save_as_material' => 'nullable|boolean',
+        ]);
+
+        $subjectName = $course->subject->subject_name ?? $course->subject->name ?? $course->name;
+        $focusTopic = trim((string) ($validated['topic'] ?? '')) ?: ('Materi Inti ' . $course->name);
+        $atRiskCount = (int) ($validated['at_risk_count'] ?? 0);
+
+        $prompt = "Anda adalah Asisten Pedagogis PembdaHUB. Buatkan Paket Materi & Latihan Remedial yang sangat jelas, ramah, dan mudah dipahami siswa.\n"
+            . "Mata Pelajaran: {$subjectName}\n"
+            . "Course: {$course->name}\n"
+            . "Topik Fokus Remedial: {$focusTopic}\n"
+            . "Jumlah Siswa Perlu Pendampingan: {$atRiskCount} siswa\n\n"
+            . "Format keluaran HARUS HTML rapi (gunakan <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <blockquote>) TANPA tag <html>/<body>:\n"
+            . "1. <h2>🎯 Ringkasan Konsep Kunci (Versi Sederhana)</h2>\n"
+            . "2. <h2>⚠️ Kesalahan Umum yang Sering Terjadi</h2>\n"
+            . "3. <h2>📝 3 Soal Latihan Remedial Bertahap + Kunci Pembahasan</h2>\n"
+            . "Gunakan Bahasa Indonesia yang jelas dan memotivasi siswa.";
+
+        try {
+            $gemini = app(\App\Services\GeminiService::class);
+            $htmlContent = trim($gemini->generateText($prompt));
+            foreach (['```html', '```'] as $fence) {
+                if (str_starts_with($htmlContent, $fence)) {
+                    $htmlContent = substr($htmlContent, strlen($fence));
+                }
+            }
+            if (str_ends_with($htmlContent, '```')) {
+                $htmlContent = substr($htmlContent, 0, -3);
+            }
+            $htmlContent = trim($htmlContent);
+
+            $savedMaterialId = null;
+            if (!empty($validated['save_as_material'])) {
+                $firstModule = $course->modules()->orderBy('sequence')->first();
+                $maxOrder = $course->materials()->where('module_id', $firstModule?->id)->max('order_number') ?? 0;
+                $material = $course->materials()->create([
+                    'module_id'     => $firstModule?->id,
+                    'title'         => 'Materi Remedial AI: ' . \Illuminate\Support\Str::limit($focusTopic, 80),
+                    'content'       => $htmlContent,
+                    'material_type' => 'text',
+                    'order_number'  => $maxOrder + 1,
+                    'is_published'  => false,
+                ]);
+                $savedMaterialId = $material->id;
+            }
+
+            return response()->json([
+                'success'     => true,
+                'html'        => $htmlContent,
+                'material_id' => $savedMaterialId,
+                'message'     => $savedMaterialId
+                    ? 'Materi Remedial AI berhasil dibuat dan disimpan sebagai Draft di LMS!'
+                    : 'Materi Remedial AI berhasil dibuat!',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghasilkan materi remedial AI: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }
 
