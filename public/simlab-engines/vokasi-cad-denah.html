@@ -114,10 +114,15 @@ cv.addEventListener('mouseup', e=>{
   drawing = false;
   const color = document.getElementById('scolor').value;
   const thick = +document.getElementById('sthick').value;
-  const x1=Math.min(startX,mouseX), y1=Math.min(startY,mouseY);
-  const x2=Math.max(startX,mouseX), y2=Math.max(startY,mouseY);
-  if(Math.abs(x2-x1)>5 || Math.abs(y2-y1)>5)
-    shapes.push({type:tool, x1, y1, x2, y2, color, thick});
+  if(tool==='wall'){
+    if(Math.abs(mouseX-startX)>5 || Math.abs(mouseY-startY)>5)
+      shapes.push({type:tool, x1:startX, y1:startY, x2:mouseX, y2:mouseY, color, thick});
+  } else {
+    const x1=Math.min(startX,mouseX), y1=Math.min(startY,mouseY);
+    const x2=Math.max(startX,mouseX), y2=Math.max(startY,mouseY);
+    if(Math.abs(x2-x1)>5 || Math.abs(y2-y1)>5)
+      shapes.push({type:tool, x1, y1, x2, y2, color, thick});
+  }
   updateCalc(); draw();
 });
 
@@ -127,10 +132,10 @@ cv.addEventListener('touchmove', e=>{e.preventDefault(); const t=e.touches[0]; c
 cv.addEventListener('touchend', e=>{e.preventDefault(); cv.dispatchEvent(new MouseEvent('mouseup',{}));});
 
 function draw(){
-  cv.width = cv.offsetWidth; cv.height = 400;
+  cv.width = cv.offsetWidth || 640; cv.height = 400;
   const W = cv.width;
   // Grid
-  ctx.strokeStyle = 'rgba(71,85,105,0.2)'; ctx.lineWidth = 0.5;
+  ctx.strokeStyle = 'rgba(148,163,184,0.22)'; ctx.lineWidth = 0.7;
   for(let x=0;x<W;x+=GRID){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,400); ctx.stroke(); }
   for(let y=0;y<400;y+=GRID){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
@@ -139,7 +144,11 @@ function draw(){
   if(drawing){
     const color = document.getElementById('scolor').value;
     const thick = +document.getElementById('sthick').value;
-    drawShape({type:tool, x1:Math.min(startX,mouseX), y1:Math.min(startY,mouseY), x2:Math.max(startX,mouseX), y2:Math.max(startY,mouseY), color, thick}, true);
+    if(tool==='wall'){
+      drawShape({type:tool, x1:startX, y1:startY, x2:mouseX, y2:mouseY, color, thick}, true);
+    } else {
+      drawShape({type:tool, x1:Math.min(startX,mouseX), y1:Math.min(startY,mouseY), x2:Math.max(startX,mouseX), y2:Math.max(startY,mouseY), color, thick}, true);
+    }
   }
 }
 
@@ -201,7 +210,7 @@ function loadSample(){
     {type:'window',x1:GRID*10,y1:GRID*0.5,x2:GRID*14,y2:GRID*1,color:'#60a5fa',thick:3},
   ];
   updateCalc(); draw();
-  document.getElementById('info').innerHTML='📋 Contoh denah dimuat: 3 ruangan (Ruang Tamu, Kamar Tidur, Ruang Makan)';
+  document.getElementById('infoBar').textContent='📋 Contoh denah dimuat: 3 ruangan (Ruang Tamu, Kamar Tidur, Ruang Makan) — Klik & seret untuk menambah elemen';
 }
 
 function cek(el,s){
@@ -210,7 +219,7 @@ function cek(el,s){
 }
 
 window.addEventListener('resize',draw);
-draw(); updateCalc();
+loadSample();
 </script>
 </body>
 </html>
