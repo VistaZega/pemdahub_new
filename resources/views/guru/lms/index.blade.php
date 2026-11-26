@@ -171,7 +171,7 @@
                         $classNames = $course->classes->pluck('classroom.class_name')->filter()->implode(', ');
                         $searchKey = strtolower($course->name . ' ' . $subjectLabel . ' ' . $classNames);
                     @endphp
-                    <tr style="border-bottom: 1px solid #e2e8f0; background: {{ $rowBg }}; transition: background 0.15s ease;"
+                    <tr style="border-bottom: 2px solid #94a3b8; background: {{ $rowBg }}; transition: background 0.15s ease;"
                         onmouseover="this.style.background='{{ $rowHoverBg }}'" onmouseout="this.style.background='{{ $rowBg }}'"
                         x-show="!search.trim() || @js($searchKey).includes(search.toLowerCase().trim())">
 
