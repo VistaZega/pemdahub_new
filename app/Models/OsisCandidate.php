@@ -92,42 +92,69 @@ class OsisCandidate extends Model
         return $this->belongsTo(User::class, 'vice_user_id');
     }
 
+    /**
+     * Resolve local/storage media path only when the file actually exists.
+     */
+    protected function resolvePublicMediaUrl(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        $p = trim($path);
+        if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
+            return $p;
+        }
+
+        $clean = ltrim($p, '/');
+        if (str_starts_with($clean, 'storage/')) {
+            $storageRelative = substr($clean, 8);
+            if (file_exists(public_path($clean)) || file_exists(storage_path('app/public/' . $storageRelative))) {
+                return asset($clean);
+            }
+            return null;
+        }
+
+        if (file_exists(public_path($clean))) {
+            return asset($clean);
+        }
+
+        if (file_exists(public_path('storage/' . $clean)) || file_exists(storage_path('app/public/' . $clean))) {
+            return asset('storage/' . $clean);
+        }
+
+        return null;
+    }
+
     // Helper untuk foto kartu paslon
     public function getPhotoUrlAttribute(): string
     {
-        if (!empty($this->photo)) {
-            $p = trim($this->photo);
-            if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
-                return $p;
-            }
-            if (str_starts_with($p, 'storage/') || str_starts_with($p, '/storage/')) {
-                return asset(ltrim($p, '/'));
-            }
-            if (file_exists(public_path($p))) {
-                return asset($p);
-            }
-            return asset('storage/' . ltrim($p, '/'));
+        $resolved = $this->resolvePublicMediaUrl($this->photo);
+        if ($resolved !== null) {
+            return $resolved;
         }
-        return asset('images/osis/paslon_' . ($this->candidate_number ?: 1) . '.jpg');
+
+        $defaultPath = 'images/osis/paslon_' . ($this->candidate_number ?: 1) . '.jpg';
+        if (file_exists(public_path($defaultPath))) {
+            return asset($defaultPath);
+        }
+
+        $bgColors = [
+            1 => 'e11d48',
+            2 => '2563eb',
+            3 => 'd97706',
+            4 => '059669',
+        ];
+        $bg = $bgColors[$this->candidate_number] ?? '0f172a';
+        $name = urlencode(trim((string) ($this->leader_name ?: 'Paslon ' . ($this->candidate_number ?: 1))));
+
+        return "https://ui-avatars.com/api/?name={$name}&background={$bg}&color=ffffff&bold=true&size=256";
     }
 
     // Helper untuk poster HD
     public function getPosterUrlAttribute(): string
     {
-        if (!empty($this->poster_flyer)) {
-            $p = trim($this->poster_flyer);
-            if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
-                return $p;
-            }
-            if (str_starts_with($p, 'storage/') || str_starts_with($p, '/storage/')) {
-                return asset(ltrim($p, '/'));
-            }
-            if (file_exists(public_path($p))) {
-                return asset($p);
-            }
-            return asset('storage/' . ltrim($p, '/'));
-        }
-        return $this->photo_url;
+        return $this->resolvePublicMediaUrl($this->poster_flyer) ?? $this->photo_url;
     }
 
     // Helper cek status video kampanye

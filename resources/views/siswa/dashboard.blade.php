@@ -126,7 +126,7 @@
                         @endif
                         @if($activeYear)
                         <span style="padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.80rem; font-weight: 700; background: rgba(255,255,255,0.12); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.18);">
-                            TP {{ $activeYear->year }}
+                            TP {{ preg_replace('/^TP\.?\s*/i', '', trim((string) $activeYear->year)) }}
                         </span>
                         @endif
                         <span style="font-size: 0.84rem; color: #cbd5e1; font-weight: 600;">

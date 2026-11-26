@@ -100,7 +100,7 @@
                         </span>
                         @if($activeYear)
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/10 text-slate-200 border border-white/15">
-                            TP {{ $academicYear->year ?? $activeYear->year }}
+                            TP {{ preg_replace('/^TP\.?\s*/i', '', trim((string) ($academicYear->year ?? $activeYear->year))) }}
                         </span>
                         @endif
                         <span class="text-xs sm:text-sm text-slate-300 font-medium">

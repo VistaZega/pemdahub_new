@@ -26,6 +26,7 @@
                 <div class="relative flex-shrink-0">
                     <img src="{{ $campaign->winnerCandidate->photo_url }}" 
                          alt="{{ $campaign->winnerCandidate->leader_name }}" 
+                         onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($campaign->winnerCandidate->leader_name) }}&background=0f172a&color=fbbf24&bold=true&size=256';"
                          class="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-3 border-slate-900 shadow-md">
                     <span class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-900 text-amber-300 text-xs flex items-center justify-center border border-white shadow">👑</span>
                 </div>
@@ -147,81 +148,78 @@
     </div>
 
 {{-- ========================================================================= --}}
-{{-- KONDISI 3: VARIAN DASHBOARD GURU (Neo-Brutalism Hijau Emerald)            --}}
+{{-- KONDISI 3: VARIAN DASHBOARD GURU (Modern Clean Slate + Emerald Accent)    --}}
 {{-- ========================================================================= --}}
 @elseif($variant === 'teacher')
-    <div class="rounded-3xl p-5 md:p-6 border-2 border-black shadow-xl mb-6 relative overflow-hidden"
-         style="background: linear-gradient(135deg, #090d16 0%, #064e3b 50%, #047857 100%); color: #ffffff;">
+    <div class="rounded-[1.25rem] p-5 border border-emerald-200 border-t-[3px] border-t-emerald-600 shadow-sm relative overflow-hidden"
+         style="background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 55%, #f0fdfa 100%);">
 
         @if($campaign->is_simulation)
-            <div class="mb-4 px-3.5 py-2.5 rounded-2xl bg-amber-400 text-slate-950 font-black text-xs border-2 border-black flex items-center justify-between gap-3 shadow-md relative z-10">
-                <div class="flex items-center gap-2.5">
-                    <span class="text-lg animate-bounce">🧪</span>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="uppercase tracking-wider font-black">Mode Uji Coba / Simulasi E-Voting</span>
-                            <span class="px-2 py-0.5 rounded-md bg-black text-amber-300 font-mono text-[9px] uppercase font-black">Tahap Uji Coba</span>
-                        </div>
-                        <p class="text-[11px] font-semibold text-slate-900 leading-tight mt-0.5">
-                            Bapak/Ibu Guru dapat mencoba alur bilik suara digital. Hak suara saat ini bersifat simulasi dan akan di-reset bersih saat Pemilihan OSIS Resmi sekolah dibuka.
-                        </p>
+            <div class="mb-4 px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start sm:items-center gap-2.5">
+                <span class="text-base shrink-0">🧪</span>
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="font-extrabold uppercase tracking-wider">Mode Uji Coba / Simulasi E-Voting</span>
+                        <span class="px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950 font-mono text-[10px] uppercase font-bold">Tahap Uji Coba</span>
                     </div>
+                    <p class="text-[11px] font-medium text-amber-800 leading-snug mt-0.5">
+                        Bapak/Ibu Guru dapat mencoba alur bilik suara digital. Hak suara saat ini bersifat simulasi dan akan di-reset bersih saat Pemilihan OSIS Resmi sekolah dibuka.
+                    </p>
                 </div>
             </div>
         @endif
 
-        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5 pb-4 border-b border-white/10">
-            <div class="flex items-center gap-4 text-center md:text-left flex-col sm:flex-row">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-400 text-slate-950 border-2 border-black flex items-center justify-center text-2xl font-black shadow-md flex-shrink-0 animate-bounce">
-                    <i class="fas fa-vote-yea text-slate-950"></i>
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-emerald-100">
+            <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white flex items-center justify-center text-xl shadow-sm shrink-0">
+                    <i class="fas fa-vote-yea"></i>
                 </div>
-                <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider mb-1">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        SUKSESI OSIS {{ $campaign->school->name ?? 'UNIT SEKOLAH' }}
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                            SUKSESI OSIS {{ $campaign->school->name ?? 'UNIT SEKOLAH' }}
+                        </span>
+                        <span class="text-xs font-semibold text-slate-500">Periode {{ $campaign->period }}</span>
                     </div>
-                    <h3 class="text-base md:text-xl font-black uppercase tracking-tight text-white">
-                        {{ $campaign->title }} &bull; Periode {{ $campaign->period }}
+                    <h3 class="text-base md:text-lg font-extrabold tracking-tight text-slate-900 leading-snug">
+                        {{ $campaign->title }}
                     </h3>
-                    <p class="text-xs text-emerald-100/90 mt-0.5">
-                        Bapak/Ibu Guru & Tendik memiliki 1 hak suara sah. Mari kenali paslon dan salurkan aspirasi demokrasi Anda.
+                    <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+                        Bapak/Ibu Guru &amp; Tendik memiliki 1 hak suara sah. Mari kenali paslon dan salurkan aspirasi demokrasi Anda.
                     </p>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center justify-center gap-3 flex-shrink-0">
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
                 {{-- Turnout Stat Chip --}}
-                <div class="bg-black/50 backdrop-blur-sm px-4 py-2.5 rounded-2xl border border-white/20 text-center">
-                    <span class="text-[9px] uppercase font-bold text-slate-300 block">Partisipasi DPT</span>
-                    <span class="text-sm font-black text-emerald-400 font-mono">{{ $campaign->turnout_percentage }}%</span>
+                <div class="bg-white px-3.5 py-2 rounded-xl border border-emerald-200 text-center shadow-2xs">
+                    <span class="text-[10px] uppercase font-bold text-slate-500 block leading-none mb-0.5">Partisipasi DPT</span>
+                    <span class="text-sm font-extrabold text-emerald-700 font-mono leading-none">{{ $campaign->turnout_percentage }}%</span>
                 </div>
 
                 @if($campaign->status === 'voting_closed')
-                    <div class="flex items-center gap-2">
-                        <span class="px-3.5 py-2 rounded-2xl bg-amber-500/30 text-amber-300 text-xs font-bold border border-amber-400/40 flex items-center gap-1.5">
-                            <i class="fas fa-lock text-amber-300"></i>
-                            <span>Pemungutan Ditutup</span>
-                        </span>
-                        <a href="{{ route('osis.real-count', $campaign->slug) }}" class="px-4 py-2.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-black shadow-lg border-2 border-black transition hover:scale-105 flex items-center gap-1.5">
-                            <i class="fas fa-chart-pie text-slate-950"></i>
-                            <span>Pantau Real Count</span>
-                        </a>
-                    </div>
+                    <span class="px-3 py-2 rounded-xl bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200 inline-flex items-center gap-1.5">
+                        <i class="fas fa-lock text-amber-600"></i>
+                        <span>Pemungutan Ditutup</span>
+                    </span>
+                    <a href="{{ route('osis.real-count', $campaign->slug) }}" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition inline-flex items-center gap-1.5">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Pantau Real Count</span>
+                    </a>
                 @elseif($hasVoted)
-                    <div class="flex items-center gap-2">
-                        <span class="px-3.5 py-2 rounded-2xl bg-emerald-500/30 text-emerald-200 text-xs font-bold border border-emerald-400/40 flex items-center gap-1.5">
-                            <i class="fas fa-check-double text-emerald-300"></i>
-                            <span>Suara Sah Tercatat</span>
-                        </span>
-                        <a href="{{ route('osis.booth') }}" class="px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold border border-white/30 transition flex items-center gap-1.5">
-                            <span>Bilik Suara</span>
-                            <i class="fas fa-arrow-right text-[10px]"></i>
-                        </a>
-                    </div>
+                    <span class="px-3.5 py-2 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 inline-flex items-center gap-1.5">
+                        <i class="fas fa-check-double text-emerald-600"></i>
+                        <span>Suara Sah Tercatat</span>
+                    </span>
+                    <a href="{{ route('osis.booth') }}" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm transition inline-flex items-center gap-1.5">
+                        <span>Bilik Suara</span>
+                        <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
                 @else
-                    <a href="{{ route('osis.booth') }}" class="px-5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow-lg border-2 border-black transition hover:scale-105 flex items-center gap-2 animate-pulse">
-                        <i class="fas fa-check-to-slot text-black"></i>
-                        <span>Buka Bilik Suara & Nyoblos</span>
+                    <a href="{{ route('osis.booth') }}" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition inline-flex items-center gap-2">
+                        <i class="fas fa-check-to-slot"></i>
+                        <span>Buka Bilik Suara &amp; Nyoblos</span>
                     </a>
                 @endif
             </div>
@@ -229,39 +227,48 @@
 
         {{-- Mini Candidate Strip untuk Guru --}}
         @if($campaign->candidates->isNotEmpty())
-            <div class="pt-4 relative z-10">
-                <div class="flex items-center justify-between mb-2.5">
-                    <span class="text-[11px] font-black uppercase tracking-wider text-emerald-200/80 flex items-center gap-1.5">
-                        <i class="fas fa-users text-amber-300"></i> Pasangan Calon Yang Berlaga ({{ $campaign->candidates->count() }} Paslon)
+            <div class="pt-3.5">
+                <div class="flex items-center justify-between gap-2 mb-2.5">
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fas fa-users text-emerald-600"></i>
+                        <span>Pasangan Calon ({{ $campaign->candidates->count() }} Paslon)</span>
                     </span>
-                    <a href="{{ route('osis.booth') }}" class="text-[11px] font-bold text-emerald-300 hover:text-white transition flex items-center gap-1">
+                    <a href="{{ route('osis.booth') }}" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 transition inline-flex items-center gap-1">
                         <span>Lihat Visi Misi Lengkap</span>
-                        <i class="fas fa-chevron-right text-[9px]"></i>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
                     </a>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     @foreach($campaign->candidates as $c)
                         @php
-                            $badgeColor = [
-                                1 => 'bg-rose-500',
-                                2 => 'bg-blue-500',
-                                3 => 'bg-amber-500',
-                                4 => 'bg-emerald-500',
-                            ][$c->candidate_number] ?? 'bg-slate-700';
+                            $badgeHex = [
+                                1 => '#e11d48',
+                                2 => '#2563eb',
+                                3 => '#d97706',
+                                4 => '#059669',
+                            ][$c->candidate_number] ?? '#0f172a';
+                            $avatarFallback = 'https://ui-avatars.com/api/?name=' . urlencode($c->leader_name) . '&background=' . ltrim($badgeHex, '#') . '&color=ffffff&bold=true&size=128';
+                            $photoSrc = !empty($c->photo_url) ? $c->photo_url : $avatarFallback;
                         @endphp
-                        <a href="{{ route('osis.booth') }}" class="group block rounded-2xl p-2.5 bg-black/40 hover:bg-black/60 border border-white/15 hover:border-emerald-400 transition-all transform hover:-translate-y-1">
-                            <div class="relative rounded-xl overflow-hidden mb-2 bg-slate-800" style="aspect-ratio: 4/3;">
-                                <img src="{{ $c->photo_url }}" alt="{{ $c->leader_name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                                <span class="absolute top-1.5 left-1.5 w-6 h-6 rounded-lg {{ $badgeColor }} text-white font-black text-[10px] flex items-center justify-center shadow-md border border-white/30">
+                        <a href="{{ route('osis.booth') }}" class="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 hover:shadow-md transition-all group">
+                            <div class="relative shrink-0">
+                                <img src="{{ $photoSrc }}"
+                                     alt="{{ $c->leader_name }}"
+                                     onerror="this.onerror=null; this.src='{{ $avatarFallback }}';"
+                                     class="w-12 h-12 rounded-xl object-cover border border-slate-200 bg-slate-100">
+                                <span class="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-md text-[10px] font-black text-white flex items-center justify-center shadow-xs ring-2 ring-white"
+                                      style="background: {{ $badgeHex }};">
                                     {{ $c->candidate_number }}
                                 </span>
                             </div>
-                            <div class="space-y-0.5">
-                                <span class="text-[9px] font-black uppercase tracking-wider text-emerald-300/80 block leading-none">Paslon 0{{ $c->candidate_number }}</span>
-                                <h4 class="text-xs font-black text-white truncate leading-tight group-hover:text-amber-300 transition" title="{{ $c->leader_name }}">
+                            <div class="min-w-0 flex-1">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider block leading-none mb-1" style="color: {{ $badgeHex }};">
+                                    Paslon 0{{ $c->candidate_number }}
+                                </span>
+                                <h4 class="text-xs font-extrabold text-slate-900 truncate leading-tight group-hover:text-emerald-700 transition" title="{{ $c->leader_name }}">
                                     {{ $c->leader_name }}
                                 </h4>
-                                <p class="text-[10px] text-slate-300 truncate">
+                                <p class="text-[11px] text-slate-500 truncate mt-0.5" title="Sekretaris: {{ $c->secretary_name ?? '-' }}">
                                     Sek: {{ $c->secretary_name ?? '-' }}
                                 </p>
                             </div>
@@ -309,8 +316,16 @@
         {{-- Mini Slider Paslon di Feed Space --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             @foreach($campaign->candidates as $c)
+                @php
+                    $spaceBg = [
+                        1 => 'e11d48',
+                        2 => '2563eb',
+                        3 => 'd97706',
+                        4 => '059669',
+                    ][$c->candidate_number] ?? '0f172a';
+                @endphp
                 <a href="{{ route('osis.public.slug', $campaign->slug) }}" class="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-300 hover:border-[#121316] transition shadow-xs group/p">
-                    <img src="{{ $c->photo_url }}" alt="{{ $c->leader_name }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-slate-200">
+                    <img src="{{ $c->photo_url }}" alt="{{ $c->leader_name }}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($c->leader_name) }}&background={{ $spaceBg }}&color=ffffff&bold=true&size=128';" class="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-slate-200">
                     <div class="min-w-0 flex-1">
                         <span class="text-[9px] font-black text-slate-400 block leading-none">NO. 0{{ $c->candidate_number }}</span>
                         <h4 class="text-xs font-black text-slate-900 truncate leading-tight mt-0.5 group-hover/p:text-emerald-700 transition">
