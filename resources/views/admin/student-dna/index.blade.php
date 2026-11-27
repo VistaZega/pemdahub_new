@@ -262,50 +262,121 @@
     </div>
 
     {{-- Bar Filter Pencarian --}}
-    <div class="bg-white border border-slate-300 rounded-xl p-4">
-        <form method="GET" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end text-xs">
-            @if(auth()->user()->isSuperAdmin() && isset($schools))
-            <div class="sm:col-span-3">
-                <label class="block font-bold text-slate-700 mb-1">Unit Sekolah</label>
-                <select name="school_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
-                    <option value="">Semua Unit Sekolah</option>
-                    @foreach($schools as $sch)
-                    <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+    <div class="bg-white border border-slate-300 rounded-xl overflow-hidden">
+
+        {{-- Form Filter --}}
+        <div class="p-4 border-b border-slate-200">
+            <form method="GET" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end text-xs">
+                @if(auth()->user()->isSuperAdmin() && isset($schools))
+                <div class="sm:col-span-3">
+                    <label class="block font-bold text-slate-700 mb-1">Unit Sekolah</label>
+                    <select name="school_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
+                        <option value="">Semua Unit Sekolah</option>
+                        @foreach($schools as $sch)
+                        <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                <div class="{{ auth()->user()->isSuperAdmin() && isset($schools) ? 'sm:col-span-3' : 'sm:col-span-4' }}">
+                    <label class="block font-bold text-slate-700 mb-1">Rombel / Kelas</label>
+                    <select name="classroom_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
+                        <option value="">Semua Kelas</option>
+                        @foreach($classrooms as $cls)
+                        <option value="{{ $cls->id }}" {{ request('classroom_id') == $cls->id ? 'selected' : '' }}>
+                            {{ $cls->class_name ?? $cls->name }} {{ $cls->school ? '(' . ($cls->school->short_name ?? $cls->school->name) . ')' : '' }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="{{ auth()->user()->isSuperAdmin() && isset($schools) ? 'sm:col-span-6' : 'sm:col-span-8' }} flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block font-bold text-slate-700 mb-1">Cari Peserta Didik (Nama / NISN / NIS)</label>
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama, NISN, atau NIS..."
+                                   class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:outline-none focus:border-sky-600">
+                            <i class="fas fa-search absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold transition inline-flex items-center gap-1.5">
+                        <i class="fas fa-filter text-[10px]"></i>
+                        <span>Terapkan</span>
+                    </button>
+                    <a href="{{ url()->current() }}" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-lg font-semibold transition border border-slate-300" title="Atur Ulang Filter">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {{-- Strip Statistik Ringkas Kelas/Filter Aktif --}}
+        @php
+            $totalSiswa     = $students->total();
+            $pageCount      = $students->count();
+            $filterKelas    = request('classroom_id');
+            $filterSearch   = request('search');
+            $namaKelas      = $filterKelas
+                ? ($classrooms->firstWhere('id', $filterKelas)->class_name
+                   ?? $classrooms->firstWhere('id', $filterKelas)->name ?? 'Kelas Dipilih')
+                : null;
+        @endphp
+        <div class="px-4 py-2.5 bg-slate-50 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px]">
+
+            {{-- Total hasil --}}
+            <span class="inline-flex items-center gap-1.5 text-slate-600">
+                <i class="fas fa-users text-slate-400 text-[10px]"></i>
+                <span>Menampilkan</span>
+                <strong class="text-slate-900 tabular-nums font-bold">{{ number_format($totalSiswa) }}</strong>
+                <span>peserta didik</span>
+                @if($namaKelas)
+                    <span class="text-slate-400">di</span>
+                    <span class="font-semibold text-sky-700">{{ $namaKelas }}</span>
+                @endif
+                @if($filterSearch)
+                    <span class="text-slate-400">·</span>
+                    <span class="font-semibold text-amber-700">pencarian: "{{ $filterSearch }}"</span>
+                @endif
+            </span>
+
+            <span class="text-slate-300 hidden sm:inline">|</span>
+
+            {{-- Halaman --}}
+            <span class="inline-flex items-center gap-1.5 text-slate-500">
+                <i class="fas fa-file-alt text-slate-400 text-[10px]"></i>
+                Halaman <strong class="text-slate-700 tabular-nums">{{ $students->currentPage() }}</strong>
+                dari <strong class="text-slate-700 tabular-nums">{{ $students->lastPage() }}</strong>
+                <span class="text-slate-400">({{ $pageCount }} baris ditampilkan)</span>
+            </span>
+
+            <span class="text-slate-300 hidden sm:inline">|</span>
+
+            {{-- Metodologi ringkas --}}
+            <span class="inline-flex items-center gap-1.5 text-slate-400">
+                <i class="fas fa-fingerprint text-[10px]"></i>
+                Profil dihitung dari
+                <span class="font-semibold text-slate-600">6 sumber data</span>
+                ·
+                <span class="font-semibold text-slate-600">6 sumbu dimensi</span>
+                ·
+                <span class="font-semibold text-slate-600">Dual-Profil</span>
+                ·
+                <span class="font-semibold text-sky-600">ClassAI</span>
+            </span>
+
+            {{-- Badge filter aktif --}}
+            @if($filterKelas || $filterSearch)
+            <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 border border-amber-200 text-amber-800 font-semibold">
+                <i class="fas fa-filter text-[9px]"></i> Filter Aktif
+            </span>
+            @else
+            <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-medium">
+                <i class="fas fa-th-list text-[9px]"></i> Semua Kelas
+            </span>
             @endif
 
-            <div class="{{ auth()->user()->isSuperAdmin() && isset($schools) ? 'sm:col-span-3' : 'sm:col-span-4' }}">
-                <label class="block font-bold text-slate-700 mb-1">Rombel / Kelas</label>
-                <select name="classroom_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
-                    <option value="">Semua Kelas</option>
-                    @foreach($classrooms as $cls)
-                    <option value="{{ $cls->id }}" {{ request('classroom_id') == $cls->id ? 'selected' : '' }}>
-                        {{ $cls->class_name ?? $cls->name }} {{ $cls->school ? '(' . ($cls->school->short_name ?? $cls->school->name) . ')' : '' }}
-                    </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="{{ auth()->user()->isSuperAdmin() && isset($schools) ? 'sm:col-span-6' : 'sm:col-span-8' }} flex gap-2 items-end">
-                <div class="flex-1">
-                    <label class="block font-bold text-slate-700 mb-1">Cari Peserta Didik (Nama / NISN / NIS)</label>
-                    <div class="relative">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama, NISN, atau NIS..."
-                               class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:outline-none focus:border-sky-600">
-                        <i class="fas fa-search absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
-                    </div>
-                </div>
-                <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold transition inline-flex items-center gap-1.5">
-                    <i class="fas fa-filter text-[10px]"></i>
-                    <span>Terapkan</span>
-                </button>
-                <a href="{{ url()->current() }}" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-lg font-semibold transition border border-slate-300" title="Atur Ulang Filter">
-                    <i class="fas fa-undo"></i>
-                </a>
-            </div>
-        </form>
+        </div>
     </div>
 
     {{-- Tabel Direktori Evaluasi Siswa --}}
