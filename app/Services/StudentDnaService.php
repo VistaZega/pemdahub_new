@@ -386,8 +386,11 @@ class StudentDnaService
                 ? (array_sum($entry['final_scores']) / count($entry['final_scores']))
                 : (array_sum($entry['reg_scores']) / max(1, count($entry['reg_scores'])));
 
-            $score = round($score, 1);
+            // Cap nilai maksimal 100 — data dari DB kadang melampaui skala karena nilai bonus/remedi
+            $score = round(min(100, max(0, $score)), 1);
             $schoolAvg = $schoolAvgs[$sid] ?? null;
+            // Jika school_avg juga bisa > 100, normalisasi juga
+            $schoolAvg = $schoolAvg !== null ? round(min(100, max(0, $schoolAvg)), 1) : null;
             $delta = $schoolAvg !== null ? round($score - $schoolAvg, 1) : null;
             $dimension = $this->classifySubjectDimension($entry['subject_name'], $entry['subject_code']);
 
