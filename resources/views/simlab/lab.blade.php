@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $lab->title }} - PembdaHUB Simulator Lab</title>
+    <title>{{ $lab->title }} - Gedung Virtual Lab PembdaHUB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
             inset: 0;
             z-index: -1;
             pointer-events: none;
-            background-image: url('{{ asset("images/simlab-building-bg.webp") }}?v=20261127f');
+            background-image: url('{{ asset("images/simlab-building-bg.webp") }}?v=20261127g');
             background-size: cover;
             background-position: center 25%;
             background-repeat: no-repeat;
@@ -133,7 +133,7 @@
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
                 <a href="{{ route('simlab.index') }}" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold transition shrink-0">
-                    <i class="fas fa-arrow-left mr-1"></i> Katalog Lab
+                    <i class="fas fa-arrow-left mr-1"></i> Gedung Virtual
                 </a>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-300">

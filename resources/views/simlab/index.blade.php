@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PembdaHUB — Kompleks Laboratorium Riset &amp; Vokasi</title>
+    <title>PembdaHUB — Gedung Virtual Kompleks Laboratorium Riset &amp; Vokasi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
             inset: 0;
             z-index: -1;
             pointer-events: none;
-            background-image: url('{{ asset("images/simlab-building-bg.webp") }}?v=20261127f');
+            background-image: url('{{ asset("images/simlab-building-bg.webp") }}?v=20261127g');
             background-size: cover;
             background-position: center 25%;
             background-repeat: no-repeat;
@@ -247,8 +247,8 @@
                         <i class="fas fa-microscope"></i>
                     </span>
                     <div class="min-w-0">
-                        <span class="font-extrabold tracking-tight text-sm block leading-none">PembdaHUB Kompleks Laboratorium</span>
-                        <span class="text-[11px] text-slate-300 font-medium hidden sm:block mt-0.5">Institut Riset &amp; Praktikum Vokasi Nias</span>
+                        <span class="font-extrabold tracking-tight text-sm block leading-none">PembdaHUB Gedung Virtual Laboratorium</span>
+                        <span class="text-[11px] text-slate-300 font-medium hidden sm:block mt-0.5">Kompleks Riset &amp; Praktikum Vokasi Nias</span>
                     </div>
                 </a>
 
@@ -271,7 +271,7 @@
                         @click="viewMode === 'lobby' ? enterRoom(activeRoom === 'all' ? 'fisika' : activeRoom) : backToLobby()"
                         class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold transition inline-flex items-center gap-1.5">
                     <i class="fas" :class="viewMode === 'lobby' ? 'fa-door-open text-sky-400' : 'fa-building text-sky-400'"></i>
-                    <span class="hidden md:inline" x-text="viewMode === 'lobby' ? 'Masuk Meja Riset' : 'Direktori Gedung'"></span>
+                    <span class="hidden md:inline" x-text="viewMode === 'lobby' ? 'Masuk Meja Riset' : 'Direktori Gedung Virtual'"></span>
                 </button>
 
                 @if($isInstructor)
@@ -300,17 +300,17 @@
             <!-- Header Direktori Arsitektural + Fasad Gedung Laboratorium PembdaHUB -->
             <div class="bg-white/95 backdrop-blur-[2px] border border-slate-300 rounded-lg overflow-hidden">
                 <div class="h-40 sm:h-52 w-full relative overflow-hidden border-b border-slate-300 bg-slate-900">
-                    <img src="{{ asset('images/simlab-building-bg.webp') }}?v=20261127f"
-                         alt="Gedung Laboratorium PembdaHUB"
+                    <img src="{{ asset('images/simlab-building-bg.webp') }}?v=20261127g"
+                         alt="Gedung Virtual Laboratorium PembdaHUB"
                          class="w-full h-full object-cover object-center opacity-90">
                     <div class="absolute bottom-3 left-4 bg-slate-900/90 text-white border border-slate-700 px-3 py-1.5 rounded text-[11px] font-mono-lab font-bold">
-                        GEDUNG LABORATORIUM DISIPLIN ILMU &amp; VOKASI · YAYASAN PERGURUAN PEMBDA NIAS
+                        GEDUNG VIRTUAL LABORATORIUM DISIPLIN ILMU &amp; VOKASI · YAYASAN PERGURUAN PEMBDA NIAS
                     </div>
                 </div>
                 <div class="px-5 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div class="max-w-3xl">
                         <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                            Gedung Laboratorium Disiplin Ilmu PembdaHUB
+                            Gedung Virtual Laboratorium Disiplin Ilmu PembdaHUB
                         </h1>
                         <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
                             Enam sayap laboratorium khusus yang masing-masing dipimpin oleh Profesor Kepala Lab beserta instrumen praktikum interaktif, SOP kerja, landasan teori, dan uji pemahaman HOTS.
@@ -400,7 +400,7 @@
                     <button type="button" @click="backToLobby()"
                             class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition inline-flex items-center gap-1.5">
                         <i class="fas fa-arrow-left text-[10px]"></i>
-                        <span>Direktori Gedung</span>
+                        <span>Direktori Gedung Virtual</span>
                     </button>
                     <div class="h-5 w-px bg-slate-300 hidden sm:block"></div>
                     <div class="flex flex-wrap items-center gap-1">
