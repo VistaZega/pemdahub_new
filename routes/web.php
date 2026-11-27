@@ -2920,6 +2920,17 @@ Route::get('/run-migrations', function () {
             $output .= "<p style='color:#d97706;'>ℹ️ Catatan Pembersihan Postingan Kosong: " . e($purgeErr->getMessage()) . "</p>";
         }
 
+        try {
+            $cleanedLives = \App\Models\CirclePost::expireStaleLivePosts(true);
+            if ($cleanedLives > 0) {
+                $output .= "<p style='color:#059669;font-weight:bold;'>🛑 Berhasil mengakhiri/menurunkan {$cleanedLives} status LIVE kedaluwarsa/tanpa bukti di PembdaCIRCLE!</p>";
+            } else {
+                $output .= "<p style='color:#0284c7;'>✨ Tidak ada status LIVE kedaluwarsa/palsu yang perlu dibersihkan.</p>";
+            }
+        } catch (\Throwable $liveErr) {
+            $output .= "<p style='color:#d97706;'>ℹ️ Catatan Pembersihan LIVE: " . e($liveErr->getMessage()) . "</p>";
+        }
+
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 

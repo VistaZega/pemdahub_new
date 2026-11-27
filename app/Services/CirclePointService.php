@@ -38,8 +38,12 @@ class CirclePointService
     {
         $base = self::REACTION_POINTS[$reactionType] ?? 3;
 
-        // Bonus +2 poin jika yang diapresiasi adalah Karya Portofolio atau Laporan Kegiatan/Live
-        if ($post->tab_category === 'portfolio' || in_array($post->post_type, ['project', 'devlog', 'report', 'live'])) {
+        // Bonus +2 poin jika yang diapresiasi adalah Karya Portofolio, Laporan Kegiatan, atau Liputan LIVE dengan bukti nyata
+        $isEligibleBonusType = $post->tab_category === 'portfolio'
+            || in_array($post->post_type, ['project', 'devlog', 'report'], true)
+            || ($post->post_type === 'live' && $post->hasLiveProof());
+
+        if ($isEligibleBonusType) {
             $base += 2;
         }
 
@@ -714,7 +718,7 @@ class CirclePointService
      */
     public static function awardRiddleGuess(CirclePost $post, \App\Models\CircleRiddleGuess $guess, User $guesser): array
     {
-        if (!$post->user_id) {
+        if (!$post->user_id || (int) $post->user_id === (int) $guesser->id) {
             return ['awarded_guesser' => 0, 'awarded_author' => 0];
         }
 

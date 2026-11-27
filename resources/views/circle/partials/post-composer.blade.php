@@ -7,6 +7,36 @@
     $composerCommunities = isset($myCommunities) ? $myCommunities : ($composerUser ? $composerUser->circleCommunities()->get() : collect());
     $defaultCommunityId = isset($activeCommunity) && $activeCommunity ? $activeCommunity->id : '';
     $academicWorksList = isset($userAcademicWorks) ? $userAcademicWorks : collect();
+
+    $isStaffLiveBypass = $composerUser && (
+        $composerUser->isSuperAdmin() ||
+        $composerUser->isOwnerOrSuperAdmin() ||
+        $composerUser->isAdminSekolah() ||
+        $composerUser->isKepalaSekolah() ||
+        $composerUser->isGuru()
+    );
+    $liveActiveBlockPost = null;
+    $liveCooldownHoursLeft = 0;
+    if ($composerUser && !$isStaffLiveBypass) {
+        $liveActiveBlockPost = \App\Models\CirclePost::where('user_id', $composerUser->id)
+            ->where('is_live', true)
+            ->whereIn('live_status', ['live', 'active'])
+            ->where('created_at', '>=', now()->subHours(\App\Models\CirclePost::LIVE_MAX_DURATION_HOURS))
+            ->latest('created_at')
+            ->first();
+
+        if (!$liveActiveBlockPost) {
+            $recentLivePost = \App\Models\CirclePost::where('user_id', $composerUser->id)
+                ->where('is_live', true)
+                ->where('created_at', '>=', now()->subHours(\App\Models\CirclePost::LIVE_COOLDOWN_HOURS))
+                ->latest('created_at')
+                ->first();
+            if ($recentLivePost) {
+                $nextAllowedAt = $recentLivePost->created_at->copy()->addHours(\App\Models\CirclePost::LIVE_COOLDOWN_HOURS);
+                $liveCooldownHoursLeft = max(1, (int) ceil(now()->diffInMinutes($nextAllowedAt, false) / 60));
+            }
+        }
+    }
 @endphp
 
 @if($composerUser)
@@ -337,7 +367,7 @@
         {{-- ── 2. PANEL KHUSUS 🔴 LIPUTAN LIVE (SIARAN LANGSUNG) ── --}}
         <div x-show="postType === 'live'" x-collapse x-transition
              class="mb-3.5 p-4 rounded-2xl bg-gradient-to-r from-rose-50 via-red-50 to-amber-50 border-2 border-rose-300 space-y-3">
-            <div class="flex items-start justify-between gap-2">
+            <div class="flex items-start justify-between gap-2 flex-wrap">
                 <div class="flex items-center gap-2">
                     <span class="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
@@ -345,16 +375,46 @@
                     </span>
                     <span class="text-xs font-black text-rose-950">Laporkan langsung dari lokasi acara!</span>
                 </div>
+                <span class="text-[10px] font-black text-rose-800 bg-white px-2.5 py-0.5 rounded-full border border-rose-200">
+                    ⏱️ Auto-selesai maks 4 jam (2 jam tanpa update)
+                </span>
             </div>
-            <p class="text-[11px] font-bold text-slate-700 leading-relaxed">
-                Postingan ini akan tampil paling atas dengan lencana <strong>🔴 SEDANG LIVE</strong>. Setelah terbit, Anda dapat terus menambahkan foto & perkembangan skor/acara menit-demi-menit secara real-time!
-            </p>
+
+            @if($liveActiveBlockPost)
+                <div class="p-3 rounded-xl bg-rose-100 border-2 border-rose-400 text-xs font-bold text-rose-950 flex items-start gap-2">
+                    <span class="text-base shrink-0">⛔</span>
+                    <div>
+                        <div class="font-black">Kamu masih memiliki 1 Liputan LIVE yang sedang aktif!</div>
+                        <div class="text-[11px] mt-0.5">Akhiri siaran LIVE sebelumnya ("{{ \Illuminate\Support\Str::limit($liveActiveBlockPost->title, 50) }}") terlebih dahulu sebelum membuka siaran baru.</div>
+                    </div>
+                </div>
+            @elseif($liveCooldownHoursLeft > 0)
+                <div class="p-3 rounded-xl bg-amber-100 border-2 border-amber-400 text-xs font-bold text-amber-950 flex items-start gap-2">
+                    <span class="text-base shrink-0">⏳</span>
+                    <div>
+                        <div class="font-black">Kuota Liputan LIVE siswa (1x per 24 jam) sedang masa jeda.</div>
+                        <div class="text-[11px] mt-0.5">Kamu dapat memulai Liputan LIVE lagi dalam sekitar <strong>{{ $liveCooldownHoursLeft }} jam</strong>. Untuk berbagi kegiatan saat ini, gunakan mode <strong>📋 Laporan Kegiatan</strong>.</div>
+                    </div>
+                </div>
+            @endif
+
+            <div class="p-2.5 rounded-xl bg-white/90 border border-rose-200 text-[11px] font-bold text-slate-700 leading-relaxed space-y-1">
+                <div><strong>Syarat Wajib Bukti Nyata LIVE:</strong></div>
+                <ul class="list-disc pl-4 space-y-0.5 text-[10.5px]">
+                    <li>Judul Siaran asli minimal 8 karakter (bukan teks template bawaan) & tidak digabung dengan Teka-Teki/Battle/Pantun.</li>
+                    <li>Isi <strong>Tautan Video Live Stream resmi</strong> (YouTube Live, Instagram, TikTok, Facebook, Twitch, Zoom, Meet), <strong>ATAU</strong> unggah minimal <strong>1 foto/video lapangan</strong> disertai <strong>Nama Kegiatan / Lokasi acara</strong>.</li>
+                    @if(!$isStaffLiveBypass)
+                        <li>Kuota siswa: maksimal 1 LIVE aktif & jeda 24 jam antar sesi LIVE.</li>
+                    @endif
+                </ul>
+            </div>
+
             <div>
                 <label class="block text-[11px] font-black text-slate-900 mb-1">
-                    📺 Tautan Video Live Stream <span class="text-slate-500 font-normal">(Opsional — YouTube Live / TikTok Live / IG Live)</span>:
+                    📺 Tautan Video Live Stream <span class="text-slate-500 font-normal">(YouTube Live / IG / TikTok / FB / Zoom / Meet — atau kosongkan jika melampirkan foto/video + lokasi)</span>:
                 </label>
                 <input type="url" name="live_stream_url" x-model="liveStreamUrl"
-                       placeholder="https://www.youtube.com/live/... atau kosongkan jika liputan foto & teks langsung"
+                       placeholder="https://www.youtube.com/live/... (atau lampirkan foto/video & lokasi di bawah)"
                        class="w-full px-3.5 py-2 rounded-xl bg-white border border-rose-200 text-xs font-bold text-slate-950 focus:outline-none focus:border-rose-500">
             </div>
         </div>
@@ -904,12 +964,15 @@ if (typeof window.circlePostComposer !== 'function') {
                     this.interactiveType = 'none';
                     return;
                 }
+                if (this.postType === 'live') {
+                    this.tabCat = 'wall';
+                    this.postType = 'status';
+                }
                 this.interactiveType = type;
                 if (type === 'riddle') {
                     this.selectedMood = '🧩';
                     this.moodText = 'Misteri';
-                    if (!this.postTitle) this.postTitle = 'Teka-Teki: Benda Apakah Aku?';
-                    if (!this.postContent) this.postContent = "Aku selalu dicari saat jam praktikum tiba...\nSiapakah aku? Coba pecahkan misterinya di bawah!";
+                    if (!this.postTitle) this.postTitle = 'Teka-Teki: ';
                 } else if (type === 'battle') {
                     this.selectedMood = '⚔️';
                     this.moodText = 'Duel';
@@ -931,6 +994,9 @@ if (typeof window.circlePostComposer !== 'function') {
             setMode(tab, type) {
                 this.tabCat = tab;
                 this.postType = type;
+                if (type === 'live') {
+                    this.interactiveType = 'none';
+                }
                 if (type === 'report' || type === 'live') {
                     this.showEventPanel = true;
                     this.mediaLayout = 'top';
@@ -976,12 +1042,11 @@ if (typeof window.circlePostComposer !== 'function') {
                     this.moodText = 'Juara';
                 } else if (kind === 'live') {
                     this.setMode('wall', 'live');
-                    if (!this.postTitle) this.postTitle = '🔴 [LIVE] Liputan Langsung: ';
-                    if (!this.postContent) {
-                        this.postContent = "Sedang berlangsung saat ini dari lokasi kegiatan! Ikuti terus perkembangan terbaru pada linimasa di bawah ini.";
-                    }
                     this.selectedMood = '🔥';
                     this.moodText = 'Semangat';
+                    this.$nextTick(() => {
+                        if (this.$refs.contentInput) this.$refs.contentInput.focus();
+                    });
                 }
             },
 
@@ -1216,10 +1281,48 @@ if (typeof window.circlePostComposer !== 'function') {
                     }
                 }
 
-                // 4. Liputan Live
+                // 4. Liputan Live (Opsi B: Wajib bukti nyata & judul asli)
                 if (this.postType === 'live') {
-                    if (title.length < 5) {
-                        return 'Liputan LIVE wajib mencantumkan Judul Siaran Acara yang jelas (minimal 5 karakter).';
+                    if (this.interactiveType && this.interactiveType !== 'none') {
+                        return 'Mode Liputan LIVE tidak dapat digabungkan dengan Teka-Teki, Battle 1v1, Duet Collabs, atau Balas Pantun.';
+                    }
+
+                    const normalizedTitle = title.toLowerCase().replace(/\s+/g, ' ');
+                    const templateTitles = [
+                        '🔴 [live] liputan langsung:',
+                        '[live] liputan langsung:',
+                        'liputan langsung:',
+                        '🔴 [live] liputan langsung',
+                        '[live] liputan langsung',
+                        'laporan kegiatan:'
+                    ];
+                    if (title.length < 8 || templateTitles.includes(normalizedTitle)) {
+                        return 'Liputan LIVE wajib mencantumkan Judul Siaran Acara asli yang jelas (minimal 8 karakter, bukan teks template bawaan).';
+                    }
+
+                    const streamUrl = (this.liveStreamUrl || '').trim();
+                    let hasValidStream = false;
+                    if (streamUrl !== '') {
+                        try {
+                            const parsed = new URL(streamUrl);
+                            const host = parsed.hostname.toLowerCase();
+                            const allowedDomains = ['youtube.com', 'youtu.be', 'instagram.com', 'tiktok.com', 'facebook.com', 'fb.watch', 'twitch.tv', 'meet.google.com', 'zoom.us'];
+                            hasValidStream = (parsed.protocol === 'http:' || parsed.protocol === 'https:') && allowedDomains.some(d => host === d || host.endsWith('.' + d));
+                            if (!hasValidStream) {
+                                return 'Tautan Video Live Stream tidak valid. Gunakan link resmi YouTube Live, Instagram, TikTok, Facebook, Twitch, Zoom, atau Google Meet.';
+                            }
+                        } catch (_) {
+                            return 'Format Tautan Video Live Stream tidak valid (awali dengan https://).';
+                        }
+                    }
+
+                    const hasVisualMedia = this.mediaItems.some(item => item.type === 'image' || item.type === 'video');
+                    const hasEventOrLocation = (this.eventName || '').trim().length >= 4
+                        || (this.locationTag || '').trim().length >= 3
+                        || (!!this.latitude && !!this.longitude);
+
+                    if (!hasValidStream && !(hasVisualMedia && hasEventOrLocation)) {
+                        return 'Liputan LIVE wajib menyertakan bukti nyata: tautan Video Live Stream resmi, ATAU minimal 1 foto/video lapangan disertai Nama Kegiatan / Lokasi acara.';
                     }
                 }
 
@@ -1227,6 +1330,10 @@ if (typeof window.circlePostComposer !== 'function') {
                 if (this.interactiveType === 'riddle') {
                     if (content.length < 10) {
                         return 'Tuliskan pertanyaan teka-teki dengan jelas pada kolom isi postingan (minimal 10 karakter).';
+                    }
+                    const normRiddle = content.toLowerCase().replace(/\s+/g, ' ');
+                    if (normRiddle === 'aku selalu dicari saat jam praktikum tiba... siapakah aku? coba pecahkan misterinya di bawah!') {
+                        return 'Tuliskan pertanyaan teka-teki buatanmu sendiri, jangan gunakan teks contoh bawaan.';
                     }
                     const answer = (form?.querySelector('[name="riddle_answer"]')?.value || '').trim();
                     if (answer.length < 2) {

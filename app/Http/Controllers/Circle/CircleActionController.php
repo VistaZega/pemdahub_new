@@ -90,6 +90,27 @@ class CircleActionController extends Controller
         $hasInteractive = $request->filled('interactive_type') && $request->interactive_type !== 'none';
         $hasPoll = $request->filled('poll_question') || $request->boolean('has_poll');
 
+        // Deteksi file visual (foto/video) yang valid untuk bukti dokumentasi lapangan
+        $hasVisualMediaFiles = false;
+        $candidateMediaFiles = [];
+        if ($request->hasFile('media_files')) {
+            $rawFiles = $request->file('media_files');
+            $candidateMediaFiles = array_merge($candidateMediaFiles, is_array($rawFiles) ? $rawFiles : [$rawFiles]);
+        }
+        if ($request->hasFile('media')) {
+            $rawFiles = $request->file('media');
+            $candidateMediaFiles = array_merge($candidateMediaFiles, is_array($rawFiles) ? $rawFiles : [$rawFiles]);
+        }
+        foreach ($candidateMediaFiles as $mf) {
+            if ($mf && $mf->isValid()) {
+                $mfMime = $mf->getMimeType() ?? '';
+                if (str_starts_with($mfMime, 'image/') || str_starts_with($mfMime, 'video/')) {
+                    $hasVisualMediaFiles = true;
+                    break;
+                }
+            }
+        }
+
         // 1. Validasi Khusus LAPORAN KEGIATAN
         if ($request->post_type === 'report') {
             if (mb_strlen($cleanTitle) < 5) {
@@ -117,10 +138,60 @@ class CircleActionController extends Controller
             }
         }
 
-        // 4. Validasi Khusus LIPUTAN LIVE
+        // 4. Validasi Khusus LIPUTAN LIVE (Opsi B: Terbuka tapi Terkendali)
         if ($request->post_type === 'live' || $request->boolean('is_live')) {
-            if (mb_strlen($cleanTitle) < 5) {
-                return $this->rejectEmptyPost($request, 'Liputan LIVE wajib mencantumkan Judul Siaran Acara yang jelas (minimal 5 karakter).');
+            if ($hasInteractive) {
+                return $this->rejectEmptyPost($request, 'Mode Liputan LIVE tidak dapat digabungkan dengan Teka-Teki, Battle 1v1, Duet Collabs, atau Balas Pantun. Pilih salah satu saja.');
+            }
+
+            if (CirclePost::isTemplateLiveBoilerplate($cleanTitle, $cleanContent) || mb_strlen($cleanTitle) < 8) {
+                return $this->rejectEmptyPost($request, 'Liputan LIVE wajib mencantumkan Judul Siaran Acara asli yang jelas (minimal 8 karakter, bukan teks template bawaan).');
+            }
+
+            $rawStreamUrl = trim((string) $request->input('live_stream_url', ''));
+            if ($rawStreamUrl !== '' && !CirclePost::isValidLiveStreamUrl($rawStreamUrl)) {
+                return $this->rejectEmptyPost($request, 'Tautan Video Live Stream tidak valid. Gunakan link resmi YouTube Live, Instagram, TikTok, Facebook, Twitch, Zoom, atau Google Meet.');
+            }
+
+            $hasValidStream = $rawStreamUrl !== '' && CirclePost::isValidLiveStreamUrl($rawStreamUrl);
+            $hasEventOrLocation = mb_strlen(trim((string) $request->event_name)) >= 4
+                || mb_strlen(trim((string) $request->location_tag)) >= 3
+                || ($request->filled('latitude') && $request->filled('longitude'));
+
+            if (!$hasValidStream && !($hasVisualMediaFiles && $hasEventOrLocation)) {
+                return $this->rejectEmptyPost($request, 'Liputan LIVE wajib menyertakan bukti nyata: tautan Video Live Stream yang valid, ATAU minimal 1 foto/video langsung dari lokasi disertai Nama Kegiatan / Lokasi acara.');
+            }
+
+            if (!$hasValidStream && !$hasVisualMediaFiles && CirclePost::isTemplateLiveContent($cleanContent)) {
+                return $this->rejectEmptyPost($request, 'Mohon tuliskan keterangan liputan langsung yang asli dari lokasi acara, bukan teks contoh bawaan.');
+            }
+
+            // Kuota & Cooldown khusus siswa (Guru/Kepsek/Admin/SuperAdmin dikecualikan)
+            $isStaffModerator = $user->isSuperAdmin() || $user->isOwnerOrSuperAdmin() || $user->isAdminSekolah() || $user->isKepalaSekolah() || $user->isGuru();
+            if (!$isStaffModerator) {
+                CirclePost::expireStaleLivePosts(true);
+
+                $hasActiveLive = CirclePost::where('user_id', $user->id)
+                    ->where('is_live', true)
+                    ->whereIn('live_status', ['live', 'active'])
+                    ->where('created_at', '>=', now()->subHours(CirclePost::LIVE_MAX_DURATION_HOURS))
+                    ->exists();
+
+                if ($hasActiveLive) {
+                    return $this->rejectEmptyPost($request, 'Kamu masih memiliki 1 Liputan LIVE yang sedang aktif. Akhiri siaran sebelumnya terlebih dahulu sebelum memulai LIVE baru.');
+                }
+
+                $lastLivePost = CirclePost::where('user_id', $user->id)
+                    ->where('is_live', true)
+                    ->where('created_at', '>=', now()->subHours(CirclePost::LIVE_COOLDOWN_HOURS))
+                    ->latest('created_at')
+                    ->first();
+
+                if ($lastLivePost) {
+                    $nextAllowed = $lastLivePost->created_at->copy()->addHours(CirclePost::LIVE_COOLDOWN_HOURS);
+                    $hoursLeft = max(1, (int) ceil(now()->diffInMinutes($nextAllowed, false) / 60));
+                    return $this->rejectEmptyPost($request, "Kuota Liputan LIVE siswa maksimal 1 kali dalam 24 jam (dapat LIVE lagi dalam sekitar {$hoursLeft} jam). Gunakan mode Laporan Kegiatan atau Nongki untuk berbagi kabar lainnya.");
+                }
             }
         }
 
@@ -128,6 +199,10 @@ class CircleActionController extends Controller
         if ($request->input('interactive_type') === 'riddle') {
             if (mb_strlen($cleanContent) < 10) {
                 return $this->rejectEmptyPost($request, 'Tuliskan pertanyaan teka-teki dengan jelas pada kolom isi postingan (minimal 10 karakter).');
+            }
+            $normalizedRiddleContent = mb_strtolower(trim(preg_replace('/\s+/', ' ', $cleanContent)));
+            if ($normalizedRiddleContent === 'aku selalu dicari saat jam praktikum tiba... siapakah aku? coba pecahkan misterinya di bawah!') {
+                return $this->rejectEmptyPost($request, 'Tuliskan pertanyaan teka-teki buatanmu sendiri, jangan gunakan teks contoh bawaan.');
             }
             $cleanAnswer = preg_replace('/[^a-z0-9]/', '', strtolower(trim((string)$request->riddle_answer)));
             if (mb_strlen($cleanAnswer) < 2) {
@@ -448,25 +523,129 @@ class CircleActionController extends Controller
     }
 
     /**
-     * Tambahkan Update Berkala pada Laporan Langsung (🔴 LIVE Report) atau Akhiri Live
+     * Tambahkan Update Berkala pada Laporan Langsung (🔴 LIVE Report), Akhiri Live, atau Moderasi Status LIVE
      */
     public function addLiveUpdate(Request $request, $id)
     {
         $post = CirclePost::findOrFail($id);
         $user = Auth::user();
 
-        if ($post->user_id !== $user?->id && !$user?->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'Anda tidak berwenang memperbarui liputan langsung ini.');
+        $isOwner = $user && ((int) $post->user_id === (int) $user->id);
+        $isModerator = $user && (
+            $user->isSuperAdmin() ||
+            $user->isOwnerOrSuperAdmin() ||
+            $user->isAdminSekolah() ||
+            $user->isKepalaSekolah() ||
+            $user->isGuru()
+        );
+
+        if (!$isOwner && !$isModerator) {
+            return redirect()->back()->with('error', 'Anda tidak berwenang memperbarui atau memoderasi liputan langsung ini.');
         }
 
         $request->validate([
             'update_text' => 'nullable|string|max:2000',
             'update_photo' => 'nullable|file|max:20480',
             'end_live' => 'nullable|boolean',
+            'revoke_live' => 'nullable|boolean',
         ]);
+
+        // Moderasi cepat oleh Guru/Admin/Kepsek: cabut status LIVE palsu tanpa menghapus postingan
+        if ($request->boolean('revoke_live')) {
+            if (!$isModerator) {
+                return redirect()->back()->with('error', 'Hanya Guru, Kepala Sekolah, atau Admin yang dapat mencabut status LIVE.');
+            }
+
+            $updatePayload = [
+                'is_live' => false,
+                'live_status' => 'ended',
+            ];
+            if ($post->post_type === 'live') {
+                $updatePayload['post_type'] = 'status';
+            }
+            $post->update($updatePayload);
+
+            if ($post->user_id && (int) $post->user_id !== (int) $user->id) {
+                try {
+                    Notification::create([
+                        'user_id' => $post->user_id,
+                        'type' => 'circle_live_moderated',
+                        'title' => 'Status LIVE Dinonaktifkan Moderator',
+                        'message' => "Status 🔴 LIVE pada postinganmu dinonaktifkan oleh {$user->name} karena belum memenuhi ketentuan siaran langsung. Postingan tetap tersimpan sebagai status biasa.",
+                        'related_model' => 'CirclePost',
+                        'related_id' => $post->id,
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::warning('Failed to create live moderation notification: ' . $e->getMessage());
+                }
+            }
+
+            return redirect()->back()->with('success', '🛑 Status LIVE berhasil dicabut oleh moderator dan diturunkan menjadi postingan biasa.');
+        }
 
         $updates = is_array($post->live_updates) ? $post->live_updates : [];
         $photoUrl = null;
+
+        if ($request->boolean('end_live')) {
+            $endText = $request->update_text ?: ($isOwner
+                ? 'Liputan langsung kegiatan telah selesai. Terima kasih atas kebersamaan Anda!'
+                : 'Liputan langsung diakhiri oleh ' . $user->name . ' (Moderator).');
+
+            if ($request->hasFile('update_photo')) {
+                $file = $request->file('update_photo');
+                $mime = $file->getMimeType() ?? '';
+                $mediaType = str_starts_with($mime, 'video') ? 'video' : 'image';
+                $path = $file->store('circle/media', 'public');
+                $photoUrl = asset('storage/' . ltrim($path, '/'));
+
+                $maxOrder = $post->media()->max('order') ?? -1;
+                CirclePostMedia::create([
+                    'circle_post_id' => $post->id,
+                    'media_type' => $mediaType,
+                    'file_path' => $path,
+                    'aspect_ratio' => 'auto',
+                    'order' => $maxOrder + 1,
+                    'metadata' => [
+                        'caption' => $endText,
+                    ],
+                ]);
+            }
+
+            $updates[] = [
+                'id' => uniqid('live_'),
+                'time' => now()->format('H:i') . ' WIB',
+                'timestamp' => now()->toIso8601String(),
+                'text' => $endText,
+                'photo_url' => $photoUrl,
+                'badge' => '🏁 SELESAI',
+            ];
+            $post->update([
+                'live_status' => 'ended',
+                'live_updates' => $updates,
+            ]);
+            return redirect()->back()->with('success', '🏁 Liputan langsung berhasil diakhiri dan disimpan sebagai laporan dokumentasi.');
+        }
+
+        // Update linimasa berkala hanya boleh oleh pemilik post atau SuperAdmin
+        if (!$isOwner && !$user->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Hanya pemilik liputan yang dapat menambahkan kabar update.');
+        }
+
+        if ($post->created_at && $post->created_at->lt(now()->subHours(CirclePost::LIVE_MAX_DURATION_HOURS))) {
+            $updates[] = [
+                'id' => uniqid('live_'),
+                'time' => now()->format('H:i') . ' WIB',
+                'timestamp' => now()->toIso8601String(),
+                'text' => 'Siaran langsung berakhir otomatis karena batas durasi liputan (4 jam) telah tercapai.',
+                'badge' => '⏱️ AUTO-SELESAI',
+            ];
+            $post->update([
+                'live_status' => 'ended',
+                'live_updates' => $updates,
+            ]);
+            return redirect()->back()->with('error', 'Batas durasi siaran LIVE (4 jam) telah berakhir. Postingan disimpan sebagai arsip liputan.');
+        }
 
         if ($request->hasFile('update_photo')) {
             $file = $request->file('update_photo');
@@ -486,22 +665,6 @@ class CircleActionController extends Controller
                     'caption' => $request->update_text ?: ('Update Live ' . now()->format('H:i') . ' WIB'),
                 ],
             ]);
-        }
-
-        if ($request->boolean('end_live')) {
-            $updates[] = [
-                'id' => uniqid('live_'),
-                'time' => now()->format('H:i') . ' WIB',
-                'timestamp' => now()->toIso8601String(),
-                'text' => $request->update_text ?: 'Liputan langsung kegiatan telah selesai. Terima kasih atas kebersamaan Anda!',
-                'photo_url' => $photoUrl,
-                'badge' => '🏁 SELESAI',
-            ];
-            $post->update([
-                'live_status' => 'ended',
-                'live_updates' => $updates,
-            ]);
-            return redirect()->back()->with('success', '🏁 Liputan langsung berhasil diakhiri dan disimpan sebagai laporan dokumentasi.');
         }
 
         if ($request->filled('update_text') || $photoUrl) {
@@ -1038,6 +1201,13 @@ class CircleActionController extends Controller
 
         if (!$post->isRiddle()) {
             return response()->json(['status' => 'error', 'message' => 'Postingan ini bukan merupakan teka-teki.'], 400);
+        }
+
+        if ((int) $post->user_id === (int) $user->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Kamu adalah pembuat teka-teki ini! Biarkan teman-temanmu yang memecahkannya ya 😉',
+            ], 422);
         }
 
         if ($post->is_solved) {

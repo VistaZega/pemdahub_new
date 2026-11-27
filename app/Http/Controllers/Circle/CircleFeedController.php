@@ -23,6 +23,7 @@ class CircleFeedController extends Controller
     public function index(Request $request)
     {
         CirclePointService::ensureExistingCircleInteractionsSynced();
+        CirclePost::expireStaleLivePosts();
 
         $communityService = app(CircleCommunityService::class);
         if (Auth::check()) {
@@ -173,7 +174,8 @@ class CircleFeedController extends Controller
         }
 
         if (Schema::hasColumn('circle_posts', 'is_live')) {
-            $query->orderByRaw("CASE WHEN is_live = 1 AND live_status = 'live' THEN 0 ELSE 1 END");
+            $liveCutoff = now()->subHours(CirclePost::LIVE_MAX_DURATION_HOURS);
+            $query->orderByRaw("CASE WHEN is_live = 1 AND live_status = 'live' AND created_at >= ? THEN 0 ELSE 1 END", [$liveCutoff]);
         }
 
         $posts = $query->latest()->paginate(12)->withQueryString();

@@ -4,11 +4,28 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class CirclePost extends Model
 {
     use HasFactory;
+
+    public const LIVE_MAX_DURATION_HOURS = 4;
+    public const LIVE_INACTIVITY_HOURS = 2;
+    public const LIVE_COOLDOWN_HOURS = 24;
+    public const ALLOWED_LIVE_DOMAINS = [
+        'youtube.com',
+        'youtu.be',
+        'instagram.com',
+        'tiktok.com',
+        'facebook.com',
+        'fb.watch',
+        'twitch.tv',
+        'meet.google.com',
+        'zoom.us',
+    ];
 
     protected $fillable = [
         'user_id',
@@ -370,6 +387,196 @@ class CirclePost extends Model
             return 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=0&rel=0';
         }
         return null;
+    }
+
+    /**
+     * Validasi apakah tautan live stream berasal dari domain platform siaran resmi.
+     */
+    public static function isValidLiveStreamUrl(?string $url): bool
+    {
+        $url = trim((string) $url);
+        if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        if ($host === '') {
+            return false;
+        }
+
+        foreach (self::ALLOWED_LIVE_DOMAINS as $domain) {
+            if ($host === $domain || str_ends_with($host, '.' . $domain)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Cek apakah judul atau konten merupakan teks template mentah Liputan LIVE.
+     */
+    public static function isTemplateLiveBoilerplate(?string $title, ?string $content = null): bool
+    {
+        $cleanTitle = mb_strtolower(trim(preg_replace('/\s+/', ' ', (string) $title)));
+        $boilerplates = [
+            '🔴 [live] liputan langsung:',
+            '[live] liputan langsung:',
+            'liputan langsung:',
+            '🔴 [live] liputan langsung',
+            '[live] liputan langsung',
+            'laporan kegiatan:',
+        ];
+
+        if (in_array($cleanTitle, $boilerplates, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Cek apakah konten merupakan kalimat contoh bawaan template Liputan LIVE.
+     */
+    public static function isTemplateLiveContent(?string $content): bool
+    {
+        $cleanContent = mb_strtolower(trim(preg_replace('/\s+/', ' ', strip_tags((string) $content))));
+        return $cleanContent === 'sedang berlangsung saat ini dari lokasi kegiatan! ikuti terus perkembangan terbaru pada linimasa di bawah ini.';
+    }
+
+    /**
+     * Cek apakah postingan LIVE memiliki bukti nyata (tautan stream resmi atau media foto/video).
+     */
+    public function hasLiveProof(): bool
+    {
+        if (self::isValidLiveStreamUrl($this->live_stream_url)) {
+            return true;
+        }
+
+        if ($this->relationLoaded('media')) {
+            return $this->media->whereIn('media_type', ['image', 'video'])->isNotEmpty();
+        }
+
+        return $this->media()->whereIn('media_type', ['image', 'video'])->exists();
+    }
+
+    /**
+     * Ambil waktu aktivitas siaran langsung terakhir (dari linimasa live_updates atau created_at).
+     */
+    public function getLastLiveActivityAt(): ?\Carbon\Carbon
+    {
+        $last = $this->created_at ? $this->created_at->copy() : null;
+
+        if (is_array($this->live_updates)) {
+            foreach ($this->live_updates as $upd) {
+                if (!empty($upd['timestamp'])) {
+                    try {
+                        $ts = \Carbon\Carbon::parse($upd['timestamp']);
+                        if (!$last || $ts->gt($last)) {
+                            $last = $ts;
+                        }
+                    } catch (\Throwable $e) {
+                        // Abaikan timestamp tidak valid
+                    }
+                }
+            }
+        }
+
+        return $last;
+    }
+
+    /**
+     * Cek apakah status LIVE saat ini benar-benar masih aktif dan belum kedaluwarsa.
+     */
+    public function getIsLiveCurrentlyActiveAttribute(): bool
+    {
+        if (!($this->is_live || $this->post_type === 'live')) {
+            return false;
+        }
+
+        if (!in_array($this->live_status ?? 'live', ['live', 'active'], true)) {
+            return false;
+        }
+
+        if ($this->created_at && $this->created_at->lt(now()->subHours(self::LIVE_MAX_DURATION_HOURS))) {
+            return false;
+        }
+
+        $lastActivity = $this->getLastLiveActivityAt();
+        if ($lastActivity && $lastActivity->lt(now()->subHours(self::LIVE_INACTIVITY_HOURS))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Otomatis akhiri / turunkan postingan LIVE yang sudah kedaluwarsa atau palsu (tanpa menghapus data).
+     */
+    public static function expireStaleLivePosts(bool $force = false): int
+    {
+        try {
+            if (!Schema::hasTable('circle_posts') || !Schema::hasColumn('circle_posts', 'is_live')) {
+                return 0;
+            }
+
+            if (!$force && !Cache::add('circle_live_auto_expire_lock', true, 60)) {
+                return 0;
+            }
+
+            $candidates = self::with('media')
+                ->where(function ($q) {
+                    $q->where('is_live', true)->orWhere('post_type', 'live');
+                })
+                ->where(function ($q) {
+                    $q->whereNull('live_status')->orWhereIn('live_status', ['live', 'active']);
+                })
+                ->get();
+
+            $affected = 0;
+
+            foreach ($candidates as $post) {
+                $hasInteractive = !empty($post->interactive_type) && $post->interactive_type !== 'none';
+                $noProofAndNoLocation = !$post->hasLiveProof() && empty($post->location_tag) && empty($post->latitude);
+                $isFakeLive = $hasInteractive || $noProofAndNoLocation;
+                $isExpired = !$post->is_live_currently_active;
+
+                if ($isFakeLive && ($isExpired || $hasInteractive || ($post->created_at && $post->created_at->lt(now()->subMinutes(10))))) {
+                    $updatePayload = [
+                        'is_live' => false,
+                        'live_status' => 'ended',
+                    ];
+                    if ($post->post_type === 'live') {
+                        $updatePayload['post_type'] = 'status';
+                    }
+                    $post->update($updatePayload);
+                    $affected++;
+                } elseif ($isExpired) {
+                    $updates = is_array($post->live_updates) ? $post->live_updates : [];
+                    $updates[] = [
+                        'id' => uniqid('live_'),
+                        'time' => now()->format('H:i') . ' WIB',
+                        'timestamp' => now()->toIso8601String(),
+                        'text' => 'Siaran langsung berakhir otomatis karena batas durasi liputan telah tercapai.',
+                        'badge' => '⏱️ AUTO-SELESAI',
+                    ];
+                    $post->update([
+                        'live_status' => 'ended',
+                        'live_updates' => $updates,
+                    ]);
+                    $affected++;
+                }
+            }
+
+            return $affected;
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
     /**

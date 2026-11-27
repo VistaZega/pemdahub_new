@@ -592,6 +592,14 @@ try {
         if ($fixedPkl > 0) {
             echo "<span class='ok'>✔ Status Kehadiran PKL: {$fixedPkl} presensi PKL yang sempat berstatus terlambat berhasil dipulihkan menjadi 'hadir'.</span>\n";
         }
+
+        // 8d. Auto-expire status LIVE kedaluwarsa / palsu di PembdaCIRCLE (Opsi B)
+        if (class_exists('\App\Models\CirclePost') && method_exists('\App\Models\CirclePost', 'expireStaleLivePosts')) {
+            $cleanedLives = \App\Models\CirclePost::expireStaleLivePosts(true);
+            if ($cleanedLives > 0) {
+                echo "<span class='ok'>✔ PembdaCIRCLE LIVE Cleanup: {$cleanedLives} postingan LIVE kedaluwarsa/tanpa bukti berhasil diturunkan otomatis.</span>\n";
+            }
+        }
     }
 
     // 9. Force Kill WhatsApp Node.js Engine (Disabled permanently per user request)

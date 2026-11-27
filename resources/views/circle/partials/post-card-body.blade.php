@@ -35,10 +35,21 @@
 
     {{-- ── 1. BANNER STATUS 🔴 LIVE REPORT / LIPUTAN LANGSUNG ── --}}
     @if($post->is_live || $post->post_type === 'live')
-        <div class="mb-4 rounded-3xl overflow-hidden border-2 {{ ($post->live_status ?? 'live') === 'live' ? 'border-rose-500 bg-gradient-to-r from-rose-50 via-red-50 to-amber-50 shadow-md' : 'border-slate-300 bg-slate-50' }} p-4">
+        @php
+            $isLiveBannerActive = $post->is_live_currently_active;
+            $isLiveOwner = Auth::check() && Auth::id() === $post->user_id;
+            $isLiveModerator = Auth::check() && (
+                Auth::user()->isSuperAdmin() ||
+                Auth::user()->isOwnerOrSuperAdmin() ||
+                Auth::user()->isAdminSekolah() ||
+                Auth::user()->isKepalaSekolah() ||
+                Auth::user()->isGuru()
+            );
+        @endphp
+        <div class="mb-4 rounded-3xl overflow-hidden border-2 {{ $isLiveBannerActive ? 'border-rose-500 bg-gradient-to-r from-rose-50 via-red-50 to-amber-50 shadow-md' : 'border-slate-300 bg-slate-50' }} p-4">
             <div class="flex items-center justify-between gap-2 flex-wrap mb-2.5">
                 <div class="flex items-center gap-2">
-                    @if(($post->live_status ?? 'live') === 'live')
+                    @if($isLiveBannerActive)
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-white text-[11px] font-black uppercase tracking-wider shadow-xs">
                             <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
                             <span>🔴 SEDANG LIVE DARI LOKASI</span>
@@ -56,13 +67,30 @@
                     @endif
                 </div>
 
-                @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()) && ($post->live_status ?? 'live') === 'live')
-                    <button type="button"
-                            @click="showLiveUpdateForm = !showLiveUpdateForm"
-                            class="px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
-                        <i class="fas fa-satellite-dish text-[10px]"></i>
-                        <span>+ Kirim Kabar / Foto Live</span>
-                    </button>
+                @if($isLiveBannerActive && ($isLiveOwner || $isLiveModerator))
+                    <div class="flex items-center gap-2 flex-wrap">
+                        @if($isLiveOwner || Auth::user()?->isSuperAdmin())
+                            <button type="button"
+                                    @click="showLiveUpdateForm = !showLiveUpdateForm"
+                                    class="px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                                <i class="fas fa-satellite-dish text-[10px]"></i>
+                                <span>+ Kirim Kabar / Foto Live</span>
+                            </button>
+                        @endif
+
+                        @if($isLiveModerator)
+                            <form action="{{ route('circle.post.liveUpdate', $post->id) }}" method="POST"
+                                  onsubmit="return confirm('Matikan status LIVE pada postingan ini dan ubah menjadi postingan biasa?')">
+                                @csrf
+                                <input type="hidden" name="revoke_live" value="1">
+                                <button type="submit"
+                                        class="px-3 py-1 rounded-xl bg-slate-900 hover:bg-rose-900 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                                        title="Moderasi Guru/Admin: Matikan status LIVE palsu tanpa menghapus postingan">
+                                    <span>🛑 Matikan LIVE</span>
+                                </button>
+                            </form>
+                        @endif
+                    </div>
                 @endif
             </div>
 
@@ -120,7 +148,7 @@
             @endif
 
             {{-- Form Tambah Update Live untuk Pemilik Post --}}
-            @if(Auth::check() && (Auth::id() === $post->user_id || Auth::user()->isSuperAdmin()) && ($post->live_status ?? 'live') === 'live')
+            @if($isLiveBannerActive && ($isLiveOwner || Auth::user()?->isSuperAdmin()))
                 <div x-show="showLiveUpdateForm" x-collapse x-transition class="mt-3 pt-3 border-t-2 border-rose-200">
                     <form action="{{ route('circle.post.liveUpdate', $post->id) }}" method="POST" enctype="multipart/form-data" class="space-y-2.5">
                         @csrf
@@ -374,8 +402,14 @@
                         </div>
                     @endif
 
-                    {{-- Form Tebak Teka-Teki (Jika belum terpecahkan) --}}
+                    {{-- Form Tebak Teka-Teki (Jika belum terpecahkan & bukan pembuat soal) --}}
                     <template x-if="!isSolvedLocal">
+                        @if(Auth::check() && Auth::id() === $post->user_id)
+                            <div class="p-3 rounded-2xl bg-white/90 border border-indigo-200 text-xs font-bold text-indigo-950 flex items-center justify-between gap-2 flex-wrap">
+                                <span>🔒 Kamu adalah pembuat teka-teki ini — tunggu teman-temanmu memecahkannya!</span>
+                                <span class="text-[10px] text-slate-500">{{ $guessCount }} warga telah mencoba menebak</span>
+                            </div>
+                        @else
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
                                 <input type="text"
@@ -407,6 +441,7 @@
                                 <span>Penebak pertama dapat +15 poin!</span>
                             </div>
                         </div>
+                        @endif
                     </template>
                 </div>
             @endif

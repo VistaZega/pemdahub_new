@@ -33,6 +33,7 @@ class CircleProfileController extends Controller
     public function show(Request $request, string $username)
     {
         CirclePointService::ensureExistingCircleInteractionsSynced();
+        CirclePost::expireStaleLivePosts();
 
         // Bersihkan tanda '@' jika ada di URL
         $cleanUsername = ltrim(trim($username), '@');
