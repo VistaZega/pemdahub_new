@@ -269,6 +269,233 @@ class CbtManagementController extends Controller
     /**
      * Export status keikutsertaan siswa (sudah vs belum ujian) ke Excel
      */
+    public function exportStudentZip(Request $request, CbtExam $exam)
+    {
+        $user = Auth::user();
+
+        if (!$user->isSuperAdmin() && $exam->school_id != $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'classroom_id' => ['required', 'integer'],
+        ]);
+
+        $accessibleClassrooms = $this->cbtService
+            ->getAccessibleClassroomsForUser($exam, Auth::user());
+
+        $allowedClassroomIds = $accessibleClassrooms->pluck('id')->toArray();
+        $classroomId = (int) $request->classroom_id;
+
+        if (!in_array($classroomId, $allowedClassroomIds)) {
+            abort(403, 'Akses ditolak ke kelas ini.');
+        }
+
+        $participation = $this->cbtService->getExamParticipationData(
+            $exam,
+            $classroomId,
+            $allowedClassroomIds
+        );
+
+        $classroom = $accessibleClassrooms->firstWhere('id', $classroomId);
+
+        $examQuestions = CbtExamQuestion::where('exam_id', $exam->id)
+            ->with('question')
+            ->orderBy('sort_order')
+            ->get();
+
+        $masterQuestionIds = $examQuestions
+            ->pluck('question_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $questions = CbtQuestion::whereIn('id', $masterQuestionIds)
+            ->get()
+            ->keyBy('id');
+
+        $options = CbtQuestionOption::whereIn('question_id', $masterQuestionIds)
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('question_id');
+
+        $tempDir = storage_path('app/temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0775, true);
+        }
+
+        $zipPath = $tempDir . '/Detail_Jawaban_Ujian_' . $exam->id . '_' . date('Ymd_His') . '.zip';
+        $zip = new ZipArchive();
+
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new \RuntimeException('Tidak dapat membuat file ZIP.');
+        }
+
+        try {
+            foreach ($participation['students'] as $item) {
+                $student = $item['student'];
+                $session = $item['session'];
+
+                $questionOrder = $session?->question_order;
+                if (!is_array($questionOrder) || empty($questionOrder)) {
+                    $questionOrder = $masterQuestionIds;
+                }
+
+                $optionOrders = $session?->option_orders ?? [];
+
+                $answers = $session
+                    ? CbtAnswer::where('session_id', $session->id)->get()->keyBy('question_id')
+                    : collect();
+
+                $rows = [
+                    ['DETAIL JAWABAN PESERTA UJIAN'],
+                    ['Ujian', '', $exam->exam_title],
+                    ['Nama Siswa', '', $student->full_name],
+                    ['NISN', '', $student->nisn ?? '-'],
+                    ['Kelas', '', $item['classroom_name']],
+                    ['Status', '', $item['status_label']],
+                    ['Percobaan', '', $session?->attempt_number ?? '-'],
+                    ['Nilai', '', $item['final_score'] ?? '-'],
+                    ['No.', 'ID Soal', 'Jenis Soal', 'Pertanyaan', 'Jawaban Siswa', 'Jawaban Benar', 'Hasil', 'Poin'],
+                ];
+
+                foreach ($questionOrder as $index => $questionId) {
+                    $questionId = (int) $questionId;
+                    $question = $questions->get($questionId);
+
+                    if (!$question) {
+                        continue;
+                    }
+
+                    $questionOptions = $options->get($questionId, collect());
+
+                    $answer = $answers->get($questionId);
+                    $selectedOriginal = $answer?->selected_option;
+
+                    $selectedOption = $selectedOriginal !== null
+                        ? $questionOptions->firstWhere('option_label', $selectedOriginal)
+                        : null;
+
+                    $selectedDisplay = $selectedOption
+                        ? $selectedOriginal . '. ' . $selectedOption->option_text
+                        : ($answer?->text_answer ?: '-');
+
+                    $correctOption = $questionOptions->firstWhere('is_correct', true);
+
+                    $correctOriginal = $correctOption?->option_label;
+
+                    $correctDisplay = $correctOption
+                        ? $correctOriginal . '. ' . $correctOption->option_text
+                        : '-';
+
+                    if (!$answer || !$answer->isAnswered()) {
+                        $statusJawaban = 'Tidak dijawab';
+                    } elseif ($correctOption && $selectedOriginal !== null) {
+                        $statusJawaban = $selectedOriginal === $correctOriginal
+                            ? 'Benar'
+                            : 'Salah';
+                    } else {
+                        $statusJawaban = $answer->is_correct === null
+                            ? 'Belum dinilai'
+                            : ($answer->is_correct ? 'Benar' : 'Salah');
+                    }
+
+                    $plainQuestion = trim(strip_tags(
+                        html_entity_decode($question->question_text ?? '')
+                    ));
+
+                    $isEssay = $question->question_type === 'essay';
+
+                    if ($isEssay) {
+                        $poinDiperoleh = $answer?->manual_score;
+                        $poinDiperoleh = $poinDiperoleh === null
+                            ? 'Belum dinilai'
+                            : (float) $poinDiperoleh;
+                    } else {
+                        $poinDiperoleh = $statusJawaban === 'Benar'
+                            ? (float) $question->points
+                            : 0;
+                    }
+
+                    $rows[] = [
+                        $index + 1,
+                        $questionId,
+                        $question->question_type,
+                        $plainQuestion,
+                        $selectedDisplay,
+                        $correctDisplay,
+                        $statusJawaban,
+                        $poinDiperoleh,
+                    ];
+                }
+
+                // Rekapitulasi berdasarkan detail jawaban yang diekspor.
+                $detailRows = array_slice($rows, 9);
+                $jumlahBenar = 0;
+                $jumlahSalah = 0;
+                $tidakDijawab = 0;
+                $esaiBelumDinilai = 0;
+                $totalPoin = 0;
+
+                foreach ($detailRows as $detail) {
+                    $status = $detail[6] ?? '';
+                    $poin = $detail[7] ?? 0;
+
+                    if ($status === 'Benar') {
+                        $jumlahBenar++;
+                    } elseif ($status === 'Salah') {
+                        $jumlahSalah++;
+                    } elseif ($status === 'Tidak dijawab') {
+                        $tidakDijawab++;
+                    } elseif ($status === 'Belum dinilai') {
+                        $esaiBelumDinilai++;
+                    }
+
+                    if (is_numeric($poin)) {
+                        $totalPoin += (float) $poin;
+                    }
+                }
+
+                $rows[] = ['', '', '', '', '', '', '', ''];
+                $rows[] = ['REKAPITULASI HASIL UJIAN'];
+                $rows[] = ['Total Soal', '', count($detailRows)];
+                $rows[] = ['Jawaban Benar', '', $jumlahBenar];
+                $rows[] = ['Jawaban Salah', '', $jumlahSalah];
+                $rows[] = ['Tidak Dijawab', '', $tidakDijawab];
+                $rows[] = ['Esai Belum Dinilai', '', $esaiBelumDinilai];
+                $rows[] = ['Total Poin Diperoleh', '', $totalPoin];
+
+                $export = new \App\Exports\CbtStudentDetailExport($rows);
+                $xlsxContent = Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
+
+                $studentName = Str::slug($student->full_name ?: 'siswa');
+                $attempt = $session?->attempt_number ?? 0;
+                $entryName = sprintf(
+                    '%03d_%s_Percobaan_%s.xlsx',
+                    $student->id,
+                    $studentName,
+                    $attempt
+                );
+
+                $zip->addFromString($entryName, $xlsxContent);
+            }
+
+            $zip->close();
+        } catch (\Throwable $e) {
+            $zip->close();
+
+            if (file_exists($zipPath)) {
+                unlink($zipPath);
+            }
+
+            throw $e;
+        }
+
+        return response()->download(
+            $zipPath,
+            basename($zipPath)
+        )->deleteFileAfterSend(true);
+    }
+
     public function exportParticipation(Request $request, CbtExam $exam)
     {
         $user = Auth::user();
@@ -341,6 +568,54 @@ class CbtManagementController extends Controller
     /**
      * Download template Excel untuk import soal CBT
      */
+
+    /**
+     * Preview bank soal beserta pemeriksaan dasar kualitas soal.
+     */
+    public function bankPreview(Request $request, CbtQuestionBank $bank)
+    {
+        $user = Auth::user();
+
+        if (!$user->isSuperAdmin() && (int) $bank->school_id !== (int) $user->school_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $bank->load(['subject', 'teacher.user']);
+
+        $questions = $bank->questions()
+            ->with('options')
+            ->orderBy('id')
+            ->get();
+
+        $issues = [];
+
+        foreach ($questions as $question) {
+            $messages = [];
+            if (trim((string) $question->question_text) === '') {
+                $messages[] = 'Teks pertanyaan masih kosong.';
+            }
+
+            $type = strtolower((string) $question->question_type);
+            $choiceTypes = ['multiple_choice', 'multiple_select', 'true_false'];
+
+            if (in_array($type, $choiceTypes, true)) {
+                if ($question->options->isEmpty()) {
+                    $messages[] = 'Pilihan jawaban belum tersedia.';
+                } elseif (!$question->options->contains(fn ($option) => (bool) $option->is_correct)) {
+                    $messages[] = 'Belum ada pilihan jawaban yang ditandai benar.';
+                }
+            }
+
+            if ($messages) {
+                $issues[$question->id] = $messages;
+            }
+        }
+
+        $showKey = $request->boolean('show_key');
+
+        return view('admin.cbt.bank-preview', compact('bank', 'questions', 'issues', 'showKey'));
+    }
+
     public function downloadImportTemplate()
     {
         return Excel::download(new CbtQuestionsTemplateExport(), 'template_soal_cbt.xlsx');

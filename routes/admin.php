@@ -433,6 +433,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::prefix('cbt')->name('cbt.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\CbtManagementController::class, 'index'])->name('index');
         Route::get('/banks', [App\Http\Controllers\Admin\CbtManagementController::class, 'bankIndex'])->name('banks');
+        Route::get('/banks/{bank}/preview', [App\Http\Controllers\Admin\CbtManagementController::class, 'bankPreview'])->name('banks.preview');
         Route::get('/banks/import-template', [App\Http\Controllers\Admin\CbtManagementController::class, 'downloadImportTemplate'])->name('banks.import-template');
         Route::post('/banks/import', [App\Http\Controllers\Admin\CbtManagementController::class, 'importBank'])->name('banks.import');
         Route::post('/banks/{bank}/toggle-share', [App\Http\Controllers\Admin\CbtManagementController::class, 'toggleBankShare'])->name('banks.toggle-share');
@@ -453,6 +454,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
 
         Route::get('/{exam}', [App\Http\Controllers\Admin\CbtManagementController::class, 'show'])->name('show');
         Route::get('/{exam}/results', [App\Http\Controllers\Admin\CbtManagementController::class, 'results'])->name('results');
+        Route::get('/{exam}/export-student-zip', [App\Http\Controllers\Admin\CbtManagementController::class, 'exportStudentZip'])->name('export-student-zip');
         Route::get('/{exam}/export-participation', [App\Http\Controllers\Admin\CbtManagementController::class, 'exportParticipation'])->name('export-participation');
         Route::get('/{exam}/grade-essays', [App\Http\Controllers\Admin\CbtManagementController::class, 'gradeEssays'])->name('grade-essays');
         Route::post('/answers/{answer}/grade', [App\Http\Controllers\Admin\CbtManagementController::class, 'gradeEssayStore'])->name('answers.grade');

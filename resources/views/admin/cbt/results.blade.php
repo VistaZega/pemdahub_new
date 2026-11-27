@@ -29,6 +29,19 @@
                     <i class="fas fa-file-excel mr-2 text-emerald-300"></i>Export Rekap Excel
                 </a>
 
+                {{-- Export Detail Jawaban Siswa (ZIP) - wajib memilih kelas --}}
+                @if($selectedClassroomId)
+                <a href="{{ route('admin.cbt.export-student-zip', ['exam' => $exam, 'classroom_id' => $selectedClassroomId]) }}"
+                   class="inline-flex items-center px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl font-semibold transition shadow-lg text-sm border border-blue-500/30">
+                    <i class="fas fa-file-archive mr-2"></i>Download ZIP Jawaban
+                </a>
+                @else
+                <span class="inline-flex items-center px-4 py-2.5 bg-gray-100 text-gray-500 rounded-xl font-semibold text-sm border border-gray-200"
+                      title="Pilih kelas terlebih dahulu untuk mengunduh detail jawaban siswa">
+                    <i class="fas fa-info-circle mr-2"></i>Pilih Kelas untuk Download ZIP
+                </span>
+                @endif
+
                 @if($hasEssayQuestions ?? false)
                 <a href="{{ route('admin.cbt.grade-essays', ['exam' => $exam, 'classroom_id' => $selectedClassroomId]) }}" class="inline-flex items-center px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition shadow-lg shadow-amber-900/20 text-sm">
                     <i class="fas fa-pen-nib mr-2"></i>Koreksi Esai

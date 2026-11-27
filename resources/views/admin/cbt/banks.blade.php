@@ -174,6 +174,9 @@
                         </td>
                         <td class="px-5 py-4 text-center">
                             <div class="flex items-center justify-center gap-2">
+                                <a href="{{ route('admin.cbt.banks.preview', $bank) }}" class="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-50 text-violet-600 hover:bg-violet-100 transition border border-violet-200" title="Preview Bank Soal">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </a>
                                 <form action="{{ route('admin.cbt.banks.toggle-share', $bank) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center transition border {{ $bank->is_shared ? 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200' }}"
