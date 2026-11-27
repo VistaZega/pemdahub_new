@@ -261,120 +261,187 @@
         </div>
     </div>
 
-    {{-- Bar Filter Pencarian --}}
+    {{-- Filter + Panel Metodologi (2 Kolom dalam 1 Card) --}}
     <div class="bg-white border border-slate-300 rounded-xl overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
 
-        {{-- Form Filter --}}
-        <div class="p-4 border-b border-slate-200">
-            <form method="GET" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end text-xs">
-                @if(auth()->user()->isSuperAdmin() && isset($schools))
-                <div class="sm:col-span-3">
-                    <label class="block font-bold text-slate-700 mb-1">Unit Sekolah</label>
-                    <select name="school_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
-                        <option value="">Semua Unit Sekolah</option>
-                        @foreach($schools as $sch)
-                        <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                @endif
+            {{-- KIRI: Form Filter --}}
+            <div class="lg:col-span-5 p-4">
+                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-3">Filter Peserta Didik</p>
+                <form method="GET" class="space-y-2.5 text-xs">
+                    @if(auth()->user()->isSuperAdmin() && isset($schools))
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Unit Sekolah</label>
+                        <select name="school_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
+                            <option value="">Semua Unit Sekolah</option>
+                            @foreach($schools as $sch)
+                            <option value="{{ $sch->id }}" {{ request('school_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
 
-                <div class="{{ auth()->user()->isSuperAdmin() && isset($schools) ? 'sm:col-span-3' : 'sm:col-span-4' }}">
-                    <label class="block font-bold text-slate-700 mb-1">Rombel / Kelas</label>
-                    <select name="classroom_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
-                        <option value="">Semua Kelas</option>
-                        @foreach($classrooms as $cls)
-                        <option value="{{ $cls->id }}" {{ request('classroom_id') == $cls->id ? 'selected' : '' }}>
-                            {{ $cls->class_name ?? $cls->name }} {{ $cls->school ? '(' . ($cls->school->short_name ?? $cls->school->name) . ')' : '' }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Rombel / Kelas</label>
+                        <select name="classroom_id" onchange="this.form.submit()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none focus:border-sky-600">
+                            <option value="">Semua Kelas</option>
+                            @foreach($classrooms as $cls)
+                            <option value="{{ $cls->id }}" {{ request('classroom_id') == $cls->id ? 'selected' : '' }}>
+                                {{ $cls->class_name ?? $cls->name }} {{ $cls->school ? '(' . ($cls->school->short_name ?? $cls->school->name) . ')' : '' }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="{{ auth()->user()->isSuperAdmin() && isset($schools) ? 'sm:col-span-6' : 'sm:col-span-8' }} flex gap-2 items-end">
-                    <div class="flex-1">
+                    <div>
                         <label class="block font-bold text-slate-700 mb-1">Cari Peserta Didik (Nama / NISN / NIS)</label>
-                        <div class="relative">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama, NISN, atau NIS..."
-                                   class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:outline-none focus:border-sky-600">
-                            <i class="fas fa-search absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                        <div class="flex gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama, NISN, atau NIS..."
+                                       class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:outline-none focus:border-sky-600">
+                                <i class="fas fa-search absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold transition inline-flex items-center gap-1.5 shrink-0">
+                                <i class="fas fa-filter text-[10px]"></i>
+                                <span>Terapkan</span>
+                            </button>
+                            <a href="{{ url()->current() }}" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-lg font-semibold transition border border-slate-300 shrink-0" title="Atur Ulang Filter">
+                                <i class="fas fa-undo"></i>
+                            </a>
                         </div>
                     </div>
-                    <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold transition inline-flex items-center gap-1.5">
-                        <i class="fas fa-filter text-[10px]"></i>
-                        <span>Terapkan</span>
-                    </button>
-                    <a href="{{ url()->current() }}" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-lg font-semibold transition border border-slate-300" title="Atur Ulang Filter">
-                        <i class="fas fa-undo"></i>
-                    </a>
+                </form>
+
+                {{-- Info hasil filter --}}
+                @php
+                    $totalSiswa   = $students->total();
+                    $pageCount    = $students->count();
+                    $filterKelas  = request('classroom_id');
+                    $filterSearch = request('search');
+                    $namaKelas    = $filterKelas
+                        ? ($classrooms->firstWhere('id', $filterKelas)->class_name
+                           ?? $classrooms->firstWhere('id', $filterKelas)->name ?? 'Kelas Dipilih')
+                        : null;
+                @endphp
+                <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                    <span class="inline-flex items-center gap-1 text-slate-500">
+                        <i class="fas fa-users text-slate-400 text-[10px]"></i>
+                        <strong class="text-slate-800 tabular-nums">{{ number_format($totalSiswa) }}</strong> siswa
+                        @if($namaKelas) · <span class="text-sky-700 font-semibold">{{ $namaKelas }}</span> @endif
+                        @if($filterSearch) · <span class="text-amber-700 font-semibold">"{{ $filterSearch }}"</span> @endif
+                    </span>
+                    <span class="text-slate-300">|</span>
+                    <span class="text-slate-400">Hal. <strong class="text-slate-600">{{ $students->currentPage() }}</strong>/{{ $students->lastPage() }}</span>
+                    @if($filterKelas || $filterSearch)
+                    <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 border border-amber-200 text-amber-800 font-semibold text-[10px]">
+                        <i class="fas fa-filter text-[8px]"></i> Filter Aktif
+                    </span>
+                    @endif
                 </div>
-            </form>
-        </div>
+            </div>
 
-        {{-- Strip Statistik Ringkas Kelas/Filter Aktif --}}
-        @php
-            $totalSiswa     = $students->total();
-            $pageCount      = $students->count();
-            $filterKelas    = request('classroom_id');
-            $filterSearch   = request('search');
-            $namaKelas      = $filterKelas
-                ? ($classrooms->firstWhere('id', $filterKelas)->class_name
-                   ?? $classrooms->firstWhere('id', $filterKelas)->name ?? 'Kelas Dipilih')
-                : null;
-        @endphp
-        <div class="px-4 py-2.5 bg-slate-50 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px]">
+            {{-- KANAN: Metodologi, Pendekatan & Teknik --}}
+            <div class="lg:col-span-7 p-4 bg-slate-50/50">
+                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-3">
+                    <i class="fas fa-microscope mr-1.5 text-sky-500"></i>
+                    Metodologi, Pendekatan & Teknik — DNA Akademik Siswa 360°
+                </p>
 
-            {{-- Total hasil --}}
-            <span class="inline-flex items-center gap-1.5 text-slate-600">
-                <i class="fas fa-users text-slate-400 text-[10px]"></i>
-                <span>Menampilkan</span>
-                <strong class="text-slate-900 tabular-nums font-bold">{{ number_format($totalSiswa) }}</strong>
-                <span>peserta didik</span>
-                @if($namaKelas)
-                    <span class="text-slate-400">di</span>
-                    <span class="font-semibold text-sky-700">{{ $namaKelas }}</span>
-                @endif
-                @if($filterSearch)
-                    <span class="text-slate-400">·</span>
-                    <span class="font-semibold text-amber-700">pencarian: "{{ $filterSearch }}"</span>
-                @endif
-            </span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
 
-            <span class="text-slate-300 hidden sm:inline">|</span>
+                    {{-- Kolom A: Metodologi --}}
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <div class="w-5 h-5 rounded bg-sky-100 flex items-center justify-center shrink-0">
+                                <i class="fas fa-database text-sky-600 text-[9px]"></i>
+                            </div>
+                            <span class="font-bold text-slate-700 text-[11px]">Metodologi</span>
+                        </div>
+                        <div class="space-y-1.5 text-slate-600 leading-snug">
+                            <div class="flex gap-1.5">
+                                <span class="w-4 h-4 rounded bg-sky-100 text-sky-700 font-bold flex items-center justify-center shrink-0 text-[9px]">1</span>
+                                <span><strong class="text-slate-700">Nilai Rapor</strong> — rata-rata nilai per mata pelajaran dari sistem rapor digital</span>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <span class="w-4 h-4 rounded bg-sky-100 text-sky-700 font-bold flex items-center justify-center shrink-0 text-[9px]">2</span>
+                                <span><strong class="text-slate-700">LMS</strong> — partisipasi kursus, modul, dan kuis pembelajaran daring</span>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <span class="w-4 h-4 rounded bg-sky-100 text-sky-700 font-bold flex items-center justify-center shrink-0 text-[9px]">3</span>
+                                <span><strong class="text-slate-700">Ujian CBT</strong> — skor penilaian berbasis komputer yang lebih objektif</span>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <span class="w-4 h-4 rounded bg-sky-100 text-sky-700 font-bold flex items-center justify-center shrink-0 text-[9px]">4</span>
+                                <span><strong class="text-slate-700">Presensi RFID</strong> — tingkat kehadiran via kartu identitas digital</span>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <span class="w-4 h-4 rounded bg-sky-100 text-sky-700 font-bold flex items-center justify-center shrink-0 text-[9px]">5</span>
+                                <span><strong class="text-slate-700">Tugas Akhir / PKL</strong> — proyek SMK, penelitian SMA, logbook industri</span>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <span class="w-4 h-4 rounded bg-sky-100 text-sky-700 font-bold flex items-center justify-center shrink-0 text-[9px]">6</span>
+                                <span><strong class="text-slate-700">Prestasi & BK</strong> — penghargaan, ekskul, catatan konseling, cita-cita</span>
+                            </div>
+                        </div>
+                    </div>
 
-            {{-- Halaman --}}
-            <span class="inline-flex items-center gap-1.5 text-slate-500">
-                <i class="fas fa-file-alt text-slate-400 text-[10px]"></i>
-                Halaman <strong class="text-slate-700 tabular-nums">{{ $students->currentPage() }}</strong>
-                dari <strong class="text-slate-700 tabular-nums">{{ $students->lastPage() }}</strong>
-                <span class="text-slate-400">({{ $pageCount }} baris ditampilkan)</span>
-            </span>
+                    {{-- Kolom B: Pendekatan --}}
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <div class="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center shrink-0">
+                                <i class="fas fa-layer-group text-emerald-600 text-[9px]"></i>
+                            </div>
+                            <span class="font-bold text-slate-700 text-[11px]">Pendekatan</span>
+                        </div>
+                        <div class="space-y-2 text-slate-600 leading-snug">
+                            <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-100">
+                                <p class="font-semibold text-emerald-800 text-[10px] mb-1">6 Sumbu Dimensi Belajar</p>
+                                <ul class="space-y-0.5 text-slate-600 text-[10px]">
+                                    <li>① <strong>Kognitif-Saintifik</strong> — Mat, IPA, Fisika, Kimia</li>
+                                    <li>② <strong>Teknis-Terapan</strong> — Mapel Kejuruan SMK</li>
+                                    <li>③ <strong>Linguistik-Komunikatif</strong> — B.Indo, B.Ing</li>
+                                    <li>④ <strong>Sosial-Kepemimpinan</strong> — IPS, PKn, Ekonomi</li>
+                                    <li>⑤ <strong>Kreatif-Inovatif</strong> — Seni, Informatika, TIK</li>
+                                    <li>⑥ <strong>Disiplin-Karakter</strong> — Kehadiran & Sikap</li>
+                                </ul>
+                            </div>
+                            <div class="p-2 rounded-lg bg-sky-50 border border-sky-100 text-[10px]">
+                                <p class="font-semibold text-sky-800 mb-0.5">Pembobotan Relatif Sekolah</p>
+                                <p class="text-slate-600">Nilai dibandingkan rata-rata sekolah (<em>delta</em>), bukan skala absolut 0–100.</p>
+                            </div>
+                        </div>
+                    </div>
 
-            <span class="text-slate-300 hidden sm:inline">|</span>
+                    {{-- Kolom C: Teknik --}}
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <div class="w-5 h-5 rounded bg-violet-100 flex items-center justify-center shrink-0">
+                                <i class="fas fa-cogs text-violet-600 text-[9px]"></i>
+                            </div>
+                            <span class="font-bold text-slate-700 text-[11px]">Teknik</span>
+                        </div>
+                        <div class="space-y-1.5 text-slate-600 leading-snug text-[10px]">
+                            <div class="border-l-2 border-violet-300 pl-2">
+                                <p class="font-semibold text-slate-700">Sistem Dual-Profil</p>
+                                <p class="text-slate-500">Profil Dominan + Profil Pendukung menghasilkan kombinasi unik per siswa — lebih akurat dari label tunggal.</p>
+                            </div>
+                            <div class="border-l-2 border-sky-300 pl-2">
+                                <p class="font-semibold text-slate-700">ClassAI Synthesis</p>
+                                <p class="text-slate-500">Narasi personal dibangkitkan AI dari data terstruktur siswa — bukan teks generik atau template.</p>
+                            </div>
+                            <div class="border-l-2 border-emerald-300 pl-2">
+                                <p class="font-semibold text-slate-700">Fingerprint Cache</p>
+                                <p class="text-slate-500">Analisis disimpan & hanya diperbarui jika data siswa berubah — efisien & konsisten.</p>
+                            </div>
+                            <div class="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-100">
+                                <p class="font-semibold text-amber-800 text-[10px]"><i class="fas fa-exclamation-triangle mr-1"></i>Catatan</p>
+                                <p class="text-slate-600 text-[10px]">Profil ini bersifat <strong>informatif & rekomendatif</strong> — bukan vonis atau penilaian final.</p>
+                            </div>
+                        </div>
+                    </div>
 
-            {{-- Metodologi ringkas --}}
-            <span class="inline-flex items-center gap-1.5 text-slate-400">
-                <i class="fas fa-fingerprint text-[10px]"></i>
-                Profil dihitung dari
-                <span class="font-semibold text-slate-600">6 sumber data</span>
-                ·
-                <span class="font-semibold text-slate-600">6 sumbu dimensi</span>
-                ·
-                <span class="font-semibold text-slate-600">Dual-Profil</span>
-                ·
-                <span class="font-semibold text-sky-600">ClassAI</span>
-            </span>
-
-            {{-- Badge filter aktif --}}
-            @if($filterKelas || $filterSearch)
-            <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 border border-amber-200 text-amber-800 font-semibold">
-                <i class="fas fa-filter text-[9px]"></i> Filter Aktif
-            </span>
-            @else
-            <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-medium">
-                <i class="fas fa-th-list text-[9px]"></i> Semua Kelas
-            </span>
-            @endif
+                </div>
+            </div>
 
         </div>
     </div>
