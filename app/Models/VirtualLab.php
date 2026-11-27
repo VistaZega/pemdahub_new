@@ -53,22 +53,22 @@ class VirtualLab extends Model
         $subj = strtolower((string) $this->subject_name . ' ' . (string) $this->title);
 
         // 1. Cek engine bawaan terlebih dahulu secara ketat agar label UTBK/SMK di judul tidak menggeser mapel inti ke ruangan lain
-        if (in_array($eng, ['olympiad_5', 'ptn_speed', 'ptn_speed_advanced', 'ptn_reasoning'])) {
+        if (in_array($eng, ['olympiad_5', 'ptn_speed', 'ptn_speed_advanced', 'ptn_reasoning', 'ptn_spatial_3d'])) {
             return 'olimpiade';
         }
         if (in_array($eng, ['gasoline_engine', 'beam_load', 'subnetting', 'logic_gate', 'vokasi_plc', 'vokasi_lan_topo', 'vokasi_cad_dpib', 'vokasi_caliper', 'vokasi_electronics', 'vokasi_gears'])) {
             return 'vokasi';
         }
-        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform', 'math_integral', 'math_trig_circle', 'math_derivative', 'math_sequences', 'math_linear_prog', 'math_vectors'])) {
+        if (in_array($eng, ['quadratic_graph', 'math_statistics', 'math_trigonometry', 'math_probability', 'math_transform', 'math_integral', 'math_trig_circle', 'math_derivative', 'math_sequences', 'math_linear_prog', 'math_vectors', 'math_exp_matrix'])) {
             return 'matematika';
         }
-        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'chem_titration', 'chem_voltaic', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics', 'bio_osmosis', 'bio_nervous', 'bio_enzyme', 'bio_respiration'])) {
+        if (in_array($eng, ['chemical_reaction', 'chem_ph', 'chem_atom', 'chem_stoichiometry', 'chem_titration', 'chem_voltaic', 'chem_equilibrium', 'chem_vsepr', 'biology_cell', 'bio_photosynthesis', 'bio_blood', 'bio_genetics', 'bio_osmosis', 'bio_nervous', 'bio_enzyme', 'bio_respiration', 'bio_protein_synthesis'])) {
             return 'kimia_biologi';
         }
-        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'econ_market', 'econ_compound', 'econ_inflation', 'econ_accounting', 'geo_tectonics'])) {
+        if (in_array($eng, ['sociology_dynamics', 'language_syntax', 'lang_indo_discourse', 'lang_english_snbt', 'econ_market', 'econ_compound', 'econ_inflation', 'econ_accounting', 'geo_tectonics'])) {
             return 'ips_bahasa';
         }
-        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'physics_optics', 'physics_elevator', 'physics_electric_field', 'physics_pendulum', 'physics_calorimetry', 'physics_faraday', 'physics_pascal', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law'])) {
+        if (in_array($eng, ['physics_motion', 'physics_parabola', 'physics_wave', 'physics_archimedes', 'physics_doppler', 'physics_pulley', 'physics_optics', 'physics_elevator', 'physics_electric_field', 'physics_pendulum', 'physics_calorimetry', 'physics_faraday', 'physics_pascal', 'physics_kepler', 'physics_thermo_pv', 'physics_bernoulli', 'physics_collision', 'physics_quantum_decay', 'ipa_greenhouse', 'ipa_renewable', 'ohm_law'])) {
             return 'fisika';
         }
 
@@ -501,6 +501,126 @@ class VirtualLab extends Model
                 'answer_idx'  => 0,
                 'solution'    => 'Berdasarkan Modus Tollens: dari P ⇒ Q dan fakta ~Q ("pemahaman konsep Budi tidak meningkat"), kesimpulan mutlak yang sah adalah ~P ("Budi tidak rutin melakukan eksperimen lab").',
             ],
+            'physics_kepler' => [
+                'law'         => 'Hukum Gravitasi Universal Newton & Tiga Hukum Kepler',
+                'theory'      => 'Planet mengorbit bintang dalam lintasan elips dengan bintang di salah satu titik fokusnya (Kepler I). Garis hubung menyapu luas yang sama pada selang waktu yang sama (Kepler II), dan kuadrat periode sebanding dengan pangkat tiga jarak rata-rata (Kepler III).',
+                'formula'     => 'T² = (4π² / G·M) · a³   |   (T₁ / T₂)² = (a₁ / a₂)³',
+                'variables'   => 'T = periode orbit (tahun), a = sumbu semi-mayor (AU), M = massa bintang induk (M☉)',
+                'challenge_q' => 'Sebuah exoplanet mengorbit bintang bermassa sama dengan Matahari pada jarak rata-rata 4 AU. Berapakah periode orbit planet tersebut?',
+                'options'     => ['4 tahun', '8 tahun', '16 tahun', '64 tahun'],
+                'answer_idx'  => 1,
+                'solution'    => 'T = √(a³ / M) = √(4³ / 1) = √64 = 8 tahun.',
+            ],
+            'physics_thermo_pv' => [
+                'law'         => 'Hukum I Termodinamika & Siklus Mesin Kalor Carnot',
+                'theory'      => 'Kalor yang diserap gas digunakan untuk mengubah energi dalam dan melakukan usaha mekanik (diagram P-V). Pada mesin kalor ideal Carnot, efisiensi maksimum semata-mata dibatasi oleh suhu mutlak (Kelvin) reservoir panas dan dingin.',
+                'formula'     => 'Q = ΔU + W   |   η_max = (1 − T_C / T_H) × 100%',
+                'variables'   => 'Q = kalor (J), ΔU = perubahan energi dalam, W = usaha (luas kurva P-V), T = suhu Kelvin (K)',
+                'challenge_q' => 'Sebuah mesin Carnot beroperasi di antara reservoir suhu tinggi 800 K dan reservoir dingin 200 K. Jika mesin menyerap kalor 2.000 J, usaha maksimum yang dihasilkan adalah ...',
+                'options'     => ['500 J', '1.000 J', '1.500 J', '1.800 J'],
+                'answer_idx'  => 2,
+                'solution'    => 'η = 1 − (200 / 800) = 0,75 (75%). Usaha W = η × Q_H = 0,75 × 2.000 = 1.500 J.',
+            ],
+            'physics_bernoulli' => [
+                'law'         => 'Persamaan Kontinuitas & Asas Bernoulli Fluida Dinamis',
+                'theory'      => 'Di dalam aliran fluida tunak, kenaikan laju aliran selalu diiringi penurunan tekanan statis. Profil melengkung sayap pesawat mempercepat udara di permukaan atas sehingga muncul beda tekanan ke atas (gaya angkat).',
+                'formula'     => 'A₁·v₁ = A₂·v₂   |   P₁ + ½ρv₁² = P₂ + ½ρv₂²',
+                'variables'   => 'P = tekanan statis (Pa), ρ = massa jenis fluida (kg/m³), v = laju aliran (m/s), A = luas penampang (m²)',
+                'challenge_q' => 'Udara (ρ = 1,2 kg/m³) mengalir di atas sayap pesawat dengan kecepatan 100 m/s dan di bawah sayap 80 m/s. Jika luas sayap 20 m², gaya angkat yang bekerja adalah ...',
+                'options'     => ['21,6 kN', '43,2 kN', '64,8 kN', '86,4 kN'],
+                'answer_idx'  => 1,
+                'solution'    => 'ΔP = ½ · 1,2 · (100² − 80²) = 0,6 · (10.000 − 6.400) = 0,6 · 3.600 = 2.160 Pa. Gaya F = ΔP · A = 2.160 × 20 = 43.200 N = 43,2 kN.',
+            ],
+            'physics_collision' => [
+                'law'         => 'Kekekalan Momentum Linear & Koefisien Restitusi',
+                'theory'      => 'Selama tidak ada gaya eksternal neto, momentum total sistem selalu kekal pada semua jenis tumbukan (e = 0 hingga e = 1). Namun energi kinetik total hanya kekal pada tumbukan lenting sempurna (e = 1).',
+                'formula'     => 'm₁v₁ + m₂v₂ = m₁v₁\' + m₂v₂\'   |   e = −(v₂\' − v₁\') / (v₂ − v₁)',
+                'variables'   => 'm = massa (kg), v = kecepatan awal (m/s), v\' = kecepatan akhir, e = koefisien restitusi (0 ≤ e ≤ 1)',
+                'challenge_q' => 'Benda A (4 kg) bergerak ke kanan dengan laju 6 m/s menumbuk benda B (2 kg) yang diam. Jika keduanya bertumbukan tidak lenting sama sekali (e = 0, menyatu), berapakah kecepatan gabungan sesaat setelah tumbukan?',
+                'options'     => ['2 m/s', '3 m/s', '4 m/s', '6 m/s'],
+                'answer_idx'  => 2,
+                'solution'    => '(4)(6) + (2)(0) = (4 + 2) · v\' ➔ 24 = 6 v\' ➔ v\' = 4 m/s.',
+            ],
+            'physics_quantum_decay' => [
+                'law'         => 'Efek Fotolistrik Kuantum & Peluruhan Radioaktif Waktu Paruh',
+                'theory'      => 'Elektron lepas dari permukaan logam hanya jika energi foton tunggal hf melampaui fungsi kerja logam W₀ (tidak bergantung intensitas). Sementara itu, inti radioaktif meluruh secara eksponensial menurut waktu paruh T½.',
+                'formula'     => 'Ek_max = (h·c / λ) − W₀   |   N(t) = N₀ · (1/2)^(t / T½)',
+                'variables'   => 'E = energi foton (eV), W₀ = fungsi kerja logam (eV), T½ = waktu paruh, N₀ = jumlah inti mula-mula',
+                'challenge_q' => 'Suatu isotop radioaktif memiliki massa awal 64 gram dengan waktu paruh 5 tahun. Berapakah sisa massa zat radioaktif tersebut setelah 15 tahun?',
+                'options'     => ['16 gram', '8 gram', '4 gram', '2 gram'],
+                'answer_idx'  => 1,
+                'solution'    => 'Jumlah waktu paruh n = 15 / 5 = 3. Sisa N(15) = 64 × (1/2)³ = 64 / 8 = 8 gram.',
+            ],
+            'bio_protein_synthesis' => [
+                'law'         => 'Dogma Sentral Biologi Molekuler & Mutasi Genetik',
+                'theory'      => 'Informasi genetik DNA disalin menjadi mRNA (transkripsi di inti sel), lalu dibaca oleh ribosom tiap 3 basa/kodon untuk merangkai asam amino melalui tRNA (translasi). Perubahan satu basa DNA dapat memicu mutasi Silent, Missense, atau Nonsense.',
+                'formula'     => 'DNA (3\'→5\') ➔ mRNA Kodon (5\'→3\') ➔ Antikodon tRNA ➔ Polipeptida',
+                'variables'   => 'Kodon Start = AUG (Metionin); Kodon Stop = UAA, UAG, UGA',
+                'challenge_q' => 'Diketahui urutan DNA template 3\'-TAC-CAC-ATT-5\'. Pasangan kodon mRNA yang ditranskripsikan dari segmen DNA tersebut adalah ...',
+                'options'     => ['5\'-AUG-GUG-UAA-3\'', '5\'-ATG-GTG-TAA-3\'', '5\'-UAC-CAC-AUU-3\'', '5\'-AUG-CAC-UAA-3\''],
+                'answer_idx'  => 0,
+                'solution'    => 'Pada transkripsi RNA: A berpasangan dengan U, T ➔ A, C ➔ G, dan G ➔ C. Maka TAC-CAC-ATT menghasilkan 5\'-AUG-GUG-UAA-3\'.',
+            ],
+            'chem_equilibrium' => [
+                'law'         => 'Kesetimbangan Kimia Dinamis & Azas Le Chatelier',
+                'theory'      => 'Jika suatu sistem setimbang diganggu oleh perubahan konsentrasi, tekanan/volume, atau suhu, sistem akan bergeser melawan gangguan tersebut hingga tercapai kesetimbangan baru. Hanya perubahan suhu yang mengubah nilai tetapan Kc.',
+                'formula'     => 'Kc = [Produk]^p / [Reaktan]^r   |   N₂(g) + 3H₂(g) ⇌ 2NH₃(g)  (ΔH < 0)',
+                'variables'   => 'ΔH < 0 = reaksi eksoterm; kenaikan tekanan menggeser reaksi gas ke jumlah koefisien mol yang lebih kecil',
+                'challenge_q' => 'Pada reaksi kesetimbangan N₂(g) + 3H₂(g) ⇌ 2NH₃(g) (ΔH = −92 kJ), agar produksi gas NH₃ maksimal, perlakuan yang tepat adalah ...',
+                'options'     => ['Menaikkan suhu dan memperbesar volume wadah', 'Menurunkan suhu dan memperbesar tekanan sistem', 'Menambahkan katalis tanpa mengubah suhu atau tekanan', 'Mengurangi konsentrasi gas N₂'],
+                'answer_idx'  => 1,
+                'solution'    => 'Reaksi maju bersifat eksoterm (ΔH < 0) dan jumlah mol gas berkurang (4 mol ➔ 2 mol), sehingga suhu rendah dan tekanan tinggi menggeser kesetimbangan ke kanan (NH₃).',
+            ],
+            'chem_vsepr' => [
+                'law'         => 'Teori Domain Elektron (VSEPR), Sudut Ikatan & Kepolaran',
+                'theory'      => 'Domain elektron di sekitar atom pusat saling tolak-menolak meminimalkan energi. Urutan kuat tolakan: PEB−PEB > PEB−PEI > PEI−PEI sehingga adanya Pasangan Elektron Bebas (PEB) menekan sudut ikatan menjadi lebih kecil dan sering menjadikan molekul polar.',
+                'formula'     => 'Tipe VSEPR: A X_m E_n   (m = jumlah PEI, n = jumlah PEB)',
+                'variables'   => 'PEI = Pasangan Elektron Ikatan, PEB = Pasangan Elektron Bebas pada atom pusat',
+                'challenge_q' => 'Molekul air (H₂O) memiliki atom pusat oksigen (Z = 8) berikatan dengan 2 atom H. Tipe VSEPR, bentuk molekul, dan kepolaran H₂O berturut-turut adalah ...',
+                'options'     => ['AX₂, Linear, Nonpolar', 'AX₂E₂, Huruf V (Bengkok), Polar', 'AX₃E, Piramida Trigonal, Polar', 'AX₄, Tetrahedral, Nonpolar'],
+                'answer_idx'  => 1,
+                'solution'    => 'O memiliki 6 elektron valensi: 2 dipakai berikatan dengan H (2 PEI), tersisa 4 elektron = 2 PEB (AX₂E₂). Tolakan 2 PEB membuat bentuk huruf V (~104,5°) dan bersifat sangat polar.',
+            ],
+            'math_exp_matrix' => [
+                'law'         => 'Sifat Eksponen-Logaritma & Determinan Transformasi Matriks 2×2',
+                'theory'      => 'Fungsi logaritma adalah invers cermin fungsi eksponen terhadap garis y = x. Sementara itu, nilai mutlak determinan matriks 2×2 mengukur faktor pembesaran luas bidang hasil transformasi linear.',
+                'formula'     => 'a^p = y ⇔ log_a(y) = p   |   det(M) = a·d − b·c',
+                'variables'   => 'a = basis (> 0, ≠ 1); Luas bayangan = |det(M)| × Luas bangun semula',
+                'challenge_q' => 'Sebuah segitiga berluas 6 satuan ditransformasikan oleh matriks M = [[3, 1], [1, 2]]. Berapakah luas segitiga bayangannya?',
+                'options'     => ['18 satuan luas', '24 satuan luas', '30 satuan luas', '36 satuan luas'],
+                'answer_idx'  => 2,
+                'solution'    => 'det(M) = (3)(2) − (1)(1) = 6 − 1 = 5. Luas bayangan = |5| × 6 = 30 satuan luas.',
+            ],
+            'ptn_spatial_3d' => [
+                'law'         => 'Aturan Topologi Jaring Kubus & Orientasi Sisi Berhadapan (TPA)',
+                'theory'      => 'Dalam lipatan kubus 3D dari jaring 2D, dua petak yang dipisahkan tepat satu petak pada baris/kolom lurus pasti menjadi sisi berhadapan (tidak akan pernah bersebelahan atau berbagi rusuk).',
+                'formula'     => 'Pola Lurus (1-2-3): Petak 1 ↔ Petak 3 Berhadapan   |   Sudut L: Berbagi Rusuk',
+                'variables'   => 'Sisi berhadapan tidak mungkin tampil bersamaan dalam satu tampilan sudut pandang 3 sisi kubus.',
+                'challenge_q' => 'Pada jaring kubus salib standar dengan baris tengah 4 petak berurutan D−A−B−C, jika sisi A dilipat menjadi sisi depan kubus, petak manakah yang PASTI berada di sisi belakang (berlawanan dengan A) dan mustahil terlihat berdampingan dengan A?',
+                'options'     => ['Petak B', 'Petak C', 'Petak D', 'Petak E'],
+                'answer_idx'  => 1,
+                'solution'    => 'Pada deret lurus D−A−B−C, petak A dan C dipisahkan tepat satu petak (B) sehingga A ↔ C saling berhadapan (depan vs belakang).',
+            ],
+            'lang_indo_discourse' => [
+                'law'         => 'Struktur Paragraf, Kepaduan Wacana & Evaluasi Logika SNBT',
+                'theory'      => 'Ide pokok merangkum pernyataan payung yang didukung kalimat penjelas. Dalam Literasi Bahasa Indonesia UTBK-SNBT, jawaban simpulan yang benar tidak boleh menambahkan klaim absolut ("seluruh", "pasti", "satu-satunya") di luar cakupan premis teks.',
+                'formula'     => 'Ide Pokok = Kalimat Payung   |   Simpulan Valid ⊆ Premis Teks',
+                'variables'   => 'Deduktif = ide pokok di awal; Induktif = ide pokok/simpulan di akhir ("Oleh karena itu", "Dengan demikian").',
+                'challenge_q' => 'Suatu bacaan menyimpulkan bahwa "penggunaan transportasi umum di Jakarta mengurangi kemacetan sebesar 18%". Manakah kesimpulan yang PALING TEPAT menurut standar evaluasi teks SNBT?',
+                'options'     => ['Seluruh kota di Indonesia wajib meniru Jakarta agar kemacetan 0%', 'Transportasi umum berkontribusi nyata menekan tingkat kemacetan di Jakarta', 'Pemilik mobil pribadi merupakan satu-satunya penyebab polusi kota', 'Transportasi umum pasti menghapus seluruh kemacetan dalam 1 tahun'],
+                'answer_idx'  => 1,
+                'solution'    => 'Opsi A, C, dan D melakukan overgeneralisasi ekstrem ("seluruh", "0%", "satu-satunya", "pasti"). Opsi B paling akurat mencerminkan bukti teks.',
+            ],
+            'lang_english_snbt' => [
+                'law'         => 'Paired-Passage Synthesis, Author\'s Tone & Inference (SNBT English)',
+                'theory'      => 'Soal Literasi Bahasa Inggris UTBK modern sering menyandingkan dua teks singkat bertopik sama untuk menguji sikap penulis (Author\'s Tone melalui pilihan kata/diksi) serta hubungan antar-teks (mendukung, membantah sebagian, atau memberi solusi).',
+                'formula'     => 'Diction Clues ➔ Author\'s Attitude/Tone ➔ Cross-Text Synthesis',
+                'variables'   => 'Objective = netral berbasis data; Cautious = hati-hati ("while", "however"); Alarmed = memperingatkan bahaya besar.',
+                'challenge_q' => 'Text 1 praises AI scanners for doubling detection speed. Text 2 begins: "While algorithmic triage saves valuable minutes, unverified demographic bias warrants strict human oversight." What is the relationship between Text 2 and Text 1?',
+                'options'     => ['Text 2 completely rejects all medical benefits described in Text 1', 'Text 2 qualifies Text 1\'s optimism by adding an ethical-accuracy condition', 'Text 2 repeats the exact same clinical data without new arguments', 'Text 2 proves that doctors are no longer needed'],
+                'answer_idx'  => 1,
+                'solution'    => 'Frasa konsesif "While algorithmic triage saves valuable minutes..." mengakui manfaat dari Text 1 sebelum menambahkan syarat kehati-hatian (qualified support/caveat).',
+            ],
         ];
 
         if (isset($map[$this->engine_type])) {
@@ -553,6 +673,18 @@ class VirtualLab extends Model
             'vokasi_gears' => 'Bandingkan arah putar, RPM keluaran, dan torsi saat gear penggerak lebih kecil daripada gear belakang vs sebaliknya.',
             'econ_accounting' => 'Pastikan setiap transaksi jurnal selalu mempertahankan kesamaan total sisi Aset dengan sisi Liabilitas + Ekuitas di neraca saldo.',
             'ptn_reasoning' => 'Periksa baris tabel kebenaran di mana P benar dan Q salah — itu satu-satunya kondisi yang membatalkan implikasi P ⇒ Q.',
+            'physics_kepler' => 'Amati perbandingan laju planet dan luas sapuan juring di Perihelion vs Aphelion saat eksentrisitas orbit dinaikkan.',
+            'physics_thermo_pv' => 'Bandingkan luas daerah terarsir di bawah kurva P-V (usaha W) antara proses Isotermal, Isobarik, Adiabatik, dan Siklus Carnot.',
+            'physics_bernoulli' => 'Bandingkan kecepatan partikel udara di atas vs bawah sayap aerofoil serta turunnya kolom manometer di leher sempit Venturimeter.',
+            'physics_collision' => 'Bandingkan total momentum p sebelum-sesudah tumbukan terhadap hilangnya energi kinetik saat koefisien restitusi e diubah dari 1 ke 0.',
+            'physics_quantum_decay' => 'Amati panjang gelombang ambang λ tempat elektron mulai lepas pada logam berbeda, serta penurunan separuh inti aktif tiap kelipatan waktu paruh T½.',
+            'bio_protein_synthesis' => 'Bandingkan urutan polipeptida yang terbentuk pada gen Normal vs Mutasi Silent, Missense, dan Nonsense saat ribosom membaca kodon 1–6.',
+            'chem_equilibrium' => 'Catat bagaimana perubahan Suhu mengubah nilai Kc sementara perubahan Tekanan dan konsentrasi [N₂] menggeser arah reaksi tanpa mengubah Kc.',
+            'chem_vsepr' => 'Perhatikan bagaimana bertambahnya PEB (CH₄ ➔ NH₃ ➔ H₂O) menekan sudut ikatan dari 109.5° menjadi 107° dan 104.5° serta mengubah kepolaran.',
+            'math_exp_matrix' => 'Lihat kesimetrian titik (p, a^p) dengan (a^p, p) terhadap garis y = x dan perhatikan saat determinan matriks bernilai 0 atau negatif.',
+            'ptn_spatial_3d' => 'Bandingkan jaring datar 2D dengan kubus terlipat 3D untuk memastikan sisi yang terpisah 1 petak sejajar selalu berhadapan.',
+            'lang_indo_discourse' => 'Bandingkan kalimat K1–K4 yang padu dengan kalimat K5 agar terbiasa mendeteksi lompatan logika atau generalisasi berlebihan.',
+            'lang_english_snbt' => 'Amati diksi penanda sikap (evidence cues) di Text 1 vs Text 2 dan periksa pergeseran posisi keduanya pada spektrum sintesis.',
         ];
 
         $goal = trim((string) $this->description);
@@ -1514,6 +1646,187 @@ class VirtualLab extends Model
                     'Pilih skenario kaidah logika (Implikasi P⇒Q, Ekuivalen Kontraposisi, Modus Tollens, atau Silogisme).',
                     'Ubah nilai kebenaran premis P, Q, dan R secara langsung pada simulator tabel kebenaran.',
                     'Identifikasi kasus unik yang membuat pernyataan implikasi bernilai SALAH dan uji latihan soal UTBK.',
+                ],
+            ],
+            // --- 12 SIMULATOR STRATEGIS PENUTUP CELAH PTN/PTS & FENOMENA ALAM (TOTAL 74) ---
+            [
+                'slug'         => 'fisika-orbit-kepler',
+                'title'        => 'Simulator Kosmos: Gravitasi Universal, Orbit Planet & Hukum Kepler',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika / Astronomi (SMA & PTN)',
+                'engine_type'  => 'physics_kepler',
+                'icon'         => 'fas fa-globe',
+                'accent_color' => '#0369a1',
+                'description'  => 'Mengapa planet melesat lebih cepat saat mendekati Matahari dan bagaimana periode orbit ditentukan jarak? Uji elips Kepler I–III beserta vektor laju dan gaya gravitasi.',
+                'sop_steps'    => [
+                    'Ubah sumbu semi-mayor (a) dan eksentrisitas (e) dari orbit lingkaran hingga lonjong.',
+                    'Aktifkan sapuan juring luas sama (Hukum II Kepler) dan amati laju Perihelion vs Aphelion.',
+                    'Ubah massa bintang induk (M) dan verifikasi hubungan T² sebanding dengan a³.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-termodinamika-pv',
+                'title'        => 'Simulator Fisika: Termodinamika Gas Ideal, Diagram P-V & Siklus Carnot',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika (SMA / UTBK)',
+                'engine_type'  => 'physics_thermo_pv',
+                'icon'         => 'fas fa-fire',
+                'accent_color' => '#0369a1',
+                'description'  => 'Mengapa tidak ada mesin kalor yang efisiensinya 100%? Amati gerak piston gas, perubahan energi dalam (ΔU), usaha luas kurva P-V, hingga batas efisiensi Carnot.',
+                'sop_steps'    => [
+                    'Bandingkan keempat proses termodinamika: Isotermal, Isobarik, Adiabatik, dan Siklus Carnot.',
+                    'Atur suhu reservoir panas (T_H) dan dingin (T_C) serta rasio ekspansi volume V₂/V₁.',
+                    'Amati besar usaha (W) sebagai luas di bawah kurva P-V serta perubahan efisiensi η.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-fluida-bernoulli',
+                'title'        => 'Simulator Fisika: Asas Bernoulli, Sayap Pesawat & Venturimeter',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika (SMA / UTBK)',
+                'engine_type'  => 'physics_bernoulli',
+                'icon'         => 'fas fa-plane',
+                'accent_color' => '#0369a1',
+                'description'  => 'Bagaimana pesawat komersial seberat puluhan ton terangkat di udara? Uji hubungan kecepatan aliran fluida terhadap turunnya tekanan statis pada sayap aerofoil dan pipa Venturimeter.',
+                'sop_steps'    => [
+                    'Pada mode Sayap Aerofoil, naikkan kecepatan udara datang dan sudut serang hingga pesawat terangkat.',
+                    'Bandingkan kecepatan partikel aliran di sisi atas sayap vs sisi bawah sayap.',
+                    'Pindah ke mode Pipa Venturimeter untuk melihat penurunan kolom tekanan statis pada leher pipa yang sempit.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-momentum-tumbukan',
+                'title'        => 'Simulator Fisika: Kekekalan Momentum Linear & Tumbukan 1D',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika (SMA / UTBK)',
+                'engine_type'  => 'physics_collision',
+                'icon'         => 'fas fa-arrows-left-right',
+                'accent_color' => '#0369a1',
+                'description'  => 'Uji tumbukan lenting sempurna (e = 1), lenting sebagian, dan tidak lenting (e = 0) untuk membuktikan bahwa momentum total selalu kekal meskipun energi kinetik berkurang.',
+                'sop_steps'    => [
+                    'Atur massa m₁, m₂ serta kecepatan awal kedua benda sebelum tumbukan.',
+                    'Uji nilai koefisien restitusi e = 1.0 (lenting sempurna) lalu e = 0.0 (menyatu).',
+                    'Bandingkan grafik batang Momentum Total vs Energi Kinetik Total sebelum dan sesudah tumbukan.',
+                ],
+            ],
+            [
+                'slug'         => 'fisika-kuantum-radioaktif',
+                'title'        => 'Simulator Fisika Modern: Efek Fotolistrik & Waktu Paruh Radioaktif',
+                'category'     => 'sma',
+                'subject_name' => 'Fisika Modern (SMA / PTN)',
+                'engine_type'  => 'physics_quantum_decay',
+                'icon'         => 'fas fa-radiation',
+                'accent_color' => '#0369a1',
+                'description'  => 'Eksplorasi dua tonggak fisika modern: energi ambang foton melepas elektron logam (Einstein) serta hukum peluruhan eksponensial inti radioaktif N(t) berbasis waktu paruh.',
+                'sop_steps'    => [
+                    'Pada mode Efek Fotolistrik, perkecil panjang gelombang λ hingga energi foton melampaui W₀ logam.',
+                    'Ganti jenis logam (Sesium, Seng, Platina) dan catat energi kinetik maksimum elektron.',
+                    'Pindah ke mode Waktu Paruh Inti untuk mengamati peluruhan 160 inti radioaktif mengikuti kurva N(t).',
+                ],
+            ],
+            [
+                'slug'         => 'biologi-sintesis-protein',
+                'title'        => 'Simulator Biologi Molekuler: Sintesis Protein & Mutasi Genetik',
+                'category'     => 'sma',
+                'subject_name' => 'Biologi (SMA / UTBK / Kedokteran)',
+                'engine_type'  => 'bio_protein_synthesis',
+                'icon'         => 'fas fa-dna',
+                'accent_color' => '#047857',
+                'description'  => 'Visualisasikan alur Dogma Sentral dari transkripsi DNA ke mRNA hingga translasi kodon oleh ribosom, serta amati dampak mutasi Silent, Missense, dan Nonsense pada rantai protein.',
+                'sop_steps'    => [
+                    'Jalankan translasi dari Gen Normal untuk melihat pembacaan kodon 1–6 dan pembentukan polipeptida.',
+                    'Ganti ke Mutasi Silent dan Missense (Sel Sabit) untuk membandingkan perubahan basa vs perubahan asam amino.',
+                    'Uji Mutasi Nonsense untuk mengamati bagaimana kodon STOP dini (UAG) memutus rantai protein.',
+                ],
+            ],
+            [
+                'slug'         => 'kimia-kesetimbangan-lechatelier',
+                'title'        => 'Simulator Kimia: Kesetimbangan Kimia & Azas Le Chatelier',
+                'category'     => 'sma',
+                'subject_name' => 'Kimia (SMA / UTBK)',
+                'engine_type'  => 'chem_equilibrium',
+                'icon'         => 'fas fa-scale-balanced',
+                'accent_color' => '#047857',
+                'description'  => 'Uji bagaimana sistem kesetimbangan reaksi Haber-Bosch (N₂ + 3H₂ ⇌ 2NH₃) merespons gangguan suhu, tekanan, dan injeksi konsentrasi beserta kurva relaksasinya.',
+                'sop_steps'    => [
+                    'Amati kondisi setimbang awal serta konsentrasi N₂, H₂, dan NH₃ pada kurva waktu.',
+                    'Ubah suhu reaktor (eksoterm ΔH < 0) dan catat perubahan langsung pada nilai tetapan Kc.',
+                    'Naikkan tekanan dan suntik gas N₂ untuk melihat arah pergeseran reaksi tanpa mengubah Kc.',
+                ],
+            ],
+            [
+                'slug'         => 'kimia-bentuk-molekul-vsepr',
+                'title'        => 'Simulator Kimia 3D: Geometri Molekul VSEPR & Kepolaran',
+                'category'     => 'sma',
+                'subject_name' => 'Kimia (SMA / UTBK)',
+                'engine_type'  => 'chem_vsepr',
+                'icon'         => 'fas fa-cubes',
+                'accent_color' => '#047857',
+                'description'  => 'Putar model molekul 3D (BeCl₂, BF₃, CH₄, NH₃, H₂O, SF₆) untuk melihat langsung mengapa tolakan pasangan elektron bebas (PEB) menekuk sudut ikatan air menjadi 104.5° dan polar.',
+                'sop_steps'    => [
+                    'Pilih berturut-turut molekul CH₄ (AX₄), NH₃ (AX₃E), dan H₂O (AX₂E₂).',
+                    'Amati posisi orbital Pasangan Elektron Bebas (PEB) berwarna kuning terhadap ikatan (PEI).',
+                    'Bandingkan sudut ikatan serta status Polar vs Nonpolar antar-molekul simetris dan asimetris.',
+                ],
+            ],
+            [
+                'slug'         => 'matematika-eksponen-logaritma-matriks',
+                'title'        => 'Simulator Matematika: Eksponen-Logaritma & Transformasi Matriks 2×2',
+                'category'     => 'sma',
+                'subject_name' => 'Matematika (SMA / UTBK)',
+                'engine_type'  => 'math_exp_matrix',
+                'icon'         => 'fas fa-border-all',
+                'accent_color' => '#3730a3',
+                'description'  => 'Pahami dua materi kunci Pengetahuan Kuantitatif: pencerminan kurva eksponen y = a^x dan logaritma y = log_a(x) pada garis y = x, serta arti geometris determinan matriks 2×2.',
+                'sop_steps'    => [
+                    'Pada mode Eksponen & Logaritma, ubah basis a dan geser titik uji p untuk melihat simetri cermin terhadap y = x.',
+                    'Beralih ke mode Matriks 2×2 lalu ubah elemen [[a,b],[c,d]] untuk mendistorsi persegi satuan.',
+                    'Uji kondisi di mana det(M) = ad − bc bernilai nol (singular) atau negatif (orientasi terbalik).',
+                ],
+            ],
+            [
+                'slug'         => 'ptn-spasial-figural-3d',
+                'title'        => 'Lab TPA PTS & PTN: Penalaran Spasial 3D & Jaring-Jaring Kubus',
+                'category'     => 'sma',
+                'subject_name' => 'TPA Spasial & Figural (PTN / PTS)',
+                'engine_type'  => 'ptn_spatial_3d',
+                'icon'         => 'fas fa-cube',
+                'accent_color' => '#b45309',
+                'description'  => 'Kuasai soal visual wajib TPA masuk PTS Favorit dan Ujian Mandiri: lipat pola jaring kubus 2D menjadi kubus 3D secara bertahap dan kenali pasangan sisi yang saling berhadapan.',
+                'sop_steps'    => [
+                    'Pilih pola jaring kubus (Salib 1-4-1, Huruf T, atau Tangga Z) pada menu kontrol.',
+                    'Geser slider Lipatan dari 0% hingga 100% lalu putar kubus 3D pada sumbu Yaw dan Pitch.',
+                    'Verifikasi aturan lompat-1 untuk menentukan 3 pasangan sisi yang berhadapan dan mustahil bersebelahan.',
+                ],
+            ],
+            [
+                'slug'         => 'ips-literasi-wacana-snbt',
+                'title'        => 'Lab Literasi SNBT: Bedah Anatomi Paragraf, Ide Pokok & Sesat Pikir',
+                'category'     => 'sma',
+                'subject_name' => 'Literasi Bahasa Indonesia (SNBT / UTBK)',
+                'engine_type'  => 'lang_indo_discourse',
+                'icon'         => 'fas fa-book-reader',
+                'accent_color' => '#9f1239',
+                'description'  => 'Latih ketajaman membaca teks akademik UTBK-SNBT: memetakan struktur kalimat K1–K5, membedakan pola deduktif vs induktif, dan membongkar kalimat jebakan overgeneralisasi atau sesat pikir.',
+                'sop_steps'    => [
+                    'Pilih salah satu wacana SNBT (Transisi Energi, Pangan Lokal, atau Algoritma Media).',
+                    'Geser sorotan kalimat K1–K5 dan aktifkan bergantian lensa Ide Pokok, Kepaduan, dan Sesat Pikir.',
+                    'Identifikasi alasan mengapa kalimat K5 tergolong jebakan simpulan yang tidak didukung premis teks.',
+                ],
+            ],
+            [
+                'slug'         => 'ips-literasi-inggris-snbt',
+                'title'        => 'Lab English SNBT: Paired-Passage Synthesis, Author\'s Tone & Inference',
+                'category'     => 'sma',
+                'subject_name' => 'Literasi Bahasa Inggris (SNBT / UTBK)',
+                'engine_type'  => 'lang_english_snbt',
+                'icon'         => 'fas fa-language',
+                'accent_color' => '#9f1239',
+                'description'  => 'Bedah soal dua bacaan berdampingan (Paired Passages) ala UTBK-SNBT dan TOEFL/IELTS: temukan diksi petunjuk sikap penulis (Tone) serta pola hubungan antar-teks pada spektrum sintesis.',
+                'sop_steps'    => [
+                    'Pilih topik pasangan teks akademik (AI Diagnostics, Deep-Sea Mining, atau Microplastics).',
+                    'Aktifkan penanda bukti (Highlight Evidence) untuk membaca kata kunci bernada sikap pada Text 1 dan Text 2.',
+                    'Ganti Analysis Lens antara Relationship, Tone Clues, dan Inference lalu amati pergeseran pin pada spektrum sintesis.',
                 ],
             ],
         ];

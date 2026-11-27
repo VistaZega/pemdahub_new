@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Matematika: Eksponen-Logaritma &amp; Transformasi Matriks 2×2</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Fungsi Eksponen-Logaritma (Invers Cermin y = x) &amp; Determinan Matriks 2×2</div>
+          <div class="sl-bar-sub">Amati kesimetrian f(x) = a^x dengan f⁻¹(x) = log_a(x) serta bagaimana matriks [[a,b],[c,d]] mengubah luas bidang satuan</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnExp" onclick="setMode('exp')">Eksponen &amp; Logaritma</button>
+          <button type="button" class="sl-btn" id="btnMat" onclick="setMode('mat')">Transformasi Matriks 2×2</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="emCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group" id="panelExp">
+        <div class="sl-group-label">Parameter Eksponen &amp; Logaritma</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Bilangan Pokok / Basis (a)</span><span class="sl-ctrl-val" id="lBase">2.0</span></div>
+          <input type="range" id="inBase" min="1.3" max="4.0" step="0.1" value="2.0" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Titik Uji Eksponen (p)</span><span class="sl-ctrl-val" id="lPt">1.5</span></div>
+          <input type="range" id="inPt" min="-1.5" max="2.5" step="0.1" value="1.5" oninput="draw()" />
+        </div>
+      </div>
+
+      <div class="sl-group" id="panelMat" style="display:none;">
+        <div class="sl-group-label">Elemen Matriks M = [[a, b], [c, d]]</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Baris 1: a (skala x) &amp; b (geser y→x)</span><span class="sl-ctrl-val" id="lR1">2.0 | 0.5</span></div>
+          <input type="range" id="inA" min="-2.5" max="3.0" step="0.5" value="2.0" oninput="draw()" />
+          <input type="range" id="inB" min="-2.0" max="2.0" step="0.5" value="0.5" oninput="draw()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Baris 2: c (geser x→y) &amp; d (skala y)</span><span class="sl-ctrl-val" id="lR2">0.0 | 1.5</span></div>
+          <input type="range" id="inC" min="-2.0" max="2.0" step="0.5" value="0.0" oninput="draw()" />
+          <input type="range" id="inD" min="-2.5" max="3.0" step="0.5" value="1.5" oninput="draw()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan Matematis</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblM1">Nilai y = a^p</div><div class="sl-readout-val" id="vM1" style="color:#0284c7;">2.83</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblM2">Invers log_a(y)</div><div class="sl-readout-val" id="vM2" style="color:#059669;">1.50</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblM3">Sifat</div><div class="sl-readout-val" id="vM3">Monoton Naik</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Konsep &amp; Rumus Kunci UTBK</div>
+        <div class="sl-formula" id="emForm">a^p = y   ⇔   log_a(y) = p   (Simetri terhadap garis y = x)</div>
+        <div class="sl-note" id="emNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('emCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'exp';
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnExp').classList.toggle('is-active', m === 'exp');
+      document.getElementById('btnMat').classList.toggle('is-active', m === 'mat');
+      document.getElementById('panelExp').style.display = m === 'exp' ? 'block' : 'none';
+      document.getElementById('panelMat').style.display = m === 'mat' ? 'block' : 'none';
+      draw();
+    }
+
+    function draw() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const cx = W * 0.48, cy = H * 0.56, scale = 42;
+
+      ctx.clearRect(0, 0, W, H);
+      // Grid
+      ctx.strokeStyle = 'rgba(148,163,184,0.10)'; ctx.lineWidth = 1;
+      for (let gx = cx % scale; gx < W; gx += scale) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+      for (let gy = cy % scale; gy < H; gy += scale) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+      // Sumbu Kartesius
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+
+      if (mode === 'exp') {
+        const base = +document.getElementById('inBase').value || 2.0;
+        const p = +document.getElementById('inPt').value || 1.5;
+        const yVal = Math.pow(base, p);
+
+        document.getElementById('lBase').textContent = base.toFixed(1);
+        document.getElementById('lPt').textContent = p.toFixed(1);
+        document.getElementById('lblM1').textContent = `Nilai a^p`;
+        document.getElementById('vM1').textContent = yVal.toFixed(2);
+        document.getElementById('lblM2').textContent = `log_${base.toFixed(1)}(${yVal.toFixed(2)})`;
+        document.getElementById('vM2').textContent = p.toFixed(2);
+        document.getElementById('lblM3').textContent = 'Asimtot';
+        document.getElementById('vM3').textContent = 'y = 0 & x = 0';
+        document.getElementById('emForm').textContent = `${base.toFixed(1)}^(${p.toFixed(1)}) = ${yVal.toFixed(2)}  ⇔  log_${base.toFixed(1)}(${yVal.toFixed(2)}) = ${p.toFixed(1)}`;
+        document.getElementById('emNote').textContent = 'Kurva logaritma adalah pencerminan tepat dari kurva eksponen terhadap garis y = x. Titik (0, 1) pada eksponen selalu berpasangan dengan (1, 0) pada logaritma.';
+
+        // Garis cermin y = x
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.4; ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(cx - 260, cy + 260); ctx.lineTo(cx + 260, cy - 260); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Kurva y = a^x
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.8; ctx.beginPath();
+        let started = false;
+        for (let x = -5; x <= 5; x += 0.08) {
+          const sx = cx + x * scale, sy = cy - Math.pow(base, x) * scale;
+          if (sy > -40 && sy < H + 40) {
+            if (!started) { ctx.moveTo(sx, sy); started = true; } else ctx.lineTo(sx, sy);
+          }
+        }
+        ctx.stroke();
+
+        // Kurva y = log_a(x)
+        ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2.8; ctx.beginPath();
+        started = false;
+        for (let x = 0.05; x <= 8; x += 0.08) {
+          const sy = cy - (Math.log(x) / Math.log(base)) * scale;
+          const sx = cx + x * scale;
+          if (sy > -40 && sy < H + 40) {
+            if (!started) { ctx.moveTo(sx, sy); started = true; } else ctx.lineTo(sx, sy);
+          }
+        }
+        ctx.stroke();
+
+        // Pasangan titik cermin (p, a^p) & (a^p, p)
+        const px1 = cx + p * scale, py1 = cy - yVal * scale;
+        const px2 = cx + yVal * scale, py2 = cy - p * scale;
+        ctx.strokeStyle = '#fbbf24'; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(px1, py1); ctx.lineTo(px2, py2); ctx.stroke(); ctx.setLineDash([]);
+
+        ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(px1, py1, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#34d399'; ctx.beginPath(); ctx.arc(px2, py2, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+        ctx.fillStyle = '#38bdf8'; ctx.fillText(`(${p.toFixed(1)}, ${yVal.toFixed(2)})`, px1 + 8, py1 - 6);
+        ctx.fillStyle = '#34d399'; ctx.fillText(`(${yVal.toFixed(2)}, ${p.toFixed(1)})`, px2 + 8, py2 + 12);
+      } else {
+        const a = +document.getElementById('inA').value;
+        const b = +document.getElementById('inB').value;
+        const c = +document.getElementById('inC').value;
+        const d = +document.getElementById('inD').value;
+        const det = a * d - b * c;
+
+        document.getElementById('lR1').textContent = `${a.toFixed(1)} | ${b.toFixed(1)}`;
+        document.getElementById('lR2').textContent = `${c.toFixed(1)} | ${d.toFixed(1)}`;
+        document.getElementById('lblM1').textContent = 'Determinan det(M)';
+        document.getElementById('vM1').textContent = det.toFixed(2);
+        document.getElementById('lblM2').textContent = 'Faktor Luas |det|';
+        document.getElementById('vM2').textContent = Math.abs(det).toFixed(2) + ' ×';
+        document.getElementById('lblM3').textContent = 'Orientasi / Invers';
+        document.getElementById('vM3').textContent = Math.abs(det) < 0.01 ? 'Singular (Tak Berinvers)' : (det < 0 ? 'Terbalik (Cermin)' : 'Searah');
+        document.getElementById('emForm').textContent = `det(M) = (${a})(${d}) − (${b})(${c}) = ${det.toFixed(2)}`;
+        document.getElementById('emNote').textContent = Math.abs(det) < 0.01
+          ? 'Determinan = 0 (Matriks Singular): seluruh persegi satuan terjepit menjadi garis/titik sehingga tidak memiliki matriks invers M⁻¹!'
+          : `Luas bayangan hasil transformasi matriks adalah |det(M)| = ${Math.abs(det).toFixed(2)} kali luas bangun semula.`;
+
+        // Persegi Satuan Asal (0,0)-(1,1)
+        ctx.fillStyle = 'rgba(148,163,184,0.22)'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+        ctx.fillRect(cx, cy - scale, scale, scale);
+        ctx.strokeRect(cx, cy - scale, scale, scale);
+
+        // Bayangan Jajar Genjang Hasil Transformasi M
+        const tr = (x, y) => [cx + (a * x + b * y) * scale, cy - (c * x + d * y) * scale];
+        const p0 = tr(0, 0), p1 = tr(1, 0), p2 = tr(1, 1), p3 = tr(0, 1);
+
+        ctx.fillStyle = det < 0 ? 'rgba(244,63,94,0.25)' : 'rgba(56,189,248,0.28)';
+        ctx.strokeStyle = det < 0 ? '#f43f5e' : '#38bdf8'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.lineTo(p3[0], p3[1]);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Vektor Basis i' & j'
+        ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke();
+        ctx.strokeStyle = '#34d399';
+        ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p3[0], p3[1]); ctx.stroke();
+
+        ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+        ctx.fillStyle = '#fbbf24'; ctx.fillText(`i'(${a},${c})`, p1[0] + 6, p1[1]);
+        ctx.fillStyle = '#34d399'; ctx.fillText(`j'(${b},${d})`, p3[0] + 6, p3[1] - 6);
+      }
+    }
+
+    draw();
+  </script>
+</body>
+</html>

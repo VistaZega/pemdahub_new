@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Literasi SNBT: Bedah Wacana Bahasa Indonesia &amp; Ide Pokok</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Anatomi Paragraf SNBT: Ide Pokok, Koherensi Kalimat &amp; Deteksi Sesat Pikir</div>
+          <div class="sl-bar-sub">Klik kalimat K1–K5 untuk memetakan struktur logika teks dan menemukan jebakan simpulan yang tidak berdasar</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="lMain" onclick="setLens('main')">Peta Ide Pokok</button>
+          <button type="button" class="sl-btn" id="lCoh" onclick="setLens('coherence')">Uji Kepaduan</button>
+          <button type="button" class="sl-btn" id="lFal" onclick="setLens('fallacy')">Deteksi Sesat Pikir</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="idCanvas" height="250"></canvas>
+      </div>
+
+      <div class="sl-note" id="passageBox" style="line-height:1.75; font-size:0.84rem;">—</div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Pilih Wacana Uji SNBT</div>
+        <div class="sl-ctrl">
+          <select id="selText" onchange="render()">
+            <option value="energi" selected>1. Transisi Energi Surya &amp; Baterai</option>
+            <option value="pangan">2. Diversifikasi Pangan Lokal Nusantara</option>
+            <option value="digital">3. Algoritma Kurasi Berita Media Sosial</option>
+          </select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Sorot Kalimat Uji</span><span class="sl-ctrl-val" id="lSent">K1</span></div>
+          <input type="range" id="inSent" min="1" max="5" step="1" value="1" oninput="render()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hasil Bedah Struktur Wacana</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Pola Paragraf</div><div class="sl-readout-val" id="vPat" style="color:#0284c7;">Deduktif</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Kalimat Utama</div><div class="sl-readout-val" id="vMainK" style="color:#059669;">Kalimat 1</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Peran Kalimat</div><div class="sl-readout-val" id="vRole">Klaim Utama</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Catatan Strategi Menjawab Soal SNBT</div>
+        <div class="sl-note" id="idNote">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('idCanvas');
+    const ctx = cv.getContext('2d');
+    let lens = 'main';
+
+    const TEXTS = {
+      energi: {
+        pattern: 'Deduktif (Umum → Khusus)',
+        mainK: 1,
+        fallacyK: 5,
+        sentences: [
+          { k: 1, role: 'Ide Pokok', text: '[K1] Ketergantungan pembangkit listrik tenaga surya pada intensitas cahaya matahari menuntut teknologi penyimpanan baterai berkapasitas tinggi.' },
+          { k: 2, role: 'Bukti Empiris', text: '[K2] Di siang hari produksi energi berlebih, namun pada malam hari keluaran panel turun hingga nol.' },
+          { k: 3, role: 'Elaborasi Teknis', text: '[K3] Baterai litium-besi-fosfat mampu menyimpan kelebihan daya siang hari agar pasokan malam tetap stabil.' },
+          { k: 4, role: 'Implikasi Kebijakan', text: '[K4] Oleh karena itu, investasi riset penyimpanan energi menjadi kunci keandalan jaringan listrik terbarukan.' },
+          { k: 5, role: 'Generalisasi Terlalu Jauh', text: '[K5] Akibatnya, seluruh pembangkit konvensional di dunia pasti langsung tutup pada tahun depan.' }
+        ],
+        notes: {
+          main: 'Kalimat utama (K1) memuat pernyataan payung (baterai penyimpanan untuk PLTS) yang dijelaskan secara rinci oleh K2–K4.',
+          coherence: 'K2 → K3 → K4 terhubung oleh konjungsi logis ("namun", "Oleh karena itu"). K5 melompat keluar konteks bukti karena memuat kata mutlak "pasti langsung tutup".',
+          fallacy: 'Waspadai jebakan SNBT pada opsi kesimpulan seperti K5: memakai kata absolut ("seluruh", "pasti") tanpa dukungan data dalam teks (Overgeneralization).'
+        }
+      },
+      pangan: {
+        pattern: 'Induktif (Khusus → Simpulan)',
+        mainK: 4,
+        fallacyK: 5,
+        sentences: [
+          { k: 1, role: 'Data Konteks', text: '[K1] Ketergantungan konsumsi pada satu komoditas beras membuat ketahanan pangan rentan terhadap anomali iklim.' },
+          { k: 2, role: 'Contoh Lokal', text: '[K2] Di Kepulauan Nias dan kawasan timur Indonesia, umbi-umbian serta sagu telah beradaptasi baik pada lahan tadah hujan.' },
+          { k: 3, role: 'Bukti Gizi', text: '[K3] Kandungan serat dan indeks glikemik pangan lokal tersebut bahkan lebih ramah bagi penderita diabetes.' },
+          { k: 4, role: 'Simpulan Utama', text: '[K4] Dengan demikian, diversifikasi pangan berbasis sumber daya lokal memperkuat kedaulatan pangan nasional sekaligus kesehatan masyarakat.' },
+          { k: 5, role: 'Dikotomi Palsu', text: '[K5] Masyarakat yang masih makan nasi berarti menolak kemajuan kesehatan modern.' }
+        ],
+        notes: {
+          main: 'Pada paragraf induktif ini, K1–K3 memaparkan fakta spesifik sebelum dirangkum oleh simpulan utama pada K4 ("Dengan demikian...").',
+          coherence: 'Frasa rujukan "pangan lokal tersebut" di K3 merujuk langsung ke "umbi-umbian serta sagu" pada K2 sehingga paragraf padu.',
+          fallacy: 'Kalimat K5 adalah sesat pikir False Dilemma (Dikotomi Palsu): menganggap konsumsi nasi bertentangan dengan kesehatan modern padahal teks hanya mendorong diversifikasi.'
+        }
+      },
+      digital: {
+        pattern: 'Kausalitas Analitis',
+        mainK: 1,
+        fallacyK: 5,
+        sentences: [
+          { k: 1, role: 'Ide Pokok', text: '[K1] Algoritma media sosial memprioritaskan konten yang memicu emosi kuat guna memperpanjang durasi layar pengguna.' },
+          { k: 2, role: 'Mekanisme', text: '[K2] Konten bernada marah atau sensasional memperoleh interaksi lebih tinggi sehingga dipromosikan berulang kali ke beranda.' },
+          { k: 3, role: 'Dampak Kognitif', text: '[K3] Paparan berulang atas sudut pandang seragam mempersempit ruang diskusi objektif dan menciptakan ruang gema (echo chamber).' },
+          { k: 4, role: 'Mitigasi Kritis', text: '[K4] Kebiasaan memverifikasi sumber silang diperlukan agar pembaca tidak terjebak polarisasi otomatis.' },
+          { k: 5, role: 'Sebab-Akibat Keliru', text: '[K5] Karena fitur "like" berwarna merah/biru, semua pengguna otomatis kehilangan kemampuan membaca buku cetak.' }
+        ],
+        notes: {
+          main: 'Ide pokok berada di K1 yang merangkum motif ekonomi perhatian (durasi layar) di balik kurasi algoritma.',
+          coherence: 'Rantai kausalitas mengalir teratur: Motif algoritma (K1) → Promosi emosi (K2) → Echo chamber (K3) → Solusi verifikasi (K4).',
+          fallacy: 'Kalimat K5 mengandung sesat pikir Non Sequitur — alasan warna tombol tidak berkaitan logis dengan hilangnya kemampuan membaca buku.'
+        }
+      }
+    };
+
+    function setLens(l) {
+      lens = l;
+      document.getElementById('lMain').classList.toggle('is-active', l === 'main');
+      document.getElementById('lCoh').classList.toggle('is-active', l === 'coherence');
+      document.getElementById('lFal').classList.toggle('is-active', l === 'fallacy');
+      render();
+    }
+
+    function render() {
+      const t = TEXTS[document.getElementById('selText').value] || TEXTS.energi;
+      const kIdx = +document.getElementById('inSent').value || 1;
+      const activeSent = t.sentences.find(s => s.k === kIdx) || t.sentences[0];
+
+      document.getElementById('lSent').textContent = 'K' + kIdx;
+      document.getElementById('vPat').textContent = t.pattern;
+      document.getElementById('vMainK').textContent = 'Kalimat ' + t.mainK;
+      document.getElementById('vRole').textContent = activeSent.role;
+      document.getElementById('idNote').textContent = t.notes[lens] || t.notes.main;
+
+      document.getElementById('passageBox').innerHTML = t.sentences.map(s => {
+        let style = 'padding:3px 6px; border-radius:4px; transition:background 0.15s;';
+        if (s.k === kIdx) style += 'background:#e0f2fe; color:#0c4a6e; font-weight:700;';
+        else if (lens === 'main' && s.k === t.mainK) style += 'background:#d1fae5; color:#064e3b; font-weight:600;';
+        else if (lens === 'fallacy' && s.k === t.fallacyK) style += 'background:#fee2e2; color:#7f1d1d; text-decoration:underline;';
+        return `<span style="${style}">${s.text}</span>`;
+      }).join(' ');
+
+      drawDiagram(t, kIdx);
+    }
+
+    function drawDiagram(t, kIdx) {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 250;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('PETA ANATOMI HUBUNGAN LOGIKA KALIMAT (K1–K5)', 20, 26);
+
+      const stepW = (W - 60) / 5;
+      t.sentences.forEach((s, i) => {
+        const bx = 30 + i * stepW, by = 78, bw = stepW - 18, bh = 108;
+        const isSel = s.k === kIdx;
+        const isMain = s.k === t.mainK;
+        const isFal = s.k === t.fallacyK;
+
+        if (i < 4) {
+          ctx.strokeStyle = i === 3 ? '#ef4444' : '#38bdf8';
+          ctx.lineWidth = 2;
+          if (i === 3) ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.moveTo(bx + bw, by + bh / 2); ctx.lineTo(bx + stepW, by + bh / 2); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.fillStyle = isSel ? '#0284c7' : (isFal && lens === 'fallacy' ? '#991b1b' : '#1e293b');
+        ctx.fillRect(bx, by, bw, bh);
+        ctx.strokeStyle = isMain ? '#34d399' : (isFal ? '#f87171' : '#64748b');
+        ctx.lineWidth = isSel || isMain ? 2.5 : 1.5;
+        ctx.strokeRect(bx, by, bw, bh);
+
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`K${s.k}`, bx + bw / 2, by + 32);
+
+        ctx.fillStyle = isMain ? '#6ee7b7' : (isFal ? '#fca5a5' : '#cbd5e1');
+        ctx.font = 'bold 10px monospace';
+        const words = s.role.split(' ');
+        words.slice(0, 2).forEach((w, wi) => ctx.fillText(w, bx + bw / 2, by + 62 + wi * 15));
+      });
+
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('Garis Hijau = Ide Pokok  |  Putus-putus Merah = Lompatan / Sesat Pikir (Jebakan)', 20, 224);
+    }
+
+    render();
+  </script>
+</body>
+</html>

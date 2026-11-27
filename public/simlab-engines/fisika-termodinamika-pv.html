@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Termodinamika, Diagram P-V &amp; Siklus Carnot</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Termodinamika Gas Ideal, Diagram P-V &amp; Efisiensi Carnot</div>
+          <div class="sl-bar-sub">Amati gerak piston, partikel gas, dan luas kurva P-V sebagai besar usaha (W) serta batas efisiensi maksimum mesin kalor</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="mIso" onclick="setProc('isotermal')">Isotermal</button>
+          <button type="button" class="sl-btn" id="mBar" onclick="setProc('isobarik')">Isobarik</button>
+          <button type="button" class="sl-btn" id="mAdi" onclick="setProc('adiabatik')">Adiabatik</button>
+          <button type="button" class="sl-btn" id="mCar" onclick="setProc('carnot')">Siklus Carnot</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="thCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Variabel Keadaan Gas (1 mol Ideal)</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Suhu Reservoir Panas (T_H)</span><span class="sl-ctrl-val" id="lTh">600 K</span></div>
+          <input type="range" id="inTh" min="400" max="900" step="20" value="600" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Suhu Reservoir Dingin (T_C)</span><span class="sl-ctrl-val" id="lTc">300 K</span></div>
+          <input type="range" id="inTc" min="220" max="380" step="10" value="300" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Rasio Ekspansi (V₂ / V₁)</span><span class="sl-ctrl-val" id="lRat">2.50 ×</span></div>
+          <input type="range" id="inRat" min="1.4" max="4.0" step="0.1" value="2.5" oninput="calc()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Neraca Energi Hukum I &amp; II Termodinamika</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Usaha (W)</div><div class="sl-readout-val" id="vW" style="color:#0284c7;">4.57 kJ</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Energi Dalam (ΔU)</div><div class="sl-readout-val" id="vU">0.00 kJ</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Kalor Masuk (Q)</div><div class="sl-readout-val" id="vQ" style="color:#d97706;">4.57 kJ</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Efisiensi Carnot (η)</div><div class="sl-readout-val" id="vEff" style="color:#059669;">50.0%</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Persamaan Hukum Termodinamika</div>
+        <div class="sl-formula">Q = ΔU + W   |   η_Carnot = (1 − T_C / T_H) × 100%</div>
+        <div class="sl-note" id="thNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('thCanvas');
+    const ctx = cv.getContext('2d');
+    let proc = 'isotermal';
+    let phase = 0;
+    const R_GAS = 8.314;
+    const particles = Array.from({ length: 28 }, (_, i) => ({
+      x: 0.1 + ((i * 37) % 80) / 100,
+      y: 0.15 + ((i * 53) % 70) / 100,
+      vx: ((i % 2 === 0 ? 1 : -1) * (0.012 + (i % 5) * 0.003)),
+      vy: ((i % 3 === 0 ? 1 : -1) * (0.011 + (i % 4) * 0.003))
+    }));
+
+    function setProc(p) {
+      proc = p;
+      const ids = { isotermal: 'mIso', isobarik: 'mBar', adiabatik: 'mAdi', carnot: 'mCar' };
+      Object.entries(ids).forEach(([k, id]) => document.getElementById(id).classList.toggle('is-active', k === p));
+      calc();
+    }
+
+    function computeThermo() {
+      const Th = +document.getElementById('inTh').value || 600;
+      const Tc = Math.min(Th - 40, +document.getElementById('inTc').value || 300);
+      const rat = +document.getElementById('inRat').value || 2.5;
+      const eff = (1 - Tc / Th) * 100;
+      let W = 0, dU = 0, Q = 0, note = '';
+
+      if (proc === 'isotermal') {
+        W = (R_GAS * Th * Math.log(rat)) / 1000;
+        dU = 0;
+        Q = W;
+        note = 'Proses Isotermal (T konstan): energi dalam ΔU = 0 sehingga seluruh kalor yang diserap gas diubah menjadi usaha ekspansi piston (Q = W).';
+      } else if (proc === 'isobarik') {
+        const T2 = Th * Math.min(2.2, rat * 0.65);
+        W = (R_GAS * (T2 - Th)) / 1000;
+        dU = (1.5 * R_GAS * (T2 - Th)) / 1000;
+        Q = W + dU;
+        note = 'Proses Isobarik (P konstan): memanaskan gas menaikkan volume dan suhu sekaligus, sehingga kalor terbagi menjadi ΔU dan usaha W = P·ΔV.';
+      } else if (proc === 'adiabatik') {
+        const gamma = 5 / 3;
+        const T2 = Th * Math.pow(1 / rat, gamma - 1);
+        dU = (1.5 * R_GAS * (T2 - Th)) / 1000;
+        Q = 0;
+        W = -dU;
+        note = 'Proses Adiabatik (Q = 0, terisolasi): gas memuai menggunakan energi dalamnya sendiri sehingga suhu turun drastis saat mendorong piston.';
+      } else {
+        const Qh = (R_GAS * Th * Math.log(rat)) / 1000;
+        W = Qh * (1 - Tc / Th);
+        dU = 0;
+        Q = Qh;
+        note = `Siklus Carnot beroperasi antara T_H=${Th} K dan T_C=${Tc} K. Tidak ada mesin kalor nyata yang efisiensinya dapat melampaui η = ${eff.toFixed(1)}%.`;
+      }
+      return { Th, Tc, rat, eff, W, dU, Q, note };
+    }
+
+    function calc() {
+      const s = computeThermo();
+      document.getElementById('lTh').textContent = s.Th + ' K';
+      document.getElementById('lTc').textContent = s.Tc + ' K';
+      document.getElementById('lRat').textContent = s.rat.toFixed(2) + ' ×';
+      document.getElementById('vW').textContent = s.W.toFixed(2) + ' kJ';
+      document.getElementById('vU').textContent = s.dU.toFixed(2) + ' kJ';
+      document.getElementById('vQ').textContent = s.Q.toFixed(2) + ' kJ';
+      document.getElementById('vEff').textContent = s.eff.toFixed(1) + '%';
+      document.getElementById('thNote').textContent = s.note;
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const s = computeThermo();
+      phase = (phase + 0.025) % 1;
+      const animNorm = proc === 'carnot' ? 0.5 - 0.5 * Math.cos(phase * Math.PI * 2) : phase;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // KIRI: Silinder Piston + Partikel Gas
+      const cylX = 36, cylY = 64, cylW = Math.min(200, W * 0.30), cylMaxH = 270;
+      const minGap = 95, maxGap = cylMaxH - 28;
+      const volFrac = (s.rat - 1) / 3;
+      const gasH = minGap + animNorm * (maxGap - minGap) * Math.min(1, 0.4 + volFrac * 0.6);
+      const pistonY = cylY + cylMaxH - gasH;
+
+      // Dinding Silinder
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+      ctx.strokeRect(cylX, cylY, cylW, cylMaxH);
+
+      // Gas Background
+      const tempRatio = (s.Th - 300) / 600;
+      const rCol = Math.round(14 + tempRatio * 225);
+      const bCol = Math.round(233 - tempRatio * 180);
+      ctx.fillStyle = `rgba(${rCol}, 110, ${bCol}, 0.22)`;
+      ctx.fillRect(cylX + 2, pistonY + 12, cylW - 4, cylY + cylMaxH - pistonY - 14);
+
+      // Partikel Bergerak
+      const speedMul = 0.6 + (s.Th / 500);
+      particles.forEach(pt => {
+        pt.x += pt.vx * speedMul;
+        pt.y += pt.vy * speedMul;
+        if (pt.x < 0.05 || pt.x > 0.95) pt.vx *= -1;
+        if (pt.y < 0.05 || pt.y > 0.95) pt.vy *= -1;
+        const px = cylX + 6 + pt.x * (cylW - 12);
+        const py = pistonY + 18 + pt.y * Math.max(20, cylY + cylMaxH - pistonY - 24);
+        ctx.fillStyle = proc === 'adiabatik' ? '#38bdf8' : '#fb923c';
+        ctx.beginPath(); ctx.arc(px, py, 3.2, 0, Math.PI * 2); ctx.fill();
+      });
+
+      // Batang & Kepala Piston
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(cylX + 2, pistonY, cylW - 4, 14);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(cylX + cylW / 2 - 7, cylY - 22, 14, pistonY - cylY + 22);
+      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('SILINDER PISTON', cylX + cylW / 2, cylY + cylMaxH + 22);
+
+      // Sumber Kalor Bawah
+      ctx.fillStyle = proc === 'adiabatik' ? '#334155' : '#dc2626';
+      ctx.fillRect(cylX + 12, cylY + cylMaxH + 34, cylW - 24, 12);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px monospace';
+      ctx.fillText(proc === 'adiabatik' ? 'DINDING TERISOLASI (Q=0)' : `RESERVOIR ${s.Th} K`, cylX + cylW / 2, cylY + cylMaxH + 62);
+
+      // KANAN: Grafik P - V
+      const gx = cylX + cylW + 46, gy = 48, gw = W - gx - 24, gh = 290;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(gx, gy, gw, gh);
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.strokeRect(gx, gy, gw, gh);
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('DIAGRAM TEKANAN vs VOLUME (P-V)', gx + 10, gy + 18);
+
+      const mapX = v => gx + 28 + ((v - 0.8) / 3.6) * (gw - 48);
+      const mapY = p => gy + gh - 24 - Math.min(1.0, p / 2.2) * (gh - 52);
+
+      // Sumbu
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(gx + 26, gy + 28); ctx.lineTo(gx + 26, gy + gh - 22); ctx.lineTo(gx + gw - 16, gy + gh - 22);
+      ctx.stroke();
+
+      const v1 = 1.0, v2 = s.rat;
+      const pBase = s.Th / 450;
+
+      if (proc === 'carnot') {
+        const v3 = v2 * 1.25;
+        const v4 = Math.max(1.05, v1 * 1.25);
+        const pts = [];
+        for (let t = 0; t <= 1; t += 0.05) { const v = v1 + (v2 - v1) * t; pts.push([mapX(v), mapY(pBase / v)]); }
+        for (let t = 0; t <= 1; t += 0.05) { const v = v2 + (v3 - v2) * t; pts.push([mapX(v), mapY((pBase / v2) * Math.pow(v2 / v, 1.66))]); }
+        for (let t = 0; t <= 1; t += 0.05) { const v = v3 + (v4 - v3) * t; pts.push([mapX(v), mapY((pBase * (s.Tc / s.Th)) / v)]); }
+        for (let t = 0; t <= 1; t += 0.05) { const v = v4 + (v1 - v4) * t; pts.push([mapX(v), mapY((pBase / v1) * Math.pow(v1 / v, 1.66))]); }
+
+        ctx.fillStyle = 'rgba(16,185,129,0.22)';
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        const dotIdx = Math.floor(phase * (pts.length - 1));
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath(); ctx.arc(pts[dotIdx][0], pts[dotIdx][1], 5.5, 0, Math.PI * 2); ctx.fill();
+      } else {
+        const pFn = v => {
+          if (proc === 'isotermal') return pBase / v;
+          if (proc === 'isobarik') return pBase;
+          return pBase * Math.pow(1 / v, 1.66);
+        };
+        ctx.fillStyle = 'rgba(56,189,248,0.20)';
+        ctx.beginPath();
+        ctx.moveTo(mapX(v1), gy + gh - 22);
+        for (let t = 0; t <= 1; t += 0.04) {
+          const v = v1 + (v2 - v1) * t;
+          ctx.lineTo(mapX(v), mapY(pFn(v)));
+        }
+        ctx.lineTo(mapX(v2), gy + gh - 22);
+        ctx.closePath(); ctx.fill();
+
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        for (let t = 0; t <= 1; t += 0.04) {
+          const v = v1 + (v2 - v1) * t;
+          const x = mapX(v), y = mapY(pFn(v));
+          if (t === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        const vCur = v1 + (v2 - v1) * animNorm;
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath(); ctx.arc(mapX(vCur), mapY(pFn(vCur)), 5.5, 0, Math.PI * 2); ctx.fill();
+      }
+
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('Volume (V) →', gx + gw / 2, gy + gh - 6);
+      ctx.fillText('Arsiran = Usaha (W)', gx + gw / 2, gy + gh + 22);
+
+      requestAnimationFrame(loop);
+    }
+
+    calc();
+    loop();
+  </script>
+</body>
+</html>

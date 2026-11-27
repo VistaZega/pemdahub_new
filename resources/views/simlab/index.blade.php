@@ -32,7 +32,7 @@
 </head>
 @php
     $isInstructor = auth()->check() && (auth()->user()->teacher || auth()->user()->isAdmin());
-    $vTag = '?v=20261127d';
+    $vTag = '?v=20261127e';
 
     $engineUrls = [
         'gasoline_engine'        => asset('simlab-engines/mesin-4tak-2tak.html') . $vTag,
@@ -97,6 +97,18 @@
         'vokasi_gears'           => asset('simlab-engines/vokasi-transmisi-gear.html') . $vTag,
         'econ_accounting'        => asset('simlab-engines/ips-persamaan-akuntansi.html') . $vTag,
         'ptn_reasoning'          => asset('simlab-engines/ptn-penalaran-umum-hots.html') . $vTag,
+        'physics_kepler'         => asset('simlab-engines/fisika-orbit-kepler.html') . $vTag,
+        'physics_thermo_pv'      => asset('simlab-engines/fisika-termodinamika-pv.html') . $vTag,
+        'physics_bernoulli'      => asset('simlab-engines/fisika-fluida-bernoulli.html') . $vTag,
+        'physics_collision'      => asset('simlab-engines/fisika-momentum-tumbukan.html') . $vTag,
+        'physics_quantum_decay'  => asset('simlab-engines/fisika-kuantum-radioaktif.html') . $vTag,
+        'bio_protein_synthesis'  => asset('simlab-engines/biologi-sintesis-protein.html') . $vTag,
+        'chem_equilibrium'       => asset('simlab-engines/kimia-kesetimbangan-lechatelier.html') . $vTag,
+        'chem_vsepr'             => asset('simlab-engines/kimia-bentuk-molekul-vsepr.html') . $vTag,
+        'math_exp_matrix'        => asset('simlab-engines/matematika-eksponen-logaritma-matriks.html') . $vTag,
+        'ptn_spatial_3d'         => asset('simlab-engines/ptn-spasial-figural-3d.html') . $vTag,
+        'lang_indo_discourse'    => asset('simlab-engines/ips-literasi-wacana-snbt.html') . $vTag,
+        'lang_english_snbt'      => asset('simlab-engines/ips-literasi-inggris-snbt.html') . $vTag,
     ];
 
     $rooms = [

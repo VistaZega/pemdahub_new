@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika Modern: Efek Fotolistrik &amp; Peluruhan Radioaktif</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Fisika Kuantum &amp; Inti: Efek Fotolistrik Einstein dan Waktu Paruh Radioaktif</div>
+          <div class="sl-bar-sub">Uji ambang energi foton untuk melepaskan elektron logam atau amati peluruhan isotop radioaktif N(t)</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="bPhoto" onclick="setMode('photo')">Efek Fotolistrik</button>
+          <button type="button" class="sl-btn" id="bDecay" onclick="setMode('decay')">Waktu Paruh Inti</button>
+          <button type="button" class="sl-btn" id="bResetNuclei" onclick="resetNuclei()" style="display:none;">Reset 160 Inti</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="qCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group" id="grpPhoto">
+        <div class="sl-group-label">Variabel Foton &amp; Logam Katoda</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Panjang Gelombang Cahaya (λ)</span><span class="sl-ctrl-val" id="lLam">320 nm (UV)</span></div>
+          <input type="range" id="inLam" min="180" max="700" step="10" value="320" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Jenis Logam / Fungsi Kerja (W₀)</span></div>
+          <select id="selMetal" onchange="calc()">
+            <option value="2.1">Sesium / Cs (W₀ = 2.10 eV)</option>
+            <option value="2.7">Natrium / Na (W₀ = 2.75 eV)</option>
+            <option value="4.3" selected>Seng / Zn (W₀ = 4.30 eV)</option>
+            <option value="5.6">Platina / Pt (W₀ = 5.60 eV)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sl-group" id="grpDecay" style="display:none;">
+        <div class="sl-group-label">Parameter Peluruhan Inti Radioaktif</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Waktu Paruh Isotop (T½)</span><span class="sl-ctrl-val" id="lThalf">4.0 detik</span></div>
+          <input type="range" id="inThalf" min="2" max="10" step="1" value="4" oninput="calc()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Kuantum &amp; Inti</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblR1">Energi Foton (hf)</div><div class="sl-readout-val" id="vR1" style="color:#0284c7;">3.88 eV</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblR2">Ek Maks Elektron</div><div class="sl-readout-val" id="vR2" style="color:#059669;">0.00 eV</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblR3">Status Emisi / Sisa</div><div class="sl-readout-val" id="vR3">Tahan Emisi</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Prinsip Fisika Modern</div>
+        <div class="sl-formula" id="qForm">E = h·c / λ = 1240 / λ(nm)   |   Ek_max = E − W₀</div>
+        <div class="sl-note" id="qNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('qCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'photo';
+    let tick = 0;
+    let electrons = [];
+    let nuclei = Array.from({ length: 160 }, () => ({ active: true }));
+    let elapsedT = 0;
+
+    function resetNuclei() {
+      nuclei.forEach(n => { n.active = true; });
+      elapsedT = 0;
+    }
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('bPhoto').classList.toggle('is-active', m === 'photo');
+      document.getElementById('bDecay').classList.toggle('is-active', m === 'decay');
+      document.getElementById('grpPhoto').style.display = m === 'photo' ? 'block' : 'none';
+      document.getElementById('grpDecay').style.display = m === 'decay' ? 'block' : 'none';
+      document.getElementById('bResetNuclei').style.display = m === 'decay' ? 'inline-flex' : 'none';
+      if (m === 'decay') resetNuclei();
+      calc();
+    }
+
+    function lamToBand(lam) {
+      if (lam < 380) return { label: 'UV', col: '#a855f7' };
+      if (lam < 460) return { label: 'Biru-Ungu', col: '#3b82f6' };
+      if (lam < 560) return { label: 'Hijau', col: '#22c55e' };
+      if (lam < 620) return { label: 'Kuning-Jingga', col: '#f59e0b' };
+      return { label: 'Merah', col: '#ef4444' };
+    }
+
+    function calc() {
+      if (mode === 'photo') {
+        const lam = +document.getElementById('inLam').value || 320;
+        const W0 = +document.getElementById('selMetal').value || 4.3;
+        const E = 1240 / lam;
+        const ek = Math.max(0, E - W0);
+        const emit = E > W0;
+        const band = lamToBand(lam);
+        document.getElementById('lLam').textContent = `${lam} nm (${band.label})`;
+        document.getElementById('lblR1').textContent = 'Energi Foton (hf)';
+        document.getElementById('vR1').textContent = E.toFixed(2) + ' eV';
+        document.getElementById('lblR2').textContent = 'Ek Maks Elektron';
+        document.getElementById('vR2').textContent = ek.toFixed(2) + ' eV';
+        document.getElementById('lblR3').textContent = 'Status Emisi';
+        document.getElementById('vR3').textContent = emit ? 'Elektron Lepas' : 'Gagal Lepas';
+        document.getElementById('vR3').style.color = emit ? '#059669' : '#dc2626';
+        document.getElementById('qForm').textContent = 'E = h·c / λ = 1240 / λ(nm)   |   Ek_max = E − W₀';
+        document.getElementById('qNote').textContent = emit
+          ? `Energi foton (${E.toFixed(2)} eV) melampaui fungsi kerja logam W₀ (${W0.toFixed(2)} eV), sehingga elektron terpancar dengan Ek = ${ek.toFixed(2)} eV.`
+          : `Energi foton (${E.toFixed(2)} eV) lebih kecil daripada W₀ (${W0.toFixed(2)} eV). Sebesar apa pun intensitas cahaya dinaikkan, elektron TIDAK akan lepas jika λ terlalu panjang.`;
+      } else {
+        const th = +document.getElementById('inThalf').value || 4;
+        document.getElementById('lThalf').textContent = th.toFixed(1) + ' detik';
+        document.getElementById('lblR1').textContent = 'Waktu Berjalan (t)';
+        document.getElementById('lblR2').textContent = 'Sisa Inti Aktif';
+        document.getElementById('lblR3').textContent = 'Persentase N/N₀';
+        document.getElementById('qForm').textContent = 'N(t) = N₀ · (1/2)^(t / T½)';
+        document.getElementById('qNote').textContent = `Setiap melewati ${th.toFixed(1)} detik (1× waktu paruh), sekitar separuh dari inti induk radioaktif yang tersisa meluruh menjadi inti anak yang stabil.`;
+      }
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      tick++;
+      ctx.clearRect(0, 0, W, H);
+
+      if (mode === 'photo') {
+        const lam = +document.getElementById('inLam').value || 320;
+        const W0 = +document.getElementById('selMetal').value || 4.3;
+        const E = 1240 / lam;
+        const ek = Math.max(0, E - W0);
+        const emit = E > W0;
+        const band = lamToBand(lam);
+
+        // Tabung Vakum
+        ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2.5;
+        ctx.strokeRect(48, 85, W - 96, 235);
+        // Pelat Logam Katoda (Kiri) & Anoda (Kanan)
+        ctx.fillStyle = '#94a3b8'; ctx.fillRect(68, 110, 22, 185);
+        ctx.fillStyle = '#cbd5e1'; ctx.fillRect(W - 92, 110, 14, 185);
+        ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#e2e8f0'; ctx.fillText(`KATODA (W₀=${W0} eV)`, 95, 342);
+        ctx.fillText('KOLEKTOR', W - 85, 342);
+
+        // Gelombang Foton Datang
+        for (let k = 0; k < 4; k++) {
+          const sx = 175 + k * 42;
+          const sy = 125 + k * 40;
+          ctx.strokeStyle = band.col; ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          for (let t = 0; t <= 72; t += 4) {
+            const wx = sx - t;
+            const wy = sy - t * 0.55 + Math.sin((t + tick * 4) * 0.35) * 6;
+            if (t === 0) ctx.moveTo(wx, wy); else ctx.lineTo(wx, wy);
+          }
+          ctx.stroke();
+        }
+        ctx.fillStyle = band.col; ctx.textAlign = 'left';
+        ctx.fillText(`Foton λ = ${lam} nm (E = ${E.toFixed(2)} eV)`, 145, 58);
+
+        // Emisi Elektron
+        if (emit && tick % 10 === 0) {
+          electrons.push({ x: 92, y: 130 + Math.random() * 145, vx: 1.8 + ek * 1.4 });
+        }
+        electrons.forEach(el => { el.x += el.vx; });
+        electrons = electrons.filter(el => el.x < W - 92);
+
+        electrons.forEach(el => {
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath(); ctx.arc(el.x, el.y, 4, 0, Math.PI * 2); ctx.fill();
+        });
+
+        ctx.fillStyle = emit ? '#34d399' : '#f87171';
+        ctx.textAlign = 'center'; ctx.font = 'bold 12px monospace';
+        ctx.fillText(emit ? `ARUS FOTOELEKTRON AKTIF (Ek_max = ${ek.toFixed(2)} eV)` : 'TIDAK ADA ELEKTRON TERLEPAS (hf < W₀)', W / 2, 382);
+      } else {
+        const th = +document.getElementById('inThalf').value || 4;
+        const dt = 1 / 60;
+        const activeCnt = nuclei.filter(n => n.active).length;
+        if (activeCnt > 0) {
+          elapsedT += dt;
+          const prob = 1 - Math.exp(-(Math.LN2 / th) * dt);
+          nuclei.forEach(n => {
+            if (n.active && Math.random() < prob) n.active = false;
+          });
+        }
+        const rem = nuclei.filter(n => n.active).length;
+        document.getElementById('vR1').textContent = elapsedT.toFixed(1) + ' s';
+        document.getElementById('vR2').textContent = `${rem} / 160`;
+        document.getElementById('vR3').textContent = ((rem / 160) * 100).toFixed(1) + '%';
+        document.getElementById('vR3').style.color = '#0284c7';
+
+        // KIRI: Grid 160 Inti (16x10)
+        const gx0 = 26, gy0 = 46, cell = Math.min(20, (W * 0.45) / 16);
+        nuclei.forEach((n, idx) => {
+          const r = Math.floor(idx / 16), c = idx % 16;
+          ctx.fillStyle = n.active ? '#38bdf8' : '#334155';
+          ctx.beginPath(); ctx.arc(gx0 + c * cell + cell / 2, gy0 + r * cell + cell / 2, cell * 0.34, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+        ctx.fillText('Biru = Inti Induk Aktif | Abu = Inti Anak Stabil', gx0, gy0 + 10 * cell + 24);
+
+        // KANAN: Kurva Peluruhan N(t)
+        const px = W * 0.52, py = 46, pw = W - px - 24, ph = 290;
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(px, py, pw, ph);
+        ctx.strokeStyle = '#334155'; ctx.strokeRect(px, py, pw, ph);
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        const maxT = th * 4;
+        for (let t = 0; t <= maxT; t += maxT / 40) {
+          const sx = px + 24 + (t / maxT) * (pw - 38);
+          const sy = py + ph - 24 - Math.pow(0.5, t / th) * (ph - 52);
+          if (t === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+
+        const curX = px + 24 + Math.min(1, elapsedT / maxT) * (pw - 38);
+        const curY = py + ph - 24 - (rem / 160) * (ph - 52);
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath(); ctx.arc(curX, curY, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px monospace'; ctx.fillText('KURVA N(t) = N₀(1/2)^(t/T½)', px + 12, py + 18);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    calc();
+    loop();
+  </script>
+</body>
+</html>

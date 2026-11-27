@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika Kosmos: Gravitasi &amp; Hukum Kepler</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Hukum Kepler &amp; Gravitasi Universal Orbit Planet</div>
+          <div class="sl-bar-sub">Amati orbit elips mengelilingi bintang di titik fokus, sapuan luas juring sama dalam selang waktu sama, serta perubahan laju orbit</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnSweep" onclick="toggleSweep()">Juring Luas: ON</button>
+          <button type="button" class="sl-btn" onclick="resetOrbit()">Reset Perihelion</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="kepCanvas" height="420"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Parameter Orbit &amp; Bintang Induk</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Sumbu Semi-Mayor (a)</span><span class="sl-ctrl-val" id="lA">1.80 AU</span></div>
+          <input type="range" id="inA" min="0.6" max="3.8" step="0.1" value="1.8" oninput="updateParams()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Eksentrisitas Orbit (e)</span><span class="sl-ctrl-val" id="lE">0.48</span></div>
+          <input type="range" id="inE" min="0.00" max="0.72" step="0.02" value="0.48" oninput="updateParams()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Massa Bintang (M)</span><span class="sl-ctrl-val" id="lM">1.00 M☉</span></div>
+          <input type="range" id="inM" min="0.5" max="2.5" step="0.1" value="1.0" oninput="updateParams()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Telemetri Mekanika Benda Langit</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Periode (T)</div><div class="sl-readout-val" id="vT" style="color:#0284c7;">2.41 th</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Jarak Saat Ini (r)</div><div class="sl-readout-val" id="vR">1.80 AU</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Laju Perihelion</div><div class="sl-readout-val" id="vMax" style="color:#d97706;">37.5 km/s</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Laju Aphelion</div><div class="sl-readout-val" id="vMin" style="color:#059669;">13.2 km/s</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hukum I, II, III Kepler &amp; Gravitasi</div>
+        <div class="sl-formula">T² = (4π² / G·M) · a³   |   v = √(G·M · (2/r − 1/a))</div>
+        <div class="sl-note" id="kepNote" style="margin-top:8px;">
+          Ketika planet mendekati bintang (Perihelion), gaya gravitasi meningkat dan planet melaju paling cepat agar luas juring per satuan waktu tetap konstan (Kekekalan Momentum Sudut).
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('kepCanvas');
+    const ctx = cv.getContext('2d');
+    let showSweep = true;
+    let theta = 0.2;
+    let frameTick = 0;
+    let sectors = [];
+    let currentSector = [];
+
+    function toggleSweep() {
+      showSweep = !showSweep;
+      const b = document.getElementById('btnSweep');
+      b.textContent = showSweep ? 'Juring Luas: ON' : 'Juring Luas: OFF';
+      b.classList.toggle('is-active', showSweep);
+    }
+
+    function resetOrbit() {
+      theta = 0;
+      frameTick = 0;
+      sectors = [];
+      currentSector = [];
+    }
+
+    function getState() {
+      const a = Math.max(0.5, +document.getElementById('inA').value || 1.8);
+      const e = Math.min(0.75, Math.max(0, +document.getElementById('inE').value || 0));
+      const M = Math.max(0.5, +document.getElementById('inM').value || 1.0);
+      const T = Math.sqrt((a * a * a) / M);
+      const rPeri = a * (1 - e);
+      const rAph = a * (1 + e);
+      const vEarth = 29.78;
+      const vMax = vEarth * Math.sqrt(M * (2 / rPeri - 1 / a));
+      const vMin = vEarth * Math.sqrt(M * (2 / rAph - 1 / a));
+      return { a, e, M, T, rPeri, rAph, vMax, vMin };
+    }
+
+    function updateParams() {
+      const s = getState();
+      document.getElementById('lA').textContent = s.a.toFixed(2) + ' AU';
+      document.getElementById('lE').textContent = s.e.toFixed(2);
+      document.getElementById('lM').textContent = s.M.toFixed(2) + ' M☉';
+      document.getElementById('vT').textContent = s.T.toFixed(2) + ' th';
+      document.getElementById('vMax').textContent = s.vMax.toFixed(1) + ' km/s';
+      document.getElementById('vMin').textContent = s.vMin.toFixed(1) + ' km/s';
+      sectors = [];
+      currentSector = [];
+    }
+
+    function drawFrame() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 420;
+      const W = cv.width, H = cv.height;
+      const s = getState();
+
+      const p = s.a * (1 - s.e * s.e);
+      const r = p / (1 + s.e * Math.cos(theta));
+      // Hukum II Kepler: r^2 * dtheta/dt = konstan => kecepatan sudut ~ h / r^2
+      const bSemi = s.a * Math.sqrt(1 - s.e * s.e);
+      const dTheta = Math.min(0.18, (0.045 * Math.sqrt(s.M) * Math.sqrt(p)) / Math.max(0.08, r * r));
+      theta = (theta + dTheta) % (Math.PI * 2);
+
+      const scale = Math.min(W * 0.42, H * 0.44) / Math.max(1.2, s.a * (1 + s.e));
+      const starX = W * 0.5 + s.a * s.e * scale * 0.72;
+      const starY = H * 0.5;
+
+      const px = starX + r * Math.cos(theta) * scale;
+      const py = starY - r * Math.sin(theta) * scale;
+
+      if (showSweep) {
+        currentSector.push({ x: px, y: py });
+        frameTick++;
+        if (frameTick % 14 === 0) {
+          if (currentSector.length >= 2) {
+            sectors.push({ pts: currentSector.slice(), idx: sectors.length });
+            if (sectors.length > 6) sectors.shift();
+          }
+          currentSector = [{ x: px, y: py }];
+        }
+      }
+
+      document.getElementById('vR').textContent = r.toFixed(2) + ' AU';
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+      for (let gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+      // Juring luas sama (Hukum II Kepler)
+      if (showSweep) {
+        sectors.forEach(sec => {
+          ctx.fillStyle = sec.idx % 2 === 0 ? 'rgba(56,189,248,0.18)' : 'rgba(16,185,129,0.18)';
+          ctx.beginPath();
+          ctx.moveTo(starX, starY);
+          sec.pts.forEach(pt => ctx.lineTo(pt.x, pt.y));
+          ctx.closePath();
+          ctx.fill();
+        });
+      }
+
+      // Lintasan Elips
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      for (let ang = 0; ang <= Math.PI * 2 + 0.04; ang += 0.04) {
+        const rr = p / (1 + s.e * Math.cos(ang));
+        const ox = starX + rr * Math.cos(ang) * scale;
+        const oy = starY - rr * Math.sin(ang) * scale;
+        if (ang === 0) ctx.moveTo(ox, oy); else ctx.lineTo(ox, oy);
+      }
+      ctx.stroke();
+
+      // Label Perihelion & Aphelion
+      const periX = starX + s.rPeri * scale;
+      const aphX = starX - s.rAph * scale;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('PERIHELION', Math.min(W - 46, periX), starY + 20);
+      ctx.fillText('APHELION', Math.max(46, aphX), starY + 20);
+
+      // Bintang di Fokus F1
+      const starRad = 13 + s.M * 4;
+      ctx.fillStyle = 'rgba(251,191,36,0.22)';
+      ctx.beginPath(); ctx.arc(starX, starY, starRad + 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(starX, starY, starRad, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fef3c7';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText('BINTANG (F₁)', starX, starY - starRad - 8);
+
+      // Garis Radius r
+      ctx.strokeStyle = 'rgba(250,204,21,0.45)';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(starX, starY); ctx.lineTo(px, py); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Planet
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath(); ctx.arc(px, py, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // Vektor Kecepatan Tangensial v & Gaya Gravitasi Fg
+      const dx = -s.rPeri * Math.sin(theta) - (r * r * s.e * Math.sin(theta) * Math.cos(theta)) / p;
+      const tx = -Math.sin(theta) / Math.max(0.2, r);
+      const ty = -(Math.cos(theta) + s.e) / Math.max(0.2, r);
+      const tLen = Math.hypot(tx, ty) || 1;
+      const vNow = 29.78 * Math.sqrt(s.M * (2 / r - 1 / s.a));
+      const vArrow = Math.min(70, Math.max(20, vNow * 1.4));
+      ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + (tx / tLen) * vArrow, py + (ty / tLen) * vArrow); ctx.stroke();
+
+      const gxDir = (starX - px) / Math.max(1, Math.hypot(starX - px, starY - py));
+      const gyDir = (starY - py) / Math.max(1, Math.hypot(starX - px, starY - py));
+      const fArrow = Math.min(54, Math.max(16, (30 * s.M) / (r * r)));
+      ctx.strokeStyle = '#f87171'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + gxDir * fArrow, py + gyDir * fArrow); ctx.stroke();
+
+      // Legenda sudut kiri atas
+      ctx.textAlign = 'left'; ctx.font = 'bold 11px monospace';
+      ctx.fillStyle = '#34d399'; ctx.fillText('— Vektor Laju (v)', 16, 24);
+      ctx.fillStyle = '#f87171'; ctx.fillText('— Gaya Gravitasi (Fg)', 16, 42);
+      ctx.fillStyle = '#cbd5e1'; ctx.fillText(`b = ${bSemi.toFixed(2)} AU`, 16, 60);
+
+      requestAnimationFrame(drawFrame);
+    }
+
+    updateParams();
+    drawFrame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika: Kekekalan Momentum &amp; Tumbukan 1D</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Hukum Kekekalan Momentum Linear &amp; Koefisien Restitusi (e)</div>
+          <div class="sl-bar-sub">Uji tumbukan lenting sempurna (e = 1), lenting sebagian, hingga tidak lenting sama sekali (e = 0) dan bandingkan energi kinetik</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn sl-btn-primary" onclick="launch()">Luncurkan Ulang</button>
+          <button type="button" class="sl-btn" onclick="setRest(1.0)">Lenting Sempurna (e=1)</button>
+          <button type="button" class="sl-btn" onclick="setRest(0.0)">Menyatu (e=0)</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="colCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Parameter Kereta A (Biru) &amp; B (Oranye)</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Massa Benda A (m₁)</span><span class="sl-ctrl-val" id="lM1">4.0 kg</span></div>
+          <input type="range" id="inM1" min="1" max="10" step="0.5" value="4.0" oninput="resetAndCalc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kecepatan Awal A (v₁)</span><span class="sl-ctrl-val" id="lV1">+6.0 m/s</span></div>
+          <input type="range" id="inV1" min="1" max="10" step="0.5" value="6.0" oninput="resetAndCalc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Massa Benda B (m₂)</span><span class="sl-ctrl-val" id="lM2">2.0 kg</span></div>
+          <input type="range" id="inM2" min="1" max="10" step="0.5" value="2.0" oninput="resetAndCalc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kecepatan Awal B (v₂)</span><span class="sl-ctrl-val" id="lV2">-3.0 m/s</span></div>
+          <input type="range" id="inV2" min="-8" max="2" step="0.5" value="-3.0" oninput="resetAndCalc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Koefisien Restitusi (e)</span><span class="sl-ctrl-val" id="lE">1.00</span></div>
+          <input type="range" id="inE" min="0" max="1" step="0.05" value="1.0" oninput="resetAndCalc()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hasil Sebelum vs Sesudah Tumbukan</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">v₁' Akhir A</div><div class="sl-readout-val" id="vV1p" style="color:#0284c7;">0.00 m/s</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">v₂' Akhir B</div><div class="sl-readout-val" id="vV2p" style="color:#d97706;">+9.00 m/s</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Momentum Total (p)</div><div class="sl-readout-val" id="vP">+18.0 kg·m/s</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Ek Hilang (ΔEk)</div><div class="sl-readout-val" id="vEkLoss" style="color:#059669;">0.0%</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Rumus Momentum &amp; Restitusi</div>
+        <div class="sl-formula">m₁v₁ + m₂v₂ = m₁v₁' + m₂v₂'   |   e = −(v₂' − v₁') / (v₂ − v₁)</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('colCanvas');
+    const ctx = cv.getContext('2d');
+    let state = { x1: 120, x2: 460, v1: 6, v2: -3, collided: false };
+
+    function setRest(eVal) {
+      document.getElementById('inE').value = eVal;
+      resetAndCalc();
+    }
+
+    function getParams() {
+      const m1 = +document.getElementById('inM1').value || 4;
+      const v1 = +document.getElementById('inV1').value || 6;
+      const m2 = +document.getElementById('inM2').value || 2;
+      const v2 = +document.getElementById('inV2').value || -3;
+      const e = +document.getElementById('inE').value;
+      const pTotal = m1 * v1 + m2 * v2;
+      const v1p = (m1 * v1 + m2 * v2 + m2 * e * (v2 - v1)) / (m1 + m2);
+      const v2p = (m1 * v1 + m2 * v2 + m1 * e * (v1 - v2)) / (m1 + m2);
+      const ek0 = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+      const ek1 = 0.5 * m1 * v1p * v1p + 0.5 * m2 * v2p * v2p;
+      const lossPct = ek0 > 0.001 ? ((ek0 - ek1) / ek0) * 100 : 0;
+      return { m1, v1, m2, v2, e, pTotal, v1p, v2p, ek0, ek1, lossPct };
+    }
+
+    function resetAndCalc() {
+      const s = getParams();
+      document.getElementById('lM1').textContent = s.m1.toFixed(1) + ' kg';
+      document.getElementById('lV1').textContent = (s.v1 >= 0 ? '+' : '') + s.v1.toFixed(1) + ' m/s';
+      document.getElementById('lM2').textContent = s.m2.toFixed(1) + ' kg';
+      document.getElementById('lV2').textContent = (s.v2 >= 0 ? '+' : '') + s.v2.toFixed(1) + ' m/s';
+      document.getElementById('lE').textContent = s.e.toFixed(2);
+      document.getElementById('vV1p').textContent = (s.v1p >= 0 ? '+' : '') + s.v1p.toFixed(2) + ' m/s';
+      document.getElementById('vV2p').textContent = (s.v2p >= 0 ? '+' : '') + s.v2p.toFixed(2) + ' m/s';
+      document.getElementById('vP').textContent = (s.pTotal >= 0 ? '+' : '') + s.pTotal.toFixed(1) + ' kg·m/s';
+      document.getElementById('vEkLoss').textContent = Math.max(0, s.lossPct).toFixed(1) + '%';
+      launch();
+    }
+
+    function launch() {
+      const s = getParams();
+      const W = cv.offsetWidth || 640;
+      state = { x1: W * 0.22, x2: W * 0.72, v1: s.v1, v2: s.v2, collided: false };
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const s = getParams();
+
+      const w1 = 44 + s.m1 * 4.5, w2 = 44 + s.m2 * 4.5;
+      const h1 = 42 + s.m1 * 3.0, h2 = 42 + s.m2 * 3.0;
+
+      state.x1 += state.v1 * 0.55;
+      state.x2 += state.v2 * 0.55;
+
+      if (!state.collided && state.x1 + w1 / 2 >= state.x2 - w2 / 2) {
+        const mid = (state.x1 + state.x2) / 2;
+        state.x1 = mid - w1 / 2;
+        state.x2 = mid + w2 / 2;
+        state.v1 = s.v1p;
+        state.v2 = s.v2p;
+        state.collided = true;
+      }
+
+      if (state.x1 < -80 || state.x2 > W + 80 || state.x2 < -80 || state.x1 > W + 80) {
+        launch();
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      const trackY = 205;
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(20, trackY); ctx.lineTo(W - 20, trackY); ctx.stroke();
+
+      // Status Header
+      ctx.fillStyle = state.collided ? '#34d399' : '#38bdf8';
+      ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(state.collided ? 'FASE SESUDAH TUMBUKAN' : 'FASE MENUJU TUMBUKAN', W / 2, 32);
+
+      // Gambar Benda A & B
+      const drawCart = (cx, bw, bh, col, lbl, vel) => {
+        ctx.fillStyle = col;
+        ctx.fillRect(cx - bw / 2, trackY - bh - 6, bw, bh);
+        ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(cx - bw / 2, trackY - bh - 6, bw, bh);
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(lbl, cx, trackY - bh / 2 - 2);
+        // Roda
+        ctx.fillStyle = '#94a3b8';
+        ctx.beginPath(); ctx.arc(cx - bw * 0.28, trackY - 3, 5, 0, Math.PI * 2); ctx.arc(cx + bw * 0.28, trackY - 3, 5, 0, Math.PI * 2); ctx.fill();
+        // Panah Kecepatan
+        if (Math.abs(vel) > 0.05) {
+          const arrowLen = Math.min(75, Math.abs(vel) * 7) * Math.sign(vel);
+          ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.moveTo(cx, trackY - bh - 18); ctx.lineTo(cx + arrowLen, trackY - bh - 18); ctx.stroke();
+          ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px monospace';
+          ctx.fillText(`${vel >= 0 ? '+' : ''}${vel.toFixed(1)} m/s`, cx, trackY - bh - 28);
+        }
+      };
+
+      drawCart(state.x1, w1, h1, '#38bdf8', `A (${s.m1}kg)`, state.v1);
+      drawCart(state.x2, w2, h2, '#fb923c', `B (${s.m2}kg)`, state.v2);
+
+      // Panel Bar Chart Kekekalan Momentum vs Energi Kinetik di Bawah
+      const by = 248, bh = 136;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(24, by, W - 48, bh);
+      ctx.strokeStyle = '#1e293b'; ctx.strokeRect(24, by, W - 48, bh);
+
+      const barW = Math.min(220, W * 0.36);
+      const drawBar = (x, title, vBefore, vAfter, maxV, col1, col2, unit) => {
+        ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+        ctx.fillText(title, x, by + 20);
+        const wB = (Math.abs(vBefore) / Math.max(1, maxV)) * barW;
+        const wA = (Math.abs(vAfter) / Math.max(1, maxV)) * barW;
+        ctx.fillStyle = col1; ctx.fillRect(x, by + 34, wB, 22);
+        ctx.fillStyle = '#ffffff'; ctx.fillText(`Awal: ${vBefore.toFixed(1)} ${unit}`, x + 6, by + 49);
+        ctx.fillStyle = col2; ctx.fillRect(x, by + 68, wA, 22);
+        ctx.fillStyle = '#ffffff'; ctx.fillText(`Akhir: ${vAfter.toFixed(1)} ${unit}`, x + 6, by + 83);
+      };
+
+      drawBar(42, 'MOMENTUM TOTAL (SELALU KEKAL)', s.pTotal, s.pTotal, Math.max(10, Math.abs(s.pTotal) * 1.2), '#0284c7', '#059669', 'kg·m/s');
+      drawBar(W * 0.52, 'ENERGI KINETIK TOTAL (Joule)', s.ek0, s.ek1, Math.max(20, s.ek0 * 1.15), '#d97706', '#f43f5e', 'J');
+
+      requestAnimationFrame(loop);
+    }
+
+    resetAndCalc();
+    loop();
+  </script>
+</body>
+</html>

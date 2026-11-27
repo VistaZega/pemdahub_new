@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Kimia: Geometri Molekul VSEPR 3D &amp; Kepolaran</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Teori Domain Elektron VSEPR 3D, Sudut Ikatan &amp; Kepolaran Molekul</div>
+          <div class="sl-bar-sub">Putar molekul 3D dan bandingkan tolakan Pasangan Elektron Bebas (PEB) vs Pasangan Elektron Ikatan (PEI)</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnSpin" onclick="toggleSpin()">Rotasi 3D: ON</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="vseprCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Pilih Molekul Contoh atau Atur Domain</div>
+        <div class="sl-ctrl">
+          <select id="selMol" onchange="applyPreset()">
+            <option value="BeCl2">BeCl₂ — AX₂ (Linear, 180°)</option>
+            <option value="BF3">BF₃ — AX₃ (Segitiga Datar, 120°)</option>
+            <option value="CH4" selected>CH₄ — AX₄ (Tetrahedral, 109.5°)</option>
+            <option value="NH3">NH₃ — AX₃E (Piramida Trigonal, 107°)</option>
+            <option value="H2O">H₂O — AX₂E₂ (Huruf V / Bengkok, 104.5°)</option>
+            <option value="SF6">SF₆ — AX₆ (Oktahedral, 90°)</option>
+          </select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Sudut Putar Sumbu-Y (Yaw)</span><span class="sl-ctrl-val" id="lYaw">25°</span></div>
+          <input type="range" id="inYaw" min="0" max="360" step="5" value="25" oninput="onManual()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Identitas Geometri &amp; Sifat Molekul</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Tipe Domain</div><div class="sl-readout-val" id="vType" style="color:#0284c7;">AX₄</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Bentuk Molekul</div><div class="sl-readout-val" id="vShape">Tetrahedral</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Sudut Ikatan</div><div class="sl-readout-val" id="vAngle" style="color:#d97706;">109.5°</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Kepolaran</div><div class="sl-readout-val" id="vPol" style="color:#059669;">Nonpolar</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Urutan Kuat Tolakan Domain Elektron</div>
+        <div class="sl-formula">PEB − PEB  &gt;  PEB − PEI  &gt;  PEI − PEI</div>
+        <div class="sl-note" id="vNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('vseprCanvas');
+    const ctx = cv.getContext('2d');
+    let spinning = true;
+    let yawRad = 0.44;
+    const pitchRad = 0.28;
+
+    const MOLS = {
+      BeCl2: {
+        formula: 'AX₂', shape: 'Linear', angle: '180°', polar: 'Nonpolar', pei: 2, peb: 0,
+        center: 'Be', outer: 'Cl',
+        pts: [{ x: -1, y: 0, z: 0, lp: false }, { x: 1, y: 0, z: 0, lp: false }],
+        note: '2 domain ikatan saling berlawanan arah (180°) membentuk garis lurus simetris sehingga momen dipol saling meniadakan (Nonpolar).'
+      },
+      BF3: {
+        formula: 'AX₃', shape: 'Segitiga Datar', angle: '120°', polar: 'Nonpolar', pei: 3, peb: 0,
+        center: 'B', outer: 'F',
+        pts: [
+          { x: 0, y: -1, z: 0, lp: false },
+          { x: 0.866, y: 0.5, z: 0, lp: false },
+          { x: -0.866, y: 0.5, z: 0, lp: false }
+        ],
+        note: '3 pasangan ikatan simetris pada satu bidang datar dengan sudut 120° tanpa PEB di atom pusat B.'
+      },
+      CH4: {
+        formula: 'AX₄', shape: 'Tetrahedral', angle: '109.5°', polar: 'Nonpolar', pei: 4, peb: 0,
+        center: 'C', outer: 'H',
+        pts: [
+          { x: 0, y: -1, z: 0, lp: false },
+          { x: 0.943, y: 0.333, z: 0, lp: false },
+          { x: -0.471, y: 0.333, z: 0.816, lp: false },
+          { x: -0.471, y: 0.333, z: -0.816, lp: false }
+        ],
+        note: 'Keempat ikatan C-H menyebar maksimal di ruang 3D membentuk sudut tetrahedral 109.5° (simetris & Nonpolar).'
+      },
+      NH3: {
+        formula: 'AX₃E', shape: 'Piramida Trigonal', angle: '107°', polar: 'Polar', pei: 3, peb: 1,
+        center: 'N', outer: 'H',
+        pts: [
+          { x: 0, y: -1, z: 0, lp: true },
+          { x: 0.943, y: 0.36, z: 0, lp: false },
+          { x: -0.471, y: 0.36, z: 0.816, lp: false },
+          { x: -0.471, y: 0.36, z: -0.816, lp: false }
+        ],
+        note: '1 PEB di puncak atom N menekan ketiga ikatan N-H agar lebih rapat dari 109.5° menjadi ~107°, menciptakan molekul Polar.'
+      },
+      H2O: {
+        formula: 'AX₂E₂', shape: 'Huruf V (Bengkok)', angle: '104.5°', polar: 'Polar', pei: 2, peb: 2,
+        center: 'O', outer: 'H',
+        pts: [
+          { x: 0.72, y: -0.68, z: 0.35, lp: true },
+          { x: -0.72, y: -0.68, z: -0.35, lp: true },
+          { x: 0.79, y: 0.61, z: 0, lp: false },
+          { x: -0.79, y: 0.61, z: 0, lp: false }
+        ],
+        note: 'Dua PEB pada atom O menghasilkan tolakan sangat kuat sehingga sudut H-O-H menyempit menjadi 104.5°. Bentuk bengkok inilah penyebab air sangat polar dan mampu melarutkan banyak zat!'
+      },
+      SF6: {
+        formula: 'AX₆', shape: 'Oktahedral', angle: '90°', polar: 'Nonpolar', pei: 6, peb: 0,
+        center: 'S', outer: 'F',
+        pts: [
+          { x: 0, y: -1, z: 0, lp: false }, { x: 0, y: 1, z: 0, lp: false },
+          { x: 1, y: 0, z: 0, lp: false }, { x: -1, y: 0, z: 0, lp: false },
+          { x: 0, y: 0, z: 1, lp: false }, { x: 0, y: 0, z: -1, lp: false }
+        ],
+        note: '6 domain ikatan menempati sumbu ±X, ±Y, dan ±Z dengan sudut 90° simetris sempurna (Nonpolar).'
+      }
+    };
+
+    function toggleSpin() {
+      spinning = !spinning;
+      const b = document.getElementById('btnSpin');
+      b.textContent = spinning ? 'Rotasi 3D: ON' : 'Rotasi 3D: OFF';
+      b.classList.toggle('is-active', spinning);
+    }
+
+    function onManual() {
+      spinning = false;
+      document.getElementById('btnSpin').textContent = 'Rotasi 3D: OFF';
+      document.getElementById('btnSpin').classList.remove('is-active');
+      const deg = +document.getElementById('inYaw').value || 0;
+      yawRad = (deg * Math.PI) / 180;
+      document.getElementById('lYaw').textContent = deg + '°';
+    }
+
+    function applyPreset() {
+      const m = MOLS[document.getElementById('selMol').value] || MOLS.CH4;
+      document.getElementById('vType').textContent = m.formula;
+      document.getElementById('vShape').textContent = m.shape;
+      document.getElementById('vAngle').textContent = m.angle;
+      const polEl = document.getElementById('vPol');
+      polEl.textContent = m.polar;
+      polEl.style.color = m.polar === 'Polar' ? '#d97706' : '#059669';
+      document.getElementById('vNote').textContent = m.note;
+    }
+
+    function project(pt) {
+      const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+      const x1 = pt.x * cosY - pt.z * sinY;
+      const z1 = pt.x * sinY + pt.z * cosY;
+      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+      const y2 = pt.y * cosP - z1 * sinP;
+      const z2 = pt.y * sinP + z1 * cosP;
+      return { x: x1, y: y2, z: z2, lp: pt.lp };
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      if (spinning) {
+        yawRad = (yawRad + 0.015) % (Math.PI * 2);
+        const deg = Math.round((yawRad * 180) / Math.PI);
+        document.getElementById('inYaw').value = deg;
+        document.getElementById('lYaw').textContent = deg + '°';
+      }
+
+      const m = MOLS[document.getElementById('selMol').value] || MOLS.CH4;
+      const cx = W / 2, cy = H / 2, bondLen = 115;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)'; ctx.lineWidth = 1;
+      for (let gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+
+      const nodes = m.pts.map(p => project(p));
+      nodes.push({ x: 0, y: 0, z: 0, center: true });
+      nodes.sort((a, b) => a.z - b.z);
+
+      nodes.forEach(n => {
+        const persp = 1 + n.z * 0.22;
+        const sx = cx + n.x * bondLen * persp;
+        const sy = cy + n.y * bondLen * persp;
+
+        if (!n.center) {
+          if (n.lp) {
+            ctx.strokeStyle = 'rgba(251,191,36,0.55)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(sx, sy); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(251,191,36,0.22)';
+            ctx.beginPath(); ctx.ellipse(sx, sy, 26 * persp, 17 * persp, Math.atan2(sy - cy, sx - cx), 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.fillStyle = '#fde68a'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+            ctx.fillText('•• PEB', sx, sy + 4);
+          } else {
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 5 * persp;
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(sx, sy); ctx.stroke();
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath(); ctx.arc(sx, sy, 18 * persp, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.fillStyle = '#0f172a'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
+            ctx.fillText(m.outer, sx, sy + 5);
+          }
+        } else {
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(m.center, cx, cy + 5);
+        }
+      });
+
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`${m.shape.toUpperCase()} (${m.formula}) · Sudut Ikatan ${m.angle} · ${m.polar}`, W / 2, H - 22);
+
+      requestAnimationFrame(loop);
+    }
+
+    applyPreset();
+    loop();
+  </script>
+</body>
+</html>

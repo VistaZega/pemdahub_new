@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab TPA &amp; PTN: Penalaran Spasial Figural 3D &amp; Jaring Kubus</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Penalaran Figural &amp; Spasial 3D TPA (Lipatan Jaring-Jaring Kubus)</div>
+          <div class="sl-bar-sub">Uji pola jaring kubus dari datar (0%) hingga terlipat penuh (100%) dan putar sumbu 3D untuk mengidentifikasi sisi berhadapan</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" onclick="setFold(0)">Buka Datar (0%)</button>
+          <button type="button" class="sl-btn sl-btn-primary" onclick="setFold(100)">Lipat Kubus (100%)</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="spCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Pola Jaring &amp; Orientasi Kubus 3D</div>
+        <div class="sl-ctrl">
+          <select id="selNet" onchange="updateInfo()">
+            <option value="cross" selected>Pola Salib 1-4-1 (Standar TPA)</option>
+            <option value="tnet">Pola Huruf T (1-4-1 Atas)</option>
+            <option value="znet">Pola Tangga Z (2-2-2 Zig-Zag)</option>
+          </select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Persentase Lipatan (0–100%)</span><span class="sl-ctrl-val" id="lFold">85%</span></div>
+          <input type="range" id="inFold" min="0" max="100" step="5" value="85" oninput="updateInfo()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Rotasi Horizontal (Yaw Y)</span><span class="sl-ctrl-val" id="lYaw">35°</span></div>
+          <input type="range" id="inYaw" min="-180" max="180" step="5" value="35" oninput="updateInfo()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Rotasi Vertikal (Pitch X)</span><span class="sl-ctrl-val" id="lPitch">25°</span></div>
+          <input type="range" id="inPitch" min="-90" max="90" step="5" value="25" oninput="updateInfo()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pasangan Sisi Berhadapan (Aturan Lompat-1)</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Pasangan 1</div><div class="sl-readout-val" id="vP1" style="color:#0284c7;">A ↔ C</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Pasangan 2</div><div class="sl-readout-val" id="vP2" style="color:#059669;">B ↔ D</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Pasangan 3</div><div class="sl-readout-val" id="vP3" style="color:#d97706;">E ↔ F</div></div>
+        </div>
+        <div class="sl-note" id="spNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('spCanvas');
+    const ctx = cv.getContext('2d');
+
+    const NETS = {
+      cross: {
+        grid: [
+          { lbl: 'E', sym: '★', col: '#f59e0b', gx: 1, gy: 0 },
+          { lbl: 'D', sym: '■', col: '#10b981', gx: 0, gy: 1 },
+          { lbl: 'A', sym: '●', col: '#38bdf8', gx: 1, gy: 1 },
+          { lbl: 'B', sym: '▲', col: '#10b981', gx: 2, gy: 1 },
+          { lbl: 'C', sym: '✕', col: '#38bdf8', gx: 3, gy: 1 },
+          { lbl: 'F', sym: '◆', col: '#f59e0b', gx: 1, gy: 2 }
+        ],
+        pairs: ['A(●) ↔ C(✕)', 'B(▲) ↔ D(■)', 'E(★) ↔ F(◆)'],
+        note: 'Pada pola 1-4-1 sejajar, setiap 2 petak yang dipisahkan tepat 1 petak sejajar (A-B-C => A↔C) pasti saling berhadapan dan tidak mungkin bersebelahan.'
+      },
+      tnet: {
+        grid: [
+          { lbl: 'D', sym: '■', col: '#10b981', gx: 0, gy: 0 },
+          { lbl: 'A', sym: '●', col: '#38bdf8', gx: 1, gy: 0 },
+          { lbl: 'B', sym: '▲', col: '#10b981', gx: 2, gy: 0 },
+          { lbl: 'E', sym: '★', col: '#f59e0b', gx: 1, gy: 1 },
+          { lbl: 'C', sym: '✕', col: '#38bdf8', gx: 1, gy: 2 },
+          { lbl: 'F', sym: '◆', col: '#f59e0b', gx: 1, gy: 3 }
+        ],
+        pairs: ['A(●) ↔ C(✕)', 'D(■) ↔ B(▲)', 'E(★) ↔ F(◆)'],
+        note: 'Pada Pola T, tulang vertikal A-E-C-F melipat melingkari kubus (A↔C dan E↔F berhadapan), sedangkan sayap D dan B menjadi tutup kiri-kanan (D↔B).'
+      },
+      znet: {
+        grid: [
+          { lbl: 'D', sym: '■', col: '#10b981', gx: 0, gy: 0 },
+          { lbl: 'A', sym: '●', col: '#38bdf8', gx: 1, gy: 0 },
+          { lbl: 'E', sym: '★', col: '#f59e0b', gx: 1, gy: 1 },
+          { lbl: 'B', sym: '▲', col: '#10b981', gx: 2, gy: 1 },
+          { lbl: 'C', sym: '✕', col: '#38bdf8', gx: 2, gy: 2 },
+          { lbl: 'F', sym: '◆', col: '#f59e0b', gx: 3, gy: 2 }
+        ],
+        pairs: ['A(●) ↔ C(✕)', 'D(■) ↔ B(▲)', 'E(★) ↔ F(◆)'],
+        note: 'Pada pola tangga Z (2-2-2), gunakan teknik "L" atau lompat 1 baris/kolom: sisi pada diagonal Z tidak pernah bertemu sebagai sisi yang sama dan tetap menghasilkan kubus valid.'
+      }
+    };
+
+    // 6 wajah kubus 3D kanonik: Depan A, Belakang C, Kanan B, Kiri D, Atas E, Bawah F
+    const FACES_3D = [
+      { lbl: 'A', sym: '●', col: '#38bdf8', n: [0, 0, 1], verts: [[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]] },
+      { lbl: 'C', sym: '✕', col: '#0284c7', n: [0, 0, -1], verts: [[1,-1,-1],[-1,-1,-1],[-1,1,-1],[1,1,-1]] },
+      { lbl: 'B', sym: '▲', col: '#10b981', n: [1, 0, 0], verts: [[1,-1,1],[1,-1,-1],[1,1,-1],[1,1,1]] },
+      { lbl: 'D', sym: '■', col: '#059669', n: [-1, 0, 0], verts: [[-1,-1,-1],[-1,-1,1],[-1,1,1],[-1,1,-1]] },
+      { lbl: 'E', sym: '★', col: '#f59e0b', n: [0, -1, 0], verts: [[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]] },
+      { lbl: 'F', sym: '◆', col: '#d97706', n: [0, 1, 0], verts: [[-1,1,1],[1,1,1],[1,1,-1],[-1,1,-1]] }
+    ];
+
+    function setFold(v) {
+      document.getElementById('inFold').value = v;
+      updateInfo();
+    }
+
+    function updateInfo() {
+      const fold = +document.getElementById('inFold').value || 0;
+      const yaw = +document.getElementById('inYaw').value || 0;
+      const pitch = +document.getElementById('inPitch').value || 0;
+      const net = NETS[document.getElementById('selNet').value] || NETS.cross;
+
+      document.getElementById('lFold').textContent = fold + '%';
+      document.getElementById('lYaw').textContent = yaw + '°';
+      document.getElementById('lPitch').textContent = pitch + '°';
+      document.getElementById('vP1').textContent = net.pairs[0];
+      document.getElementById('vP2').textContent = net.pairs[1];
+      document.getElementById('vP3').textContent = net.pairs[2];
+      document.getElementById('spNote').textContent = net.note;
+      draw();
+    }
+
+    function rotPt(p, yawR, pitchR) {
+      const cy = Math.cos(yawR), sy = Math.sin(yawR);
+      const x1 = p[0] * cy - p[2] * sy;
+      const z1 = p[0] * sy + p[2] * cy;
+      const cp = Math.cos(pitchR), sp = Math.sin(pitchR);
+      const y2 = p[1] * cp - z1 * sp;
+      const z2 = p[1] * sp + z1 * cp;
+      return [x1, y2, z2];
+    }
+
+    function draw() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const net = NETS[document.getElementById('selNet').value] || NETS.cross;
+      const fold = (+document.getElementById('inFold').value || 0) / 100;
+      const yawR = ((+document.getElementById('inYaw').value || 0) * Math.PI) / 180;
+      const pitchR = ((+document.getElementById('inPitch').value || 0) * Math.PI) / 180;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('JARING-JARING KUBUS 2D (POLA DATAR)', 24, 30);
+      ctx.fillText('PROYEKSI KUBUS TERLIPAT 3D', W * 0.54, 30);
+
+      // KIRI: Jaring-jaring 2D
+      const cell = Math.min(54, (W * 0.36) / 4);
+      const ox = 28, oy = 74;
+      net.grid.forEach(tile => {
+        const x = ox + tile.gx * cell, y = oy + tile.gy * cell;
+        ctx.fillStyle = 'rgba(30,41,59,0.9)'; ctx.fillRect(x, y, cell - 2, cell - 2);
+        ctx.strokeStyle = tile.col; ctx.lineWidth = 2; ctx.strokeRect(x, y, cell - 2, cell - 2);
+        ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(tile.lbl, x + cell * 0.3, y + cell * 0.45);
+        ctx.fillStyle = tile.col; ctx.font = 'bold 16px sans-serif';
+        ctx.fillText(tile.sym, x + cell * 0.68, y + cell * 0.68);
+      });
+
+      // KANAN: Kubus 3D interaktif yang mengembang sesuai fold
+      const cx = W * 0.74, cy = H * 0.54, s = 74;
+      const expand = (1 - fold) * 0.55;
+      const rendered = FACES_3D.map(f => {
+        const offsetVerts = f.verts.map(v => [
+          v[0] * fold + (v[0] + f.n[0] * expand) * (1 - fold),
+          v[1] * fold + (v[1] + f.n[1] * expand) * (1 - fold),
+          v[2] * fold + (v[2] + f.n[2] * expand) * (1 - fold)
+        ]);
+        const rVerts = offsetVerts.map(v => rotPt(v, yawR, pitchR));
+        const rNorm = rotPt(f.n, yawR, pitchR);
+        const avgZ = rVerts.reduce((acc, v) => acc + v[2], 0) / 4;
+        return { f, rVerts, rNorm, avgZ };
+      }).sort((a, b) => a.avgZ - b.avgZ);
+
+      rendered.forEach(item => {
+        if (fold > 0.8 && item.rNorm[2] < -0.15) return;
+        ctx.fillStyle = item.rNorm[2] > 0 ? 'rgba(30,41,59,0.94)' : 'rgba(15,23,42,0.65)';
+        ctx.strokeStyle = item.f.col; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        item.rVerts.forEach((v, i) => {
+          const sx = cx + v[0] * s, sy = cy + v[1] * s;
+          if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+        });
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        const mx = item.rVerts.reduce((acc, v) => acc + v[0], 0) / 4;
+        const my = item.rVerts.reduce((acc, v) => acc + v[1], 0) / 4;
+        if (item.rNorm[2] > -0.05) {
+          ctx.fillStyle = item.f.col; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText(`${item.f.lbl} ${item.f.sym}`, cx + mx * s, cy + my * s + 7);
+        }
+      });
+    }
+
+    updateInfo();
+  </script>
+</body>
+</html>

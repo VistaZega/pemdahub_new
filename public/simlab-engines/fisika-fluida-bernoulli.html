@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Fisika Fluida: Hukum Bernoulli &amp; Gaya Angkat Sayap</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Fluida Dinamis: Asas Bernoulli, Sayap Pesawat &amp; Venturimeter</div>
+          <div class="sl-bar-sub">Mengapa pesawat ratusan ton bisa terbang? Amati aliran fluida lebih cepat di sisi atas/sempit menurunkan tekanan statis</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="btnWing" onclick="setMode('wing')">Sayap Aerofoil</button>
+          <button type="button" class="sl-btn" id="btnVent" onclick="setMode('venturi')">Pipa Venturimeter</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="berCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Variabel Aliran Fluida</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Kecepatan Aliran Datang (v₁)</span><span class="sl-ctrl-val" id="lV1">75 m/s</span></div>
+          <input type="range" id="inV1" min="25" max="125" step="5" value="75" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span id="lblGeom">Sudut Serang / Camber Sayap</span><span class="sl-ctrl-val" id="lGeom">8°</span></div>
+          <input type="range" id="inGeom" min="2" max="16" step="1" value="8" oninput="calc()" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Massa Jenis Fluida (ρ)</span><span class="sl-ctrl-val" id="lRho">1.22 kg/m³</span></div>
+          <input type="range" id="inRho" min="0.80" max="1.40" step="0.05" value="1.22" oninput="calc()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Hasil Pengukuran Bernoulli</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl" id="lblV2">Laju Atas Sayap (v₂)</div><div class="sl-readout-val" id="vV2" style="color:#0284c7;">91.5 m/s</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Selisih Tekanan (ΔP)</div><div class="sl-readout-val" id="vDp">1.69 kPa</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Gaya Angkat / Beda h</div><div class="sl-readout-val" id="vLift" style="color:#059669;">50.7 kN</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Status</div><div class="sl-readout-val" id="vStat">Terangkat</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Persamaan Kontinuitas &amp; Bernoulli</div>
+        <div class="sl-formula">P₁ + ½ρv₁² + ρgh₁ = P₂ + ½ρv₂² + ρgh₂   |   F = ΔP · A</div>
+        <div class="sl-note" id="berNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('berCanvas');
+    const ctx = cv.getContext('2d');
+    let mode = 'wing';
+    let flowPhase = 0;
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnWing').classList.toggle('is-active', m === 'wing');
+      document.getElementById('btnVent').classList.toggle('is-active', m === 'venturi');
+      document.getElementById('lblGeom').textContent = m === 'wing' ? 'Sudut Serang / Camber Sayap' : 'Rasio Penyempitan Pipa (A₁/A₂)';
+      document.getElementById('lblV2').textContent = m === 'wing' ? 'Laju Atas Sayap (v₂)' : 'Laju Leher Sempit (v₂)';
+      calc();
+    }
+
+    function getParams() {
+      const v1 = +document.getElementById('inV1').value || 75;
+      const geom = +document.getElementById('inGeom').value || 8;
+      const rho = +document.getElementById('inRho').value || 1.22;
+
+      if (mode === 'wing') {
+        const vTop = v1 * (1 + geom * 0.028);
+        const vBot = v1 * (1 - geom * 0.008);
+        const dp = 0.5 * rho * (vTop * vTop - vBot * vBot);
+        const liftKn = (dp * 30) / 1000;
+        const ok = liftKn >= 42;
+        return { v1, geom, rho, v2: vTop, vBot, dp, liftKn, ok };
+      } else {
+        const areaRatio = 1.2 + geom * 0.14;
+        const v2 = v1 * areaRatio;
+        const dp = 0.5 * rho * (v2 * v2 - v1 * v1);
+        const hCol = dp / (9.8 * 1000);
+        return { v1, geom, rho, v2, areaRatio, dp, hCol, ok: dp > 1500 };
+      }
+    }
+
+    function calc() {
+      const s = getParams();
+      document.getElementById('lV1').textContent = s.v1 + ' m/s';
+      document.getElementById('lGeom').textContent = mode === 'wing' ? s.geom + '°' : s.areaRatio.toFixed(2) + ' ×';
+      document.getElementById('lRho').textContent = s.rho.toFixed(2) + ' kg/m³';
+      document.getElementById('vV2').textContent = s.v2.toFixed(1) + ' m/s';
+      document.getElementById('vDp').textContent = (s.dp / 1000).toFixed(2) + ' kPa';
+
+      if (mode === 'wing') {
+        document.getElementById('vLift').textContent = s.liftKn.toFixed(1) + ' kN';
+        document.getElementById('vStat').textContent = s.ok ? 'Lepas Landas' : 'Kurang Angkat';
+        document.getElementById('vStat').style.color = s.ok ? '#059669' : '#d97706';
+        document.getElementById('berNote').textContent = 'Kontur sayap melengkung memaksa udara di sisi atas melaju lebih cepat (tekanan P_atas turun), sedangkan udara bawah menekan ke atas sehingga muncul gaya angkat F = ΔP · A.';
+      } else {
+        document.getElementById('vLift').textContent = (s.hCol * 100).toFixed(1) + ' cmH₂O';
+        document.getElementById('vStat').textContent = 'Aliran Kontinu';
+        document.getElementById('vStat').style.color = '#0284c7';
+        document.getElementById('berNote').textContent = 'Pada pipa menyempit, persamaan kontinuitas (A₁v₁ = A₂v₂) mempercepat laju fluida sehingga tekanan statis turun dan kolom manometer ikut turun.';
+      }
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const s = getParams();
+      flowPhase = (flowPhase + s.v1 * 0.045) % 48;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(148,163,184,0.08)'; ctx.lineWidth = 1;
+      for (let gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+
+      if (mode === 'wing') {
+        const cx = W * 0.48, cy = H * 0.52;
+        const aoa = -s.geom * (Math.PI / 180) * 0.7;
+
+        // Zona Tekanan Rendah (Atas) & Tinggi (Bawah)
+        ctx.fillStyle = 'rgba(56,189,248,0.14)';
+        ctx.beginPath(); ctx.ellipse(cx, cy - 42, 130, 32, aoa, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(245,158,11,0.14)';
+        ctx.beginPath(); ctx.ellipse(cx, cy + 44, 130, 30, aoa, 0, Math.PI * 2); ctx.fill();
+
+        // Garis Arus Atas & Bawah
+        [-95, -55, -24, 30, 66].forEach((offset, idx) => {
+          const isTop = offset < 0;
+          ctx.strokeStyle = isTop ? '#38bdf8' : '#fbbf24';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          for (let x = 20; x <= W - 20; x += 12) {
+            const dist = Math.abs(x - cx);
+            const bend = dist < 160 ? Math.cos((dist / 160) * Math.PI * 0.5) * (isTop ? -26 - s.geom : 14) : 0;
+            const y = cy + offset + bend;
+            if (x === 20) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          // Titik Partikel Udara (lebih cepat di atas!)
+          const speedFactor = isTop ? (1 + s.geom * 0.04) : 0.88;
+          for (let p = ((flowPhase * speedFactor + idx * 17) % 60); p < W - 20; p += 60) {
+            const dist = Math.abs(p - cx);
+            const bend = dist < 160 ? Math.cos((dist / 160) * Math.PI * 0.5) * (isTop ? -26 - s.geom : 14) : 0;
+            ctx.fillStyle = isTop ? '#7dd3fc' : '#fde68a';
+            ctx.beginPath(); ctx.arc(p, cy + offset + bend, 3, 0, Math.PI * 2); ctx.fill();
+          }
+        });
+
+        // Profil Aerofoil Sayap
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(aoa);
+        ctx.fillStyle = '#e2e8f0'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-110, 8);
+        ctx.bezierCurveTo(-80, -34, 20, -30, 115, 6);
+        ctx.quadraticCurveTo(0, 16, -110, 8);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.restore();
+
+        // Panah Gaya Angkat (Hijau ke Atas) vs Berat (Merah ke Bawah)
+        const liftLen = Math.min(125, 28 + s.liftKn * 1.4);
+        ctx.strokeStyle = '#34d399'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(cx, cy - 22); ctx.lineTo(cx, cy - 22 - liftLen); ctx.stroke();
+        ctx.fillStyle = '#34d399'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`F_angkat = ${s.liftKn.toFixed(1)} kN`, cx, cy - 30 - liftLen);
+
+        ctx.strokeStyle = '#f87171'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(cx, cy + 20); ctx.lineTo(cx, cy + 92); ctx.stroke();
+        ctx.fillStyle = '#f87171';
+        ctx.fillText('Berat Pesawat (W = 42 kN)', cx, cy + 110);
+      } else {
+        // Mode Pipa Venturimeter + 2 Tabung Manometer
+        const py = H * 0.68, x0 = 40, x1 = W - 40;
+        const neckRatio = 1 / Math.sqrt(s.areaRatio);
+        const hWide = 56, hNarrow = Math.max(18, hWide * neckRatio);
+
+        // Pipa Luar
+        ctx.fillStyle = 'rgba(14,165,233,0.22)';
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x0, py - hWide); ctx.lineTo(W * 0.34, py - hWide);
+        ctx.lineTo(W * 0.44, py - hNarrow); ctx.lineTo(W * 0.62, py - hNarrow);
+        ctx.lineTo(W * 0.72, py - hWide); ctx.lineTo(x1, py - hWide);
+        ctx.lineTo(x1, py + hWide); ctx.lineTo(W * 0.72, py + hWide);
+        ctx.lineTo(W * 0.62, py + hNarrow); ctx.lineTo(W * 0.44, py + hNarrow);
+        ctx.lineTo(W * 0.34, py + hWide); ctx.lineTo(x0, py + hWide);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Tabung Manometer P1 (Tinggi) & P2 (Rendah)
+        const h1Y = 90;
+        const h2Y = Math.min(py - hNarrow - 12, h1Y + Math.min(130, s.dp / 60));
+        [
+          { x: W * 0.22, top: py - hWide, level: h1Y, lbl: `P₁ (${s.v1} m/s)` },
+          { x: W * 0.53, top: py - hNarrow, level: h2Y, lbl: `P₂ (${s.v2.toFixed(0)} m/s)` }
+        ].forEach(col => {
+          ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+          ctx.strokeRect(col.x - 12, 62, 24, col.top - 62);
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(col.x - 10, col.level, 20, col.top - col.level);
+          ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(col.lbl, col.x, 48);
+        });
+
+        // Garis Δh Manometer
+        ctx.strokeStyle = '#fbbf24'; ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(W * 0.22 + 16, h1Y); ctx.lineTo(W * 0.53 + 22, h1Y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(W * 0.53 + 16, h2Y); ctx.lineTo(W * 0.53 + 40, h2Y); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#fbbf24'; ctx.textAlign = 'left';
+        ctx.fillText(`Δh = ${(s.hCol * 100).toFixed(1)} cm`, W * 0.53 + 46, (h1Y + h2Y) / 2 + 4);
+
+        // Partikel di dalam pipa
+        for (let x = x0 + (flowPhase % 44); x < x1; x += 44) {
+          ctx.fillStyle = '#7dd3fc';
+          ctx.beginPath(); ctx.arc(x, py, 4, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    calc();
+    loop();
+  </script>
+</body>
+</html>

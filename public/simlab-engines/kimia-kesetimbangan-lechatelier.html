@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Kimia: Kesetimbangan &amp; Azas Le Chatelier</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Kesetimbangan Kimia Dinamis &amp; Azas Le Chatelier (Haber-Bosch)</div>
+          <div class="sl-bar-sub">N₂(g) + 3H₂(g) ⇌ 2NH₃(g) (ΔH = −92 kJ Eksoterm) — uji gangguan suhu, tekanan, dan konsentrasi</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn" onclick="preset('highT')">Panaskan (+T)</button>
+          <button type="button" class="sl-btn" onclick="preset('highP')">Kompresi (+P)</button>
+          <button type="button" class="sl-btn" onclick="preset('addN2')">Suntik N₂</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="eqCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Gangguan Sistem Kesetimbangan</div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Suhu Reaktor (T)</span><span class="sl-ctrl-val" id="lT">450 °C</span></div>
+          <input type="range" id="inT" min="250" max="700" step="25" value="450" oninput="onChange('suhu')" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Tekanan Total (P)</span><span class="sl-ctrl-val" id="lP">150 atm</span></div>
+          <input type="range" id="inP" min="30" max="300" step="10" value="150" oninput="onChange('tekanan')" />
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Injeksi Gas [N₂]</span><span class="sl-ctrl-val" id="lN2">1.50 M</span></div>
+          <input type="range" id="inN2" min="0.5" max="3.5" step="0.25" value="1.5" oninput="onChange('konsentrasi')" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Keadaan Setimbang Baru</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Tetapan Kc</div><div class="sl-readout-val" id="vKc" style="color:#0284c7;">0.52</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Yield NH₃</div><div class="sl-readout-val" id="vYield" style="color:#059669;">38%</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Pergeseran</div><div class="sl-readout-val" id="vShift">Seimbang</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Penjelasan Azas Le Chatelier</div>
+        <div class="sl-formula">N₂(g) + 3H₂(g) [4 mol] ⇌ 2NH₃(g) [2 mol]   |   ΔH = −92 kJ</div>
+        <div class="sl-note" id="eqNote" style="margin-top:8px;">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('eqCanvas');
+    const ctx = cv.getContext('2d');
+    let curYield = 0.38;
+    let targetYield = 0.38;
+    let lastTrigger = 'init';
+    const hist = { n2: [], h2: [], nh3: [] };
+    const mols = Array.from({ length: 32 }, (_, i) => ({
+      x: 0.1 + ((i * 29) % 80) / 100,
+      y: 0.1 + ((i * 47) % 80) / 100,
+      vx: (i % 2 === 0 ? 1 : -1) * (0.010 + (i % 4) * 0.003),
+      vy: (i % 3 === 0 ? 1 : -1) * (0.011 + (i % 3) * 0.003)
+    }));
+
+    function preset(kind) {
+      if (kind === 'highT') { document.getElementById('inT').value = 675; onChange('suhu'); }
+      if (kind === 'highP') { document.getElementById('inP').value = 280; onChange('tekanan'); }
+      if (kind === 'addN2') { document.getElementById('inN2').value = 3.25; onChange('konsentrasi'); }
+    }
+
+    function onChange(trigger) {
+      lastTrigger = trigger;
+      const T = +document.getElementById('inT').value || 450;
+      const P = +document.getElementById('inP').value || 150;
+      const n2 = +document.getElementById('inN2').value || 1.5;
+
+      // Eksoterm: kenaikan T menurunkan Kc; kenaikan P menggeser ke koefisien gas lebih kecil (kanan, NH3)
+      const kc = Math.max(0.05, 2.4 * Math.exp(-(T - 250) / 220));
+      const pBoost = P / (P + 110);
+      const nBoost = n2 / (n2 + 1.2);
+      targetYield = Math.min(0.86, Math.max(0.08, 0.85 * pBoost * nBoost * (kc / (kc + 0.45)) * 1.45));
+
+      document.getElementById('lT').textContent = T + ' °C';
+      document.getElementById('lP').textContent = P + ' atm';
+      document.getElementById('lN2').textContent = n2.toFixed(2) + ' M';
+      document.getElementById('vKc').textContent = kc.toFixed(2);
+      document.getElementById('vYield').textContent = Math.round(targetYield * 100) + '%';
+
+      const shiftRight = targetYield >= curYield - 0.01;
+      const shiftEl = document.getElementById('vShift');
+      shiftEl.textContent = trigger === 'init' ? 'Setimbang' : (shiftRight ? 'Ke Kanan (→ NH₃)' : 'Ke Kiri (← N₂+H₂)');
+      shiftEl.style.color = shiftRight ? '#059669' : '#d97706';
+
+      if (trigger === 'suhu') {
+        document.getElementById('eqNote').textContent = T > 450
+          ? 'Suhu dinaikkan: sistem menyerap kalor dengan bergeser ke arah ENDOTERM (ke kiri, mengurai NH₃ dan menurunkan Kc).'
+          : 'Suhu diturunkan: reaksi bergeser ke arah EKSOTERM (ke kanan membentuk NH₃), nilai Kc membesar.';
+      } else if (trigger === 'tekanan') {
+        document.getElementById('eqNote').textContent = P >= 150
+          ? 'Tekanan dinaikkan (volume diperkecil): kesetimbangan bergeser ke jumlah mol gas lebih KECIL (4 mol → 2 mol NH₃), sedangkan nilai Kc tetap!'
+          : 'Tekanan diturunkan: sistem bergeser ke arah jumlah mol gas lebih BESAR (4 mol reaktan di kiri).';
+      } else {
+        document.getElementById('eqNote').textContent = 'Penambahan [N₂] mendorong laju reaksi maju hingga sebagian N₂ dan H₂ habis membentuk lebih banyak NH₃ (Kc tidak berubah).';
+      }
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      const T = +document.getElementById('inT').value || 450;
+      const P = +document.getElementById('inP').value || 150;
+      const n2Base = +document.getElementById('inN2').value || 1.5;
+
+      curYield += (targetYield - curYield) * 0.06;
+      const cNh3 = curYield * 2.2;
+      const cN2 = Math.max(0.2, n2Base * (1 - curYield * 0.65));
+      const cH2 = Math.max(0.25, 2.2 * (1 - curYield * 0.72));
+
+      hist.nh3.push(cNh3);
+      hist.n2.push(cN2);
+      hist.h2.push(cH2);
+      if (hist.nh3.length > 120) { hist.nh3.shift(); hist.n2.shift(); hist.h2.shift(); }
+
+      ctx.clearRect(0, 0, W, H);
+
+      // KIRI: Bejana Reaktor (Tinggi dipengaruhi Tekanan P)
+      const rx = 26, rw = Math.min(220, W * 0.34);
+      const maxH = 310, boxH = Math.max(150, maxH * (1 - (P - 30) / 560));
+      const ry = 46 + (maxH - boxH);
+
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(rx, ry, rw, boxH);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2.5; ctx.strokeRect(rx, ry, rw, boxH);
+      // Tutup Piston Tekanan
+      ctx.fillStyle = '#64748b'; ctx.fillRect(rx - 2, ry - 14, rw + 4, 14);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`P = ${P} atm | T = ${T}°C`, rx + rw / 2, ry - 22);
+
+      const nh3Count = Math.round(curYield * 32);
+      const speed = 0.6 + T / 380;
+      mols.forEach((m, i) => {
+        m.x += m.vx * speed; m.y += m.vy * speed;
+        if (m.x < 0.06 || m.x > 0.94) m.vx *= -1;
+        if (m.y < 0.06 || m.y > 0.94) m.vy *= -1;
+        const px = rx + 8 + m.x * (rw - 16);
+        const py = ry + 8 + m.y * (boxH - 16);
+        const isProd = i < nh3Count;
+        ctx.fillStyle = isProd ? '#34d399' : (i % 2 === 0 ? '#38bdf8' : '#e2e8f0');
+        ctx.beginPath(); ctx.arc(px, py, isProd ? 5.5 : 4, 0, Math.PI * 2); ctx.fill();
+      });
+
+      ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('Biru: N₂  |  Putih: H₂  |  Hijau: NH₃', rx, 382);
+
+      // KANAN: Grafik Konsentrasi Real-time [N2], [H2], [NH3]
+      const gx = rx + rw + 34, gy = 46, gw = W - gx - 24, gh = 310;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(gx, gy, gw, gh);
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.strokeRect(gx, gy, gw, gh);
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace';
+      ctx.fillText('KURVA KONSENTRASI SETIMBANG (M) vs WAKTU', gx + 12, gy + 20);
+
+      const drawSeries = (arr, col, label, yLegend) => {
+        if (arr.length > 1) {
+          ctx.strokeStyle = col; ctx.lineWidth = 2.4; ctx.beginPath();
+          arr.forEach((v, idx) => {
+            const x = gx + 16 + (idx / 120) * (gw - 32);
+            const y = gy + gh - 24 - Math.min(1, v / 3.4) * (gh - 60);
+            if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+        ctx.fillStyle = col; ctx.font = 'bold 11px monospace';
+        ctx.fillText(label, gx + 14, yLegend);
+      };
+
+      drawSeries(hist.nh3, '#34d399', `[NH₃] = ${cNh3.toFixed(2)} M`, gy + 42);
+      drawSeries(hist.n2, '#38bdf8', `[N₂] = ${cN2.toFixed(2)} M`, gy + 58);
+      drawSeries(hist.h2, '#e2e8f0', `[H₂] = ${cH2.toFixed(2)} M`, gy + 74);
+
+      requestAnimationFrame(loop);
+    }
+
+    onChange('init');
+    loop();
+  </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Biologi Molekuler: Sintesis Protein &amp; Mutasi Genetik</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Dogma Sentral Biologi: Transkripsi DNA → mRNA → Translasi Ribosom</div>
+          <div class="sl-bar-sub">Amati penerjemahan kodon mRNA menjadi rantai asam amino dan dampak langsung mutasi genetik (Silent, Missense, Nonsense)</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn sl-btn-primary" id="btnRun" onclick="togglePlay()">Jalankan Translasi</button>
+          <button type="button" class="sl-btn" onclick="setStep(0)">Reset Kodon 1</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="bioCanvas" height="410"></canvas>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Pilih Urutan Gen &amp; Jenis Mutasi</div>
+        <div class="sl-ctrl">
+          <select id="selGene" onchange="updateState()">
+            <option value="normal" selected>Gen Normal (Wild-Type)</option>
+            <option value="silent">Mutasi Silent (Kodon Berubah, Asam Amino Sama)</option>
+            <option value="missense">Mutasi Missense (Anemia Sel Sabit: Glu → Val)</option>
+            <option value="nonsense">Mutasi Nonsense (Stop Dini UAG / Protein Putus)</option>
+          </select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Posisi Pembacaan Ribosom</span><span class="sl-ctrl-val" id="lIdx">Kodon 1 / 6</span></div>
+          <input type="range" id="inIdx" min="0" max="5" step="1" value="0" oninput="onSlide()" />
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Pembacaan Kodon &amp; Rantai Polipeptida</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">DNA Template (3'→5')</div><div class="sl-readout-val" id="vDna" style="color:#64748b;">TAC</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Kodon mRNA (5'→3')</div><div class="sl-readout-val" id="vMrna" style="color:#0284c7;">AUG</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Antikodon tRNA</div><div class="sl-readout-val" id="vTrna" style="color:#059669;">UAC</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Asam Amino</div><div class="sl-readout-val" id="vAa" style="color:#d97706;">Met (Start)</div></div>
+        </div>
+        <div class="sl-formula" id="chainBox" style="margin-top:8px;">Polipeptida: Met</div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Dampak Fenotipe Protein</div>
+        <div class="sl-note" id="bioNote">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('bioCanvas');
+    const ctx = cv.getContext('2d');
+    let playing = false, tick = 0;
+
+    const CODON_TABLE = {
+      AUG: 'Met', GUG: 'Val', GUU: 'Val', GUA: 'Val', GAG: 'Glu', GAA: 'Glu',
+      CAC: 'His', CUG: 'Leu', ACU: 'Thr', CCU: 'Pro', UAG: 'STOP', UAA: 'STOP'
+    };
+
+    const PRESETS = {
+      normal: {
+        dna: ['TAC', 'GTG', 'GAC', 'TGA', 'GGA', 'ATT'],
+        mrna: ['AUG', 'CAC', 'CUG', 'ACU', 'CCU', 'UAA'],
+        note: 'Gen normal menghasilkan urutan polipeptida fungsional penuh Met-His-Leu-Thr-Pro hingga kodon STOP UAA.'
+      },
+      silent: {
+        dna: ['TAC', 'GTA', 'GAC', 'TGA', 'GGA', 'ATT'],
+        mrna: ['AUG', 'CAU', 'CUG', 'ACU', 'CCU', 'UAA'],
+        note: 'Mutasi Silent pada triplet 2 (CAC → CAU) sama-sama menyandi Histidin (His) karena kode genetik bersifat degeneratif.'
+      },
+      missense: {
+        dna: ['TAC', 'GTG', 'CAC', 'TGA', 'GGA', 'ATT'],
+        mrna: ['AUG', 'CAC', 'GUG', 'ACU', 'CCU', 'UAA'],
+        note: 'Mutasi Missense mengganti satu basa di kodon 3 (CUG/GAG → GUG = Valin). Perubahan 1 asam amino ini merusak bentuk hemoglobin sel darah merah.'
+      },
+      nonsense: {
+        dna: ['TAC', 'GTG', 'ATC', 'TGA', 'GGA', 'ATT'],
+        mrna: ['AUG', 'CAC', 'UAG', 'ACU', 'CCU', 'UAA'],
+        note: 'Mutasi Nonsense menyisipkan kodon STOP prematur (UAG) pada posisi 3, sehingga sintesis polipeptida berhenti terlalu cepat dan protein non-fungsional.'
+      }
+    };
+
+    function compTrna(codon) {
+      const mp = { A: 'U', U: 'A', G: 'C', C: 'G' };
+      return codon.split('').map(b => mp[b] || 'N').join('');
+    }
+
+    function aaOf(codon) {
+      if (codon === 'CAU') return 'His';
+      return CODON_TABLE[codon] || 'Xaa';
+    }
+
+    function togglePlay() {
+      playing = !playing;
+      document.getElementById('btnRun').textContent = playing ? 'Jeda Translasi' : 'Jalankan Translasi';
+    }
+
+    function setStep(idx) {
+      playing = false;
+      document.getElementById('btnRun').textContent = 'Jalankan Translasi';
+      document.getElementById('inIdx').value = idx;
+      updateState();
+    }
+
+    function onSlide() {
+      playing = false;
+      document.getElementById('btnRun').textContent = 'Jalankan Translasi';
+      updateState();
+    }
+
+    function updateState() {
+      const key = document.getElementById('selGene').value;
+      const g = PRESETS[key] || PRESETS.normal;
+      let idx = Math.max(0, Math.min(5, +document.getElementById('inIdx').value || 0));
+
+      const dna = g.dna[idx];
+      const mrna = g.mrna[idx];
+      const aa = aaOf(mrna);
+
+      document.getElementById('lIdx').textContent = `Kodon ${idx + 1} / 6`;
+      document.getElementById('vDna').textContent = dna;
+      document.getElementById('vMrna').textContent = mrna;
+      document.getElementById('vTrna').textContent = aa === 'STOP' ? 'Faktor Pelepas' : compTrna(mrna);
+      document.getElementById('vAa').textContent = aa === 'Met' ? 'Met (Start)' : aa;
+
+      const chain = [];
+      for (let i = 0; i <= idx; i++) {
+        const a = aaOf(g.mrna[i]);
+        if (a === 'STOP') { chain.push('[STOP]'); break; }
+        chain.push(a);
+      }
+      document.getElementById('chainBox').textContent = 'Polipeptida: ' + chain.join(' − ');
+      document.getElementById('bioNote').textContent = g.note;
+    }
+
+    function loop() {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 410;
+      const W = cv.width, H = cv.height;
+      if (playing) {
+        tick++;
+        if (tick % 55 === 0) {
+          let cur = +document.getElementById('inIdx').value || 0;
+          const g = PRESETS[document.getElementById('selGene').value] || PRESETS.normal;
+          if (aaOf(g.mrna[cur]) === 'STOP' || cur >= 5) {
+            playing = false;
+            document.getElementById('btnRun').textContent = 'Jalankan Translasi';
+          } else {
+            document.getElementById('inIdx').value = cur + 1;
+            updateState();
+          }
+        }
+      }
+
+      const g = PRESETS[document.getElementById('selGene').value] || PRESETS.normal;
+      const idx = Math.max(0, Math.min(5, +document.getElementById('inIdx').value || 0));
+
+      ctx.clearRect(0, 0, W, H);
+      const startX = 56, stepW = (W - 112) / 6;
+
+      // 1. Pita DNA (Atas)
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('1. TRANSKRIPSI — PITA DNA TEMPLATE (3\' → 5\')', 28, 34);
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(28, 66); ctx.lineTo(W - 28, 66); ctx.stroke();
+
+      for (let i = 0; i < 6; i++) {
+        const cx = startX + i * stepW + stepW / 2;
+        ctx.fillStyle = i === idx ? '#fbbf24' : '#1e293b';
+        ctx.fillRect(cx - 28, 50, 56, 28);
+        ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.2; ctx.strokeRect(cx - 28, 50, 56, 28);
+        ctx.fillStyle = i === idx ? '#0f172a' : '#e2e8f0'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(g.dna[i], cx, 69);
+      }
+
+      // 2. Ribosom + Pita mRNA (Tengah)
+      const activeX = startX + idx * stepW + stepW / 2;
+      ctx.fillStyle = 'rgba(56,189,248,0.16)';
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(activeX, 200, 62, 68, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#7dd3fc'; ctx.font = 'bold 10px monospace'; ctx.fillText('RIBOSOM', activeX, 260);
+
+      ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
+      ctx.fillText('2. TRANSLASI — PITA mRNA (5\' → 3\')', 28, 122);
+      for (let i = 0; i < 6; i++) {
+        const cx = startX + i * stepW + stepW / 2;
+        const mutDiff = g.mrna[i] !== PRESETS.normal.mrna[i];
+        ctx.fillStyle = i === idx ? '#0284c7' : (mutDiff ? '#dc2626' : '#0f172a');
+        ctx.fillRect(cx - 28, 185, 56, 30);
+        ctx.strokeStyle = mutDiff ? '#f87171' : '#38bdf8'; ctx.lineWidth = 1.5; ctx.strokeRect(cx - 28, 185, 56, 30);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(g.mrna[i], cx, 204);
+      }
+
+      // 3. Rantai Asam Amino Terbentuk (Bawah)
+      ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left'; ctx.font = 'bold 11px monospace';
+      ctx.fillText('3. RANTAI POLIPEPTIDA (ASAM AMINO)', 28, 306);
+
+      let stopped = false;
+      for (let i = 0; i <= idx; i++) {
+        if (stopped) break;
+        const cx = startX + i * stepW + stepW / 2;
+        const aa = aaOf(g.mrna[i]);
+        const isStop = aa === 'STOP';
+        if (isStop) stopped = true;
+        const mutDiff = g.mrna[i] !== PRESETS.normal.mrna[i];
+
+        if (i > 0) {
+          ctx.strokeStyle = '#34d399'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(cx - stepW + 22, 345); ctx.lineTo(cx - 22, 345); ctx.stroke();
+        }
+        ctx.fillStyle = isStop ? '#dc2626' : (mutDiff ? '#f59e0b' : '#10b981');
+        ctx.beginPath(); ctx.arc(cx, 345, 22, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(aa, cx, 349);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    updateState();
+    loop();
+  </script>
+</body>
+</html>

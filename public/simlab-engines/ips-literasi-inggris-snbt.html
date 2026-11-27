@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Literasi Inggris SNBT: Paired-Passage Synthesis &amp; Tone</title>
+  <link rel="stylesheet" href="simlab-theme.css" />
+</head>
+<body>
+  <div class="sl-workbench">
+    <section class="sl-stage">
+      <div class="sl-bar">
+        <div>
+          <div class="sl-bar-title">Literasi Bahasa Inggris SNBT: Author's Tone, Inference &amp; Dual-Passage Synthesis</div>
+          <div class="sl-bar-sub">Bandingkan dua teks akademik (Passage 1 vs Passage 2) untuk memetakan sikap penulis dan kesimpulan antar-teks</div>
+        </div>
+        <div class="sl-btn-row">
+          <button type="button" class="sl-btn is-active" id="bClue" onclick="toggleClues()">Highlight Evidence: ON</button>
+        </div>
+      </div>
+
+      <div class="sl-viewport">
+        <canvas id="enCanvas" height="230"></canvas>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="sl-note" id="p1Box" style="line-height:1.65;">—</div>
+        <div class="sl-note" id="p2Box" style="line-height:1.65;">—</div>
+      </div>
+    </section>
+
+    <aside class="sl-console">
+      <div class="sl-group">
+        <div class="sl-group-label">Paired Passages Topic (UTBK Model)</div>
+        <div class="sl-ctrl">
+          <select id="selTopic" onchange="render()">
+            <option value="ai_med" selected>1. AI Diagnostics in Healthcare</option>
+            <option value="deep_sea">2. Deep-Sea Mineral Mining Debate</option>
+            <option value="microplastic">3. Microplastics in Marine Food Webs</option>
+          </select>
+        </div>
+        <div class="sl-ctrl">
+          <div class="sl-ctrl-head"><span>Analysis Lens</span></div>
+          <select id="selLens" onchange="render()">
+            <option value="relation" selected>Relationship Between Text 1 &amp; Text 2</option>
+            <option value="tone">Author's Tone &amp; Diction Clues</option>
+            <option value="inference">Implicit Inference &amp; Prediction</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Dual-Passage Diagnostic</div>
+        <div class="sl-readouts">
+          <div class="sl-readout"><div class="sl-readout-lbl">Text 1 Tone</div><div class="sl-readout-val" id="vT1" style="color:#0284c7;">Optimistic</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Text 2 Tone</div><div class="sl-readout-val" id="vT2" style="color:#d97706;">Cautious</div></div>
+          <div class="sl-readout"><div class="sl-readout-lbl">Synthesis</div><div class="sl-readout-val" id="vRel" style="color:#059669;">Qualified Counter</div></div>
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-group-label">Key SNBT Takeaway</div>
+        <div class="sl-note" id="enNote">—</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const cv = document.getElementById('enCanvas');
+    const ctx = cv.getContext('2d');
+    let showClues = true;
+
+    const TOPICS = {
+      ai_med: {
+        t1Score: 0.78, t2Score: 0.34,
+        t1Tone: 'Optimistic', t2Tone: 'Cautious', relation: 'Complementary Caveat',
+        p1: '<strong>Passage 1:</strong> Recent clinical trials <mark>markedly accelerate</mark> early cancer detection when deep-learning scanners assist radiologists, cutting diagnostic turnaround by half.',
+        p2: '<strong>Passage 2:</strong> While algorithmic triage saves time, <mark>unverified training bias</mark> across minority demographics requires mandatory human oversight before full autonomy.',
+        notes: {
+          relation: 'Text 2 tidak sepenuhnya menolak Text 1 ("While algorithmic triage saves time..."), melainkan menambahkan syarat kehati-hatian berupa audit bias & pengawasan dokter.',
+          tone: 'Diksi Text 1 ("markedly accelerate") menunjukkan sikap Optimis/Supportive, sedangkan diksi Text 2 ("unverified bias", "requires oversight") bernada Cautious/Critical.',
+          inference: 'Kedua penulis sepakat bahwa model terbaik adalah kolaborasi AI sebagai alat bantu di bawah pengawasan tenaga medis manusia.'
+        }
+      },
+      deep_sea: {
+        t1Score: 0.70, t2Score: 0.16,
+        t1Tone: 'Pragmatic', t2Tone: 'Alarmed', relation: 'Conflicting Stance',
+        p1: '<strong>Passage 1:</strong> Polymetallic nodules on the Pacific floor offer <mark>vital battery minerals</mark> needed to meet electric-vehicle targets without clearing tropical forests.',
+        p2: '<strong>Passage 2:</strong> Dredging abyssal plains triggers <mark>irreversible sediment plumes</mark> that smother slow-growing deep-sea corals unseen for centuries.',
+        notes: {
+          relation: 'Kedua teks berada pada posisi berseberangan (Conflicting): Text 1 menyoroti keuntungan transisi energi, sementara Text 2 menekankan kehancuran ekosistem laut dalam.',
+          tone: 'Text 1 bersifat Pragmatic/Pro-resource ("vital minerals"), sementara Text 2 bernada Cautionary/Alarmed ("irreversible", "smother").',
+          inference: 'Meskipun penambangan laut mengurangi penebangan hutan darat, dampaknya memindahkan krisis ekologis ke ekosistem laut dalam.'
+        }
+      },
+      microplastic: {
+        t1Score: 0.45, t2Score: 0.52,
+        t1Tone: 'Analytical', t2Tone: 'Constructive', relation: 'Problem → Solution',
+        p1: '<strong>Passage 1:</strong> Tire wear and synthetic textiles release <mark>microscopic polymer fibers</mark> that bioaccumulate from plankton up to commercial fisheries.',
+        p2: '<strong>Passage 2:</strong> Installing <mark>ultrafine washing-machine filters</mark> and biodegradable tire compounds curbs microfiber discharge at municipal inlets by 78 percent.',
+        notes: {
+          relation: 'Pola Hubungan Problem–Solution: Text 1 memetakan sumber & mekanisme masalah (akumulasi mikroplastik), Text 2 menawarkan intervensi teknis terukur.',
+          tone: 'Kedua teks bersifat Objective/Analytical & Solutions-oriented dengan fokus pada data kuantitatif dan mekanisme sebab-akibat.',
+          inference: 'Memotong aliran mikroplastik lebih efektif dilakukan di hulu (mesin cuci & formulasi ban) sebelum partikel masuk ke rantai makanan laut.'
+        }
+      }
+    };
+
+    function toggleClues() {
+      showClues = !showClues;
+      const b = document.getElementById('bClue');
+      b.textContent = showClues ? 'Highlight Evidence: ON' : 'Highlight Evidence: OFF';
+      b.classList.toggle('is-active', showClues);
+      render();
+    }
+
+    function fmtText(html) {
+      if (showClues) return html.replace(/<mark>/g, '<span style="background:#fef08a; padding:1px 4px; border-radius:3px; font-weight:700; color:#0f172a;">').replace(/<\/mark>/g, '</span>');
+      return html.replace(/<\/?mark>/g, '');
+    }
+
+    function render() {
+      const t = TOPICS[document.getElementById('selTopic').value] || TOPICS.ai_med;
+      const lens = document.getElementById('selLens').value || 'relation';
+      document.getElementById('vT1').textContent = t.t1Tone;
+      document.getElementById('vT2').textContent = t.t2Tone;
+      document.getElementById('vRel').textContent = t.relation;
+      document.getElementById('p1Box').innerHTML = fmtText(t.p1);
+      document.getElementById('p2Box').innerHTML = fmtText(t.p2);
+      document.getElementById('enNote').textContent = t.notes[lens] || t.notes.relation;
+
+      drawSpectrum(t);
+    }
+
+    function drawSpectrum(t) {
+      cv.width = cv.offsetWidth || 640;
+      cv.height = 230;
+      const W = cv.width, H = cv.height;
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('SPEKTRUM SIKAP PENULIS & SINTESIS ANTAR-TEKS (TEXT 1 vs TEXT 2)', 22, 28);
+
+      const xL = 70, xR = W - 70, barW = xR - xL;
+      // Garis Spektrum Sikap (0 = Critical/Skeptical -> 1 = Supportive/Advocate)
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(xL, 118); ctx.lineTo(xR, 118); ctx.stroke();
+
+      ctx.fillStyle = '#f87171'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('CRITICAL / ALARMED', xL, 146);
+      ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center';
+      ctx.fillText('OBJECTIVE / BALANCED', (xL + xR) / 2, 146);
+      ctx.fillStyle = '#34d399'; ctx.textAlign = 'right';
+      ctx.fillText('SUPPORTIVE / ADVOCATE', xR, 146);
+
+      const p1x = xL + t.t1Score * barW;
+      const p2x = xL + t.t2Score * barW;
+
+      // Garis Gap Sintesis
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(p1x, 82); ctx.lineTo(p2x, 82); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#fbbf24'; ctx.textAlign = 'center'; ctx.font = 'bold 11px monospace';
+      ctx.fillText(`Synthesis: ${t.relation.toUpperCase()}`, (p1x + p2x) / 2, 68);
+
+      // Pin Text 1 & Text 2
+      [
+        { x: p1x, lbl: `Text 1 (${t.t1Tone})`, col: '#38bdf8' },
+        { x: p2x, lbl: `Text 2 (${t.t2Tone})`, col: '#fb923c' }
+      ].forEach(pin => {
+        ctx.fillStyle = pin.col;
+        ctx.beginPath(); ctx.arc(pin.x, 118, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = pin.col; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(pin.lbl, pin.x, 184);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
