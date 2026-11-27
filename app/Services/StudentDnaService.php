@@ -592,69 +592,104 @@ class StudentDnaService
     private function collectEvidence360(Student $student): array
     {
         // LMS Submissions
-        $lmsRows = LmsSubmission::where('student_id', $student->id)
-            ->whereIn('status', ['submitted', 'graded', 'late'])
-            ->get(['status', 'score']);
-        $lmsCount = $lmsRows->count();
-        $lmsGraded = $lmsRows->whereNotNull('score');
-        $lmsAvg = $lmsGraded->isNotEmpty() ? round((float) $lmsGraded->avg('score'), 1) : null;
-        $lmsLate = $lmsRows->where('status', 'late')->count();
-        $lmsOntimeRate = $lmsCount > 0 ? round((($lmsCount - $lmsLate) / $lmsCount) * 100, 1) : null;
+        $lmsCount = 0;
+        $lmsAvg = null;
+        $lmsOntimeRate = null;
+        try {
+            $lmsRows = LmsSubmission::where('student_id', $student->id)
+                ->whereIn('status', ['submitted', 'graded', 'late'])
+                ->get(['status', 'score']);
+            $lmsCount = $lmsRows->count();
+            $lmsGraded = $lmsRows->whereNotNull('score');
+            $lmsAvg = $lmsGraded->isNotEmpty() ? round((float) $lmsGraded->avg('score'), 1) : null;
+            $lmsLate = $lmsRows->where('status', 'late')->count();
+            $lmsOntimeRate = $lmsCount > 0 ? round((($lmsCount - $lmsLate) / $lmsCount) * 100, 1) : null;
+        } catch (\Throwable $e) {
+            // abaikan bila tabel/kolom LMS belum siap
+        }
 
-        // CBT Results
-        $cbtRows = CbtExamResult::where('student_id', $student->id)
-            ->with('exam:id,title')
-            ->get(['exam_id', 'final_score', 'percentage_score']);
-        $cbtScores = $cbtRows->map(fn ($r) => $r->final_score ?? $r->percentage_score)->filter(fn ($v) => $v !== null);
-        $cbtAvg = $cbtScores->isNotEmpty() ? round((float) $cbtScores->avg(), 1) : null;
-        $cbtMax = $cbtScores->isNotEmpty() ? round((float) $cbtScores->max(), 1) : null;
+        // CBT Results (tabel cbt_exams memakai exam_title, bukan title; cukup ambil skor)
+        $cbtCount = 0;
+        $cbtAvg = null;
+        $cbtMax = null;
+        try {
+            $cbtRows = CbtExamResult::where('student_id', $student->id)
+                ->get(['final_score', 'percentage_score']);
+            $cbtCount = $cbtRows->count();
+            $cbtScores = $cbtRows->map(fn ($r) => $r->final_score ?? $r->percentage_score)->filter(fn ($v) => $v !== null);
+            $cbtAvg = $cbtScores->isNotEmpty() ? round((float) $cbtScores->avg(), 1) : null;
+            $cbtMax = $cbtScores->isNotEmpty() ? round((float) $cbtScores->max(), 1) : null;
+        } catch (\Throwable $e) {
+            // abaikan bila tabel/kolom CBT belum siap
+        }
 
         // Final Project / Penelitian Ilmiah
-        $finalProject = FinalProject::where('student_id', $student->id)->latest('id')->first();
+        $finalProject = null;
+        try {
+            $finalProject = FinalProject::where('student_id', $student->id)->latest('id')->first();
+        } catch (\Throwable $e) {
+            // abaikan bila modul Tugas Akhir belum tersedia
+        }
 
         // PKL Placement & Logs
-        $pklPlacement = PklPlacement::where('student_id', $student->id)->with('dudi')->latest('id')->first();
+        $pklPlacement = null;
         $pklApprovedLogs = 0;
         $pklRecentLogs = [];
-        if ($pklPlacement) {
-            $pklLogs = PklLog::where('pkl_placement_id', $pklPlacement->id)
-                ->where('status', 'approved')
-                ->latest('log_date')
-                ->limit(10)
-                ->get(['activity', 'log_date']);
-            $pklApprovedLogs = PklLog::where('pkl_placement_id', $pklPlacement->id)->where('status', 'approved')->count();
-            $pklRecentLogs = $pklLogs->take(3)->pluck('activity')->filter()->values()->toArray();
+        try {
+            $pklPlacement = PklPlacement::where('student_id', $student->id)->with('dudi')->latest('id')->first();
+            if ($pklPlacement) {
+                $pklLogs = PklLog::where('pkl_placement_id', $pklPlacement->id)
+                    ->where('status', 'approved')
+                    ->latest('log_date')
+                    ->limit(10)
+                    ->get(['activity', 'log_date']);
+                $pklApprovedLogs = PklLog::where('pkl_placement_id', $pklPlacement->id)->where('status', 'approved')->count();
+                $pklRecentLogs = $pklLogs->take(3)->pluck('activity')->filter()->values()->toArray();
+            }
+        } catch (\Throwable $e) {
+            // abaikan bila modul PKL belum tersedia
         }
 
         // Counseling & Achievements
-        $records = StudentCounselingRecord::where('student_id', $student->id)->latest('incident_date')->get();
         $achievements = [];
         $violationsCount = 0;
-        foreach ($records as $rec) {
-            $type = strtolower((string) ($rec->record_type ?? ''));
-            if (in_array($type, ['penghargaan', 'prestasi', 'juara', 'achievement'])) {
-                $achievements[] = [
-                    'title'       => $rec->competition_name ?: ($rec->title ?: 'Penghargaan Siswa'),
-                    'ranking'     => $rec->ranking ?: null,
-                    'level'       => $rec->achievement_level ?: null,
-                    'category'    => $rec->category ?: 'akademik',
-                ];
-            } elseif (in_array($type, ['pelanggaran', 'disiplin', 'tatib']) || !empty($rec->severity)) {
-                $violationsCount++;
+        $counselingTotal = 0;
+        try {
+            $records = StudentCounselingRecord::where('student_id', $student->id)->latest('incident_date')->get();
+            $counselingTotal = $records->count();
+            foreach ($records as $rec) {
+                $type = strtolower((string) ($rec->record_type ?? ''));
+                if (in_array($type, ['penghargaan', 'prestasi', 'juara', 'achievement'])) {
+                    $achievements[] = [
+                        'title'    => $rec->competition_name ?: ($rec->title ?: 'Penghargaan Siswa'),
+                        'ranking'  => $rec->ranking ?: null,
+                        'level'    => $rec->achievement_level ?: null,
+                        'category' => $rec->category ?: 'akademik',
+                    ];
+                } elseif (in_array($type, ['pelanggaran', 'disiplin', 'tatib']) || !empty($rec->severity)) {
+                    $violationsCount++;
+                }
             }
+        } catch (\Throwable $e) {
+            // abaikan bila tabel konseling belum tersedia
         }
 
         // Ekstrakurikuler
-        $ekskuls = $student->extracurricularMembers()
-            ->where('status', 'approved')
-            ->with('extracurricular')
-            ->get();
+        $ekskuls = collect();
+        try {
+            $ekskuls = $student->extracurricularMembers()
+                ->where('status', 'approved')
+                ->with('extracurricular')
+                ->get();
+        } catch (\Throwable $e) {
+            // abaikan bila relasi ekskul belum tersedia
+        }
 
         return [
             'lms_count'         => $lmsCount,
             'lms_avg'           => $lmsAvg,
             'lms_ontime_rate'   => $lmsOntimeRate,
-            'cbt_count'         => $cbtRows->count(),
+            'cbt_count'         => $cbtCount,
             'cbt_avg'           => $cbtAvg,
             'cbt_max'           => $cbtMax,
             'final_project'     => $finalProject ? [
@@ -671,7 +706,7 @@ class StudentDnaService
             ] : null,
             'achievements'      => $achievements,
             'violations_count'  => $violationsCount,
-            'counseling_total'  => $records->count(),
+            'counseling_total'  => $counselingTotal,
             'extracurriculars'  => $ekskuls,
         ];
     }
