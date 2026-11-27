@@ -29,6 +29,16 @@ class ParentStudentDnaController extends Controller
     }
 
     /**
+     * Generate or refresh personalized ClassAI narrative analysis for child.
+     */
+    public function generateAi(Request $request, Student $student)
+    {
+        $res = $this->dnaService->generateAiAnalysis($student, $request->boolean('force', true));
+
+        return response()->json($res, ($res['success'] ?? false) ? 200 : 422);
+    }
+
+    /**
      * Download PDF from Parent view.
      */
     public function printPdf(Student $student)

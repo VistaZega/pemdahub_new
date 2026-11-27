@@ -89,6 +89,17 @@ class StudentDnaController extends Controller
     }
 
     /**
+     * Generate or refresh personalized ClassAI narrative analysis for a student.
+     */
+    public function generateAi(Request $request, Student $student)
+    {
+        $this->authorizeAccess($student);
+        $res = $this->dnaService->generateAiAnalysis($student, $request->boolean('force', true));
+
+        return response()->json($res, ($res['success'] ?? false) ? 200 : 422);
+    }
+
+    /**
      * Export official PDF Report of Student Academic DNA 360°.
      */
     public function printPdf(Student $student)

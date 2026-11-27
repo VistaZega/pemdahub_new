@@ -66,10 +66,10 @@
                     <canvas id="dnaRadarChart"></canvas>
                 </div>
 
-                {{-- Status Akurasi Data --}}
+                {{-- Kelengkapan Sumber Data --}}
                 <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Tingkat Kalibrasi Data:</p>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Kelengkapan Sumber Data:</p>
                         <p class="font-bold text-gray-800">{{ $analysis['confidence_label'] }} ({{ $analysis['confidence_score'] }}%)</p>
                     </div>
                     <div class="w-24 bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -172,17 +172,30 @@
                 @endif
             </div>
 
-            {{-- Rekomendasi Karir / Kuliah --}}
+            {{-- Analisis Mendalam Personal (ClassAI) & Peta Mapel 360° --}}
+            @php
+                $dnaAiEndpoint = request()->routeIs('guru.*')
+                    ? route('guru.dna.generate-ai', $student)
+                    : route('admin.dna.generate-ai', $student);
+                $dnaViewerRole = request()->routeIs('guru.*') ? 'guru' : 'admin';
+            @endphp
+            @include('partials.student-dna-ai-panel', [
+                'analysis'   => $analysis,
+                'aiEndpoint' => $dnaAiEndpoint,
+                'viewerRole' => $dnaViewerRole,
+            ])
+
+            {{-- Rekomendasi Studi & Karier --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
                 <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-                    <i class="fas fa-compass text-indigo-600"></i> Rekomendasi Masa Depan (AI Prediction Engine)
+                    <i class="fas fa-compass text-indigo-600"></i> Pemetaan Potensi Studi &amp; Karier (Berbasis Data &amp; ClassAI)
                 </h3>
 
                 @if($analysis['school_type'] === 'SMK')
                     {{-- Jalur Karir SMK --}}
                     @if(isset($analysis['recommendations']['career_tracks']))
                     <div class="space-y-3">
-                        <p class="text-xs font-bold text-gray-700">Bidang Karir & Keahlian Industri Prioritas:</p>
+                        <p class="text-xs font-bold text-gray-700">Bidang Keahlian &amp; Karier Industri Prioritas:</p>
                         @foreach($analysis['recommendations']['career_tracks'] as $track)
                         <div class="p-3.5 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1 text-xs">
                             <div class="flex items-center justify-between">
@@ -197,14 +210,14 @@
 
                     @if(isset($analysis['recommendations']['pkl_recommendation']))
                     <div class="p-3.5 bg-emerald-50 rounded-xl border border-emerald-100 text-xs space-y-1">
-                        <p class="font-bold text-emerald-900"><i class="fas fa-building mr-1"></i> Tempat Praktik Kerja Lapangan (PKL) Idaman:</p>
+                        <p class="font-bold text-emerald-900"><i class="fas fa-building mr-1"></i> Rekomendasi Tempat Praktik Kerja Lapangan (PKL):</p>
                         <p class="text-emerald-800 leading-relaxed">{{ $analysis['recommendations']['pkl_recommendation'] }}</p>
                     </div>
                     @endif
 
                     @if(isset($analysis['recommendations']['certifications']))
                     <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-100 text-xs space-y-1">
-                        <p class="font-bold text-amber-900"><i class="fas fa-certificate mr-1"></i> Rekomendasi Sertifikasi Profesi (BNSP / Vendor):</p>
+                        <p class="font-bold text-amber-900"><i class="fas fa-certificate mr-1"></i> Rekomendasi Sertifikasi Profesi (BNSP / Industri):</p>
                         <ul class="list-disc list-inside text-amber-800 space-y-0.5">
                             @foreach($analysis['recommendations']['certifications'] as $cert)
                             <li>{{ $cert }}</li>
@@ -213,10 +226,12 @@
                     </div>
                     @endif
                 @else
-                    {{-- Rumpun Jurusan Kuliah SMA --}}
+                    {{-- Rumpun Jurusan Kuliah SMA / Lanjutan SMP --}}
                     @if(isset($analysis['recommendations']['college_majors']))
                     <div class="space-y-3">
-                        <p class="text-xs font-bold text-gray-700">Pilihan Rumpun Jurusan Perguruan Tinggi (SNBP / SNBT):</p>
+                        <p class="text-xs font-bold text-gray-700">
+                            {{ $analysis['school_type'] === 'SMP' ? 'Rekomendasi Jalur Pendidikan Lanjutan (SMA / SMK):' : 'Pilihan Rumpun Program Studi Perguruan Tinggi (SNBP / SNBT):' }}
+                        </p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             @foreach($analysis['recommendations']['college_majors'] as $major)
                             <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs space-y-1">
@@ -224,7 +239,7 @@
                                     {{ $major['cluster'] }}
                                 </span>
                                 <p class="font-bold text-gray-900 mt-1">{{ $major['major'] }}</p>
-                                <p class="text-[10px] text-emerald-600 font-bold">Tingkat Kesiapan: {{ $major['readiness'] }}</p>
+                                <p class="text-[10px] text-emerald-700 font-bold">Tingkat Kesesuaian: {{ $major['readiness'] }}</p>
                             </div>
                             @endforeach
                         </div>
@@ -236,24 +251,24 @@
             {{-- Rekam Jejak Data Riil PembdaHUB --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
                 <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-                    <i class="fas fa-database text-indigo-600"></i> Rekam Jejak Data Riil PembdaHUB
+                    <i class="fas fa-database text-indigo-600"></i> Ringkasan Sumber Data Nyata PembdaHUB
                 </h3>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
                     <div class="p-3 bg-gray-50 rounded-xl">
-                        <p class="text-gray-400 text-[10px] font-bold">Total Nilai</p>
-                        <p class="text-base font-bold text-gray-900 mt-0.5">{{ $analysis['metrics']['total_grades'] }} Record</p>
+                        <p class="text-gray-400 text-[10px] font-bold">Mata Pelajaran</p>
+                        <p class="text-base font-bold text-gray-900 mt-0.5">{{ $analysis['metrics']['total_grades'] }} Mapel</p>
                     </div>
                     <div class="p-3 bg-gray-50 rounded-xl">
                         <p class="text-gray-400 text-[10px] font-bold">Kehadiran RFID</p>
-                        <p class="text-base font-bold text-emerald-600 mt-0.5">{{ $analysis['metrics']['attendance_rate'] }}%</p>
+                        <p class="text-base font-bold text-emerald-600 mt-0.5">{{ $analysis['metrics']['attendance_display'] ?? ($analysis['metrics']['attendance_rate'] . '%') }}</p>
                     </div>
                     <div class="p-3 bg-gray-50 rounded-xl">
-                        <p class="text-gray-400 text-[10px] font-bold">Rerata CBT</p>
+                        <p class="text-gray-400 text-[10px] font-bold">Rerata Ujian CBT</p>
                         <p class="text-base font-bold text-indigo-600 mt-0.5">{{ $analysis['metrics']['cbt_average'] ?: '-' }}</p>
                     </div>
                     <div class="p-3 bg-gray-50 rounded-xl">
-                        <p class="text-gray-400 text-[10px] font-bold">Reputasi</p>
+                        <p class="text-gray-400 text-[10px] font-bold">Poin Apresiasi &amp; Sikap</p>
                         <p class="text-base font-bold text-purple-600 mt-0.5">{{ $analysis['metrics']['reputation_points'] }} Poin</p>
                     </div>
                 </div>

@@ -139,6 +139,17 @@ class TeacherStudentDnaController extends Controller
     }
 
     /**
+     * Generate or refresh personalized ClassAI narrative analysis from teacher portal.
+     */
+    public function generateAi(Request $request, Student $student)
+    {
+        $this->authorizeStudentAccess($student);
+        $res = $this->dnaService->generateAiAnalysis($student, $request->boolean('force', true));
+
+        return response()->json($res, ($res['success'] ?? false) ? 200 : 422);
+    }
+
+    /**
      * Export PDF from teacher view.
      */
     public function printPdf(Student $student)

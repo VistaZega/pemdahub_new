@@ -59,8 +59,22 @@ class StudentDnaPortalController extends Controller
             $validated
         );
 
+        \Illuminate\Support\Facades\Cache::forget("student_dna_ai_{$student->id}");
+
         return redirect()->route('siswa.dna.index')
-            ->with('success', 'Pemetaan minat & asesmen mandiri DNA berhasil diperbarui! Profil DNA Anda telah dikalibrasi ulang.');
+            ->with('success', 'Pemetaan minat dan cita-cita berhasil diperbarui. Profil DNA Anda telah diselaraskan ulang.');
+    }
+
+    /**
+     * Generate or refresh personalized ClassAI narrative analysis for logged-in student.
+     */
+    public function generateAi(Request $request)
+    {
+        $user = auth()->user();
+        $student = $user->student ?? Student::where('user_id', $user->id)->firstOrFail();
+        $res = $this->dnaService->generateAiAnalysis($student, $request->boolean('force', true));
+
+        return response()->json($res, ($res['success'] ?? false) ? 200 : 422);
     }
 
     /**

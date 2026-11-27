@@ -584,6 +584,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::prefix('dna')->name('dna.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\StudentDnaController::class, 'index'])->name('index');
         Route::get('/{student}', [App\Http\Controllers\Admin\StudentDnaController::class, 'show'])->name('show');
+        Route::post('/{student}/generate-ai', [App\Http\Controllers\Admin\StudentDnaController::class, 'generateAi'])->name('generate-ai');
         Route::get('/{student}/pdf', [App\Http\Controllers\Admin\StudentDnaController::class, 'printPdf'])->name('pdf');
     });
 });

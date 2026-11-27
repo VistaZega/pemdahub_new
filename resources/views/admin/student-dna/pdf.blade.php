@@ -184,7 +184,7 @@
             <td style="font-weight: bold;">Tanggal Analisis</td>
             <td>:</td>
             <td>{{ now()->translatedFormat('d F Y') }}</td>
-            <td style="font-weight: bold;">Akurasi Kalibrasi</td>
+            <td style="font-weight: bold;">Kelengkapan Data</td>
             <td>:</td>
             <td><b>{{ $analysis['confidence_score'] }}% ({{ $analysis['confidence_label'] }})</b></td>
         </tr>
@@ -247,11 +247,35 @@
         </tbody>
     </table>
 
-    {{-- Rekomendasi Karir / Kuliah --}}
+    {{-- Rekomendasi Studi, Mapel Unggulan & Analisis Personal ClassAI --}}
     <div class="recom-box">
         <div style="font-weight: bold; color: #0f172a; margin-bottom: 3px; text-transform: uppercase;">
-            Rekomendasi Arah Masa Depan & Jalur Karier (Analisis Algoritmik PembdaHUB):
+            Ringkasan Capaian Mapel, Keselarasan Cita-Cita &amp; Arah Masa Depan (Bahasa Baku PembdaHUB):
         </div>
+
+        @if(!empty($analysis['subject_profile']['top_subjects']))
+            <div style="margin-bottom: 2px;">
+                <b>Mata Pelajaran Unggulan:</b>
+                {{ collect($analysis['subject_profile']['top_subjects'])->map(fn($s) => $s['subject_name'] . ' (' . $s['score'] . ')')->implode(', ') }}
+                @if(!empty($analysis['subject_profile']['weak_subjects']))
+                    &nbsp;|&nbsp; <b>Prioritas Penguatan:</b>
+                    {{ collect($analysis['subject_profile']['weak_subjects'])->map(fn($s) => $s['subject_name'] . ' (' . $s['score'] . ')')->implode(', ') }}
+                @endif
+            </div>
+        @endif
+
+        @if(!empty($analysis['ai_report']['executive_summary']))
+            <div style="margin-bottom: 3px; color: #1e293b;">
+                <b>Analisis Personal ClassAI:</b> {{ $analysis['ai_report']['executive_summary'] }}
+            </div>
+        @endif
+
+        @if(!empty($analysis['recommendations']['dream_alignment']['summary']))
+            <div style="margin-bottom: 3px; color: #4c1d95;">
+                <b>Keselarasan Cita-Cita:</b> {{ $analysis['ai_report']['dream_alignment'] ?? $analysis['recommendations']['dream_alignment']['summary'] }}
+            </div>
+        @endif
+
         @if($analysis['school_type'] === 'SMK')
             @if(isset($analysis['recommendations']['career_tracks']))
                 @foreach($analysis['recommendations']['career_tracks'] as $t)
@@ -267,14 +291,25 @@
             @endif
         @else
             @if(isset($analysis['recommendations']['college_majors']))
-                <div style="margin-bottom: 2px;">Rumpun Program Studi PTN yang Direkomendasikan:</div>
+                <div style="margin-bottom: 2px;"><b>{{ $analysis['school_type'] === 'SMP' ? 'Rekomendasi Pendidikan Lanjutan:' : 'Rumpun Program Studi Perguruan Tinggi yang Direkomendasikan:' }}</b></div>
                 @foreach($analysis['recommendations']['college_majors'] as $m)
                 <div style="margin-left: 8px; margin-bottom: 1px;">
-                    - <b>{{ $m['major'] }}</b> ({{ $m['cluster'] }}) &mdash; Tingkat Kesiapan: {{ $m['readiness'] }}
+                    - <b>{{ $m['major'] }}</b> ({{ $m['cluster'] }}) &mdash; Tingkat Kesesuaian: {{ $m['readiness'] }}
                 </div>
                 @endforeach
             @endif
         @endif
+
+        @php $planSteps = $analysis['ai_report']['action_plan_90_days'] ?? ($analysis['recommendations']['action_plan_90_days'] ?? []); @endphp
+        @if(!empty($planSteps))
+        <div style="margin-top: 3px;">
+            <b>Rencana Pendampingan 3 Bulan (90 Hari):</b> {{ implode(' ', array_slice($planSteps, 0, 3)) }}
+        </div>
+        @endif
+
+        <div style="margin-top: 4px; font-size: 7pt; color: #475569; border-top: 1px dashed #cbd5e1; padding-top: 3px;">
+            <i>Catatan: Profil DNA Akademik 360° merupakan alat bantu pemetaan potensi dan arah pendampingan belajar berdasarkan data saat ini (bersifat dinamis dan berkembang seiring proses belajar siswa, bukan penilaian tetap).</i>
+        </div>
     </div>
 
     {{-- Tanda Tangan Resmi (100% Database) --}}

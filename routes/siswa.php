@@ -27,6 +27,7 @@ Route::prefix('siswa')->name('siswa.')->middleware('auth', 'role:siswa')->group(
     Route::prefix('dna')->name('dna.')->group(function () {
         Route::get('/', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'index'])->name('index');
         Route::post('/diagnostic', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'saveDiagnostic'])->name('diagnostic.save');
+        Route::post('/generate-ai', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'generateAi'])->name('generate-ai');
         Route::get('/pdf', [App\Http\Controllers\Siswa\StudentDnaPortalController::class, 'printPdf'])->name('pdf');
     });
 

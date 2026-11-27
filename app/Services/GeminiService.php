@@ -625,6 +625,103 @@ Refleksi pembelajaran bersama dan doa penutup.";
     }
 
     /**
+     * Informasi provider & model AI yang sedang aktif.
+     */
+    public function getProviderInfo(): array
+    {
+        return [
+            'provider'       => $this->activeProvider,
+            'provider_label' => $this->activeProvider === 'classai' ? 'ClassAI Router' : 'Google Gemini',
+            'model'          => $this->activeProvider === 'classai' ? $this->classAiModel : 'gemini-1.5-flash',
+            'configured'     => !empty($this->apiKey),
+        ];
+    }
+
+    /**
+     * Membangkitkan respons JSON terstruktur menggunakan API aktif (ClassAI Router / Gemini).
+     * Mengembalikan null jika API key belum dikonfigurasi atau respons tidak valid JSON.
+     */
+    public function generateStructuredJson(string $systemPrompt, string $userPrompt): ?array
+    {
+        if (empty($this->apiKey)) {
+            return null;
+        }
+
+        $raw = '';
+        try {
+            if ($this->activeProvider === 'classai') {
+                $response = Http::timeout($this->timeout)
+                    ->withToken($this->apiKey)
+                    ->acceptJson()
+                    ->post($this->classAiBaseUrl . '/chat/completions', [
+                        'model'       => $this->classAiModel,
+                        'temperature' => 0.45,
+                        'messages'    => [
+                            ['role' => 'system', 'content' => $systemPrompt],
+                            ['role' => 'user', 'content' => $userPrompt],
+                        ],
+                    ]);
+
+                if (!$response->successful()) {
+                    Log::warning('ClassAI Structured JSON Error: HTTP ' . $response->status() . ' ' . \Illuminate\Support\Str::limit($response->body(), 300));
+                    return null;
+                }
+                $raw = (string) ($response->json('choices.0.message.content') ?? '');
+            } else {
+                $response = Http::timeout($this->timeout)
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post($this->baseUrl . '?key=' . $this->apiKey, [
+                        'systemInstruction' => [
+                            'parts' => [['text' => $systemPrompt]],
+                        ],
+                        'contents' => [
+                            ['role' => 'user', 'parts' => [['text' => $userPrompt]]],
+                        ],
+                        'generationConfig' => [
+                            'temperature'      => 0.45,
+                            'responseMimeType' => 'application/json',
+                        ],
+                    ]);
+
+                if (!$response->successful()) {
+                    Log::warning('Gemini Structured JSON Error: HTTP ' . $response->status() . ' ' . \Illuminate\Support\Str::limit($response->body(), 300));
+                    return null;
+                }
+                $raw = (string) ($response->json('candidates.0.content.parts.0.text') ?? '');
+            }
+        } catch (\Throwable $e) {
+            Log::warning('AI Structured JSON Exception: ' . $e->getMessage());
+            return null;
+        }
+
+        $clean = trim($raw);
+        foreach (['```json', '```JSON', '```'] as $fence) {
+            if (str_starts_with($clean, $fence)) {
+                $clean = substr($clean, strlen($fence));
+                break;
+            }
+        }
+        if (str_ends_with($clean, '```')) {
+            $clean = substr($clean, 0, -3);
+        }
+        $clean = trim($clean);
+
+        $firstBrace = strpos($clean, '{');
+        $lastBrace = strrpos($clean, '}');
+        if ($firstBrace !== false && $lastBrace !== false && $lastBrace > $firstBrace) {
+            $clean = substr($clean, $firstBrace, $lastBrace - $firstBrace + 1);
+        }
+
+        $decoded = json_decode($clean, true);
+        if (!is_array($decoded)) {
+            Log::warning('AI Structured JSON parse failed: ' . \Illuminate\Support\Str::limit($raw, 250));
+            return null;
+        }
+
+        return $decoded;
+    }
+
+    /**
      * Fallback mock JSON content for questions.
      */
     protected function getMockJsonResponse(string $prompt): array

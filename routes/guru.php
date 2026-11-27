@@ -290,6 +290,7 @@ Route::prefix('guru')->name('guru.')->middleware('auth', 'role:guru,kepala_sekol
     Route::prefix('dna')->name('dna.')->group(function () {
         Route::get('/', [App\Http\Controllers\Guru\TeacherStudentDnaController::class, 'index'])->name('index');
         Route::get('/{student}', [App\Http\Controllers\Guru\TeacherStudentDnaController::class, 'show'])->name('show');
+        Route::post('/{student}/generate-ai', [App\Http\Controllers\Guru\TeacherStudentDnaController::class, 'generateAi'])->name('generate-ai');
         Route::get('/{student}/pdf', [App\Http\Controllers\Guru\TeacherStudentDnaController::class, 'printPdf'])->name('pdf');
     });
 

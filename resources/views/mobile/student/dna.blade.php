@@ -65,7 +65,7 @@
 
         <!-- Accuracy indicator -->
         <div class="relative z-10 flex items-center justify-between text-[10px] pt-1">
-            <span class="text-slate-300 font-bold">Akurasi Kalibrasi Data:</span>
+            <span class="text-slate-300 font-bold">Kelengkapan Sumber Data:</span>
             <span class="font-black text-amber-300 bg-white/10 px-2 py-0.5 rounded-full">{{ $analysis['confidence_score'] }}% ({{ $analysis['confidence_label'] }})</span>
         </div>
     </div>
@@ -188,11 +188,31 @@
             </div>
         </div>
 
-        <!-- Rekomendasi Karier & Strategi Belajar -->
+        <!-- Rekomendasi Karier, Mapel Unggulan & Strategi Belajar -->
         <div class="bg-white p-4.5 rounded-3xl border-2 border-slate-200 shadow-xs space-y-3.5">
             <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-compass text-purple-600"></i> Rekomendasi Masa Depan
+                <i class="fa-solid fa-compass text-purple-600"></i> Peta Kekuatan &amp; Arah Masa Depan
             </h3>
+
+            @if(!empty($analysis['subject_profile']['top_subjects']))
+            <div class="p-3 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-1.5">
+                <h4 class="text-xs font-black text-emerald-950">Mata Pelajaran Unggulan:</h4>
+                <div class="flex flex-wrap gap-1.5">
+                    @foreach($analysis['subject_profile']['top_subjects'] as $ts)
+                    <span class="px-2.5 py-1 bg-white rounded-xl text-[10px] font-black text-emerald-900 border border-emerald-200">
+                        {{ $ts['subject_name'] }} ({{ $ts['score'] }})
+                    </span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            @if(!empty($analysis['ai_report']['executive_summary']))
+            <div class="p-3 bg-sky-50/70 rounded-2xl border border-sky-200 space-y-1">
+                <h4 class="text-xs font-black text-sky-950">Ringkasan Analisis ClassAI:</h4>
+                <p class="text-[11px] text-slate-800 leading-relaxed">{{ $analysis['ai_report']['executive_summary'] }}</p>
+            </div>
+            @endif
 
             <!-- Jalur Karier -->
             @if(!empty($analysis['career_recommendations']))

@@ -69,7 +69,7 @@
 
                 <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Akurasi Kalibrasi Data:</p>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Kelengkapan Sumber Data:</p>
                         <p class="font-bold text-gray-800">{{ $analysis['confidence_score'] }}% ({{ $analysis['confidence_label'] }})</p>
                     </div>
                     <div class="w-20 bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -143,10 +143,17 @@
                 </p>
             </div>
 
+            {{-- Analisis Mendalam Personal (ClassAI) & Peta Mapel 360° --}}
+            @include('partials.student-dna-ai-panel', [
+                'analysis'   => $analysis,
+                'aiEndpoint' => route('siswa.dna.generate-ai'),
+                'viewerRole' => 'siswa',
+            ])
+
             {{-- Rekomendasi Masa Depan --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
                 <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-                    <i class="fas fa-compass text-indigo-600"></i> Peluang Karier & Rumpun Kuliah Terbaik
+                    <i class="fas fa-compass text-indigo-600"></i> Peluang Karier &amp; Rumpun Studi Lanjutan
                 </h3>
 
                 @if($analysis['school_type'] === 'SMK')
@@ -175,7 +182,7 @@
                         <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs">
                             <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded font-bold text-[10px] uppercase">{{ $major['cluster'] }}</span>
                             <p class="font-bold text-gray-900 mt-1">{{ $major['major'] }}</p>
-                            <p class="text-[10px] text-emerald-600 font-bold mt-0.5">Kesiapan: {{ $major['readiness'] }}</p>
+                            <p class="text-[10px] text-emerald-700 font-bold mt-0.5">Tingkat Kesesuaian: {{ $major['readiness'] }}</p>
                         </div>
                         @endforeach
                     </div>
