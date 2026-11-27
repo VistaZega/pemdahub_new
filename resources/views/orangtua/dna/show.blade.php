@@ -7,177 +7,204 @@
 @endpush
 
 @section('content')
-<div class="space-y-6">
-    {{-- Hero Banner --}}
-    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 rounded-2xl p-6 sm:p-7 text-white relative overflow-hidden shadow-md border border-slate-800">
-        <div class="absolute -top-12 -right-12 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="relative z-10">
-            <div class="flex items-center text-xs text-slate-300 font-semibold mb-2.5 gap-2">
-                <a href="{{ route('orangtua.dashboard') }}" class="hover:text-white transition">Dashboard</a>
-                <span class="text-slate-500">/</span>
-                <span class="text-purple-300 font-bold">DNA Potensi Anak</span>
+@php
+    $sp = $analysis['subject_profile'] ?? [];
+    $ev = $analysis['evidence_360'] ?? [];
+    $dimRows = [
+        ['key' => 'logic', 'label' => 'Logika & Analitik', 'icon' => 'fa-brain', 'bar' => 'bg-sky-600'],
+        ['key' => 'communication', 'label' => 'Komunikasi & Bahasa', 'icon' => 'fa-comments', 'bar' => 'bg-emerald-600'],
+        ['key' => 'technical', 'label' => 'Keahlian Teknis & Vokasi', 'icon' => 'fa-wrench', 'bar' => 'bg-indigo-600'],
+        ['key' => 'social', 'label' => 'Sosial & Kepemimpinan', 'icon' => 'fa-users', 'bar' => 'bg-amber-600'],
+        ['key' => 'creative', 'label' => 'Kreativitas & Inovasi', 'icon' => 'fa-palette', 'bar' => 'bg-purple-600'],
+        ['key' => 'discipline', 'label' => 'Kedisiplinan & Ketekunan', 'icon' => 'fa-clock', 'bar' => 'bg-rose-600'],
+    ];
+@endphp
+
+<div class="space-y-5" x-data="{ activeTab: 'analisis' }">
+    {{-- Header Dossier Anak (Solid Slate, Kontras Tinggi) --}}
+    <div class="bg-slate-900 border border-slate-800 rounded-xl px-5 py-5 sm:px-6 text-white">
+        <div class="flex items-center text-xs text-slate-300 font-medium mb-3 gap-2">
+            <a href="{{ route('orangtua.dashboard') }}" class="hover:text-white transition">Dashboard</a>
+            <span class="text-slate-600">/</span>
+            <span class="text-sky-300 font-semibold">DNA Potensi Anak 360°</span>
+        </div>
+
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-4 min-w-0">
+                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}"
+                     onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}';"
+                     class="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-xl object-cover border border-slate-700 bg-slate-800 shrink-0">
+                <div class="min-w-0 space-y-1.5">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-sky-500/15 border border-sky-400/30 text-sky-200 text-[11px] font-bold">
+                        <i class="fas {{ $analysis['archetype']['badge_icon'] }} text-[10px]"></i>
+                        <span>{{ $analysis['archetype']['title'] }}</span>
+                    </span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight truncate">{{ $student->full_name }}</h1>
+                    <p class="text-xs text-slate-300 leading-snug">
+                        {{ $analysis['archetype']['tagline'] }} · {{ $analysis['database_identity']['school_name'] }}
+                        @if(!empty($analysis['vocational_major']))
+                        · Jurusan <strong class="text-amber-300">{{ $analysis['vocational_major']['code'] }}</strong>
+                        @endif
+                    </p>
+                </div>
             </div>
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-                <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-white/30 shadow-lg flex-shrink-0 bg-slate-800">
-                        <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('images/default-student.jpg') }}';">
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="px-3 py-1 bg-gradient-to-r {{ $analysis['archetype']['color'] }} text-white rounded-full text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-                            <i class="fas {{ $analysis['archetype']['badge_icon'] }}"></i> {{ $analysis['archetype']['title'] }}
-                        </span>
-                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ $student->full_name }}</h1>
-                        <p class="text-xs sm:text-sm text-slate-200 font-medium">
-                            Profil Bakat & Karakter Belajar: <b class="text-white">"{{ $analysis['archetype']['tagline'] }}"</b>
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <a href="{{ route('orangtua.anak.dna.pdf', $student) }}" class="px-5 py-2.5 bg-white text-indigo-900 hover:bg-gray-50 rounded-xl font-bold transition flex items-center gap-2 text-xs shadow-md active:scale-95">
-                        <i class="fas fa-file-pdf text-rose-600"></i> Cetak Laporan DNA (PDF)
-                    </a>
-                </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <a href="{{ route('orangtua.anak.dna.pdf', $student) }}"
+                   class="px-4 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs transition inline-flex items-center gap-2">
+                    <i class="fas fa-file-pdf text-rose-600"></i>
+                    <span>Cetak Laporan DNA (PDF)</span>
+                </a>
             </div>
         </div>
     </div>
 
-    {{-- Grid 360° Potensi --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {{-- Kolom Kiri: Radar Chart --}}
-        <div class="lg:col-span-5 space-y-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                    <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-chart-pie text-fuchsia-600"></i> Peta Radar 6 Sumbu Potensi Anak
-                    </h3>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
-                        Skor 0 - 100
-                    </span>
+    {{-- Strip Telemetri 4 Metrik Kunci --}}
+    <div class="bg-white border border-slate-300 rounded-xl grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 overflow-hidden text-xs">
+        <div class="px-5 py-3.5">
+            <div class="text-slate-500 font-semibold">Rerata Nilai Akademik</div>
+            <div class="text-lg font-extrabold text-slate-900 mt-0.5 tabular-nums">
+                {{ ($sp['student_avg'] ?? null) !== null ? $sp['student_avg'] : '-' }}
+                <span class="text-xs font-medium text-slate-500">({{ $analysis['metrics']['total_grades'] }} Mapel)</span>
+            </div>
+        </div>
+        <div class="px-5 py-3.5">
+            <div class="text-slate-500 font-semibold">Kehadiran Sekolah (RFID)</div>
+            <div class="text-lg font-extrabold text-emerald-700 mt-0.5 tabular-nums">
+                {{ $analysis['metrics']['attendance_display'] ?? '-' }}
+            </div>
+        </div>
+        <div class="px-5 py-3.5">
+            <div class="text-slate-500 font-semibold">Tugas LMS &amp; Ujian CBT</div>
+            <div class="text-lg font-extrabold text-slate-900 mt-0.5 tabular-nums">
+                {{ $ev['lms_count'] ?? 0 }} Tugas · CBT {{ ($ev['cbt_avg'] ?? null) !== null ? $ev['cbt_avg'] : '-' }}
+            </div>
+        </div>
+        <div class="px-5 py-3.5">
+            <div class="text-slate-500 font-semibold">Kelengkapan Sumber Data</div>
+            <div class="flex items-center gap-2.5 mt-1">
+                <span class="text-base font-extrabold text-sky-800 tabular-nums">{{ $analysis['confidence_score'] }}%</span>
+                <div class="flex-1 bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-sky-600 h-1.5 rounded-full" style="width: {{ $analysis['confidence_score'] }}%"></div>
                 </div>
+            </div>
+            <div class="text-[11px] text-slate-500 truncate mt-0.5">{{ $analysis['confidence_label'] }}</div>
+        </div>
+    </div>
 
-                <div class="relative w-full aspect-square max-w-[320px] mx-auto py-2">
+    {{-- Grid Utama Asimetris --}}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        {{-- KOLOM KIRI: RADAR + 6 SUMBU --}}
+        <aside class="lg:col-span-4 bg-white border border-slate-300 rounded-xl divide-y divide-slate-200 overflow-hidden">
+            <div class="p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-sky-700 text-xs"></i>
+                        <span>Peta Radar 6 Sumbu Potensi Anak</span>
+                    </h2>
+                    <span class="text-[11px] font-semibold text-slate-500 tabular-nums">Skala 0–100</span>
+                </div>
+                <div class="relative w-full aspect-square max-w-[300px] mx-auto py-1">
                     <canvas id="parentDnaChart"></canvas>
                 </div>
+            </div>
 
-                <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Kelengkapan Sumber Data:</p>
-                        <p class="font-bold text-gray-800">{{ $analysis['confidence_score'] }}% ({{ $analysis['confidence_label'] }})</p>
+            <div class="p-5 space-y-3 text-xs">
+                <h3 class="text-sm font-bold text-slate-900">Rincian Capaian Dimensi Anak</h3>
+                @foreach($dimRows as $dr)
+                @php $val = $analysis['scores'][$dr['key']]; @endphp
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between font-bold">
+                        <span class="text-slate-800 flex items-center gap-1.5">
+                            <i class="fas {{ $dr['icon'] }} text-slate-500 w-3.5 text-center"></i>
+                            <span>{{ $dr['label'] }}</span>
+                        </span>
+                        <span class="text-slate-900 tabular-nums font-mono">{{ $val }}/100</span>
                     </div>
-                    <div class="w-20 bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div class="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500" style="width: {{ $analysis['confidence_score'] }}%"></div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="{{ $dr['bar'] }} h-1.5 rounded-full" style="width: {{ $val }}%"></div>
                     </div>
                 </div>
+                @endforeach
+            </div>
+        </aside>
+
+        {{-- KOLOM KANAN: TAB ANALISIS & ARAH MASA DEPAN --}}
+        <section class="lg:col-span-8 space-y-4">
+            <div class="bg-white border border-slate-300 rounded-xl px-4 flex flex-wrap items-center gap-6 text-xs sm:text-sm font-bold">
+                <button type="button" @click="activeTab = 'analisis'"
+                        :class="activeTab === 'analisis' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
+                        class="py-3.5 border-b-2 transition inline-flex items-center gap-2">
+                    <i class="fas fa-microchip text-xs"></i>
+                    <span>Analisis ClassAI &amp; Pendampingan</span>
+                </button>
+                <button type="button" @click="activeTab = 'karier'"
+                        :class="activeTab === 'karier' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'"
+                        class="py-3.5 border-b-2 transition inline-flex items-center gap-2">
+                    <i class="fas fa-graduation-cap text-xs"></i>
+                    <span>Rekomendasi Masa Depan Anak</span>
+                </button>
             </div>
 
-            {{-- 6 Sumbu --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-3 text-xs">
-                <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Rincian Capaian Dimensi Anak:</h3>
-                <div class="space-y-2">
-                    <div class="flex justify-between py-1 border-b border-gray-50">
-                        <span class="font-semibold text-gray-700">🧮 Logika & Daya Analisis</span>
-                        <span class="font-bold text-indigo-600">{{ $analysis['scores']['logic'] }}/100</span>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-gray-50">
-                        <span class="font-semibold text-gray-700">🗣️ Komunikasi & Bahasa</span>
-                        <span class="font-bold text-indigo-600">{{ $analysis['scores']['communication'] }}/100</span>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-gray-50">
-                        <span class="font-semibold text-gray-700">🛠️ Keterampilan Vokasi / Praktik</span>
-                        <span class="font-bold text-indigo-600">{{ $analysis['scores']['technical'] }}/100</span>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-gray-50">
-                        <span class="font-semibold text-gray-700">🤝 Sosial & Karakter</span>
-                        <span class="font-bold text-indigo-600">{{ $analysis['scores']['social'] }}/100</span>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-gray-50">
-                        <span class="font-semibold text-gray-700">🎨 Kreativitas & Inovasi</span>
-                        <span class="font-bold text-indigo-600">{{ $analysis['scores']['creative'] }}/100</span>
-                    </div>
-                    <div class="flex justify-between py-1">
-                        <span class="font-semibold text-gray-700">⏱️ Kedisiplinan & Ketekunan</span>
-                        <span class="font-bold text-indigo-600">{{ $analysis['scores']['discipline'] }}/100</span>
-                    </div>
+            <div x-show="activeTab === 'analisis'" class="space-y-4">
+                @include('partials.student-dna-ai-panel', [
+                    'analysis'   => $analysis,
+                    'aiEndpoint' => route('orangtua.anak.dna.generate-ai', $student),
+                    'viewerRole' => 'orangtua',
+                ])
+            </div>
+
+            <div x-show="activeTab === 'karier'" x-cloak class="bg-white border border-slate-300 rounded-xl overflow-hidden">
+                <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-900">
+                        {{ $analysis['school_type'] === 'SMK' ? 'Peluang Karier Industri & PKL yang Sesuai' : ($analysis['school_type'] === 'SMP' ? 'Rekomendasi Jalur Sekolah Lanjutan (SMA / SMK)' : 'Rekomendasi Pilihan Rumpun Studi Lanjutan') }}
+                    </h3>
+                </div>
+                <div class="p-5 space-y-4 text-xs">
+                    @if($analysis['school_type'] === 'SMK')
+                        @if(!empty($analysis['recommendations']['career_tracks']))
+                        <div class="divide-y divide-slate-200 border border-slate-200 rounded-lg">
+                            @foreach($analysis['recommendations']['career_tracks'] as $track)
+                            <div class="p-4 space-y-1">
+                                <p class="font-bold text-slate-900 text-sm">{{ $track['title'] }}</p>
+                                <p class="text-slate-600 leading-relaxed">{{ $track['description'] }}</p>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    @else
+                        @if(!empty($analysis['recommendations']['college_majors']))
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            @foreach($analysis['recommendations']['college_majors'] as $major)
+                            <div class="p-4 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5">
+                                <span class="inline-block px-2 py-0.5 rounded bg-sky-50 border border-sky-200 text-sky-900 font-bold text-[11px]">
+                                    {{ $major['cluster'] }}
+                                </span>
+                                <p class="font-bold text-slate-900 text-sm">{{ $major['major'] }}</p>
+                                <p class="text-[11px] text-emerald-700 font-semibold">Tingkat Kesesuaian: {{ $major['readiness'] }}</p>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    @endif
                 </div>
             </div>
-        </div>
-
-        {{-- Kolom Kanan: Panduan Orang Tua & Masa Depan --}}
-        <div class="lg:col-span-7 space-y-6">
-            
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-3">
-                <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-heart text-rose-500"></i> Mengenal Potensi Anak Anda
-                </h3>
-                <p class="text-xs text-gray-600 leading-relaxed">
-                    {{ $analysis['archetype']['description'] }}
-                </p>
-            </div>
-
-            {{-- Analisis Mendalam Personal (ClassAI) & Peta Mapel 360° --}}
-            @include('partials.student-dna-ai-panel', [
-                'analysis'   => $analysis,
-                'aiEndpoint' => route('orangtua.anak.dna.generate-ai', $student),
-                'viewerRole' => 'orangtua',
-            ])
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
-                <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-                    <i class="fas fa-graduation-cap text-indigo-600"></i> Rekomendasi Pilihan Masa Depan Anak
-                </h3>
-
-                @if($analysis['school_type'] === 'SMK')
-                    @if(isset($analysis['recommendations']['career_tracks']))
-                    <div class="space-y-3">
-                        <p class="text-xs font-bold text-gray-700">Peluang Karier Industri yang Sangat Sesuai:</p>
-                        @foreach($analysis['recommendations']['career_tracks'] as $track)
-                        <div class="p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-100 text-xs space-y-1">
-                            <p class="font-bold text-indigo-950">{{ $track['title'] }}</p>
-                            <p class="text-gray-600">{{ $track['description'] }}</p>
-                        </div>
-                        @endforeach
-                    </div>
-                    @endif
-                @else
-                    @if(isset($analysis['recommendations']['college_majors']))
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        @foreach($analysis['recommendations']['college_majors'] as $major)
-                        <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs">
-                            <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded font-bold text-[10px] uppercase">{{ $major['cluster'] }}</span>
-                            <p class="font-bold text-gray-900 mt-1">{{ $major['major'] }}</p>
-                            <p class="text-[10px] text-emerald-700 font-bold mt-0.5">Tingkat Kesesuaian: {{ $major['readiness'] }}</p>
-                        </div>
-                        @endforeach
-                    </div>
-                    @endif
-                @endif
-            </div>
-
-            <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 text-xs text-blue-950 space-y-2">
-                <p class="font-bold flex items-center gap-2">
-                    <i class="fas fa-lightbulb text-amber-500"></i> Tips Pendampingan untuk Orang Tua:
-                </p>
-                <p class="text-gray-600 leading-relaxed">
-                    Dukung keunggulan alami ananda dengan memberikan ruang eksplorasi pada bidang yang paling diminatinya. Jika ada sumbu yang masih berkembang, konsultasikan dengan wali kelas saat sesi penerimaan rapor.
-                </p>
-            </div>
-
-        </div>
-
+        </section>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('parentDnaChart').getContext('2d');
-    new Chart(ctx, {
+    const el = document.getElementById('parentDnaChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
         type: 'radar',
         data: {
             labels: [
                 'Logika',
                 'Komunikasi',
-                'Keahlian Vokasi',
+                'Teknis & Vokasi',
                 'Sosial',
                 'Kreativitas',
                 'Kedisiplinan'
@@ -192,12 +219,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     {{ $analysis['scores']['creative'] }},
                     {{ $analysis['scores']['discipline'] }}
                 ],
-                backgroundColor: 'rgba(147, 51, 234, 0.25)',
-                borderColor: 'rgba(147, 51, 234, 1)',
-                borderWidth: 2.5,
-                pointBackgroundColor: 'rgba(79, 70, 229, 1)',
-                pointBorderColor: '#fff',
-                pointRadius: 4
+                backgroundColor: 'rgba(2, 132, 199, 0.16)',
+                borderColor: '#0284c7',
+                borderWidth: 2,
+                pointBackgroundColor: '#0f172a',
+                pointBorderColor: '#ffffff',
+                pointRadius: 3.5
             }]
         },
         options: {
@@ -205,12 +232,12 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             scales: {
                 r: {
-                    angleLines: { color: 'rgba(0, 0, 0, 0.08)' },
-                    grid: { color: 'rgba(0, 0, 0, 0.08)' },
+                    angleLines: { color: '#e2e8f0' },
+                    grid: { color: '#e2e8f0' },
                     suggestedMin: 40,
                     suggestedMax: 100,
                     ticks: { display: false, stepSize: 20 },
-                    pointLabels: { font: { size: 10, weight: 'bold' }, color: '#334155' }
+                    pointLabels: { font: { size: 10, weight: '700' }, color: '#334155' }
                 }
             },
             plugins: { legend: { display: false } }
