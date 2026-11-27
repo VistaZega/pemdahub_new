@@ -13,9 +13,23 @@
     <style>
         body {
             font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
-            background-color: #eef2f6;
+            background-color: #e8eef5;
             color: #0f172a;
             -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image: url('{{ asset("images/simlab-building-bg.webp") }}?v=20261127f');
+            background-size: cover;
+            background-position: center 25%;
+            background-repeat: no-repeat;
+            opacity: 0.20;
+            filter: saturate(0.85) contrast(1.05);
         }
         .font-mono-lab { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
         [x-cloak] { display: none !important; }

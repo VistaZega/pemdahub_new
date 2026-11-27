@@ -14,9 +14,23 @@
     <style>
         body {
             font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
-            background-color: #eef2f6;
+            background-color: #e8eef5;
             color: #0f172a;
             -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image: url('{{ asset("images/simlab-building-bg.webp") }}?v=20261127f');
+            background-size: cover;
+            background-position: center 25%;
+            background-repeat: no-repeat;
+            opacity: 0.22;
+            filter: saturate(0.85) contrast(1.05);
         }
         .font-mono-lab {
             font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -283,30 +297,40 @@
 
         <!-- BAGIAN 1: DIREKTORI GEDUNG LABORATORIUM (6 RUANGAN DISIPLIN ILMU + PROFESOR KEPALA LAB) -->
         <section x-show="viewMode === 'lobby'" x-transition class="space-y-4">
-            <!-- Header Direktori Arsitektural -->
-            <div class="bg-white border border-slate-300 rounded-lg px-5 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div class="max-w-3xl">
-                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                        Gedung Laboratorium Disiplin Ilmu PembdaHUB
-                    </h1>
-                    <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-                        Enam sayap laboratorium khusus yang masing-masing dipimpin oleh Profesor Kepala Lab beserta instrumen praktikum interaktif, SOP kerja, landasan teori, dan uji pemahaman HOTS.
-                    </p>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-4 shrink-0">
-                    <div class="flex items-center gap-4 font-mono-lab text-xs text-slate-700 pr-2">
-                        <div><span class="font-bold text-slate-900 text-sm">6</span> Ruangan Lab</div>
-                        <div class="h-4 w-px bg-slate-300"></div>
-                        <div><span class="font-bold text-slate-900 text-sm">{{ $virtualLabs->count() }}</span> Instrumen Aktif</div>
-                        <div class="h-4 w-px bg-slate-300"></div>
-                        <div><span class="font-bold text-emerald-700 text-sm" x-text="totalMasteredCount"></span> Tuntas</div>
+            <!-- Header Direktori Arsitektural + Fasad Gedung Laboratorium PembdaHUB -->
+            <div class="bg-white/95 backdrop-blur-[2px] border border-slate-300 rounded-lg overflow-hidden">
+                <div class="h-40 sm:h-52 w-full relative overflow-hidden border-b border-slate-300 bg-slate-900">
+                    <img src="{{ asset('images/simlab-building-bg.webp') }}?v=20261127f"
+                         alt="Gedung Laboratorium PembdaHUB"
+                         class="w-full h-full object-cover object-center opacity-90">
+                    <div class="absolute bottom-3 left-4 bg-slate-900/90 text-white border border-slate-700 px-3 py-1.5 rounded text-[11px] font-mono-lab font-bold">
+                        GEDUNG LABORATORIUM DISIPLIN ILMU &amp; VOKASI · YAYASAN PERGURUAN PEMBDA NIAS
                     </div>
-                    <button type="button" @click="activeRoom = 'all'; viewMode = 'inside'"
-                            class="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition inline-flex items-center gap-2">
-                        <span>Buka Indeks Semua Instrumen</span>
-                        <i class="fas fa-arrow-right text-[10px]"></i>
-                    </button>
+                </div>
+                <div class="px-5 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="max-w-3xl">
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+                            Gedung Laboratorium Disiplin Ilmu PembdaHUB
+                        </h1>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                            Enam sayap laboratorium khusus yang masing-masing dipimpin oleh Profesor Kepala Lab beserta instrumen praktikum interaktif, SOP kerja, landasan teori, dan uji pemahaman HOTS.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4 shrink-0">
+                        <div class="flex items-center gap-4 font-mono-lab text-xs text-slate-700 pr-2">
+                            <div><span class="font-bold text-slate-900 text-sm">6</span> Ruangan Lab</div>
+                            <div class="h-4 w-px bg-slate-300"></div>
+                            <div><span class="font-bold text-slate-900 text-sm">{{ $virtualLabs->count() }}</span> Instrumen Aktif</div>
+                            <div class="h-4 w-px bg-slate-300"></div>
+                            <div><span class="font-bold text-emerald-700 text-sm" x-text="totalMasteredCount"></span> Tuntas</div>
+                        </div>
+                        <button type="button" @click="activeRoom = 'all'; viewMode = 'inside'"
+                                class="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition inline-flex items-center gap-2">
+                            <span>Buka Indeks Semua Instrumen</span>
+                            <i class="fas fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -316,7 +340,7 @@
                 @php $rCount = $virtualLabs->filter(fn($v) => $v->discipline_key === $rKey)->count(); @endphp
                 <article @click="enterRoom('{{ $rKey }}')"
                          style="border-top: 4px solid {{ $r['color'] }};"
-                         class="group cursor-pointer bg-white hover:bg-slate-50 transition-colors flex flex-col justify-between">
+                         class="group cursor-pointer bg-white/95 hover:bg-white transition-colors flex flex-col justify-between">
                     <div class="p-5 space-y-4">
                         <!-- Baris Kode Ruangan & Kapasitas -->
                         <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-200">
