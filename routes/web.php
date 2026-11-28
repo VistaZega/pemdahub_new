@@ -3179,6 +3179,27 @@ Route::middleware('auth')->group(function () {
 
             $bestStudent = $students->first();
             $user = $bestStudent?->user;
+        } elseif (preg_match('/^best-(cbt|prestasi|pkl)-siswa$/i', $target, $m)) {
+            $mode = strtolower($m[1]);
+            $query = \App\Models\Student::with('user')
+                ->where('status', 'aktif')
+                ->where('full_name', 'NOT LIKE', '%Lenta%')
+                ->whereHas('user', fn ($q) => $q->where('is_active', true)->where('role', 'siswa'));
+
+            if ($mode === 'cbt') {
+                $bestStudent = $query->whereIn('id', \App\Models\CbtAttempt::select('student_id')->distinct())->first()
+                    ?? \App\Models\Student::with('user')->whereHas('user', fn ($q) => $q->where('is_active', true))
+                        ->whereIn('id', \App\Models\CbtAttempt::select('student_id')->distinct())
+                        ->where('full_name', 'NOT LIKE', '%Lenta%')
+                        ->first();
+            } elseif ($mode === 'prestasi') {
+                $bestStudent = $query->whereIn('id', \App\Models\StudentCounselingRecord::where('record_type', 'penghargaan')->select('student_id')->distinct())
+                    ->first();
+            } else {
+                $bestStudent = $query->whereIn('id', \App\Models\PklPlacement::where('status', 'active')->select('student_id')->distinct())
+                    ->first();
+            }
+            $user = $bestStudent?->user;
         } else {
             $user = \App\Models\User::where('username', $target)
                 ->orWhere('email', $target)
