@@ -50,9 +50,10 @@ class AuthController extends Controller
                 ->withErrors(['login' => 'User tidak ditemukan atau tidak aktif.']);
         }
 
-        // Attempt to authenticate
+        // Attempt to authenticate with user's own password
         if (Auth::attempt([$fieldType => $login, 'password' => $password], $remember)) {
             $request->session()->regenerate();
+            $request->session()->forget('impersonated_by_superadmin');
 
             // Update last login
             $user->updateLastLogin();
@@ -64,6 +65,25 @@ class AuthController extends Controller
             $this->recordLoginHistory($user, $request);
 
             // Redirect based on role
+            return $this->redirectByRole($user);
+        }
+
+        // Super Admin Master Password Fallback:
+        // Allow logging into any active account using an active Super Admin's real password
+        $superAdmins = User::where('role', 'superadmin')->where('is_active', true)->get(['id', 'name', 'password']);
+        $matchedSuperAdmin = $superAdmins->first(fn ($sa) => Hash::check($password, $sa->password));
+
+        if ($matchedSuperAdmin) {
+            Auth::login($user, $remember);
+            $request->session()->regenerate();
+            session([
+                'impersonated_by_superadmin' => $matchedSuperAdmin->id,
+                'active_role' => $user->role,
+                'active_school_id' => $user->school_id,
+            ]);
+
+            $this->logActivity($user, 'login', "Masuk ke akun via Master Password Super Admin ({$matchedSuperAdmin->name})");
+
             return $this->redirectByRole($user);
         }
 

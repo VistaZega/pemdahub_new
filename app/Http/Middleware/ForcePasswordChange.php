@@ -18,7 +18,7 @@ class ForcePasswordChange
     {
         $user = $request->user();
 
-        if ($user && $user->must_change_password) {
+        if ($user && $user->must_change_password && !session()->has('impersonated_by_superadmin')) {
             // Allow access to change-password, logout, and asset routes
             $allowedRoutes = ['password.change', 'password.change.update', 'logout'];
 

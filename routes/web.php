@@ -3117,4 +3117,93 @@ Route::get('/@{username}', [App\Http\Controllers\Circle\CircleProfileController:
     ->where('username', '[A-Za-z0-9_.-]+')
     ->name('circle.profile');
 
+// =========================================================================
+// SUPER ADMIN IMPERSONATION & BEST SAMPLE SWITCHER (SMP / SMA / SMK)
+// =========================================================================
+Route::middleware('auth')->group(function () {
+    Route::get('/return-to-superadmin', function (\Illuminate\Http\Request $request) {
+        $saId = session('impersonated_by_superadmin');
+        if (!$saId && !auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Akses ditolak.');
+        }
+        $sa = \App\Models\User::find($saId ?: auth()->id());
+        if ($sa) {
+            \Illuminate\Support\Facades\Auth::login($sa);
+            $request->session()->forget('impersonated_by_superadmin');
+            session(['active_role' => 'superadmin']);
+        }
+        return redirect()->route('admin.users.index')->with('success', 'Kembali ke akun Super Admin.');
+    })->name('superadmin.return');
+
+    Route::get('/superadmin/switch-user/{target}', function (\Illuminate\Http\Request $request, string $target) {
+        $currentUser = auth()->user();
+        $saId = session('impersonated_by_superadmin', $currentUser?->isSuperAdmin() ? $currentUser->id : null);
+
+        if (!$saId) {
+            abort(403, 'Hanya Super Admin yang dapat menggunakan fitur ini.');
+        }
+
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $user = null;
+
+        if (preg_match('/^best-guru-(smp|sma|smk)$/i', $target, $m)) {
+            $unitType = strtoupper($m[1]);
+            $school = \App\Models\School::where('type', 'LIKE', "{$unitType}%")->first();
+            $teachers = \App\Models\Teacher::with('user')
+                ->where('is_active', true)
+                ->when($school, fn ($q) => $q->where('school_id', $school->id))
+                ->whereHas('user', fn ($q) => $q->where('is_active', true)->where('role', 'guru')->where('username', '!=', 'yulzega'))
+                ->withCount([
+                    'schedules' => fn ($q) => $q->when($activeYear, fn ($sq) => $sq->where('academic_year_id', $activeYear->id)),
+                    'teachingAssignments' => fn ($q) => $q->when($activeYear, fn ($sq) => $sq->where('academic_year_id', $activeYear->id)),
+                    'lmsCourses',
+                ])
+                ->get()
+                ->sortByDesc(fn ($t) => ($t->schedules_count * 3) + ($t->teaching_assignments_count * 4) + ($t->lms_courses_count * 5));
+
+            $bestTeacher = $teachers->first();
+            $user = $bestTeacher?->user;
+        } elseif (preg_match('/^best-siswa-(smp|sma|smk)$/i', $target, $m)) {
+            $unitType = strtoupper($m[1]);
+            $school = \App\Models\School::where('type', 'LIKE', "{$unitType}%")->first();
+            $students = \App\Models\Student::with('user')
+                ->where('status', 'aktif')
+                ->when($school, fn ($q) => $q->where('school_id', $school->id))
+                ->where('full_name', 'NOT LIKE', '%Lenta%')
+                ->whereHas('user', fn ($q) => $q->where('is_active', true)->where('role', 'siswa'))
+                ->withCount(['grades', 'attendances'])
+                ->orderByDesc('grades_count')
+                ->orderByDesc('attendances_count')
+                ->take(15)
+                ->get();
+
+            $bestStudent = $students->first();
+            $user = $bestStudent?->user;
+        } else {
+            $user = \App\Models\User::where('username', $target)
+                ->orWhere('email', $target)
+                ->orWhere('id', is_numeric($target) ? (int) $target : -1)
+                ->first();
+        }
+
+        if (!$user) {
+            return redirect()->back()->with('error', "User target '{$target}' tidak ditemukan.");
+        }
+
+        \Illuminate\Support\Facades\Auth::login($user);
+        session([
+            'impersonated_by_superadmin' => $saId,
+            'active_role' => $user->role,
+            'active_school_id' => $user->school_id,
+        ]);
+
+        return match ($user->role) {
+            'guru', 'pegawai' => redirect()->route('guru.dashboard')->with('success', "Masuk sebagai Guru: {$user->name}"),
+            'siswa' => redirect()->route('siswa.dashboard')->with('success', "Masuk sebagai Siswa: {$user->name}"),
+            default => redirect()->route('admin.dashboard'),
+        };
+    })->name('superadmin.switch-user');
+});
+
+
 

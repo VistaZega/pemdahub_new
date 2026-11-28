@@ -128,6 +128,14 @@
                     </td>
                     <td class="p-4">
                         <div class="flex items-center justify-center gap-2">
+                            @if(auth()->user()->isSuperAdmin() && auth()->id() !== $u->id)
+                            <form action="{{ route('admin.users.impersonate', $u) }}" method="POST" style="display:inline">
+                                @csrf
+                                <button type="submit" class="w-9 h-9 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg flex items-center justify-center transition transform hover:scale-110" title="Masuk Sebagai {{ $u->name }}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                                </button>
+                            </form>
+                            @endif
                             <a href="{{ route('admin.users.show', $u) }}" class="w-9 h-9 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition transform hover:scale-110" title="Lihat">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </a>

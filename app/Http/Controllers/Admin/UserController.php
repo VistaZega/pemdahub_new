@@ -172,6 +172,32 @@ class UserController extends Controller
         }
     }
 
+    public function impersonate(Request $request, User $user)
+    {
+        $currentUser = auth()->user();
+        if (!$currentUser || !$currentUser->isSuperAdmin()) {
+            abort(403, 'Hanya Super Admin yang dapat masuk sebagai user lain.');
+        }
+
+        $superAdminId = session('impersonated_by_superadmin', $currentUser->id);
+        \Illuminate\Support\Facades\Auth::login($user);
+        $request->session()->regenerate();
+        session([
+            'impersonated_by_superadmin' => $superAdminId,
+            'active_role' => $user->role,
+            'active_school_id' => $user->school_id,
+        ]);
+
+        return match ($user->role) {
+            'guru', 'pegawai' => redirect()->route('guru.dashboard')->with('success', "Berhasil masuk sebagai {$user->name}"),
+            'siswa' => redirect()->route('siswa.dashboard')->with('success', "Berhasil masuk sebagai {$user->name}"),
+            'orang_tua' => redirect()->route('orangtua.dashboard')->with('success', "Berhasil masuk sebagai {$user->name}"),
+            'bendahara' => redirect()->route('treasurer.dashboard')->with('success', "Berhasil masuk sebagai {$user->name}"),
+            'ketua_yayasan' => redirect()->route('yayasan.dashboard')->with('success', "Berhasil masuk sebagai {$user->name}"),
+            default => redirect()->route('admin.dashboard')->with('success', "Berhasil masuk sebagai {$user->name}"),
+        };
+    }
+
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);

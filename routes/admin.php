@@ -690,4 +690,5 @@ Route::prefix('admin')->name('admin.')->middleware('auth', 'role:superadmin,admi
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::get('users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPasswordForm'])->name('users.reset-password.form');
     Route::post('users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
+    Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
 });
